@@ -27,6 +27,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CoreCompany> CoreCompanies { get; set; }
 
+    public virtual DbSet<CoreMenuTab> CoreMenuTabs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AspNetRole>(entity =>
@@ -139,6 +141,24 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("TIN");
             entity.Property(e => e.Url).HasColumnName("URL");
             entity.Property(e => e.ZipCode).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<CoreMenuTab>(entity =>
+        {
+            entity.HasKey(e => e.AutoId);
+
+            entity.ToTable("Core_MenuTab");
+
+            entity.Property(e => e.ControllerName).HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.MenuId).HasMaxLength(50);
+            entity.Property(e => e.OrderBy).HasDefaultValue(1, "DF_Core_MenuTab2_OrderBy");
+            entity.Property(e => e.ParentId).HasMaxLength(100);
+            entity.Property(e => e.TableName).HasMaxLength(50);
+            entity.Property(e => e.Title)
+                .IsRequired()
+                .HasMaxLength(250);
+            entity.Property(e => e.ViewName).HasMaxLength(100);
         });
 
         OnModelCreatingPartial(modelBuilder);

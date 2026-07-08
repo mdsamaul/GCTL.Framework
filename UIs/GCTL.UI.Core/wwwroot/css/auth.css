@@ -1,0 +1,23 @@
+/* auth.css - Layout for login page with left side illustration */
+.auth-page-bg {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    padding: 0;
+}
+
+.auth-left {
+    flex: 1;
+    background: url('/login_left_image.png') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}

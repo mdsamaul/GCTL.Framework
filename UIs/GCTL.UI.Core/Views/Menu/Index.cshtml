@@ -1,0 +1,30 @@
+@model IEnumerable<GCTL.Core.ViewModels.Menu.MenuDto>
+@{
+    ViewData["Title"] = "Menu";
+    Layout = "_Layout";
+}
+
+<h2 class="mt-4" style="font-family: 'Inter', sans-serif; color: #2b2b2b;">Menu</h2>
+<ul class="list-group">
+@foreach (var item in Model)
+{
+    <li class="list-group-item d-flex align-items-center justify-content-between" style="background: rgba(255,255,255,0.8); backdrop-filter: blur(5px); border: none; margin-bottom: 0.5rem;">
+        <a asp-controller="@item.ControllerName" asp-action="@item.ViewName" class="text-decoration-none d-flex align-items-center" style="color: #333; font-weight: 500;">
+            @if (!string.IsNullOrWhiteSpace(item.Icon)) {
+                <i class="@item.Icon me-2"></i>
+            }
+            @item.Title
+        </a>
+        @if (item.Children != null && item.Children.Any()) {
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#children-@item.AutoId" aria-expanded="false" aria-controls="children-@item.AutoId">
+                <i class="bi bi-caret-down-fill"></i>
+            </button>
+        }
+    </li>
+    @if (item.Children != null && item.Children.Any()) {
+        <div class="collapse ms-4" id="children-@item.AutoId">
+            @await Html.PartialAsync("_MenuPartial", item.Children)
+        </div>
+    }
+}
+</ul>

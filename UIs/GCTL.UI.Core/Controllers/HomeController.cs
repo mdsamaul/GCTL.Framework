@@ -7,7 +7,7 @@ public class HomeController : BaseController
 {
     public IActionResult Index()
     {
-        return View();
+        return RedirectToAction("Index", "Dashboard");
     }
 
     [AllowAnonymous]
