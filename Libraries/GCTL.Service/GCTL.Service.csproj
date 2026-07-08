@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GCTL.Core\GCTL.Core.csproj" />
+    <ProjectReference Include="..\GCTL.Data\GCTL.Data.csproj" />
+  </ItemGroup>
+
+  <!--
+    Put one folder per module here, matching your original structure, e.g.:
+      GCTL.Service/AdmissionTypes/IAdmissionTypeService.cs
+      GCTL.Service/AdmissionTypes/AdmissionTypeService.cs
+      GCTL.Service/Employees/IEmployeeService.cs
+      GCTL.Service/Employees/EmployeeService.cs
+    Each *Service class inherits AppService<TEntity> (in GCTL.Core.Data)
+    and implements its own I*Service interface, exactly like your original
+    AdmissionTypeService did. A sample module (AdmissionTypes) is included
+    as a working template - copy its shape for every other module.
+  -->
+
+</Project>

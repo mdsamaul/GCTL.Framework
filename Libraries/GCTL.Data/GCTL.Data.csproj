@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core 10: DateOnly/TimeOnly are natively supported now,
+         so the old ErikEJ.EntityFrameworkCore.SqlServer.DateOnlyTimeOnly
+         shim package is no longer needed - removed. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+
+    <!-- ASP.NET Core Identity backed by EF Core -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+
+    <!-- Dapper for stored-procedure-heavy reports, matching your existing pattern -->
+    <PackageReference Include="Dapper" Version="2.1.66" />
+  </ItemGroup>
+
+  <!-- NOTE: EF Power Tools is a Visual Studio extension (install it from
+       Extensions > Manage Extensions, search "EF Core Power Tools" by
+       Erik Ejlskov Jensen). It does NOT need a NuGet package reference here.
+       It uses the Microsoft.EntityFrameworkCore.SqlServer + Design packages
+       above (already referenced) to reverse-engineer your database. -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\GCTL.Core\GCTL.Core.csproj" />
+  </ItemGroup>
+
+</Project>

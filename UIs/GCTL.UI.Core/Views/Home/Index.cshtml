@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="py-4">
+    <h1 class="display-6">Welcome, @User.Identity?.Name</h1>
+    <p class="text-muted">
+        This is a protected page — you can only see it after signing in.
+        Replace this with your real HRM dashboard once your reverse-engineered
+        entities and controllers are in place.
+    </p>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Next steps</h5>
+            <ol class="mb-0">
+                <li>Run EF Core Power Tools against your SQL Server to scaffold your real tables into <code>GCTL.Data/Entities</code>.</li>
+                <li>Delete the placeholder <code>GctlHrmContext.cs</code> and let Power Tools generate the real one.</li>
+                <li>Add your Controllers/Views/Services for each HRM module, following this project's structure.</li>
+            </ol>
+        </div>
+    </div>
+</div>
