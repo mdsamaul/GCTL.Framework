@@ -48,6 +48,11 @@ namespace GCTL.Framework.Extensions
             // Generic repository registration (kept from original Program.cs).
             services.AddScoped(typeof(GCTL.Core.Data.IRepository<>), typeof(GCTL.Data.Repositories.GenericRepository<>));
 
+            // Single-generic-argument repository (matches modules like
+            // OFRApprovalService that inject IGenericRepository<T> directly,
+            // e.g. IGenericRepository<CF_OperationalFundRequisitionEntry>).
+            services.AddScoped(typeof(GCTL.Core.Data.IGenericRepository<>), typeof(GCTL.Data.Repositories.GcGenericRepository<>));
+
             // Dashboard service example – retained from original registration.
             services.AddScoped<GCTL.Service.Dashboard.IDashboardService, GCTL.Service.Dashboard.DashboardService>();
 

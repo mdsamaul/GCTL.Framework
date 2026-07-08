@@ -1,28 +1,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GCTL.Core.Data;
 using GCTL.Data.Models;
 using GCTL.Core.ViewModels.Menu;
-using GCTL.Data.Context;
-using Microsoft.EntityFrameworkCore;
 
 namespace GCTL.Service.Menu;
 
 public class MenuService : IMenuService
 {
-    private readonly GctlHrmContext _context;
+    private readonly IRepository<CoreMenuTab> _menuRepository;
 
-    public MenuService(GctlHrmContext context)
+    public MenuService(IRepository<CoreMenuTab> menuRepository)
     {
-        _context = context;
+        _menuRepository = menuRepository;
     }
 
     public async Task<List<MenuDto>> GetMenuTreeAsync()
     {
-        var menuTabs = await _context.CoreMenuTabs
-            .AsNoTracking()
+        var menuTabs = (await _menuRepository.GetAllAsync())
             .OrderBy(m => m.OrderBy)
-            .ToListAsync();
+            .ToList();
 
         // Build a lookup dictionary by MenuId
         var lookup = menuTabs.ToDictionary(m => m.MenuId, m => new MenuDto
