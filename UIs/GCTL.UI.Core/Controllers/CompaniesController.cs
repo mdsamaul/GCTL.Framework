@@ -79,7 +79,7 @@ namespace GCTL.UI.Core.Controllers
                         if (hasPermission)
                         {
                             CoreCompany company = companyService.GetCompany(model.CompanyCode) ?? new CoreCompany();
-                            model.ToAudit(LoginInfo, HttpContext, model.Id > 0);
+                            model.ToAudit(LoginInfo, model.Id > 0);
                             mapper.Map(model, company);
                             companyService.SaveCompany(company);
                             return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = model.CompanyCode });
@@ -97,8 +97,7 @@ namespace GCTL.UI.Core.Controllers
                         if (hasPermission)
                         {
                             CoreCompany company = companyService.GetCompany(model.CompanyCode) ?? new CoreCompany();
-                            //model.ToAudit(LoginInfo, model.Id > 0);
-                            model.ToAudit(LoginInfo, HttpContext, model.Id > 0);
+                            model.ToAudit(LoginInfo, model.Id > 0);
                             mapper.Map(model, company);
                             companyService.SaveCompany(company);
                             return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = model.CompanyCode });

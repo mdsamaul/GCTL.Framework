@@ -79,8 +79,13 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages(); // needed for Identity UI scaffolded pages
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Make HttpContext available to non-controller code via IHttpContextAccessor
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
+
+// Expose the DI service provider to the ServiceLocator for extension helpers.
+GCTL.UI.Core.Helpers.ServiceLocator.ServiceProvider = app.Services;
 
 // ---------------------------------------------------------------------
 // Seed default roles / admin user (development convenience)
