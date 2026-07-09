@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using GCTL.Data.Context;
 using GCTL.Service.Menu;
 using GCTL.Data.Models;
+using GCTL.Service.Companies;
+using GCTL.Service.Common;
+using GCTL.Service.DeleteHistories;
 
 namespace GCTL.Framework.Extensions
 {
@@ -58,6 +61,9 @@ namespace GCTL.Framework.Extensions
 
             // Menu service – now resolves because GctlHrmContext is registered.
             services.AddScoped<IMenuService, MenuService>();
+            services.AddScoped<ICompanyService, CompanyService>();
+            services.AddScoped<ICommonService, CommonService>();
+            services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
         }
     }
 }

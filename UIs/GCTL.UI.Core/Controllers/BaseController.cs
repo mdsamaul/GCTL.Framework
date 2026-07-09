@@ -55,6 +55,8 @@ public abstract class BaseController : Controller
         return UserManager.GetUserAsync(User).GetAwaiter().GetResult();
     }
 
+
+
     public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
     {
         // Auth redirect is handled by [Authorize] + cookie LoginPath now.

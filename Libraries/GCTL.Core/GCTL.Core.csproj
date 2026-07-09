@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <!-- PDF/report generation - modern, no RDLC / AspNetCore.Reporting dependency -->
+    <PackageReference Include="itext" Version="9.7.0" />
     <PackageReference Include="QuestPDF" Version="2025.7.0" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="NetBarcode" Version="1.7.0" />

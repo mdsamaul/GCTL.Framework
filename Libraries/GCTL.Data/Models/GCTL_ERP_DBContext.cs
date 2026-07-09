@@ -25,9 +25,15 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; }
 
+    public virtual DbSet<CoreAccessCode> CoreAccessCodes { get; set; }
+
     public virtual DbSet<CoreCompany> CoreCompanies { get; set; }
 
     public virtual DbSet<CoreMenuTab> CoreMenuTabs { get; set; }
+
+    public virtual DbSet<DeleteHistory> DeleteHistories { get; set; }
+
+    public virtual DbSet<HrmAtdCompanyWeekEnd> HrmAtdCompanyWeekEnds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,9 +109,26 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens).HasForeignKey(d => d.UserId);
         });
 
+        modelBuilder.Entity<CoreAccessCode>(entity =>
+        {
+            entity.HasKey(e => e.AccessId).HasName("PK__Core_Acc__4130D05F6FE386D9");
+
+            entity.ToTable("Core_AccessCode");
+
+            entity.Property(e => e.AccessCodeId).HasMaxLength(50);
+            entity.Property(e => e.ControllerName).HasMaxLength(100);
+            entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.MenuId).HasMaxLength(50);
+            entity.Property(e => e.MenuText).HasMaxLength(100);
+            entity.Property(e => e.OrderBy).HasDefaultValue(1, "DF_Core_AccessCode_OrderBy");
+            entity.Property(e => e.ParentId).HasMaxLength(100);
+            entity.Property(e => e.Title).HasMaxLength(250);
+            entity.Property(e => e.ViewName).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<CoreCompany>(entity =>
         {
-            entity.HasKey(e => e.CompanyCode).HasName("PK__Core_Com__11A0134A3FC28AA8");
+            entity.HasKey(e => e.CompanyCode).HasName("PK__Core_Com__11A0134A4B9B764B");
 
             entity.ToTable("Core_Company");
 
@@ -159,6 +182,64 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsRequired()
                 .HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<DeleteHistory>(entity =>
+        {
+            entity.HasKey(e => e.AutoId).HasName("PK__DeleteHi__6B2329055CA6EA80");
+
+            entity.ToTable("DeleteHistory");
+
+            entity.Property(e => e.CompanyCode).HasMaxLength(50);
+            entity.Property(e => e.Dhid)
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("DHID");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(90)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(150)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(90)
+                .HasColumnName("LUser");
+            entity.Property(e => e.TableName).HasMaxLength(255);
+            entity.Property(e => e.UserInfoEmployeeId)
+                .HasMaxLength(50)
+                .HasColumnName("UserInfoEmployeeID");
+        });
+
+        modelBuilder.Entity<HrmAtdCompanyWeekEnd>(entity =>
+        {
+            entity.HasKey(e => e.CompanyWeekEndCode).HasName("PK__HRM_ATD___319EAF56C366F996");
+
+            entity.ToTable("HRM_ATD_CompanyWeekEnd");
+
+            entity.Property(e => e.CompanyWeekEndCode).HasMaxLength(50);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.EffectiveDate).HasColumnType("datetime");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Weekend)
+                .IsRequired()
+                .HasMaxLength(250);
         });
 
         OnModelCreatingPartial(modelBuilder);

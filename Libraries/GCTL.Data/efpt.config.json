@@ -47,11 +47,23 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Core_AccessCode]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Core_Company]",
          "ObjectType": 0
       },
       {
          "Name": "[dbo].[Core_MenuTab]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DeleteHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_ATD_CompanyWeekEnd]",
          "ObjectType": 0
       }
    ],

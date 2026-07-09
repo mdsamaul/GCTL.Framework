@@ -69,8 +69,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Add your mapping profiles (e.g. EmployeeProfile : Profile) anywhere in
 // GCTL.UI.Core and they'll be picked up automatically.
 // ---------------------------------------------------------------------
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+//builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // ---------------------------------------------------------------------
 // MVC + Swagger
 // ---------------------------------------------------------------------

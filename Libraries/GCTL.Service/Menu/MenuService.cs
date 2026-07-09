@@ -22,21 +22,32 @@ public class MenuService : IMenuService
             .OrderBy(m => m.OrderBy)
             .ToList();
 
-        // Build a lookup dictionary by MenuId
-        var lookup = menuTabs.ToDictionary(m => m.MenuId, m => new MenuDto
-        {
-            AutoId = m.AutoId,
-            MenuId = m.MenuId,
-            Title = m.Title,
-            ParentId = m.ParentId,
-            OrderBy = m.OrderBy,
-            ControllerName = m.ControllerName,
-            ViewName = m.ViewName,
-            Icon = m.Icon,
-            IsActive = true,
-            TableName = m.TableName,
-            Children = new List<MenuDto>()
-        });
+        // Build a lookup dictionary keyed by MenuId. GroupBy + First (instead of
+        // ToDictionary) tolerates duplicate MenuId values in the CoreMenuTab
+        // table instead of throwing - the underlying issue is duplicate rows
+        // in your data (e.g. two rows with MenuId = "Department"), which is
+        // worth cleaning up in the database, but the app should not crash
+        // over it in the meantime.
+        var lookup = menuTabs
+            .GroupBy(m => m.MenuId)
+            .ToDictionary(g => g.Key, g =>
+            {
+                var m = g.First();
+                return new MenuDto
+                {
+                    AutoId = m.AutoId,
+                    MenuId = m.MenuId,
+                    Title = m.Title,
+                    ParentId = m.ParentId,
+                    OrderBy = m.OrderBy,
+                    ControllerName = m.ControllerName,
+                    ViewName = m.ViewName,
+                    Icon = m.Icon,
+                    IsActive = true,
+                    TableName = m.TableName,
+                    Children = new List<MenuDto>()
+                };
+            });
 
         // Assemble hierarchy
         var roots = new List<MenuDto>();
