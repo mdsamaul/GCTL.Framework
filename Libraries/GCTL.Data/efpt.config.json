@@ -65,6 +65,22 @@
       {
          "Name": "[dbo].[HRM_ATD_CompanyWeekEnd]",
          "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Nationality]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SupplierCategory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SupplierOrigin]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SupplierType]",
+         "ObjectType": 0
       }
    ],
    "UiHint": null,

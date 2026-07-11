@@ -35,6 +35,14 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<HrmAtdCompanyWeekEnd> HrmAtdCompanyWeekEnds { get; set; }
 
+    public virtual DbSet<HrmDefNationality> HrmDefNationalities { get; set; }
+
+    public virtual DbSet<InvDefSupplierCategory> InvDefSupplierCategories { get; set; }
+
+    public virtual DbSet<InvDefSupplierOrigin> InvDefSupplierOrigins { get; set; }
+
+    public virtual DbSet<InvDefSupplierType> InvDefSupplierTypes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AspNetRole>(entity =>
@@ -240,6 +248,125 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Weekend)
                 .IsRequired()
                 .HasMaxLength(250);
+        });
+
+        modelBuilder.Entity<HrmDefNationality>(entity =>
+        {
+            entity.HasKey(e => e.NationalityCode).HasName("PK__HRM_Def___1E433F0CB51C8E0D");
+
+            entity.ToTable("HRM_Def_Nationality");
+
+            entity.Property(e => e.NationalityCode).HasMaxLength(50);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Nationality)
+                .IsRequired()
+                .HasMaxLength(100)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<InvDefSupplierCategory>(entity =>
+        {
+            entity.HasKey(e => e.SupplierCategoryId).HasName("PK__Inv_Def___50E4495020A3E1C1");
+
+            entity.ToTable("Inv_Def_SupplierCategory");
+
+            entity.Property(e => e.SupplierCategoryId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SupplierCategoryID");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.SupplierCategory)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.SupplierCategoryCode).ValueGeneratedOnAdd();
+        });
+
+        modelBuilder.Entity<InvDefSupplierOrigin>(entity =>
+        {
+            entity.HasKey(e => e.SupplierOriginId).HasName("PK__Inv_Def___B904B42DDF63A2BA");
+
+            entity.ToTable("Inv_Def_SupplierOrigin");
+
+            entity.Property(e => e.SupplierOriginId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SupplierOriginID");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.SupplierOrigin)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
+        });
+
+        modelBuilder.Entity<InvDefSupplierType>(entity =>
+        {
+            entity.HasKey(e => e.SupplierTypeId).HasName("PK__Inv_Def___27DA8AF3C32FB6AB");
+
+            entity.ToTable("Inv_Def_SupplierType");
+
+            entity.Property(e => e.SupplierTypeId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SupplierTypeID");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.SupplierTypeCode).ValueGeneratedOnAdd();
+            entity.Property(e => e.SupplierTypeName)
+                .HasMaxLength(50)
+                .IsUnicode(false);
         });
 
         OnModelCreatingPartial(modelBuilder);

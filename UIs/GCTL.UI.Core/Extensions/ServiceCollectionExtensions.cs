@@ -1,12 +1,17 @@
+using GCTL.Data.Context;
+using GCTL.Data.Models;
+using GCTL.Service.Common;
+using GCTL.Service.Companies;
+using GCTL.Service.DeleteHistories;
+using GCTL.Service.HRMCompanyWeekEnds;
+using GCTL.Service.Menu;
+using GCTL.Service.Nationalitys;
+using GCTL.Service.SupplierCategory;
+using GCTL.Service.SupplierOrigin;
+using GCTL.Service.SupplierType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using GCTL.Data.Context;
-using GCTL.Service.Menu;
-using GCTL.Data.Models;
-using GCTL.Service.Companies;
-using GCTL.Service.Common;
-using GCTL.Service.DeleteHistories;
 
 namespace GCTL.Framework.Extensions
 {
@@ -64,6 +69,11 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICompanyService, CompanyService>();
             services.AddScoped<ICommonService, CommonService>();
             services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
+            services.AddScoped<IHRMCompanyWeekEndService, HRMCompanyWeekEndService>();
+            services.AddScoped<INationalitysService, NationalitysService>();
+            services.AddScoped<ISupplierCategoryService, SupplierCategoryService>();
+            services.AddScoped<ISupplierOriginService, SupplierOriginService>();
+            services.AddScoped<ISupplierTypeService, SupplierTypeService>();
         }
     }
 }
