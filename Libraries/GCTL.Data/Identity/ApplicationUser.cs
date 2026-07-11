@@ -24,6 +24,7 @@ public class ApplicationUser : IdentityUser
     /// your actual EmployeeId column after reverse engineering.
     /// </summary>
     public string? EmployeeId { get; set; }
+    //public string? CompanyCode { get; set; }
 
     public bool IsActive { get; set; } = true;
 }
