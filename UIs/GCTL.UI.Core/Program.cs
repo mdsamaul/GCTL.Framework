@@ -72,6 +72,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 //builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 // ---------------------------------------------------------------------
 // MVC + Swagger
 // ---------------------------------------------------------------------

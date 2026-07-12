@@ -1,12 +1,14 @@
+using GCTL.Data.Context;
+using GCTL.Data.Models;
+using GCTL.Service.Common;
+using GCTL.Service.Companies;
+using GCTL.Service.DeleteHistories;
+using GCTL.Service.Menu;
+using GCTL.Service.SepDocumentation;
+using GCTL.Service.Update;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using GCTL.Data.Context;
-using GCTL.Service.Menu;
-using GCTL.Data.Models;
-using GCTL.Service.Companies;
-using GCTL.Service.Common;
-using GCTL.Service.DeleteHistories;
 
 namespace GCTL.Framework.Extensions
 {
@@ -64,6 +66,8 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICompanyService, CompanyService>();
             services.AddScoped<ICommonService, CommonService>();
             services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
+            services.AddScoped<IJobService, JobService>();
+            services.AddScoped<ISepDocumentationService, SepDocumentationService>();
         }
     }
 }
