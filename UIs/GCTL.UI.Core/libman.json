@@ -1,0 +1,10 @@
+{
+  "version": "3.0",
+  "defaultProvider": "jsdelivr",
+  "libraries": [
+    {
+      "library": "jquery-ui@1.14.2",
+      "destination": "wwwroot/lib/jquery-ui/"
+    }
+  ]
+}

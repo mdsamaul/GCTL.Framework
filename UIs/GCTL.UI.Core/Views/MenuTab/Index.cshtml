@@ -1,0 +1,469 @@
+﻿@using GCTL.Core.ViewModels
+@{
+    ViewData["Title"] = "Index";
+}
+
+<style>
+    :root {
+        --nav-accent: #4f46e5;
+        --nav-accent-soft: #eef2ff;
+        --nav-surface: #ffffff;
+        --nav-border: #e9ecf2;
+        --nav-muted: #8a8f98;
+        --nav-radius: 0.75rem;
+    }
+
+    body {
+        background-color: #f6f7fb;
+    }
+
+    /* ---------- Layout shell ---------- */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+        .page-header h4 {
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin: 0;
+        }
+
+        .page-header .text-muted {
+            font-size: 0.875rem;
+        }
+
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 0.25rem;
+        font-size: 0.8125rem;
+    }
+
+    .card {
+        border: 1px solid var(--nav-border);
+        border-radius: var(--nav-radius);
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+
+    .card-header {
+        border-bottom: 1px solid var(--nav-border);
+        border-top-left-radius: var(--nav-radius) !important;
+        border-top-right-radius: var(--nav-radius) !important;
+        padding: 1rem 1.25rem;
+    }
+
+        .card-header h5 {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .section-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--nav-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    /* ---------- Buttons ---------- */
+    .btn-toolbar-group {
+        gap: 0.4rem;
+    }
+
+        .btn-toolbar-group .btn {
+            font-weight: 500;
+            font-size: 0.825rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 0.5rem !important;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+
+            .btn-toolbar-group .btn:not(:disabled):hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 6px rgba(16, 24, 40, 0.1);
+            }
+
+        .btn-toolbar-group .btn-primary {
+            background: var(--nav-accent);
+            border-color: var(--nav-accent);
+            box-shadow: 0 1px 2px rgba(79, 70, 229, 0.3);
+        }
+
+            .btn-toolbar-group .btn-primary:hover {
+                background: #4338ca;
+                border-color: #4338ca;
+            }
+
+        .btn-toolbar-group .btn-outline-danger {
+            --bs-btn-color: #dc2626;
+            --bs-btn-border-color: #f3d0d0;
+            --bs-btn-hover-bg: #dc2626;
+            --bs-btn-hover-border-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .btn-toolbar-group .btn-outline-secondary {
+            --bs-btn-color: #4b5563;
+            --bs-btn-border-color: var(--nav-border);
+            --bs-btn-hover-bg: #4b5563;
+            --bs-btn-hover-border-color: #4b5563;
+            background: #fafbfc;
+        }
+
+        .btn-toolbar-group .btn-outline-dark {
+            --bs-btn-color: #1f2937;
+            --bs-btn-border-color: var(--nav-border);
+            --bs-btn-hover-bg: #1f2937;
+            --bs-btn-hover-border-color: #1f2937;
+            background: #fafbfc;
+        }
+
+        .btn-toolbar-group .btn:disabled {
+            opacity: 0.5;
+        }
+
+    /* ---------- Form fields ---------- */
+    .form-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #3a3f4a;
+    }
+
+    .form-control, .form-select {
+        border-radius: 0.5rem;
+        border-color: var(--nav-border);
+        font-size: 0.9rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--nav-accent);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+        }
+
+        .form-control[readonly] {
+            background-color: #f8f9fc;
+            color: var(--nav-muted);
+        }
+
+    .node-toggle-card {
+        border: 1px solid var(--nav-border);
+        border-radius: 0.6rem;
+        padding: 0.75rem 0.9rem;
+        background: #fbfbfd;
+        height: 100%;
+    }
+
+        .node-toggle-card .form-check.form-switch {
+            margin-bottom: 0;
+            padding-left: 2.5em;
+        }
+
+        .node-toggle-card .form-select {
+            margin-top: 0.6rem;
+        }
+
+    /* ---------- Table ---------- */
+    .table-wrapper {
+        border: 1px solid var(--nav-border);
+        border-radius: var(--nav-radius);
+        overflow: hidden;
+        background: var(--nav-surface);
+    }
+
+    #menuTable {
+        margin-bottom: 0;
+    }
+
+        #menuTable thead th {
+            background: #fafbfc;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--nav-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--nav-border);
+            padding: 0.75rem 0.9rem;
+            white-space: nowrap;
+        }
+
+        #menuTable tbody td {
+            padding: 0.65rem 0.9rem;
+            vertical-align: middle;
+            font-size: 0.875rem;
+            border-color: var(--nav-border);
+        }
+
+    .menu-item {
+        position: relative;
+        transition: background-color 0.15s ease;
+    }
+
+        .menu-item:hover {
+            background-color: var(--nav-accent-soft);
+        }
+
+    .level-0 {
+        font-weight: 600;
+    }
+
+    .level-1 td:first-child {
+        padding-left: 2.25rem;
+        background: #fafbfd;
+    }
+
+    .level-2 td:first-child {
+        padding-left: 3.5rem;
+        background: #f5f6f9;
+    }
+
+    .level-3 td:first-child {
+        padding-left: 4.75rem;
+        background: #f0f1f5;
+    }
+
+    .drag-handle {
+        cursor: move;
+        color: #c2c6d0;
+    }
+
+    .menu-title-text {
+        cursor: pointer;
+    }
+
+        .menu-title-text:hover {
+            color: var(--nav-accent);
+            text-decoration: underline;
+        }
+
+    .toggle-icon {
+        cursor: pointer;
+        color: var(--nav-accent);
+        transition: transform 0.15s ease;
+    }
+
+    .status-badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.3em 0.6em;
+        border-radius: 999px;
+    }
+
+    .ui-sortable-helper {
+        background-color: var(--nav-accent-soft) !important;
+        border: 1px dashed var(--nav-accent);
+        box-shadow: 0 4px 10px rgba(16, 24, 40, 0.12);
+    }
+
+    .ui-state-highlight {
+        height: 40px;
+        border: 2px dashed var(--nav-accent);
+        background-color: var(--nav-accent-soft);
+        border-radius: 0.4rem;
+    }
+
+    /* ---------- Modal ---------- */
+    #editMenuModal .modal-content {
+        border: none;
+        border-radius: var(--nav-radius);
+    }
+
+    #editMenuModal .modal-header {
+        border-bottom: 1px solid var(--nav-border);
+    }
+
+    #editMenuModal .modal-footer {
+        border-top: 1px solid var(--nav-border);
+    }
+</style>
+
+<div class="container-fluid py-3">
+
+    <partial name="_PageHeader" model='new BaseViewModel { PageUrl = "/MenuTab", Breadcrumb = "AccessMenu" }' />
+    @* <!-- Breadcrumb + heading -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Navigation</li>
+        </ol>
+    </nav> *@
+
+    <div class="page-header">
+        <div>
+            <h4>Navigation Menu</h4>
+            <div class="text-muted">Manage menu hierarchy, ordering, and page access</div>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center bg-white">
+            <h5 class="mb-0"><i class="fas fa-diagram-project me-2 text-primary"></i>Menu Item Details</h5>
+            <div class="d-flex btn-toolbar-group">
+                <button id="submitCoreMenuTabBtn" type="button" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save
+                </button>
+                <button id="deleteSelectedBtn" type="button" class="btn btn-outline-danger" disabled>
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+                <button id="resetButton" type="button" class="btn btn-outline-secondary">
+                    <i class="fas fa-broom me-1"></i> Clear
+                </button>
+                <button id="saveOrderBtn" type="button" class="btn btn-outline-dark" disabled>
+                    <i class="fas fa-sort me-1"></i> Save Sort Order
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <form id="navigationForm">
+
+                <div class="section-label">Identifiers</div>
+                <div class="row g-3 mb-2">
+                    <div class="col-md-6">
+                        <label for="MenuCode" class="form-label">Menu Id</label>
+                        <input type="text" class="form-control" id="MenuCode" value="" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="OrderBy" class="form-label">Order</label>
+                        <input type="number" class="form-control" id="OrderBy" readonly>
+                    </div>
+                </div>
+
+                <input type="hidden" id="AutoId" value="0">
+
+                <div class="section-label mt-4">Menu Info</div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="Title" class="form-label">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="Title" placeholder="e.g. Dashboard" required>
+                        <div id="VaTitle" class="text-danger small mt-1"></div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="ControllerName" class="form-label">Controller <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ControllerName" placeholder="e.g. Home" required>
+                        <div id="VaControllerName" class="text-danger small mt-1"></div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="ViewName" class="form-label">Action</label>
+                        <input type="text" class="form-control" id="ViewName" placeholder="e.g. Index">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="TableName" class="form-label">Table</label>
+                        <input type="text" class="form-control" id="TableName">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="Icon" class="form-label">Icon</label>
+                        <input type="text" class="form-control" id="Icon" placeholder="fa fa-home">
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="IsActive" checked>
+                            <label class="form-check-label" for="IsActive">Is Active?</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-label mt-4">Hierarchy</div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="node-toggle-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="ParentToggle" class="form-label mb-0">Parent Node</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="ParentToggle" checked>
+                                </div>
+                            </div>
+                            <select id="ParentId" class="form-select form-select-sm">
+                                <option value="">Select Parent Node</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="node-toggle-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="ChildToggle" class="form-label mb-0">Child Node</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="ChildToggle" checked>
+                                </div>
+                            </div>
+                            <select id="ChildId" class="form-select form-select-sm">
+                                <option value="">Select Child Node</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="node-toggle-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <label for="GrandChildToggle" class="form-label mb-0">Grand Child Node</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="GrandChildToggle" checked>
+                                </div>
+                            </div>
+                            <select id="GChildId" class="form-select form-select-sm">
+                                <option value="">Select Grand Child Node</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Menu Tree Table -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="section-label mb-0"><i class="fas fa-list-tree me-1"></i> Menu Structure</div>
+        <div class="text-muted small"><i class="fas fa-arrows-up-down-left-right me-1"></i>Drag rows to reorder</div>
+    </div>
+
+    <div class="table-wrapper">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="menuTable">
+                <thead>
+                    <tr>
+                        <th>Menu</th>
+                        <th style="width: 90px;">Order</th>
+                        <th>Title</th>
+                        <th>Controller</th>
+                        <th>Action</th>
+                        <th style="width: 110px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="menuTableBody" class="sortable-table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-ui/dist/jquery-ui.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+
+	<script src="~/js/pages/coremenutab2.js"></script>
+
+
+}
