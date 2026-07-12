@@ -45,6 +45,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<DeleteHistory> DeleteHistories { get; set; }
 
+    public virtual DbSet<Holiday> Holidays { get; set; }
+
     public virtual DbSet<HrmAtdCompanyWeekEnd> HrmAtdCompanyWeekEnds { get; set; }
 
     public virtual DbSet<HrmDefNationality> HrmDefNationalities { get; set; }
@@ -442,6 +444,31 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.UserInfoEmployeeId)
                 .HasMaxLength(50)
                 .HasColumnName("UserInfoEmployeeID");
+        });
+
+        modelBuilder.Entity<Holiday>(entity =>
+        {
+            entity.HasKey(e => e.HolidayId).HasName("PK__Holidays__2D35D59A61CC9CA4");
+
+            entity.Property(e => e.HolidayId).HasColumnName("HolidayID");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DeletedAt).HasColumnType("datetime");
+            entity.Property(e => e.EndDate).HasColumnType("datetime");
+            entity.Property(e => e.HolidayDescription).HasMaxLength(200);
+            entity.Property(e => e.HolidayTitle).HasMaxLength(100);
+            entity.Property(e => e.Lip)
+                .HasMaxLength(20)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(30)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.OrganizationBranchId).HasColumnName("OrganizationBranchID");
+            entity.Property(e => e.OrganizationId).HasColumnName("OrganizationID");
+            entity.Property(e => e.StartDate).HasColumnType("datetime");
+            entity.Property(e => e.StatusId).HasColumnName("StatusID");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<HrmAtdCompanyWeekEnd>(entity =>

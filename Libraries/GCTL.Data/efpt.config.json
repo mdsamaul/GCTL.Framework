@@ -87,6 +87,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Holidays]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_ATD_CompanyWeekEnd]",
          "ObjectType": 0
       },

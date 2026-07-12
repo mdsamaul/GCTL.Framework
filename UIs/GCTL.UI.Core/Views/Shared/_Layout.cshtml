@@ -11,8 +11,14 @@
     @* <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.min.css"> *@
     <link rel="stylesheet" href="~/lib/datatables/css/dataTables.bootstrap5.min.css">
     @* <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> *@
+    <link href="~/js/layout/flatpickr/flatpickr.min.css" rel="stylesheet" />
     <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
     <link href="~/lib/toastr/css/toastr.min.css" rel="stylesheet" />
+    <link href="~/lib/custom-datepicker/custom-datepicker.css" rel="stylesheet" />
+    <link href="~/lib/custom-inline-timepicker/custom-inline-timepicker.css" rel="stylesheet" />
+    <link href="~/lib/custom-select-2/custom-select-2.css" rel="stylesheet" />
+    <link href="~/css/layout.css" rel="stylesheet" />
+    
 </head>
 <body>
     <div id="app-wrapper">
@@ -138,7 +144,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="~/js/layout/flatpickr/flatpickr.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
@@ -151,7 +157,20 @@ href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"/>
     <script src="~/js/pages/app.input.validation.js"></script>
 
     <script src="~/js/theme-toggle.js"></script>
-
+    <script src="~/js/layout/select2/js/custom-select-2.js"></script>
+    <script src="~/lib/custom-datepicker/custom-datepicker.js"></script>
+    <script src="~/lib/custom-inline-timepicker/custom-inline-timepicker.js"></script>
+    <script src="~/lib/custom-select-2/custom-select-2.js"></script>
+    <script>
+        window.config = {
+        config: {
+        phoenixIsRTL: false,
+        phoenixNavbarTopStyle: "default",
+        phoenixNavbarVerticalStyle: "default"
+        }
+        };
+    </script>
+    <script src="~/js/layout/layout.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
