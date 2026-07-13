@@ -391,6 +391,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Sales_Def_ShipmentStatusInfo]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Sales_DeliveryLocation]",
          "ObjectType": 0
       },

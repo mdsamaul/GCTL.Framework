@@ -57,7 +57,6 @@ public abstract class BaseController : Controller
     }
 
 
-
     public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
     {
         // Auth redirect is handled by [Authorize] + cookie LoginPath now.
@@ -71,10 +70,34 @@ public abstract class BaseController : Controller
             {
                 try
                 {
-                    var employeePhoto = GetEmployeePhotoBase64(LoginInfo.EmployeeId);
-                    if (!string.IsNullOrEmpty(employeePhoto))
+                    // Employee ID থেকে Company Code fetch করুন
+                    var employeeInfo = DbContext.HrmEmployees
+                        .AsNoTracking()
+                        .Where(e => e.EmployeeId == LoginInfo.EmployeeId)
+                        .Select(e => new
+                        {
+                            e.CompanyCode,
+                            PhotoBase64 = e.EmployeeId
+                        })
+                        .FirstOrDefault();
+
+                    if (employeeInfo != null)
                     {
-                        ViewBag.LoginUserPhoto = employeePhoto;
+                        // ApplicationUser-এ CompanyCode set করুন
+                        LoginInfo.CompanyCode = employeeInfo.CompanyCode;
+
+                        if (!string.IsNullOrEmpty(employeeInfo.PhotoBase64))
+                        {
+                            ViewBag.LoginUserPhoto = employeeInfo.PhotoBase64;
+                        }
+                    }
+                    else
+                    {
+                        var employeePhoto = GetEmployeePhotoBase64(LoginInfo.EmployeeId);
+                        if (!string.IsNullOrEmpty(employeePhoto))
+                        {
+                            ViewBag.LoginUserPhoto = employeePhoto;
+                        }
                     }
                 }
                 catch

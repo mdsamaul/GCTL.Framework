@@ -17,6 +17,7 @@ namespace GCTL.Core.ViewModels.Update
         public string DocsReceivedDate { get; set; }
         public string LcExpNo { get; set; }
         public decimal? LcValue { get; set; }
+        public DateTime? LcDate { get; set; }
         public string IpEpNo { get; set; }
         public string IpDate { get; set; }
         public string? ImporterId { get; set; }

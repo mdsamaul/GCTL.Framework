@@ -13,7 +13,7 @@ namespace GCTL.Core.ViewModels.Update
 
         [Required(ErrorMessage = "ETA Delivery Date is required")]
         [DataType(DataType.Date)]
-        public DateTime? ETADeliveryDate { get; set; }
+        public DateTime ETADeliveryDate { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime? ActualDeliveryDate { get; set; }
@@ -26,17 +26,19 @@ namespace GCTL.Core.ViewModels.Update
 
         [DataType(DataType.Date)]
         public DateTime? ETDDate { get; set; }
+        public DateTime? Date { get; set; }
+        public TimeOnly? Time { get; set; } 
 
         public string? ShedYardID { get; set; }
 
         public string? FreightChargeID { get; set; }
 
         [StringLength(500)]
-        public string ShipmentStatus { get; set; }
+        public string? ShipmentStatus { get; set; }
 
         [Required(ErrorMessage = "Job No is required")]
-        public string JobNo { get; set; }
-        public decimal AutoId { get; set; } = 0m;
+        public string? JobNo { get; set; }
+        public decimal? AutoId { get; set; } = 0m;
 
         
     }

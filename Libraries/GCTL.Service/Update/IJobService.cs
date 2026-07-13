@@ -20,5 +20,6 @@ namespace GCTL.Service.Update
         Task<SepPagedResult<JobStatusDto>> GetJobStatusesPagedAsync(int page,int pageSize,string? search,string? customerCode,DateTime? fromDate,DateTime? toDate);
         Task<JobDetailDto> GetJobTopDetailsAsync(string jobNo);
         Task<CommonReturnViewModel> UpdateJobs(ShipmentUpdateViewModel model, int? company);
+        Task<CommonReturnViewModel> DeleteJobs(List<decimal> ids);
     }
 }

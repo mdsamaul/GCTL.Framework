@@ -145,9 +145,9 @@
                             </td>
                             
                             <td class="ps-2 text-left">${job.shipmentMode}</td>
-                            <td class="text-center">${job.jobDate}</td>
+                            <td class="text-center">${job.jobDateFormatted}</td>
                             <td class="ps-2 text-left">${job.customerName}</td>
-                            <td class="text-center">${job.docReceivedDate || '-'}</td>
+                            <td class="text-center">${job.docReceivedDateFormatted || '-'}</td>
                            
                         </tr>`;
             });
@@ -251,7 +251,7 @@
     $(document).on('click', '.job-detail-link, .btn-view-job', function (e) {
         e.preventDefault();
         const jobId = $(this).data('id');
-
+        
         $.ajax({
             url: '/SepDocUpdate/GetJobDetail',
             type: 'GET',
@@ -408,54 +408,50 @@
     function renderStatusTable(data) {
         let rows = '';
         if (data.length === 0) {
-            rows = '<tr><td colspan="6" class="text-center">No records found</td></tr>';
+            rows = '<tr><td colspan="5" class="text-center">No records found</td></tr>';
         } else {
             data.forEach(s => {
-                const badgeClass = s.Status === "Success" ? "bg-success" :
-                    s.Status === "Warning" ? "bg-warning" :
-                        s.Status === "Danger" ? "bg-danger" : "bg-secondary";
-
                 rows += `<tr>
-                           <td class="text-center">
-                                <input type="checkbox"
-                                       class="form-check-input"
-                                       ${s.status === 'Approved' ? 'checked' : ''}
-                                        />
-                            </td>
-
-                            <td class="text-center">${s.jobUpdateCode}</td>
-                            <td class="ps-2">
-                                 <a href="#" class="job-no-link"
-                                 data-jobno="${s.jobNo}"
-                                  data-id="${s.id}" >
-                                    <strong>${s.jobNo}</strong>
-                                </a>
-
-                            </td>
-                            <td class="ps-2  ">${s.shipmentStatus}</td>
-                            <td class="text-center">${s.dateTime}</td>
-                            
-                        </tr>`;
+                       <td style="text-align: center;">
+                            <input type="checkbox" class="form-check-input job-checkbox" data-id="${s.id}" />
+                        </td>
+                        <td class="text-center">${s.jobUpdateCode}</td>
+                        <td class="ps-2">
+                             <a href="#" class="job-no-link" data-jobno="${s.jobNo}" data-id="${s.id}">
+                                <strong>${s.jobNo}</strong>
+                            </a>
+                        </td>
+                        <td class="ps-2">${s.shipmentStatus}</td>
+                        <td class="text-center">${s.dateTimeText}</td>
+                    </tr>`;
             });
         }
         $('#jobStatusTableBody').html(rows);
 
+        // Check All functionality
+        $('#checkAll').off('change').on('change', function () {
+            $('.job-checkbox').prop('checked', $(this).prop('checked'));
+        });
 
+        // Individual checkbox
+        $(document).off('change', '.job-checkbox').on('change', '.job-checkbox', function () {
+            const allChecked = $('.job-checkbox').length === $('.job-checkbox:checked').length;
+            $('#checkAll').prop('checked', allChecked);
+        });
+
+        // Job link click
         $('.job-no-link').off('click').on('click', function (e) {
             e.preventDefault();
             const jobNo = $(this).data('jobno');
             const id = $(this).data('id');
-
 
             $.ajax({
                 url: '/SepDocUpdate/GetJobDetails',
                 type: 'GET',
                 data: { jobNo: jobNo, id: id },
                 success: function (response) {
-
                     populateForm(response.jobTop)
                     populateBottomForm(response.jobBottom)
-
                     $('#isEditHidden').prop('checked', true);
                 },
                 error: function (xhr, status, error) {
@@ -463,9 +459,42 @@
                 }
             });
         });
-
     }
+    $('#deleteBtn').on('click', function (e) {
+        e.preventDefault();
 
+        const checkedIds = $('.job-checkbox:checked').map(function () {
+            return $(this).data('id');
+        }).get();
+
+        if (checkedIds.length === 0) {
+            toastr.warning('Please select at least one record to delete');
+            return;
+        }
+
+        if (confirm('Are you sure you want to delete ' + checkedIds.length + ' record(s)?')) {
+            $.ajax({
+                url: '/SepDocUpdate/DeleteJobs',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ ids: checkedIds }),
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message || 'Records deleted successfully');
+                        loadJobStatuses();
+                    } else {
+                        toastr.error(response.message || 'Error deleting records');
+                    }
+                },
+                error: function () {
+                    toastr.error('Error occurred while deleting records');
+                }
+            });
+        }
+    });
     function renderStatusPagination(totalPages) {
         let pagesHtml = '';
         for (let i = 1; i <= totalPages; i++) {
@@ -482,9 +511,9 @@
 
     //#region Submit
 
-    $('#saveShipmentBtn').on('click', function (e) {
+    $('#saveBtn').on('click', function (e) {
         e.preventDefault();
-
+        debugger
         var formData = $('#shipmentForm').serialize();
 
         $.ajax({
@@ -512,7 +541,7 @@
 
 });
 
-$('#clearShipmentBtn').on('click', function (e) {
+$('#clearBtn').on('click', function (e) {
     e.preventDefault();
     clearForm();
 });
@@ -574,7 +603,6 @@ function clearForm() {
 
 //#region Function to populate the form with data
 function populateBottomForm(data) {
-
     showDev(data);
 
     if (data.etaDeliveryDate) {
@@ -589,6 +617,13 @@ function populateBottomForm(data) {
     if (data.etdDate) {
         setDate('#etdDate', data.etdDate.split('T')[0]);
     }
+    if (data.date) {
+        setDate('#Date', data.date.split('T')[0]);
+    }
+    if (data.time) {
+        const formattedTime = formatTimeToAMPM(data.time);
+        setTime('#Time', formattedTime);
+    }
 
     if (data.placeOfLoadingID) {
         setSelect('#placeOfLoadingId', data.placeOfLoadingID);
@@ -601,7 +636,7 @@ function populateBottomForm(data) {
     }
 
     if (data.shipmentStatus) {
-        setField('#shipmentStatus', data.shipmentStatus);
+        setSelect('#ShipmentStatus', data.shipmentStatus);
     }
 
 
@@ -620,9 +655,71 @@ function populateBottomForm(data) {
         $('.create-modify-dateshow').addClass('d-none');
     }
 }
+function formatTimeToAMPM(timeString) {
+    // timeString format: "HH:mm:ss"
+    const [hour, minute, second] = timeString.split(':');
+    let hourNum = parseInt(hour);
+    const ampm = hourNum >= 12 ? 'PM' : 'AM';
+    hourNum = hourNum % 12;
+    if (hourNum === 0) hourNum = 12;
+
+    return `${String(hourNum).padStart(2, '0')}:${minute}:${second} ${ampm}`;
+}
+
+function updateShipmentTimeline(jobStatuses) {
+    // jobStatuses = array of status objects with status code and datetime
+
+    const statusMap = {
+        '01': '#status01-date',
+        '02': '#status02-date',
+        '03': '#status03-date',
+        '04': '#status04-date',
+        '05': '#status05-date',
+        '06': '#status06-date',
+        '07': '#status07-date'
+    };
+
+    // Clear all dates first
+    Object.values(statusMap).forEach(selector => {
+        $(selector).text('-');
+    });
+
+    // Update with actual data
+    jobStatuses.forEach(status => {
+        const selector = statusMap[status.code];
+        if (selector) {
+            const dateTime = formatDateTimeToDDMMYYYYHHMMSS(status.dateTime);
+            $(selector).text(dateTime);
+        }
+    });
+
+    // Update timeline item states
+    updateTimelineStates(jobStatuses);
+}
+
+function updateTimelineStates(jobStatuses) {
+    const timelineItems = $('.timeline-item');
+    let latestStatusCode = '00';
+
+    if (jobStatuses.length > 0) {
+        latestStatusCode = jobStatuses[jobStatuses.length - 1].code;
+    }
+
+    timelineItems.each(function (index) {
+        const statusCode = String(index + 1).padStart(2, '0');
+        const $item = $(this);
+
+        if (parseInt(statusCode) < parseInt(latestStatusCode)) {
+            $item.removeClass('active pending').addClass('completed');
+        } else if (statusCode === latestStatusCode) {
+            $item.removeClass('completed pending').addClass('active');
+        } else {
+            $item.removeClass('completed active').addClass('pending');
+        }
+    });
+}
 
 function populateForm(data) {
-
     showDev(data)
     setSelect('#shipmentModeId', data.shipmentModeId, true);
     $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false);
@@ -630,6 +727,7 @@ function populateForm(data) {
     setField('#customerAddress', data.updatedAt || '', true);
     setField('#jobNoHidden', data.jobNo || '', true);
     setDate('#jobDate', data.jobDate || '', true);
+    setDate('#lcDate', data.lcDate || '', true);
     setSelect('#customerId', data.customerId, true);
     setField('#customerDeliveryAddress', data.customerDeliveryAddress || '', true);
     setSelect('#portId', data.portId, true);
@@ -657,6 +755,7 @@ function populateForm(data) {
     setField('#quantity', data.quantity || '', true);
     setField('#weight', data.weight || '', true);
     setField('#vesselRottNo', data.vesselRottNo || '', true);
-    setField('#remarks', data.remarks || '', true);
+    setField('#read-remarks', data.remarks || '', true);
+    setField('#remarks', data.remarks || '', false);
 }
 //#endregion

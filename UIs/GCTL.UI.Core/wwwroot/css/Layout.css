@@ -196,3 +196,27 @@ select.form-control-sm:disabled {
 body, .btn, .form-control, table, th, td, h1, h2, h3, h4, h5, h6, p, span, label, input, select, textarea {
     font-family: 'Times New Roman', Times, serif !important;
 }
+
+/* Font Awesome icons must use proper font */
+i.fas, i.far, i.fal, i.fab {
+    font-family: 'Font Awesome 6 Free' !important;
+}
+
+i.fab {
+    font-family: 'Font Awesome 6 Brands' !important;
+}
+
+/* Fix Font Awesome icons with Blazor scoping */
+[b-himydvh1zw=""] i.fas::before,
+[b-himydvh1zw=""] i.far::before,
+[b-himydvh1zw=""] i.fal::before,
+[b-himydvh1zw=""] i.fab::before {
+    display: inline-block !important;
+    font-family: 'Font Awesome 6 Free' !important;
+    font-style: normal;
+    font-weight: 900 !important;
+}
+
+[b-himydvh1zw=""] i.fab::before {
+    font-family: 'Font Awesome 6 Brands' !important;
+}
