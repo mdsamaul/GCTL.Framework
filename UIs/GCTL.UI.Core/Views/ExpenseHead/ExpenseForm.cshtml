@@ -1,0 +1,183 @@
+﻿<style>
+
+    .select2-selection__placeholder {
+        font-size: 14px !important;
+    }
+
+    .form-floating .selectLabel {
+        font-size: 14px !important; 
+    }
+
+    .form-floating label {
+        text-transform: none; 
+        font-size: 13px; 
+    }
+
+    .saveBtn:hover {
+        color: darkgreen !important; 
+        background-color: lightgray !important; 
+    }
+
+    .deleteBtn:hover {
+        color: red !important; 
+        background-color: lightgray !important; 
+    }
+
+    .resetBtn:hover {
+        color: lightgoldenrodyellow !important; 
+        background-color: lightgray !important; 
+    }
+
+    .printBtn:hover {
+        color: blue !important; 
+        background-color: lightgray !important; 
+    }
+
+    .favBtn:hover {
+        color: orangered !important; 
+        background-color: lightgray !important; 
+    }
+
+    #button-div button {
+        padding: 8px 6px;
+        width: 75px;
+    }
+</style>
+
+<div class="card shadow-sm rounded-2">
+    <!-- Card Header -->
+    <div class="px-2 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
+            <div>
+                <h4 class="mb-0 heading-nowrap" style="font-size:14px">Expense Head</h4>
+            </div>
+            <div class="d-flex gap-1" id="button-div">
+                <button type="button" form="expenseForm" class="btn btn-sm btn-outline-primary saveBtn">
+                    <i class="fas fa-save me-1"></i> Save
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger deleteBtn" id="deleteBtn">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+                <button type="reset" class="btn btn-sm btn-outline-secondary resetBtn">
+                    <i class="fas fa-eraser me-1"></i> Clear
+                </button>
+
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
+                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
+                    </ul>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-outline-warning favBtn">
+                    <i class="fas fa-star me-1"></i> Fav
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body">
+        <form id="expenseForm">
+            <input type="hidden" id="tc" name="tc" />
+
+            <div class="row g-3">
+                <!-- Expense Head ID -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input readonly type="text" class="form-control" name="expenseHeadId" id="expenseHeadId" placeholder="Expense Head ID">
+                        <label for="expenseHeadId">Expense Head ID</label>
+                    </div>
+                </div>
+
+                <!-- Shipment Mode -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" name="expenseType" id="expenseType"></select>
+                        <label for="expenseType">Shipment Mode<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+                <!-- Is Receiptable -->
+                <div class="col-md-6">
+                    <div class="form-check mt-3">
+                        <input type="checkbox" class="form-check-input" name="isReceiptable" id="isReceiptable">
+                        <label for="isReceiptable" class="form-check-label ms-2">Is Receiptable Expense?</label>
+                    </div>
+                </div>
+
+                <!-- Expense Head Name -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="expenseHead" id="expenseHead" placeholder="Expense Head">
+                        <label for="expenseHead">Expense Head<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+                <!-- Short Name -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="shortName" id="shortName" placeholder="Short Name">
+                        <label for="shortName">Short Name</label>
+                    </div>
+                </div>
+
+                <!-- Amount -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" name="amount" id="amount" placeholder="Amount">
+                        <label for="amount">Amount</label>
+                    </div>
+                </div>
+
+                <!-- Serial No -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="serialNo" id="serialNo" placeholder="Serial No">
+                        <label for="serialNo">Serial No<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+                <!-- Service Provided By -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" name="serviceProvider" id="serviceProvider"></select>
+                        <label for="serviceProvider">Service Provided By<span style="color:red">*</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Creation & Modify Date -->
+            <div class="row g-3 mt-3">
+                <div class="col-md-6" id="lDateContainer" style="display:none;">
+                    <label class="form-label fw-bold text-muted small">Creation Date</label>
+                    <div id="displayLDate" class="bg-white p-3 border rounded-3"></div>
+                </div>
+                <div class="col-md-6" id="modifyDateContainer" style="display:none;">
+                    <label class="form-label fw-bold text-muted small">Modify Date</label>
+                    <div id="displayModifyDate" class="bg-white p-3 border rounded-3"></div>
+                </div>
+            </div>
+
+            <!-- Bottom Save Button -->
+            <div class="row mt-4">
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-outline-primary btn-sm saveBtn">
+                        <i class="fas fa-save me-1"></i> Save
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+

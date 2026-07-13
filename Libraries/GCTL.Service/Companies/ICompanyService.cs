@@ -1,6 +1,7 @@
-﻿using GCTL.Core.ViewModels.Companies;
+﻿using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.Companies;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
-using GCTL.Core.ViewModels.Common;
 
 namespace GCTL.Service.Companies
 {
@@ -9,7 +10,8 @@ namespace GCTL.Service.Companies
         List<CoreCompany> GetCompanies();
         CoreCompany GetCompany(string code);
         CompanyModel GetCompanyByCode(string code);
-        bool DeleteCompany(string id);    
+        Task<(bool success, bool refSuccess, string message)> DeleteCompany(List<string> ids, DeleteHistoryViewModel model);
+        // bool DeleteCompany(string id);    
         CoreCompany SaveCompany(CoreCompany entity);
         bool IsCompanyExistByCode(string code);
         bool IsCompanyExist(string name);

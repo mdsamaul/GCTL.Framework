@@ -1,0 +1,156 @@
+﻿<style>
+    .form-floating .selectLabel {
+        font-size: 14px !important; /* Use a larger value and !important if necessary */
+    }
+
+    .form-floating label {
+        text-transform: none; /* Keeps the original casing */
+        font-size: 13px; /* Adjust the font size as needed */
+    }
+
+    .saveBtn:hover {
+        color: darkgreen !important; /* or any color you want */
+        background-color: lightgray !important; /* optional: blue background */
+    }
+
+    .deleteBtn:hover {
+        color: red !important; /* or any color you want */
+        background-color: lightgray !important; /* optional: blue background */
+    }
+
+    .resetBtn:hover {
+        color: lightgoldenrodyellow !important; /* or any color you want */
+        background-color: lightgray !important; /* optional: blue background */
+    }
+
+    .printBtn:hover {
+        color: blue !important; /* or any color you want */
+        background-color: lightgray !important; /* optional: blue background */
+    }
+
+    .favBtn:hover {
+        color: orangered !important; /* or any color you want */
+        background-color: lightgray !important; /* optional: blue background */
+    }
+
+    #button-div button {
+        padding: 8px 6px;
+        width: 80px;
+    }
+</style>
+
+<div class="card shadow-sm rounded-2">
+
+    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
+            <div>
+                <h4 class="mb-0 heading-nowrap " style="font-size:16px">Curency Type </h4>
+            </div>
+
+            <div class="d-flex gap-1" id="button-div">
+                <button type="submit" form="currencyForm" class="btn btn-sm btn-outline-primary saveBtn" id="saveBtn">
+                    <i class="fas fa-save me-1"></i> Save
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger deleteBtn" id="deleteBtn">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+                <button type="reset" class="btn btn-sm btn-outline-secondary resetBtn">
+                    <i class="fas fa-eraser me-1"></i> Clear
+                </button>
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
+                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-warning favBtn">
+                    <i class="fas fa-star me-1"></i> Fav
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <form id="currencyForm">
+            <input type="hidden" id="tcID" name="tcID" />
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input readonly type="text" class="form-control" name="currencyID" id="currencyID" placeholder="Currency ID">
+                        <label for="currencyID">Currency ID</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="currencyName" id="currencyName" placeholder="Enter Currency Name">
+                        <label for="currencyName">Currency Name<span style="color: red;">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="currencyShortName" id="currencyShortName" placeholder="Enter Short Name">
+                        <label for="currencyShortName">Short Name</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="currencySymbol" id="currencySymbol" placeholder="Enter Symbol">
+                        <label for="currencySymbol">Symbol</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="form-floating flex-grow-1 col-4">
+                            <input type="number" class="form-control" name="decimalPlaces" id="decimalPlaces" placeholder="Enter Decimal Places" min="0" max="5">
+                            <label for="decimalPlaces" style="font-size:12px">Decimal Places(0-3)</label>
+                        </div>
+                        <div class="form-floating flex-grow-1 col-2">
+                            <input type="text" id="showFormat" class="form-control" readonly >
+                            <label for="decimalPlaces">Example</label>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="negativeFormat" id="negativeFormat" placeholder="Enter Negative Format">
+                        <label for="negativeFormat">Negative Format</label>
+                    </div>
+                </div>
+
+            </div>
+            <!-- Creation/Modify Date Display -->
+            <div class="row g-3 mt-2">
+                <div class="col-md-6" id="lDateContainer" style="display: none;">
+                    <label class="form-label fw-bold text-muted small">Creation Date</label>
+                    <div id="displayLDate" class="bg-white p-3 border rounded-3"></div>
+                </div>
+                <div class="col-md-6" id="modifyDateContainer" style="display: none;">
+                    <label class="form-label fw-bold text-muted small">Modify Date</label>
+                    <div id="displayModifyDate" class="bg-white p-3 border rounded-3"></div>
+                </div>
+            </div>
+            <!-- Save Button (Bottom) -->
+            <div class="row mt-4">
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-outline-primary btn-sm saveBtn">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </div>
+
+           
+        </form>
+    </div>
+</div>
+
+
