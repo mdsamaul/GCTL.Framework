@@ -2,8 +2,25 @@
 {
     public class ToobarModel
     {
-        public string Title { get; set; }
-        public string Code { get; set; }
-        public string Name { get; set; }
+        public string Title { get; set; } = "";
+
+        public bool ShowSave { get; set; } = true;
+        public bool ShowDelete { get; set; } = true;
+        public bool ShowClear { get; set; } = true;
+        public bool ShowPrint { get; set; } = true;
+        public bool ShowFavorite { get; set; } = true;
+
+        public bool EnableSave { get; set; } = true;
+        public bool EnableDelete { get; set; } = true;
+        public bool EnableClear { get; set; } = true;
+        public bool EnablePrint { get; set; } = true;
+        public bool EnableFavorite { get; set; } = true;
+
+        public string SaveBtnId { get; set; } = "saveBtn";
+        public string DeleteBtnId { get; set; } = "deleteBtn";
+        public string ClearBtnId { get; set; } = "clearBtn";
+        public string PrintBtnId { get; set; } = "printBtn";
+        public string FavtBtnId { get; set; } = "favtBtn";
+        public bool IsPlain { get; set; } = false;
     }
 }

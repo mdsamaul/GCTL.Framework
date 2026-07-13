@@ -15,7 +15,7 @@
 
 .caiCon {
     position: relative;
-/*    padding-right: 30px !important;*/
+    /*    padding-right: 30px !important;*/
     background-image: url('/img/icons/calender.svg');
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -25,7 +25,12 @@
 
 .blink {
     animation: blinker 1.5s linear infinite;
-   
+}
+
+.sticky-bar {
+    position: sticky;
+    top: 0px;
+    z-index: 20;
 }
 
 @keyframes blinker {
@@ -33,6 +38,7 @@
         opacity: 0;
     }
 }
+
 input.form-control:disabled,
 input.form-control[readonly],
 input.form-control-sm:disabled,
@@ -82,4 +88,111 @@ select.form-control-sm:disabled {
     50% {
         opacity: 0;
     }
+}
+
+
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: #fff;
+    transition: all 0.15s ease;
+}
+
+    .toolbar-btn i {
+        font-size: 0.8rem;
+    }
+
+.toolbar-btn-save {
+    color: #2563eb;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+    .toolbar-btn-save:hover {
+        background: #dbeafe;
+    }
+
+.toolbar-btn-delete {
+    color: #dc2626;
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+    .toolbar-btn-delete:hover {
+        background: #fee2e2;
+    }
+
+.toolbar-btn-clear {
+    color: #374151;
+    border-color: #e5e7eb;
+    background: #f9fafb;
+}
+
+    .toolbar-btn-clear:hover {
+        background: #f3f4f6;
+    }
+
+.toolbar-btn-print {
+    color: #1e293b;
+    background: #eef2f7;
+    border-color: #dbe2ea;
+}
+
+    .toolbar-btn-print:hover,
+    .toolbar-btn-print:focus {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .toolbar-btn-print.dropdown-toggle::after {
+        margin-left: 4px;
+    }
+
+.toolbar-btn-fav {
+    color: #d97706;
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+    .toolbar-btn-fav:hover {
+        background: #fef3c7;
+    }
+
+.toolbar-print-menu {
+    min-width: 130px;
+    border-radius: 8px;
+    padding: 6px;
+    border: 1px solid #eef1f4;
+}
+
+    .toolbar-print-menu .dropdown-item {
+        font-size: 0.85rem;
+        border-radius: 6px;
+        padding: 6px 10px;
+    }
+
+        .toolbar-print-menu .dropdown-item:hover {
+            background: #f3f4f6;
+        }
+
+.sticky-bar {
+    position: sticky;
+    top: 0px;
+    z-index: 20;
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+body, .btn, .form-control, table, th, td, h1, h2, h3, h4, h5, h6, p, span, label, input, select, textarea {
+    font-family: 'Times New Roman', Times, serif !important;
 }
