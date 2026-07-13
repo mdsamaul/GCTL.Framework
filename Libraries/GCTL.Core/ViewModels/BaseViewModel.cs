@@ -16,7 +16,8 @@ namespace GCTL.Core.ViewModels
 
         // Audit
         public string? Luser { get; set; }
-       // public string EmployeeId { get; set; }
+        public string? UserCompany { get; set; }
+        // public string EmployeeId { get; set; }
         public string? UserInfoEmployeeId { get; set; }
         public DateTime? Ldate { get; set; }
         public string? Lip { get; set; }

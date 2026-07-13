@@ -5,8 +5,12 @@ using GCTL.Service.Companies;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.Menu;
+
+using GCTL.Service.MenuTab;
+
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.Update;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,9 +71,14 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICompanyService, CompanyService>();
             services.AddScoped<ICommonService, CommonService>();
             services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
+
+            services.AddScoped<IMenuTabService, MenuTabService>();
+
             services.AddScoped<IJobService, JobService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
+
             services.AddScoped<IholidayListService, HolidayListService>();
+
         }
     }
 }
