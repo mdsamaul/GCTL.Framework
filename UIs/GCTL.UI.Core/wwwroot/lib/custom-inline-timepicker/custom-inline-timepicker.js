@@ -416,6 +416,40 @@
         var $arrows = $calendar.find('.arrowUp, .arrowDown');
         $arrows.css('pointer-events', disabled ? 'none' : 'auto');
     };
+    window.setTime = function (selector, value, disabled = false) {
+        var $el = $(selector);
+        var instance = $el.data('custom-instance');
+
+        if (!instance) {
+            $el.val(value || '');
+            $el.prop('disabled', !!disabled);
+            return;
+        }
+
+        // Time value set করুন
+        if (!value) {
+            instance.clear();
+        } else {
+            instance.setValue(value);
+        }
+
+        // Disabled state set করুন
+        instance.$el.prop('disabled', !!disabled);
+
+        var $calendar = $(instance._fpInstance.calendarContainer);
+        $calendar.toggleClass('custom-time-disabled', !!disabled);
+
+        var $inputs = $calendar.find('.flatpickr-hour, .flatpickr-minute, .flatpickr-second, .flatpickr-am-pm');
+        $inputs.prop('disabled', !!disabled);
+        $inputs.css('pointer-events', disabled ? 'none' : 'auto');
+
+        var $arrows = $calendar.find('.arrowUp, .arrowDown');
+        $arrows.css('pointer-events', disabled ? 'none' : 'auto');
+
+        if (disabled) {
+            instance._fpInstance.close();
+        }
+    };
     // AJAX diye partial view load howar por: customTimePicker.refresh('#container');
     window.customTimePicker = customTimePicker;
     window.customTimePicker.refresh = function (scope) {

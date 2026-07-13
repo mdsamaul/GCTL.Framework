@@ -157,18 +157,22 @@ namespace GCTL.Service.Update
                         JobDate = d.Date,
                         DocReceivedDate = d.DocReceivedDate,
 
-                        // dd/MM/yyyy built with translatable string ops only (no PadLeft)
-                        JobDateFormatted = d.Date != null ?
+                        // dd/MM/yyyy formatted
+                        JobDateFormatted = d.Date.HasValue ?
                             (d.Date.Value.Day < 10 ? "0" + d.Date.Value.Day.ToString() : d.Date.Value.Day.ToString()) + "/" +
                             (d.Date.Value.Month < 10 ? "0" + d.Date.Value.Month.ToString() : d.Date.Value.Month.ToString()) + "/" +
                             d.Date.Value.Year.ToString()
                             : "",
 
-                        DocReceivedDateFormatted = d.DocReceivedDate != null ?
+                        DocReceivedDateFormatted = d.DocReceivedDate.HasValue ?
                             (d.DocReceivedDate.Value.Day < 10 ? "0" + d.DocReceivedDate.Value.Day.ToString() : d.DocReceivedDate.Value.Day.ToString()) + "/" +
                             (d.DocReceivedDate.Value.Month < 10 ? "0" + d.DocReceivedDate.Value.Month.ToString() : d.DocReceivedDate.Value.Month.ToString()) + "/" +
                             d.DocReceivedDate.Value.Year.ToString()
-                            : ""
+                            : "",
+
+                        // Text format for display
+                        JobDateText = d.Date.HasValue ? d.Date.Value.ToString("dd/MM/yyyy") : "",
+                        DocReceivedDateText = d.DocReceivedDate.HasValue ? d.DocReceivedDate.Value.ToString("dd/MM/yyyy") : ""
                     };
 
                 var totalCount = await query.CountAsync();
@@ -188,9 +192,6 @@ namespace GCTL.Service.Update
                     query = query.Where(x => x.JobDate < endDate);
                 }
 
-                //----------------------------------------
-                // Global Search (text + partial/full dd/MM/yyyy date)
-                //----------------------------------------
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     search = search.Trim();
@@ -213,12 +214,6 @@ namespace GCTL.Service.Update
                     .Take(pageSize)
                     .ToListAsync();
 
-                foreach (var item in data)
-                {
-                    item.JobDateText = item.JobDate?.ToString("dd/MM/yyyy") ?? "";
-                    item.DocReceivedDateText = item.DocReceivedDate?.ToString("dd/MM/yyyy") ?? "";
-                }
-
                 return new SepPagedResult<JobDto>
                 {
                     Data = data,
@@ -236,7 +231,6 @@ namespace GCTL.Service.Update
                 };
             }
         }
-
         public async Task<JobDetailDto> GetJobDetailAsync(int id)
         {
 
@@ -259,6 +253,7 @@ namespace GCTL.Service.Update
                  DocsReceivedDate = h.DocReceivedDate.Value.ToShortDateString(),
                  LcExpNo = h.ExpNo,
                  LcValue = h.Lcvalue,
+                 LcDate = h.Lcdate,
                  //LcUnitId= h.lc
                  IpEpNo = h.Ipno,
                  IpDate = h.Ipdate.Value.ToString(),
@@ -295,12 +290,12 @@ namespace GCTL.Service.Update
         }
 
         public async Task<SepPagedResult<JobStatusDto>> GetJobStatusesPagedAsync(
-    int page,
-    int pageSize,
-    string? search,
-    string? customerCode,
-    DateTime? fromDate,
-    DateTime? toDate)
+     int page,
+     int pageSize,
+     string? search,
+     string? customerCode,
+     DateTime? fromDate,
+     DateTime? toDate)
         {
             try
             {
@@ -333,9 +328,6 @@ namespace GCTL.Service.Update
                     query = query.Where(x => x.JobUpdate.UpdateDateTime < endDate);
                 }
 
-                //----------------------------------------
-                // Global Search (text + partial/full dd/MM/yyyy date)
-                //----------------------------------------
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     search = search.Trim().ToLower();
@@ -343,7 +335,6 @@ namespace GCTL.Service.Update
                     query = query.Where(x =>
                         x.JobUpdate.JobNo.ToLower().Contains(search) ||
                         x.JobUpdate.UpdateStatus.ToLower().Contains(search) ||
-                        // dd/MM/yyyy built with translatable ternary ops only (no PadLeft, no ToString(format))
                         (x.JobUpdate.UpdateDateTime != null &&
                             (
                                 (x.JobUpdate.UpdateDateTime.Value.Day < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Day.ToString() : x.JobUpdate.UpdateDateTime.Value.Day.ToString()) + "/" +
@@ -352,14 +343,8 @@ namespace GCTL.Service.Update
                             ).Contains(search)));
                 }
 
-                //----------------------------------------
-                // Filtered Count
-                //----------------------------------------
                 var filteredCount = await query.CountAsync();
 
-                //----------------------------------------
-                // Paging
-                //----------------------------------------
                 var data = await query
                     .OrderByDescending(x => x.JobUpdate.Tc)
                     .Skip((page - 1) * pageSize)
@@ -371,17 +356,18 @@ namespace GCTL.Service.Update
                         Status = "Success",
                         JobNo = x.JobUpdate.JobNo,
                         ShipmentStatus = x.JobUpdate.UpdateStatus,
-                        DateTime = x.JobUpdate.UpdateDateTime
+                        DateTime = x.JobUpdate.UpdateDateTime,
+                        // Add formatted date
+                        DateTimeText = x.JobUpdate.UpdateDateTime.HasValue ?
+                            (x.JobUpdate.UpdateDateTime.Value.Day < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Day.ToString() : x.JobUpdate.UpdateDateTime.Value.Day.ToString()) + "/" +
+                            (x.JobUpdate.UpdateDateTime.Value.Month < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Month.ToString() : x.JobUpdate.UpdateDateTime.Value.Month.ToString()) + "/" +
+                            x.JobUpdate.UpdateDateTime.Value.Year.ToString() + " " +
+                            (x.JobUpdate.UpdateDateTime.Value.Hour < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Hour.ToString() : x.JobUpdate.UpdateDateTime.Value.Hour.ToString()) + ":" +
+                            (x.JobUpdate.UpdateDateTime.Value.Minute < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Minute.ToString() : x.JobUpdate.UpdateDateTime.Value.Minute.ToString()) + ":" +
+                            (x.JobUpdate.UpdateDateTime.Value.Second < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Second.ToString() : x.JobUpdate.UpdateDateTime.Value.Second.ToString())
+                            : ""
                     })
                     .ToListAsync();
-
-                //----------------------------------------
-                // Format after SQL execution (client-side, safe here since only current page's rows)
-                //----------------------------------------
-                foreach (var item in data)
-                {
-                    item.DateTimeText = item.DateTime?.ToString("dd/MM/yyyy HH:mm:ss") ?? "";
-                }
 
                 return new SepPagedResult<JobStatusDto>
                 {
@@ -419,14 +405,17 @@ namespace GCTL.Service.Update
                 }
 
                 doucument.Eta = model.ETADeliveryDate;
-                doucument.Ata = model.ActualDeliveryDate; //TODO
-                doucument.UnStuffingLocationDate = model.UnstuffingDate; 
-                doucument.Etddate = model.ETDDate; 
-                doucument.PlaceOfLoadingId = model.PlaceOfLoadingID; 
-                doucument.ShedYardId = model.ShedYardID; 
+                doucument.Ata = model.ActualDeliveryDate;
+                doucument.UnStuffingLocationDate = model.UnstuffingDate;
+                doucument.Etddate = model.ETDDate;
+                doucument.PlaceOfLoadingId = model.PlaceOfLoadingID;
+                doucument.ShedYardId = model.ShedYardID;
                 doucument.FreightCharge = model.FreightChargeID;
                 doucument.ModifyDate = DateTime.Now;
                 await _sepDocumentionRepository.UpdateAsync(doucument);
+
+                // Combine Date and Time
+                DateTime updateDateTime = CombineDateAndTime(model.Date, model.Time);
 
                 if (model.AutoId > 0)
                 {
@@ -435,19 +424,15 @@ namespace GCTL.Service.Update
                     if (prevData != null)
                     {
                         prevData.UpdateStatus = model.ShipmentStatus;
-                        prevData.UpdateDateTime = DateTime.Now;
+                        prevData.UpdateDateTime = updateDateTime;
                         prevData.ModifyDate = DateTime.Now;
                         prevData.Lip = model.Lip;
                         prevData.Lmac = model.Lmac;
-                        prevData.EmployeeId = model.Luser;
+                        prevData.EmployeeId = model.Luser ?? "";
                         prevData.Luser = model.Luser;
 
                         await _jobUpdateRepository.UpdateAsync(prevData);
                     }
-
-                   
-                        
-                        
                 }
                 else
                 {
@@ -456,11 +441,11 @@ namespace GCTL.Service.Update
                         JobNo = model.JobNo,
                         DailyJobUpdateEntryId = await GetLastJobEntryCode(),
                         UpdateStatus = model.ShipmentStatus,
-                        UpdateDateTime = DateTime.Now,
-                        Ldate=DateTime.Now,
+                        UpdateDateTime = updateDateTime,
+                        Ldate = DateTime.Now,
                         Lip = model.Lip,
                         Lmac = model.Lmac,
-                        EmployeeId = model.Luser,
+                        EmployeeId = model.Luser ?? "",
                         Luser = model.Luser,
                         CompanyCode = company.ToString()
                     };
@@ -468,29 +453,38 @@ namespace GCTL.Service.Update
                     await _jobUpdateRepository.AddAsync(updateDoc);
                 }
 
-               
-
                 await _sepDocumentionRepository.CommitTransactionAsync();
 
                 return new CommonReturnViewModel()
                 {
                     Success = true,
-                    Message = "Update  Success",
+                    Message = "Update Success",
                     Data = doucument.JobNo
                 };
-
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await _sepDocumentionRepository.RollbackTransactionAsync();
                 return new CommonReturnViewModel()
                 {
                     Success = false,
-                    Message = "Something went wrong"
+                    Message = "Something went wrong: " + ex.Message
                 };
             }
+        }
 
-            
+
+
+        // Helper method to combine Date and Time
+        private DateTime CombineDateAndTime(DateTime? date, TimeOnly? time)
+        {
+            if (date == null)
+                date = DateTime.Now.Date;
+
+            if (time == null)
+                return date.Value.Date;
+
+            return date.Value.Date.Add(time.Value.ToTimeSpan());
         }
 
         private async Task<string> GetLastJobEntryCode()
@@ -526,6 +520,7 @@ namespace GCTL.Service.Update
                 IsCustomJobNo = h.IsCustomJobNo,
                 JobDate = h.Date.Value.ToShortDateString(),
                 CustomerId = h.CustomerId,
+                LcDate= h.Lcdate,
                 //CustomerName = h.CustomerId,
                 CustomerDeliveryAddress = h.DeliveryLocationCode, //TODO: DElivery add
                 PortId = h.PortId,
@@ -566,12 +561,12 @@ namespace GCTL.Service.Update
 
         public async Task<ShipmentUpdateViewModel> GetJobBottomDetailsAsync(string jobNo, decimal id)
         {
-            var status = await _jobUpdateRepository.All().Where(e => e.Tc == id).Select(e => new { e.UpdateStatus , e.Tc, e.Ldate, e.ModifyDate}).FirstOrDefaultAsync();
+            var status = await _jobUpdateRepository.All().Where(e => e.Tc == id).FirstOrDefaultAsync();
 
             var data = await _sepDocumentionRepository.All().Where(e => e.JobNo == jobNo).Select(model => new ShipmentUpdateViewModel
             {
-                ETADeliveryDate = model.Eta,
-                ActualDeliveryDate = model.Ata, //TODO
+                ETADeliveryDate = (DateTime)model.Eta,
+                ActualDeliveryDate = model.Ata,
                 UnstuffingDate = model.UnStuffingLocationDate,
                 ETDDate = model.Etddate,
                 PlaceOfLoadingID = model.PlaceOfLoadingId,
@@ -581,10 +576,51 @@ namespace GCTL.Service.Update
                 AutoId = status != null ? status.Tc : 0m,
                 Ldate = status.Ldate,
                 ModifyDate = status.ModifyDate,
+                Date = status != null && status.UpdateDateTime.HasValue ? status.UpdateDateTime.Value.Date : null,
+                Time = status != null && status.UpdateDateTime.HasValue ? TimeOnly.FromDateTime(status.UpdateDateTime.Value) : null,
             }).FirstOrDefaultAsync();
 
             return data ?? new ShipmentUpdateViewModel();
-          
+        }
+
+        // Helper method - Service class-এ add করুন
+        private string FormatTimeToAMPM(TimeOnly time)
+        {
+            int hour = time.Hour % 12;
+            if (hour == 0) hour = 12;
+            string ampm = time.Hour >= 12 ? "PM" : "AM";
+            return $"{hour:D2}:{time.Minute:D2}:{time.Second:D2} {ampm}";
+        }
+        public async Task<CommonReturnViewModel> DeleteJobs(List<decimal> ids)
+        {
+            await _jobUpdateRepository.BeginTransactionAsync();
+            try
+            {
+                var recordsToDelete = await _jobUpdateRepository.All()
+                    .Where(e => ids.Contains(e.Tc))
+                    .ToListAsync();
+
+                if (recordsToDelete.Count == 0)
+                    return new CommonReturnViewModel { Success = false, Message = "No records found" };
+
+                foreach (var record in recordsToDelete)
+                {
+                    await _jobUpdateRepository.DeleteAsync(record);
+                }
+
+                await _jobUpdateRepository.CommitTransactionAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = $"{recordsToDelete.Count} record(s) deleted successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                await _jobUpdateRepository.RollbackTransactionAsync();
+                return new CommonReturnViewModel { Success = false, Message = ex.Message };
+            }
         }
     }
 }
