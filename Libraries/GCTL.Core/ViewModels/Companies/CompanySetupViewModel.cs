@@ -8,12 +8,12 @@ namespace GCTL.Core.ViewModels.Companies
 
         [Required(ErrorMessage = "{0} is required.")]
         [Display(Name = "Company Name")]
-        public string CompanyName { get; set; }
+        public string? CompanyName { get; set; }
         public string? CompanyShortName { get; set; }
 
         [Required(ErrorMessage = "Address is required.")]
         [Display(Name = "Address 1")]
-        public string Address1 { get; set; }
+        public string? Address1 { get; set; }
 
         public string? Address2 { get; set; }
 
@@ -51,5 +51,10 @@ namespace GCTL.Core.ViewModels.Companies
         public string? BaseCurrency { get; set; }
         public string? CompanyBanglaName { get; set; }
         public string? AddressBangla { get; set; }
+
+        //[RegularExpression(@"^[\u0980-\u09FF\s]+$", ErrorMessage = "Please enter in Bangla.")]
+        //public string CompanyBanglaName { get; set; }
+        //[RegularExpression(@"^[\u0980-\u09FF\s]+$", ErrorMessage = "Please enter in Bangla.")]
+        //public string AddressBangla { get; set; }
     }
 }

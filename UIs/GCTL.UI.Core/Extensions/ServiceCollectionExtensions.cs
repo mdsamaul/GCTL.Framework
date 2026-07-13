@@ -1,14 +1,32 @@
 using GCTL.Data.Context;
 using GCTL.Data.Models;
+using GCTL.Service.BankBranchInformations;
+using GCTL.Service.BankInformations;
+using GCTL.Service.BloodGroups;
+using GCTL.Service.BranchesTypeInfo;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
+using GCTL.Service.Core_Countrys;
+using GCTL.Service.CoreBankAccountInformations;
+using GCTL.Service.CoreServiceType;
+using GCTL.Service.CurrencyType;
 using GCTL.Service.DeleteHistories;
+using GCTL.Service.Departments;
+using GCTL.Service.Designations;
+using GCTL.Service.ExpenseHead;
+using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.Menu;
 
 using GCTL.Service.MenuTab;
-
+using GCTL.Service.Nationalitys;
+using GCTL.Service.PaymentModes;
+using GCTL.Service.PaymentTerms;
+using GCTL.Service.PaymentType;
+using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
+using GCTL.Service.ShipmentMode;
+using GCTL.Service.UnitType;
 using GCTL.Service.Update;
 
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +89,25 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICompanyService, CompanyService>();
             services.AddScoped<ICommonService, CommonService>();
             services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
+            services.AddScoped<IBranchTypeInfoService, BranchTypeInfoService>();
+            services.AddScoped<IDepartmentService, DepartmentService>();
+            services.AddScoped<IDesignationService, DesignationService>();
+            services.AddScoped<IExpenseHead, ExpenseHeadService>();
+            services.AddScoped<IShipmentMode, ShipmentModeService>();
+            services.AddScoped<IServiceType, ServiceTypeService>();
+            services.AddScoped<IReligionService, ReligionService>();
+            services.AddScoped<IBloodGroupService, BloodGroupService>();
+            services.AddScoped<INationalitysService, NationalitysService>();
+            services.AddScoped<IGenderService, GenderService>();
+            services.AddScoped<ICore_CountryService, Core_CountryService>();
+            services.AddScoped<IBankInformationsService, BankInformationsService>();
+            services.AddScoped<ISalesDefBankBranchInfosService, SalesDefBankBranchInfosService>();
+            services.AddScoped<ICoreBankAccountInformationService, CoreBankAccountInformationService>();
+            services.AddScoped<ICurrencyType, CurrencyTypeService>();
+            services.AddScoped<IUnitType, UnitTypeService>();
+            services.AddScoped<IPaymentTypeService, PaymentTypeService>();
+            services.AddScoped<IPaymentTermsService, PaymentTermsService>();
+            services.AddScoped<IPaymentModeService, PaymentModeService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 

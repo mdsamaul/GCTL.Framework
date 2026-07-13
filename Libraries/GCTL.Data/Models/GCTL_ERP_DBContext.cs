@@ -197,6 +197,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<SalesDefPortType> SalesDefPortTypes { get; set; }
 
+    public virtual DbSet<SalesDefShipmentStatusInfo> SalesDefShipmentStatusInfos { get; set; }
+
     public virtual DbSet<SalesDeliveryLocation> SalesDeliveryLocations { get; set; }
 
     public virtual DbSet<SalesInvoice> SalesInvoices { get; set; }
@@ -2283,10 +2285,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmDefDepartment>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity.HasKey(e => e.DepartmentCode).HasName("PK__HRM_Def___6EA8896CD5B659AF");
 
             entity.ToTable("HRM_Def_Department");
 
+            entity.Property(e => e.DepartmentCode).HasMaxLength(50);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
@@ -2296,11 +2299,12 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.CompanyCode)
                 .IsRequired()
                 .HasMaxLength(50);
-            entity.Property(e => e.DepartmentCode)
-                .IsRequired()
-                .HasMaxLength(50);
             entity.Property(e => e.DepartmentName).HasMaxLength(100);
             entity.Property(e => e.DepartmentShortName).HasMaxLength(50);
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("LDate");
@@ -2423,7 +2427,7 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmDefNationality>(entity =>
         {
-            entity.HasKey(e => e.NationalityCode).HasName("PK__HRM_Def___1E433F0CB51C8E0D");
+            entity.HasKey(e => e.NationalityCode).HasName("PK__HRM_Def___1E433F0CF323C852");
 
             entity.ToTable("HRM_Def_Nationality");
 
@@ -3499,15 +3503,25 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesDefPaymentTerm>(entity =>
         {
-            entity.HasKey(e => e.Tc).HasName("PK_Sales_Def_PaymentTerms_TC");
+            entity.HasKey(e => e.Tc).HasName("PK__Sales_De__3214E4084D14E363");
 
             entity.ToTable("Sales_Def_PaymentTerms");
 
-            entity.Property(e => e.Tc)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("TC");
-            entity.Property(e => e.PaymentTermsCode).HasMaxLength(50);
+            entity.Property(e => e.Tc).HasColumnName("TC");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.PaymentTermsId).HasMaxLength(50);
             entity.Property(e => e.PaymentTermsName).HasMaxLength(50);
             entity.Property(e => e.Percentise).HasMaxLength(50);
             entity.Property(e => e.Type).HasMaxLength(50);
@@ -3593,6 +3607,33 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
             entity.Property(e => e.PortId).HasMaxLength(50);
             entity.Property(e => e.PortType).HasMaxLength(100);
+            entity.Property(e => e.ShortName).HasMaxLength(50);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
+        });
+
+        modelBuilder.Entity<SalesDefShipmentStatusInfo>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("Sales_Def_ShipmentStatusInfo");
+
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.ShipmentStatus).HasMaxLength(100);
+            entity.Property(e => e.ShipmentStatusId).HasMaxLength(50);
             entity.Property(e => e.ShortName).HasMaxLength(50);
             entity.Property(e => e.Tc)
                 .ValueGeneratedOnAdd()

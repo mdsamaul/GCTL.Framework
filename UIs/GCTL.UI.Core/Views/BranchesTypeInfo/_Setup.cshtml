@@ -1,0 +1,119 @@
+﻿@model GCTL.Core.ViewModels.BranchesTypeInfo.BranchTypeSetupViewModel
+
+<div style="padding-top: 10px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <input type="hidden" id="lastCode" />
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Ldate" />
+        <input type="hidden" asp-for="ModifyDate" />
+        <div class="col-12 col-md-6 gc-inline-select2">
+            <label asp-for="CompanyCode">Company</label>
+            <span class="text-danger"></span>
+            <div class="input-group flex-nowrap">
+                <select asp-for="CompanyCode" class="form-control form-control-sm gc-select2 js-" data-placeholder="Select Company" asp-items="@ViewBag.CompanyCodeDD as SelectList">
+                    <option></option>
+                </select>
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-sm btn-default js-quick-add input-group-textc"
+                            data-url="@Url.Action("Index", "Companies")"
+                            data-target="#CompanyCode"
+                            data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                            data-title="Company"
+                            style="white-space: nowrap;">
+                        +
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-12 col-md-6">
+            <label asp-for="BranchCode">Branch Id</label>
+            <input asp-for="BranchCode" class="form-control form-control-sm js-branchcode" readonly="readonly" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-12 col-md-6 mb-2 mb-md-0">
+            <label asp-for="BranchName">Branch</label>
+            <span class="text-danger">*</span>
+            <input asp-for="BranchName" class="form-control form-control-sm js-branch-check-availability" placeholder="Enter Branch" />
+            <span asp-validation-for="BranchName" class="text-danger" />
+        </div>
+        <div class="col-12 col-md-6">
+            <label asp-for="Address">Address</label>
+            <span class="text-danger">*</span>
+            <textarea asp-for="Address" class="form-control form-control-sm" placeholder="Enter Address" style="resize:none;" rows="1"></textarea>
+            <span asp-validation-for="Address" class="text-danger" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-12 col-md-6 mb-2 mb-md-0">
+            <label asp-for="BanglaBranch">Branch (বাংলা)</label>
+            <input asp-for="BanglaBranch" type="text" class="form-control form-control-sm" placeholder="Enter Branch (বাংলা)" />
+        </div>
+        <div class="col-12 col-md-6">
+            <label asp-for="AddressBangla">Address (বাংলা)</label>
+            <input asp-for="AddressBangla" type="text" class="form-control form-control-sm" placeholder="Enter Address (বাংলা)" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-12 col-md-6 mb-2 mb-md-0">
+            <label asp-for="Phone">Phone</label>
+            <input asp-for="Phone" class="form-control form-control-sm phone-validationx" placeholder="Enter Phone" />
+            <span asp-validation-for="Phone" class="text-danger" />
+        </div>
+        <div class="col-12 col-md-6">
+            <label asp-for="Email">Email</label>
+            <input asp-for="Email" class="form-control form-control-sm" placeholder="Enter Email" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-12 col-md-6">
+            <label asp-for="Fax">Fax</label>
+            <input asp-for="Fax" class="form-control form-control-sm" placeholder="Enter Fax" />
+        </div>
+    </div>
+
+    @if (Model.Id > 0)
+    {
+        <hr />
+        <div class="form-group row">
+            <div class="col-12 col-md-6 mb-2 mb-md-0">
+                @if (Model.Ldate.HasValue)
+                {
+                    <label>Creation Date: </label>
+                    <label>@Model.Ldate.Value.ToString()</label>
+                }
+            </div>
+            <div class="col-12 col-md-6">
+                @if (Model.ModifyDate.HasValue)
+                {
+                    <label>Last Update Date: </label>
+                    <label>@Model.ModifyDate.Value.ToString()</label>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<div class="btn-toolbar d-flex justify-content-end no-print" style="margin-top: 9px;">
+    <div class="btn-group ms-auto">
+        <button type="button" class="btn btn-default success-btn js-branch-save" data-id="@Model.BranchCode"
+                data-toggle="tooltip" data-placement="bottom" title="Save">
+            <i class="fas fa-save">&nbsp;</i> Save
+        </button>
+    </div>
+</div>

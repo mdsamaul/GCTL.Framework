@@ -7,7 +7,9 @@ namespace GCTL.Data.Models;
 
 public partial class SalesDefPaymentTerm
 {
-    public string PaymentTermsCode { get; set; }
+    public int Tc { get; set; }
+
+    public string PaymentTermsId { get; set; }
 
     public string PaymentTermsName { get; set; }
 
@@ -17,5 +19,13 @@ public partial class SalesDefPaymentTerm
 
     public int? CreditDays { get; set; }
 
-    public decimal Tc { get; set; }
+    public string Luser { get; set; }
+
+    public DateTime? Ldate { get; set; }
+
+    public string Lip { get; set; }
+
+    public string Lmac { get; set; }
+
+    public DateTime? ModifyDate { get; set; }
 }
