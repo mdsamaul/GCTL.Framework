@@ -1,0 +1,85 @@
+﻿.choices.is-disabled .choices__inner, .choices.is-disabled .choices__input {
+    background: #eff2f6 !important
+}
+
+/*.card-header {
+   
+    border-bottom: var(--phoenix-card-border-width) solid rgb(203 208 221 / 0%) !important;
+}
+
+.border-translucent {
+    border-color: rgb(203 208 221 / 0%) !important;
+}*/
+
+
+
+.caiCon {
+    position: relative;
+/*    padding-right: 30px !important;*/
+    background-image: url('/img/icons/calender.svg');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+    opacity: .8;
+}
+
+.blink {
+    animation: blinker 1.5s linear infinite;
+   
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+input.form-control:disabled,
+input.form-control[readonly],
+input.form-control-sm:disabled,
+input.form-control-sm[readonly],
+textarea.form-control:disabled,
+textarea.form-control[readonly],
+textarea.form-control-sm:disabled,
+textarea.form-control-sm[readonly],
+select.form-control:disabled,
+select.form-control-sm:disabled {
+    background-color: #f4f6f9 !important;
+    border-color: #ced4da !important;
+    color: #6c757d !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+}
+
+.create-modify-dateshow.force-hide {
+    display: none !important;
+}
+
+.input-group .input-group-text {
+    padding: 0.375rem !important;
+}
+
+.input-group-lg > .form-select, .input-group-sm > .form-select {
+    padding-right: 1.5rem !important;
+}
+
+
+
+.caiCon {
+    position: relative;
+    /*    padding-right: 30px !important;*/
+    background-image: url('/img/icons/calender.svg');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+    opacity: .8;
+}
+
+.blink {
+    animation: blinker 1.5s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}

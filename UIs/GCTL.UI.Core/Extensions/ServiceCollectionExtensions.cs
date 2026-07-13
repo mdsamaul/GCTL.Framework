@@ -3,6 +3,7 @@ using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
 using GCTL.Service.DeleteHistories;
+using GCTL.Service.HolidayLIst;
 using GCTL.Service.Menu;
 
 using GCTL.Service.MenuTab;
@@ -75,6 +76,8 @@ namespace GCTL.Framework.Extensions
 
             services.AddScoped<IJobService, JobService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
+
+            services.AddScoped<IholidayListService, HolidayListService>();
 
         }
     }
