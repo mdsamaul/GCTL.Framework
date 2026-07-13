@@ -1322,10 +1322,10 @@ $("#submitCoreMenuTabBtn").on("click", function (event) {
         isValid = false;
     }
 
-    if (!formData.ControllerName.trim()) {
-        $("#VaControllerName").text("Controller Name is required");
-        isValid = false;
-    }
+    // if (!formData.ControllerName.trim()) {
+    //     $("#VaControllerName").text("Controller Name is required");
+    //     isValid = false;
+    // }
 
     if (isValid) {
         $("#submitCoreMenuTabBtn").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...').prop("disabled", true);

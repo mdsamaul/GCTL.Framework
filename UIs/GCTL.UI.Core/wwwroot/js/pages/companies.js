@@ -7,13 +7,13 @@
             formContainer: ".js-company-form-container",
             gridSelector: "#company-grid",
             gridContainer: ".js-company-grid-container",
-            editSelector: ".js-company-edit",
-            saveSelector: ".js-company-save",
+            editSelector: ".editBtn",
+            saveSelector: "#saveBtn",
             selectAllSelector: "#company-check-all",
-            deleteSelector: ".js-company-delete-confirm",
+            deleteSelector: "#deleteBtn",
             deleteModal: "#company-delete-modal",
             finalDeleteSelector: ".js-company-delete",
-            clearSelector: ".js-company-clear",
+            clearSelector: "#clearBtn",
             topSelector: ".js-go",
             decimalSelector: ".js-company-decimalplaces",
             maxDecimalPlace: 5,
@@ -42,6 +42,7 @@
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
+                var id = $(this).data('id');
                 let url = saveUrl + "/" + $(this).data("id") ?? "";
                 loadForm(url);
 
@@ -54,8 +55,8 @@
 
             // Save
             $("body").on("click", settings.saveSelector, function () {
-                // debugger
-                var $valid = $(settings.formSelector).valid();               
+
+                var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
                     return false;
                 }
@@ -221,7 +222,7 @@
                     },
                     {
                         "data": "companyCode", "render": function (data) {
-                            return `<a class='btn js-company-edit' data-id='${data}'><i>${data}</i></a>`;
+                            return `<a class='btn editBtn' data-id='${data}'><i>${data}</i></a>`;
                         }
                     },
                     { "data": "companyName", "autowidth": true },
@@ -241,6 +242,7 @@
         }
 
         function loadForm(url) {
+
             return new Promise((resolve, reject) => {
                 $.ajax({
                     url: url,

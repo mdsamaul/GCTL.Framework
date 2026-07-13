@@ -576,9 +576,9 @@ namespace GCTL.Service.MenuTab
                 coreMenuTab2.Title = model.Title;
                 coreMenuTab2.ControllerName = model.ControllerName;
                 coreMenuTab2.TableName = model.TableName;
-                coreMenuTab2.OrderBy = model.OrderBy;
+                coreMenuTab2.OrderBy = (int)model.OrderBy;
                 coreMenuTab2.ViewName = model.ViewName;
-                coreMenuTab2.IsActive = model.IsActive;
+                coreMenuTab2.IsActive = (bool)model.IsActive;
                 coreMenuTab2.Icon = model.Icon;
 
 
@@ -631,7 +631,7 @@ namespace GCTL.Service.MenuTab
                 existingMenuTab.ControllerName = model.ControllerName;
                 existingMenuTab.TableName = model.TableName;
                 existingMenuTab.ViewName = model.ViewName;
-                existingMenuTab.IsActive = model.IsActive;
+                existingMenuTab.IsActive = (bool)model.IsActive;
                 existingMenuTab.Icon = model.Icon;
 
 

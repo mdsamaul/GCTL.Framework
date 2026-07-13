@@ -2,6 +2,7 @@ using Dapper;
 using GCTL.Core.DataTables;
 using GCTL.Data.Context;
 using GCTL.Data.Identity;
+using GCTL.Service.HolidayLIst;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -121,5 +122,14 @@ public abstract class BaseController : Controller
         // Placeholder for your PhotoBase64 lookup logic from AllInfoEmployeeById.
         // Wire this up once FullEmployeeDetailsGetByIdViewModel is ported.
         return null;
+    }
+    [HttpGet]
+    public async Task<JsonResult> GetHolidays([FromServices] IholidayListService holidayService, int? year = null)
+    {
+        if (holidayService == null)
+            return Json(new List<object>());
+
+        var holidays = await holidayService.GetHolidayListAsync(year ?? DateTime.Now.Year);
+        return Json(holidays);
     }
 }

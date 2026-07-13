@@ -9,6 +9,11 @@ function showDeleteModal(deleteCallback) {
     });
 };
 
+$(function () {
+    $('.toolbar-btn-group').closest('div[class*="d-flex"]').each(function () {
+        $(this).addClass('sticky-bar');
+    });
+});
 
 
 

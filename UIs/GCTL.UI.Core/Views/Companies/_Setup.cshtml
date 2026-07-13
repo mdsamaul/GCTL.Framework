@@ -163,8 +163,17 @@
 
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        <button class="btn btn-default success-btn btn-common btn-circle float-right js-company-save" type="button">
+        @* <button class="btn btn-default success-btn btn-common btn-circle float-right js-company-save" type="button">
             <i class="fas fa-save">&nbsp;</i> Save
-        </button>
+        </button> *@
+         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                            {
+                            Title = "",
+                            ShowDelete = false,
+                            ShowPrint = false,
+                            ShowClear = false,
+                            ShowFavorite = false, 
+                            IsPlain=true
+                        })
     </div>
 </div>

@@ -174,7 +174,7 @@
                     dayElem.classList.add('custom-holiday');
                     dayElem.setAttribute('data-holiday-name', holiday.name);
 
-                
+
                     dayElem.addEventListener('mouseenter', function () {
                         if (activeTooltip) { activeTooltip.remove(); activeTooltip = null; }
 
@@ -296,7 +296,7 @@
         if (disabled) fp.close();
     };
 
-    
+
     $(function () {
         initAll('.custom-datepicker');
     });

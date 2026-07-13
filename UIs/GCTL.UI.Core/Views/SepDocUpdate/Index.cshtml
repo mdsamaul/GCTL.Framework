@@ -8,11 +8,11 @@
 
 
 <style>
-    .sticky-bar {
+    /* .sticky-bar {
         position: sticky;
         top: 65px;
-        z-index: 1020; /* keep above other content */
-    }
+        z-index: 1020; 
+    } */
 
     /* Bootstrap form-select-sm style for Select2 */
     .select2-container {
@@ -199,7 +199,7 @@
     <div class="">
         <div class="">
 
-            <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 rounded shadow-sm border mb-3 sticky-bar">
+            @* <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 rounded shadow-sm border mb-3 sticky-bar">
                 <div class="d-flex align-items-center py-1 ps-2">
                     <h1 class="fw-bold text-dark m-0" style="font-size: 0.95rem; letter-spacing: 0.5px;">
                         Daily Job Update
@@ -227,8 +227,13 @@
                         <span>Favt</span>
                     </button>
                 </div>
-            </div>
+            </div> *@
 
+
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel{
+                Title = "Daily Job Update"
+
+            })
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-body-emphasis rounded">
                 <div class="mb-3">
                     <div id="jobSummary">
@@ -698,6 +703,15 @@
                         </div>
                     </div>
                 </form>
+
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel{
+                    Title = "",
+                    ShowDelete = false,
+                    ShowClear = false,
+                    ShowPrint = false,
+                    ShowFavorite = false,
+                    IsPlain = true
+                })
             </div>
 
             <hr class="border border-white border-1 opacity-100 mx-auto">
@@ -771,10 +785,17 @@
                             <div class="d-flex">
                                 <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="statusDataListInfo"></p>
                             </div>
-                            <div class="d-flex">
+                            @* <div class="d-flex">
                                 <button class="page-link" id="statusPaginationPrev"><span class="fas fa-chevron-left"></span></button>
                                 <ul class="mb-0 pagination" id="statusPaginationNumbers"></ul>
                                 <button class="page-link pe-0" id="statusPaginationNext"><span class="fas fa-chevron-right"></span></button>
+                            </div> *@
+                           <div class="d-flex">
+                                <button class="page-link" id="paginationFirst"><span class="bi bi-chevron-bar-left"></span></button>
+                                <button class="page-link" id="paginationPrev"><span class="bi bi-chevron-left"></span></button>
+                                <ul class="mb-0 pagination" id="paginationNumbers"></ul>
+                                <button class="page-link pe-0" id="paginationNext"><span class="bi bi-chevron-right"></span></button>
+                                <button class="page-link pe-0" id="paginationLast"><span class="bi bi-chevron-bar-right"></span></button>
                             </div>
                         </div>
                     </div>
