@@ -137,6 +137,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<HrmDefDivision> HrmDefDivisions { get; set; }
 
+    public virtual DbSet<HrmDefEmpType> HrmDefEmpTypes { get; set; }
+
     public virtual DbSet<HrmDefGrade> HrmDefGrades { get; set; }
 
     public virtual DbSet<HrmDefNationality> HrmDefNationalities { get; set; }
@@ -144,6 +146,8 @@ public partial class GCTL_ERP_DBContext : DbContext
     public virtual DbSet<HrmDefReligion> HrmDefReligions { get; set; }
 
     public virtual DbSet<HrmDefSex> HrmDefSexes { get; set; }
+
+    public virtual DbSet<HrmEisDefEmploymentNature> HrmEisDefEmploymentNatures { get; set; }
 
     public virtual DbSet<HrmEmployee> HrmEmployees { get; set; }
 
@@ -2511,6 +2515,36 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<HrmDefEmpType>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("HRM_Def_EmpType");
+
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.EmpTypeCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.EmpTypeName).HasMaxLength(100);
+            entity.Property(e => e.EmpTypeShortName).HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+        });
+
         modelBuilder.Entity<HrmDefGrade>(entity =>
         {
             entity.HasKey(e => e.AutoId).HasName("PK__HRM_Def___385EFE4823B64716");
@@ -2635,6 +2669,40 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Sex)
                 .IsRequired()
                 .HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<HrmEisDefEmploymentNature>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("HRM_EIS_Def_EmploymentNature");
+
+            entity.Property(e => e.EmploymentNature)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.EmploymentNatureId)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.ShortName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<HrmEmployee>(entity =>
