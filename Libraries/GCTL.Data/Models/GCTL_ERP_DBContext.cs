@@ -4103,6 +4103,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.UserId).HasMaxLength(256);
         });
 
+
         OnModelCreatingPartial(modelBuilder);
     }
 
