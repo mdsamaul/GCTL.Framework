@@ -416,6 +416,40 @@
         var $arrows = $calendar.find('.arrowUp, .arrowDown');
         $arrows.css('pointer-events', disabled ? 'none' : 'auto');
     };
+    // window.setTime = function (selector, value, disabled = false) {
+    //     var $el = $(selector);
+    //     var instance = $el.data('custom-instance');
+
+    //     if (!instance) {
+    //         $el.val(value || '');
+    //         $el.prop('disabled', !!disabled);
+    //         return;
+    //     }
+
+    //     // Time value set করুন
+    //     if (!value) {
+    //         instance.clear();
+    //     } else {
+    //         instance.setValue(value);
+    //     }
+
+    //     // Disabled state set করুন
+    //     instance.$el.prop('disabled', !!disabled);
+
+    //     var $calendar = $(instance._fpInstance.calendarContainer);
+    //     $calendar.toggleClass('custom-time-disabled', !!disabled);
+
+    //     var $inputs = $calendar.find('.flatpickr-hour, .flatpickr-minute, .flatpickr-second, .flatpickr-am-pm');
+    //     $inputs.prop('disabled', !!disabled);
+    //     $inputs.css('pointer-events', disabled ? 'none' : 'auto');
+
+    //     var $arrows = $calendar.find('.arrowUp, .arrowDown');
+    //     $arrows.css('pointer-events', disabled ? 'none' : 'auto');
+
+    //     if (disabled) {
+    //         instance._fpInstance.close();
+    //     }
+    // };
     window.setTime = function (selector, value, disabled = false) {
         var $el = $(selector);
         var instance = $el.data('custom-instance');
@@ -426,11 +460,37 @@
             return;
         }
 
-        // Time value set করুন
+        // Time value set করুন - string বা Date দুটোই accept করবে
         if (!value) {
             instance.clear();
         } else {
-            instance.setValue(value);
+            var parsedValue = value;
+
+            if (typeof value === 'string') {
+                // "HH:mm:ss" (24hr) format হলে আগে parse করে Date বানানো
+                var parts = value.trim().split(' ');
+                var timePart = parts[0];
+                var ampmPart = parts[1] ? parts[1].toUpperCase() : null;
+
+                if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(timePart)) {
+                    var segments = timePart.split(':');
+                    var hour = parseInt(segments[0], 10);
+                    var minute = parseInt(segments[1], 10);
+                    var second = segments[2] ? parseInt(segments[2], 10) : 0;
+
+                    // AM/PM দেওয়া থাকলে 12hr কে 24hr এ কনভার্ট করুন
+                    if (ampmPart === 'PM' && hour < 12) hour += 12;
+                    if (ampmPart === 'AM' && hour === 12) hour = 0;
+
+                    var d = new Date();
+                    d.setHours(hour, minute, second, 0);
+                    parsedValue = d;
+                }
+            } else if (value instanceof Date) {
+                parsedValue = value;
+            }
+
+            instance.setValue(parsedValue, true);
         }
 
         // Disabled state set করুন

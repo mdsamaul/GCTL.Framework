@@ -141,8 +141,7 @@ namespace GCTL_App.Controllers
                
                 if (ModelState.IsValid)
                 {
-                    var time = model.Time?.ToString("hh:mm:ss tt");
-                    Console.WriteLine(model.Time?.ToString("hh:mm:ss tt"));
+                    
                     //var company = 1;// await GetCurrentOrganizationIdAsync();
                     //int company = int.Parse(LoginInfo.CompanyCode);
                     int company = 001;
@@ -179,6 +178,12 @@ namespace GCTL_App.Controllers
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetJobTimeline(string jobNo)
+        {
+            var timeline = await _jobService.GetJobTimelineAsync(jobNo);
+            return Json(timeline);
         }
     }
 }
