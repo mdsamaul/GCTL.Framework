@@ -3,19 +3,27 @@
 using System;
 using System.Collections.Generic;
 
-namespace GCTL.Data.Models
+namespace GCTL.Data.Models;
+
+public partial class HrmDefEmpType
 {
-    public partial class HrmDefEmpType
-    {
-        public decimal AutoId { get; set; }
-        public string EmpTypeCode { get; set; }
-        public string EmpTypeName { get; set; }
-        public string EmpTypeShortName { get; set; }
-        public string Luser { get; set; }
-        public DateTime? Ldate { get; set; }
-        public string Lip { get; set; }
-        public string Lmac { get; set; }
-        public DateTime? ModifyDate { get; set; }
+    public decimal AutoId { get; set; }
+
+    public string EmpTypeCode { get; set; }
+
+    public string EmpTypeName { get; set; }
+
+    public string EmpTypeShortName { get; set; }
+
+    public string Luser { get; set; }
+
+    public DateTime? Ldate { get; set; }
+
+    public string Lip { get; set; }
+
+    public string Lmac { get; set; }
+
+    public DateTime? ModifyDate { get; set; }
         public string CompanyCode { get; set; }
         public string BanglaEmployeeType { get; set; }
     }
