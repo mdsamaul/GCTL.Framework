@@ -1,0 +1,70 @@
+@model IEnumerable<GCTL.Core.ViewModels.Menu.MenuDto>
+@using System
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    bool IsItemActive(GCTL.Core.ViewModels.Menu.MenuDto item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.ControllerName) &&
+            string.Equals(item.ControllerName, currentController, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(item.ViewName, currentAction, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (item.Children != null && item.Children.Any())
+        {
+            foreach (var child in item.Children)
+            {
+                if (IsItemActive(child))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+<ul class="sidebar-menu">
+@foreach (var item in Model)
+{
+    var hasChildren = item.Children != null && item.Children.Any();
+    var itemActive = IsItemActive(item);
+    var arrowIcon = hasChildren && item.Children.Any(c => c.Children != null && c.Children.Any())
+        ? "bi bi-chevron-double-right"
+        : "bi bi-chevron-right";
+
+    <li class="menu-item @(itemActive ? "active" : "")">
+        @if (hasChildren)
+        {
+            <button class="menu-link d-flex align-items-center w-100" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#children-@item.AutoId"
+                    aria-expanded="@(itemActive ? "true" : "false")"
+                    aria-controls="children-@item.AutoId">
+                @if (!string.IsNullOrWhiteSpace(item.Icon))
+                {
+                    <i class="@item.Icon"></i>
+                }
+                <span class="menu-text">@item.Title</span>
+                <i class="@arrowIcon ms-auto menu-arrow"></i>
+            </button>
+            <div class="collapse @(itemActive ? "show" : "")" id="children-@item.AutoId">
+                @await Html.PartialAsync("_MenuPartial", item.Children)
+            </div>
+        }
+        else
+        {
+            <a class="menu-link d-flex align-items-center w-100" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
+                @if (!string.IsNullOrWhiteSpace(item.Icon))
+                {
+                    <i class="@item.Icon"></i>
+                }
+                <span class="menu-text">@item.Title</span>
+            </a>
+        }
+    </li>
+}
+</ul>

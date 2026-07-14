@@ -1,0 +1,79 @@
+﻿@*@model ToobarModel
+ <div class="row">
+    <div class="col-md-5">
+        <h6>@Model.Title</h6>
+    </div>
+    <div class="col-md-7">
+        <div class="btn-group" style="float:right">
+            <button type="button" id="btnSubmit" class="btn btn-outline-info js-save"><i class="far fa-save fa-sm pr-2"></i>Save</button>
+            <button type="button" id="btnClear" data-id="" class="btn btn-outline-dark js-clear"><i class="fas fa-recycle fa-sm pr-2"></i>Clear</button>
+            <button type="button" id="btnDelete" class="btn btn-outline-danger js-delete-confirm"
+                    data-target="#deleteModal"
+                    data-id="@Model.Code"
+                    data-title="Are you sure want to delete @Model.Name?">
+                <i class="far fa-minus-square fa-sm pr-2"></i>Delete
+            </button>
+        </div>
+    </div>
+</div>
+ *@
+
+
+ @model ToobarModel
+<div class="d-flex flex-wrap justify-content-between align-items-center p-2 mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">    <div class="d-flex align-items-center py-1 ps-2">
+        <h1 class="fw-bold text-dark m-0" style="font-size: 0.95rem; letter-spacing: 0.5px;">
+            @Model.Title
+        </h1>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 pe-1 toolbar-btn-group">
+        @if (Model.ShowSave)
+        {
+            <button type="button" class="btn toolbar-btn toolbar-btn-save" id="@Model.SaveBtnId" disabled="@(!Model.EnableSave)">
+                <i class="fas fa-save"></i>
+                <span>Save</span>
+            </button>
+        }
+        @if (Model.ShowDelete)
+        {
+            <button type="button" class="btn toolbar-btn toolbar-btn-delete" id="@Model.DeleteBtnId" disabled="@(!Model.EnableDelete)">
+                <i class="fas fa-trash"></i>
+                <span>Delete</span>
+            </button>
+        }
+        @if (Model.ShowClear)
+        {
+            <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="@Model.ClearBtnId" disabled="@(!Model.EnableClear)">
+                <i class="fas fa-sync"></i>
+                <span>Clear</span>
+            </button>
+        }
+        @if (Model.ShowPrint)
+        {
+            <div class="dropdown">
+                <button type="button" class="btn toolbar-btn toolbar-btn-print dropdown-toggle" id="@Model.PrintBtnId" data-bs-toggle="dropdown" aria-expanded="false" disabled="@(!Model.EnablePrint)">
+                    <i class="fas fa-print"></i>
+                    <span>Print</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm toolbar-print-menu">
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="#" id="@(Model.PrintBtnId)PdfBtn">
+                            <i class="fas fa-file-pdf text-danger"></i> PDF
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="#" id="@(Model.PrintBtnId)ExcelBtn">
+                            <i class="fas fa-file-excel text-success"></i> Excel
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        }
+        @if (Model.ShowFavorite)
+        {
+            <button type="button" class="btn toolbar-btn toolbar-btn-fav" id="@Model.FavtBtnId" disabled="@(!Model.EnableFavorite)">
+                <i class="fas fa-star"></i>
+                <span>Fav</span>
+            </button>
+        }
+    </div>
+</div>

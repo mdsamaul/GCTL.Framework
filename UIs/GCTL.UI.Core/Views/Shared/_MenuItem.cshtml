@@ -1,0 +1,15 @@
+@model GCTL.Core.ViewModels.Menu.MenuDto
+
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    <div>
+        <i class="@Model.Icon me-2"></i>
+        <a href="@Url.Action(Model.ViewName, Model.ControllerName)">@Model.Title</a>
+    </div>
+    @if (Model.Children != null && Model.Children.Any()) {
+        <ul class="list-group ms-4 mt-2">
+            @foreach (var child in Model.Children) {
+                @await Html.PartialAsync("_MenuItem", child)
+            }
+        </ul>
+    }
+</li>

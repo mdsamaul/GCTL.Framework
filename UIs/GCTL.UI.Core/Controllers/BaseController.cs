@@ -2,6 +2,7 @@ using Dapper;
 using GCTL.Core.DataTables;
 using GCTL.Data.Context;
 using GCTL.Data.Identity;
+using GCTL.Service.HolidayLIst;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -55,6 +56,7 @@ public abstract class BaseController : Controller
         return UserManager.GetUserAsync(User).GetAwaiter().GetResult();
     }
 
+
     public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
     {
         // Auth redirect is handled by [Authorize] + cookie LoginPath now.
@@ -68,10 +70,34 @@ public abstract class BaseController : Controller
             {
                 try
                 {
-                    var employeePhoto = GetEmployeePhotoBase64(LoginInfo.EmployeeId);
-                    if (!string.IsNullOrEmpty(employeePhoto))
+                    // Employee ID থেকে Company Code fetch করুন
+                    var employeeInfo = DbContext.HrmEmployees
+                        .AsNoTracking()
+                        .Where(e => e.EmployeeId == LoginInfo.EmployeeId)
+                        .Select(e => new
+                        {
+                            e.CompanyCode,
+                            PhotoBase64 = e.EmployeeId
+                        })
+                        .FirstOrDefault();
+
+                    if (employeeInfo != null)
                     {
-                        ViewBag.LoginUserPhoto = employeePhoto;
+                        // ApplicationUser-এ CompanyCode set করুন
+                        LoginInfo.CompanyCode = employeeInfo.CompanyCode;
+
+                        if (!string.IsNullOrEmpty(employeeInfo.PhotoBase64))
+                        {
+                            ViewBag.LoginUserPhoto = employeeInfo.PhotoBase64;
+                        }
+                    }
+                    else
+                    {
+                        var employeePhoto = GetEmployeePhotoBase64(LoginInfo.EmployeeId);
+                        if (!string.IsNullOrEmpty(employeePhoto))
+                        {
+                            ViewBag.LoginUserPhoto = employeePhoto;
+                        }
                     }
                 }
                 catch
@@ -119,5 +145,14 @@ public abstract class BaseController : Controller
         // Placeholder for your PhotoBase64 lookup logic from AllInfoEmployeeById.
         // Wire this up once FullEmployeeDetailsGetByIdViewModel is ported.
         return null;
+    }
+    [HttpGet]
+    public async Task<JsonResult> GetHolidays([FromServices] IholidayListService holidayService, int? year = null)
+    {
+        if (holidayService == null)
+            return Json(new List<object>());
+
+        var holidays = await holidayService.GetHolidayListAsync(year ?? DateTime.Now.Year);
+        return Json(holidays);
     }
 }

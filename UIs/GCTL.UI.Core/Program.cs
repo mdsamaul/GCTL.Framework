@@ -5,7 +5,10 @@ using GCTL.UI.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-
+using GCTL.Service.Menu;
+using GCTL.Core.ViewModels.Menu;
+using GCTL.Data.Models;
+using GCTL.Framework.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------------------------------------------------------------------
@@ -24,56 +27,31 @@ builder.Host.UseSerilog();
 var connectionString = builder.Configuration.GetConnectionString("connection")
     ?? throw new InvalidOperationException("Connection string 'connection' not found in appsettings.json.");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-
-
-Console.WriteLine($"Connection String: {connectionString}");
-
-// ---------------------------------------------------------------------
-// EF Core - your business DbContext (scaffolded via EF Power Tools).
-// Once you reverse-engineer your real database, this context will pick
-// up the generated DbSets automatically. Uses the same connection string
-// by default; point it at a different one in appsettings.json if your
-// business DB is separate from your auth DB.
-// ---------------------------------------------------------------------
-builder.Services.AddDbContext<GctlHrmContext>(options =>
-    options.UseSqlServer(connectionString));
-
-// ---------------------------------------------------------------------
-// Dapper (for stored-procedure-heavy reports)
-// ---------------------------------------------------------------------
-builder.Services.AddScoped<DapperContext>();
-
-// ---------------------------------------------------------------------
-// Generic repository (GCTL.Service module services depend on this).
-// Register your I*Service / *Service pairs from GCTL.Service here too,
-// one line per module, e.g.:
-//   builder.Services.AddScoped<IAdmissionTypeService, AdmissionTypeService>();
-// ---------------------------------------------------------------------
-builder.Services.AddScoped(typeof(GCTL.Core.Data.IRepository<>), typeof(GCTL.Data.Repositories.GenericRepository<>));
+// Register DB contexts and application services via extension methods
+builder.Services.ConfigureContexts(builder.Configuration);
+builder.Services.RegisterApplicationServices();
 
 // ---------------------------------------------------------------------
 // ASP.NET Core Identity
 // ---------------------------------------------------------------------
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-    {
-        // Password policy - tune to your organization's requirements
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 6;
+{
+    // Password policy - tune to your organization's requirements
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
 
-        options.User.RequireUniqueEmail = true;
+    options.User.RequireUniqueEmail = true;
 
-        // Lockout after failed attempts
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-        options.Lockout.MaxFailedAccessAttempts = 5;
+    // Lockout after failed attempts
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
 
-        // Set true once email sending (MailKit) is wired up
-        options.SignIn.RequireConfirmedAccount = false;
-    })
+    // Set true once email sending (MailKit) is wired up
+    options.SignIn.RequireConfirmedAccount = false;
+})
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -91,7 +69,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Add your mapping profiles (e.g. EmployeeProfile : Profile) anywhere in
 // GCTL.UI.Core and they'll be picked up automatically.
 // ---------------------------------------------------------------------
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+//builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // ---------------------------------------------------------------------
 // MVC + Swagger
@@ -100,17 +80,13 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages(); // needed for Identity UI scaffolded pages
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Make HttpContext available to non-controller code via IHttpContextAccessor
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// ---------------------------------------------------------------------
-// Seed default roles / admin user (development convenience)
-// ---------------------------------------------------------------------
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await SeedData.InitializeAsync(services);
-}
+// Expose the DI service provider to the ServiceLocator for extension helpers.
+GCTL.UI.Core.Helpers.ServiceLocator.ServiceProvider = app.Services;
 
 // ---------------------------------------------------------------------
 // Middleware pipeline

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,10 +9,13 @@
 
   <ItemGroup>
     <!-- PDF/report generation - modern, no RDLC / AspNetCore.Reporting dependency -->
+    <PackageReference Include="itext" Version="9.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
     <PackageReference Include="QuestPDF" Version="2025.7.0" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="NetBarcode" Version="1.7.0" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
   <!-- NOTE: PXLibrary / PXLib references intentionally removed.

@@ -1,0 +1,222 @@
+﻿.choices.is-disabled .choices__inner, .choices.is-disabled .choices__input {
+    background: #eff2f6 !important
+}
+
+/*.card-header {
+   
+    border-bottom: var(--phoenix-card-border-width) solid rgb(203 208 221 / 0%) !important;
+}
+
+.border-translucent {
+    border-color: rgb(203 208 221 / 0%) !important;
+}*/
+
+
+
+.caiCon {
+    position: relative;
+    /*    padding-right: 30px !important;*/
+    background-image: url('/img/icons/calender.svg');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+    opacity: .8;
+}
+
+.blink {
+    animation: blinker 1.5s linear infinite;
+}
+
+.sticky-bar {
+    position: sticky;
+    top: 0px;
+    z-index: 20;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
+input.form-control:disabled,
+input.form-control[readonly],
+input.form-control-sm:disabled,
+input.form-control-sm[readonly],
+textarea.form-control:disabled,
+textarea.form-control[readonly],
+textarea.form-control-sm:disabled,
+textarea.form-control-sm[readonly],
+select.form-control:disabled,
+select.form-control-sm:disabled {
+    background-color: #f4f6f9 !important;
+    border-color: #ced4da !important;
+    color: #6c757d !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+}
+
+.create-modify-dateshow.force-hide {
+    display: none !important;
+}
+
+.input-group .input-group-text {
+    padding: 0.375rem !important;
+}
+
+.input-group-lg > .form-select, .input-group-sm > .form-select {
+    padding-right: 1.5rem !important;
+}
+
+
+
+.caiCon {
+    position: relative;
+    /*    padding-right: 30px !important;*/
+    background-image: url('/img/icons/calender.svg');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px 16px;
+    opacity: .8;
+}
+
+.blink {
+    animation: blinker 1.5s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
+
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: #fff;
+    transition: all 0.15s ease;
+}
+
+    .toolbar-btn i {
+        font-size: 0.8rem;
+    }
+
+.toolbar-btn-save {
+    color: #2563eb;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+    .toolbar-btn-save:hover {
+        background: #dbeafe;
+    }
+
+.toolbar-btn-delete {
+    color: #dc2626;
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+    .toolbar-btn-delete:hover {
+        background: #fee2e2;
+    }
+
+.toolbar-btn-clear {
+    color: #374151;
+    border-color: #e5e7eb;
+    background: #f9fafb;
+}
+
+    .toolbar-btn-clear:hover {
+        background: #f3f4f6;
+    }
+
+.toolbar-btn-print {
+    color: #1e293b;
+    background: #eef2f7;
+    border-color: #dbe2ea;
+}
+
+    .toolbar-btn-print:hover,
+    .toolbar-btn-print:focus {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .toolbar-btn-print.dropdown-toggle::after {
+        margin-left: 4px;
+    }
+
+.toolbar-btn-fav {
+    color: #d97706;
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+    .toolbar-btn-fav:hover {
+        background: #fef3c7;
+    }
+
+.toolbar-print-menu {
+    min-width: 130px;
+    border-radius: 8px;
+    padding: 6px;
+    border: 1px solid #eef1f4;
+}
+
+    .toolbar-print-menu .dropdown-item {
+        font-size: 0.85rem;
+        border-radius: 6px;
+        padding: 6px 10px;
+    }
+
+        .toolbar-print-menu .dropdown-item:hover {
+            background: #f3f4f6;
+        }
+
+.sticky-bar {
+    position: sticky;
+    top: 0px;
+    z-index: 20;
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+body, .btn, .form-control, table, th, td, h1, h2, h3, h4, h5, h6, p, span, label, input, select, textarea {
+    font-family: 'Times New Roman', Times, serif !important;
+}
+
+/* Font Awesome icons must use proper font */
+i.fas, i.far, i.fal, i.fab {
+    font-family: 'Font Awesome 6 Free' !important;
+}
+
+i.fab {
+    font-family: 'Font Awesome 6 Brands' !important;
+}
+
+/* Fix Font Awesome icons with Blazor scoping */
+[b-himydvh1zw=""] i.fas::before,
+[b-himydvh1zw=""] i.far::before,
+[b-himydvh1zw=""] i.fal::before,
+[b-himydvh1zw=""] i.fab::before {
+    display: inline-block !important;
+    font-family: 'Font Awesome 6 Free' !important;
+    font-style: normal;
+    font-weight: 900 !important;
+}
+
+[b-himydvh1zw=""] i.fab::before {
+    font-family: 'Font Awesome 6 Brands' !important;
+}

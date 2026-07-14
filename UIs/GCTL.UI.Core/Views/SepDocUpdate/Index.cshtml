@@ -1,0 +1,1054 @@
+﻿@model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel
+
+@{
+    ViewData["Title"] = "Shipment Entry";
+}
+
+<link href="~/css/selectCSS.css" rel="stylesheet" />
+
+
+<style>
+    /* .sticky-bar {
+        position: sticky;
+        top: 65px;
+        z-index: 1020; 
+    } */
+
+    /* Bootstrap form-select-sm style for Select2 */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: calc(1.5em + .5rem + 2px) !important; /* Bootstrap form-select-sm */
+        padding: .25rem .5rem !important;
+        border: 1px solid #ced4da !important;
+        border-radius: .375rem !important;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-container--default .select2-selection__rendered {
+        line-height: normal !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        color: #212529;
+        font-size: .875rem;
+    }
+
+    .select2-container--default .select2-selection__arrow {
+        height: 100% !important;
+        right: 8px;
+    }
+
+    .select2-container--default .select2-selection__clear {
+        margin-right: 18px;
+    }
+
+    /* Focus */
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+    }
+
+    .form-label {
+        padding-left: 0rem !important;
+        line-height: 1.2 !important;
+        text-transform: capitalize !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ================= Toolbar ================= */
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .toolbar-left {
+        flex-shrink: 0;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    /* Large Screen (default) */
+
+    .toolbar-showing {
+        width: 120px;
+    }
+
+    /* Wrapper for the large-screen filters (customer / shipment / date) */
+    .toolbar-large-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .toolbar-customer {
+        width: 250px;
+    }
+
+    .toolbar-shipment {
+        width: 240px;
+    }
+
+    .toolbar-date {
+        width: 380px;
+    }
+
+    .toolbar-search {
+        width: 300px;
+    }
+
+    /* Small/mid screen filter block - hidden by default on large screens */
+    .sm-topshow {
+        display: none;
+    }
+
+    /* 1350px */
+
+    @@media (max-width:1370px) {
+
+        .sm-topshow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+        }
+
+            .sm-topshow .toolbar-customer-sm,
+            .sm-topshow .toolbar-shipment-sm {
+                width: 220px;
+            }
+
+            .sm-topshow .toolbar-date-sm {
+                width: 100%;
+                max-width: 420px;
+            }
+
+        .toolbar-right {
+            gap: 8px;
+        }
+        /* Hide large-screen customer/shipment/date filters */
+        .toolbar-large-filters {
+            display: none;
+        }
+
+        .toolbar-customer {
+            width: 225px;
+        }
+
+        .toolbar-search {
+            width: 225px;
+        }
+
+        .toolbar-date {
+            width: 321px;
+        }
+
+        .toolbar .form-control,
+        .toolbar .form-select,
+        .toolbar .input-group-text {
+            font-size: 13px;
+            padding: .25rem .45rem;
+        }
+    }
+
+    /* Tablet */
+
+    @@media (max-width:1200px) {
+
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-right {
+            flex-wrap: wrap;
+        }
+
+        .toolbar-search {
+            width: 100%;
+        }
+
+        .sm-topshow .toolbar-customer-sm,
+        .sm-topshow .toolbar-shipment-sm,
+        .sm-topshow .toolbar-date-sm {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    .timeline-container {
+    position: relative;
+    padding: 20px 0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    display: flex;
+    margin-bottom: 30px;
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+}
+
+.timeline-marker {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    position: relative;
+    z-index: 2;
+    background: white;
+}
+
+.timeline-item.completed .timeline-marker {
+    background: #28a745;
+    color: white;
+    border: 3px solid white;
+}
+
+.timeline-item.active .timeline-marker {
+    background: #007bff;
+    color: white;
+    border: 3px solid white;
+    animation: pulse 2s infinite;
+}
+
+.timeline-item.pending .timeline-marker {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 3px solid white;
+}
+
+@@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
+}
+
+.timeline-content {
+    margin-left: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.timeline-item:last-child .timeline-content {
+    border-bottom: none;
+}
+
+.timeline-title {
+    margin: 0 0 5px 0;
+    font-weight: 600;
+    color: #212529;
+}
+
+.timeline-item.completed .timeline-title {
+    color: #28a745;
+}
+
+.timeline-item.active .timeline-title {
+    color: #007bff;
+}
+
+.timeline-status {
+    margin: 5px 0;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.timeline-container small {
+    display: block;
+    margin-top: 5px;
+}
+</style>
+
+
+
+<div class="">
+    <div class="">
+        <div class="">
+
+            @* <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 rounded shadow-sm border mb-3 sticky-bar">
+                <div class="d-flex align-items-center py-1 ps-2">
+                    <h1 class="fw-bold text-dark m-0" style="font-size: 0.95rem; letter-spacing: 0.5px;">
+                        Daily Job Update
+                    </h1>
+                </div>
+                <div class="d-flex flex-wrap align-items-end pe-1">
+                    <button type="button" class="btn btn-phoenix-primary" id="saveShipmentBtn">
+                        <i class="fas fa-save text-success"></i>
+                        <span>Save</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="deleteShipmentBtn">
+                        <i class="fas fa-trash text-danger"></i>
+                        <span>Delete</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="clearShipmentBtn">
+                        <i class="fas fa-sync text-primary"></i>
+                        <span>Clear</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="printShipmentBtn">
+                        <i class="fas fa-print text-dark"></i>
+                        <span>Print</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="favtShipmentBtn">
+                        <i class="fas fa-star text-warning"></i>
+                        <span>Favt</span>
+                    </button>
+                </div>
+            </div> *@
+
+
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel{
+                Title = "Daily Job Update"
+
+            })
+            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+                <div class="mb-3">
+                    <div id="jobSummary">
+
+                        <!-- Small/Mid screen filters (shown below 1350px) -->
+                        <div class="sm-topshow">
+                             <span class="label-text filter-by-sm">Filter By:</span>
+                            <div class="toolbar-customer-sm">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="customerFilterSm"
+                                        data-placeholder="Select Customer"
+                                        asp-items="ViewBag.CustomerName as SelectList">
+                                    <option value="">All Customers</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-shipment-sm">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="shipmentModeFilterSm"
+                                        data-placeholder="Select Shipment Mode"
+                                        asp-items="ViewBag.ShipmentMode as SelectList">
+                                    <option value="">All Shipment Modes</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-date-sm">
+                                <div class="input-group input-group-sm custom-date-group">
+                                    <span class="input-group-text">From</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateFromSm">
+
+                                    <span class="input-group-text">To</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateToSm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="toolbar mb-4">
+
+                            <!-- Left -->
+                            <div class="toolbar-left">
+                                <div class="input-group input-group-sm toolbar-showing">
+                                    <span class="input-group-text">Showing</span>
+
+                                    <select class="form-select" id="pageSizeSelect">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Right -->
+                            <div class="toolbar-right">
+                                <span class="label-text toolbar-large-filters">Filter By:</span>
+                                <!-- Large screen filters (hidden below 1350px) -->
+                                <div class="toolbar-large-filters">
+                                    <div class="toolbar-customer">
+                                        <select class="form-select form-select-sm custom-select-single"
+                                                id="customerFilter"
+                                                data-placeholder="Select Customer"
+                                                asp-items="ViewBag.CustomerName as SelectList">
+                                            <option value="">All Customers</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="toolbar-shipment">
+                                        <select class="form-select form-select-sm custom-select-single"
+                                                id="shipmentModeFilter"
+                                                data-placeholder="Select Shipment Mode"
+                                                asp-items="ViewBag.ShipmentMode as SelectList">
+                                            <option value="">All Shipment Modes</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="toolbar-date">
+                                        <div class="input-group input-group-sm custom-date-group">
+                                            <span class="input-group-text">Date From</span>
+                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateFrom">
+
+                                            <span class="input-group-text">To</span>
+                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateTo">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="toolbar-search">
+                                    <input class="form-control form-control-sm"
+                                           id="searchInput"
+                                           type="text"
+                                           placeholder="Search">
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <div class="table-responsive ms-n1 ps-1 scrollbar">
+                            <table class="table table-bordered table-sm table-responsive-sm fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobSettingsTable">
+                                <thead>
+                                    <tr>
+                                        <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo">Job No</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="ShipmentMode">Shipment Mode</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="JobDate">Job Date</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="CustomerName">Customer Name</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="DocReceivedDate">Doc Received Date</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody class="list" id="job-settings-table">
+                                    <!-- Table rows will be populated here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
+                            <div class="d-flex">
+                                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="dataListInfo"></p>
+                            </div>
+                            <div class="d-flex">
+                                <button class="page-link" id="paginationPrev"><span class="fas fa-chevron-left"></span></button>
+                                <ul class="mb-0 pagination" id="paginationNumbers"></ul>
+                                <button class="page-link pe-0" id="paginationNext"><span class="fas fa-chevron-right"></span></button>
+                            </div>
+                        </div>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+
+
+
+                <div class="row ">
+
+                    <!-- Shipment Mode -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Shipment Mode</label>
+                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Mode" id="shipmentModeId" asp-items="ViewBag.ShipmentMode as SelectList">
+                            <option value="">Select Shipment Mode</option>
+                        </select>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Is Custom Job No -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="form-check mt-4">
+                            <input type="checkbox" class="form-check-input" id="isCustomJobNo" />
+                            <label class="form-check-label">Is Custom Job No</label>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6"></div>
+                    <!-- Job No (Read-only) -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Job No</label>
+                        <input class="form-control form-control-sm" readonly id="jobNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Job Date -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Job Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="jobDate" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Customer Name -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Customer Name</label>
+                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer" id="customerId" asp-items="ViewBag.CustomerName as SelectList">
+                            <option value="">Select Customer</option>
+                        </select>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Customer Delivery Address -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Customer Address</label>
+                        <textarea class="form-control form-control-sm" rows="1" id="customerAddress"></textarea>
+                        <span class="text-danger"></span>
+                    </div>
+                    <!-- Customer Delivery Address -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Customer Delivery Address</label>
+                        <textarea class="form-control form-control-sm" rows="1" id="customerDeliveryAddress"></textarea>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Port Name -->
+                    <div class="col-lg-4 col-md-6">
+                    </div>
+                    <!-- Port Name -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Port Name</label>
+                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Port" id="portId" asp-items="ViewBag.PortName as SelectList">
+                            <option value="">Select Port</option>
+                        </select>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Doc's Received Date -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Doc's Received Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docsReceivedDate" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- LC/EXP No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">LC/EXP No</label>
+                        <input class="form-control form-control-sm" id="lcExpNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- LC Value -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">L/C Value</label>
+                        <div class="d-flex gap-2 group-horizontal">
+                            <input type="number" class="form-control form-control-sm" id="lcValue" />
+                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="lcUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
+                                <option value="">Select Unit</option>
+                            </select>
+                        </div>
+                        <span class="text-danger"></span>
+                        <span class="text-danger"></span>
+                    </div>
+                    <!-- lc Date -->
+                    <div class="col-lg-4 col-md-6 custom-date-wrapper">
+                        <label class="form-label">LC Date</label>
+                        <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="lcDate" />
+                        <span class="text-danger"></span>
+                    </div>
+                    <!-- IP/EP No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">IP/EP No</label>
+                        <input class="form-control form-control-sm" id="ipEpNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- IP Date -->
+                    <div class="col-lg-4 col-md-6 custom-date-wrapper">
+                        <label class="form-label">IP Date</label>
+                        <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="ipDate" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Importer Name -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Importer Name</label>
+                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Importer" id="importerId" asp-items="ViewBag.ImporterName as SelectList">
+                            <option value="">Select Importer</option>
+                        </select>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Invoice No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Invoice No</label>
+                        <input class="form-control form-control-sm" id="invoiceNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Invoice Date -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Invoice Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="invoiceDate" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- B/L No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">B/L No</label>
+                        <input class="form-control form-control-sm" id="blNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- B/L Date -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">B/L Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="blDate" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- B/E No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">B/E No</label>
+                        <input class="form-control form-control-sm" id="beNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- B/E Date -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">B/E Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="beDate" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Container No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Container No</label>
+                        <input class="form-control form-control-sm" id="containerNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Container Size -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Container Size</label>
+                        <input class="form-control form-control-sm" id="containerSize" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- LCA No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">LCA No</label>
+                        <input class="form-control form-control-sm" id="lcaNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Discharge Date -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Discharge Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="dischargeDate" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Material Description -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Material Description</label>
+                        <textarea class="form-control form-control-sm" rows="1" id="materialDescription"></textarea>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Quantity + Unit (Horizontal Group) -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Quantity & Unit (PKG)</label>
+                        <div class="d-flex gap-2 group-horizontal">
+                            <input type="number" class="form-control form-control-sm" id="quantity" />
+                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="quantityUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
+                                <option value="">Select Unit</option>
+                            </select>
+                        </div>
+                        <span class="text-danger"></span>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Weight + Unit (Horizontal Group) -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Weight & Unit (KG)</label>
+                        <div class="d-flex gap-2 group-horizontal">
+                            <input type="number" class="form-control form-control-sm" id="weight" />
+                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="weightUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
+                                <option value="">Select Unit</option>
+                            </select>
+                        </div>
+                        <span class="text-danger"></span>
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- FWDR (Shipping Agent) -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">FWDR (Shipping Agent)</label>
+
+                        <input class="form-control form-control-sm" id="forwarderId" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Vessel/Rott No -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Vessel/Rott No</label>
+                        <input class="form-control form-control-sm" id="vesselRottNo" />
+                        <span class="text-danger"></span>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Remarks</label>
+                        <textarea class="form-control form-control-sm" rows="1" id="read-remarks"></textarea>
+                        <span class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
+
+                <form asp-action="Create" method="post" id="shipmentForm">
+                    <div class="row pb-2">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" asp-for="JobNo" id="jobNoHidden" value="" />
+                        <input type="hidden" asp-for="AutoId" id="autoId" />
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">ETA Delivery Date</label>
+                            <input asp-for="ETADeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
+                                   id="etaDeliveryDate" />
+                            <span asp-validation-for="ETADeliveryDate" class="text-danger"></span>
+                        </div>
+
+                        <!-- Actual Delivery Date -->
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Actual Delivery Date</label>
+                            <input asp-for="ActualDeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
+                                   id="actualDeliveryDate" />
+                            <span asp-validation-for="ActualDeliveryDate" class="text-danger"></span>
+                        </div>
+
+                        <!-- Unstuffing Date -->
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Unstuffing Date</label>
+                            <input asp-for="UnstuffingDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffingDate" />
+                            <span asp-validation-for="UnstuffingDate" class="text-danger"></span>
+                        </div>
+
+                        <!-- Place of Loading -->
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Place of Loading</label>
+                            <select asp-for="PlaceOfLoadingID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Place" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
+                                <option value="">Select Place</option>
+                            </select>
+                            <span asp-validation-for="PlaceOfLoadingID" class="text-danger"></span>
+                        </div>
+
+                        <!-- ETD Date -->
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">ETD Date</label>
+                            <input asp-for="ETDDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
+                            <span asp-validation-for="ETDDate" class="text-danger"></span>
+                        </div>
+
+                        <!-- Shed / Yard -->
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Shed / Yard</label>
+                            <select asp-for="ShedYardID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shed/Yard" id="shedYardId" asp-items="ViewBag.ShedYard as SelectList">
+                                <option value="">Select Shed/Yard</option>
+                            </select>
+                            <span asp-validation-for="ShedYardID" class="text-danger"></span>
+                        </div>
+
+                        <!-- Freight Charge -->
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label">Freight Charge</label>
+                            <select asp-for="FreightChargeID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Freight Charge" id="freightChargeId" asp-items="ViewBag.FreightCharge as SelectList">
+                                <option value="">Select Freight Charge</option>
+                            </select>
+                            <span asp-validation-for="FreightChargeID" class="text-danger"></span>
+                        </div>
+                         <div class="col-lg-4 col-md-6"></div>
+                          <div class="col-lg-4 col-md-6"></div>
+                        <!-- Shipment Status (Highlighted) -->
+                        <div style="display: flex;background: #FFFFE0;align-content: center;align-items: center;padding: 12px;margin: 12px 0;">
+
+                        
+                        <div class="col-lg-4 col-md-6" style="padding-right:12px;">
+                            <label class="form-label">Shipment Status</label>                           
+                                       <select asp-for="ShipmentStatus" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Status" asp-items="ViewBag.shipStatus as SelectList">
+                                <option value="">Select Shipment Status</option>
+                            </select>
+                            <span asp-validation-for="ShipmentStatus" class="text-danger"></span>
+                        </div>
+                         <!-- ETD Date -->
+                        
+                         <!-- Quantity + Unit (Horizontal Group) -->
+                      <div class="col-lg-4 col-md-6" style="padding-left: 12px;">
+                            <label class="form-label">Date & Time</label>
+
+                            <div class="row g-2">
+                                <div class="col flex-grow-1" style="min-width: 70px;">
+                                    <input type="text"
+                                           class="form-control form-control-sm custom-datepicker w-100"
+                                           asp-for="Date" />
+                                </div>
+
+                                <div class="col-auto" style="min-width: 150px; margin-top: 6px;">
+                                    <input type="text"
+                                           class="form-control form-control-sm custom-timepicker w-100"
+                                           asp-for="Time" />
+                                </div>
+                            </div>
+
+                            <span class="text-danger"></span>
+                        </div>
+
+
+                         <div class="col-lg-4 col-md-6"  style="padding-left: 12px;">
+                                <label class="form-label">Remarks</label>
+                                <textarea class="form-control form-control-sm" placeholder="Shipment Status" rows="1" id="remarks"></textarea>
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                       
+
+                        <!-- Creation Date -->
+                        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
+                            <label class="form-label text-nowrap ">Creation Date:</label>
+                            <span class="form-control-plaintext flex-grow-1 fs-9" id="creationDate"></span>
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 create-modify-dateshow"></div>
+
+                        <!-- Updated Date -->
+                        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
+                            <label class="form-label  text-nowrap mb-0">Updated Date:</label>
+                            <span class="form-control-plaintext flex-grow-1 fs-9" id="updatedDate"></span>
+                        </div>
+                    </div>
+                </form>
+                <div class="card mt-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Shipment Progress Timeline</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline-container">
+                            <!-- Timeline Item 1 -->
+                            <div class="timeline-item completed">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Document Received</h6>
+                                    <p class="timeline-status">Status: 01</p>
+                                    <small class="text-muted" id="status01-date">-</small>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Item 2 -->
+                            <div class="timeline-item completed">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Shipping Completed</h6>
+                                    <p class="timeline-status">Status: 02</p>
+                                    <small class="text-muted" id="status02-date">-</small>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Item 3 -->
+                            <div class="timeline-item completed">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Departed Origin Port</h6>
+                                    <p class="timeline-status">Status: 03</p>
+                                    <small class="text-muted" id="status03-date">-</small>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Item 4 -->
+                            <div class="timeline-item completed">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">In Transit</h6>
+                                    <p class="timeline-status">Status: 04</p>
+                                    <small class="text-muted" id="status04-date">-</small>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Item 5 -->
+                            <div class="timeline-item active">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Arrived Destination Port</h6>
+                                    <p class="timeline-status">Status: 05 (Current)</p>
+                                    <small class="text-muted" id="status05-date">-</small>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Item 6 -->
+                            <div class="timeline-item pending">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Unstuffing Completed</h6>
+                                    <p class="timeline-status">Status: 06</p>
+                                    <small class="text-muted" id="status06-date">-</small>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Item 7 -->
+                            <div class="timeline-item pending">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">Delivered</h6>
+                                    <p class="timeline-status">Status: 07</p>
+                                    <small class="text-muted" id="status07-date">-</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel{
+                    Title = "",
+                    ShowDelete = false,
+                    ShowClear = false,
+                    ShowPrint = false,
+                    ShowFavorite = false,
+                    IsPlain = true
+                })
+            </div>
+
+            <hr class="border border-body-emplhsish border-1 opacity-100 mx-auto mb-2">
+
+
+            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+                <div class="mb-9">
+                    <div id="jobStatusSummary">
+                        <!-- Search and Page Size -->
+                        <div class="toolbar pb-2">
+
+                            <div class="toolbar-left">
+                                <div class="input-group input-group-sm toolbar-showing">
+                                    <span class="input-group-text">Showing</span>
+                                    <select class="form-select" id="statusPageSizeSelect">
+                                        <option>10</option>
+                                        <option>25</option>
+                                        <option>50</option>
+                                        <option>100</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="toolbar-right">
+                                 <span class="label-text">Filter By:</span>
+                                <div class="toolbar-item toolbar-customer">
+                                    <select class="form-select form-select-sm custom-select-single"
+                                            id="customerLoadGridFilter" data-placeholder="Select Customer"
+                                            asp-items="ViewBag.CustomerName as SelectList">
+                                        <option value="">All Customers</option>
+                                    </select>
+                                </div>
+
+                                <div class="toolbar-item toolbar-date">
+                                    <div class="input-group input-group-sm custom-date-group">
+                                        <span class="input-group-text">Date From</span>
+                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridFrom">
+                                        <span class="input-group-text">To</span>
+                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridTo">
+                                    </div>
+                                </div>
+
+                                <div class="toolbar-item toolbar-search">
+                                    <input class="form-control form-control-sm"
+                                           id="statusSearchInput"
+                                           type="text"
+                                           placeholder="Search">
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- Table -->
+                        <div class="table-responsive ms-n1 ps-1 scrollbar">
+                            <table class="table table-sm table-bordered fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobStatusTable">
+                                <thead>
+                                    <tr>
+                                        <th class="sort white-space-nowrap align-middle text-center ps-0" style="width:110px" scope="col" data-sort="Status">
+                                          <input type="checkbox" id="checkAll" class="form-check-input" />  Select All 
+                                            </th>
+                                        <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ID">ID</th>
+                                        <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="JobNo">Job No</th>
+                                        <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ShipmentStatus">Shipment Status</th>
+                                        <th class="sort white-space-nowrap align-middle text-center ps-2 text-end" scope="col" data-sort="DateTime">Date Time</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody class="list" id="jobStatusTableBody">
+                                    <!-- Rows populated via AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
+                            <div class="d-flex">
+                                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="statusDataListInfo"></p>
+                            </div>
+                            @* <div class="d-flex">
+                                <button class="page-link" id="statusPaginationPrev"><span class="fas fa-chevron-left"></span></button>
+                                <ul class="mb-0 pagination" id="statusPaginationNumbers"></ul>
+                                <button class="page-link pe-0" id="statusPaginationNext"><span class="fas fa-chevron-right"></span></button>
+                            </div> *@
+                           <div class="d-flex">
+                                <button class="page-link" id="paginationFirst"><span class="bi bi-chevron-bar-left"></span></button>
+                                <button class="page-link" id="paginationPrev"><span class="bi bi-chevron-left"></span></button>
+                                <ul class="mb-0 pagination" id="paginationNumbers"></ul>
+                                <button class="page-link pe-0" id="paginationNext"><span class="bi bi-chevron-right"></span></button>
+                                <button class="page-link pe-0" id="paginationLast"><span class="bi bi-chevron-bar-right"></span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/shipmentupdate.js"></script>
+}

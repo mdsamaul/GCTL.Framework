@@ -1,0 +1,24 @@
+@model IEnumerable<GCTL.Core.ViewModels.Menu.MenuDto>
+<ul class="list-group ms-3">
+@foreach (var item in Model)
+{
+    <li class="list-group-item d-flex align-items-center justify-content-between" style="background: rgba(255,255,255,0.6); backdrop-filter: blur(5px); border: none; margin-bottom: 0.3rem;">
+        <a asp-controller="@item.ControllerName" asp-action="@item.ViewName" class="text-decoration-none d-flex align-items-center" style="color: #555; font-weight: 400;">
+            @if (!string.IsNullOrWhiteSpace(item.Icon)) {
+                <i class="@item.Icon me-2"></i>
+            }
+            @item.Title
+        </a>
+        @if (item.Children != null && item.Children.Any()) {
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#children-@item.AutoId" aria-expanded="false" aria-controls="children-@item.AutoId">
+                <i class="bi bi-caret-down-fill"></i>
+            </button>
+        }
+    </li>
+    @if (item.Children != null && item.Children.Any()) {
+        <div class="collapse" id="children-@item.AutoId">
+            @await Html.PartialAsync("_MenuPartial", item.Children)
+        </div>
+    }
+}
+</ul>

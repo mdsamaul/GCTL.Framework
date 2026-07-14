@@ -1,0 +1,90 @@
+﻿<div class="d-flex flex-column">
+    @* style="min-height: 100vh;" *@
+    <!-- Card Start -->
+    <div class="card shadow rounded-2 flex-grow-1 d-flex ">
+        <!-- Card Header -->
+        <div class="card-header bg-light  rounded-top-2">
+            <div class="row align-items-center">
+                <!-- Page Size Dropdown -->
+                <div class="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+                    <label class="me-2 mb-0">Show</label>
+                    <select id="pageSize" class="form-select form-select-sm me-2 pageSize" style="max-width: 100px;">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="-1">All</option>
+                    </select>
+                    <label class="mb-0">Entries</label>
+                </div>
+
+                <!-- Search Input -->
+                <div class="col-md-6 d-flex justify-content-md-end">
+                    <input type="text" id="searchInput" class="form-control form-control-sm w-100 searchInput" style="max-width: 300px;" placeholder="Search...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Body with Table -->
+        <div class="card-body p-2 flex-grow-1 d-flex flex-column">
+            <div class="table-responsive flex-grow-1" style="overflow-y: auto; max-height: 600px;">
+                <table class="table table-hover table-sm table-bordered mb-0">
+                    <thead class="table-light align-middle text-nowrap sticky-top" style="font-size: 0.8rem;">
+                        <tr>
+                            <th class="text-center text-middle"><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                            <th class="sortable text-center text-middle" data-column="CurrencyId">ID <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="sortable text-center text-middle" data-column="CurrencyName">Currency<br /> Name <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="sortable text-center text-middle" data-column="ShortName">Short<br />Name <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="sortable text-center text-middle" data-column="Symbol">Symbol <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="sortable text-center text-middle" data-column="DecimalPlaces">Decimal<br />Places<i class="sort-icon fas fa-sort"></i></th>
+                            <th class="sortable text-center text-middle" data-column="NegativeFormat">Negative<br />Format <i class="sort-icon fas fa-sort"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblBody">
+                        <tr class="no-data">
+                            <td colspan="7" class="text-center">No Data Available</td>
+                        </tr>
+                        <!-- Data will be dynamically inserted here -->
+                    </tbody>
+                    
+                </table>
+            </div>
+        </div>
+
+        <!-- Card Footer with Pagination -->
+        <div class="card-footer bg-light position-sticky bottom-0">
+            <div class="row align-items-center mb-2">
+                <div class="col-4">
+                    <span id="paginationInfo" class="text-muted" style="font-size: 0.8rem;"></span>
+                </div>
+                <div class="col-4 text-center">
+                    <span id="paginationSummary" class="text-primary" style="font-size: 0.8rem;"></span>
+                </div>
+                <div class="col-4 text-end">
+                    <span id="totalRecordsInfo" class="text-muted" style="font-size: 0.8rem;"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 text-center">
+                    <div class="btn-group">
+                        <button id="firstPage" class="btn btn-outline-primary btn-sm">First</button>
+                        <button id="prevPage" class="btn btn-outline-primary btn-sm">Previous</button>
+                    </div>
+
+                    <div id="pageNavigation" class="btn-group mx-2">
+                        <!-- Page buttons dynamically inserted here -->
+                    </div>
+
+                    <div class="btn-group">
+                        <button id="nextPage" class="btn btn-outline-primary btn-sm">Next</button>
+                        <button id="lastPage" class="btn btn-outline-primary btn-sm">Last</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
