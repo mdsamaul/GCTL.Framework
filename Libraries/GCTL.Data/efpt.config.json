@@ -47,6 +47,26 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CA_Def_Currency]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_DailyJobUpdateEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_ExpenseType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_PlaceOfLoading]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_ShedYard]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Core_AccessCode]",
          "ObjectType": 0
       },
@@ -59,11 +79,59 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Country]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[DeleteHistory]",
          "ObjectType": 0
       },
       {
          "Name": "[dbo].[HRM_ATD_CompanyWeekEnd]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Nationality]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SupplierCategory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SupplierOrigin]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SupplierType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RMG_Prod_Def_UnitType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_ContactPerson]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Customer]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_ImporterInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_PortName]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_DeliveryLocation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sep_Documentation]",
          "ObjectType": 0
       }
    ],
