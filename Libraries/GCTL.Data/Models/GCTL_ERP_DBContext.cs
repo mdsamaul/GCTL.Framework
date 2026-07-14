@@ -103,6 +103,10 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CoreServiceType> CoreServiceTypes { get; set; }
 
+    public virtual DbSet<CoreUserInfo> CoreUserInfos { get; set; }
+
+    public virtual DbSet<CoreUserLog> CoreUserLogs { get; set; }
+
     public virtual DbSet<Country> Countries { get; set; }
 
     public virtual DbSet<CustomerHandilingCharge> CustomerHandilingCharges { get; set; }
@@ -1851,6 +1855,84 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<CoreUserInfo>(entity =>
+        {
+            entity.ToTable("Core_UserInfo");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.AccessCode).HasMaxLength(250);
+            entity.Property(e => e.CustomerId)
+                .HasMaxLength(50)
+                .HasColumnName("CustomerID");
+            entity.Property(e => e.Dob)
+                .HasMaxLength(150)
+                .HasColumnName("DOB");
+            entity.Property(e => e.EmployeeId)
+                .HasMaxLength(100)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.EntryDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.FactoryId)
+                .HasMaxLength(50)
+                .HasColumnName("FactoryID");
+            entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.LastName).HasMaxLength(100);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(150)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(250)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(250)
+                .HasColumnName("LUser");
+            entity.Property(e => e.OffEmail).HasMaxLength(150);
+            entity.Property(e => e.OffPhone).HasMaxLength(50);
+            entity.Property(e => e.Password).HasColumnName("password");
+            entity.Property(e => e.PerEmail).HasMaxLength(150);
+            entity.Property(e => e.PerPhone).HasMaxLength(50);
+            entity.Property(e => e.Role).HasMaxLength(50);
+            entity.Property(e => e.SingleSession).HasMaxLength(50);
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Type).HasMaxLength(250);
+            entity.Property(e => e.UserType).HasMaxLength(50);
+            entity.Property(e => e.Username)
+                .HasMaxLength(250)
+                .HasColumnName("username");
+            entity.Property(e => e.WorkStation).HasMaxLength(250);
+        });
+
+        modelBuilder.Entity<CoreUserLog>(entity =>
+        {
+            entity.HasKey(e => e.UlogId);
+
+            entity.ToTable("Core_UserLog");
+
+            entity.HasIndex(e => e.SessionId, "IX_CoreUserLog_SessionId");
+
+            entity.Property(e => e.UlogId).HasColumnName("ULogID");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(250)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(150)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Lmip)
+                .HasMaxLength(250)
+                .HasColumnName("LMIP");
+            entity.Property(e => e.LoginDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.LogoutDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.SessionId).HasMaxLength(64);
+            entity.Property(e => e.Username)
+                .HasMaxLength(250)
+                .HasColumnName("username");
+            entity.Property(e => e.WorkStation).HasMaxLength(150);
+        });
+
         modelBuilder.Entity<Country>(entity =>
         {
             entity.HasKey(e => e.CountryId).HasName("PK__Country__10D160BFC8D37DA6");
@@ -2322,19 +2404,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmDefDesignation>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK_HRM_Def_Designation_AutoID");
+            entity.HasKey(e => e.DesignationCode);
 
             entity.ToTable("HRM_Def_Designation");
 
+            entity.Property(e => e.DesignationCode).HasMaxLength(50);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
             entity.Property(e => e.BanglaDesignation).HasMaxLength(100);
             entity.Property(e => e.BanglaShortName).HasMaxLength(100);
-            entity.Property(e => e.DesignationCode)
-                .IsRequired()
-                .HasMaxLength(50);
             entity.Property(e => e.DesignationName).HasMaxLength(100);
             entity.Property(e => e.DesignationShortName).HasMaxLength(50);
             entity.Property(e => e.GradeCode).HasMaxLength(50);

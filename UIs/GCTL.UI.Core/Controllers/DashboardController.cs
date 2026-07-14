@@ -17,8 +17,8 @@ public class DashboardController : BaseController
     public async Task<IActionResult> Index()
     {
         var userName = User.Identity?.Name ?? "User";
-        var fullName = LoginInfo?.FullName ?? userName;
-        var userId = LoginInfo?.Id ?? string.Empty;
+        var fullName =  LoginInfo?.Username ?? userName;
+        var userId =  LoginInfo?.EmployeeId ?? string.Empty;
 
         var summary = await _dashboardService.GetDashboardSummaryAsync(userId, fullName);
 

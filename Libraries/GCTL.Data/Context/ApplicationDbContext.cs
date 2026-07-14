@@ -1,8 +1,8 @@
-using GCTL.Data.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+//using GCTL.Data.Identity;
+//using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore;
 
-namespace GCTL.Data.Context;
+//namespace GCTL.Data.Context;
 
 /// <summary>
 /// Identity-backed DbContext. This handles Sign In / Sign Up / Roles.
@@ -24,21 +24,21 @@ namespace GCTL.Data.Context;
 /// Option 1 is simpler to keep in sync every time you re-scaffold after a
 /// database schema change, since re-running Power Tools won't touch this file.
 /// </summary>
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
-{
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-    {
-    }
+//public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
+//{
+//    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+//        : base(options)
+//    {
+//    }
 
-    protected override void OnModelCreating(ModelBuilder builder)
-    {
-        base.OnModelCreating(builder);
+//    protected override void OnModelCreating(ModelBuilder builder)
+//    {
+//        base.OnModelCreating(builder);
 
-        // Keep Identity's default table names as AspNetUsers/AspNetRoles/etc.
-        // If you prefer names consistent with your existing schema (e.g. "Users",
-        // "Roles"), rename them here, for example:
-        // builder.Entity<ApplicationUser>().ToTable("Users");
-        // builder.Entity<ApplicationRole>().ToTable("Roles");
-    }
-}
+//        // Keep Identity's default table names as AspNetUsers/AspNetRoles/etc.
+//        // If you prefer names consistent with your existing schema (e.g. "Users",
+//        // "Roles"), rename them here, for example:
+//        // builder.Entity<ApplicationUser>().ToTable("Users");
+//        // builder.Entity<ApplicationRole>().ToTable("Roles");
+//    }
+//}

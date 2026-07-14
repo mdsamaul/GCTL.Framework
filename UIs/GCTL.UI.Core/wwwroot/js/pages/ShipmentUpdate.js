@@ -603,8 +603,7 @@ function clearForm() {
 
 //#region Function to populate the form with data
 function populateBottomForm(data) {
-    showDev(data);
-
+    showDev(data);    
     if (data.etaDeliveryDate) {
         setDate('#etaDeliveryDate', data.etaDeliveryDate.split('T')[0]);
     }
