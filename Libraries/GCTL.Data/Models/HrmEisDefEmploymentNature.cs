@@ -5,23 +5,26 @@ using System.Collections.Generic;
 
 namespace GCTL.Data.Models;
 
-public partial class HrmEisDefEmploymentNature
-{
-    public decimal Tc { get; set; }
+    public partial class HrmEisDefEmploymentNature
+    {
+        public decimal Tc { get; set; }
 
-    public string EmploymentNatureId { get; set; }
+        public string EmploymentNatureId { get; set; }
 
-    public string EmploymentNature { get; set; }
+        public string EmploymentNature { get; set; }
 
-    public string ShortName { get; set; }
+        public string ShortName { get; set; }
 
-    public string Luser { get; set; }
+        public string Luser { get; set; }
 
-    public DateTime? Ldate { get; set; }
+        public DateTime? Ldate { get; set; }
 
-    public string Lip { get; set; }
+        public string Lip { get; set; }
 
-    public string Lmac { get; set; }
+        public string Lmac { get; set; }
 
-    public DateTime? ModifyDate { get; set; }
+        public DateTime? ModifyDate { get; set; }
+        public string CompanyCode { get; set; }
+        public string BanglaEmployeeNature { get; set; }
+    }
 }

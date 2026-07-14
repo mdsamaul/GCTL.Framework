@@ -1,0 +1,456 @@
+﻿@model GCTL.Core.ViewModels.UserAccesses.UserAccessSetupViewModel
+<style>
+    .medium {
+        font-size: .85rem;
+    }
+
+    input::-ms-reveal, input::-ms-clear { display: none; }
+
+    /* Default icon color */
+#toggleBtn {
+    color: #ced4da !important;
+    transition: color 0.2s ease !important;
+}
+
+/* When password input is focused → change icon color */
+#UserPassword:focus + #toggleBtn,
+#UserPassword:focus ~ #toggleBtn {
+    color: #80bdff !important;
+}
+
+/* Hover on icon/button — must beat the focus rule */
+#toggleBtn:hover,
+#UserPassword:focus ~ #toggleBtn:hover {   /* ← add this */
+    color: #388e3c !important;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    display: block;
+    color: #6c757d;
+    z-index: 10;
+}
+.password-toggle:hover { color: #495057; }
+
+.password-wrapper input { padding-right: 40px; }
+
+    .gc-inline-select2 .select2-container--default .select2-selection--single {
+        height: calc(1.8125rem + 2px) !important;
+        font-size: .875rem !important;
+        padding: 0 32px 0 8px !important;
+        border: 1px solid #ced4da !important;
+    }
+
+       .gc-inline-select2 .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 30px !important;
+            font-size: .875rem !important;
+        }
+
+        /* Placeholder same as selected text */
+       .gc-inline-select2 .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            font-size: .875rem !important;
+            line-height: 30px !important;
+        }
+
+#searchBtn:hover {
+    color: #388e3c !important;
+    background-color: #fffee1 !important;
+}
+</style>
+<input type="hidden" asp-for="UserId" />
+<input type="hidden" asp-for="Id" />
+<div style="padding-top: 0px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+
+    <div class="gc-inline-select2 dropdown-wrapper py-0">
+    <table style="width:100%; table-layout:fixed; border-collapse:collapse;" >
+        <colgroup>
+            <col style="width:48%;" />
+            <col style="width:4%;" />
+            <col style="width:48%;" />
+        </colgroup>
+
+        <!-- Row 1: Employee | checkbox | Name -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="EmployeeId" class=" d-block">Employee</label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="EmployeeName" class="d-block">Name</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <select asp-for="EmployeeId"
+                        class="form-control form-control-sm select2-sm gc-select2"
+                        asp-items="@ViewBag.Employees as SelectList"
+                        style="width:100%;"
+                        data-placeholder="Select Employee"
+                        disabled="@(Model.isRequired ? null : "disabled")">
+                    <option value="">--Select Employee--</option>
+                </select>
+            </td>
+            <td style="padding:4px 0 0 4px; vertical-align:middle; text-align:center;">
+                <label class="checkbox-wrap checkbox-primary">
+                    <input type="checkbox"
+                           asp-for="isRequired"
+                           style="cursor: pointer;">
+                    <span class="checkmark"></span>
+                </label>
+            </td>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblEmployeeName" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeName</p>
+            </td>
+        </tr>
+        <!-- Validation row: EmployeeId -->
+        <tr>
+            <td style="padding:0;">
+                <span asp-validation-for="EmployeeId" class="text-danger small" />
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+
+         <!-- Row 2: Designation | Joining Date -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Designation</label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Joining Date</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblDesignation" class="form-control form-control-sm bg-light mb-0">@Model.DesignationName</p>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblJoiningDate" class="form-control form-control-sm bg-light mb-0">@Model.JoiningDate</p>
+            </td>
+        </tr>
+
+        <!-- Row 3: National ID -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">National ID</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 0; vertical-align:bottom;">
+                <p id="lblNationalId" class="form-control form-control-sm bg-light mb-0">@Model.NationalId</p>
+            </td>
+        </tr>
+
+        <!-- Row 4: Company | Branch -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Company</label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Branch</label>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblCompany" class="form-control form-control-sm bg-light mb-0">@Model.Company</p>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblBranch" class="form-control form-control-sm bg-light mb-0">@Model.Branch</p>
+            </td>
+        </tr>
+
+        <!-- Row 5: Department | Work Station -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Department</label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Work Station</label> 
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblDepartment" class="form-control form-control-sm bg-light mb-0">@Model.DepartmentName</p>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblWorkStation" class="form-control form-control-sm bg-light mb-0">@Model.WorkStation</p> 
+            </td>
+        </tr>
+
+        <!-- Row 6: Employee Type | Employment Nature -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Employee Type</label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Employment Nature</label>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblEmpType" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeType</p>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblEmpNature" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeNature</p>
+            </td>
+        </tr>
+
+        <!-- Row 7: Office Phone | Office Email -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Office Phone</label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">Office Email</label>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblOffPhone" class="form-control form-control-sm bg-light mb-0">@Model.OfficePhone</p>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:bottom;">
+                <p id="lblOffEmail" class="form-control form-control-sm bg-light mb-0">@Model.OfficeEmail</p>
+            </td>
+        </tr>
+
+        <!-- Divider -->
+        <tr>
+            <td colspan="3" style="padding:0; vertical-align:central;">
+                <hr class="mt-3 mb-0" />
+            </td>
+        </tr>
+
+        <!-- Row: Username | Password -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="Username" class="d-block">Username<span class="text-danger">*</span></label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="UserPassword" class="d-block">Password<span class="text-danger">*</span></label>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <input asp-for="Username"
+                       class="form-control form-control-sm"
+                       style="width:100%;"
+                       placeholder="Enter Username"
+                       autocomplete="off" />
+            </td>
+            <td style="padding:0 6px 0 0; vertical-align:central; text-align:center;">
+                <button type="button"
+                        id="searchBtn"
+                        class="btn"
+                        style="width:100%; aspect-ratio: 1 / 1; padding:0; font-size:12px; display:inline-flex; align-items:center; justify-content:center;  padding:0; flex-shrink:0; border-color: #ced4da; color: #ced4da;"
+                        title="Search">
+                    <i class="fa fa-search"></i>
+                </button>
+            </td>
+            <td style="padding:0; vertical-align:bottom;">
+                <div style="position:relative;">
+                    <input asp-for="UserPassword"
+                           id="UserPassword"
+                           type="password"
+                           style="width:100%; padding-right:36px;"
+                           class="form-control form-control-sm"
+                           autocomplete="off"
+                           placeholder="Enter Password"
+                           value="@Model.UserPassword" />
+                    <button type="button"
+                            id="toggleBtn"
+                            style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; padding:0; cursor:pointer; line-height:1;"
+                            tabindex="-1"
+                            title="Show password">
+                        <i id="eyeIcon" class="fa fa-eye" style="font-size:14px;"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+        <!-- Validation row: Username | UserPassword -->
+        <tr>
+            <td style="padding:0;">
+                <span asp-validation-for="Username" class="text-danger small" />
+            </td>
+            <td></td>
+            <td style="padding:0;">
+                <span asp-validation-for="UserPassword" class="text-danger small" />
+            </td>
+        </tr>
+
+        <!-- Row: Role | Access Code -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="Role" class="d-block">Role<span class="text-danger">*</span></label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="AccessCode" class="d-block">Access Code<span class="text-danger">*</span></label>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <select asp-for="Role"
+                        class="form-control form-control-sm gc-select2"
+                        data-placeholder="Select Roles"
+                        asp-items="@ViewBag.Roles as SelectList"
+                        style="width:100%;">
+                    <option value="">--Select Role--</option>
+                </select>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:bottom;">
+                <select asp-for="AccessCode"
+                        class="form-control form-control-sm gc-select2 "
+                        asp-items="@ViewBag.AccessCodes as SelectList"
+                        data-placeholder="Select Access Code"
+                        style="width:100%;">
+                        <option value="">--Select Access Code--</option>
+                </select>
+            </td>
+        </tr>
+        <!-- Validation row: Role | AccessCode -->
+        <tr>
+            <td style="padding:0;">
+                <span asp-validation-for="Role" class="text-danger small" />
+            </td>
+            <td></td>
+            <td style="padding:0;">
+                <span asp-validation-for="AccessCode" class="text-danger small" />
+            </td>
+        </tr>
+
+        <!-- Row: Session | Status -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="SingleSession" class="d-block">Session</label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label class="d-block">&nbsp;</label>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <select asp-for="SingleSession"
+                        class="form-control form-control-sm gc-select2 "
+                        asp-items="@ViewBag.Sessions as SelectList"
+                        style="width:100%;">
+                </select>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:middle;">
+                <label class="checkbox-wrap checkbox-primary">
+                    <input type="checkbox"
+                           asp-for="Status"
+                           style="cursor: pointer;">
+                    <span style="cursor: pointer;" class="checkmark">Status</span>
+                </label>
+            </td>
+        </tr>
+        <!-- Validation row: SingleSession -->
+        <tr>
+            <td style="padding:0;">
+                <span asp-validation-for="SingleSession" class="text-danger small" />
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+
+        <!-- Divider: Access Permission -->        
+        <tr>
+            <td colspan="3" style="padding:0;">
+                <hr  />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="padding:0; vertical-align:bottom;">
+                <h6 class="p-0 m-0">Access Permission</h6>
+            </td>
+        </tr>
+
+        <!-- Row: Access Permission Company | Branch -->
+        <tr>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="AccessPermissionCompanyCode" class="d-block"></label>
+            </td>
+            <td></td>
+            <td style="padding:4px 0 0 0; vertical-align:bottom;">
+                <label asp-for="AccessPermissionBranchCode" class="d-block"></label>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:0; vertical-align:bottom;">
+                <select asp-for="AccessPermissionCompanyCode"
+                        class="form-control form-control-sm"
+                        asp-items="@ViewBag.Companies as SelectList"
+                         @* multiple="multiple" *@
+                        style="width:100%;">
+                </select>
+            </td>
+            <td></td>
+            <td style="padding:0; vertical-align:bottom;">
+                <select asp-for="AccessPermissionBranchCode"
+                        class="form-control form-control-sm"
+                         @* multiple="multiple" *@
+                        asp-items="@ViewBag.Branches as SelectList"
+                        style="width:100%;">
+                </select>
+            </td>
+        </tr>
+        <!-- Validation row: AccessPermissionCompanyCode | AccessPermissionBranchCode -->
+        <tr>
+            <td style="padding:0;">
+                <span asp-validation-for="AccessPermissionCompanyCode" class="text-danger small" />
+            </td>
+            <td></td>
+            <td style="padding:0;">
+                <span asp-validation-for="AccessPermissionBranchCode" class="text-danger small" />
+            </td>
+        </tr>
+
+    </table>
+    </div>
+
+</div>
+<div class="row no-print" style="margin-top: 9px;">
+    <div class="col-12 d-flex justify-content-end">
+        <button type="button" id="btnSubmit2"
+                class="btn-default success-btn btn text-right btn-circle btn-common js-useraccess-save" data-id="@Model.Id">
+            <span class="btn-icon-wrapper pr-2 opacity-7"><i class="fas fa-save"></i></span>Save
+        </button>
+    </div>
+</div>

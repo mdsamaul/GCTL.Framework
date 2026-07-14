@@ -143,6 +143,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
+            services.AddScoped<IUserService, UserService>();
         }
     }
 }
