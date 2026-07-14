@@ -1,8 +1,10 @@
 //using GCTL.Data.Identity;
-//using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-//using Microsoft.EntityFrameworkCore;
+using GCTL.Data.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
-//namespace GCTL.Data.Context;
+namespace GCTL.Data.Context;
 
 /// <summary>
 /// Identity-backed DbContext. This handles Sign In / Sign Up / Roles.
@@ -31,9 +33,9 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-//    protected override void OnModelCreating(ModelBuilder builder)
-//    {
-//        base.OnModelCreating(builder);
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
 
         // Keep Identity's default table names as AspNetUsers/AspNetRoles/etc.
         // If you prefer names consistent with your existing schema (e.g. "Users",
