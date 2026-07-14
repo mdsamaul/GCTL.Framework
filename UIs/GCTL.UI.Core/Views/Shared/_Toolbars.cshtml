@@ -18,9 +18,9 @@
 </div>
  *@
 
-
- @model ToobarModel
-<div class="d-flex flex-wrap justify-content-between align-items-center p-2 mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">    <div class="d-flex align-items-center py-1 ps-2">
+@model ToobarModel
+<div class="d-flex flex-wrap justify-content-between align-items-center p-2 mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">
+    <div class="d-flex align-items-center py-1 ps-2">
         <h1 class="fw-bold text-dark m-0" style="font-size: 0.95rem; letter-spacing: 0.5px;">
             @Model.Title
         </h1>
@@ -28,21 +28,21 @@
     <div class="d-flex flex-wrap align-items-center gap-2 pe-1 toolbar-btn-group">
         @if (Model.ShowSave)
         {
-            <button type="button" class="btn toolbar-btn toolbar-btn-save" id="@Model.SaveBtnId" disabled="@(!Model.EnableSave)">
+            <button type="button" class="btn toolbar-btn toolbar-btn-save @Model.SaveBtnClass" id="@Model.SaveBtnId" disabled="@(!Model.EnableSave)">
                 <i class="fas fa-save"></i>
                 <span>Save</span>
             </button>
         }
         @if (Model.ShowDelete)
         {
-            <button type="button" class="btn toolbar-btn toolbar-btn-delete" id="@Model.DeleteBtnId" disabled="@(!Model.EnableDelete)">
+            <button type="button" class="btn toolbar-btn toolbar-btn-delete @Model.DeleteBtnClass" id="@Model.DeleteBtnId" disabled="@(!Model.EnableDelete)">
                 <i class="fas fa-trash"></i>
                 <span>Delete</span>
             </button>
         }
         @if (Model.ShowClear)
         {
-            <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="@Model.ClearBtnId" disabled="@(!Model.EnableClear)">
+            <button type="button" class="btn toolbar-btn toolbar-btn-clear @Model.ClearBtnClass" id="@Model.ClearBtnId" disabled="@(!Model.EnableClear)">
                 <i class="fas fa-sync"></i>
                 <span>Clear</span>
             </button>
@@ -50,7 +50,7 @@
         @if (Model.ShowPrint)
         {
             <div class="dropdown">
-                <button type="button" class="btn toolbar-btn toolbar-btn-print dropdown-toggle" id="@Model.PrintBtnId" data-bs-toggle="dropdown" aria-expanded="false" disabled="@(!Model.EnablePrint)">
+                <button type="button" class="btn toolbar-btn toolbar-btn-print @Model.PrintBtnClass dropdown-toggle" id="@Model.PrintBtnId" data-bs-toggle="dropdown" aria-expanded="false" disabled="@(!Model.EnablePrint)">
                     <i class="fas fa-print"></i>
                     <span>Print</span>
                 </button>
@@ -70,7 +70,7 @@
         }
         @if (Model.ShowFavorite)
         {
-            <button type="button" class="btn toolbar-btn toolbar-btn-fav" id="@Model.FavtBtnId" disabled="@(!Model.EnableFavorite)">
+            <button type="button" class="btn toolbar-btn toolbar-btn-fav @Model.FavtBtnClass" id="@Model.FavtBtnId" disabled="@(!Model.EnableFavorite)">
                 <i class="fas fa-star"></i>
                 <span>Fav</span>
             </button>
