@@ -1,0 +1,419 @@
+﻿<style>
+    .saveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+    }
+
+    .deleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+    }
+
+    .resetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+    }
+
+    .favBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    .dropdown-menu {
+        max-height: 200px;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    .table th, .table td {
+        padding: 8px;
+        text-align: left;
+    }
+
+    .table td {
+        cursor: pointer;
+    }
+
+    .contact-person-checkbox {
+        margin: 0;
+    }
+
+    contact-person-list-container{
+
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        background: #fff;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        /* display: none; */
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1050; /* Ensuring it appears above other elements */
+    }
+
+    #contactSearch {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    
+    /* Dropdown CSS */
+    #contactPersonDropdown{
+        width: 650px;
+    }
+    #contactPersonDropdown .table-responsive {
+        max-height: 600px; 
+        overflow-y: auto;
+    }
+
+   
+</style>
+
+ @model GCTL.Core.ViewModels.AddSalesCustomer.SalesCustomerViewModel;
+@{
+    // var countryList = ((IEnumerable<dynamic>)ViewBag.CountryDD)
+    //     .Select(c => new SelectListItem
+    //             {
+    //                 Value = c.CountryID.ToString(),
+    //                 Text = c.CountryName.ToString()
+    //             }).ToList();
+}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Customer Information</h5>
+        <div>
+            <button type="submit" id="salesCustomer-btnSave" class="btn btn-light btn-sm text-dark rounded-start px-2 text-nowrap saveBtn">
+                <i class="fas fa-save me-1"></i> Save
+            </button>
+            <button type="button" id="salesCustomer-btnDelete" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap deleteBtn">
+                <i class="fas fa-trash me-1"></i> Delete
+            </button>
+            <button type="button" id="salesCustomer-btnBulkDelete" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap d-none deleteBtn">
+                <i class="fas fa-trash me-1"></i> Delete
+            </button>
+            <button type="reset" id="salesCustomer-resetBtn" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap resetBtn">
+                <i class="fas fa-eraser me-1"></i> Clear
+            </button>
+            <button type="button" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap printBtn">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+            <button type="button" class="btn btn-light btn-sm text-dark rounded-end px-2 text-nowrap favBtn">
+                <i class="fas fa-star me-1"></i> Fav
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="customerForm">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" asp-for="CustomerId" placeholder="Customer Id" readonly>
+                        <label for="CustomerId">Customer Id</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="CustomerCode" asp-for="CustomerCode" placeholder="Customer Code">
+                        <label for="CustomerCode">Customer Code</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="CustomerName" asp-for="CustomerName" placeholder="Customer Name" required>
+                        <label for="CustomerName">Customer Name<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="ShortName" asp-for="ShortName" placeholder="Short Name">
+                        <label for="ShortName">Short Name</label>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="CustomerAddress" asp-for="CustomerAddress" placeholder="Address">
+                        <label for="CustomerAddress">Address <span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="CountryId" name="CountryId">
+                            <option value=""></option>
+                        </select>
+                        <label for="CountryId"></label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="City" asp-for="City" placeholder="City">
+                        <label for="City">City</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="StateOrProvince" asp-for="StateOrProvince" placeholder="State/Province">
+                        <label for="StateOrProvince">State/Province</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="ZipCode" asp-for="ZipCode" placeholder="Zip Code">
+                        <label for="ZipCode">Zip Code</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="tel" class="form-control" id="Phone" asp-for="Phone" placeholder="Phone Number">
+                        <label for="Phone">Phone</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="tel" class="form-control" id="Fax" asp-for="Fax" placeholder="Fax">
+                        <label for="Fax">Fax</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="email" class="form-control" id="Email" asp-for="Email" placeholder="Email">
+                        <label for="Email">Email</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="url" class="form-control" id="Url" asp-for="Url" placeholder="URL">
+                        <label for="Url">URL</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="VatRegNo" asp-for="VatRegNo" placeholder="VAT Reg No">
+                        <label for="VatRegNo">VAT Reg No</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="Bin" asp-for="Bin" placeholder="BIN">
+                        <label for="Bin">BIN</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="Tin" asp-for="Tin" placeholder="TIN">
+                        <label for="Tin">TIN</label>
+                    </div>
+                </div>
+
+
+               
+                <div class="col-12">
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="col-md-6">
+                            <div class="form-floating form-floating-advance-select">
+                                <button class="form-select form-control-sm dropdown-toggle" id="dropdownButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                     Contact Person
+                                </button>
+                                <ul class="dropdown-menu p-2" aria-labelledby="dropdownButton" id="contactPersonDropdown">
+                                    <div class="search-container mb-2">
+                                        <input type="text" id="contactSearch" class="form-control form-control-sm" placeholder="Search contacts...">
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm m-0">
+                                            <thead>
+                                                <tr>
+                                                    <th><input type="checkbox" id="selectAllContacts"></th>
+                                                    <th>Name</th>
+                                                    <th>Designation</th>
+                                                    <th>Phone</th>
+                                                    <th>Email</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="contactPersonList"></tbody>
+                                        </table>
+                                    </div>
+                                </ul>
+
+                                <input type="hidden" id="selectedContactPersonIds" name="ContactPerson" />
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" id="btnAddContactPerson" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-plus me-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+               
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="OpeningBalance" asp-for="OpeningBalance" placeholder="Opening Balance">
+                        <label for="OpeningBalance">Opening Balance</label>
+                    </div>
+				</div>
+                
+                <div class="col-md-3">
+					<div class="form-floating">
+						<select class="form-select" id="TransactionType" asp-for="TransactionType">
+							<option value="">--Select Type--</option>
+							<option value="Debit">Debit</option>
+							<option value="Credit">Credit</option>
+						</select>
+						<label for="TransactionType">Type</label>
+					</div>
+				</div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="date" class="form-control" id="OpeningDate" asp-for="OpeningDate" placeholder="Opening Date">
+                        <label for="OpeningDate">Opening Date</label>
+                    </div>
+                </div>
+
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="CreditLimit" asp-for="CreditLimit" placeholder="Credit Limit">
+                        <label for="CreditLimit">Credit Limit</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="CustomerType" asp-for="CustomerType">
+                            <option value="">--Select Type--</option>
+                            <option value="0">General</option>
+                            <option value="1"> In House</option>
+                        </select>
+                        <label for="CustomerType">Customer Type</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="Category" asp-for="Category">
+                            <option value="">--Select Customer Category--</option>
+                            <option value="regular">Regular Customer</option>
+                            <option value="premium">Premium Customer</option>
+                            <option value="vip">VIP Customer</option>
+                            <option value="new">New Customer</option>
+                        </select>
+                        <label for="Category">Customer Category</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="SalesPerson" asp-for="SalesPerson">
+                            <option value="">--Select Sales Person--</option>
+                            <option value="sabbir_ahmed">Sabbir Ahmed</option>
+                            <option value="nabila_sultana">Nabila Sultana</option>
+                            <option value="rafi_miah">Rafi Miah</option>
+                            <option value="tara_karim">Tara Karim</option>
+                            <option value="soumya_ray">Soumya Ray</option>
+                        </select>
+                        <label for="SalesPerson">Sales Person</label>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer d-flex justify-content-between text-muted small d-none" id="salesCustomer-Footer">
+        <div id="salesCustomer-entryDate">Entry Date: --</div>
+        <div id="salesCustomer-lastUpdateDate">Last Updated: --</div>
+    </div>
+
+    <div class="card-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Buttons Section -->
+            @**@
+            <div>
+                <button class="btn btn-light btn-sm me-2 rounded-pill" id="previewBtn">
+                    <span class="text-dark link-primary">Preview</span>
+                </button>
+                <button class="btn btn-light btn-sm rounded-pill" id="listPreviewBtn">
+                    <span class="text-dark link-primary">List Preview</span>
+                </button>
+@*                 <button class="btn btn-light btn-sm rounded-pill" id="listPreviewBtn" onclick="window.open('/SalesCustomer/ListPreview','_blank')">
+                    <span class="text-dark link-primary">List Preview</span>
+                </button> *@
+            </div>
+
+            
+            @* <div class="dropdown">
+                <button class="btn btn-phoenix-secondary dropdown-toggle" type="button" id="customerDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                    Select Customers
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="customerDropdown" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
+                    <li>
+                        <label class="dropdown-item">
+                            <input type="checkbox" id="selectAll" > Select All
+                        </label>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <div id="customerList"></div>
+                </ul>
+            </div> *@
+
+        </div>
+    </div>
+</div>
+
+
+
+@* 
+<div class="modal  fade" id="contactPersonModal" tabindex="-1" aria-labelledby="contactPersonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactPersonModalLabel">Contact Person Management</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row equal-height-row">
+                    <div class="col-md-6">
+                        <div id="contact-person-form-container">
+
+                            @await Html.PartialAsync("~/Views/ContactPerson/_ContactPersonForm.cshtml", new GCTL.Core.ViewModels.AddSalesCustomer.SalesContactPersonViewModel())
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="contact-person-list-container">
+                            @await Html.PartialAsync("~/Views/ContactPerson/_ContactPersonTable.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> *@
+@section Script{
+    <script>
+                 // Modify the dropdown HTML to include the customer list and select all functionality
+       
+
+    </script>
+}
+
+
+
+       

@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "AccessMenu";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
 }
 
 <style>
@@ -11,154 +10,285 @@
         padding-bottom: 0 !important;
     }
 
-    .dataTables_filter { margin-right: 0px; }
-
-    .form-check {
-        position: relative;
-        display: block;
-        padding-left: 1.25rem;
-        padding-bottom: 10%;
+    .dataTables_filter {
+        margin-right: 0;
     }
 
-    #accessListTable_wrapper .dataTables_filter { float: none; text-align: left; }
-    .access-id-btn { text-decoration: underline !important; color: #0000e0 !important; }
+    #accessListTable_wrapper .dataTables_filter {
+        float: none;
+        text-align: left;
+    }
+
+    /* ---------- Modern card styling ---------- */
+    .gc-card {
+        border: 1px solid #e9ecef;
+        border-radius: .75rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+        .gc-card .card-header {
+            background: #fff;
+            border-bottom: 1px solid #eef0f2;
+            padding: .9rem 1.1rem;
+        }
+
+            .gc-card .card-header h6 {
+                margin: 0;
+                font-weight: 600;
+                letter-spacing: .2px;
+            }
+
+        .gc-card .card-body {
+            padding: 1rem;
+        }
+
+    /* ---------- Toolbar buttons ---------- */
+    .gc-toolbar .btn {
+        border-radius: .5rem;
+        font-size: .85rem;
+        padding: .4rem .75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+        .gc-toolbar .btn i {
+            font-size: .85rem;
+        }
+
+    .success-btn {
+        background: #e9f9ee;
+        color: #1e7e34;
+        border: 1px solid #cdeed9;
+    }
+
+        .success-btn:hover {
+            background: #1e7e34;
+            color: #fff;
+        }
+
+    .danger-btn {
+        background: #fdeeee;
+        color: #c0392b;
+        border: 1px solid #f6d2d0;
+    }
+
+        .danger-btn:hover {
+            background: #c0392b;
+            color: #fff;
+        }
+
+    .primary-btn {
+        background: #eaf1fd;
+        color: #2f5fd0;
+        border: 1px solid #cfe0fa;
+    }
+
+        .primary-btn:hover {
+            background: #2f5fd0;
+            color: #fff;
+        }
+
+    /* ---------- Form ---------- */
+    .gc-field-row {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0 .5rem;
+    }
+
+    .gc-field-label {
+        font-size: .82rem;
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .gc-add-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #2f5fd0;
+        color: #fff;
+        border: none;
+        transition: transform .15s ease, background .15s ease;
+    }
+
+        .gc-add-btn:hover {
+            background: #24479c;
+            transform: scale(1.05);
+        }
+
+    /* ---------- Access menu table ---------- */
+    .menuTableWrapper .table {
+        border-radius: .5rem;
+        overflow: hidden;
+    }
+
+    .menuTableWrapper thead th {
+        background: #f8f9fb;
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: #6c757d;
+        border-bottom: 2px solid #eef0f2;
+    }
+
+    .parent-row {
+        background: #f6f8fc !important;
+    }
+
+    .toggle-icon {
+        display: inline-block;
+        width: 14px;
+        color: #2f5fd0;
+    }
+
+    /* ---------- Right-side access list ---------- */
+    .access-id-btn {
+        text-decoration: none !important;
+        color: #2f5fd0 !important;
+        font-weight: 600;
+    }
+
+        .access-id-btn:hover {
+            text-decoration: underline !important;
+        }
+
+    #accessListTable thead th {
+        background: #f8f9fb;
+        font-size: .78rem;
+        text-transform: uppercase;
+        color: #6c757d;
+    }
 </style>
 
 <section class="container-fluid col-md-12">
     <partial name="_PageHeader" model='new BaseViewModel { PageUrl = "/MenuTab/AccessMenu", Breadcrumb = "Access Menu" }' />
-    <div class="row">
-        <div class="col-md-8 pr-1">
-            <div class="card p-0">
-                <div class="card-header p-2">
-                    <div class="row">
+
+    <div class="row g-2">
+        <div class="col-md-8">
+            <div class="card gc-card">
+                <div class="card-header">
+                    <div class="row align-items-center">
                         <div class="col-md-5">
-                            <h6 class="page-title">Access Code</h6>
+                            <h6>Access Code</h6>
                         </div>
                         <div class="col-md-7">
-                            <div class="btn-toolbar d-flex justify-content-end">
+                            <div class="btn-toolbar d-flex justify-content-end gc-toolbar">
                                 <div class="btn-group">
-                                    <button type="button" class="btn btn-default success-btn js-emp-holiday-dec-save" id="saveAccessMenuBtn"
-                                            data-toggle="tooltip"
-                                            data-placement="top"
-                                            title="Save">
-                                        <i class="fa fa-save">&nbsp;</i> Save
+                                    <button type="button" class="btn success-btn js-emp-holiday-dec-save" id="saveAccessMenuBtn"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Save">
+                                        <i class="fa fa-save"></i> Save
                                     </button>
-                                    <button type="button" class="btn btn-default danger-btn" id="deleteSelectedBtn"
-                                            data-toggle="tooltip"
-                                            data-placement="top"
-                                            title="Delete">
-                                        <i class="fa fa-trash">&nbsp;</i> Delete
+                                    <button type="button" class="btn danger-btn" id="deleteSelectedBtn"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
+                                        <i class="fa fa-trash"></i> Delete
                                     </button>
-                                    <button type="button" class="btn btn-default primary-btn" id="clearBtn"
-                                            data-toggle="tooltip"
-                                            data-placement="top"
-                                            title="Clear">
-                                        <i class="fa fa-eraser">&nbsp;</i> Clear
+                                    <button type="button" class="btn primary-btn" id="clearBtn"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Clear">
+                                        <i class="fa fa-eraser"></i> Clear
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-1 gc-inline-select2">
-    <table style="width:100%; table-layout:fixed; border-collapse:collapse;">
-        <colgroup>
-            <col style="width:16%;" />
-            <col style="width:32%;" />
-            <col style="width:4%;" />
-            <col style="width:16%;" />
-            <col style="width:32%;" />
-        </colgroup>
 
-        <!-- Row 1: Access Code Id | Access Code Name -->
-        <tr>
-            <td style="padding:4px 4px 4px 0; vertical-align:central;" class="text-right">
-                <label for="access-code-id" class="form-label mb-0">
-                    Access Code Id<span class="text-danger">*</span>
-                </label>
-            </td>
-            <td style="padding:4px 0; vertical-align:bottom;">
-                    <select class="form-control form-control-sm gc-select2 select2-sm" id="access-code-id">
-                        <option value="">-- Select --</option>
-                    </select>
+                <div class="card-body gc-inline-select2">
+                    <table class="gc-field-row">
+                        <colgroup>
+                            <col style="width:16%;" />
+                            <col style="width:32%;" />
+                            <col style="width:4%;" />
+                            <col style="width:16%;" />
+                            <col style="width:32%;" />
+                        </colgroup>
 
-            </td>
-            <td style="padding:4px 0; vertical-align:bottom;" class="text-right">  
-                        <button class="btn" type="button"
-                                id="openAddAccessCodeModal"
-                                data-toggle="tooltip" title="Add New Access Code">
-                            <i class="fa fa-plus"></i>
-                        </button>
-            </td>
-            <td style="padding:4px 4px 4px 0; vertical-align:central;" class="text-right">
-                <label for="access-code-name" class="form-label mb-0">
-                    Access Code Name<span class="text-danger">*</span>
-                </label>
-            </td>
-            <td style="padding:4px 0; vertical-align:bottom;">
-                <input type="text" class="form-control form-control-sm bg-white" readonly
-                       id="access-code-name" value=""
-                       style="width:100%;" />
-            </td>
-        </tr>
+                        <!-- Row 1: Access Code Id | Access Code Name -->
+                        <tr>
+                            <td class="text-end pe-2 align-middle">
+                                <label for="access-code-id" class="gc-field-label mb-0">
+                                    Access Code Id<span class="text-danger">*</span>
+                                </label>
+                            </td>
+                            <td class="align-middle">
+                                <select class="form-control form-control-sm gc-select2 select2-sm" id="access-code-id">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </td>
+                            <td class="align-middle text-center">
+                                <button class="gc-add-btn" type="button" id="openAddAccessCodeModal"
+                                        data-bs-toggle="tooltip" title="Add New Access Code">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </td>
+                            <td class="text-end pe-2 align-middle">
+                                <label for="access-code-name" class="gc-field-label mb-0">
+                                    Access Code Name<span class="text-danger">*</span>
+                                </label>
+                            </td>
+                            <td class="align-middle">
+                                <input type="text" class="form-control form-control-sm bg-light" readonly
+                                       id="access-code-name" value="" style="width:100%;" />
+                            </td>
+                        </tr>
 
-        <!-- Row 2: Module -->
-        <tr>
-            <td style="padding:4px 4px 4px 0; vertical-align:central;" class="text-right">
-                <label for="module-select" class="form-label mb-0">Module<span class="text-danger">*</span></label>
-            </td>
-            <td style="padding:4px 0; vertical-align:bottom;">
-                <select class="form-control form-control-sm gc-select2 select2-sm"
-                        id="module-select" style="width:100%;">
-                    <option value="">-- All --</option>
-                </select>
-            </td>
-            <td colspan="3"></td>
-        </tr>
-
-        <!-- Row 3: Data Table -->
-        <tr>
-            <td colspan="7" style="padding:8px 0 0 0;">
-                <div class="table-responsive menuTableWrapper px-2" style="display:none">
-                    <table class="table table-bordered mb-0">
-                        <thead>
-                            <tr>
-                                <th style="width:10%;" class="text-center align-middle p-0">
-                                    Select<br />
-                                    <input type="checkbox" id="selectAll" />
-                                </th>
-                                <th class="text-center align-middle">Title</th>
-                                <th class="text-center align-middle p-0" style="width:10%; white-space:nowrap;">
-                                    Add<br />
-                                    <input type="checkbox" id="addSelectAll" />
-                                </th>
-                                <th class="text-center align-middle p-0" style="width:10%; white-space:nowrap;">
-                                    Edit<br />
-                                    <input type="checkbox" id="editSelectAll" />
-                                </th>
-                                <th class="text-center align-middle p-0" style="width:10%; white-space:nowrap;">
-                                    Delete<br />
-                                    <input type="checkbox" id="deleteSelectAll" />
-                                </th>
-                                <th class="text-center align-middle p-0" style="width:10%; white-space:nowrap;">
-                                    Print<br />
-                                    <input type="checkbox" id="printSelectAll" />
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="menuTabLoad"></tbody>
+                        <!-- Row 2: Module -->
+                        <tr>
+                            <td class="text-end pe-2 align-middle">
+                                <label for="module-select" class="gc-field-label mb-0">Module<span class="text-danger">*</span></label>
+                            </td>
+                            <td class="align-middle">
+                                <select class="form-control form-control-sm gc-select2 select2-sm" id="module-select" style="width:100%;">
+                                    <option value="">-- All --</option>
+                                </select>
+                            </td>
+                            <td colspan="3"></td>
+                        </tr>
                     </table>
-                </div>
-            </td>
-        </tr>
 
-    </table>
-</div>
+                    <!-- Row 3: Data Table -->
+                    <div class="table-responsive menuTableWrapper mt-2" style="display:none">
+                        <table class="table table-bordered table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center p-2" style="width:10%;">
+                                        Select<br />
+                                        <input type="checkbox" id="selectAll" />
+                                    </th>
+                                    <th class="text-center p-2">Title</th>
+                                    <th class="text-center p-2" style="width:10%; white-space:nowrap;">
+                                        Add<br />
+                                        <input type="checkbox" id="addSelectAll" />
+                                    </th>
+                                    <th class="text-center p-2" style="width:10%; white-space:nowrap;">
+                                        Edit<br />
+                                        <input type="checkbox" id="editSelectAll" />
+                                    </th>
+                                    <th class="text-center p-2" style="width:10%; white-space:nowrap;">
+                                        Delete<br />
+                                        <input type="checkbox" id="deleteSelectAll" />
+                                    </th>
+                                    <th class="text-center p-2" style="width:10%; white-space:nowrap;">
+                                        Print<br />
+                                        <input type="checkbox" id="printSelectAll" />
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="menuTabLoad"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-4 pl-1">
-            <div class="card">
-                <div class="card-body px-1 pb-1">
+
+        <div class="col-md-4">
+            <div class="card gc-card">
+                <div class="card-body p-2">
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover w-100" id="accessListTable">
                             <thead>
@@ -178,74 +308,40 @@
         </div>
     </div>
 
+    <!-- Add Access Code Modal -->
     <div class="modal fade" id="addAccessCodeModal" tabindex="-1" role="dialog" aria-labelledby="addAccessCodeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h6 class="modal-title" id="addAccessCodeModalLabel">Add Access Code</h6>
-                    <!-- BS5 -->
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    @* <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    </button> *@
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: .75rem; border: none; box-shadow: 0 10px 30px rgba(0,0,0,.15);">
+                <div class="modal-header" style="border-bottom: 1px solid #eef0f2;">
+                    <h6 class="modal-title fw-semibold" id="addAccessCodeModalLabel">Add Access Code</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div id="addAccessCodeContent"></div>
-                </div>
-                <div class="modal-footer">
-                    <!-- BS5 -->
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    @* <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> *@
                 </div>
             </div>
         </div>
     </div>
 
-    @* <div class="modal fade" id="addAccessCodeModal" tabindex="-1" role="dialog" aria-labelledby="addAccessCodeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-header py-2">
-                    <h6 class="modal-title" id="addAccessCodeModalLabel">Add Access Code</h6>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-2">
-                        <label for="modal-access-code-id" class="form-label">
-                            Access Code Id <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control" id="modal-access-code-id">
-                    </div>
-                    <div class="mb-2">
-                        <label for="modal-access-code-name" class="form-label">
-                            Access Code Name <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control" id="modal-access-code-name">
-                    </div>
-                </div>
-                <div class="modal-footer py-2">
-                    <button type="button" class="btn btn-default success-btn" id="saveNewAccessCodeBtn">
-                        <i class="fa fa-save"></i> Save
-                    </button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div> *@
+    <div class="col-md-12">
+        <partial name="_BottomNavigation" />
+    </div>
 
-
-
-    <partial name="_BottomNavigation" />
 </section>
-
-
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="~/js/pages/accessMenu.js"></script>
-    <script src="~/js/pages//accessCodesEntry.js"></script>
+    <script src="~/js/pages/accessCodesEntry.js"></script>
+    <script>
+        // BS5 tooltips must be explicitly initialized (opt-in, no jQuery dependency)
+        document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (el) {
+        bootstrap.Tooltip.getOrCreateInstance(el);
+        });
+        });
+    </script>
 }

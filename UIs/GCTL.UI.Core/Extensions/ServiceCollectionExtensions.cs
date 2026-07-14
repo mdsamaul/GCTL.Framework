@@ -10,6 +10,9 @@ using GCTL.Service.Core_Countrys;
 using GCTL.Service.CoreBankAccountInformations;
 using GCTL.Service.CoreServiceType;
 using GCTL.Service.CurrencyType;
+using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
+using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
+using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
@@ -29,6 +32,7 @@ using GCTL.Service.ShipmentMode;
 using GCTL.Service.UnitType;
 using GCTL.Service.Update;
 
+using GCTL.Service.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -108,14 +112,16 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IPaymentTypeService, PaymentTypeService>();
             services.AddScoped<IPaymentTermsService, PaymentTermsService>();
             services.AddScoped<IPaymentModeService, PaymentModeService>();
+            services.AddScoped<ISalesCustomerService, SalesCustomerService>();
+            services.AddScoped<ISalesDeliveryLocationService, SalesDeliveryLocationService>();
+            services.AddScoped<IContactPersonService, ContactPersonService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
             services.AddScoped<IJobService, JobService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
-            services.AddScoped<IholidayListService, HolidayListService>();
-
+            services.AddScoped<IAccessCodeService, AccessCodeService>();
         }
     }
 }

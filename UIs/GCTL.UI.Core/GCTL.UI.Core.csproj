@@ -51,19 +51,5 @@
     <ProjectReference Include="..\..\Libraries\GCTL.Service\GCTL.Service.csproj" />
   </ItemGroup>
 
-  <!--
-    REMOVED vs your original project (deliberately, these were the
-    migration blockers):
-      - AspNetCore.Reporting / ReportViewerCore.NETCore (RDLC) - no .NET 10
-        support; replace RDLC reports with QuestPDF (already in this file)
-      - Microsoft.AspNet.Mvc / Microsoft.AspNet.WebApi.Core (v5.3.0)
-        - these are .NET FRAMEWORK packages, not .NET Core/10 compatible,
-          and are made redundant by ASP.NET Core MVC itself
-      - Tono.Excel - proprietary/unclear .NET 10 support; replaced with
-        ClosedXML (actively maintained, MIT licensed)
-      - PXLibrary / PXLib DLL reference with a hardcoded local file path
-        - removed per your instruction; re-add only if you locate/rebuild
-          the DLL and confirm it's .NET 10 compatible
-  -->
 
 </Project>

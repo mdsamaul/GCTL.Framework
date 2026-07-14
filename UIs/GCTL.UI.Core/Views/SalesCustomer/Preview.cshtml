@@ -1,0 +1,74 @@
+﻿<style>
+    .excel-btn i {
+        color: #3c9f3e; 
+    }
+
+    .pdf-btn i {
+        color: #d84f3f; 
+    }
+
+    .excel-btn:hover {
+        background-color: #3c9f3e; 
+        color: white;
+    }
+
+    .pdf-btn:hover {
+        background-color: #d84f3f; 
+        color: white;
+    }
+
+    .excel-btn:hover i {
+        color: white;
+    }
+
+    .pdf-btn:hover i {
+        color: white; 
+    }
+
+    .excel-btn, .pdf-btn {
+        transition: all 0.3s ease; 
+    }
+
+</style>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-12 text-center">
+            <h2 id="reportTitle">Customer Profile Report</h2>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-12">
+
+            <div class="float-end">
+                <button type="button" class="btn btn-light excel-btn" onclick="downloadReport('excel')">
+                    <i class="fas fa-file-excel"></i> Download Excel
+                </button>
+                <button type="button" class="btn btn-light pdf-btn" onclick="downloadReport('pdf')">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </button>
+
+                <button type="button" class="btn btn-light word-btn" onclick="downloadReport('word')">
+                    <i class="fas fa-file-pdf"></i> Download WORD
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <iframe id="pdfPreview" style="width: 100%; height: 800px; border: 1px solid #ccc;"></iframe>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+         const viewType = '@ViewBag.ViewType';
+        console.log("viewType from Razor:", viewType);
+        const profileUrl = '@Url.Action("GeneratePreviewPdf", "SalesCustomer")';
+        const listUrl = '@Url.Action("GetForListReport", "SalesCustomer")';
+        const downloadProfileUrl = '@Url.Action("DownloadCustomerProfile", "SalesCustomer")';
+        const downloadListUrl = '@Url.Action("DownloadCustomerList", "SalesCustomer")';
+    </script>
+
+    <script src="~/js/pages/customerrelationshipmanagement/salecustomerreport.js"></script>
+}
