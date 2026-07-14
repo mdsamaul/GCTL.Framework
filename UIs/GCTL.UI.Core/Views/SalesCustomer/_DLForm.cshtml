@@ -1,0 +1,224 @@
+﻿<style>
+    .saveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+        
+    }
+
+    .deleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+        
+    }
+
+    .resetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+        
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+        
+    }
+
+    .favBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    #DLcontactSearch {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    /* Dropdown CSS */
+    #DLcontactPersonDropdown {
+        width: 650px;
+    }
+
+        #DLcontactPersonDropdown .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+
+</style>
+@model GCTL.Core.ViewModels.AddSalesCustomer.SalesDeliveryLocationViewModel
+
+@{
+    // var countryList = ((IEnumerable<dynamic>)ViewBag.CountryDD)
+    //     .Select(c => new SelectListItem
+    //             {
+    //                 Value = c.CountryID.ToString(),
+    //                 Text = c.CountryName.ToString()
+    //             }).ToList();
+}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Delivery Location Information</h5>
+        <div>
+            <button type="submit" id="btnSaveDL" class="btn btn-light btn-sm text-dark rounded-start px-2 text-nowrap saveBtn">
+                <i class="fas fa-save me-1"></i> Save
+            </button>
+            <button type="submit" id="btnDeleteDL" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap deleteBtn">
+                <i class="fas fa-trash me-1"></i> Delete
+            </button>
+            <button type="button" id="btnBulkDeleteDL" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap d-none deleteBtn">
+                <i class="fas fa-trash me-1"></i> Delete
+            </button>
+            <button type="reset" id="btnResetDL" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap resetBtn">
+                <i class="fas fa-eraser me-1"></i> Clear
+            </button>
+            <button type="button" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap printBtn">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+            <button type="button" class="btn btn-light btn-sm text-dark rounded-end px-2 text-nowrap favBtn">
+                <i class="fas fa-star me-1"></i> Fav
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="deliveryForm">
+           @*  <input type="hidden" asp-for="DeliveryLocationCode" id="DeliveryLocationCode" /> *@
+
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select class="form-select" id="CustomerIdForDelivery" name="CustomerId" required></select>
+                          
+                            @* <label for="CustomerIdForDelivery">Customer Name</label> *@
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="DeliveryLocationCode" name="DeliveryLocationCode" readonly required>
+                        <label for="DeliveryLocationCode">Delivery Code</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="LocationAddress" asp-for="LocationAddress" placeholder="Delivery Address" required>
+                        <label for="LocationAddress">Delivery Address<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="DeliveryCountryId" asp-for="CountryId">
+                            <option value="">--Select Country--</option>
+                          
+                            </select>
+                        <label for="DeliveryCountryId"> </label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="DeliveryStateOrProvince" asp-for="StateOrProvince" placeholder="State/Province">
+                        <label for="DeliveryStateOrProvince">State/Province</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="DeliveryCity" asp-for="City" placeholder="City">
+                        <label for="DeliveryCity">City</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="DeliveryZipCode" asp-for="ZipCode" placeholder="Zip Code">
+                        <label for="DeliveryZipCode">Zip Code</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="tel" class="form-control" id="DeliveryPhone" asp-for="Phone" placeholder="Phone Number">
+                        <label for="DeliveryPhone">Phone</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="email" class="form-control" id="DeliveryEmail" asp-for="Email" placeholder="Email">
+                        <label for="DeliveryEmail">Email</label>
+                    </div>
+                </div>
+
+                @* <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="DeliveryContactPerson" asp-for="ContactPerson">
+                            <option value="">--Select Contact Person--</option>
+                            </select>
+                        <label for="DeliveryContactPerson">Contact Person</label>
+                    </div>
+                </div> *@
+
+                <div class="col-12">
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="col-md-6">
+                            <div class="form-floating form-floating-advance-select">
+                                <button class="form-select form-control-sm dropdown-toggle" id="DLdropdownButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Contact Person
+                                </button>
+                                <ul class="dropdown-menu p-2" aria-labelledby="dropdownButton" id="DLcontactPersonDropdown">
+                                    <div class="search-container mb-2">
+                                        <input type="text" id="DLcontactSearch" class="form-control form-control-sm" placeholder="Search contacts...">
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm m-0">
+                                            <thead>
+                                                <tr>
+                                                    <th><input type="checkbox" id="DLselectAllContacts"></th>
+                                                    <th>Name</th>
+                                                    <th>Designation</th>
+                                                    <th>Phone</th>
+                                                    <th>Email</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="DLcontactPersonList"></tbody>
+                                        </table>
+                                    </div>
+                                </ul>
+
+                                <input type="hidden" id="DLselectedContactPersonIds" name="ContactPerson" />
+                            </div>
+                        </div>
+
+                        @* <div class="pt-2">
+                            <button type="button" id="btnAddContactPerson" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-plus me-1"></i>
+                            </button>
+                        </div> *@
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="DeliveryRemarks" asp-for="Remarks" placeholder="Remarks">
+                        <label for="DeliveryRemarks">Remarks</label>
+                    </div>
+                </div>
+@* 
+                <div class="col-12">
+                    <button type="button" id="btnSaveDelivery" class="btn btn-primary">Save</button>
+                    <button type="button" id="btnCancelDelivery" class="btn btn-secondary">Cancel</button>
+                </div> *@
+            </div>
+        </form>
+    </div>
+@*     <div class="card-footer d-flex d-none justify-content-between text-muted small" id="Dlfooter">
+        <div id="entryDate">Entry Date: --</div>
+        <div id="lastUpdateDate">Last Updated: --</div>
+    </div> *@
+</div>
+
+@section Scripts {
+
+}

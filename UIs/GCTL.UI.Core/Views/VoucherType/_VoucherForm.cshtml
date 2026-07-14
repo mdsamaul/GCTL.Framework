@@ -1,0 +1,214 @@
+﻿<style>
+    .form-floating .selectLabel {
+        font-size: 14px !important;
+    }
+
+    .form-floating label {
+        text-transform: none;
+        font-size: 13px;
+    }
+
+    .VoucherSaveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherdeleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherresetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherfavBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    #button-div button {
+        padding: 8px 6px;
+        width: 80px;
+    }
+
+    .select2-container .select2-selection--single {
+        height: calc(2.8rem + 2px) !important;
+        align-items: center !important;
+    }
+
+</style>
+
+<div class="card shadow-sm rounded-2">
+
+    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
+
+            <div>
+                <h4 class="mb-0 heading-nowrap " style="font-size:14px">Voucher Type</h4>
+            </div>
+            <div class="d-flex gap-1" id="button-div">
+
+                <button type="submit" form="VoucherTypeForm" class="btn btn-sm btn-outline-primary VoucherSaveBtn">
+                    <i class="fas fa-save me-1"></i> Save
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-danger VoucherdeleteBtn" id="VoucherdeleteBtn">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+
+                <button type="reset" class="btn btn-sm btn-outline-secondary VoucherresetBtn">
+                    <i class="fas fa-eraser me-1"></i> Clear
+                </button>
+
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
+                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-warning VoucherfavBtn">
+                    <i class="fas fa-star me-1"></i> Fav
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card-body">
+        <form id="VoucherTypeForm">
+            <fieldset style="border:1px solid #ccc; padding:5px; border-radius:5px;">
+
+                <input type="hidden" id="VoucherautoId" name="autoId" />
+
+                <div class="row g-3">
+
+                    @*Voucher Type*@
+                    <div class="col-md-4">
+                        <div class="form-floating ">
+                            <input type="text" class="form-control" name="Voucher_TypeName" id="VoucherTypeName">
+                            <label for="Voucher_TypeName">Voucher Type<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+                    @*Description*@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" name="Description" id="Description">
+                            <label for="Description">Description<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+
+                    @*Numbering Method*@
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <select class="form-select" name="numberingMethod" id="numberingMethod">
+                                <option value="Auto" selected>Auto</option>
+                            </select>
+                            <label for="numberingMethod">Numbering Method<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+
+                    @*Starting Number*@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="number" class="form-control" name="startingNumber" id="startingNumber">
+                            <label for="startingNumber">Starting Number</label>
+                        </div>
+                    </div>
+
+
+                    @*Reset Duration*@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="number" class="form-control" name="resetDuration" id="resetDuration">
+                            <label for="resetDuration">Reset Duration<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+                    @*Duration Type*@
+                    <div class="col-md-4">
+                        <div class="form-floating ">
+                            <select class="form-select" name="resetDurationType_Code" id="resetDurationTypeCode">
+                            </select>
+                            <label for="resetDurationType_Code"></label>
+                        </div>
+                    </div>
+
+
+                    @*Prefix*@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" name="prefix" id="prefix">
+                            <label for="prefix">Prefix<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+                    @*Suffix*@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" name="suffix" id="suffix">
+                            <label for="suffix">Suffix</label>
+                        </div>
+                    </div>
+
+                    @*Padding*@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="number" class="form-control" name="padding" id="padding">
+                            <label for="padding">Padding<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+                </div>
+
+                @* Creation/Modify Date Display *@
+                <hr class="my-4 mx-2 pb-2">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <div>
+                            <span>Entry Date : </span>
+                            <span id="VoucherdisplayLDate"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div>
+                            <span>Last Update Date :</span>
+                            <span id="VoucherdisplayModifyDate"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                    @* Save Button (Bottom) *@
+
+                <div class="row mt-2">
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-outline-primary btn-sm VoucherSaveBtn">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+
+
+

@@ -76,9 +76,19 @@
 </div>
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        <button type="button" class="btn btn-default success-btn btn btn-outline-success btn-common btn-circle float-right js-designation-save" data-id="@Model.DesignationCode">
+        @* <button type="button" class="btn btn-default success-btn btn btn-outline-success btn-common btn-circle float-right js-"designation"-save" data-id="@Model.DesignationCode">
             <i class="fas fa-save"></i> Save
-        </button>
+        </button> *@
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite=false,
+            IsPlain = true,
+            SaveBtnClass = "designation"
+        })
     </div>
   
 </div>

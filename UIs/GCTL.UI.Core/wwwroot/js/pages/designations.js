@@ -8,7 +8,7 @@
             gridSelector: "#designation-grid",
             gridContainer: ".js-designation-grid-container",
             editSelector: ".js-designation-edit",
-            saveSelector: ".js-designation-save",
+            saveSelector: "#saveBtn",
             selectAllSelector: "#designation-check-all",
             deleteSelector: ".js-designation-delete-confirm",
             deleteModal: "#designation-delete-modal",
@@ -100,6 +100,7 @@
             //
             // Save
             $("body").on("click", settings.saveSelector, function () {
+                debugger
                 if (!validation()) return false;
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {

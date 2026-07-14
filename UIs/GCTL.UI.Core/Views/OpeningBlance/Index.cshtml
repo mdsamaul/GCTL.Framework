@@ -1,0 +1,19 @@
+﻿ <div class="row">
+    <div class="col-md-12">
+        <div id="VoucherFormView">
+            @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceForm.cshtml")
+        </div>
+    </div>
+
+    <div class="col-md-12 mt-3">
+        <div id="VoucherListView">
+            @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceList.cshtml")
+        </div>
+    </div>
+</div> 
+
+@section Scripts {
+
+    <script src="~/js/pages/OpeningBalance/OpeningBalance.js"></script>
+
+}
