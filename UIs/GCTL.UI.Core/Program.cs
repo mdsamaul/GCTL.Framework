@@ -1,14 +1,18 @@
+using GCTL.Core.Data;
+using GCTL.Core.ViewModels.Menu;
 using GCTL.Data.Context;
 using GCTL.Data.DapperContext;
-using GCTL.Data.Identity;
+using GCTL.Data.Models;
+using GCTL.Framework.Extensions;
+using GCTL.Service.Menu;
+//using GCTL.Data.Identity;
 using GCTL.UI.Core;
+using GCTL.UI.Core.Helpers.BackgroundServices;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using GCTL.Service.Menu;
-using GCTL.Core.ViewModels.Menu;
-using GCTL.Data.Models;
-using GCTL.Framework.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------------------------------------------------------------------
@@ -34,35 +38,35 @@ builder.Services.RegisterApplicationServices();
 // ---------------------------------------------------------------------
 // ASP.NET Core Identity
 // ---------------------------------------------------------------------
-builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-{
-    // Password policy - tune to your organization's requirements
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 6;
+//builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+//{
+//    // Password policy - tune to your organization's requirements
+//    options.Password.RequireDigit = true;
+//    options.Password.RequireLowercase = true;
+//    options.Password.RequireUppercase = true;
+//    options.Password.RequireNonAlphanumeric = false;
+//    options.Password.RequiredLength = 6;
 
-    options.User.RequireUniqueEmail = true;
+//    options.User.RequireUniqueEmail = true;
 
-    // Lockout after failed attempts
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-    options.Lockout.MaxFailedAccessAttempts = 5;
+//    // Lockout after failed attempts
+//    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+//    options.Lockout.MaxFailedAccessAttempts = 5;
 
-    // Set true once email sending (MailKit) is wired up
-    options.SignIn.RequireConfirmedAccount = false;
-})
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+//    // Set true once email sending (MailKit) is wired up
+//    options.SignIn.RequireConfirmedAccount = false;
+//})
+//    .AddEntityFrameworkStores<ApplicationDbContext>()
+//    .AddDefaultTokenProviders();
 
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.LogoutPath = "/Account/Logout";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-    options.SlidingExpiration = true;
-});
+//builder.Services.ConfigureApplicationCookie(options =>
+//{
+//    options.LoginPath = "/Account/Login";
+//    options.LogoutPath = "/Account/Logout";
+//    options.AccessDeniedPath = "/Account/AccessDenied";
+//    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+//    options.SlidingExpiration = true;
+//});
 
 // ---------------------------------------------------------------------
 // AutoMapper - registers any Profile classes found in this assembly.
@@ -70,6 +74,46 @@ builder.Services.ConfigureApplicationCookie(options =>
 // GCTL.UI.Core and they'll be picked up automatically.
 // ---------------------------------------------------------------------
 //builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+        //options.Events = new CookieAuthenticationEvents();
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = async context =>
+            {
+                var expiresUtc = context.Properties.ExpiresUtc;
+                if (expiresUtc.HasValue && expiresUtc.Value < DateTimeOffset.UtcNow)
+                {
+                    context.RejectPrincipal();
+                    await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                }
+
+                var sessionId = context.Principal?.FindFirst("SessionId")?.Value;
+                if (!string.IsNullOrEmpty(sessionId))
+                {
+                    var logRepo = context.HttpContext.RequestServices.GetRequiredService<IRepository<CoreUserLog>>();
+                    var stillOpen = (await logRepo.FindByAsync(l => l.SessionId == sessionId))
+                        .FirstOrDefault(l => l.LogoutDate == null);
+
+                    if (stillOpen == null) // this session's row was closed (superseded or timed out)
+                    {
+                        context.RejectPrincipal();
+                        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    }
+                }
+            }
+        };
+    });
+builder.Services.AddHostedService<StaleSessionSweepService>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

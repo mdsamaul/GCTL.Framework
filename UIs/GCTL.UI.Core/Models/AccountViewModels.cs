@@ -5,7 +5,7 @@ namespace GCTL.UI.Core.Models;
 public class LoginViewModel
 {
     [Required(ErrorMessage = "Email is required")]
-    [EmailAddress]
+    //[EmailAddress]
     [Display(Name = "Email")]
     public string Email { get; set; } = string.Empty;
 
