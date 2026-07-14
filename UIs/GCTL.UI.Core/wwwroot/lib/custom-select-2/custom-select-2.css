@@ -1,0 +1,242 @@
+﻿/* customDropdown - fully custom, no Select2 */
+
+.custom-dd-wrapper {
+    position: relative;
+    width: 100%;
+    outline: none;
+}
+.custom-dd-box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: calc(1.5em + .5rem + 2px); /* Bootstrap form-select-sm এর height */
+    border: 1px solid #ced4da;
+    border-radius: .375rem;
+    background: #fff;
+    padding: .25rem .5rem; /* form-select-sm এর padding */
+    cursor: text;
+    position: relative;
+}
+
+.custom-dd-input {
+    border: none;
+    outline: none;
+    flex: 1 1 60px;
+    min-width: 60px;
+    padding: 0 2px;
+    font-size: .875rem; 
+    background: transparent;
+    line-height: 1.5;
+}
+
+.custom-dd-copy-icon,
+.custom-dd-clear-icon,
+.custom-dd-arrow {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0 4px;
+    font-size: 14px;
+}
+
+.custom-dd-clear-icon {
+    color: #dc3545;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    padding-right:0px;
+}
+
+
+.custom-dd-wrapper.open .custom-dd-box {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+.custom-dd-wrapper:hover,
+.custom-dd-wrapper:focus {
+    background: #eef4fc !important;
+    outline: none !important;
+}
+.custom-dd-wrapper.disabled .custom-dd-box  {
+    background-color: #f4f6f9 !important;
+    border-color: #ced4da !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+}
+
+.custom-dd-wrapper.disabled .custom-dd-input {
+    background-color: transparent !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
+}
+
+.custom-dd-wrapper.disabled .custom-dd-arrow,
+.custom-dd-wrapper.disabled .custom-dd-copy-icon,
+.custom-dd-wrapper.disabled .custom-dd-clear-icon {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.custom-dd-wrapper.disabled {
+    pointer-events: none;
+    cursor:not-allowed;
+}
+.custom-dd-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.custom-dd-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #e9ecef;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 13px;
+}
+
+.custom-dd-tag-remove {
+    cursor: pointer;
+    color: #6c757d;
+    font-weight: bold;
+}
+
+    .custom-dd-tag-remove:hover {
+        color: #dc3545;
+    }
+
+
+.custom-dd-arrow {
+    color: #495057;
+    pointer-events: none;
+        font-size: 16px;
+        padding: 0px;
+        margin: 0px;
+ line-height:1;
+}
+.custom-dd-copy-icon.copied {
+    color: #28a745;
+    background: #d4edda;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+}
+
+    .custom-dd-copy-icon.copied i {
+        font-size: 12px;
+    }
+.custom-dd-copy-icon:hover {
+    color: #495057;
+}
+
+.custom-dd-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 1050;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.custom-dd-wrapper.open .custom-dd-panel {
+    display: block;
+}
+
+.custom-dd-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+    .custom-dd-option:hover {
+        background: #f1f3f5;
+    }
+
+    .custom-dd-option.selected {
+        background: #4a90e2;
+        color: #fff;
+    }
+
+.custom-dd-opt-checkbox {
+    margin: 0;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.custom-dd-opt-text {
+    flex: 1;
+}
+
+.custom-dd-empty {
+    padding: 10px 12px;
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.custom-dd-select-all {
+    background: #f8f9fa;
+}
+
+    .custom-dd-select-all:hover {
+        background: #e9ecef;
+    }
+
+.custom-dd-divider {
+    border-bottom: 1px solid #e9ecef;
+    margin: 2px 0;
+}
+
+.custom-dd-count-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #4a90e2;
+    color: #fff;
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.custom-dd-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #28a745;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    z-index: 99999;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+    .custom-dd-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+.custom-dd-copy-icon.dd-icon-disabled,
+.custom-dd-clear-icon.dd-icon-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}

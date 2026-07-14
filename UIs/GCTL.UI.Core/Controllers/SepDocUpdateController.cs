@@ -26,12 +26,13 @@ namespace GCTL_App.Controllers
         private readonly IGenericRepository<CfDefExpenseType> _shipmentStatusRepository;
         private readonly IGenericRepository<SalesDefImporterInfo> _importerInfoRepository;
         private readonly IGenericRepository<SepDocumentation> _sepDocumentionRepository;
+        private readonly IGenericRepository<SalesDefShipmentStatusInfo> shipmentStatusRepo;
         private readonly IGenericRepository<SalesCustomer> _customerRepository;
         private readonly IGenericRepository<Country> _countryRepository;
         private readonly IGenericRepository<SalesContactPerson> _contactPersionRepository;
         private readonly ISepDocumentationService _service;
 
-        public SepDocUpdateController(IJobService jobService, IGenericRepository<CfDefExpenseType> shipmentModeRepository, IGenericRepository<SalesDefPortName> portNameRepository, IGenericRepository<CaDefCurrency> currencyRepository, IGenericRepository<RmgProdDefUnitType> unitRepository, IGenericRepository<CfDefPlaceOfLoading> placeofLoadingRepository, IGenericRepository<CfDefShedYard> shedYardRepository, IGenericRepository<CfDefExpenseType> shipmentStatusRepository, IGenericRepository<SalesDefImporterInfo> importerInfoRepository, IGenericRepository<SepDocumentation> sepDocumentionRepository, IGenericRepository<SalesCustomer> customerRepository, IGenericRepository<Country> countryRepository, IGenericRepository<SalesContactPerson> contactPersionRepository, ISepDocumentationService service) : base()
+        public SepDocUpdateController(IJobService jobService, IGenericRepository<CfDefExpenseType> shipmentModeRepository, IGenericRepository<SalesDefPortName> portNameRepository, IGenericRepository<CaDefCurrency> currencyRepository, IGenericRepository<RmgProdDefUnitType> unitRepository, IGenericRepository<CfDefPlaceOfLoading> placeofLoadingRepository, IGenericRepository<CfDefShedYard> shedYardRepository, IGenericRepository<CfDefExpenseType> shipmentStatusRepository, IGenericRepository<SalesDefImporterInfo> importerInfoRepository, IGenericRepository<SepDocumentation> sepDocumentionRepository,  IGenericRepository<SalesDefShipmentStatusInfo> shipmentStatusRepo, IGenericRepository<SalesCustomer> customerRepository, IGenericRepository<Country> countryRepository, IGenericRepository<SalesContactPerson> contactPersionRepository, ISepDocumentationService service) : base()
         {
             _jobService = jobService;
             _shipmentModeRepository = shipmentModeRepository;
@@ -43,6 +44,7 @@ namespace GCTL_App.Controllers
             _shipmentStatusRepository = shipmentStatusRepository;
             _importerInfoRepository = importerInfoRepository;
             _sepDocumentionRepository = sepDocumentionRepository;
+            this.shipmentStatusRepo = shipmentStatusRepo;
             _customerRepository = customerRepository;
             _countryRepository = countryRepository;
             _contactPersionRepository = contactPersionRepository;
@@ -70,6 +72,7 @@ namespace GCTL_App.Controllers
             ViewBag.CountryList = new SelectList(_countryRepository.All().Select(e => new { id = e.CountryCode, name = e.CountryName }), "id", "name");
             ViewBag.CustomerList = new SelectList(_customerRepository.All().Select(e => new { id = e.CustomerCode, name = e.CustomerName }), "id", "name");
             ViewBag.ContactP = new SelectList(_contactPersionRepository.All().Select(e => new { id = e.Cpid, name = e.ContactPersonName }), "id", "name");
+            ViewBag.shipStatus = new SelectList(shipmentStatusRepo.All().Select(e => new { id = e.ShipmentStatusId, name = e.ShipmentStatus }), "id", "name");
 
             return View();
         }
@@ -133,14 +136,49 @@ namespace GCTL_App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ShipmentUpdateViewModel model)
         {
+            try
+            {
+               
+                if (ModelState.IsValid)
+                {
+                    var time = model.Time?.ToString("hh:mm:ss tt");
+                    Console.WriteLine(model.Time?.ToString("hh:mm:ss tt"));
+                    //var company = 1;// await GetCurrentOrganizationIdAsync();
+                    //int company = int.Parse(LoginInfo.CompanyCode);
+                    int company = 001;
+                    var result = await _jobService.UpdateJobs(model, company);
+                    return Ok(result);
+                }else
+                {
+                    return BadRequest(ModelState);
+                }
+            }
+            catch (Exception)
+            {
 
-            //var company = 1;// await GetCurrentOrganizationIdAsync();
-            int company =  int.Parse(LoginInfo.CompanyCode);
-            var result = await _jobService.UpdateJobs(model, company);
-            return Ok(result);
+                throw;
+            }
+
+           
 
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteJobs([FromBody] DeleteJobsRequest request)
+        {
+            try
+            {
+                if (request?.Ids == null || request.Ids.Count == 0)
+                    return BadRequest(new { success = false, message = "No records selected" });
 
+                var result = await _jobService.DeleteJobs(request.Ids);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

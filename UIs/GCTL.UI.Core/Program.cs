@@ -35,23 +35,23 @@ builder.Services.RegisterApplicationServices();
 // ASP.NET Core Identity
 // ---------------------------------------------------------------------
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-    {
-        // Password policy - tune to your organization's requirements
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequiredLength = 6;
+{
+    // Password policy - tune to your organization's requirements
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
 
-        options.User.RequireUniqueEmail = true;
+    options.User.RequireUniqueEmail = true;
 
-        // Lockout after failed attempts
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-        options.Lockout.MaxFailedAccessAttempts = 5;
+    // Lockout after failed attempts
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
 
-        // Set true once email sending (MailKit) is wired up
-        options.SignIn.RequireConfirmedAccount = false;
-    })
+    // Set true once email sending (MailKit) is wired up
+    options.SignIn.RequireConfirmedAccount = false;
+})
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -87,15 +87,6 @@ var app = builder.Build();
 
 // Expose the DI service provider to the ServiceLocator for extension helpers.
 GCTL.UI.Core.Helpers.ServiceLocator.ServiceProvider = app.Services;
-
-// ---------------------------------------------------------------------
-// Seed default roles / admin user (development convenience)
-// ---------------------------------------------------------------------
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await SeedData.InitializeAsync(services);
-}
 
 // ---------------------------------------------------------------------
 // Middleware pipeline
