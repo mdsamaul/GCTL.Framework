@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,16 +11,19 @@ namespace GCTL.Core.ViewModels.MenuTab
     {
     
         public int AutoId { get; set; }
-        public string MenuId { get; set; } // Assumes values like "002"
+        public string? MenuId { get; set; } // Assumes values like "002"
+        [Required]
         public string Title { get; set; }
+        [Required]
         public string ControllerName { get; set; }
-        public string TableName { get; set; }
+        public string? TableName { get; set; }
         public int OrderBy { get; set; } // Assumes an integer for ordering
-        public string ViewName { get; set; }
+        public string? ViewName { get; set; }
         public bool IsActive { get; set; }
-        public string Icon { get; set; }
-        public string ParentId { get; set; } // Nullable string for ParentId
-        public string ChildId { get; set; } // Nullable string for ChildId
-        public string GrandChildId { get; set; } // Nullable string for GrandChildId
+        public string? Icon { get; set; }
+        
+        public string? ParentId { get; set; } // Nullable string for ParentId
+        public string? ChildId { get; set; } // Nullable string for ChildId
+        public string? GrandChildId { get; set; } // Nullable string for GrandChildId
     }
 }

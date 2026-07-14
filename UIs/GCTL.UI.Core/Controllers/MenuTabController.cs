@@ -3,6 +3,8 @@ using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.MenuTab;
 using GCTL.Data.Models;
 using GCTL.Service.MenuTab;
+using GCTL.Service.Users;
+using GCTL.UI.Core.ViewModels.AccessCodes;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text.Json;
@@ -15,149 +17,150 @@ namespace GCTL.UI.Core.Controllers
 
         private readonly IMenuTabService _menuTabService;
 
-        //private readonly IAccessCodeService _accessCodeService;
+        private readonly IAccessCodeService _accessCodeService;
 
-        public MenuTabController(GCTL_ERP_DBContext context, IMenuTabService menuTabService)
+        public MenuTabController(GCTL_ERP_DBContext context, IMenuTabService menuTabService, IAccessCodeService accessCodeService)
         {
             _context = context;
             _menuTabService = menuTabService;
+            _accessCodeService = accessCodeService;
         }
 
-        //#region AccessMenu
+        #region AccessMenu
 
-        //public IActionResult AccessMenu()
-        //{
-        //    var hasPermission = _accessCodeService.HasPermission(LoginInfo.AccessCode);
-        //    if(!hasPermission)
-        //        return RedirectToAction("Login", "Accounts");
+        public IActionResult AccessMenu()
+        {
+            //var hasPermission = _accessCodeService.HasPermission(LoginInfo.AccessCode);
+            //if (!hasPermission)
+            //    return RedirectToAction("Login", "Accounts");
 
-        //    return View();
-        //}
+            return View();
+        }
 
-        //public IActionResult AccessCodeIndex(bool child = false)
-        //{
-        //    var hasPermission = _accessCodeService.HasPermission(LoginInfo.AccessCode);
-        //    if (!hasPermission && child)
-        //        return Json(new { message = "You have no permission" });
-        //    else if (!hasPermission)
-        //        return RedirectToAction("Login", "Accounts");
+        public IActionResult AccessCodeIndex(bool child = false)
+        {
+            //var hasPermission = _accessCodeService.HasPermission(LoginInfo.AccessCode);
+            //if (!hasPermission && child)
+            //    return Json(new { message = "You have no permission" });
+            //else if (!hasPermission)
+            //    return RedirectToAction("Login", "Accounts");
 
-        //    AccessCodePageViewModel model = new AccessCodePageViewModel()
-        //    {
-        //        PageUrl = Url.Action(nameof(Index))
-        //    };
+            AccessCodePageViewModel model = new AccessCodePageViewModel()
+            {
+                PageUrl = Url.Action(nameof(Index))
+            };
 
-        //    if (child)
-        //        return PartialView(model);
+            if (child)
+                return PartialView(model);
 
-        //    return View(model);
-        //}
+            return View(model);
+        }
 
-        //[HttpPost("MenuTab/AccessCodeSetup")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> AccessCodeSetup(AddAccessCodeDto model)
-        //{
-        //    if (_accessCodeService.IsAccessCodeExist(model.AccessCodeName, model.AccessCodeId))
-        //        return Json(new { isSuccess = false, message = "Already Exists" });
-            
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (_accessCodeService.IsAccessCodeExistByCode(model.AccessCodeId))
-        //        {
-        //            var result = await _accessCodeService.EditAccessCode(model);
-        //            return Json(new { isSuccess = result.success, message = result.message, lastCode = model.AccessCodeId });
-        //        }
-        //        else
-        //        {
-        //            var result = await _accessCodeService.AddAccessCode(model);
-        //            return Json(new { isSuccess = result.success, message = result.message, lastCode = model.AccessCodeId });
-        //        }
-        //    }
+        [HttpPost("MenuTab/AccessCodeSetup")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AccessCodeSetup(AddAccessCodeDto model)
+        {
+            if (_accessCodeService.IsAccessCodeExist(model.AccessCodeName, model.AccessCodeId))
+                return Json(new { isSuccess = false, message = "Already Exists" });
 
-        //    return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
-        //}
+            if (ModelState.IsValid)
+            {
+                if (_accessCodeService.IsAccessCodeExistByCode(model.AccessCodeId))
+                {
+                    var result = await _accessCodeService.EditAccessCode(model);
+                    return Json(new { isSuccess = result.success, message = result.message, lastCode = model.AccessCodeId });
+                }
+                else
+                {
+                    var result = await _accessCodeService.AddAccessCode(model);
+                    return Json(new { isSuccess = result.success, message = result.message, lastCode = model.AccessCodeId });
+                }
+            }
 
-
-        //[HttpGet]
-        //[Route("MenuTab/AccessMenus")]
-        //public async Task<IActionResult> GetAccessCodeList( string accessCodeId)
-        //{
-        //    var accessCodes = await _menuTabService.GetAccessCodeMenu(accessCodeId);
-        //    return Ok(accessCodes);
-        //}
+            return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
+        }
 
 
-        //[HttpGet]
-        //[Route("MenuTab/GetAccessName")]
-        //public async Task<IActionResult> GetAccessName(string accessCodeId)
-        //{
-        //    var accessCodes = await _menuTabService.GetAccessName(accessCodeId);
-        //    return Ok(accessCodes);
-        //}
-
-        //[HttpGet]
-        //[Route("menuTab/GetAccessListTable")]
-        //public async Task<IActionResult> GetAccessListTable()
-        //{
-        //    var accessCodes = await _menuTabService.GetAccessListTable();
-        //    return Ok(accessCodes);
-        //}
+        [HttpGet]
+        [Route("MenuTab/AccessMenus")]
+        public async Task<IActionResult> GetAccessCodeList(string accessCodeId)
+        {
+            var accessCodes = await _menuTabService.GetAccessCodeMenu(accessCodeId);
+            return Ok(accessCodes);
+        }
 
 
-        //[HttpPost]
-        //[Route("menuTab/DeleteAccessCodes")]
-        //public async Task<IActionResult> GetAccessCodeList([FromBody]  List<string> selectedIds)
-        //{
-        //    if (selectedIds == null || !selectedIds.Any())
-        //        return BadRequest("No IDs provided.");
+        [HttpGet]
+        [Route("MenuTab/GetAccessName")]
+        public async Task<IActionResult> GetAccessName(string accessCodeId)
+        {
+            var accessCodes = await _menuTabService.GetAccessName(accessCodeId);
+            return Ok(accessCodes);
+        }
 
-        //    try
-        //    {
-        //        var result = await _menuTabService.DeleteAccessCodes(selectedIds);
-        //        return Ok(result);
-        //    } 
-        //    catch(Exception ex)
-        //    {
-        //        return StatusCode(500, new { success = false, message = ex.Message });
-        //    }
-        //}
+        [HttpGet]
+        [Route("menuTab/GetAccessListTable")]
+        public async Task<IActionResult> GetAccessListTable()
+        {
+            var accessCodes = await _menuTabService.GetAccessListTable();
+            return Ok(accessCodes);
+        }
 
 
-        //[HttpPost]
-        //[Route("menuTab/SaveAccessCode")]
-        //public  IActionResult Save([FromBody] MenuAccessDto dto)
-        //{
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
+        [HttpPost]
+        [Route("menuTab/DeleteAccessCodes")]
+        public async Task<IActionResult> GetAccessCodeList([FromBody] List<string> selectedIds)
+        {
+            if (selectedIds == null || !selectedIds.Any())
+                return BadRequest("No IDs provided.");
 
-        //    var response = _menuTabService.SaveAccessMenu(dto);
+            try
+            {
+                var result = await _menuTabService.DeleteAccessCodes(selectedIds);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
 
-        //    return Ok(new { success = true });
-        //}
 
-        //[HttpGet]
-        //[Route("MenuTab/GetParentMenus")]
-        //public async Task<IActionResult> GetParentMenus()
-        //{
-        //    var menus = await _accessCodeService.GetParentMenus();
-        //    return Ok(menus);
-        //}
+        [HttpPost]
+        [Route("menuTab/SaveAccessCode")]
+        public IActionResult Save([FromBody] MenuAccessDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //[HttpPost]
-        //[Route("MenuTab/AddAccessCode")]
-        //public async Task<IActionResult> AddAccessCode([FromBody] AddAccessCodeDto dto)
-        //{
-        //    if (string.IsNullOrWhiteSpace(dto.AccessCodeId) || string.IsNullOrWhiteSpace(dto.AccessCodeName))
-        //        return BadRequest("Both fields are required.");
+            var response = _menuTabService.SaveAccessMenu(dto);
 
-        //    if (_accessCodeService.IsAccessCodeExistByCode(dto.AccessCodeId))
-        //        return BadRequest("Duplicate Access Code.");
+            return Ok(new { success = true });
+        }
 
-        //    await _accessCodeService.AddAccessCode(dto);
-        //    return Ok(new { success = true });
-        //}
+        [HttpGet]
+        [Route("MenuTab/GetParentMenus")]
+        public async Task<IActionResult> GetParentMenus()
+        {
+            var menus = await _accessCodeService.GetParentMenus();
+            return Ok(menus);
+        }
 
-        //#endregion
+        [HttpPost]
+        [Route("MenuTab/AddAccessCode")]
+        public async Task<IActionResult> AddAccessCode([FromBody] AddAccessCodeDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.AccessCodeId) || string.IsNullOrWhiteSpace(dto.AccessCodeName))
+                return BadRequest("Both fields are required.");
+
+            if (_accessCodeService.IsAccessCodeExistByCode(dto.AccessCodeId))
+                return BadRequest("Duplicate Access Code.");
+
+            await _accessCodeService.AddAccessCode(dto);
+            return Ok(new { success = true });
+        }
+
+        #endregion
 
 
 
@@ -286,8 +289,6 @@ namespace GCTL.UI.Core.Controllers
                     var result = await _menuTabService.SaveMenu(model);
                     return Ok(result);
                 }
-
-                
             }
             else
             {
