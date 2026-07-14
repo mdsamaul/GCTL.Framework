@@ -119,7 +119,6 @@ h6 {
     min-height: 100vh;
     width: 100vw;
 }
-
 /* -----------------------------------------------------------------
    Sidebar Styles
    ----------------------------------------------------------------- */
@@ -145,9 +144,11 @@ h6 {
 .app-sidebar.collapsed .sidebar-logo i {
     transform: translateX(10px);
 }
-    .app-sidebar.collapsed {
-        width: var(--sidebar-width-collapsed);
-    }
+
+.app-sidebar.collapsed {
+    width: var(--sidebar-width-collapsed);
+}
+
 .sidebar-header {
     color: var(--text-sidebar);
     flex-shrink: 0;
@@ -161,7 +162,6 @@ h6 {
     white-space: nowrap;
     background-color: var(--bg-sidebar-header);
     transition: background-color 0.3s ease, color 0.3s ease;
-    /* Header stays fixed at top — never scrolls */
     position: relative;
     z-index: 1;
 }
@@ -180,25 +180,16 @@ h6 {
     text-decoration: none;
 }
 
-.sidebar-logo i {
-    font-size: 1rem;
-    color: var(--primary);
-    line-height: 1;
-}
+    .sidebar-logo i {
+        font-size: 1rem;
+        color: var(--primary);
+        line-height: 1;
+    }
 
-.sidebar-logo .sidebar-brand-text {
-    font-size: 0.85rem;
-    line-height: 1;
-}
-
-.sidebar-logo i {
-    font-size: 1rem;
-    color: var(--primary);
-}
-
-.sidebar-logo .sidebar-brand-text {
-    font-size: 0.85rem;
-}
+    .sidebar-logo .sidebar-brand-text {
+        font-size: 0.85rem;
+        line-height: 1;
+    }
 
 .navbar-brand,
 .navbar .nav-link,
@@ -219,16 +210,23 @@ h6 {
 }
 
 .sidebar-menu {
-    flex: 1 1 0;
     list-style: none;
-    padding: 20px 10px;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0;
+}
+
+.app-sidebar > .sidebar-menu {
+    flex: 1 1 0;
+    padding: 20px 10px;
     overflow-y: auto;
     overflow-x: hidden;
-    /* Only the menu area scrolls, header stays fixed above */
+}
+
+.sidebar-menu .sidebar-menu {
+    padding: 0px 0 0 10px;
+    flex: none;
 }
 
 .sidebar-menu::-webkit-scrollbar {
@@ -244,8 +242,7 @@ h6 {
 .menu-item .menu-link {
     display: flex;
     align-items: center;
-    padding: 12px 0px 15px 10px;
-    color: var(--text-sidebar);
+    padding: 7px 0px 7px 10px;
     text-decoration: none;
     border-radius: 8px;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -254,7 +251,6 @@ h6 {
     gap: 10px;
     font-weight: 500;
     border: none;
-    background: transparent;
     width: 100%;
     text-align: left;
 }
@@ -262,17 +258,19 @@ h6 {
 .menu-item a,
 .menu-item .menu-link {
     align-items: flex-start;
+    background-color: rgba(0, 0, 0, 0.03);
+    color: #333333;
 }
 
-.menu-item a i,
-.menu-item .menu-link i {
-    font-size: .9rem;
-    width: 16px;
-    height:16px;
-    text-align: center;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
+    .menu-item a i,
+    .menu-item .menu-link i {
+        font-size: .9rem;
+        width: 16px;
+        height: 16px;
+        text-align: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
 
 .menu-arrow {
     font-size: .68rem !important;
@@ -287,28 +285,30 @@ h6 {
     justify-content: center;
 }
 
-.app-sidebar.collapsed .menu-link .menu-text {
-    display: none;
-}
+    .app-sidebar.collapsed .menu-link .menu-text {
+        display: none;
+    }
 
-.app-sidebar.collapsed .menu-link .menu-arrow {
-    display: none;
-}
+    .app-sidebar.collapsed .menu-link .menu-arrow {
+        display: none;
+    }
 
 .menu-item.active a,
-.menu-item a:hover {
-    color: var(--text-sidebar-active);
-    background-color: var(--bg-sidebar-hover);
+.menu-item a:hover,
+.menu-item .menu-link:hover {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    color: #1a1a1a !important;
 }
 
 .menu-item.active a {
     background-color: var(--primary);
+    color: darkblue !important;
 }
 
 .menu-text {
     transition: opacity 0.2s ease, transform 0.2s ease;
     opacity: 1;
-    font-size:13px;
+    font-size: 13px;
 }
 
 .app-sidebar.collapsed .menu-text {
@@ -317,6 +317,26 @@ h6 {
     transform: translateX(-15px);
 }
 
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    .menu-item a,
+    .menu-item .menu-link {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--text-sidebar);
+    }
+
+        .menu-item.active a,
+        .menu-item a:hover,
+        .menu-item .menu-link:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+            color: var(--text-sidebar-active);
+        }
+
+    .menu-item.active a {
+        background-color: var(--primary);
+        color: white;
+    }
+}
 /* -----------------------------------------------------------------
    Content Wrapper
    ----------------------------------------------------------------- */

@@ -378,7 +378,7 @@ namespace GCTL.Service.SupplierInformation
                 // 2️⃣ Add main supplier entity
                 var newEntity = new RmgDefSupplier
                 {
-                    Tc = entityVM.Tc,
+                    Tc = (decimal)entityVM.Tc,
                     SupplierId = entityVM.SupplierId,
                     SupplierTitle = entityVM.SupplierTitle,
                     SupplierName = entityVM.SupplierName,
