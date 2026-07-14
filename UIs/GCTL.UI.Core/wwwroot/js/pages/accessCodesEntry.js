@@ -20,9 +20,9 @@
             checkAll: '#access-code-check-all',
             btnSave: '.js-access-code-save',
             btnDelete: '.js-access-code-delete-confirm',
-            btnClear: '.js-access-code-clear',
-            inputCode: '.js-access-code',
-            inputName: '.js-access-code-name',
+            btnSave: '#js-access-code-save',
+            btnDelete: '#js-access-code-delete-confirm',
+            btnClear: '#js-access-code-clear',
             hiddenLastCode: 'input[name="lastCode"]',
             quickAddModal: "#quickAddModal",
         };

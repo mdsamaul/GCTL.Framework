@@ -1,8 +1,6 @@
-using GCTL.Data.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using GCTL.Data.Models;
+//using GCTL.Data.Identity;
+//using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore;
 
 //namespace GCTL.Data.Context;
 
@@ -33,9 +31,9 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    protected override void OnModelCreating(ModelBuilder builder)
-    {
-        base.OnModelCreating(builder);
+//    protected override void OnModelCreating(ModelBuilder builder)
+//    {
+//        base.OnModelCreating(builder);
 
         // Keep Identity's default table names as AspNetUsers/AspNetRoles/etc.
         // If you prefer names consistent with your existing schema (e.g. "Users",
