@@ -18,6 +18,7 @@ using static GCTL.Service.Update.JobService;
 using GCTL.Data.Models;
 using GCTL.Core.ViewModels.Update;
 using GCTL.Core.ViewModels.Update;
+using GCTL.Core.Helpers;
 
 
 namespace GCTL.Service.Update
@@ -244,30 +245,30 @@ namespace GCTL.Service.Update
                  ShipmentMode = h.ExpenseTypeId,          // h থেকে bind করুন
                  ShipmentModeId = h.ExpenseTypeId,
                  IsCustomJobNo = h.IsCustomJobNo,
-                 JobDate = h.Date.Value.ToShortDateString(),
+                 JobDate = h.Date.HasValue ? h.Date.Value.ToDateFormat() : "",
                  CustomerId = h.CustomerId,
                  CustomerName = h.CustomerId,
                  CustomerAddress = h.CustomerAddress,
                  CustomerDeliveryAddress = h.DeliveryLocationCode, //TODO: DElivery add
                  PortId = h.PortId,
-                 DocsReceivedDate = h.DocReceivedDate.Value.ToShortDateString(),
+                 DocsReceivedDate = h.DocReceivedDate.HasValue? h.DocReceivedDate.Value.ToDateFormat():"",
                  LcExpNo = h.ExpNo,
                  LcValue = h.Lcvalue,
-                 LcDate = h.Lcdate,
+                 LcDate = h.Lcdate.HasValue ? h.Lcdate.Value.ToDateFormat() : "",
                  //LcUnitId= h.lc
                  IpEpNo = h.Ipno,
-                 IpDate = h.Ipdate.Value.ToString(),
+                 IpDate = h.Ipdate.HasValue ? h.Ipdate.Value.ToDateFormat() : "",
                  ImporterId = h.ImporterId,
                  InvoiceNo = h.InvoiceNo,
-                 InvoiceDate = h.InvoiceDate.Value.ToString(),
+                 InvoiceDate = h.InvoiceDate.HasValue ? h.InvoiceDate.Value.ToDateFormat() : "",
                  BlNo = h.Beno,
                  BeNo = h.Beno,
-                 BeDate = h.Bedate.Value.ToString(),
-                 BlDate = h.Bldate.Value.ToString(),
+                 BeDate = h.Bedate.HasValue ? h.Bedate.Value.ToDateFormat() : "",
+                 BlDate = h.Bldate.HasValue ? h.Bldate.Value.ToDateFormat() : "",
                  ContainerNo = h.ContainerNo,
                  ContainerSize = h.ContainerSize,
                  LcaNo = h.Lcano,
-                 DischargeDate = h.Dischargedate.Value.ToString(),
+                 DischargeDate = h.Dischargedate.HasValue ? h.Dischargedate.Value.ToDateFormat() : "",
                  MaterialDescription = h.MaterialDescription,
                  Quantity = h.Quntity1,
                  QuantityUnitId = h.Unit1,
@@ -276,7 +277,7 @@ namespace GCTL.Service.Update
                  ForwarderId = h.NameOfFreightForwarder,
                  VesselRottNo = h.VesselRottNo,
                  Remarks = h.Remarks,
-                 DocReceivedDate = h.DocReceivedDate.Value.ToString(),
+                 DocReceivedDate = h.DocReceivedDate.HasValue ? h.DocReceivedDate.Value.ToDateFormat() : "",
                  CreatedAt = h.Ldate,
                  UpdatedAt = h.Ldate,
              })
@@ -288,105 +289,107 @@ namespace GCTL.Service.Update
 
             return query1;
         }
-
-        public async Task<SepPagedResult<JobStatusDto>> GetJobStatusesPagedAsync(
-     int page,
-     int pageSize,
-     string? search,
-     string? customerCode,
-     DateTime? fromDate,
-     DateTime? toDate)
+       
+public async Task<SepPagedResult<JobStatusDto>> GetJobStatusesPagedAsync(
+    int page,
+    int pageSize,
+    string? search,
+    string? customerCode,
+    DateTime? fromDate,
+    DateTime? toDate)
+    {
+        try
         {
-            try
+            var query =
+                from c in _jobUpdateRepository.All().AsNoTracking()
+                join s in _sepDocumentionRepository.All().AsNoTracking()
+                    on c.JobNo equals s.JobNo into sj
+                from s in sj.DefaultIfEmpty()
+                select new
+                {
+                    JobUpdate = c,
+                    Document = s
+                };
+
+            var totalCount = await query.CountAsync();
+
+            if (!string.IsNullOrWhiteSpace(customerCode))
             {
-                var query =
-                    from c in _jobUpdateRepository.All().AsNoTracking()
-                    join s in _sepDocumentionRepository.All().AsNoTracking()
-                        on c.JobNo equals s.JobNo into sj
-                    from s in sj.DefaultIfEmpty()
-                    select new
-                    {
-                        JobUpdate = c,
-                        Document = s
-                    };
+                query = query.Where(x => x.Document.CustomerId == customerCode);
+            }
 
-                var totalCount = await query.CountAsync();
+            if (fromDate.HasValue)
+            {
+                query = query.Where(x => x.JobUpdate.UpdateDateTime >= fromDate.Value);
+            }
 
-                if (!string.IsNullOrWhiteSpace(customerCode))
-                {
-                    query = query.Where(x => x.Document.CustomerId == customerCode);
-                }
+            if (toDate.HasValue)
+            {
+                var endDate = toDate.Value.Date.AddDays(1);
+                query = query.Where(x => x.JobUpdate.UpdateDateTime < endDate);
+            }
 
-                if (fromDate.HasValue)
-                {
-                    query = query.Where(x => x.JobUpdate.UpdateDateTime >= fromDate.Value);
-                }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim().ToLower();
 
-                if (toDate.HasValue)
-                {
-                    var endDate = toDate.Value.Date.AddDays(1);
-                    query = query.Where(x => x.JobUpdate.UpdateDateTime < endDate);
-                }
-
-                if (!string.IsNullOrWhiteSpace(search))
-                {
-                    search = search.Trim().ToLower();
-
-                    query = query.Where(x =>
-                        x.JobUpdate.JobNo.ToLower().Contains(search) ||
-                        x.JobUpdate.UpdateStatus.ToLower().Contains(search) ||
-                        (x.JobUpdate.UpdateDateTime != null &&
-                            (
-                                (x.JobUpdate.UpdateDateTime.Value.Day < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Day.ToString() : x.JobUpdate.UpdateDateTime.Value.Day.ToString()) + "/" +
-                                (x.JobUpdate.UpdateDateTime.Value.Month < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Month.ToString() : x.JobUpdate.UpdateDateTime.Value.Month.ToString()) + "/" +
-                                x.JobUpdate.UpdateDateTime.Value.Year.ToString()
-                            ).Contains(search)));
-                }
-
-                var filteredCount = await query.CountAsync();
-
-                var data = await query
-                    .OrderByDescending(x => x.JobUpdate.Tc)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .Select(x => new JobStatusDto
-                    {
-                        Id = x.JobUpdate.Tc,
-                        JobUpdateCode = x.JobUpdate.DailyJobUpdateEntryId,
-                        Status = "Success",
-                        JobNo = x.JobUpdate.JobNo,
-                        ShipmentStatus = x.JobUpdate.UpdateStatus,
-                        DateTime = x.JobUpdate.UpdateDateTime,
-                        // Add formatted date
-                        DateTimeText = x.JobUpdate.UpdateDateTime.HasValue ?
+                query = query.Where(x =>
+                    x.JobUpdate.JobNo.ToLower().Contains(search) ||
+                    x.JobUpdate.UpdateStatus.ToLower().Contains(search) ||
+                    (x.JobUpdate.UpdateDateTime != null &&
+                        (
                             (x.JobUpdate.UpdateDateTime.Value.Day < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Day.ToString() : x.JobUpdate.UpdateDateTime.Value.Day.ToString()) + "/" +
                             (x.JobUpdate.UpdateDateTime.Value.Month < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Month.ToString() : x.JobUpdate.UpdateDateTime.Value.Month.ToString()) + "/" +
-                            x.JobUpdate.UpdateDateTime.Value.Year.ToString() + " " +
-                            (x.JobUpdate.UpdateDateTime.Value.Hour < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Hour.ToString() : x.JobUpdate.UpdateDateTime.Value.Hour.ToString()) + ":" +
-                            (x.JobUpdate.UpdateDateTime.Value.Minute < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Minute.ToString() : x.JobUpdate.UpdateDateTime.Value.Minute.ToString()) + ":" +
-                            (x.JobUpdate.UpdateDateTime.Value.Second < 10 ? "0" + x.JobUpdate.UpdateDateTime.Value.Second.ToString() : x.JobUpdate.UpdateDateTime.Value.Second.ToString())
-                            : ""
-                    })
-                    .ToListAsync();
+                            x.JobUpdate.UpdateDateTime.Value.Year.ToString()
+                        ).Contains(search)));
+            }
 
-                return new SepPagedResult<JobStatusDto>
+            var filteredCount = await query.CountAsync();
+
+            var rawData = await query
+                .OrderByDescending(x => x.JobUpdate.Tc)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new
                 {
-                    Data = data,
-                    TotalRecords = totalCount,
-                    FilteredRecords = filteredCount
-                };
-            }
-            catch
+                    x.JobUpdate.Tc,
+                    x.JobUpdate.DailyJobUpdateEntryId,
+                    x.JobUpdate.JobNo,
+                    x.JobUpdate.UpdateStatus,
+                    x.JobUpdate.UpdateDateTime
+                })
+                .ToListAsync();
+
+            var data = rawData.Select(x => new JobStatusDto
             {
-                return new SepPagedResult<JobStatusDto>
-                {
-                    Data = new List<JobStatusDto>(),
-                    TotalRecords = 0,
-                    FilteredRecords = 0
-                };
-            }
+                Id = x.Tc,
+                JobUpdateCode = x.DailyJobUpdateEntryId,
+                Status = "Success",
+                JobNo = x.JobNo,
+                ShipmentStatus = x.UpdateStatus,
+                DateTime = x.UpdateDateTime,
+                DateTimeText = x.UpdateDateTime.HasValue ? x.UpdateDateTime.Value.ToDateTimeFormat() : ""
+            }).ToList();
+
+            return new SepPagedResult<JobStatusDto>
+            {
+                Data = data,
+                TotalRecords = totalCount,
+                FilteredRecords = filteredCount
+            };
         }
-        public async Task<CommonReturnViewModel> UpdateJobs(ShipmentUpdateViewModel model, int? company)
+        catch
+        {
+            return new SepPagedResult<JobStatusDto>
+            {
+                Data = new List<JobStatusDto>(),
+                TotalRecords = 0,
+                FilteredRecords = 0
+            };
+        }
+    }
+
+    public async Task<CommonReturnViewModel> UpdateJobs(ShipmentUpdateViewModel model, int? company)
         {
             await _sepDocumentionRepository.BeginTransactionAsync();
 
@@ -518,28 +521,28 @@ namespace GCTL.Service.Update
                 ShipmentMode = h.ExpenseTypeId,          // h থেকে bind করুন
                 ShipmentModeId = h.ExpenseTypeId,
                 IsCustomJobNo = h.IsCustomJobNo,
-                JobDate = h.Date.Value.ToShortDateString(),
+                JobDate = h.Date.HasValue ? h.Date.Value.ToDateFormat() : "",
                 CustomerId = h.CustomerId,
-                LcDate= h.Lcdate,
+                LcDate= h.Lcdate.HasValue ? h.Lcdate.Value.ToDateFormat() : "",
                 //CustomerName = h.CustomerId,
                 CustomerDeliveryAddress = h.DeliveryLocationCode, //TODO: DElivery add
                 PortId = h.PortId,
-                DocsReceivedDate = h.DocReceivedDate.Value.ToShortDateString(),
+                DocsReceivedDate = h.DocReceivedDate.HasValue ? h.DocReceivedDate.Value.ToDateFormat() : "",
                 LcExpNo = h.ExpNo,
                 LcValue = h.Lcvalue,
                 IpEpNo = h.Ipno,
-                IpDate = h.Ipdate.Value.ToString(),
+                IpDate = h.Ipdate.HasValue ? h.Ipdate.Value.ToDateFormat() : "",
                 ImporterId = h.ImporterId,
                 InvoiceNo = h.InvoiceNo,
-                InvoiceDate = h.InvoiceDate.Value.ToString(),
+                InvoiceDate = h.InvoiceDate.HasValue ? h.InvoiceDate.Value.ToDateFormat() : "",
                 BlNo = h.Beno,
                 BeNo = h.Beno,
-                BeDate = h.Bedate.Value.ToString(),
-                BlDate = h.Bldate.Value.ToString(),
+                BeDate = h.Bedate.HasValue ? h.Bedate.Value.ToDateFormat() : "",
+                BlDate = h.Bldate.HasValue ? h.Bldate.Value.ToDateFormat() : "",
                 ContainerNo = h.ContainerNo,
                 ContainerSize = h.ContainerSize,
                 LcaNo = h.Lcano,
-                DischargeDate = h.Dischargedate.Value.ToString(),
+                DischargeDate = h.Dischargedate.HasValue ? h.Dischargedate.Value.ToDateFormat() : "",
                 MaterialDescription = h.MaterialDescription,
                 Quantity = h.Quntity1,
                 QuantityUnitId = h.Unit1,
@@ -548,7 +551,7 @@ namespace GCTL.Service.Update
                 ForwarderId = h.NameOfFreightForwarder,
                 VesselRottNo = h.VesselRottNo,
                 Remarks = h.Remarks,
-                DocReceivedDate = h.DocReceivedDate.Value.ToString()
+                DocReceivedDate = h.DocReceivedDate.HasValue ? h.DocReceivedDate.Value.ToDateFormat() : ""
             })
             .FirstOrDefaultAsync(j => j.JobNo == jobNo);
 
@@ -583,14 +586,7 @@ namespace GCTL.Service.Update
             return data ?? new ShipmentUpdateViewModel();
         }
 
-        // Helper method - Service class-এ add করুন
-        private string FormatTimeToAMPM(TimeOnly time)
-        {
-            int hour = time.Hour % 12;
-            if (hour == 0) hour = 12;
-            string ampm = time.Hour >= 12 ? "PM" : "AM";
-            return $"{hour:D2}:{time.Minute:D2}:{time.Second:D2} {ampm}";
-        }
+       
         public async Task<CommonReturnViewModel> DeleteJobs(List<decimal> ids)
         {
             await _jobUpdateRepository.BeginTransactionAsync();

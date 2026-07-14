@@ -1912,6 +1912,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.ToTable("Core_UserLog");
 
+            entity.HasIndex(e => e.SessionId, "IX_CoreUserLog_SessionId");
+
             entity.Property(e => e.UlogId).HasColumnName("ULogID");
             entity.Property(e => e.Lip)
                 .HasMaxLength(250)
@@ -1924,6 +1926,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("LMIP");
             entity.Property(e => e.LoginDate).HasColumnType("smalldatetime");
             entity.Property(e => e.LogoutDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.SessionId).HasMaxLength(64);
             entity.Property(e => e.Username)
                 .HasMaxLength(250)
                 .HasColumnName("username");
