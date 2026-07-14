@@ -21,6 +21,12 @@
         public string ClearBtnId { get; set; } = "clearBtn";
         public string PrintBtnId { get; set; } = "printBtn";
         public string FavtBtnId { get; set; } = "favtBtn";
+
+        public string SaveBtnClass { get; set; } = "saveBtn";
+        public string DeleteBtnClass { get; set; } = "deleteBtn";
+        public string ClearBtnClass { get; set; } = "clearBtn";
+        public string PrintBtnClass { get; set; } = "printBtn";
+        public string FavtBtnClass { get; set; } = "favtBtn";
         public bool IsPlain { get; set; } = false;
     }
 }
