@@ -114,15 +114,21 @@ h6 {
 /* -----------------------------------------------------------------
    App Layout Wrapper (Sidebar + Topnav + Main)
    ----------------------------------------------------------------- */
-#app-wrapper {
+/*#app-wrapper {
     display: flex;
     min-height: 100vh;
     width: 100vw;
+}*/
+#app-wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }
 /* -----------------------------------------------------------------
    Sidebar Styles
    ----------------------------------------------------------------- */
-.app-sidebar {
+/*.app-sidebar {
     width: var(--sidebar-width-expanded);
     height: 100vh;
     background-color: var(--bg-sidebar);
@@ -135,6 +141,23 @@ h6 {
     border-right: 1px solid var(--border-color);
     padding-left: 0;
     transition: width .35s cubic-bezier(.4,0,.2,1), padding-left .35s cubic-bezier(.4,0,.2,1), background-color .3s ease, color .3s ease;
+}*/
+
+.app-sidebar {
+    width: var(--sidebar-width-expanded);
+    height: 100vh;
+    background-color: var(--bg-sidebar);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+    border-right: 1px solid var(--border-color);
+    padding-left: 0;
+    transition: width .35s cubic-bezier(.4,0,.2,1), padding-left .35s cubic-bezier(.4,0,.2,1), background-color .3s ease, color .3s ease;
+    z-index: 1030;
 }
 
 .sidebar-logo i {
@@ -145,10 +168,12 @@ h6 {
     transform: translateX(10px);
 }
 
+/*.app-sidebar.collapsed {
+    width: var(--sidebar-width-collapsed);
+}*/
 .app-sidebar.collapsed {
     width: var(--sidebar-width-collapsed);
 }
-
 .sidebar-header {
     color: var(--text-sidebar);
     flex-shrink: 0;
@@ -340,7 +365,7 @@ h6 {
 /* -----------------------------------------------------------------
    Content Wrapper
    ----------------------------------------------------------------- */
-.app-content-wrapper {
+/*.app-content-wrapper {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -349,12 +374,27 @@ h6 {
     overflow: hidden;
     background-color: var(--bg-app);
     transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}*/
+.app-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    margin-left: var(--sidebar-width-expanded);
+    width: calc(100% - var(--sidebar-width-expanded));
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-app);
+    transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+#app-wrapper.sidebar-collapsed .app-content-wrapper {
+    margin-left: var(--sidebar-width-collapsed);
+    width: calc(100% - var(--sidebar-width-collapsed));
+}
 /* -----------------------------------------------------------------
    Top Navigation Styles
    ----------------------------------------------------------------- */
-.app-topnav {
+/*.app-topnav {
     height: var(--topnav-height);
     background-color: var(--bg-topnav);
     border-bottom: 1px solid var(--border-color);
@@ -367,8 +407,20 @@ h6 {
     z-index: 99;
     box-shadow: var(--shadow-sm);
     transition: background-color 0.3s ease, border-color 0.3s ease;
+}*/
+.app-topnav {
+    height: var(--topnav-height);
+    background-color: var(--bg-topnav);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 24px;
+    flex-shrink: 0;
+    z-index: 99;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-
 .topnav-left {
     display: flex;
     align-items: center;
@@ -513,12 +565,17 @@ h6 {
 }
 
 /* Main Content Area */
+/*.app-main-content {
+    flex-grow: 1;
+    padding: 0px;
+    overflow-y: auto;
+}*/
 .app-main-content {
     flex-grow: 1;
     padding: 0px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
-
 /* -----------------------------------------------------------------
    Interactive Dashboard Widgets
    ----------------------------------------------------------------- */
