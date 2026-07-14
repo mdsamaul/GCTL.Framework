@@ -1,6 +1,8 @@
 using GCTL.Data.Identity;
+using GCTL.Data.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace GCTL.Data.Context;
 
@@ -29,6 +31,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
+       
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

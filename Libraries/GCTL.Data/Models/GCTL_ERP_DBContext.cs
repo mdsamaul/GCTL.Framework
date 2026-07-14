@@ -2322,19 +2322,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmDefDesignation>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK_HRM_Def_Designation_AutoID");
+            entity.HasKey(e => e.DesignationCode);
 
             entity.ToTable("HRM_Def_Designation");
 
+            entity.Property(e => e.DesignationCode).HasMaxLength(50);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
             entity.Property(e => e.BanglaDesignation).HasMaxLength(100);
             entity.Property(e => e.BanglaShortName).HasMaxLength(100);
-            entity.Property(e => e.DesignationCode)
-                .IsRequired()
-                .HasMaxLength(50);
             entity.Property(e => e.DesignationName).HasMaxLength(100);
             entity.Property(e => e.DesignationShortName).HasMaxLength(50);
             entity.Property(e => e.GradeCode).HasMaxLength(50);
@@ -4022,6 +4020,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(1024);
             entity.Property(e => e.UserId).HasMaxLength(256);
         });
+
 
         OnModelCreatingPartial(modelBuilder);
     }
