@@ -258,9 +258,9 @@ function refreshMenuTable() {
                 const hasChildren = menus.some(m => m.parentId === menu.menuId);
 
                 // Use appropriate icon based on whether it has children
-                const toggleIcon = hasChildren ?
-                    `<span class="toggle-icon fa fa-caret-right" style="margin-right: 5px; transition: transform 0.2s; cursor: pointer;"></span>` :
-                    `<span style="margin-right: 15px;"></span>`;
+                const toggleIcon = hasChildren
+                    ? `<i class="toggle-icon fa-solid fa-caret-right" style="margin-right:5px;cursor:pointer;"></i>`
+                    : `<span style="margin-right:15px;"></span>`;
 
                 // Add checkbox for multi-select
                 const checkbox = `<input type="checkbox" class="menu-checkbox" data-id="${menu.autoId}" style="margin-right: 8px;">`;

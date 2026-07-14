@@ -1,14 +1,21 @@
 using Dapper;
+using GCTL.Core.Data;
 using GCTL.Core.DataTables;
+using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.Accounts;
 using GCTL.Data.Context;
-using GCTL.Data.Identity;
+using GCTL.Data.Models;
+
+//using GCTL.Data.Identity;
 using GCTL.Service.HolidayLIst;
+using GCTL.UI.Core.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Security.Claims;
 
 namespace GCTL.UI.Core.Controllers;
 
@@ -34,10 +41,10 @@ public abstract class BaseController : Controller
     protected GctlHrmContext DbContext =>
         (GctlHrmContext)HttpContext.RequestServices.GetService(typeof(GctlHrmContext))!;
 
-    private UserManager<ApplicationUser>? _userManager;
-    protected UserManager<ApplicationUser> UserManager =>
-        _userManager ??= (UserManager<ApplicationUser>)HttpContext.RequestServices
-            .GetService(typeof(UserManager<ApplicationUser>))!;
+    private IRepository<CoreUserInfo>? _userManager;
+    protected IRepository<CoreUserInfo> UserManager =>
+        _userManager ??= (IRepository<CoreUserInfo>)HttpContext.RequestServices
+            .GetService(typeof(UserManager<CoreUserInfo>))!;
 
     /// <summary>
     /// Replaces your original session-based LoginInfo. Pulls the signed-in
@@ -45,67 +52,69 @@ public abstract class BaseController : Controller
     /// Extend ApplicationUser (in GCTL.Data/Identity/ApplicationUser.cs) with
     /// any extra fields your views need, e.g. EmployeeId is already there.
     /// </summary>
-    protected ApplicationUser? LoginInfo => _loginInfo ??= LoadLoginInfo();
-    private ApplicationUser? _loginInfo;
+    protected UserInfoViewModel? LoginInfo => _loginInfo ??= LoadLoginInfo();
+    private UserInfoViewModel? _loginInfo;
 
-    private ApplicationUser? LoadLoginInfo()
+    private UserInfoViewModel? LoadLoginInfo()
     {
-        if (User.Identity?.IsAuthenticated != true)
-            return null;
+        if (User.Identity?.IsAuthenticated != true) return null;
 
-        return UserManager.GetUserAsync(User).GetAwaiter().GetResult();
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+        //Enum.TryParse<DefaultRoles>(roleClaim, ignoreCase: true, out var role);
+        var role = Enum.TryParse<DefaultRoles>(roleClaim, ignoreCase: true, out var parsedRole)
+            ? parsedRole
+            : DefaultRoles.User;
+
+        //var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //if (!int.TryParse(idClaim, out var id)) return null;
+        //return UserManager.GetById(id);
+
+        return new UserInfoViewModel
+        {
+            Username = User.Identity.Name ?? string.Empty,
+            AccessCode = User.FindFirst("AccessCode")?.Value ?? string.Empty,
+            EmployeeId = User.FindFirst("EmployeeId")?.Value ?? string.Empty,
+            CompanyCode = User.FindFirst("CompanyCode")?.Value ?? string.Empty,
+            Role = role,
+            IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+            MacAddress = NetworkHelper.GetMacAddress(HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty)
+        };
     }
-
 
     public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
     {
-        // Auth redirect is handled by [Authorize] + cookie LoginPath now.
-        // We still populate ViewBag for the layout (photo, username) same as before.
         if (LoginInfo != null)
         {
-            ViewBag.LoginUser = LoginInfo.FullName ?? LoginInfo.UserName;
-            ViewBag.LoginUserPhoto = "/images/UserIcon.png";
+            ViewBag.LoginUser = LoginInfo.Username;
+            ViewBag.LoginUserPhoto = string.IsNullOrEmpty(LoginInfo.EmployeeId)
+                ? "/images/UserIcon.png"
+                : GetEmployeePhotoBase64(LoginInfo.EmployeeId) ?? "/images/UserIcon.png";
 
-            if (!string.IsNullOrEmpty(LoginInfo.EmployeeId))
-            {
-                try
-                {
-                    // Employee ID থেকে Company Code fetch করুন
-                    var employeeInfo = DbContext.HrmEmployees
-                        .AsNoTracking()
-                        .Where(e => e.EmployeeId == LoginInfo.EmployeeId)
-                        .Select(e => new
-                        {
-                            e.CompanyCode,
-                            PhotoBase64 = e.EmployeeId
-                        })
-                        .FirstOrDefault();
+            //if (!string.IsNullOrEmpty(LoginInfo.EmployeeId))
+            //{
+            //    try
+            //    {
+            //        var employeeInfo = DbContext.HrmEmployees
+            //            .AsNoTracking()
+            //            .Where(e => e.EmployeeId == LoginInfo.EmployeeId)
+            //            .Select(e => new { e.CompanyCode, PhotoBase64 = e.EmployeeId })
+            //            .FirstOrDefault();
 
-                    if (employeeInfo != null)
-                    {
-                        // ApplicationUser-এ CompanyCode set করুন
-                        LoginInfo.CompanyCode = employeeInfo.CompanyCode;
-
-                        if (!string.IsNullOrEmpty(employeeInfo.PhotoBase64))
-                        {
-                            ViewBag.LoginUserPhoto = employeeInfo.PhotoBase64;
-                        }
-                    }
-                    else
-                    {
-                        var employeePhoto = GetEmployeePhotoBase64(LoginInfo.EmployeeId);
-                        if (!string.IsNullOrEmpty(employeePhoto))
-                        {
-                            ViewBag.LoginUserPhoto = employeePhoto;
-                        }
-                    }
-                }
-                catch
-                {
-                    // Photo lookup is best-effort; don't block page load if it fails
-                    // (e.g. stored procedure not yet scaffolded/created).
-                }
-            }
+            //        if (employeeInfo != null)
+            //        {
+            //            LoginInfo.CompanyCode = employeeInfo.CompanyCode;
+            //            if (!string.IsNullOrEmpty(employeeInfo.PhotoBase64))
+            //                ViewBag.LoginUserPhoto = employeeInfo.PhotoBase64;
+            //        }
+            //        else
+            //        {
+            //            var employeePhoto = GetEmployeePhotoBase64(LoginInfo.EmployeeId);
+            //            if (!string.IsNullOrEmpty(employeePhoto))
+            //                ViewBag.LoginUserPhoto = employeePhoto;
+            //        }
+            //    }
+            //    catch { /* best-effort */ }
+            //}
         }
 
         base.OnActionExecuting(context);

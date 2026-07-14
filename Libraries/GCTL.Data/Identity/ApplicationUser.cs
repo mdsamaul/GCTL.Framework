@@ -37,28 +37,33 @@
 //}
 
 
-using Microsoft.AspNetCore.Identity;
+//using Microsoft.AspNetCore.Identity;
 
-namespace GCTL.Data.Identity;
+//namespace GCTL.Data.Identity;
 
-public class ApplicationUser : IdentityUser
+//public class ApplicationUser : IdentityUser
+//{
+//    public string? FullName { get; set; }
+
+//    public string? AccessCode { get; set; }
+
+//    public string? EmployeeId { get; set; }
+
+//    public string? CompanyCode { get; set; }
+
+//    public string? BranchCode { get; set; }
+
+//    public string? DepartmentCode { get; set; }
+
+//    public bool IsActive { get; set; } = true;
+//}
+
+//public class ApplicationRole : IdentityRole
+//{
+//    public string? Description { get; set; }
+//}
+
+public class LoginInfoVM
 {
-    public string? FullName { get; set; }
 
-    public string? AccessCode { get; set; }
-
-    public string? EmployeeId { get; set; }
-
-    public string? CompanyCode { get; set; }
-
-    public string? BranchCode { get; set; }
-
-    public string? DepartmentCode { get; set; }
-
-    public bool IsActive { get; set; } = true;
-}
-
-public class ApplicationRole : IdentityRole
-{
-    public string? Description { get; set; }
 }
