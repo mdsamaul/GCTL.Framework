@@ -4,6 +4,11 @@ using GCTL.Service.BankBranchInformations;
 using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchesTypeInfo;
+using GCTL.Service.ChartOfAccounts.ControlLedger;
+using GCTL.Service.ChartOfAccounts.GeneralLedger;
+using GCTL.Service.ChartOfAccounts.GroupLedger;
+using GCTL.Service.ChartOfAccounts.SubControlLedger;
+using GCTL.Service.ChartOfAccounts.SubSidiaryLedger;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
 using GCTL.Service.Core_Countrys;
@@ -23,16 +28,22 @@ using GCTL.Service.Menu;
 
 using GCTL.Service.MenuTab;
 using GCTL.Service.Nationalitys;
+using GCTL.Service.OpeningBalance;
 using GCTL.Service.PaymentModes;
 using GCTL.Service.PaymentTerms;
 using GCTL.Service.PaymentType;
 using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.ShipmentMode;
+using GCTL.Service.SupplierCategory;
+using GCTL.Service.SupplierInformation;
+using GCTL.Service.SupplierOrigin;
+using GCTL.Service.SupplierType;
 using GCTL.Service.UnitType;
 using GCTL.Service.Update;
 
 using GCTL.Service.Users;
+using GCTL.Service.VoucherType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,6 +126,16 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ISalesCustomerService, SalesCustomerService>();
             services.AddScoped<ISalesDeliveryLocationService, SalesDeliveryLocationService>();
             services.AddScoped<IContactPersonService, ContactPersonService>();
+            services.AddScoped<ISupplierTypeService, SupplierTypeService>();
+            services.AddScoped<ISupplierOriginService, SupplierOriginService>();
+            services.AddScoped<ISupplierCategoryService, SupplierCategoryService>();
+            services.AddScoped<ISupplierInformationService, SupplierInformationService>();
+            services.AddScoped<IContrlLedger, ControlLedgerService>();
+            services.AddScoped<IGeneralLedger, GeneralLedgerService>();
+            services.AddScoped<IGroupLedger, GroupLedgerService>();
+            services.AddScoped<ISubControlLedger, SubControlLedgerService>();
+            services.AddScoped<IVoucherType, VoucherTypeService>();
+            services.AddScoped<IOpeningBalance, OpeningBalanceService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 

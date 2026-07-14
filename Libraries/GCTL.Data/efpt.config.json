@@ -119,6 +119,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CA_Def_Country]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CA_Def_Currency]",
          "ObjectType": 0
       },
@@ -292,6 +296,14 @@
       },
       {
          "Name": "[dbo].[HRM_EmployeeOfficialInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_CompanyInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SalesPerson]",
          "ObjectType": 0
       },
       {

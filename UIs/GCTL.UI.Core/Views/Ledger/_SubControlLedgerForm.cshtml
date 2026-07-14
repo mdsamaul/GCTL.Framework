@@ -1,0 +1,237 @@
+﻿<style>
+    .form-floating .selectLabel {
+        font-size: 14px !important;
+    }
+
+    .form-floating label {
+        text-transform: none;
+        font-size: 13px;
+    }
+
+    .saveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+    }
+
+    .SubcontroldeleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+    }
+
+    .SubcontrolresetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+    }
+
+    .subfavBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    #button-div button {
+        padding: 8px 6px;
+        width: 80px;
+    }
+
+    .OpenCRLModal:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .OpenCRLModal:hover {
+        color: green !important;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 575.98px) {
+        .openGroupLedgerModal
+
+    {
+        position: static !important;
+        margin-left: 8px; 
+        transform: none !important;
+    }
+
+    }
+</style>
+
+<div class="card shadow-sm rounded-2">
+
+    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
+
+            <div>
+                <h4 class="mb-0 heading-nowrap " style="font-size:14px">Sub-Control Ledger</h4>
+            </div>
+            <div class="d-flex gap-1" id="button-div">
+
+                <button type="submit" form="subcontrolForm" class="btn btn-sm btn-outline-primary saveBtn">
+                    <i class="fas fa-save me-1"></i> Save
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-danger SubcontroldeleteBtn" id="SubcontroldeleteBtn">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+
+                <button type="reset" class="btn btn-sm btn-outline-secondary SubcontrolresetBtn">
+                    <i class="fas fa-eraser me-1"></i> Clear
+                </button>
+
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
+                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-warning subfavBtn">
+                    <i class="fas fa-star me-1"></i> Fav
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card-body">
+        <form id="subcontrolForm">
+
+            <fieldset style="border:1px solid #ccc; padding:5px; border-radius:5px;">
+
+            <input type="hidden" id="SubCRLAutoID" name="autoId" />
+
+            <div class="row gx-6">
+
+                @* Group Ledger Section *@
+                <div class="col-md-4 ">
+                    <div class="form-floating ">
+                        <input readonly type="text" class="form-control" name="groupcode" id="groupcode">
+                        <label for="groupcode">Group Ledger Code<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+
+                    <div class="col-12 col-sm-6 col-md-4" style="position: relative;">
+                        <div class="form-floating form-floating-advance-select flex-grow-1 btn-group-sm">
+                            <select class="form-select choiceDD" name="groupName" id="groupName">
+                            </select>
+                            <label for="groupName">Group Ledger Name<span class="text-danger">*</span></label>
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-sm openGroupLedgerModal"
+                                data-bs-toggle="modal"
+                                data-bs-target="#GRLModal"
+                                style="position: absolute; right: -25px; top: 5%; transform: translateY(-5%);" title="Add New Group Ledger">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+              
+                <div class="col-md-4 ">
+                    <div class="form-floating">
+                        <input readonly type="text" class="form-control" name="shortName" id="groupshortName">
+                        <label for="shortName">Short Name</label>
+                    </div>
+                </div>
+
+
+                @* Control Ledger Section *@
+         
+                <div class="col-md-4 subrlinput">
+                    <div class="form-floating">
+                        <input readonly type="text" class="form-control" name="SubControlLedgerCodeNo" id="ConRLCode">
+                        <label for="SubControlLedgerCodeNo">Control Ledger Code<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+
+                    <div class="col-12 col-sm-6 col-md-4" style="position: relative;">
+                        <div class="form-floating form-floating-advance-select flex-grow-1 btn-group-sm">
+                            <select class="form-select choiceDD" name="CRLName" id="ConRLName">
+                            </select>
+                            <label for="CRLName">Control Ledger Name<span class="text-danger">*</span></label>
+                        </div>
+                        <button type="button"
+                            class="btn btn-sm OpenCRLModal" 
+                            data-bs-toggle="modal" data-bs-target="#UICRLModal"
+                                style="position: absolute; right: -25px; top: 8%; transform: translateY(-8%);" title="Add New Control Ledger">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input readonly type="text" class="form-control" name="CRLShortname" id="CLShortName">
+                        <label for="CRLShortname">Short Name</label>
+                    </div>
+                </div>
+
+
+                @* Sub-Control Ledger Section *@
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input readonly type="text" class="form-control" name="GeneralLedgerCodeNo" id="GeneralLedgerCodeNo">
+                        <label for="GeneralLedgerCodeNo">Sub-Control Ledger Code<span style="color:red">*</span></label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="GeneralLedgerName" id="GeneralLedgerName">
+                        <label for="GeneralLedgerName">Sub-Control Ledger Name<span style="color:red">*</span></label>
+                    </div>
+                </div>
+
+                <div class="col-md-4 ">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" name="ShortName" id="SubCRLshortName">
+                        <label for="ShortName">Short Name</label>
+                    </div>
+                </div>
+
+            </div>
+
+            @* Creation/Modify Date Display  *@
+                <hr class="my-4 mx-2 pb-2">
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <div class="SubControldisplayLDatesection">
+                            <span>Entry Date : </span>
+                            <span id="SubControldisplayLDate"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="SubControldisplayModifyDatesection">
+                            <span>Last Update Date :</span>
+                            <span id="SubControldisplayModifyDate"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+             @* Save Button (Bottom) *@
+            <div class="row mt-1">
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-outline-primary btn-sm saveBtn">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+            </div>
+
+            </fieldset>
+
+        </form>
+    </div>
+
+</div>
+
+
+
+

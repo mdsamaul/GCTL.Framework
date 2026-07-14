@@ -22,4 +22,6 @@ public partial class CoreUserLog
     public string WorkStation { get; set; }
 
     public string Lmip { get; set; }
+
+    public string SessionId { get; set; }
 }

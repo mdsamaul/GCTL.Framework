@@ -1,0 +1,207 @@
+﻿<style>
+    .form-floating .selectLabel {
+        font-size: 14px !important;
+    }
+
+    .form-floating label {
+        text-transform: none;
+        font-size: 13px;
+    }
+
+    .ModalsaveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+    }
+
+    .ModalSubcontroldeleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+    }
+
+    .ModalSubcontrolresetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+    }
+
+    .ModalsubfavBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    #button-div button {
+        padding: 8px 6px;
+        width: 80px;
+    }
+
+    #ModalSubControldisplayLDate{
+        font-size:12px;
+    }
+
+    #ModalSubControldisplayModifyDate {
+        font-size: 12px;
+    }
+</style>
+
+<div class="card shadow-sm rounded-2">
+
+    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
+
+            <div>
+                <h4 class="mb-0 heading-nowrap " style="font-size:14px">Sub-Control Ledger</h4>
+            </div>
+            <div class="d-flex gap-1" id="button-div">
+
+                <button type="submit" form="ModalsubcontrolForm" class="btn btn-sm btn-outline-primary ModalsaveBtn">
+                    <i class="fas fa-save me-1"></i> Save
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-danger ModalSubcontroldeleteBtn" id="ModalSubcontroldeleteBtn">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+
+                <button type="reset" class="btn btn-sm btn-outline-secondary ModalSubcontrolresetBtn">
+                    <i class="fas fa-eraser me-1"></i> Clear
+                </button>
+
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
+                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-warning ModalsubfavBtn">
+                    <i class="fas fa-star me-1"></i> Fav
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card-body">
+        <form id="ModalsubcontrolForm">
+            <fieldset style="border:1px solid #ccc; padding:5px; border-radius:5px;">
+
+                <input type="hidden" id="ModalSubCRLAutoID" name="autoId" />
+
+                <div class="row g-3">
+
+                    @* Group Ledger Section *@
+                    <div class="col-md-4">
+                        <div class="form-floating ">
+                            <input readonly type="text" class="form-control" name="groupcode" id="Modalgroupcode">
+                            <label for="groupcode">Group Ledger Code<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-4">
+                        <div class="form-floating form-floating-advance-select">
+                            <select class="form-select choiceDD" name="groupName" id="ModalgroupName">
+                            </select>
+                            <label for="groupName">Group Ledger Name<span class="text-danger">*</span></label>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input readonly type="text" class="form-control" name="shortName" id="ModalgroupshortName">
+                            <label for="shortName">Short Name</label>
+                        </div>
+                    </div>
+
+
+                    @* Control Ledger Section *@
+
+                    <div class="col-md-4 ">
+                        <div class="form-floating">
+                            <input readonly type="text" class="form-control" name="SubControlLedgerCodeNo" id="ModalConRLCode">
+                            <label for="SubControlLedgerCodeNo">Control Ledger Code<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating form-floating-advance-select">
+                            <select class="form-select choiceDD" name="CRLName" id="ModalConRLName">
+                            </select>
+                            <label for="CRLName">Control Ledger Name<span class="text-danger">*</span></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input readonly type="text" class="form-control" name="CRLShortname" id="ModalCLShortName">
+                            <label for="CRLShortname">Short Name</label>
+                        </div>
+                    </div>
+
+
+                    @* Sub-Control Ledger Section *@
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input readonly type="text" class="form-control" name="GeneralLedgerCodeNo" id="ModalGeneralLedgerCodeNo">
+                            <label for="GeneralLedgerCodeNo">Sub-Control Ledger Code<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" name="GeneralLedgerName" id="ModalGeneralLedgerName">
+                            <label for="GeneralLedgerName">Sub-Control Ledger Name<span style="color:red">*</span></label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" name="ShortName" id="ModalSubCRLshortName">
+                            <label for="ShortName">Short Name</label>
+                        </div>
+                    </div>
+
+                </div>
+
+                @* Creation/Modify Date Display  *@
+
+                <hr class="my-4 mx-2 pb-2">
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <div>
+                            <span style="font-size:12px;">Entry Date : </span>
+                            <span id="ModalSubControldisplayLDate"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div>
+                            <span style="font-size:12px;">Last Update Date :</span>
+                            <span id="ModalSubControldisplayModifyDate"></span>
+                        </div>
+                    </div>
+
+                </div>
+               @* Save Button (Bottom) *@
+
+                <div class="row mt-1">
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-outline-primary btn-sm ModalsaveBtn">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+
+
+
