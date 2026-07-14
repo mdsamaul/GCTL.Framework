@@ -29,6 +29,7 @@ using GCTL.Service.ShipmentMode;
 using GCTL.Service.UnitType;
 using GCTL.Service.Update;
 
+using GCTL.Service.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -114,8 +115,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IJobService, JobService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
-            services.AddScoped<IholidayListService, HolidayListService>();
-
+            services.AddScoped<IAccessCodeService, AccessCodeService>();
         }
     }
 }
