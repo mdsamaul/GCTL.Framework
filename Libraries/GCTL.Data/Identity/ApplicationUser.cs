@@ -62,8 +62,3 @@
 //{
 //    public string? Description { get; set; }
 //}
-
-public class LoginInfoVM
-{
-
-}
