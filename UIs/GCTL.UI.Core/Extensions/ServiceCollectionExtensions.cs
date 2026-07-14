@@ -64,8 +64,8 @@ namespace GCTL.Framework.Extensions
             services.AddDbContext<GctlHrmContext>(options =>
                 options.UseSqlServer(connectionString));
             // Identity DbContext registration
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //    options.UseSqlServer(connectionString));
         }
 
         /// <summary>

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using GCTL.Data.Models;
 
-namespace GCTL.Data.Context;
+//namespace GCTL.Data.Context;
 
 /// <summary>
 /// Identity-backed DbContext. This handles Sign In / Sign Up / Roles.
@@ -26,7 +26,7 @@ namespace GCTL.Data.Context;
 /// Option 1 is simpler to keep in sync every time you re-scaffold after a
 /// database schema change, since re-running Power Tools won't touch this file.
 /// </summary>
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
