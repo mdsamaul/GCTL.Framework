@@ -46,17 +46,17 @@ namespace GCTL.Service.Update
         }
 
         public async Task<SepPagedResult<JobDto>> GetJobsPagedAsync(
-    int page,
-    int pageSize,
-    string? customerId,
-    string? shipmentMode,
-    DateTime? dateFrom,
-    DateTime? dateTo,
-    string? search)
+     int page,
+     int pageSize,
+     string? customerId,
+     string? shipmentMode,
+     DateTime? dateFrom,
+     DateTime? dateTo,
+     string? search)
         {
             try
             {
-                // সর্বশেষ (সর্বোচ্চ) স্ট্যাটাস ID বের করুন DB থেকে (যেমন "7" = Delivered)
+                // সর্বোচ্চ স্ট্যাটাস ID বের করুন (07 = Delivered)
                 var allStatusIds = await _shipmentStatusInfoRepository.All()
                     .Select(s => s.ShipmentStatusId)
                     .ToListAsync();
@@ -66,9 +66,9 @@ namespace GCTL.Service.Update
                     .Select(int.Parse)
                     .DefaultIfEmpty(0)
                     .Max()
-                    .ToString();
+                    .ToString("D2");
 
-                // যেসব জব সর্বশেষ স্ট্যাটাসে (Delivered) পৌঁছে গেছে, তাদের JobNo বের করুন
+                // যেসব জব সর্বোচ্চ স্ট্যাটাসে (07 = Delivered) পৌঁছে গেছে, তাদের JobNo বের করুন
                 var completedJobNos = await _jobUpdateRepository.All()
                     .Where(e => e.UpdateStatus == maxStatusId)
                     .Select(e => e.JobNo)
