@@ -25,6 +25,10 @@
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Nationality Info",
+                            SaveBtnClass = "js-Nationalitys-save",
+                            DeleteBtnClass = "js-Nationalitys-delete-confirm",
+                            ClearBtnClass = "js-Nationalitys-clear"
+
                         })
                     </div>
                     <div class="card-body px-2">

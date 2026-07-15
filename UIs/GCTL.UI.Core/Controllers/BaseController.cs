@@ -155,6 +155,7 @@ public abstract class BaseController : Controller
         // Wire this up once FullEmployeeDetailsGetByIdViewModel is ported.
         return null;
     }
+
     [HttpGet]
     public async Task<JsonResult> GetHolidays([FromServices] IholidayListService holidayService, int? year = null)
     {

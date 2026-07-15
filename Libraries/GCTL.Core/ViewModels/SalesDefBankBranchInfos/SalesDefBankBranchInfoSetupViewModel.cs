@@ -15,7 +15,8 @@ namespace GCTL.Core.ViewModels.SalesDefBankBranchInfos
         public string BankId { get; set; }
 
         public string? BankName { get; set; }
-        public string? BankBranchName { get; set; }
+        [Required]
+        public string BankBranchName { get; set; }
         public string? ShortName { get; set; }
         public string? Swiftcode { get; set; }
         public string? Address { get; set; }

@@ -10,10 +10,10 @@ namespace GCTL.Core.ViewModels.BankInformations
     public class BankInformationsSetupViewModel:BaseViewModel
     {
         public decimal AutoId { get; set; }
-        public string BankId { get; set; }
+        public string? BankId { get; set; }
        
         public string BankName { get; set; }
-        public string ShortName { get; set; }
+        public string? ShortName { get; set; }
       
     }
 }

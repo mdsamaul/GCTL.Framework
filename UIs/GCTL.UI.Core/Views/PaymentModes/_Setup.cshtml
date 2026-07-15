@@ -55,8 +55,15 @@
 </div>
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        <button type="button" class="btn btn-default success-btn btn-common btn-circle float-right js-paymentmode-save" data-id="@Model.PaymentModeId">
-            <i class="fas fa-save"></i> Save
-        </button>
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "paymentmode"
+        })
     </div>
 </div>
