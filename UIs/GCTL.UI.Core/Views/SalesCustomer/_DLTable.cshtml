@@ -1,0 +1,136 @@
+﻿@* <div class="table-responsive mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <label>
+                Show
+                <select id="deliveryPageSize" class="form-select-sm">
+                    <option>10</option>
+                    <option>25</option>
+                    <option>50</option>
+                </select>
+                entries
+            </label>
+        </div>
+        <div>
+            <input type="text" class="form-control form-control-sm" placeholder="Search..." id="searchDelivery">
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>
+                    <input type="checkbox" id="selectAllDelivery">
+                </th>
+                <th>Delivery ID</th>
+                <th>Customer Name</th>
+                <th>Address</th>
+                <th>Contact Person</th>
+            </tr>
+        </thead>
+        <tbody id="deliveryTableBody">
+            <!-- Delivery data will be loaded here via JavaScript -->
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>00000012</td>
+                <td>Bay Sports Wear Ltd.</td>
+                <td>PLOT#76&,BAY ECONOMIC ZONE,KOCHUKHLI, KOCGKUL, KONABARI, GAZIPUR-1751, BANGLADESH.</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>Showing 1 to 1 of 1 entries</div>
+        <div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm">
+                    <li class="page-item"><a class="page-link" href="#">First</a></li>
+                    <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="#">Last</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div> *@
+
+
+<div class="card mb-3">
+    <div class="card-header">
+        <div class=" row g-3 justify-content-between align-items-end">
+
+            <div class="col-12 col-sm-auto d-flex align-items-center">
+                <label class="me-2 mb-0">Showing</label>
+                <select id="pageSizeDropdown" class="form-select form-select-sm me-2" style="max-width: 100px;">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="-1">All</option>
+                </select>
+                <label class="mb-0">Entries</label>
+            </div>
+
+            <div class="col-12 col-sm-auto">
+                <div class="d-flex align-items-center">
+                    <div class="d-none me-3" id="bulkSelectActions">
+                        <div class="position-relative">
+                            <button type="button" class="btn btn-phoenix-danger btn-sm ms-2" id="delSel">Delete</button>
+                        </div>
+                    </div>
+
+                    <div class="search-box me-3" id="searchBox">
+                        <form class="position-relative" id="searchForm">
+                            <input class="form-control search-input search" id="searchInput-Dl" type="search" placeholder="Search here" aria-label="Search" />
+                            <span class="fas fa-search search-box-icon"></span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive table-scroll-area">
+
+            <table class="table table-hover table-striped" id="deliveryTable">
+                <thead>
+                    <tr>
+                        <th class="text-center text-middle align-middle ps-0" scope="col" style="width: 5%; padding-left: 0;">
+                            Select<br />
+                            <input type="checkbox" id="viewBank-Dl-check-all" />
+                        </th>
+                        <th class="sortDL align-middle ps-2" scope="col" data-sort="DeliveryLocationCode" style="padding-left: 0.5rem;">
+                            Delivery ID
+                        </th>
+                        <th class="white-space-nowrap align-middle ps-0" scope="col" style="padding-left: 0; white-space: nowrap;">
+                            Customer Name
+                        </th>
+                        <th class="sortDL align-middle ps-2" scope="col" data-sort="CustomerAddress" style="padding-left: 0.5rem;">
+                            Address
+                        </th>
+                        <th class="align-middle ps-2" scope="col" style="padding-left: 0.5rem;">
+                            Contact Person
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="deliveryTableBody">
+                    <!-- Data will be loaded dynamically -->
+                </tbody>
+            </table>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
+                <div class="d-flex">
+                    <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="paginationInfo-Dl"></p>
+
+                    <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p>
+                </div>
+                <div class="d-flex">
+                    <button class="page-link" data-list-pagination="prev" id="prevPageBtn-Dl"><span class="fas fa-chevron-left"></span></button>
+                    <ul class="mb-0 pagination" id="paginationLinks-Dl"></ul>
+                    <button class="page-link pe-0" data-list-pagination="next" id="nextPageBtn-Dl"><span class="fas fa-chevron-right"></span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

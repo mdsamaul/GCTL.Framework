@@ -1,33 +1,30 @@
 ﻿(function ($) {
-    $.paymentTerms = function (options) {
+    $.supplierOrigin = function (options) {
 
         //#region Default options
 
         var settings = $.extend({
             baseUrl: "/",
-            formSelector: "#PaymentTerms-form",
-            formContainer: ".js-PaymentTerms-form-container",
-            gridSelector: "#PaymentTerms-grid",
-            gridContainer: ".js-PaymentTerms-grid-container",
-            editSelector: ".js-PaymentTerms-edit",
-            saveSelector: ".js-PaymentTerms-save",
-            selectAllSelector: "#PaymentTerms-check-all",
-            deleteSelector: ".js-PaymentTerms-delete-confirm",
-            deleteModal: "#PaymentTerms-delete-modal",
-            finalDeleteSelector: ".js-PaymentTerms-delete",
-            clearSelector: ".js-PaymentTerms-clear",
+            formSelector: "#SupplierOrigin-form",
+            formContainer: ".js-SupplierOrigin-form-container",
+            gridSelector: "#SupplierOrigin-grid",
+            gridContainer: ".js-SupplierOrigin-grid-container",
+            editSelector: ".js-SupplierOrigin-edit",
+            saveSelector: ".js-SupplierOrigin-save",
+            selectAllSelector: "#SupplierOrigin-check-all",
+            deleteSelector: ".js-SupplierOrigin-delete-confirm",
+            deleteModal: "#SupplierOrigin-delete-modal",
+            finalDeleteSelector: ".js-SupplierOrigin-delete",
+            clearSelector: ".js-SupplierOrigin-clear",
             topSelector: ".js-go",
-            decimalSelector: ".js-PaymentTerms-decimalplaces",
+            decimalSelector: ".js-SupplierOrigin-decimalplaces",
             maxDecimalPlace: 5,
             showNagativeFormat: false,
-            availabilitySelector: ".js-PaymentTerms-check-availability",
+            availabilitySelector: ".js-SupplierOrigin-check-availability",
             haseFile: false,
             quickAddSelector: ".js-quick-add",
             quickAddModal: "#quickAddModal",
             lastCodeSelector: '#lastCode',
-            Percentise:"#Percentise",
-            CreditDays:"#CreditDays",
-            PaymentTermsName:"#PaymentTermsName",
             load: function () {
 
             }
@@ -46,8 +43,6 @@
 
         $(() => {
 
-            $(settings.CreditDays).prop("disabled", true);
-            select2DD();
             loadTable();
 
             //#region editSelector & clearSelector
@@ -100,7 +95,6 @@
                             loadForm(saveUrl)
 
                                 .then((data) => {
-                                    select2DD();
                                     loadTable();
                                     $(settings.lastCodeSelector).val(response.lastCode);
                                     // alert("The last code has been updated to: " + response.lastCode);
@@ -114,7 +108,6 @@
                         else {
                             toastr.error(response.message);
                             console.log(response);
-                            select2DD();
                         }
                     }
                 }
@@ -224,7 +217,7 @@
 
             $("body").on("keyup", settings.availabilitySelector, function () {
                 var self = $(this);
-                let code = $(".js-PaymentTermsId-code").val();
+                let code = $(".js-SupplierOriginId-code").val();
                 let name = self.val();
                 // check
                 $.ajax({
@@ -243,48 +236,6 @@
             //#endregion
 
         });
-
-        //#region PaymentTermsName Calculating
-
-        $(document).on('input', settings.Percentise, function () {          
-            let per = $(this).val();
-            if (per == 100) {
-                $(settings.CreditDays).val("");
-                $(settings.CreditDays).prop("disabled", true);
-                $(settings.PaymentTermsName).val("100 % adv.");
-                $(settings.Percentise).removeClass('border-danger');              
-            } else if (per > 100) { 
-                $(settings.PaymentTermsName).val('');
-                toastr.info("Percentise In Less Then 100");
-                $(settings.CreditDays).prop("disabled", true);
-                $(settings.Percentise).addClass('border-danger');
-            } else if (per >= 0 && per <= 100) {              
-                $(settings.PaymentTermsName).val(`${per}% adv.`);
-                $(settings.CreditDays).prop("disabled", false);
-                $(settings.Percentise).removeClass('border-danger');
-            } else if (per < 0) {               
-                $(settings.CreditDays).prop("disabled", true);
-                $(settings.Percentise).addClass('border-danger');
-                $(settings.PaymentTermsName).val('');
-            }
-
-            if (per == '') {
-                $(settings.CreditDays).prop("disabled", true);
-                $(settings.PaymentTermsName).val('');
-            }
-            let day = $(settings.CreditDays).val();
-            if (day != "" && per != "") {
-                $(settings.PaymentTermsName).val(`${per}% adv. + ${100 - per}%Cr. ( ${day} Days)`);
-            }
-        })
-
-        $(document).on('input', settings.CreditDays, function () {
-            let day = $(this).val();
-            let per = $(settings.Percentise).val();
-            $(settings.PaymentTermsName).val(`${per}% adv. + ${100-per}%Cr. ( ${day} Days)`);
-        })
-
-        //#endregion
 
         //#region loadTable
         function loadTable() {
@@ -329,7 +280,6 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        select2DD();
                         resolve(data)
                     },
                     error: function (error) {
@@ -345,35 +295,16 @@
 
         function validation() {
 
-            var buy = $('#Type').val();
-            var sty = $('#Percentise').val();
+            var col = $('#SupplierOrigin').val();
 
-            if (!buy) {
-                toastr.info('select Type');
-                $('#Type').select2('open');
+            if (!col) {
+                toastr.info('Enter Supplier Origin');
+                $('#SupplierOrigin').trigger('focus');
                 return false;
             }
-
-            if (!sty) {
-                toastr.info('Enter Percentise');
-                $('#Percentise').trigger('focus');
-                return false;
-            }
-
             return true;
         }
 
-        //#endregion
-
-        //#region select2
-        function select2DD() {
-            $('.selectpickers').select2({
-                language: {
-                    noResults: function () { return "No results found"; }
-                },
-                escapeMarkup: function (markup) { return markup; }
-            });
-        }
         //#endregion
 
     }

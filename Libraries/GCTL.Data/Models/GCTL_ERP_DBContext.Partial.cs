@@ -24,6 +24,73 @@ namespace GCTL.Data.Models
                 entity.Property(e => e.AutoId)
                     .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
+
+            modelBuilder.Entity<HrmDefBloodGroup>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+               .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+
+            modelBuilder.Entity<CaDefCurrency>(entity =>
+            {
+                entity.Property(p => p.Tc)
+               .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<HrmAtdCompanyWeekEnd>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+               .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<CoreBranch>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<RmgDefSupplier>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesSupplierBankAccountTemp>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<InvDefSupplierCategory>(entity =>
+            {
+                entity.Property(p => p.SupplierCategoryCode)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<InvDefSupplierOrigin>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<InvDefSupplierType>(entity =>
+            {
+                entity.Property(p => p.SupplierTypeCode)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<HrmDefNationality>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefPaymentType>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
         }
     }
 }
