@@ -123,7 +123,7 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.SupplierCategoryCode > 0);
-                if (modelVM.SupplierCategoryCode == 0)
+                if (modelVM.SupplierCategoryCode == 0 || modelVM.SupplierCategoryCode == null)
                 {
                     var hasSavePermission = await supplierCategoryService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)

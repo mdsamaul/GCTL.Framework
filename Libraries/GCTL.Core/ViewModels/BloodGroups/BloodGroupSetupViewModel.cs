@@ -13,7 +13,7 @@ namespace GCTL.Core.ViewModels.BloodGroups
         public string BloodGroup { get; set; }
 
         [Display(Name = "Blood Group (বাংলা)")]
-        public string BanglaBloodGroup { get; set; }
+        public string? BanglaBloodGroup { get; set; }
         //public string BanglaBloodGroup { get; set; }
     }
 }

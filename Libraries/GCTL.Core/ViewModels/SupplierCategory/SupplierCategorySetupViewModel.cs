@@ -16,9 +16,5 @@ namespace GCTL.Core.ViewModels.SupplierCategory
         [Required(ErrorMessage = "Supplier Category is required")]
         public string SupplierCategory { get; set; }
 
-        //public static implicit operator SupplierCategorySetupViewModel(ExportLcsalesContactSetupViewModel v)
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 }

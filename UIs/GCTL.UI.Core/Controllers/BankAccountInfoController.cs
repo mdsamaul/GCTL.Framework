@@ -97,7 +97,7 @@ namespace GCTL.UI.Core.Controllers
 
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0)
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
                     await bankAccountInformationRepository.SaveAsync(modelVM, LoginInfo.CompanyCode);
                     return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.AccInfoId });

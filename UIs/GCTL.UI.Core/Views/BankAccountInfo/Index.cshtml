@@ -106,6 +106,9 @@
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Bank Account Information",
+                            SaveBtnClass = "js-BankAccountInfo-save",
+                            DeleteBtnClass = "js-BankAccountInfo-delete-confirm",
+                            ClearBtnClass = "js-BankAccountInfo-clear"
                         })
                     </div>
                     <div class="card-body px-2">
