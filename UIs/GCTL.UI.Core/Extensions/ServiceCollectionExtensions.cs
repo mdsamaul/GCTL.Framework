@@ -32,6 +32,7 @@ using GCTL.Service.OpeningBalance;
 using GCTL.Service.PaymentModes;
 using GCTL.Service.PaymentTerms;
 using GCTL.Service.PaymentType;
+using GCTL.Service.Permissions;
 using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.ShipmentMode;
@@ -110,6 +111,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IExpenseHead, ExpenseHeadService>();
             services.AddScoped<IShipmentMode, ShipmentModeService>();
             services.AddScoped<IServiceType, ServiceTypeService>();
+            services.AddScoped<IholidayListService, HolidayListService>();
             services.AddScoped<IReligionService, ReligionService>();
             services.AddScoped<IBloodGroupService, BloodGroupService>();
             services.AddScoped<INationalitysService, NationalitysService>();
@@ -143,6 +145,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
+            services.AddScoped<IPermissionService, PermissionService>();
         }
     }
 }

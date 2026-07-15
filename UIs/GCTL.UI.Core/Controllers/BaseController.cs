@@ -1,4 +1,4 @@
-using Dapper;
+﻿using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
@@ -8,6 +8,8 @@ using GCTL.Data.Models;
 
 //using GCTL.Data.Identity;
 using GCTL.Service.HolidayLIst;
+using GCTL.Service.Permissions;
+using GCTL.UI.Core.Filters;
 using GCTL.UI.Core.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -36,7 +38,7 @@ namespace GCTL.UI.Core.Controllers;
 /// changes when you port them over.
 /// </summary>
 [Authorize]
-public abstract class BaseController : Controller
+public class BaseController : Controller
 {
     protected GctlHrmContext DbContext =>
         (GctlHrmContext)HttpContext.RequestServices.GetService(typeof(GctlHrmContext))!;
@@ -156,12 +158,42 @@ public abstract class BaseController : Controller
         return null;
     }
     [HttpGet]
-    public async Task<JsonResult> GetHolidays([FromServices] IholidayListService holidayService, int? year = null)
+    [AllowAnonymous]
+    public async Task<JsonResult> GetHolidays(int? year = null)
     {
+        var holidayService = HttpContext.RequestServices.GetService<IholidayListService>();
         if (holidayService == null)
             return Json(new List<object>());
 
         var holidays = await holidayService.GetHolidayListAsync(year ?? DateTime.Now.Year);
-        return Json(holidays);
+
+        // Frontend এর জন্য correct property names সহ return করুন
+        var mapped = holidays.Select(h => new {
+            date = h.Date,
+            name = h.Name
+        }).ToList();
+
+        return Json(mapped);
+    }
+    protected async Task<IActionResult?> CheckAddOrEditPermissionAsync(bool isNewRecord)
+    {
+        var permissionService = HttpContext.RequestServices.GetRequiredService<IPermissionService>();
+        var accessCode = User.FindFirst("AccessCode")?.Value;
+        var controllerName = RouteData.Values["controller"]?.ToString();
+
+        if (string.IsNullOrEmpty(accessCode))
+        {
+            return Json(ApiResponse.PermissionDenied(AppMessages.SessionExpired));
+        }
+
+        bool allowed = await permissionService.HasAddOrEditPermissionByControllerAsync(accessCode, controllerName, isNewRecord);
+
+        if (!allowed)
+        {
+            var message = isNewRecord ? AppMessages.NoPermissionAdd : AppMessages.NoPermissionEdit;
+            return Json(ApiResponse.PermissionDenied(message));
+        }
+
+        return null;
     }
 }

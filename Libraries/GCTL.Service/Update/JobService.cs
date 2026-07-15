@@ -326,7 +326,7 @@ namespace GCTL.Service.Update
                 };
             }
         }
-        public async Task<CommonReturnViewModel> UpdateJobs(ShipmentUpdateViewModel model, int? company)
+        public async Task<CommonReturnViewModel> UpdateJobs(ShipmentUpdateViewModel model, string? company)
         {
             await _sepDocumentionRepository.BeginTransactionAsync();
 
@@ -603,6 +603,7 @@ namespace GCTL.Service.Update
                 ModifyDate = status.ModifyDate,
                 Date = status != null && status.UpdateDateTime.HasValue ? status.UpdateDateTime.Value.Date : null,
                 Time = status != null && status.UpdateDateTime.HasValue ? TimeOnly.FromDateTime(status.UpdateDateTime.Value) : null,
+                UpdateRemarks = status.UpdateRemarks
             }).FirstOrDefaultAsync();
 
             return data ?? new ShipmentUpdateViewModel();
