@@ -1,4 +1,5 @@
 ﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels.SepDocumentation;
 using GCTL.Core.ViewModels.Update;
 using GCTL.Core.ViewModels.Update;
 
@@ -21,5 +22,6 @@ namespace GCTL.Service.Update
         Task<JobDetailDto> GetJobTopDetailsAsync(string jobNo);
         Task<CommonReturnViewModel> UpdateJobs(ShipmentUpdateViewModel model, int? company);
         Task<CommonReturnViewModel> DeleteJobs(List<decimal> ids);
+        Task<List<TimelineStepDto>> GetJobTimelineAsync(string jobNo);
     }
 }

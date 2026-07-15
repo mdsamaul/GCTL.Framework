@@ -229,7 +229,7 @@ namespace GCTL.Service.DeleteHistories
 
                 unionParts.Add($@"SELECT {tableIndex} AS TableIdx, COUNT(1) AS Cnt
                                   FROM {schemaQ}.{tableQ}
-                                  CROSS APPLY dbo.STRING_SPLIT(',', {columnQ}) AS split
+                                  CROSS APPLY String_Split({columnQ},',') AS split
                                   WHERE LTRIM(RTRIM(split.Value)) IN ({inClause})");
             }
 
@@ -324,7 +324,7 @@ namespace GCTL.Service.DeleteHistories
                 cmd.CommandText = $@"
                 SELECT COUNT(1)
                 FROM {schemaQ}.{tableQ}
-                CROSS APPLY dbo.STRING_SPLIT(',', {columnQ}) AS split
+                CROSS APPLY String_Split({columnQ},',') AS split
                 WHERE LTRIM(RTRIM(split.Value)) IN ({inClause})
                 ";
 

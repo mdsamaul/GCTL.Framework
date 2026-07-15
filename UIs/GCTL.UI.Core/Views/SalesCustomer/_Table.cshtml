@@ -1,0 +1,156 @@
+﻿@* 
+<div class="card mb-3">
+        <div class="card-header">
+            <div class=" row g-3 justify-content-between align-items-end">
+                <div class="col-12 col-sm-auto">
+                    <div class="dropdown me-3">
+                        <button class="btn btn-phoenix-secondary dropdown-toggle" type="button" id="pageSizeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Showing: <span id="selectedPageSize">5</span>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="pageSizeDropdown">
+                            <li><a class="dropdown-item dropdown-item-cus" href="#" data-size="5">5</a></li>
+                            <li><a class="dropdown-item dropdown-item-cus" href="#" data-size="10">10</a></li>
+                            <li><a class="dropdown-item dropdown-item-cus" href="#" data-size="25">25</a></li>
+                            <li><a class="dropdown-item dropdown-item-cus" href="#" data-size="50">50</a></li>
+                            <li><a class="dropdown-item dropdown-item-cus" href="#" data-size="100">100</a></li>
+
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-auto">
+                    <div class="d-flex align-items-center">
+                        <div class="search-box me-3" id="searchBox">
+                            <form class="position-relative" id="searchForm">
+                                <input class="form-control search-input search" id="searchInput" type="search" placeholder="Search here" aria-label="Search" />
+                                <span class="fas fa-search search-box-icon"></span>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="table-responsive card-body ms-n1 ps-1 scrollbar" style="padding-top: 0px; max-height: 900px; overflow-y: auto;">
+        <table class="table fs-9 mb-0 border-top border-translucent table-responsive table-striped scrollbar" style="vertical-align: middle; text-align: center;">
+            <thead>
+                <tr>
+                    <th class="text-center text-middle align-middle ps-0" scope="col" style="width: 5%; padding-left: 0;">
+                        Select<br />
+                        <input type="checkbox" id="viewBank-check-all" />
+                    </th>
+                    <th class="sort align-middle ps-2" scope="col" data-sort="CustomerId" style="padding-left: 0.5rem;">Cus. ID</th>
+                    <th class="sort white-space-nowrap align-middle ps-0" scope="col" data-sort="CustomerName" style="padding-left: 0; white-space: nowrap;">NAME</th>
+                    <th class="sort white-space-nowrap align-middle ps-0" scope="col" data-sort="ShortName" style="padding-left: 0; white-space: nowrap;">Short Name</th>
+                    <th class="sort align-middle ps-2" scope="col" data-sort="CustomerAddress" style="padding-left: 0.5rem;">Address</th>
+                    <th class="sort align-middle ps-2" scope="col" data-sort="OpeningBalance" style="padding-left: 0.5rem;">Opening Balance</th>
+                 
+                </tr>
+            </thead>
+            <tbody class="list" id="sales-customer-table-body">
+                <tr class="no-data">
+                    <td colspan="6" class="text-center">No data available</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+<div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
+    <div class="d-flex">
+        <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="paginationInfo"></p>
+
+        <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p>
+    </div>
+    <div class="d-flex">
+        <button class="page-link" data-list-pagination="prev" id="prevPageBtn"><span class="fas fa-chevron-left"></span></button>
+        <ul class="mb-0 pagination" id="paginationLinks"></ul>
+        <button class="page-link pe-0" data-list-pagination="next" id="nextPageBtn"><span class="fas fa-chevron-right"></span></button>
+    </div>
+</div>
+
+
+
+
+</div> *@
+<style>
+    /* Remove scroll restrictions */ 
+     .table, .table-responsive, .table-scroll-area {
+
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+</style>
+
+<div class="card table-card mb-0">
+    <div class="card-header">
+        <div class="row g-3 justify-content-between align-items-end">
+
+            <div class="col-12 col-sm-auto d-flex align-items-center me-3">
+                <label class="me-2 mb-0">Showing</label>
+                <select id="salesCustomer-pageSizeDropdown" class="form-select form-select-sm me-2" style="max-width: 100px;">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="-1">All</option>
+                </select>
+                <label class="mb-0">Entries</label>
+            </div>
+
+
+            <div class="col-12 col-sm-auto">
+                <div class="d-flex align-items-center">
+                    <div class="search-box me-3" id="salesCustomer-searchBox">
+                        <form class="position-relative" id="searchForm">
+                            <input class="form-control search-input search" id="salesCustomer-searchInput" type="search" placeholder="Search here" aria-label="Search" />
+                            <span class="fas fa-search search-box-icon"></span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive table-scroll-area">
+
+            <table class="table fs-9 mb-0 border-top border-translucent table-striped" style="vertical-align: middle; text-align: center;">
+                <thead>
+                    <tr>
+                        <th class="text-center text-middle align-middle ps-0" scope="col" style="width: 5%; padding-left: 0;">
+                            Select<br />
+                            <input type="checkbox" id="salesCustomer-check-all" />
+                        </th>
+                        <th class="salesCustomer-sort align-middle ps-2" scope="col" data-sort="CustomerId" style="padding-left: 0.5rem;">Cus. ID</th>
+                        <th class="salesCustomer-sort white-space-nowrap align-middle ps-0" scope="col" data-sort="CustomerName" style="padding-left: 0; white-space: nowrap;">NAME</th>
+                        <th class="salesCustomer-sort white-space-nowrap align-middle ps-0" scope="col" data-sort="ShortName" style="padding-left: 0; white-space: nowrap;">Short Name</th>
+                        <th class="salesCustomer-sort align-middle ps-2" scope="col" data-sort="CustomerAddress" style="padding-left: 0.5rem;">Address</th>
+                        <th class="salesCustomer-sort align-middle ps-2" scope="col" data-sort="OpeningBalance" style="padding-left: 0.5rem;">Opening Balance</th>
+                    </tr>
+                </thead>
+                <tbody class="list" id="salesCustomer-table-body">
+                    <tr class="no-data">
+                        <td colspan="6" class="text-center">No data available</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="salesCustomer-pagination-footer d-flex flex-wrap align-items-center justify-content-between py-2 pe-0 fs-9 border-translucent">
+                <div class="d-flex">
+                    <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="salesCustomer-paginationInfo"></p>
+                    <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" data-list-info="data-list-info"></p>
+                </div>
+                <div class="d-flex">
+                    <button class="page-link" data-list-pagination="prev" id="salesCustomer-prevPageBtn"><span class="fas fa-chevron-left"></span></button>
+                    <ul class="mb-0 pagination" id="salesCustomer-paginationLinks"></ul>
+                    <button class="page-link pe-3" data-list-pagination="next" id="salesCustomer-nextPageBtn"><span class="fas fa-chevron-right"></span></button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            

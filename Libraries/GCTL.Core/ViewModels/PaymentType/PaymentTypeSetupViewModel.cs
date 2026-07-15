@@ -13,6 +13,6 @@ namespace GCTL.Core.ViewModels.PaymentType
         public string PaymentTypeId { get; set; }
         [Required(ErrorMessage = "Payment Type is required")]
         public string PaymentType { get; set; }
-        public string ShortName { get; set; }
+        public string? ShortName { get; set; }
     }
 }

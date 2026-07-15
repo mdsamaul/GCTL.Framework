@@ -61,6 +61,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<BundleComponent> BundleComponents { get; set; }
 
+    public virtual DbSet<CaDefCountry> CaDefCountries { get; set; }
+
     public virtual DbSet<CaDefCurrency> CaDefCurrencies { get; set; }
 
     public virtual DbSet<CfBillEntry> CfBillEntries { get; set; }
@@ -135,6 +137,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<HrmDefDivision> HrmDefDivisions { get; set; }
 
+    public virtual DbSet<HrmDefEmpType> HrmDefEmpTypes { get; set; }
+
     public virtual DbSet<HrmDefGrade> HrmDefGrades { get; set; }
 
     public virtual DbSet<HrmDefNationality> HrmDefNationalities { get; set; }
@@ -143,11 +147,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<HrmDefSex> HrmDefSexes { get; set; }
 
+    public virtual DbSet<HrmEisDefEmploymentNature> HrmEisDefEmploymentNatures { get; set; }
+
     public virtual DbSet<HrmEmployee> HrmEmployees { get; set; }
 
     public virtual DbSet<HrmEmployeeContactInfo> HrmEmployeeContactInfos { get; set; }
 
     public virtual DbSet<HrmEmployeeOfficialInfo> HrmEmployeeOfficialInfos { get; set; }
+
+    public virtual DbSet<InvDefCompanyInfo> InvDefCompanyInfos { get; set; }
+
+    public virtual DbSet<InvDefSalesPerson> InvDefSalesPeople { get; set; }
 
     public virtual DbSet<InvDefSupplierCategory> InvDefSupplierCategories { get; set; }
 
@@ -943,6 +953,43 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnType("decimal(18, 4)");
         });
 
+        modelBuilder.Entity<CaDefCountry>(entity =>
+        {
+            entity.HasKey(e => e.CountryId).HasName("PK__CA_Def_C__10D1609FCC9EB6C2");
+
+            entity.ToTable("CA_Def_Country");
+
+            entity.Property(e => e.CountryId).HasMaxLength(50);
+            entity.Property(e => e.CountryName)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Ioccode)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("IOCCode");
+            entity.Property(e => e.Isocode)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("ISOCode");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
+        });
+
         modelBuilder.Entity<CaDefCurrency>(entity =>
         {
             entity.HasKey(e => e.CurrencyId).HasName("PK__CA_Def_C__14470AF02F499A13");
@@ -1628,19 +1675,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<CoreBranch>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity.HasKey(e => e.BranchCode);
 
             entity.ToTable("Core_Branch");
 
+            entity.Property(e => e.BranchCode).HasMaxLength(50);
+            entity.Property(e => e.Address).HasMaxLength(250);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
-            entity.Property(e => e.Address).HasMaxLength(250);
             entity.Property(e => e.BanglaBranch).HasMaxLength(100);
-            entity.Property(e => e.BranchCode)
-                .IsRequired()
-                .HasMaxLength(50);
             entity.Property(e => e.BranchName)
                 .IsRequired()
                 .HasMaxLength(100);
@@ -2470,6 +2515,36 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<HrmDefEmpType>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("HRM_Def_EmpType");
+
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.EmpTypeCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.EmpTypeName).HasMaxLength(100);
+            entity.Property(e => e.EmpTypeShortName).HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+        });
+
         modelBuilder.Entity<HrmDefGrade>(entity =>
         {
             entity.HasKey(e => e.AutoId).HasName("PK__HRM_Def___385EFE4823B64716");
@@ -2594,6 +2669,40 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Sex)
                 .IsRequired()
                 .HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<HrmEisDefEmploymentNature>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("HRM_EIS_Def_EmploymentNature");
+
+            entity.Property(e => e.EmploymentNature)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.EmploymentNatureId)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.ShortName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<HrmEmployee>(entity =>
@@ -2890,6 +2999,101 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("UserInfoEmployeeID");
+        });
+
+        modelBuilder.Entity<InvDefCompanyInfo>(entity =>
+        {
+            entity.HasKey(e => e.Tc).HasName("PK__Inv_Def___3214E408E22B055B");
+
+            entity.ToTable("Inv_Def_CompanyInfo");
+
+            entity.Property(e => e.Tc).HasColumnName("TC");
+            entity.Property(e => e.City).HasMaxLength(150);
+            entity.Property(e => e.CompanyCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CompanyForId).HasMaxLength(50);
+            entity.Property(e => e.CompanyId)
+                .HasMaxLength(50)
+                .HasColumnName("CompanyID");
+            entity.Property(e => e.CompanyName).HasMaxLength(50);
+            entity.Property(e => e.Email).HasMaxLength(150);
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.Fax).HasMaxLength(100);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.LocalOfficeAddress).HasMaxLength(500);
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Phone).HasMaxLength(150);
+            entity.Property(e => e.Remarks).HasMaxLength(150);
+            entity.Property(e => e.ShortName).HasMaxLength(10);
+            entity.Property(e => e.State).HasMaxLength(150);
+            entity.Property(e => e.Url).HasColumnName("URL");
+            entity.Property(e => e.ZipCode).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<InvDefSalesPerson>(entity =>
+        {
+            entity.HasKey(e => e.SalesPersonId).HasName("PK__Inv_Def___7A591C18719B89FA");
+
+            entity.ToTable("Inv_Def_SalesPerson");
+
+            entity.Property(e => e.SalesPersonId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("SalesPersonID");
+            entity.Property(e => e.CompanyCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CompanyId)
+                .HasMaxLength(100)
+                .HasColumnName("CompanyID");
+            entity.Property(e => e.Cpid).HasColumnName("CPID");
+            entity.Property(e => e.DesignationId)
+                .HasMaxLength(150)
+                .HasColumnName("DesignationID");
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.SalesPerson)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<InvDefSupplierCategory>(entity =>
@@ -3609,11 +3813,14 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesDefPaymentType>(entity =>
         {
-            entity.HasKey(e => e.Tc);
+            entity.HasKey(e => e.PaymentTypeId);
 
             entity.ToTable("Sales_Def_PaymentType");
 
-            entity.Property(e => e.Tc).HasColumnName("TC");
+            entity.Property(e => e.PaymentTypeId)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("PaymentTypeID");
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("LDate");
@@ -3630,14 +3837,12 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.PaymentType)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.PaymentTypeId)
-                .IsRequired()
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("PaymentTypeID");
             entity.Property(e => e.ShortName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<SalesDefPortName>(entity =>
@@ -3695,10 +3900,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesDefShipmentStatusInfo>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Sales_Def_ShipmentStatusInfo");
+            entity.HasKey(e => e.Tc);
 
+            entity.ToTable("Sales_Def_ShipmentStatusInfo");
+
+            entity.Property(e => e.Tc).HasColumnName("TC");
             entity.Property(e => e.Ldate)
                 .HasColumnType("datetime")
                 .HasColumnName("LDate");
@@ -3715,9 +3921,6 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ShipmentStatus).HasMaxLength(100);
             entity.Property(e => e.ShipmentStatusId).HasMaxLength(50);
             entity.Property(e => e.ShortName).HasMaxLength(50);
-            entity.Property(e => e.Tc)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<SalesDeliveryLocation>(entity =>
@@ -4102,6 +4305,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(1024);
             entity.Property(e => e.UserId).HasMaxLength(256);
         });
+
 
         OnModelCreatingPartial(modelBuilder);
     }

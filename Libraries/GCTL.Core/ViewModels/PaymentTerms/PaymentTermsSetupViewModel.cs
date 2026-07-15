@@ -10,14 +10,14 @@ namespace GCTL.Core.ViewModels.PaymentTerms
     public class PaymentTermsSetupViewModel : BaseViewModel
     {
         public int Tc { get; set; }
-        public string PaymentTermsId { get; set; }
+        public string? PaymentTermsId { get; set; }
 
-        public string PaymentTermsName { get; set; }
+        public string? PaymentTermsName { get; set; }
         [Required(ErrorMessage = "Style is required")]
-        public string Percentise { get; set; }
+        public string? Percentise { get; set; }
         [Required(ErrorMessage = "Style is required")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
         public int? CreditDays { get; set; }
-        public string PaymentType { get; set; }
+        public string? PaymentType { get; set; }
     }
 }

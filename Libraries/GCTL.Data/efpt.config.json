@@ -119,6 +119,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CA_Def_Country]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CA_Def_Currency]",
          "ObjectType": 0
       },
@@ -267,6 +271,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_Def_EmpType]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_Def_Grade]",
          "ObjectType": 0
       },
@@ -283,6 +291,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_EIS_Def_EmploymentNature]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_Employee]",
          "ObjectType": 0
       },
@@ -292,6 +304,14 @@
       },
       {
          "Name": "[dbo].[HRM_EmployeeOfficialInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_CompanyInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SalesPerson]",
          "ObjectType": 0
       },
       {

@@ -1,0 +1,327 @@
+﻿<style>
+    .custom-width-modal{
+        max-width: 1600px !important;
+    }
+ 
+</style>
+
+<h2 class="text-center mt-0">Chart Of  Accounts</h2>
+<div class=" container-fluid g-0">
+
+
+    @* <ul class="nav nav-pills justify-content-start gap-2 p-2 bg-light rounded-3 shadow-sm" id="ledgertab" role="tablist"> *@
+    <ul class="nav nav-tabs" id="ledgertab" role="tablist">
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active rounded-pill px-4 py-2" id="group-tab" data-bs-toggle="tab" href="#group-tab-pane" role="tab">Group Ledger</a>
+        </li>
+
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link rounded-pill px-4 py-2" id="controll-tab" data-bs-toggle="tab" href="#controll-tab-pane" role="tab">Control Ledger</a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link rounded-pill px-4 py-2" id="subcontroll-tab" data-bs-toggle="tab" href="#subcontroll-tab-pane" role="tab">Sub-Control Ledger</a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link rounded-pill px-4 py-2" id="subsidiary-tab" data-bs-toggle="tab" href="#subsidiary-tab-pane" role="tab">Sub-Sidiary Ledger</a>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <a class="nav-link rounded-pill px-4 py-2" id="general-tab" data-bs-toggle="tab" href="#general-tab-pane" role="tab">General Ledger</a>
+        </li>
+
+    </ul>
+
+    <div class="tab-content" id="LedgerTabContent">
+
+        @* Group Ledger *@
+        <div class="tab-pane fade show active" id="group-tab-pane" role="tabpanel" aria-labelledby="group-tab">
+            <div id="groupTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupFormView">
+                                @await Html.PartialAsync("_GroupLedgerForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupListView">
+                                @await Html.PartialAsync("_GroupLedgerList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Control Ledger *@
+        <div class="tab-pane fade" id="controll-tab-pane" role="tabpanel" aria-labelledby="controll-tab">
+            <div id="controllTabView">
+                <div class="row g-1">
+                    
+                    <div class="col-md-6">
+                        <div>
+                            <div id="controlFormView">
+                                @await Html.PartialAsync("_ControlLedgerForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div>
+                            <div id="controlListView">
+                                @await Html.PartialAsync("_ControlLedgerList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Sub-Control Ledger *@
+        <div class="tab-pane fade" id="subcontroll-tab-pane" role="tabpanel" aria-labelledby="subcontroll-tab">
+            <div id="subcontrollTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="subcontrolFormView">
+                                @await Html.PartialAsync("_SubControlLedgerForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="subcontrolListView">
+                                @await Html.PartialAsync("_SubControlLedgerList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Sub-Sidiary Ledger *@
+        <div class="tab-pane fade" id="subsidiary-tab-pane" role="tabpanel" aria-labelledby="subsidiary-tab">
+            <div id="subsidiaryTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="subsidiaryFormView">
+                                @await Html.PartialAsync("_SubSidiaryLedgerForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="subsidiaryListView">
+                                @await Html.PartialAsync("_SubSidiaryLedgerList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* General Ledger *@
+        <div class="tab-pane fade" id="general-tab-pane" role="tabpanel" aria-labelledby="general-tab">
+            <div id="generalTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="generalFormView">
+                                @await Html.PartialAsync("_GeneralLedgerForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="generalListView">
+                                @await Html.PartialAsync("_GeneralLedgerList.cshtml")
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@* #region Group Ledger PopUp *@
+<div class="modal fade" id="GRLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Add Group Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="ledgerModalBody">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupFormView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalGroupForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupListView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalGroupList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+@* #endregion Group Ledger PopUp *@
+
+
+
+@* Control Ledger PopUp *@
+<div class="modal fade" id="UICRLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  custom-width-modal">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Add Control Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="ledgerModalBody" >
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupFormView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalControlForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupListView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalControlList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@* Sub-Control Ledger PopUp *@
+<div class="modal fade" id="SCRLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  custom-width-modal">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Add Sub-Control Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="ledgerModalBody">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupFormView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalSubControlForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupListView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalSubControlList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@* Sub-Control Ledger PopUp *@
+<div class="modal fade" id="SSLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered  custom-width-modal">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Add Sub-Sidiary Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="ledgerModalBody">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupFormView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalSubSidiaryForm.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <div id="groupListView">
+                                @await Html.PartialAsync("~/Views/Ledger/_ModalSubSidiaryList.cshtml")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<!-- Toastr CSS & JS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- Toastr -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script src="~/js/pages/ChartOfAccount/Control.js"></script>
+<script src="~/js/pages/ChartOfAccount/Group.js"></script>
+<script src="~/js/pages/ChartOfAccount/SubControl.js"></script>
+<script src="~/js/pages/ChartOfAccount/SubSidiary.js"></script>
+<script src="~/js/pages/ChartOfAccount/General.js"></script>
+
+    @* Modal Js *@
+<script src="~/js/pages/ChartOfAccount/CommonModal.js"></script>
+<script src="~/js/pages/ChartOfAccount/ModalGroup.js"></script>
+<script src="~/js/pages/ChartOfAccount/ModalControl.js"></script>
+<script src="~/js/pages/ChartOfAccount/ModalSubControl.js"></script>
+<script src="~/js/pages/ChartOfAccount/ModalSubSidiary.js"></script>
+
+
+
