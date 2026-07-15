@@ -27,4 +27,3 @@ public partial class HrmDefEmpType
         public string CompanyCode { get; set; }
         public string BanglaEmployeeType { get; set; }
     }
-}
