@@ -24,4 +24,7 @@ public partial class HrmEisDefEmploymentNature
     public string Lmac { get; set; }
 
     public DateTime? ModifyDate { get; set; }
+        public string CompanyCode { get; set; }
+        public string BanglaEmployeeNature { get; set; }
+    }
 }

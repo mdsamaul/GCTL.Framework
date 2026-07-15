@@ -24,4 +24,7 @@ public partial class HrmDefEmpType
     public string Lmac { get; set; }
 
     public DateTime? ModifyDate { get; set; }
+        public string CompanyCode { get; set; }
+        public string BanglaEmployeeType { get; set; }
+    }
 }
