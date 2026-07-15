@@ -10,7 +10,7 @@ namespace GCTL.Core.ViewModels.SupplierInformation
 {
     public class SupplierInformationSetupViewModel : BaseViewModel
     {
-        public decimal? Tc { get; set; } = 0;
+        public decimal Tc { get; set; } = 0;
         public string? SupplierId { get; set; }
         [Required(ErrorMessage = "Supplier Name is required")]
         public string? SupplierName { get; set; }
@@ -33,11 +33,11 @@ namespace GCTL.Core.ViewModels.SupplierInformation
         public string? ZipCode { get; set; }
         [RegularExpression(@"^(?:\+8801\d{9}|01\d{9})$", ErrorMessage = "Invalid Phone")]
         [MaxLength(14)]
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
         [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Only letters and numbers are allowed")]
-        public string Fax { get; set; }
+        public string? Fax { get; set; }
         [EmailAddress(ErrorMessage = "Please enter valid email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public string? Url { get; set; }
         public string? SupplierTin { get; set; }
         public string? SupplierBankId { get; set; }

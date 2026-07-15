@@ -55,9 +55,12 @@
                     <div class="card-header px-2">
                      @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
-                    Title = "Companies",
+                            Title = "Companies",
+                            SaveBtnClass = "js-company-save",
+                            DeleteBtnClass = "js-company-delete-confirm",
+                            ClearBtnClass = "js-company-clear"
                    
-                })
+                    })
                     </div>
                     <div class="card-body px-2">
                         <form asp-action="Setup" id="company-form">

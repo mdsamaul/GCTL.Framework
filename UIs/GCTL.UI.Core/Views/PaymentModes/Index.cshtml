@@ -17,6 +17,9 @@
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Payment Mode",
+                            SaveBtnClass = "js-paymentmode-save",
+                            DeleteBtnClass = "js-paymentmode-delete-confirm",
+                            ClearBtnClass = "js-paymentmode-clear"
                         })
                     </div>
                     <div class="card-body px-2">

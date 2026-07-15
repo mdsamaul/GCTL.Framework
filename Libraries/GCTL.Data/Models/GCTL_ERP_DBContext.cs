@@ -1629,14 +1629,10 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<CoreBankAccountInformation>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK_Core_BankAccountInformation_AutoID");
+            entity.HasKey(e => e.AccInfoId).HasName("PK__Core_Ban__7DC1C2FF8F29CA40");
 
             entity.ToTable("Core_BankAccountInformation");
 
-            entity.Property(e => e.AutoId)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("AutoID");
             entity.Property(e => e.AccInfoId)
                 .HasMaxLength(50)
                 .HasColumnName("AccInfoID");
@@ -1646,6 +1642,10 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.AccountNo)
                 .HasMaxLength(250)
                 .HasColumnName("AccountNO");
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
             entity.Property(e => e.BankId)
                 .HasMaxLength(50)
                 .HasColumnName("BankID");
@@ -3618,19 +3618,18 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesDefBankBranchInfo>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK_Sales_Def_BankBranchInfo_AutoID");
+            entity.HasKey(e => e.BankBranchId).HasName("PK_Sales_Def_BankBranchInfo_AutoID");
 
             entity.ToTable("Sales_Def_BankBranchInfo");
 
+            entity.Property(e => e.BankBranchId)
+                .HasMaxLength(50)
+                .HasColumnName("BankBranchID");
+            entity.Property(e => e.Address).HasMaxLength(250);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("AutoID");
-            entity.Property(e => e.Address).HasMaxLength(250);
-            entity.Property(e => e.BankBranchId)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasColumnName("BankBranchID");
             entity.Property(e => e.BankBranchName).HasMaxLength(50);
             entity.Property(e => e.BankId)
                 .HasMaxLength(50)
@@ -3657,18 +3656,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesDefBankInfo>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK_SALES_Def_BankInfo_AutoID");
+            entity.HasKey(e => e.BankId).HasName("PK_SALES_Def_BankInfo_AutoID");
 
             entity.ToTable("SALES_Def_BankInfo");
 
+            entity.Property(e => e.BankId)
+                .HasMaxLength(50)
+                .HasColumnName("BankID");
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("AutoID");
-            entity.Property(e => e.BankId)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasColumnName("BankID");
             entity.Property(e => e.BankName).HasMaxLength(50);
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
@@ -3753,10 +3751,14 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesDefPaymentMode>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity.HasKey(e => e.PaymentModeId);
 
             entity.ToTable("Sales_Def_PaymentMode");
 
+            entity.Property(e => e.PaymentModeId)
+                .HasMaxLength(50)
+                .HasColumnName("PaymentModeID");
+            entity.Property(e => e.AutoId).ValueGeneratedOnAdd();
             entity.Property(e => e.CompanyCode)
                 .IsRequired()
                 .HasMaxLength(50);
@@ -3777,10 +3779,6 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("LUser");
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
-            entity.Property(e => e.PaymentModeId)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasColumnName("PaymentModeID");
             entity.Property(e => e.PaymentModeName).HasMaxLength(250);
             entity.Property(e => e.PaymentModeShortName).HasMaxLength(50);
         });
@@ -4305,6 +4303,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(1024);
             entity.Property(e => e.UserId).HasMaxLength(256);
         });
+
 
         OnModelCreatingPartial(modelBuilder);
     }
