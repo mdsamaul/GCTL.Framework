@@ -17,7 +17,7 @@
     </div>
 </div>
  *@
-
+@* 
 @model ToobarModel
 <div class="d-flex flex-wrap justify-content-between align-items-center p-2 mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">
     <div class="d-flex align-items-center py-1 ps-2">
@@ -76,4 +76,106 @@
             </button>
         }
     </div>
+</div> *@
+
+@model ToobarModel
+
+<div class="d-flex flex-wrap justify-content-between align-items-center p-2 mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">
+
+    <div class="d-flex align-items-center py-1 ps-2">
+        <h1 class="fw-bold text-dark m-0"
+            style="font-size:.95rem;letter-spacing:.5px;">
+            @Model.Title
+        </h1>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 pe-1 toolbar-btn-group">
+
+        @if (Model.ShowSave)
+        {
+            <button type="button"
+                    id="@Model.SaveBtnId"
+                    class="btn toolbar-btn toolbar-btn-save @Model.SaveBtnClass"
+                    disabled="@(!Model.EnableSave)">
+                <i class="fas fa-save"></i>
+                <span>Save</span>
+            </button>
+        }
+
+        @if (Model.ShowDelete)
+        {
+            <button type="button"
+                    id="@Model.DeleteBtnId"
+                    class="btn toolbar-btn toolbar-btn-delete @Model.DeleteBtnClass"
+                    disabled="@(!Model.EnableDelete)">
+                <i class="fas fa-trash-alt"></i>
+                <span>Delete</span>
+            </button>
+        }
+
+        @if (Model.ShowClear)
+        {
+            <button type="button"
+                    id="@Model.ClearBtnId"
+                    class="btn toolbar-btn toolbar-btn-clear @Model.ClearBtnClass"
+                    disabled="@(!Model.EnableClear)">
+                <i class="fas fa-redo"></i>
+                <span>Clear</span>
+            </button>
+        }
+
+        @if (Model.ShowPrint)
+        {
+            <div class="dropdown">
+
+                <button type="button"
+                        id="@Model.PrintBtnId"
+                        class="btn toolbar-btn toolbar-btn-print dropdown-toggle @Model.PrintBtnClass"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        disabled="@(!Model.EnablePrint)">
+                    <i class="fas fa-download"></i>
+                    <span>Export</span>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center"
+                           href="#"
+                           id="@(Model.PrintBtnId)ExcelBtn">
+
+                            <i class="fas fa-file-excel text-success me-2"></i>
+                            Excel
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center"
+                           href="#"
+                           id="@(Model.PrintBtnId)PdfBtn">
+
+                            <i class="fas fa-file-pdf text-danger me-2"></i>
+                            PDF
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+        }
+
+        @if (Model.ShowFavorite)
+        {
+            <button type="button"
+                    id="@Model.FavtBtnId"
+                    class="btn toolbar-btn toolbar-btn-fav @Model.FavtBtnClass"
+                    disabled="@(!Model.EnableFavorite)">
+                <i class="fas fa-star"></i>
+                <span>Favorite</span>
+            </button>
+        }
+
+    </div>
+
 </div>
