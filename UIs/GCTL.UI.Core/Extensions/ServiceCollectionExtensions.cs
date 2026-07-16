@@ -36,6 +36,8 @@ using GCTL.Service.PaymentModes;
 using GCTL.Service.PaymentTerms;
 using GCTL.Service.PaymentType;
 using GCTL.Service.Permissions;
+using GCTL.Service.PortName;
+using GCTL.Service.PortType;
 using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.ShipmentMode;
@@ -143,6 +145,8 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IOpeningBalance, OpeningBalanceService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IHRMCompanyWeekEndService, HRMCompanyWeekEndService>();
+            services.AddScoped<IPortTypeService, PortTypeService>();
+            services.AddScoped<IPortNameService, PortNameService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
