@@ -10,6 +10,16 @@
     .dataTables_filter {
         margin-right: 0px;
     }
+
+    .btn-group-sm > .btn, .btn-sm {
+        --bs-btn-padding-y: 0.3rem !important;
+    }
+
+    
+
+    /* .custom-dd-box {
+        border-radius: .375rem .0rem 0rem .375rem;       
+    } */
 </style>
 
 <partial name="_PageHeader" model="Model" />
@@ -50,8 +60,8 @@
         <partial name="_BottomNavigation" />
     </div>
 </section>
-<partial name="DeleteModal" />
-<partial name="QuickAddModal" />
+@* <partial name="DeleteModal" /> *@
+@* <partial name="QuickAddModal" /> *@
 
                 
 @section Scripts {
