@@ -53,14 +53,14 @@
             $("body").on("click", settings.saveSelector, function () {
                 var $btn = $(this);
 
-                var validation = validation();
-                if (!validation) return false;
+                var isValid = validation();
+                if (!isValid) return false;
 
-                var $valid = $(settings.formSelector).valid();
-                console.log($valid);
-                if (!$valid) {
-                    return false;
-                }
+                // var $valid = $(settings.formSelector).valid();
+                // console.log($valid);
+                // if (!$valid) {
+                //     return false;
+                // }
 
                 if ($btn.data("submitting")) return false;
                 $btn.data("submitting", true).prop("disabled", true);
@@ -205,7 +205,6 @@
             });
 
             $("body").on("change.getInfo", '#EmployeeId', function () {
-                debugger;
                 console.log($(this).val());
                 console.log($(this).val().length);
                 if ($(this).val().length > 0)
@@ -224,8 +223,46 @@
                 toggleEmployeeRequired();
             });
 
+            $('#UserType').on('change', function () {
+                console.log('test');
+                toggleUserTypeSections();
+            });
+            toggleUserTypeSections();
         });
+        function toggleUserTypeSections() {
+            var userType = $('#UserType').val();
 
+            if (userType === 'Employee') {
+                $('#employeeSection').show();
+                $('#customerSection').hide();
+
+                // re-enable employee inputs so they post back / validate
+                $('#employeeSection').find('input, select').prop('disabled', false);
+                $('#customerSection').find('input, select').prop('disabled', true);
+            }
+            else if (userType === 'Customer') {
+                $('#employeeSection').hide();
+                $('#customerSection').show();
+
+                $('#customerSection').find('input, select').prop('disabled', false);
+                $('#employeeSection').find('input, select').prop('disabled', true);
+            }
+            else {
+                // nothing selected yet
+                $('#employeeSection').hide();
+                $('#customerSection').hide();
+
+                $('#employeeSection').find('input, select').prop('disabled', true);
+                $('#customerSection').find('input, select').prop('disabled', true);
+            }
+        }
+
+        // run on load (handles edit mode where UserType is already set)
+
+
+        // Select2 fires a native 'change' event on the underlying <select>,
+        // so this also fires when the user picks a value from the select2 dropdown.
+        
         function getEmployeeInfo(id) {
 
             $.ajax({
@@ -244,7 +281,6 @@
             });
         };
         function validation() {
-
             var isRequired = $("#isRequired").is(":checked");
             var employeeId = $("#EmployeeId").val();
 
@@ -306,11 +342,7 @@
                 ajax: {
                     url: baseUrl + "/grid",
                     type: "GET",
-                    datatype: "json",
-                    dataSrc: function (json) {
-                        console.log("Response:", json);
-                        return json.data; // or return json if your API returns an array directly
-                    }
+                    datatype: "json"
                 },
 
                 columnDefs: [
@@ -318,28 +350,36 @@
                         targets: [0], orderable: false,
                         createdCell: function (td) {
                             $(td).html(`
-                                 <div class="d-flex align-items-center justify-content-center  px-0">
-                                    ${$(td).html()}
-                                </div>
-                            `);
+                        <div class="d-flex align-items-center justify-content-center px-0">
+                            ${$(td).html()}
+                        </div>
+                    `);
                         }
                     },
                 ],
                 columns: [
                     {
-                        "data": "id", "className": "text-center px-0", "render": function (data) {
-                            return `<input type="checkbox" width="1%" class="checkBox" value="${data}" />`;
+                        data: "id",
+                        className: "text-center align-middle px-0",
+                        render: function (data) {
+                            return `
+                                <div class="form-check d-inline-block m-0">
+                                    <input type="checkbox" class="checkBox form-check-input" value="${data}">
+                                </div>
+                            `;
                         }
                     },
                     {
-                        "data": "employeeId", "render": function (data, type, row) {
-                            return `<a class='btn js-useraccess-edit px-0' data-id='${row.id}'><i>${data}</i></a>`;
+                        data: "employeeId",
+                        className: "align-middle",
+                        render: function (data, type, row) {
+                            return `<a class="btn js-useraccess-edit px-0" data-id="${row.id}"><i>${data}</i></a>`;
                         }
                     },
-                    { "data": "employeeName", "autowidth": true },
-                    { "data": "username", "autowidth": true },
-                    { "data": "role", "autowidth": true },
-                    { "data": "accessCode", "autowidth": true },
+                    { data: "employeeName", className: "align-middle" },
+                    { data: "username", className: "align-middle" },
+                    { data: "role", className: "align-middle" },
+                    { data: "accessCode", className: "align-middle" }
                 ],
                 lengthChange: true,
                 pageLength: 10,
@@ -347,7 +387,7 @@
                 autowidth: false,
                 responsive: true,
                 fixedHeader: false,
-                order: [[0, "Desc"]],
+                order: [[1, "Desc"]],
                 sScrollY: "100%",
                 scrollX: true,
                 sScrollX: "100%",
@@ -404,10 +444,10 @@
                 toggleBtn.addEventListener('mousedown', (e) => e.preventDefault());
             }
 
-            initInlineSearchSelect2('#EmployeeId');
-            initInlineSearchSelect2('#Role');
-            initInlineSearchSelect2('#AccessCode');
-            initInlineSearchSelect2('#SingleSession');
+            // initInlineSearchSelect2('#EmployeeId');
+            // initInlineSearchSelect2('#Role');
+            // initInlineSearchSelect2('#AccessCode');
+            // initInlineSearchSelect2('#SingleSession');
 
             if (typeof $.fn.multiselect !== 'undefined') {
                 // bsms_InitializeMultiselects({

@@ -26,19 +26,19 @@
 
 <section class="content">
     <div class="container-fluid">
-        <div class="row">
+        <div class="row pb-2">
             <div class="col-md-6 pr-1">
                 <div class="card card-primary">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
-                        Title = "Payment Terms",
-                        SaveBtnId = "btnSubmit", DeleteBtnId = "btnDelete", ClearBtnId = "btnClear",
+                        Title = Model.PageTitle,
+                        SaveBtnClass = "js-useraccess-save", DeleteBtnClass = "js-useraccess-delete-confirm", ClearBtnClass = "js-useraccess-clear",
                         ShowFavorite = false, ShowPrint = false
                     })
                     @* <div class="card-header p-1" style="background-color: white; color: black; font-weight: 600;">
                         <partial name="_Toolbars" model="new ToobarModel() { Title = Model.Breadcrumb, Code = Model.Code, Name = Model.Setup.EmployeeName }" />
                     </div> *@
-                    <div class="card-body" style="padding-left: 7px; padding-right: 8px; padding-top: 10px;">
+                    <div class="card-body" style="padding-left: 7px; padding-right: 8px; padding-top: 10px; padding-bottom: 0px;">
                         <form asp-action="Setup" id="useraccess-form">
                             <div class="js-useraccess-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
