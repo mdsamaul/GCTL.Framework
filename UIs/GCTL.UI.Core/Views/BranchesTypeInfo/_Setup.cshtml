@@ -18,7 +18,7 @@
             <label asp-for="CompanyCode">Company</label>
             <span class="text-danger"></span>
             <div class="input-group flex-nowrap">
-                <select asp-for="CompanyCode" class="form-control form-control-sm gc-select2 js-" data-placeholder="Select Company" asp-items="@ViewBag.CompanyCodeDD as SelectList">
+                <select asp-for="CompanyCode" class="form-control form-control-sm custom-select-single" data-placeholder="Select Company" asp-items="@ViewBag.CompanyCodeDD as SelectList">
                     <option></option>
                 </select>
                 <div class="input-group-append">

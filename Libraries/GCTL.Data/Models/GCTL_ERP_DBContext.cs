@@ -3845,11 +3845,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesDefPortName>(entity =>
         {
-            entity.HasKey(e => e.Tc);
+            entity.HasKey(e => e.PortNameId).HasName("PK__Sales_De__F98B58CE52F276D6");
 
             entity.ToTable("Sales_Def_PortName");
 
-            entity.Property(e => e.Tc).HasColumnName("TC");
+            entity.Property(e => e.PortNameId).HasMaxLength(50);
             entity.Property(e => e.Ldate)
                 .HasColumnType("datetime")
                 .HasColumnName("LDate");
@@ -3864,17 +3864,22 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("LUser");
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
             entity.Property(e => e.PortId).HasMaxLength(50);
-            entity.Property(e => e.PortName).HasMaxLength(100);
-            entity.Property(e => e.PortNameId).HasMaxLength(50);
+            entity.Property(e => e.PortName)
+                .IsRequired()
+                .HasMaxLength(100);
             entity.Property(e => e.ShortName).HasMaxLength(50);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<SalesDefPortType>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Sales_Def_PortType");
+            entity.HasKey(e => e.PortId).HasName("PK__Sales_De__D859BF8FA4504765");
 
+            entity.ToTable("Sales_Def_PortType");
+
+            entity.Property(e => e.PortId).HasMaxLength(50);
             entity.Property(e => e.Ldate)
                 .HasColumnType("datetime")
                 .HasColumnName("LDate");
@@ -3888,8 +3893,9 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("LUser");
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
-            entity.Property(e => e.PortId).HasMaxLength(50);
-            entity.Property(e => e.PortType).HasMaxLength(100);
+            entity.Property(e => e.PortType)
+                .IsRequired()
+                .HasMaxLength(100);
             entity.Property(e => e.ShortName).HasMaxLength(50);
             entity.Property(e => e.Tc)
                 .ValueGeneratedOnAdd()
@@ -4303,7 +4309,6 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(1024);
             entity.Property(e => e.UserId).HasMaxLength(256);
         });
-
 
         OnModelCreatingPartial(modelBuilder);
     }

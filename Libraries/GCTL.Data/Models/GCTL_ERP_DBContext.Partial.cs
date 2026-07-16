@@ -121,6 +121,18 @@ namespace GCTL.Data.Models
                 entity.Property(p => p.AutoId)
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
+
+            modelBuilder.Entity<SalesDefPortType>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefPortName>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
         }
     }
 }

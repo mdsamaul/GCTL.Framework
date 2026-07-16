@@ -1,4 +1,5 @@
 ﻿
+using GCTL.Core.ViewModels.Accounts;
 using GCTL.Core.ViewModels.SupplierType;
 using System;
 using System.Collections.Generic;
@@ -16,5 +17,9 @@ namespace GCTL.Core.ViewModels.SupplierCategory
         [Required(ErrorMessage = "Supplier Category is required")]
         public string SupplierCategory { get; set; }
 
+        public void ToAudit(UserInfoViewModel? loginInfo, bool v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

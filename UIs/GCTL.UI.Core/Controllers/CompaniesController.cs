@@ -6,7 +6,6 @@ using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
-using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.Companies;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
