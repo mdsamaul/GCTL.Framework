@@ -37,7 +37,7 @@
             //settings.load(settings.baseUrl, settings.gridSelector);
             loadUserAccesses(settings.baseUrl, settings.gridSelector);
             initialize();
-            toggleEmployeeRequired();
+            //toggleEmployeeRequired();
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -219,9 +219,9 @@
                     getEmployeeByUsername($('#Username').val());
             });
 
-            $("body").on("click", "#isRequired", function () {
-                toggleEmployeeRequired();
-            });
+            // $("body").on("click", "#isRequired", function () {
+            //     toggleEmployeeRequired();
+            // });
 
             $('#UserType').on('change', function () {
                 console.log('test');
@@ -281,12 +281,26 @@
             });
         };
         function validation() {
-            var isRequired = $("#isRequired").is(":checked");
+            var isRequired = $("#UserType").val() === 'Employee';// $("#isRequired").is(":checked");
             var employeeId = $("#EmployeeId").val();
+            var customerId = $('#CustomerId').val();
 
+            var userType = $('#UserType').val();
+            if (!userType) {
+                toastr.warning("User Type is required!", 'Warning');
+                $("#UserType").focus();
+                return false;
+            }
             if (isRequired && !employeeId) {
                 toastr.warning("Employee is required!", 'Warning');
-                $("EmployeeId").focus();
+                $("#EmployeeId").focus();
+                return false;
+            }
+
+            var isCustomerReq = $('#UserType').val() === 'Customer';
+            if (isCustomerReq && !customerId) {
+                toastr.warning("Customer is required!", 'Warning');
+                $("#CustomerId").focus();
                 return false;
             }
 
