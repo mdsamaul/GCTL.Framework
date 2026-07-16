@@ -22,6 +22,7 @@ namespace GCTL.Service.Users
         private readonly IRepository<CoreBranch> branchRepository;
 
         private readonly IRepository<HrmDefEmpType> empTypeRepository;
+        private readonly IRepository<SalesCustomer> customerRepository;
         private readonly IRepository<HrmEisDefEmploymentNature> empNatureRepository;
         private readonly IDeleteHistoryService deleteHistoryService;
 
@@ -34,7 +35,8 @@ namespace GCTL.Service.Users
                            IRepository<CoreBranch> branchRepository,
                            IRepository<HrmDefEmpType> empTypeRepository,
                            IRepository<HrmEisDefEmploymentNature> empNatureRepository,
-                           IDeleteHistoryService deleteHistoryService) : base(repository)
+                           IDeleteHistoryService deleteHistoryService,
+                           IRepository<SalesCustomer> customerRepository) : base(repository)
         {
             this.repository = repository;
             this.employeeRepository = employeeRepository;
@@ -46,6 +48,7 @@ namespace GCTL.Service.Users
             this.empTypeRepository = empTypeRepository;
             this.empNatureRepository = empNatureRepository;
             this.deleteHistoryService = deleteHistoryService;
+            this.customerRepository = customerRepository;
         }
 
         public async Task<int> GetIdByEmployee(string code)
@@ -100,6 +103,21 @@ namespace GCTL.Service.Users
                 Name = string.Join(" ", new[] { e.FirstName, e.LastName }
                                         .Where(s => !string.IsNullOrWhiteSpace(s)))
                        + $" ({e.EmployeeId})"
+            }).ToList();
+        }
+
+        public async Task<List<CommonSelectModel>> GetCustomers()
+        {
+            var customer = await customerRepository.All()
+                .AsNoTracking()
+                .Select(e => new { e.CustomerId, e.CustomerName })
+                .ToListAsync();
+
+            return customer.Select(e => new CommonSelectModel
+            {
+                Code = e.CustomerId,
+                Name = e.CustomerName
+                       + $" ({e.CustomerId})"
             }).ToList();
         }
 
