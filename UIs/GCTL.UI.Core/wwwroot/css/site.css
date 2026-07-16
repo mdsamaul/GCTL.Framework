@@ -572,7 +572,7 @@ h6 {
 }*/
 .app-main-content {
     flex-grow: 1;
-    padding: 0px;
+    padding: 10px;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -1095,4 +1095,48 @@ h6 {
     to {
         height: var(--bar-height);
     }
+}
+
+.toolbar-btn {
+    height: 38px;
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: .2s;
+}
+
+    .toolbar-btn:hover {
+        background: #f8fafc;
+        box-shadow: 0 3px 8px rgba(0,0,0,.08);
+    }
+
+    .toolbar-btn i {
+        font-size: 15px;
+    }
+
+.toolbar-btn-save {
+    color: #228c37;
+}
+
+.toolbar-btn-delete {
+    color: #ef4444;
+}
+
+.toolbar-btn-clear {
+    color: #f59e0b;
+}
+
+.toolbar-btn-print {
+    color: #2563eb;
+}
+
+.toolbar-btn-fav {
+    color: #f59e0b;
 }

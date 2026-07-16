@@ -56,8 +56,15 @@
 </div>
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        <button type="button" class="btn btn-default success-btn btn-common btn-circle float-right js-religion-save" data-id="@Model.ReligionCode">
-            <span class="btn-icon-wrapper pr-2 opacity-7"><i class="fas fa-save"></i></span> Save
-        </button>
+       @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "religion"
+        })
     </div>
 </div>

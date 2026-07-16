@@ -228,7 +228,7 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.Tc > 0);
-                if (modelVM.Tc == 0)
+                if (modelVM.Tc == 0 || modelVM.Tc == null)
                 {
                     var hasSavePermission = await supplierInformationService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)

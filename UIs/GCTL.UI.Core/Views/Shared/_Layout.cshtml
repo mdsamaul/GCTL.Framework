@@ -171,5 +171,14 @@
         });
         });
     </script>
+
+    @if (TempData["PermissionDeniedMessage"] != null)
+    {
+        <script>
+            $(function () {
+            toastr.error('@TempData["PermissionDeniedMessage"]');
+            });
+        </script>
+    }
 </body>
 </html>

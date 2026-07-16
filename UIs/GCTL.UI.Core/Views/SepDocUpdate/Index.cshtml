@@ -1,7 +1,10 @@
-﻿@model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel
-
+﻿@* @model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel *@
+@model GCTL.UI.Core.ViewModels.SepDocUpdate.ShipmentUpdateSetupViewModel
 @{
-    ViewData["Title"] = "Shipment Entry";
+    // ViewData["Title"] = "Shipment Entry";
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Shipment Entry";
+    Model.Breadcrumb = "Shipment Entry";
 }
 
 <link href="~/css/selectCSS.css" rel="stylesheet" />
@@ -362,6 +365,8 @@
 </style>
 
 
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
 
 <div class="">
     <div class="">
@@ -399,7 +404,8 @@
 
 
             @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel{
-                Title = "Daily Job Update"
+                Title = "Daily Job Update",
+                SaveBtnClass = "saveBtn"
             })
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
                 <div class="mb-3">
@@ -530,10 +536,10 @@
                     </div>
 
 
-                    </div>
+                   
                 </div>
             </div>
-        </div>
+        @* </div> *@
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
 
 
@@ -788,205 +794,20 @@
                 </div>
 
                 <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
-
-                <form asp-action="Create" method="post" id="shipmentForm">
-                    <div class="row pb-2">
-                        @Html.AntiForgeryToken()
-
-                        <input type="hidden" asp-for="JobNo" id="jobNoHidden" value="" />
-                        <input type="hidden" asp-for="AutoId" id="autoId" />
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">ETA Delivery Date</label>
-                            <input asp-for="ETADeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
-                                   id="etaDeliveryDate" />
-                            <span asp-validation-for="ETADeliveryDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Actual Delivery Date -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Actual Delivery Date</label>
-                            <input asp-for="ActualDeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
-                                   id="actualDeliveryDate" />
-                            <span asp-validation-for="ActualDeliveryDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Unstuffing Date -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Unstuffing Date</label>
-                            <input asp-for="UnstuffingDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffingDate" />
-                            <span asp-validation-for="UnstuffingDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Place of Loading -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Place of Loading</label>
-                            <select asp-for="PlaceOfLoadingID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Place" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
-                                <option value="">Select Place</option>
-                            </select>
-                            <span asp-validation-for="PlaceOfLoadingID" class="text-danger"></span>
-                        </div>
-
-                        <!-- ETD Date -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">ETD Date</label>
-                            <input asp-for="ETDDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
-                            <span asp-validation-for="ETDDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Shed / Yard -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Shed / Yard</label>
-                            <select asp-for="ShedYardID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shed/Yard" id="shedYardId" asp-items="ViewBag.ShedYard as SelectList">
-                                <option value="">Select Shed/Yard</option>
-                            </select>
-                            <span asp-validation-for="ShedYardID" class="text-danger"></span>
-                        </div>
-
-                        <!-- Freight Charge -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Freight Charge</label>
-                            <select asp-for="FreightChargeID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Freight Charge" id="freightChargeId" asp-items="ViewBag.FreightCharge as SelectList">
-                                <option value="">Select Freight Charge</option>
-                            </select>
-                            <span asp-validation-for="FreightChargeID" class="text-danger"></span>
-                        </div>
-                         <div class="col-lg-4 col-md-6"></div>
-                          <div class="col-lg-4 col-md-6"></div>
-                        <!-- Shipment Status (Highlighted) -->
-                        <div style="display: flex;background: #FFFFE0;align-content: center;align-items: center;padding: 12px;margin: 12px 0;">
-
-                        
-                        <div class="col-lg-4 col-md-6" style="padding-right:12px;">
-                            <label class="form-label">Shipment Status</label>                           
-                                       <select asp-for="ShipmentStatus" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Status" asp-items="ViewBag.shipStatus as SelectList">
-                                <option value="">Select Shipment Status</option>
-                            </select>
-                            <span asp-validation-for="ShipmentStatus" class="text-danger"></span>
-                        </div>
-                         <!-- ETD Date -->
-                        
-                         <!-- Quantity + Unit (Horizontal Group) -->
-                      <div class="col-lg-4 col-md-6" style="padding-left: 12px;">
-                            <label class="form-label">Date & Time</label>
-
-                            <div class="row g-2">
-                                <div class="col flex-grow-1" style="min-width: 70px;">
-                                    <input type="text"
-                                           class="form-control form-control-sm custom-datepicker w-100"
-                                           asp-for="Date" />
-                                </div>
-
-                                <div class="col-auto" style="min-width: 150px; margin-top: 6px;">
-                                    <input type="text"
-                                           class="form-control form-control-sm custom-timepicker w-100"
-                                           asp-for="Time" />
-                                </div>
-                            </div>
-
-                            <span class="text-danger"></span>
-                        </div>
-
-
-                         <div class="col-lg-4 col-md-6"  style="padding-left: 12px;">
-                                <label class="form-label">Remarks</label>
-                                <textarea class="form-control form-control-sm" placeholder="Shipment Status" rows="1" asp-for="UpdateRemarks"></textarea>
-                                <span class="text-danger"></span>
-                            </div>
-                        </div>
-                       
-
-                        <!-- Creation Date -->
-                        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
-                            <label class="form-label text-nowrap ">Creation Date:</label>
-                            <span class="form-control-plaintext flex-grow-1 fs-9" id="creationDate"></span>
-                        </div>
-
-                        <div class="col-lg-4 col-md-6 create-modify-dateshow"></div>
-
-                        <!-- Updated Date -->
-                        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
-                            <label class="form-label  text-nowrap mb-0">Updated Date:</label>
-                            <span class="form-control-plaintext flex-grow-1 fs-9" id="updatedDate"></span>
-                        </div>
-                    </div>
-                </form>
-            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-            {
-                Title = "",
-                ShowDelete = false,
-                ShowClear = false,
-                ShowPrint = false,
-                ShowFavorite = false,
-                IsPlain = true
-            })
-               
-                @* <div class="pb-2">
-                    <div class="card shadow">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">Shipment Progress Timeline</h5>
-                        </div>
-                        <div class="card-body p-1">
-
-                            <div class="timeline">
-                                <!-- Green Progress Line (প্রথমের পর থেকে শুরু) -->
-                                <div class="timeline-line" style="width: calc(62% - 28px);"></div>
-
-                                <!-- 01 -->
-                                <div class="timeline-item completed">
-                                    <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                    <h6>Document Received</h6>
-                                   
-                                    <small class="timeline-date">10 Jul, 2026</small>
-                                </div>
-
-                                <!-- 02 -->
-                                <div class="timeline-item completed">
-                                    <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                    <h6>Shipping Completed</h6>
-                                    
-                                    <small class="timeline-date">11 Jul, 2026</small>
-                                </div>
-
-                                <!-- 03 -->
-                                <div class="timeline-item completed">
-                                    <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                    <h6>Departed Origin</h6>
-                                   
-                                    <small class="timeline-date">12 Jul, 2026</small>
-                                </div>
-
-                                <!-- 04 -->
-                                <div class="timeline-item completed">
-                                    <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                    <h6>In Transit</h6>
-                                    
-                                    <small class="timeline-date">13 Jul, 2026</small>
-                                </div>
-
-                                <!-- 05 Current -->
-                                <div class="timeline-item active">
-                                    <div class="timeline-marker"><i class="fas fa-truck"></i></div>
-                                    <h6>Arrived Destination Port</h6>
-                                    
-                                    <small class="timeline-date">14 Jul, 2026</small>
-                                </div>
-
-                                <!-- 06 -->
-                                <div class="timeline-item pending">
-                                    <div class="timeline-marker"><i class="fas fa-box"></i></div>
-                                    <h6>Unstuffing Completed</h6>
-                                </div>
-
-                                <!-- 07 -->
-                                <div class="timeline-item pending">
-                                    <div class="timeline-marker"><i class="fas fa-home"></i></div>
-                                    <h6>Delivered</h6>                                
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div> *@
+                @await Html.PartialAsync("_Setup", Model.Setup)
+             
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "",
+                    ShowDelete = false,
+                    ShowClear = false,
+                    ShowPrint = false,
+                    ShowFavorite = false,
+                    IsPlain = true,
+                SaveBtnClass = "saveBtn"
+                })
+            </div>
+        </div>
             <div class="pb-2 d-none" id="timelineCard">
                 <div class="card shadow">
                     <div class="card-header bg-light">
@@ -1000,8 +821,7 @@
                 </div>
             </div>
 
-               
-            <hr class="border border-body-emplhsish border-1 opacity-100 mx-auto mb-2">
+               <hr class="border border-body-emplhsish border-1 opacity-100 mx-auto mb-2">
 
 
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
