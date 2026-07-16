@@ -123,6 +123,7 @@
             <main class="app-main-content">
                 @RenderBody()
             </main>
+            <div id="gcModalStack"></div>
         </div>
     </div>
 
@@ -149,6 +150,8 @@
     <script src="~/lib/custom-inline-timepicker/custom-inline-timepicker.js"></script>
     <script src="~/lib/custom-select-2/custom-select-2.js"></script>
     <script src="~/js/pages/getholidayslist.js"></script>
+    <script src="~/js/modal/gc-modal.js"></script>
+    <script src="~/js/modal/gc-delete.js"></script>
     <script>
         window.config = {
         config: {
@@ -180,5 +183,6 @@
             });
         </script>
     }
+    <partial name="_DeleteModal" />
 </body>
 </html>

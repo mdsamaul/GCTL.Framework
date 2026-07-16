@@ -271,6 +271,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_Def_EmployeeStatus]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_Def_EmpType]",
          "ObjectType": 0
       },
@@ -279,7 +283,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_Def_MaritalStatus]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_Def_Nationality]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Relationship]",
          "ObjectType": 0
       },
       {
@@ -295,7 +307,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_EmpDigitalSignature]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_Employee]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmployeeAdditionalInfo]",
          "ObjectType": 0
       },
       {
@@ -303,7 +323,19 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_EmployeeEducation]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_EmployeeOfficialInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmployeePhoto]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Separation]",
          "ObjectType": 0
       },
       {
@@ -457,6 +489,10 @@
       {
          "Name": "[dbo].[UserVisitLogs]",
          "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FullEmployeeDetailsGetByid]",
+         "ObjectType": 1
       },
       {
          "Name": "[dbo].[usp_GetHolidayList]",

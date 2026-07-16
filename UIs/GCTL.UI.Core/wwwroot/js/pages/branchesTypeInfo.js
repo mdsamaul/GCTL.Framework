@@ -11,8 +11,6 @@
             saveSelector: ".js-branch-save",
             selectAllSelector: "#branch-check-all",
             deleteSelector: ".js-branch-delete-confirm",
-            deleteModal: "#branch-delete-modal",
-            finalDeleteSelector: ".js-branch-delete",
             clearSelector: ".js-branch-clear",
             topSelector: ".js-go",
             decimalSelector: ".js-branch-decimalplaces",
@@ -20,9 +18,6 @@
             showNagativeFormat: false,
             availabilitySelector: ".js-branch-check-availability",
             haseFile: false,
-            quickAddSelector: ".js-quick-add",
-            quickAddModal: "#quickAddModal",
-            //lastCodeSelector: '#lastCode',
             load: function () {
 
             }
@@ -49,7 +44,6 @@
                 let url = saveUrl + "/" + $(this).data("id") ?? "";
                 loadForm(url);
 
-                // Setting id on the delete selector for delete
                 var id = $(this).data('id');
                 $(settings.deleteSelector).data('id', id);
 
@@ -62,7 +56,6 @@
                 var CompanyCode = $("#CompanyCode").val();
                 var validForm = $(settings.formSelector).valid();
                 if (!validForm) {
-
                     return false;
                 }
 
@@ -74,7 +67,6 @@
                 }
 
                 var url = $(settings.formSelector).attr("action");
-                //var companyCode = $("CompanyCode").val();
 
                 var options = {
                     url: url,
@@ -86,11 +78,6 @@
                                 .then((data) => {
                                     $("#CompanyCode").val(CompanyCode);
                                     loadBranches(settings.baseUrl, settings.gridSelector);
-                                    // alert("test");
-
-                                    //$(settings.lastCodeSelector).val(response.lastCode); // Set the value
-                                    //alert($(settings.lastCodeSelector).val()); // Get and alert the value
-
                                 })
                                 .catch((error) => {
                                     console.log(error)
@@ -111,94 +98,13 @@
                 $.ajax(options);
             });
 
-            //
-
-            let loadUrl,
-                target,
-                reloadUrl,
-                title,
-                lastCode;
-            // Quick add
-            $("body").on("click", settings.quickAddSelector, function (e) {
-                e.stopPropagation();
-                e.preventDefault();
-                e.stopImmediatePropagation();
-
-                loadUrl = $(this).data("url");
-                target = $(this).data("target");
-                reloadUrl = $(this).data("reload-url");
-                title = $(this).data("title");
-
-                $(settings.quickAddModal + " .modal-title").html(title);
-                $(settings.quickAddModal + " .modal-body").empty();
-
-                $(settings.quickAddModal + " .modal-body").load(loadUrl, function () {
-
-                    $(settings.quickAddModal).modal("show");
-                    $("#header").hide();
-                    $(settings.quickAddModal + " .modal-body #header").hide()
-
-                    $("#left_menu").hide();
-                    $(settings.quickAddModal + " .modal-body #left_menu").hide()
-
-                    $("#main-content").toggleClass("collapse-main");
-                    $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main")
-
-                    $("body").removeClass("sidebar-mini");
-                })
-            });
-
-            $("body").on("click", ".js-modal-dismiss", function () {
-                $("body").removeClass("sidebar-mini").addClass("sidebar-mini");
-
-                $("#header").show();
-                $(settings.quickAddModal + " .modal-body #header").show()
-
-                $("#left_menu").show();
-
-                $(settings.quickAddModal + " .modal-body #left_menu").show()
-
-                $("#main-content").toggleClass("collapse-main");
-                $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main")
-
-                lastCode = $(settings.quickAddModal + " #lastCode").val();
-
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal).modal("hide");
-
-
-                $(target).empty("");
-                $(target).append($('<option>', {
-                    value: '',
-                    text: `--Select ${title}--`
-                }));
-                $.ajax({
-                    url: reloadUrl,
-                    method: "GET",
-                    success: function (response) {
-                        console.log(response);
-                        $.each(response, function (i, item) {
-                            $(target).append($('<option>', {
-                                value: item.code,
-                                text: item.name
-                            }));
-                        });
-                        console.log("Test", lastCode);
-                        $(target).val(lastCode);
-                        //alert(`${$(target).val(lastCode)}`);
-
-                    }
-                });
-            });
-
-            //
-
             $('body').on('click', settings.selectAllSelector, function () {
                 $(".checkBox").prop('checked',
                     $(this).prop('checked'));
             });
 
             $('body').on('click', settings.deleteSelector, function (e) {
+                
                 e.preventDefault();
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
@@ -213,56 +119,33 @@
                 }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    GcDelete.confirm("Are you sure to delete?", function () {
+                        $.ajax({
+                            url: deleteUrl + "/" + selectedItems,
+                            method: "POST",
+                            success: function (response) {
+                                console.log(response);
+                                if (response.success) {
+                                    toastr.success(response.message);
+                                    selectedItems = [];
+                                    loadBranches(settings.baseUrl, settings.gridSelector);
+                                    loadForm(saveUrl);
+                                }
+                                else {
+                                    if (response.refSuccess) {
+                                        toastr.warning(response.message, 'Warning');
+                                    }
+                                    if (!response.success) {
+                                        toastr.error(response.message, 'Error');
+                                    }
+                                    console.log(response);
+                                }
+                            }
+                        });
+                    });
                 } else {
                     toastr.info("Please select at least one item.", 'Warning');
                 }
-            });
-
-            $('body').on('show.bs.modal', settings.deleteModal, function (event) {
-                var source = $(event.relatedTarget);
-                var id = source.data(id);
-
-                var title = source.data("title");
-                title = "Are you sure to delete?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $('body').on('click', settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl + "/" + selectedItems,
-                        method: "POST",
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-                                /*settings.load(settings.baseUrl);*/
-                                loadBranches(settings.baseUrl, settings.gridSelector);
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                if (response.refSuccess) {
-                                    toastr.warning(response.message, 'Warning');
-                                }
-
-                                if (!response.success) {
-                                    toastr.error(response.message, 'Error');
-                                }
-                                console.log(response);
-                            }
-                        }
-                    });
-                });
-
-            }).on('hide.bs.modal', function () {
-                $('body').off('click', settings.finalDeleteSelector);
             });
 
             $("body").on('click', settings.topSelector, function (e) {
@@ -280,7 +163,6 @@
                 let code = $(".js-code").val();
                 let name = self.val();
 
-                // check
                 $.ajax({
                     url: settings.baseUrl + "/CheckAvailability",
                     method: "POST",
@@ -295,14 +177,11 @@
             });
         });
 
-        //
-        $("body").on("change", "#CompanyCode", function () {
-
+        $("body").on("change", "#CompanyCode", function () {            
             var companyCode = $("#CompanyCode").val();
-            //alert('test');
             loadBranches(settings.baseUrl, settings.gridSelector);
         });
-       
+
         function loadBranches(baseUrl, gridSelector) {
             var CompanyCode = $("#CompanyCode").val();
             var dataTable = $(gridSelector).DataTable({
@@ -396,21 +275,17 @@
         }
 
         function initialize() {
-            $(settings.formSelector + ' .selectpickercBranchesTypeInfo').select2({
-                width: '92%',
-                language: {
-                    noResults: function () {
-                        //return 'Not found <a class="add_new_item" href="javascript:void(0)">Add New</a>';
-                    }
-                },
-                escapeMarkup: function (markup) {
-                    return markup;
-                }
-            });
-        }
+            var $select = $('#CompanyCode');
+            var items = $select.find('option').map(function () {
+                return { id: $(this).val(), text: $(this).text(), selected: $(this).is(':selected') };
+            }).get().filter(function (i) { return i.id !== ""; });
 
+            new customDropdownSingle('#CompanyCode', {
+                placeholder: 'Select Company',
+                items: items
+            }).init();
+        }
         function validation() {
-         
             var compName = $('#CompanyCode').val();
             var baName = $('#BranchName').val();
             var add = $('#Address').val();
@@ -432,7 +307,6 @@
             }
 
             return true;
-
         }
     }
 
