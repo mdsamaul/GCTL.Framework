@@ -338,13 +338,37 @@
                 this.options.onChange(this.getValue(), this);
             }
         }
-        init() {
+        // init() {
+        //     if (!this.$original.length) {
+        //         console.warn('customDropdown: element pawa jayni -> ' + this.originalSelector);
+        //         return this;
+        //     }
+        //     this._buildSkeleton();
+        //     this._bindCommonEvents();
+        //     if (this.options.items) this.loadStaticItems(this.options.items);
+        //     return this;
+        // }
+
+        init() {            
             if (!this.$original.length) {
                 console.warn('customDropdown: element pawa jayni -> ' + this.originalSelector);
                 return this;
             }
+
+            // Age theke instance thakle purono wrapper soraw (re-init er khetre)
+            var existing = this.$original.data('customDdInstance');
+            if (existing && existing.$wrapper) {
+                existing.$wrapper.remove();
+                $(document).off('click.' + existing._id);
+            }
+
+            // Doubly-safe: kono orphan wrapper thakle o soraw
+            this.$original.next('.custom-dd-wrapper').remove();
+
             this._buildSkeleton();
             this._bindCommonEvents();
+            this.$original.data('customDdInstance', this);
+
             if (this.options.items) this.loadStaticItems(this.options.items);
             return this;
         }

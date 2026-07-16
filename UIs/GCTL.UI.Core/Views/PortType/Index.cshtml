@@ -65,21 +65,25 @@
     </div>
 </section>
 <partial name="DeleteModal" />
-<partial name="QuickAddModal" />
 
-@section Scripts {
-    @{
+   @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="~/js/pages/portType.js"></script>
-    <script type="text/javascript">
-        var options = {
-        baseUrl: '@Url.Action("", "PortType")'
-        };
-        options.load = () => {
-        };
+ 
 
-        $.portType(options);
-    </script>
-}
 
+
+        
+<script src="~/js/app.input.validation.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+    if (window.jQuery && typeof $.portType === "function") {
+    var options = { baseUrl: '@Url.Action("", "PortType")' };
+    options.load = () => { };
+    $.portType(options);
+    } else {
+    setTimeout(waitForJQuery, 30);
+    }
+    })();
+</script>

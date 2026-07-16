@@ -73,6 +73,7 @@
             //#region Save
 
             $("body").on("click", settings.saveSelector, function () {
+                debugger
                 validation();
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
@@ -236,62 +237,62 @@
 
             //#endregion
 
-            //#region Modal & quickAddSelector
+            // //#region Modal & quickAddSelector
 
-            $("body").on("click", settings.quickAddSelector, function (e) {
-                e.stopPropagation();
-                e.preventDefault();
-                e.stopImmediatePropagation();
+            // $("body").on("click", settings.quickAddSelector, function (e) {
+            //     e.stopPropagation();
+            //     e.preventDefault();
+            //     e.stopImmediatePropagation();
 
-                loadUrl = $(this).data("url");
-                target = $(this).data("target");
-                reloadUrl = $(this).data("reload-url");
-                title = $(this).data("title");
+            //     loadUrl = $(this).data("url");
+            //     target = $(this).data("target");
+            //     reloadUrl = $(this).data("reload-url");
+            //     title = $(this).data("title");
 
-                $(settings.quickAddModal + " .modal-title").html(title);
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal + " .modal-body").load(loadUrl, function () {
-                    $(settings.quickAddModal).modal("show");
-                    $("#header").hide();
-                    $(settings.quickAddModal + " .modal-body #header").hide();
-                    $("#left_menu").hide();
-                    $(settings.quickAddModal + " .modal-body #left_menu").hide();
-                    $("#main-content").toggleClass("collapse-main");
-                    $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
-                    $("body").removeClass("sidebar-mini");
-                });
-            });
+            //     $(settings.quickAddModal + " .modal-title").html(title);
+            //     $(settings.quickAddModal + " .modal-body").empty();
+            //     $(settings.quickAddModal + " .modal-body").load(loadUrl, function () {
+            //         $(settings.quickAddModal).modal("show");
+            //         $("#header").hide();
+            //         $(settings.quickAddModal + " .modal-body #header").hide();
+            //         $("#left_menu").hide();
+            //         $(settings.quickAddModal + " .modal-body #left_menu").hide();
+            //         $("#main-content").toggleClass("collapse-main");
+            //         $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
+            //         $("body").removeClass("sidebar-mini");
+            //     });
+            // });
 
-            $("body").on("click", ".js-modal-dismiss", function () {
-                $("body").removeClass("sidebar-mini").addClass("sidebar-mini");
-                $("#header").show();
-                $(settings.quickAddModal + " .modal-body #header").show();
-                $("#left_menu").show();
-                $(settings.quickAddModal + " .modal-body #left_menu").show();
-                $("#main-content").toggleClass("collapse-main");
-                $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
+            // $("body").on("click", ".js-modal-dismiss", function () {
+            //     $("body").removeClass("sidebar-mini").addClass("sidebar-mini");
+            //     $("#header").show();
+            //     $(settings.quickAddModal + " .modal-body #header").show();
+            //     $("#left_menu").show();
+            //     $(settings.quickAddModal + " .modal-body #left_menu").show();
+            //     $("#main-content").toggleClass("collapse-main");
+            //     $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
 
-                lastCode = $(settings.quickAddModal + " #lastCode").val();
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal).modal("hide");
+            //     lastCode = $(settings.quickAddModal + " #lastCode").val();
+            //     $(settings.quickAddModal + " .modal-body").empty();
+            //     $(settings.quickAddModal).modal("hide");
 
-                $(target).empty("");
-                $(target).append($('<option>', { value: '', text: `--Select ${title}--` }));
-                $.ajax({
-                    url: reloadUrl,
-                    method: "GET",
-                    success: function (response) {
-                        console.log(response);
-                        $.each(response, function (i, item) {
-                            $(target).append($('<option>', { value: item.code, text: item.name }));
-                        });
-                        $(target).val(lastCode);
-                        console.log("Testttt", lastCode);
-                    }
-                });
-            });
+            //     $(target).empty("");
+            //     $(target).append($('<option>', { value: '', text: `--Select ${title}--` }));
+            //     $.ajax({
+            //         url: reloadUrl,
+            //         method: "GET",
+            //         success: function (response) {
+            //             console.log(response);
+            //             $.each(response, function (i, item) {
+            //                 $(target).append($('<option>', { value: item.code, text: item.name }));
+            //             });
+            //             $(target).val(lastCode);
+            //             console.log("Testttt", lastCode);
+            //         }
+            //     });
+            // });
 
-            //#endregion
+            // //#endregion
 
         });
 

@@ -1,5 +1,6 @@
 using GCTL.Data.Context;
 using GCTL.Data.Models;
+using GCTL.Service.AdmissionTypes;
 using GCTL.Service.BankBranchInformations;
 using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;

@@ -28,7 +28,47 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Index
-        public async Task<IActionResult> Index(bool child = false)
+        //public async Task<IActionResult> Index(bool child = false)
+        //{
+        //    var hasPermission = await portTypeService.PagePermissionAsync(LoginInfo.AccessCode);
+        //    if (!hasPermission)
+        //    {
+        //        return RedirectToAction("Login", "Accounts");
+        //    }
+
+        //    var model = new PortTypePageViewModel
+        //    {
+        //        PageUrl = Url.Action(nameof(Index))
+        //    };
+
+        //    try
+        //    {
+
+        //        var list = await portTypeService.GetAllAsync();
+        //        model.PortTypeList = list ?? new List<PortTypeSetupViewModel>();
+
+        //        commonService.FindMaxNo(ref strMaxNO, "PortId", "Sales_Def_PortType", 4);
+
+        //        model.Setup = new PortTypeSetupViewModel
+        //        {
+        //            PortId = strMaxNO
+        //        };
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+
+        //        model.PortTypeList = new List<PortTypeSetupViewModel>();
+        //        model.Setup = new PortTypeSetupViewModel();
+        //        Console.WriteLine("Error" + ex.Message);
+        //    }
+
+        //    if (child)
+        //        return PartialView(model);
+
+        //    return View(model);
+        //}
+        public async Task<IActionResult> Index()
         {
             var hasPermission = await portTypeService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -63,8 +103,10 @@ namespace GCTL.UI.Core.Controllers
                 Console.WriteLine("Error" + ex.Message);
             }
 
-            if (child)
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
                 return PartialView(model);
+            }
 
             return View(model);
         }

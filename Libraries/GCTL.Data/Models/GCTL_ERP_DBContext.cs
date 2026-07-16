@@ -139,9 +139,15 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<HrmDefEmpType> HrmDefEmpTypes { get; set; }
 
+    public virtual DbSet<HrmDefEmployeeStatus> HrmDefEmployeeStatuses { get; set; }
+
     public virtual DbSet<HrmDefGrade> HrmDefGrades { get; set; }
 
+    public virtual DbSet<HrmDefMaritalStatus> HrmDefMaritalStatuses { get; set; }
+
     public virtual DbSet<HrmDefNationality> HrmDefNationalities { get; set; }
+
+    public virtual DbSet<HrmDefRelationship> HrmDefRelationships { get; set; }
 
     public virtual DbSet<HrmDefReligion> HrmDefReligions { get; set; }
 
@@ -149,11 +155,21 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<HrmEisDefEmploymentNature> HrmEisDefEmploymentNatures { get; set; }
 
+    public virtual DbSet<HrmEmpDigitalSignature> HrmEmpDigitalSignatures { get; set; }
+
     public virtual DbSet<HrmEmployee> HrmEmployees { get; set; }
+
+    public virtual DbSet<HrmEmployeeAdditionalInfo> HrmEmployeeAdditionalInfos { get; set; }
 
     public virtual DbSet<HrmEmployeeContactInfo> HrmEmployeeContactInfos { get; set; }
 
+    public virtual DbSet<HrmEmployeeEducation> HrmEmployeeEducations { get; set; }
+
     public virtual DbSet<HrmEmployeeOfficialInfo> HrmEmployeeOfficialInfos { get; set; }
+
+    public virtual DbSet<HrmEmployeePhoto> HrmEmployeePhotos { get; set; }
+
+    public virtual DbSet<HrmSeparation> HrmSeparations { get; set; }
 
     public virtual DbSet<InvDefCompanyInfo> InvDefCompanyInfos { get; set; }
 
@@ -2545,6 +2561,39 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
         });
 
+        modelBuilder.Entity<HrmDefEmployeeStatus>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("HRM_Def_EmployeeStatus");
+
+            entity.Property(e => e.EmployeeStatus)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.EmployeeStatusCode)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)");
+            entity.Property(e => e.EmployeeStatusId)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.ShortName)
+                .IsRequired()
+                .HasMaxLength(50);
+        });
+
         modelBuilder.Entity<HrmDefGrade>(entity =>
         {
             entity.HasKey(e => e.AutoId).HasName("PK__HRM_Def___385EFE4823B64716");
@@ -2580,6 +2629,35 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ToGrossSalary).HasColumnType("numeric(18, 2)");
         });
 
+        modelBuilder.Entity<HrmDefMaritalStatus>(entity =>
+        {
+            entity.HasKey(e => e.MaritalStatusCode).HasName("PK__HRM_Def___22B5C4190FB313A5");
+
+            entity.ToTable("HRM_Def_MaritalStatus");
+
+            entity.Property(e => e.MaritalStatusCode).HasMaxLength(50);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.MaritalStatus)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+        });
+
         modelBuilder.Entity<HrmDefNationality>(entity =>
         {
             entity.HasKey(e => e.NationalityCode).HasName("PK__HRM_Def___1E433F0CF323C852");
@@ -2608,6 +2686,38 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<HrmDefRelationship>(entity =>
+        {
+            entity.HasKey(e => e.RelationshipCode).HasName("PK__HRM_Def___C74433093E1CC322");
+
+            entity.ToTable("HRM_Def_Relationship");
+
+            entity.Property(e => e.RelationshipCode).HasMaxLength(50);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Relationship)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.ShortName)
+                .IsRequired()
+                .HasMaxLength(50);
         });
 
         modelBuilder.Entity<HrmDefReligion>(entity =>
@@ -2703,6 +2813,27 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("TC");
+        });
+
+        modelBuilder.Entity<HrmEmpDigitalSignature>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("HRM_EmpDigitalSignature");
+
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("autoId");
+            entity.Property(e => e.DigitalSignature)
+                .IsRequired()
+                .HasColumnType("image");
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.ImgType)
+                .IsRequired()
+                .HasMaxLength(50);
         });
 
         modelBuilder.Entity<HrmEmployee>(entity =>
@@ -2801,6 +2932,101 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("UserInfoEmployeeID");
         });
 
+        modelBuilder.Entity<HrmEmployeeAdditionalInfo>(entity =>
+        {
+            entity.HasKey(e => e.EmployeAddInfoId).HasName("PK__HRM_Empl__A5574297C798931C");
+
+            entity.ToTable("HRM_EmployeeAdditionalInfo");
+
+            entity.Property(e => e.EmployeAddInfoId)
+                .HasMaxLength(50)
+                .HasColumnName("EmployeAddInfoID");
+            entity.Property(e => e.AtmCardNo).HasMaxLength(200);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.BankAcNameSibl)
+                .HasMaxLength(50)
+                .HasColumnName("BankAcNameSIBL");
+            entity.Property(e => e.BankAcNameUcbl)
+                .HasMaxLength(50)
+                .HasColumnName("BankAcNameUCBL");
+            entity.Property(e => e.BankAcNo)
+                .HasMaxLength(200)
+                .HasColumnName("BankAcNO");
+            entity.Property(e => e.BankAcNoSibl)
+                .HasMaxLength(50)
+                .HasColumnName("BankAcNoSIBL");
+            entity.Property(e => e.BankAcNoUcbl)
+                .HasMaxLength(50)
+                .HasColumnName("BankAcNoUCBL");
+            entity.Property(e => e.BankAcname)
+                .HasMaxLength(300)
+                .HasColumnName("BankACName");
+            entity.Property(e => e.BankBranchIdsibl)
+                .HasMaxLength(50)
+                .HasColumnName("BankBranchIDSIBL");
+            entity.Property(e => e.BankBranchIducbl)
+                .HasMaxLength(50)
+                .HasColumnName("BankBranchIDUCBL");
+            entity.Property(e => e.BankIdsibl)
+                .HasMaxLength(50)
+                .HasColumnName("BankIDSIBL");
+            entity.Property(e => e.BankIducbl)
+                .HasMaxLength(50)
+                .HasColumnName("BankIDUCBL");
+            entity.Property(e => e.BranchAddressSibl)
+                .HasMaxLength(50)
+                .HasColumnName("BranchAddressSIBL");
+            entity.Property(e => e.BranchAddressUcbl)
+                .HasMaxLength(50)
+                .HasColumnName("BranchAddressUCBL");
+            entity.Property(e => e.BranchCode).HasMaxLength(50);
+            entity.Property(e => e.CompanyCode).HasMaxLength(10);
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.LicenseExpireDate).HasColumnType("datetime");
+            entity.Property(e => e.LicenseIssueDate).HasColumnType("datetime");
+            entity.Property(e => e.LicenseNo).HasMaxLength(200);
+            entity.Property(e => e.LicenseType).HasMaxLength(200);
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.PassportExpiryDate).HasColumnType("datetime");
+            entity.Property(e => e.PassportIssueDate).HasColumnType("datetime");
+            entity.Property(e => e.PassportName).HasMaxLength(100);
+            entity.Property(e => e.PassportNo).HasMaxLength(200);
+            entity.Property(e => e.SalaryBankId)
+                .HasMaxLength(50)
+                .HasColumnName("SalaryBankID");
+            entity.Property(e => e.SalaryBranchId)
+                .HasMaxLength(50)
+                .HasColumnName("SalaryBranchID");
+            entity.Property(e => e.SymbolOfVehicleClass).HasMaxLength(300);
+            entity.Property(e => e.UserInfoEmployeeId)
+                .HasMaxLength(50)
+                .HasColumnName("UserInfoEmployeeID");
+            entity.Property(e => e.WorkPermitNo)
+                .HasMaxLength(100)
+                .HasColumnName("WorkPermitNO");
+            entity.Property(e => e.WorkPermitType).HasMaxLength(200);
+            entity.Property(e => e.WpEffectiveDate).HasColumnType("datetime");
+            entity.Property(e => e.WpExpireDate).HasColumnType("datetime");
+        });
+
         modelBuilder.Entity<HrmEmployeeContactInfo>(entity =>
         {
             entity.HasKey(e => e.EmpContactId).HasName("PK__HRM_Empl__AD39AA4DB738F475");
@@ -2861,6 +3087,81 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.UserInfoEmployeeId)
                 .HasMaxLength(50)
                 .HasColumnName("UserInfoEmployeeID");
+        });
+
+        modelBuilder.Entity<HrmEmployeeEducation>(entity =>
+        {
+            entity.HasKey(e => e.EmpEduCode).HasName("PK__HRM_Empl__2B8B2F0E3CDA8111");
+
+            entity.ToTable("HRM_EmployeeEducation");
+
+            entity.Property(e => e.EmpEduCode).HasMaxLength(50);
+            entity.Property(e => e.Achievment).IsRequired();
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.BoardCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.BranchCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CgpaMarks)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CompanyCode)
+                .IsRequired()
+                .HasMaxLength(10);
+            entity.Property(e => e.DegreeCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Dueration)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.DuratioinType)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.ExamTitleCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.GroupCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.InstitueCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.Remarks).IsRequired();
+            entity.Property(e => e.ResultDivision)
+                .IsRequired()
+                .HasMaxLength(200);
+            entity.Property(e => e.ScaleOf)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("ScaleOF");
+            entity.Property(e => e.YearofPasssing)
+                .IsRequired()
+                .HasMaxLength(50);
         });
 
         modelBuilder.Entity<HrmEmployeeOfficialInfo>(entity =>
@@ -2999,6 +3300,74 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("UserInfoEmployeeID");
+        });
+
+        modelBuilder.Entity<HrmEmployeePhoto>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("HRM_EmployeePhoto");
+
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("autoId");
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.ImgType)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Photo)
+                .IsRequired()
+                .HasColumnType("image");
+        });
+
+        modelBuilder.Entity<HrmSeparation>(entity =>
+        {
+            entity.HasKey(e => e.SeparationId).HasName("PK__HRM_Sepa__3850A09C6718C5DF");
+
+            entity.ToTable("HRM_Separation");
+
+            entity.Property(e => e.SeparationId).HasMaxLength(50);
+            entity.Property(e => e.CompanyCode)
+                .IsRequired()
+                .HasMaxLength(10);
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.FinalPayment).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.IsPaid)
+                .IsRequired()
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.RefLetterDate).HasColumnType("datetime");
+            entity.Property(e => e.RefLetterNo).HasMaxLength(50);
+            entity.Property(e => e.Remark)
+                .IsRequired()
+                .HasMaxLength(500);
+            entity.Property(e => e.SeparationCode)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)");
+            entity.Property(e => e.SeparationDate).HasColumnType("datetime");
+            entity.Property(e => e.SeparationTypeId)
+                .IsRequired()
+                .HasMaxLength(100);
         });
 
         modelBuilder.Entity<InvDefCompanyInfo>(entity =>

@@ -1,6 +1,5 @@
 ﻿using GCTL.Core.Data;
 using GCTL.Data.Models;
-using GCTL.Service.AdmissionTypes;
 using GCTL.Service.BankBranchInformations;
 using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
@@ -28,7 +27,6 @@ namespace GCTL.UI.Core.Controllers
         private readonly IDesignationService designationService;
         private readonly IDepartmentService departmentService;
         private readonly IPaymentModeService paymentModeService;
-        private readonly IAdmissionTypeService admissionTypeService;
         private readonly ICompanyService companyService;
         private readonly IBankInformationsService bankInformationsService;
         private readonly ISalesDefBankBranchInfosService salesDefBankBranchInfosService;
@@ -45,7 +43,6 @@ namespace GCTL.UI.Core.Controllers
             IDesignationService designationService,
             IDepartmentService departmentService,
             IPaymentModeService paymentModeService,
-            IAdmissionTypeService admissionTypeService,
             ICompanyService companyService,
             IBankInformationsService bankInformationsService,
             ISalesDefBankBranchInfosService salesDefBankBranchInfosService,
@@ -63,14 +60,17 @@ namespace GCTL.UI.Core.Controllers
             this.designationService = designationService;
             this.departmentService = departmentService;
             this.paymentModeService = paymentModeService;
-            this.admissionTypeService = admissionTypeService;
             this.bankInformationsService = bankInformationsService;
             this.salesDefBankBranchInfosService = salesDefBankBranchInfosService;
             this.branchTypeInfoService = branchTypeInfoService;
             this.nationalitysService = nationalitysService;
             this.supplierCategoryService = supplierCategoryService;
             this.countryService = countryService;
+
             this.portTypeService = portTypeService;
+
+            this.companyService = companyService;
+
         }
 
 
@@ -80,7 +80,7 @@ namespace GCTL.UI.Core.Controllers
         }
         
 
-        public async Task< IActionResult> GetCompany()
+        public async Task<IActionResult> GetCompany()
         {
             return Json(await companyService.GetCompanyDropDown());
         }
