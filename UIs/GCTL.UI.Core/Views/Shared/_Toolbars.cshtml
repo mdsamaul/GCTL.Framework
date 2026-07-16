@@ -79,8 +79,12 @@
 </div> *@
 
 @model ToobarModel
+@{
+    var containerPadding = Model.IsPlain ? "pe-0" : "";
+    var buttonGroupPadding = Model.IsPlain ? "pe-0" : "pe-0";
+}
 
-<div class="d-flex flex-wrap justify-content-between align-items-center p-2 mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">
+<div class="d-flex flex-wrap justify-content-between align-items-center px-1 py-1 @containerPadding mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">
 
     <div class="d-flex align-items-center py-1 ps-2">
         <h1 class="fw-bold text-dark m-0"
@@ -89,7 +93,7 @@
         </h1>
     </div>
 
-    <div class="d-flex flex-wrap align-items-center gap-2 pe-1 toolbar-btn-group">
+    <div class="d-flex flex-wrap align-items-center gap-1 @buttonGroupPadding toolbar-btn-group">
 
         @if (Model.ShowSave)
         {
