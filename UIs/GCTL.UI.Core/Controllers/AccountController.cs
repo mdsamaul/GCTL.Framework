@@ -148,6 +148,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.NetworkInformation;
 using System.Security.Claims;
 using static QRCoder.PayloadGenerator;
 
@@ -268,6 +269,8 @@ public class AccountController : BaseController
             new("CompanyCode", employeeInfo?.CompanyCode ?? string.Empty),
             new(ClaimTypes.Role, user.Role ?? string.Empty),
             new("SessionId", sessionId),
+            new("IPAddress", GetLocalIP()),
+            new("MacAddress", GetMacAddress()),
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -315,4 +318,43 @@ public class AccountController : BaseController
         => !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)
             ? LocalRedirect(returnUrl)
             : RedirectToAction("Index", "Home");
+
+    public string GetLocalIP()
+    {
+        string ipAddress = string.Empty;
+        var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
+            .Where(n => n.OperationalStatus == OperationalStatus.Up && n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+
+        foreach (var networkInterface in networkInterfaces)
+        {
+            var properties = networkInterface.GetIPProperties();
+            var ipv4Address = properties.UnicastAddresses.FirstOrDefault(ip => ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+
+            if (ipv4Address != null)
+            {
+                ipAddress = ipv4Address.Address.ToString();
+                break;
+            }
+        }
+
+        return ipAddress;
+    }
+
+
+    public string GetMacAddress()
+    {
+        string macAddress = string.Empty;
+        var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
+       .Where(n => n.OperationalStatus == OperationalStatus.Up && n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+        foreach (var networkInterface in networkInterfaces)
+        {
+            macAddress = networkInterface.GetPhysicalAddress().ToString();
+            if (!string.IsNullOrEmpty(macAddress))
+            {
+                break;
+            }
+        }
+
+        return macAddress;
+    }
 }
