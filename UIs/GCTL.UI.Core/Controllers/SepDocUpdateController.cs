@@ -1,10 +1,16 @@
 ﻿
 using GCTL.Core.Data;
+using GCTL.Core.ViewModels.ServiceType;
 using GCTL.Core.ViewModels.Update;
 using GCTL.Data.Models;
+using GCTL.Service.Common;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.Update;
 using GCTL.UI.Core.Controllers;
+using GCTL.UI.Core.Filters;
+using GCTL.UI.Core.Helpers;
+using GCTL.UI.Core.ViewModels.BankInformations;
+using GCTL.UI.Core.ViewModels.SepDocUpdate;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -53,8 +59,18 @@ namespace GCTL_App.Controllers
         #endregion
 
         #region Index
+        [ModulePermission]
         public IActionResult Index()
         {
+
+            ShipmentUpdateSetupViewModel model = new ShipmentUpdateSetupViewModel()
+            {
+                PageUrl = Url.Action(nameof(Index))
+            };
+        
+
+
+
             ViewBag.ShipmentMode = new SelectList(_shipmentModeRepository.All().Select(e => new { id = e.ExpenseTypeId, name = e.ExpenseType }), "id", "name");
             ViewBag.CustomerName = new SelectList(_service.GetCustomers(), "Value", "Text");
             ViewBag.CustomerDeliveryAddress = new SelectList(_service.GetAddresses(), "Value", "Text");
@@ -74,12 +90,13 @@ namespace GCTL_App.Controllers
             ViewBag.ContactP = new SelectList(_contactPersionRepository.All().Select(e => new { id = e.Cpid, name = e.ContactPersonName }), "id", "name");
             ViewBag.shipStatus = new SelectList(shipmentStatusRepo.All().Select(e => new { id = e.ShipmentStatusId, name = e.ShipmentStatus }), "id", "name");
 
-            return View();
+            return View(model);
         }
 
         #endregion
 
         [HttpGet]
+        [ModulePermission]
         public async Task<IActionResult> GetJobs(int page = 1, int pageSize = 5, string? customerId = null, string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? search = null)
         {
             var result = await _jobService.GetJobsPagedAsync(page, pageSize, customerId, shipmentMode, dateFrom, dateTo, search);
@@ -93,6 +110,7 @@ namespace GCTL_App.Controllers
         }
 
         [HttpGet]
+        [ModulePermission]
         public async Task<IActionResult> GetJobDetail(int id)
         {
             var job = await _jobService.GetJobDetailAsync(id);
@@ -101,6 +119,7 @@ namespace GCTL_App.Controllers
 
 
         [HttpGet]
+        [ModulePermission]
         public async Task<IActionResult> GetJobDetails(string jobNo , decimal id)
         {
             var jobTop = await _jobService.GetJobTopDetailsAsync(jobNo);
@@ -114,6 +133,7 @@ namespace GCTL_App.Controllers
 
 
         [HttpGet]
+        [ModulePermission]
         public async Task<IActionResult> GetJobStatuses(int page = 1,int pageSize = 10,string? search = null,string? customerCode = null,DateTime? fromDate = null,DateTime? toDate = null)
         {
             var result = await _jobService.GetJobStatusesPagedAsync(
@@ -131,55 +151,52 @@ namespace GCTL_App.Controllers
             });
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ShipmentUpdateViewModel model)
         {
+            bool isNewRecord = model.AutoId == 0;
             try
-            {
-               
-                if (ModelState.IsValid)
-                {
-                    
-                    //var company = 1;// await GetCurrentOrganizationIdAsync();
-                    //int company = int.Parse(LoginInfo.CompanyCode);
-                    int company = 001;
-                    var result = await _jobService.UpdateJobs(model, company);
-                    return Ok(result);
-                }else
-                {
-                    return BadRequest(ModelState);
-                }
+            {               
+
+                var permissionResult = await CheckAddOrEditPermissionAsync(isNewRecord);
+                if (permissionResult != null)
+                    return permissionResult;
+
+                if (!ModelState.IsValid)
+                    return Json(ApiResponse.Error("Please correct the highlighted fields."));
+
+                string company = "001";
+                var result = await _jobService.UpdateJobs(model, company);
+
+                var successMessage = isNewRecord ? AppMessages.SaveSuccess : AppMessages.UpdateSuccess;
+                return Json(ApiResponse.Success(successMessage, result));
             }
             catch (Exception)
             {
-
-                throw;
+                return Json(ApiResponse.Error(isNewRecord ? AppMessages.SaveFailed : AppMessages.UpdateFailed));
             }
-
-           
-
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ModulePermission(PermissionType.Delete)]
         public async Task<IActionResult> DeleteJobs([FromBody] DeleteJobsRequest request)
         {
             try
             {
                 if (request?.Ids == null || request.Ids.Count == 0)
-                    return BadRequest(new { success = false, message = "No records selected" });
+                    return Json(ApiResponse.Error("No records selected"));
 
                 var result = await _jobService.DeleteJobs(request.Ids);
-                return Ok(result);
+                return Json(ApiResponse.Success(AppMessages.DeleteSuccess, result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return Json(ApiResponse.Error(AppMessages.DeleteFailed));
             }
         }
         [HttpGet]
+        [ModulePermission]
         public async Task<IActionResult> GetJobTimeline(string jobNo)
         {
             var timeline = await _jobService.GetJobTimelineAsync(jobNo);

@@ -1834,9 +1834,16 @@
                         @* Save Button *@
                         <div class="row no-print mt-3">
                             <div class="col-12">
-                                <button type="button" class="btn btn-outline-success btn-common btn-circle float-right js-SupplierInformation-save" data-id="@Model.SupplierId">
-                                    <i class="fas fa-save"></i> Save
-                                </button>
+                                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                                {
+                                    Title = "",
+                                    ShowClear = false,
+                                    ShowDelete = false,
+                                    ShowPrint = false,
+                                    ShowFavorite = false,
+                                    IsPlain = true,
+                                    SaveBtnClass = "SupplierInformation"
+                                })
                             </div>
                         </div>
 

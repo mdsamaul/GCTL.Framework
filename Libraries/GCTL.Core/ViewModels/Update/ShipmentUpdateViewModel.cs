@@ -13,7 +13,7 @@ namespace GCTL.Core.ViewModels.Update
 
         [Required(ErrorMessage = "ETA Delivery Date is required")]
         [DataType(DataType.Date)]
-        public DateTime ETADeliveryDate { get; set; }
+        public DateTime? ETADeliveryDate { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime? ActualDeliveryDate { get; set; }

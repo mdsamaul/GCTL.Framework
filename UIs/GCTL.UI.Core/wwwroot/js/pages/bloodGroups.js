@@ -54,6 +54,7 @@
 
             // Save
             $("body").on("click", settings.saveSelector, function () {
+                //debugger
                 if (!validation()) return false;
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {

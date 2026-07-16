@@ -117,7 +117,7 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0)
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
                     var hasSavePermission = await genderService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)

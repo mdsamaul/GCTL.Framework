@@ -160,9 +160,15 @@
 
 <div class="btn-toolbar d-flex justify-content-end no-print" style="margin-top: 9px;">
     <div class="btn-group ms-auto">
-        <button type="button" class="btn btn-default success-btn js-company-save"
-                data-toggle="tooltip" data-placement="bottom" title="Save">
-            <i class="fas fa-save">&nbsp;</i> Save
-        </button>
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "company"
+        })
     </div>
 </div>

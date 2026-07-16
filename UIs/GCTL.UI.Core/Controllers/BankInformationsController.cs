@@ -47,9 +47,6 @@ namespace GCTL.UI.Core.Controllers
             model.PageUrl = Url.Action(nameof(Index));
 
             return View(model);
-
-
-
         }
         #endregion
 

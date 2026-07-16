@@ -14,6 +14,7 @@ using GCTL.Service.Companies;
 using GCTL.Service.Core_Countrys;
 using GCTL.Service.CoreBankAccountInformations;
 using GCTL.Service.CoreServiceType;
+using GCTL.Service.Country;
 using GCTL.Service.CurrencyType;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
@@ -24,6 +25,7 @@ using GCTL.Service.Designations;
 using GCTL.Service.ExpenseHead;
 using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
+using GCTL.Service.HRMCompanyWeekEnds;
 using GCTL.Service.Menu;
 
 using GCTL.Service.MenuTab;
@@ -32,6 +34,7 @@ using GCTL.Service.OpeningBalance;
 using GCTL.Service.PaymentModes;
 using GCTL.Service.PaymentTerms;
 using GCTL.Service.PaymentType;
+using GCTL.Service.Permissions;
 using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.ShipmentMode;
@@ -110,6 +113,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IExpenseHead, ExpenseHeadService>();
             services.AddScoped<IShipmentMode, ShipmentModeService>();
             services.AddScoped<IServiceType, ServiceTypeService>();
+            services.AddScoped<IholidayListService, HolidayListService>();
             services.AddScoped<IReligionService, ReligionService>();
             services.AddScoped<IBloodGroupService, BloodGroupService>();
             services.AddScoped<INationalitysService, NationalitysService>();
@@ -136,6 +140,8 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ISubControlLedger, SubControlLedgerService>();
             services.AddScoped<IVoucherType, VoucherTypeService>();
             services.AddScoped<IOpeningBalance, OpeningBalanceService>();
+            services.AddScoped<ICountryService, CountryService>();
+            services.AddScoped<IHRMCompanyWeekEndService, HRMCompanyWeekEndService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
@@ -143,7 +149,11 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
+
+            services.AddScoped<IPermissionService, PermissionService>();
+
             services.AddScoped<IUserService, UserService>();
+
         }
     }
 }

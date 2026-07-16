@@ -1,0 +1,455 @@
+﻿
+using GCTL.Core.Data;
+using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels.OFRSection.OFRApproval;
+using GCTL.Data.Models;
+
+using GCTL.Service.Pagination;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+
+using Sep_Documentation = GCTL.Data.Models.SepDocumentation;
+using Core_ServiceType = GCTL.Data.Models.CoreServiceType;
+
+namespace GCTL.Service.OFRApproval
+{
+    public class OFRApprovalService : AppService<CfOperationalFundRequisitionEntry>, IOFRApproval
+    {
+        #region Service
+        //private readonly IUserInfoService _userInfoService;
+        private readonly IRepository<CfOperationalFundRequisitionEntry> _repository;
+        private readonly IRepository<CfOperationalFundRequisitionDetail> _details;
+        private readonly IRepository<CfOperationalFundRequisitionDetailsTemp> _Tmpdetails;
+        private readonly IRepository<CfDefExpenseType> _shipmentmode;
+        private readonly IRepository<SalesCustomer> _customer;
+        private readonly IRepository<Sep_Documentation> _documentation;
+        private readonly IRepository<CfDefExpenseHead> _accountsHead;
+        private readonly IRepository<Core_ServiceType> _serviceType;
+        private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
+        private readonly IRepository<Sep_Documentation> _sepDocumentation;
+
+
+        public OFRApprovalService(
+                IRepository<CfOperationalFundRequisitionEntry> genericRepository,
+                //IUserInfoService userInfoService, 
+                IRepository<CfOperationalFundRequisitionEntry> repository,
+                IRepository<CfDefExpenseType> shipmentmode,
+                IRepository<SalesCustomer> customer, 
+                IRepository<Sep_Documentation> documentation, 
+                IRepository<CfOperationalFundRequisitionDetail> details, 
+                IRepository<CfDefExpenseHead> accountsHead,
+                IRepository<Core_ServiceType> serviceType, 
+                IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails, 
+                IRepository<AccSubSubsidiaryLedger> generalLedger, 
+                IRepository<Sep_Documentation> sepDocumentation
+            ) : base(genericRepository)
+        {
+            //_userInfoService = userInfoService;
+            _repository = repository;
+            _shipmentmode = shipmentmode;
+            _customer = customer;
+            _documentation = documentation;
+            _details = details;
+            _accountsHead = accountsHead;
+            _serviceType = serviceType;
+            _Tmpdetails = tmpdetails;
+            _generalLedger = generalLedger;
+            _sepDocumentation = sepDocumentation;
+        }
+        #endregion
+
+        #region Get All Requisition Entry in Top Grid
+        public async Task<PaginationService<OFRApprovalTopGridVM, OFRApprovalTopGridVM>.PaginationResult<OFRApprovalTopGridVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
+        {
+            var query = from main in _repository.All()
+                        join doc in _documentation.All()
+                            on main.JobNo equals doc.JobNo
+                        join cust in _customer.All()
+                            on doc.CustomerId equals cust.CustomerId
+                        join exp in _shipmentmode.All()
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                        select new OFRApprovalTopGridVM
+                        {
+                            TC = main.Tc,
+                            JobNo = main.JobNo,
+                            CustomerID = cust.CustomerId,
+                            CustomerName = cust.CustomerName,
+                            ShipmentModeID = exp.ExpenseTypeId,
+                            ShipmentMode = exp.ExpenseType
+                        };
+            //Filtering with Customer ID
+            if (!string.IsNullOrEmpty(customerid))
+            {
+                query = query.Where(x => x.CustomerID == customerid);
+            }
+
+            if (!string.IsNullOrEmpty(shipmentmodeid))
+            {
+                query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
+            }
+            if (pageSize == -1)
+            {
+                pageSize = await query.CountAsync();
+                pageNumber = 1;
+            }
+
+            // PaginationService
+            var paginatedResult = await PaginationService<OFRApprovalTopGridVM, OFRApprovalTopGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
+                    term => sc =>
+                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
+                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
+                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
+                    ob => ob
+             );
+
+            return paginatedResult;
+        }
+        #endregion
+
+        #region When User Checked on radion then fill input fields and Detaisl data Copied to Tmp Details
+        #region Get Requisition Info in Input fields
+        public async Task<OFRApprovalMasterVM> GetRequisitionMasterByJobNo(string jobNo)
+        {
+            var query = from ofr in _repository.All()
+                        join doc in _documentation.All() on ofr.JobNo equals doc.JobNo
+                        join cust in _customer.All() on doc.CustomerId equals cust.CustomerId into custGroup
+                        from cust in custGroup.DefaultIfEmpty()
+                        join expType in _shipmentmode.All() on ofr.ExpenseTypeId equals expType.ExpenseTypeId into expTypeGroup
+                        from expType in expTypeGroup.DefaultIfEmpty()
+                        where ofr.JobNo == jobNo
+                        select new OFRApprovalMasterVM
+                        {
+                            OFRNo = ofr.Ofrno,
+                            JobNo = ofr.JobNo,
+                            OFRDate = ofr.Ofrdate,
+                            CustomerID = cust.CustomerId,
+                            CustomerName = cust.CustomerName ?? "",
+                            InvoiceNo = doc.InvoiceNo,
+                            Quantity = doc.Quntity1,
+                            ShipmentModeID = expType.ExpenseTypeId,
+                            ShipmentMode = expType.ExpenseType, 
+                            LCValue = doc.Lcvalue,
+                            MaterialDescription = doc.MaterialDescription,
+                            Weight = doc.Quntity2
+                        };
+
+            return await query.FirstOrDefaultAsync();
+        }
+        #endregion
+
+        #region Get Requisition Details in Expense Details
+        public async Task<bool> CopyDetailsToTmp(string jobNo, int? currentUserId)
+        {
+            var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
+
+            if (!details.Any()) return false;
+
+            // Map to temporary table (use the Temp model)
+            var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
+            {
+                OfrDetailsId = d.OfrDetailsId,
+                Ofrno = d.Ofrno,
+                JobNo = d.JobNo,
+                ExpenseHeadId = d.ExpenseHeadId,
+                ServiceTypeId = d.ServiceTypeId,
+                EstimatedAmount = d.EstimatedAmount,
+                ActualAmount = d.ActualAmount,
+                DifferentAmount = d.DifferentAmount,
+                DifferentAmount2 = d.DifferentAmount2,
+                BillAdjustAmount = d.BillAdjustAmount,
+                Luser = currentUserId?.ToString(),
+                Ldate = d.Ldate,
+                Lmac = d.Lmac,
+                CompanyCode = d.CompanyCode,
+                EmployeeId = d.EmployeeId,
+                ExpenseHeadRemarks = d.ExpenseHeadRemarks
+            }).ToList();
+            if (tmpDetails == null || !tmpDetails.Any())
+            {
+                throw new InvalidOperationException("Failed to map details to temporary table");
+            }
+            await _Tmpdetails.AddRangeAsync(tmpDetails);
+            return true;
+        }
+        #endregion
+        #endregion
+
+        #region Get All Tmp Details
+        public async Task<List<OFRApprovalDetailsVM>> GetAllTmpAsync(string jobno, int? userId)
+        {
+            var result = await (from tmp in _Tmpdetails.All()
+                                join head in _accountsHead.All()
+                                    on tmp.ExpenseHeadId equals head.ExpenseHeadId
+                                join serv in _serviceType.All()
+                                    on tmp.ServiceTypeId equals serv.ServiceTypeId
+                                join ofrDet in _details.All()  
+                                    on tmp.OfrDetailsId equals ofrDet.OfrDetailsId
+                                where tmp.Luser == userId.ToString() && tmp.JobNo == jobno
+                                orderby tmp.Tc
+                                select new OFRApprovalDetailsVM
+                                {
+                                    Tc = tmp.Tc,
+                                    OFRDetailsID = tmp.OfrDetailsId,
+                                    SerialNo = head.SerialNo,
+                                    AccountHeadName = head.ExpenseHead,
+                                    IsReceivetable = head.IsReceiptable,
+                                    ServiceTypeName = serv.ServiceTypeName,
+                                    Amount = tmp.EstimatedAmount,
+                                    ApprovalAmount = tmp.ActualAmount,
+                                    Remark = tmp.ExpenseHeadRemarks,
+                                    CashBank = ofrDet.DetailsCashBank,
+                                    BankAccount = ofrDet.DetailsBankAccount
+                                }).ToListAsync();
+
+            return result;
+        }
+        //public async Task<List<OFRApprovalDetailsVM>> GetAllTmpAsync(int? currentUser)
+        //{
+        //    var result = await (from tmp in _Tmpdetails.All()
+        //                        join head in _accountsHead.All()
+        //                            on tmp.ExpenseHeadID equals head.ExpenseHeadID
+        //                            into headJoin
+        //                        from head in headJoin.DefaultIfEmpty()
+        //                        join serv in _serviceType.All()
+        //                      on tmp.ServiceTypeID equals serv.ServiceTypeID
+        //                      into servicJoin
+        //                        from servic in servicJoin.DefaultIfEmpty()
+        //                        where tmp.LUser == currentUser.ToString()
+        //                        orderby tmp.TC
+
+        //                        select new OFRApprovalDetailsVM
+        //                        {
+        //                            Tc = tmp.TC,
+        //                            OFRDetailsID = tmp.OFR_DetailsID,
+        //                            SerialNo = head.SerialNo,
+        //                            AccountHeadName = head.ExpenseHead,
+        //                            IsReceivetable = head.IsReceiptable,
+        //                            ServiceTypeName = servic.ServiceTypeName,
+        //                            Amount = tmp.EstimatedAmount,
+        //                            ApprovalAmount = tmp.ActualAmount,
+        //                            Remark = tmp.ExpenseHeadRemarks
+        //                        }).ToListAsync();
+
+        //    return result;
+        //}
+
+        #endregion
+
+        #region Bank Account Dropdown
+        public async Task<IEnumerable<SelectListItem>> GetBankAccount(string value)
+        {
+            return await _generalLedger.All().Where(e => e.SubsidiaryLedgerCodeNo == value)
+                .Select(e => new SelectListItem
+                {
+                    Value = e.SubSusidiaryLedgerCodeNo.ToString(),
+                    Text = e.SubSubsidiaryLedgerName
+                }).ToListAsync();
+        }
+        #endregion
+
+        #region Approval Amount Update
+        public async Task<bool> SaveApprovalAsync(List<OFRApprovalDetailsSaveVM> model, int? Approveduser)
+        {
+            await _repository.BeginTransactionAsync();
+            try
+            {
+                if (model == null || !model.Any()) return false;
+
+                var ofrNo = model.First().OFRNo;
+
+                // ENTRY (HEADER)
+                var entry = await _repository.All().FirstOrDefaultAsync(x => x.Ofrno == ofrNo);
+
+                entry.CashBank = model.Select(x => x.DetailsCashBank).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+
+                entry.BankAccount = model.Select(x => x.DetailsBankAccount).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+                bool isFirstApproval = false;
+
+                // DETAILS
+                foreach (var item in model)
+                {
+                    var details = await _details.All().FirstOrDefaultAsync(x => x.OfrDetailsId == item.OFR_DetailsID);
+
+                    if (details != null)
+                    {
+                        //Check first time approval
+                        if (details.ActualAmount == 0.00m)
+                        {
+                            isFirstApproval = true;
+                        }
+
+                        details.ActualAmount = item.ActualAmount;
+                        details.DetailsCashBank = item.DetailsCashBank;
+                        details.DetailsBankAccount = item.DetailsBankAccount;
+
+                        await _details.UpdateAsync(details);
+                    }
+                }
+
+                // ENTRY UPDATE
+                if (entry != null)
+                {
+                    if (isFirstApproval && entry.ApprovedDate == null)
+                    {
+                        //First time approve
+                        entry.ApprovedUser = Approveduser.ToString();
+                        entry.ApprovedDate = DateTime.Now;
+                    }
+                    else
+                    {
+                        //Modify approve
+                        entry.ApprovedModifyDate = DateTime.Now;
+                    }
+
+                    await _repository.UpdateAsync(entry);
+                }
+
+                var tmpToDelete = await _Tmpdetails.All()
+                                .Where(d => d.Luser == Approveduser.ToString() && d.Ofrno == ofrNo).ToListAsync();
+
+                if (tmpToDelete.Any())
+                {
+                    foreach (var tmp in tmpToDelete)
+                    {
+                        await _Tmpdetails.DeleteAsync(tmp.Tc);
+                    }
+                }
+                await _repository.CommitTransactionAsync();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                await _repository.RollbackTransactionAsync();
+                Console.WriteLine($"Insertion Failed: {ex.Message}");
+                return false;
+            }           
+        }
+        #endregion
+
+        #region Get All Requisition for Bottom Grid
+        public async Task<PaginationService<OFRApprovalBottomGridVM, OFRApprovalBottomGridVM>.PaginationResult<OFRApprovalBottomGridVM>> AllRequisitionforBottomGrid(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc")
+        {
+            var query = from main in _repository.All()
+                        join doc in _documentation.All()
+                            on main.JobNo equals doc.JobNo
+                        join cust in _customer.All()
+                            on doc.CustomerId equals cust.CustomerId
+                        join exp in _shipmentmode.All()
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                        select new OFRApprovalBottomGridVM
+                        {
+                            TC = main.Tc,
+                            JobNo = main.JobNo,
+                            CustomerID = cust.CustomerId,
+                            CustomerName = cust.CustomerName,
+                            ShipmentModeID = exp.ExpenseTypeId,
+                            ShipmentMode = exp.ExpenseType
+                        };
+
+            if (pageSize == -1)
+            {
+                pageSize = await query.CountAsync();
+                pageNumber = 1;
+            }
+
+            // PaginationService
+            var paginatedResult = await PaginationService<OFRApprovalBottomGridVM, OFRApprovalBottomGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
+                    term => sc =>
+                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
+                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
+                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
+                    ob => ob
+             );
+
+            return paginatedResult;
+        }
+        #endregion
+
+        #region When click Edit Button
+
+        #region Getting Master Data
+        public async Task<OFRApprovalMasterVM> GetRequisitionInputData(string jobNo)
+        {
+            var data = await (from req in _repository.All()
+                              join det in _details.All()
+                               on req.Ofrno equals det.Ofrno into detGroup
+                              from det in detGroup.DefaultIfEmpty()  // left join with details
+
+                              join doc in _sepDocumentation.All()
+                                on req.JobNo equals doc.JobNo into docGroup
+                              from doc in docGroup.DefaultIfEmpty()  // left join with documentation
+
+                              join st in _serviceType.All()
+                                on det.ServiceTypeId equals st.ServiceTypeId into stGroup
+                              from st in stGroup.DefaultIfEmpty()   // ServiceType lookup
+
+                              join eh in _accountsHead.All()
+                                on det.ExpenseHeadId equals eh.ExpenseHeadId into ehGroup
+                              from eh in ehGroup.DefaultIfEmpty()   // ExpenseHead lookup
+
+
+                              join cust in _customer.All()
+                                on doc.CustomerId equals cust.CustomerId into custGroup
+                              from cust in custGroup.DefaultIfEmpty()   // Customer
+
+                              join ship in _shipmentmode.All()
+                                on req.ExpenseTypeId equals ship.ExpenseTypeId into shipGroup
+                              from ship in shipGroup.DefaultIfEmpty() //ShipmentMode
+
+                              where req.JobNo == jobNo
+                              select new OFRApprovalMasterVM
+                              {
+                                  OFRNo = req.Ofrno,
+                                  OFRDate = req.Ofrdate,
+                                  JobNo = req.JobNo,
+                                  ShipmentMode = ship.ExpenseType,
+                                  CustomerName = cust.CustomerName,
+                                  LCValue = doc.Lcvalue,
+                                  InvoiceNo = doc.InvoiceNo,
+                                  MaterialDescription = doc.MaterialDescription,
+                                  Quantity = doc.Quntity1,
+                                  Weight = doc.Quntity2
+
+                              }).FirstOrDefaultAsync();
+
+            return data;
+        }
+        #endregion
+
+        #region Copied To Tmp Details Table
+        public async Task<bool> CopyDetailsToTmpTable(string jobNo, int? currentUserId, BaseViewModel model)
+        {
+            var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
+
+            if (!details.Any()) return false;
+
+            // Map to temporary table (use the Temp model)
+            var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
+            {
+                OfrDetailsId = d.OfrDetailsId,
+                Ofrno = d.Ofrno,
+                JobNo = d.JobNo,
+                ExpenseHeadId = d.ExpenseHeadId,
+                ServiceTypeId = d.ServiceTypeId,
+                EstimatedAmount = d.EstimatedAmount,
+                ActualAmount = d.ActualAmount,
+                DifferentAmount = d.DifferentAmount,
+                DifferentAmount2 = d.DifferentAmount2,
+                BillAdjustAmount = d.BillAdjustAmount,
+                Luser = d.Luser,// currentUserId.ToString(),
+                Ldate = DateTime.Now,
+                Lip = model.Lip,
+                Lmac = model.Lmac,
+                CompanyCode = d.CompanyCode,
+                EmployeeId = d.EmployeeId,
+                ExpenseHeadRemarks = d.ExpenseHeadRemarks
+            }).ToList();
+
+            await _Tmpdetails.AddRangeAsync(tmpDetails);
+            return true;
+        }
+        #endregion
+
+        #endregion
+    }
+}
