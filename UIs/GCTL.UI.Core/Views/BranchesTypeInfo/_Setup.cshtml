@@ -17,21 +17,7 @@
         <div class="col-12 col-md-6 gc-inline-select2">
             <label asp-for="CompanyCode">Company</label>
             <span class="text-danger"></span>
-            <div class="input-group flex-nowrap">                
-                @* <select asp-for="CompanyCode" class="form-select form-select-sm custom-select-single " data-placeholder="Select Company" asp-items="@ViewBag.CompanyCodeDD as SelectList">
-                    <option></option>
-                </select>
-                <div class="input-group-append">                  
-                    <button type="button" class="btn btn-sm border btn-default js-quick-add"
-                            data-url="@Url.Action("Index", "Companies")"
-                            data-target="#CompanyCode"
-                            data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                            data-title="Company"
-                            style="white-space: nowrap;">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div> *@
-
+            <div class="input-group flex-nowrap">  
                 <div class="input-group input-group-sm">
 
                     <select asp-for="CompanyCode"
