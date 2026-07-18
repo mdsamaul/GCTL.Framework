@@ -20,8 +20,6 @@ namespace GCTL.Service.SupplierCategory
 
         Task<IEnumerable<CommonSelectModel>> SelectionSupplierCategoryAsync();
 
-        //  Task<bool> DeleteTab(List<string> ids);
-
         Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model);
 
         Task<bool> IsExistByCodeAsync(string code);

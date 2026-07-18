@@ -10,6 +10,7 @@ using GCTL.Service.Departments;
 using GCTL.Service.Designations;
 using GCTL.Service.Nationalitys;
 using GCTL.Service.PaymentModes;
+using GCTL.Service.PortType;
 using GCTL.Service.Religions;
 using GCTL.Service.SupplierCategory;
 using GCTL.Service.SupplierOrigin;
@@ -33,6 +34,9 @@ namespace GCTL.UI.Core.Controllers
         public readonly INationalitysService nationalitysService;
         private readonly ISupplierCategoryService supplierCategoryService;
         private readonly ICountryService countryService;
+        private readonly IPortTypeService portTypeService;
+
+
         public CascadingController(
             IBloodGroupService bloodGroupService,
             IReligionService religionService,
@@ -46,7 +50,8 @@ namespace GCTL.UI.Core.Controllers
              INationalitysService nationalitysService,
              ISupplierOriginService supplierOriginService,
              ISupplierCategoryService supplierCategoryService,
-             ICountryService countryService
+             ICountryService countryService,
+             IPortTypeService portTypeService 
 
             )
         {
@@ -61,7 +66,11 @@ namespace GCTL.UI.Core.Controllers
             this.nationalitysService = nationalitysService;
             this.supplierCategoryService = supplierCategoryService;
             this.countryService = countryService;
+
+            this.portTypeService = portTypeService;
+
             this.companyService = companyService;
+
         }
 
 
@@ -137,6 +146,10 @@ namespace GCTL.UI.Core.Controllers
             return Json(await countryService.SelectionCountryAsync());
         }
 
-        
+        public async Task<IActionResult> GetPortTypes()
+        {
+            return Json(await portTypeService.SelectionPortTypeAsync());
+        }
+
     }
 }

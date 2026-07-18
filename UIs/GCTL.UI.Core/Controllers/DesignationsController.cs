@@ -73,7 +73,6 @@ namespace GCTL.UI.Core.Controllers
             return PartialView($"_{nameof(Setup)}", model);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Setup(DesignationSetupViewModel model)
