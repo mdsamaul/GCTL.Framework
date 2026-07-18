@@ -1,0 +1,37 @@
+﻿@model GridModel
+
+@{
+    var tableClasses = string.Join(" ", new[]
+    {
+        "table", "table-hover", "align-middle", "table-sm", "table-common",
+        Model.Striped ? "table-striped" : "",
+        Model.Bordered ? "table-bordered" : ""
+    }.Where(c => !string.IsNullOrEmpty(c)));
+}
+
+<div class="table-responsive-sm overflow-hidden">
+    <table id="@Model.GridId" class="@tableClasses mb-0">
+        <thead>
+            <tr class="text-center align-middle">
+                @if (Model.ShowCheckbox)
+                {
+                    <th style="width:44px;">
+                        Select
+                        <input type="checkbox" class="form-check-input" id="@Model.CheckAllId" />
+                    </th>
+                }
+                @foreach (var col in Model.Columns)
+                {
+                    <th class="@col.CssClass" style="@(col.Width != null ? $"width:{col.Width};" : "")">
+                        @col.Header
+                        @if (!string.IsNullOrEmpty(col.HeaderBangla))
+                        {
+                            <br /><small class="text-muted">@col.HeaderBangla</small>
+                        }
+                    </th>
+                }
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
