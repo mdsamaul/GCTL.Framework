@@ -447,3 +447,9 @@ function handleApiResponse(response, onSuccessCallback) {
         toastr.error(response.message);
     }
 }
+
+
+$('.table-sm').on('draw.dt', function () {
+    $('.table-sm tbody tr td input[type="checkbox"]').addClass('form-check-input');
+    $('.table-sm thead th input[type="checkbox"]').addClass('form-check-input');
+});

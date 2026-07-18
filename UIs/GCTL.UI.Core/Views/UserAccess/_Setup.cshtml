@@ -172,13 +172,13 @@
                                     disabled="@(Model.isRequired ? null : "disabled")">
                                 <option value="">--Select Employee--</option>
                             </select>
-                            <div class="form-check form-switch ms-0 mb-0 ps-0">
+                            @* <div class="form-check form-switch ms-0 mb-0 ps-0">
                                 <input asp-for="isRequired"
                                        class="form-check-input ms-0"
                                        type="checkbox"
                                        role="switch"
                                        style="cursor:pointer;">
-                            </div>
+                            </div> *@
                         </div>
                         <span asp-validation-for="EmployeeId" class="text-danger small" />
                     </div>

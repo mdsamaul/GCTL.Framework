@@ -52,6 +52,7 @@ namespace GCTL.UI.Core.Controllers
             ViewBag.Companies = new SelectList(await userService.GetCompanies(), "Code", "Name");
             ViewBag.Branches = new SelectList(await userService.GetBranch(), "Code", "Name");
             ViewBag.Departments = new SelectList(await userService.GetDepartments(), "Code", "Name");
+            ViewBag.Customers = new SelectList(await userService.GetCustomers(), "Code", "Name");
 
             return View(model);
         }
