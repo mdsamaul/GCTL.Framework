@@ -26,7 +26,11 @@
                 ajax: {
                     url: settings.ajaxUrl,
                     type: "GET",
-                    datatype: "json"
+                    datatype: "json",
+                    dataSrc: function (json) {
+                        //console.log(json);
+                       return json; // or adjust depending on your JSON structure
+                    }
                 },
                 columnDefs: settings.columnDefs,
                 columns: settings.columns,
@@ -34,6 +38,9 @@
                 pageLength: settings.pageLength,
                 lengthMenu: settings.lengthMenu,
                 order: settings.order,
+                language: {
+                    emptyTable: "No records available"
+                },
                 destroy: true
             }, settings.extraOptions);
 
@@ -69,6 +76,7 @@
         editLinkColumn: function (idField, editSelectorClass) {
             return {
                 "data": idField,
+                "className": "text-center",
                 width: "7%",
                 "render": function (data, type, row) {
                     return `<a class='btn ${editSelectorClass}' data-id='${row[idField] || ''}'><i>${data || ''}</i></a>`;

@@ -195,6 +195,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Core_ExporterInformation]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Core_ImporterInformation]",
          "ObjectType": 0
       },
@@ -452,6 +456,14 @@
       },
       {
          "Name": "[dbo].[Sales_Def_ShipmentStatusInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_Vehicle]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_VehicleType]",
          "ObjectType": 0
       },
       {
