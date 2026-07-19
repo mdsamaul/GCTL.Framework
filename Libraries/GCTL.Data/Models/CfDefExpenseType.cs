@@ -30,4 +30,6 @@ public partial class CfDefExpenseType
     public string RevenueLedgerCodeNo { get; set; }
 
     public string AdvanceLedgerCode { get; set; }
+
+    public string TransportModeTypeId { get; set; }
 }

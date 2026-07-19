@@ -175,6 +175,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CF_ShipmentStatus]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Core_AccessCode]",
          "ObjectType": 0
       },
@@ -496,6 +500,10 @@
       },
       {
          "Name": "[dbo].[TenantInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Transport_Mode_Type]",
          "ObjectType": 0
       },
       {

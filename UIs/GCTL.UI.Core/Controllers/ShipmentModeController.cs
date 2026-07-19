@@ -1,25 +1,45 @@
 ﻿
+using GCTL.Core.Data;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels;
+using GCTL.Data.Models;
 using GCTL.Service.ShipmentMode;
 using GCTL.UI.Core.Controllers;
+using GCTL.UI.Core.ViewModels.SepDocUpdate;
+using GCTL.UI.Core.ViewModels.ShipmentMode;
 using GCTL_App.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+
 
 namespace GCTL.Controllers.MasterSetup
 {
     public class ShipmentModeController : BaseController
     {
         private readonly IShipmentMode _service;
-        public ShipmentModeController( IShipmentMode service) : base()
+        private readonly IGenericRepository<TransportModeType> transportModeTypeRepo;
+
+        public ShipmentModeController( IShipmentMode service, IGenericRepository<TransportModeType> transportModeTypeRepo) : base()
         {
             _service = service;
+            this.transportModeTypeRepo = transportModeTypeRepo;
         }
         public IActionResult Index()
         {
-            return View();
+            ShipmentModeSetupVm model = new ShipmentModeSetupVm()
+            {
+                PageUrl = Url.Action(nameof(Index))
+            };
+
+            ViewBag.TransportModeTypes = new SelectList(transportModeTypeRepo.All().Select(e => new { id = e.TransportModeId, name = e.TransportMode }), "id", "name");
+
+
+            return View(model);
         }
         public IActionResult ShipmentForm()
         {
+            ViewBag.TransportModeTypes = new SelectList(transportModeTypeRepo.All().Select(e => new { id = e.TransportModeId, name = e.TransportMode }), "id", "name");
             return PartialView();
         }
         public IActionResult ShipmentList()
@@ -92,6 +112,7 @@ namespace GCTL.Controllers.MasterSetup
                 if (model == null)
                     return BadRequest(new { message = "Shipment Mode is required." });
 
+                model.ToAudit(LoginInfo, model.TC>0);
                 var result = await _service.SaveAsync(model);
 
 
@@ -117,6 +138,7 @@ namespace GCTL.Controllers.MasterSetup
             if (!typeExists)
                 return NotFound(new { message = $"Shipment Mode with ID {id} not found." });
 
+            model.ToAudit(LoginInfo, true);
             var result = await _service.UpdateAsync(model);
 
             if (!result)

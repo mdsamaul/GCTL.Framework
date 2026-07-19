@@ -32,6 +32,7 @@ using GCTL.Service.ImporterInfo;
 using GCTL.Service.Menu;
 
 using GCTL.Service.MenuTab;
+using GCTL.Service.ModeType;
 using GCTL.Service.Nationalitys;
 using GCTL.Service.OpeningBalance;
 using GCTL.Service.PaymentModes;
@@ -155,6 +156,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ITransportInformationService, TransportInformationService>();
             services.AddScoped<ITransportTypeService, TransportTypeService>();
             services.AddScoped<IImporterInfoService, ImporterInfoService>();
+            services.AddScoped<IModeTypeService, ModeTypeService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
@@ -166,6 +168,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IPermissionService, PermissionService>();
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IShipmentStatusService, ShipmentStatusService>();
 
         }
     }

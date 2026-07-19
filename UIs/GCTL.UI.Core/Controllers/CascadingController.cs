@@ -8,6 +8,7 @@ using GCTL.Service.Companies;
 using GCTL.Service.Country;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
+using GCTL.Service.ModeType;
 using GCTL.Service.Nationalitys;
 using GCTL.Service.PaymentModes;
 using GCTL.Service.PortName;
@@ -39,6 +40,7 @@ namespace GCTL.UI.Core.Controllers
         private readonly IPortTypeService portTypeService;
         private readonly IPortNameService portNameService;
         private readonly ITransportTypeService transportTypeService;
+        private readonly IModeTypeService modeTypeService;
 
         public CascadingController(
             IBloodGroupService bloodGroupService,
@@ -56,7 +58,8 @@ namespace GCTL.UI.Core.Controllers
              ICountryService countryService,
              IPortTypeService portTypeService,
              IPortNameService portNameService,
-             ITransportTypeService transportTypeService
+             ITransportTypeService transportTypeService,
+             IModeTypeService modeTypeService
 
             )
         {
@@ -75,6 +78,7 @@ namespace GCTL.UI.Core.Controllers
             this.companyService = companyService;
             this.portNameService = portNameService;
             this.transportTypeService = transportTypeService;
+            this.modeTypeService = modeTypeService;
 
         }
 
@@ -164,6 +168,11 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> GetTransportTypes()
         {
             return Json(await transportTypeService.SelectionTransportTypeAsync());
+        }
+
+        public async Task<IActionResult> GettransportModes()
+        {
+            return Json(await modeTypeService.SelectionTransportModeTypeAsync());
         }
 
     }

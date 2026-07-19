@@ -27,6 +27,8 @@
         public string ClearBtnClass { get; set; } = "clearBtn";
         public string PrintBtnClass { get; set; } = "printBtn";
         public string FavtBtnClass { get; set; } = "favtBtn";
+        public string ExcelBtnClass { get; set; } = "excelBtn";
+        public string PdfBtnClass { get; set; } = "pdfBtn";
         public bool IsPlain { get; set; } = false;
     }
 }
