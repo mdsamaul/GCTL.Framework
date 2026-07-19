@@ -9,11 +9,11 @@ namespace GCTL.Core.ViewModels.ImporterInfo
     {
         public decimal? Tc { get; set; }
         [Required]
-        public string ExporterId { get; set; }
+        public string? ImporterId { get; set; }
         [Required]
-        public string ExporterName { get; set; }
+        public string? ImporterName { get; set; }
 
-        public string? ExporterAddress { get; set; }
+        public string? ImporterAddress { get; set; }
 
         public string? Phone { get; set; }
 
@@ -21,7 +21,7 @@ namespace GCTL.Core.ViewModels.ImporterInfo
 
         public string? Email { get; set; }
 
-        public string? ExporterCode { get; set; }
+        public string? ImporterCode { get; set; }
 
         public string? CountryId { get; set; }
 
