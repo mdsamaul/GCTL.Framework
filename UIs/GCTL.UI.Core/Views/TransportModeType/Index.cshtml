@@ -1,0 +1,91 @@
+﻿@model GCTL.UI.Core.ViewModels.TransportModeType.TransportModeTypePageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Transport Mode Type";
+    Model.Breadcrumb = "Transport Mode Type";
+}
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-md-6 pr-0">
+                <div class="card">
+                    <div class="card-header px-2">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Transport Type",
+                            SaveBtnClass = "js-TransportModeType-save",
+                            DeleteBtnClass = "js-TransportModeType-delete-confirm",
+                            ClearBtnClass = "js-TransportModeType-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+
+                        <form asp-action="Setup" method="post" id="TransportModeType-form" asp-controller="TransportModeType">
+
+                            <div class="js-TransportModeType-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6" style="height:570px;overflow:auto;">
+                <div class="card">
+                    <div class="card-body p-2 pt-3">
+                        <div class="js-TransportModeType-grid-container">
+                            @await Html.PartialAsync("_CustomGrid", new GridModel
+                            {
+                                GridId = "TransportModeType-grid",
+                                CheckAllId = "js-TransportModeType-checkall",
+                                Columns = new List<GridColumn>
+                                {
+                                    new() { Header = "ID", Width="10%"  },
+                                    new() { Header = "Transport Mode Type",Width="52%" },
+                                    new() { Header = "Short Name" ,Width="28%" }
+                                },
+                                ShowCheckbox = true,   // ← add this
+                                Bordered = true,
+                                Striped = true
+                            })
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/transportModeType.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+    if (window.jQuery && typeof $.transportModeType === "function") {
+    var options = { baseUrl: '@Url.Action("", "TransportModeType")' };
+    options.load = () => { };
+    $.transportModeType(options);
+    } else {
+    setTimeout(waitForJQuery, 30);
+    }
+    })();
+</script>

@@ -30,8 +30,8 @@
                     <select asp-for="VehicleTypeId"
                             asp-items="ViewBag.VehicleDD"
                             class="form-control form-control-sm custom-select-single"
-                            tabindex="1">
-                        <option value="">-- Select Transport Type --</option>
+                            tabindex="1" data-placeholder="Select Transport Type">
+                        <option value=""></option>
                     </select>
                 </div>
                 <button type="button" class="btn btn-plus js-quick-add"
@@ -58,8 +58,8 @@
                     <select asp-for="PortNameId"
                             asp-items="ViewBag.PortNameDD"
                             class="form-control form-control-sm custom-select-single"
-                            tabindex="3">
-                        <option value="">-- Select Port Name --</option>
+                            tabindex="3" data-placeholder="Select Port Name">
+                        <option value=""></option>
                     </select>
                 </div>
                 <button type="button" class="btn btn-plus js-quick-add"
