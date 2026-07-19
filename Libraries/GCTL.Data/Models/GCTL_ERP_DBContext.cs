@@ -89,6 +89,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CfOperationalFundRequisitionEntry> CfOperationalFundRequisitionEntries { get; set; }
 
+    public virtual DbSet<CfShipmentStatus> CfShipmentStatuses { get; set; }
+
     public virtual DbSet<CoreAccessCode> CoreAccessCodes { get; set; }
 
     public virtual DbSet<CoreBankAccountInformation> CoreBankAccountInformations { get; set; }
@@ -250,6 +252,8 @@ public partial class GCTL_ERP_DBContext : DbContext
     public virtual DbSet<SepDocumentation> SepDocumentations { get; set; }
 
     public virtual DbSet<TenantInfo> TenantInfos { get; set; }
+
+    public virtual DbSet<TransportModeType> TransportModeTypes { get; set; }
 
     public virtual DbSet<UserVisitLog> UserVisitLogs { get; set; }
 
@@ -1379,6 +1383,9 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
             entity.Property(e => e.RevenueLedgerCodeNo).HasMaxLength(50);
             entity.Property(e => e.ShortName).HasMaxLength(50);
+            entity.Property(e => e.TransportModeTypeId)
+                .HasMaxLength(10)
+                .IsFixedLength();
         });
 
         modelBuilder.Entity<CfDefPlaceOfLoading>(entity =>
@@ -1630,6 +1637,42 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.PortCharge).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.PrifixId).HasMaxLength(50);
             entity.Property(e => e.ShippingCharge).HasColumnType("decimal(18, 2)");
+        });
+
+        modelBuilder.Entity<CfShipmentStatus>(entity =>
+        {
+            entity.HasKey(e => e.AutoId).HasName("PK__CF_Shipm__6B232905A776F488");
+
+            entity.ToTable("CF_ShipmentStatus");
+
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.ShipmentStatus)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.ShipmentStatusId)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.ShortName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.TransportModeTypeId)
+                .IsRequired()
+                .HasMaxLength(50);
         });
 
         modelBuilder.Entity<CoreAccessCode>(entity =>
@@ -4797,6 +4840,35 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50);
             entity.Property(e => e.TenantName)
+                .IsRequired()
+                .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<TransportModeType>(entity =>
+        {
+            entity.HasKey(e => e.TransportModeId).HasName("PK__Transpor__E9EEC45AA1FAA0FB");
+
+            entity.ToTable("Transport_Mode_Type");
+
+            entity.Property(e => e.TransportModeId).HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.ShortName).HasMaxLength(50);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
+            entity.Property(e => e.TransportMode)
                 .IsRequired()
                 .HasMaxLength(100);
         });

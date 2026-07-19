@@ -164,6 +164,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IPermissionService, PermissionService>();
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IShipmentStatusService, ShipmentStatusService>();
 
         }
     }
