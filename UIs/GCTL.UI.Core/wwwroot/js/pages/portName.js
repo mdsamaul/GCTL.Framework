@@ -360,6 +360,8 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
+                        window.initCustomDropdowns(settings.formContainer, true);
+
                         resolve(data)
                     },
                     error: function (error) {
