@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GCTL.Core.ViewModels.SepDocumentation
+namespace GCTL.Core.ViewModels.DailyJobUpdateEntry
 {
     public class JobEntryViewModel : BaseViewModel
     {
