@@ -58,7 +58,7 @@
                     console.info("Form Loaded Successfully", data);
                 }).catch((error) => {
                     console.error("Failed to load form", error);
-                });
+                });         
 
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
