@@ -10,10 +10,12 @@ using GCTL.Service.Departments;
 using GCTL.Service.Designations;
 using GCTL.Service.Nationalitys;
 using GCTL.Service.PaymentModes;
+using GCTL.Service.PortName;
 using GCTL.Service.PortType;
 using GCTL.Service.Religions;
 using GCTL.Service.SupplierCategory;
 using GCTL.Service.SupplierOrigin;
+using GCTL.Service.TransportType;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -35,7 +37,8 @@ namespace GCTL.UI.Core.Controllers
         private readonly ISupplierCategoryService supplierCategoryService;
         private readonly ICountryService countryService;
         private readonly IPortTypeService portTypeService;
-
+        private readonly IPortNameService portNameService;
+        private readonly ITransportTypeService transportTypeService;
 
         public CascadingController(
             IBloodGroupService bloodGroupService,
@@ -51,7 +54,9 @@ namespace GCTL.UI.Core.Controllers
              ISupplierOriginService supplierOriginService,
              ISupplierCategoryService supplierCategoryService,
              ICountryService countryService,
-             IPortTypeService portTypeService 
+             IPortTypeService portTypeService,
+             IPortNameService portNameService,
+             ITransportTypeService transportTypeService
 
             )
         {
@@ -66,10 +71,10 @@ namespace GCTL.UI.Core.Controllers
             this.nationalitysService = nationalitysService;
             this.supplierCategoryService = supplierCategoryService;
             this.countryService = countryService;
-
             this.portTypeService = portTypeService;
-
             this.companyService = companyService;
+            this.portNameService = portNameService;
+            this.transportTypeService = transportTypeService;
 
         }
 
@@ -149,6 +154,16 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> GetPortTypes()
         {
             return Json(await portTypeService.SelectionPortTypeAsync());
+        }
+
+        public async Task<IActionResult> GetPortNames()
+        {
+            return Json(await portNameService.SelectionPortNameAsync());
+        }
+
+        public async Task<IActionResult> GetTransportTypes()
+        {
+            return Json(await transportTypeService.SelectionTransportTypeAsync());
         }
 
     }

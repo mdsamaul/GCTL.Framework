@@ -10,6 +10,7 @@ using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
 using GCTL.Service.ChartOfAccounts.SubControlLedger;
 using GCTL.Service.ChartOfAccounts.SubSidiaryLedger;
+using GCTL.Service.CNFMaster.VendorPrefixs;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
 using GCTL.Service.Core_Countrys;
@@ -45,6 +46,8 @@ using GCTL.Service.SupplierCategory;
 using GCTL.Service.SupplierInformation;
 using GCTL.Service.SupplierOrigin;
 using GCTL.Service.SupplierType;
+using GCTL.Service.TransportInformation;
+using GCTL.Service.TransportType;
 using GCTL.Service.UnitType;
 using GCTL.Service.Update;
 
@@ -146,7 +149,10 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IHRMCompanyWeekEndService, HRMCompanyWeekEndService>();
             services.AddScoped<IPortTypeService, PortTypeService>();
+            services.AddScoped<IVendorPrefixService, VendorPrefixService>();
             services.AddScoped<IPortNameService, PortNameService>();
+            services.AddScoped<ITransportInformationService, TransportInformationService>();
+            services.AddScoped<ITransportTypeService, TransportTypeService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 

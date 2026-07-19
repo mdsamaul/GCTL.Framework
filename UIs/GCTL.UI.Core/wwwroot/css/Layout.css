@@ -431,3 +431,13 @@ i.fab {
         background: #f5f5f5;
     }
 
+
+.form-control:focus {
+    box-shadow: 0 0 0 0; 
+}
+
+table.dataTable.table-sm > tbody > tr > td,
+table.dataTable.table-sm > thead > tr > th {
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}

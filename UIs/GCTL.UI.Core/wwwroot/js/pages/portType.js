@@ -105,7 +105,6 @@
                             } else {
                                 // normal page এ থাকলে আগের মতোই form reload করো
                                 loadForm(saveUrl).then(() => {
-                                    // loadCompanies(settings.baseUrl, settings.gridSelector);
                                     loadTable();
                                 });
                             }

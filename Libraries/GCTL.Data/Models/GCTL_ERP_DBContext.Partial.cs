@@ -133,6 +133,18 @@ namespace GCTL.Data.Models
                 entity.Property(p => p.Tc)
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
+
+            modelBuilder.Entity<SalesDefVehicle>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefVehicleType>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
         }
     }
 }
