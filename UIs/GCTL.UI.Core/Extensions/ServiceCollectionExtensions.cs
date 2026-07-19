@@ -28,6 +28,7 @@ using GCTL.Service.ExpenseHead;
 using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
+using GCTL.Service.ImporterInfo;
 using GCTL.Service.Menu;
 
 using GCTL.Service.MenuTab;
@@ -153,6 +154,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IPortNameService, PortNameService>();
             services.AddScoped<ITransportInformationService, TransportInformationService>();
             services.AddScoped<ITransportTypeService, TransportTypeService>();
+            services.AddScoped<IImporterInfoService, ImporterInfoService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
