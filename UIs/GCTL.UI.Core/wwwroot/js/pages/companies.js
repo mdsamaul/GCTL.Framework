@@ -168,8 +168,7 @@
                     success: function (response) {
                         if (response.isSuccess) {
                             toastr.success(response.message);
-
-                          
+                                                     
                             var $modalAncestor = $(self).closest(".modal");
                             if ($modalAncestor.length && window.GcModal) {
                                 GcModal.markSuccess($modalAncestor, response.lastCode);
