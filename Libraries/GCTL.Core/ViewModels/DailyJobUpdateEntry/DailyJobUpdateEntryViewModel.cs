@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace GCTL.Core.ViewModels.SepDocumentation
+namespace GCTL.Core.ViewModels.DailyJobUpdateEntry
 {
-    
-
-    public class SepDocumentationViewModel
+    public class DailyJobUpdateEntryViewModel:BaseViewModel
     {
         public string ShipmentMode { get; set; }
         public bool IsCustomer { get; set; }

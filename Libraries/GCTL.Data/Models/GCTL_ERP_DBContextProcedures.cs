@@ -43,7 +43,7 @@ namespace GCTL.Data.Models
             _context = context;
         }
 
-        public virtual async Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string EmployeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -57,8 +57,8 @@ namespace GCTL.Data.Models
                 new SqlParameter
                 {
                     ParameterName = "EmployeeCode",
-                    Size = 50,
-                    Value = employeeCode ?? Convert.DBNull,
+                    Size = 100,
+                    Value = EmployeeCode ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.NVarChar,
                 },
                 parameterreturnValue,
@@ -70,7 +70,7 @@ namespace GCTL.Data.Models
             return _;
         }
 
-        public virtual async Task<List<usp_GetHolidayListResult>> usp_GetHolidayListAsync(int? year, int? month, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<usp_GetHolidayListResult>> usp_GetHolidayListAsync(int? Year, int? Month, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -84,13 +84,13 @@ namespace GCTL.Data.Models
                 new SqlParameter
                 {
                     ParameterName = "Year",
-                    Value = year ?? Convert.DBNull,
+                    Value = Year ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.Int,
                 },
                 new SqlParameter
                 {
                     ParameterName = "Month",
-                    Value = month ?? Convert.DBNull,
+                    Value = Month ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.Int,
                 },
                 parameterreturnValue,

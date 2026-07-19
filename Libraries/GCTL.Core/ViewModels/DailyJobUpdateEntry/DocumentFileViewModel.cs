@@ -1,12 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GCTL.Core.ViewModels.SepDocumentation
+namespace GCTL.Core.ViewModels.DailyJobUpdateEntry
 {
     public class DocumentFileViewModel
     {
@@ -35,11 +30,11 @@ namespace GCTL.Core.ViewModels.SepDocumentation
         // Add this hidden field to pass the temporary client-side metadata
         public string TempDocumentsJson { get; set; }
 
-       
+
         //[Display(Name = "Upload File")]
         //public IFormFile? UploadFile { get; set; }
 
-        
+
         [Display(Name = "Document Name")]
         public string? DocumentName { get; set; }
 

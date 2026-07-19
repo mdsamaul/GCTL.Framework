@@ -1,5 +1,7 @@
 ﻿$(document).ready(function () {
 
+
+    //shipment update page js
     showDev('loaded')
 
     //#region Select 2

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GCTL.Core.ViewModels.SepDocumentation
+namespace GCTL.Core.ViewModels.DailyJobUpdateEntry
 {
     public class TimelineStepDto
     {

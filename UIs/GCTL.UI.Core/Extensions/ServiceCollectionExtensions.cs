@@ -21,6 +21,7 @@ using GCTL.Service.CurrencyType;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
+using GCTL.Service.DailyJobUpdateEntry;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
@@ -156,7 +157,7 @@ namespace GCTL.Framework.Extensions
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
-            services.AddScoped<IJobService, JobService>();
+            //services.AddScoped<IJobService, JobService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
@@ -165,6 +166,7 @@ namespace GCTL.Framework.Extensions
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IShipmentStatusService, ShipmentStatusService>();
+            services.AddScoped<IDailyJobUpdateEntryService, DailyJobUpdateEntryService>();
 
         }
     }

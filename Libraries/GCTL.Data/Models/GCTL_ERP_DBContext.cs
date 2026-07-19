@@ -1686,7 +1686,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.MenuId).HasMaxLength(50);
             entity.Property(e => e.MenuText).HasMaxLength(100);
-            entity.Property(e => e.OrderBy).HasDefaultValue(1, "DF_Core_AccessCode_OrderBy");
+            entity.Property(e => e.OrderBy).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
@@ -1975,7 +1975,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ControllerName).HasMaxLength(100);
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.MenuId).HasMaxLength(50);
-            entity.Property(e => e.OrderBy).HasDefaultValue(1, "DF_Core_MenuTab2_OrderBy");
+            entity.Property(e => e.OrderBy).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.TableName).HasMaxLength(50);
             entity.Property(e => e.Title)
@@ -2468,10 +2468,10 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("LMAC");
             entity.Property(e => e.LunchBreakHour).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.LunchInTime)
-                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "DF_HRM_ATD_Shift_LunchInTime")
+                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
                 .HasColumnType("datetime");
             entity.Property(e => e.LunchOutTime)
-                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "DF_HRM_ATD_Shift_LunchOutTime")
+                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
                 .HasColumnType("datetime");
             entity.Property(e => e.Luser)
                 .HasMaxLength(50)
@@ -4661,6 +4661,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("TC");
+            entity.Property(e => e.ArrivalNoticeDate).HasColumnType("datetime");
             entity.Property(e => e.AssessableRate).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.AssessableValue).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.AssessmentNo).HasMaxLength(100);
@@ -4706,6 +4707,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("DepotID");
             entity.Property(e => e.Dischargedate).HasColumnType("datetime");
             entity.Property(e => e.DocReceivedDate).HasColumnType("datetime");
+            entity.Property(e => e.DocsBankSignDate).HasColumnType("datetime");
             entity.Property(e => e.DocumentHandoverDate).HasColumnType("datetime");
             entity.Property(e => e.DocumentTypeId)
                 .HasMaxLength(50)
@@ -4734,6 +4736,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ExporterId)
                 .HasMaxLength(50)
                 .HasColumnName("ExporterID");
+            entity.Property(e => e.FinalIgmRecDate).HasColumnType("datetime");
             entity.Property(e => e.FreightCharge).HasMaxLength(50);
             entity.Property(e => e.FwdrShippingAgent)
                 .HasMaxLength(100)
