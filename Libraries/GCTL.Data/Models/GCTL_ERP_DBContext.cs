@@ -113,6 +113,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CoreUserLog> CoreUserLogs { get; set; }
 
+    public virtual DbSet<CoreVendorInformation> CoreVendorInformations { get; set; }
+
     public virtual DbSet<Country> Countries { get; set; }
 
     public virtual DbSet<CustomerHandilingCharge> CustomerHandilingCharges { get; set; }
@@ -256,6 +258,8 @@ public partial class GCTL_ERP_DBContext : DbContext
     public virtual DbSet<TransportModeType> TransportModeTypes { get; set; }
 
     public virtual DbSet<UserVisitLog> UserVisitLogs { get; set; }
+
+    public virtual DbSet<VendorBranchInfo> VendorBranchInfos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1686,7 +1690,9 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.MenuId).HasMaxLength(50);
             entity.Property(e => e.MenuText).HasMaxLength(100);
-            entity.Property(e => e.OrderBy).HasDefaultValue(1);
+            entity.Property(e => e.OrderBy)
+                .HasDefaultValue(1)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_AccessCode_OrderBy");
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
@@ -1974,8 +1980,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.Property(e => e.ControllerName).HasMaxLength(100);
             entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.IsActive).HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_IsActive");
             entity.Property(e => e.MenuId).HasMaxLength(50);
-            entity.Property(e => e.OrderBy).HasDefaultValue(1);
+            entity.Property(e => e.OrderBy)
+                .HasDefaultValue(1)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_OrderBy");
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.TableName).HasMaxLength(50);
             entity.Property(e => e.Title)
@@ -2097,6 +2106,58 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(250)
                 .HasColumnName("username");
             entity.Property(e => e.WorkStation).HasMaxLength(150);
+        });
+
+        modelBuilder.Entity<CoreVendorInformation>(entity =>
+        {
+            entity.HasKey(e => e.VendorId).HasName("PK__Core_Ven__FC8618D302945214");
+
+            entity.ToTable("Core_VendorInformation");
+
+            entity.Property(e => e.VendorId)
+                .HasMaxLength(50)
+                .HasColumnName("VendorID");
+            entity.Property(e => e.City).HasMaxLength(100);
+            entity.Property(e => e.CompanyCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CountryId).HasMaxLength(100);
+            entity.Property(e => e.Cpid)
+                .HasMaxLength(100)
+                .HasColumnName("CPID");
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.Fax).HasMaxLength(100);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.Phone).HasMaxLength(50);
+            entity.Property(e => e.Remarks).HasMaxLength(100);
+            entity.Property(e => e.StateOrProvince).HasMaxLength(100);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
+            entity.Property(e => e.VatRegNo).HasMaxLength(100);
+            entity.Property(e => e.VendorCode).HasMaxLength(100);
+            entity.Property(e => e.Website).HasMaxLength(200);
+            entity.Property(e => e.ZipCode).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Country>(entity =>
@@ -2466,12 +2527,16 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Lmac)
                 .HasMaxLength(50)
                 .HasColumnName("LMAC");
-            entity.Property(e => e.LunchBreakHour).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.LunchBreakHour)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchBreakHour")
+                .HasColumnType("decimal(5, 2)");
             entity.Property(e => e.LunchInTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchInTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.LunchOutTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchOutTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.Luser)
                 .HasMaxLength(50)
@@ -3967,10 +4032,13 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<SalesContactPerson>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity.HasKey(e => e.Cpid);
 
             entity.ToTable("Sales_ContactPerson");
 
+            entity.Property(e => e.Cpid)
+                .HasMaxLength(50)
+                .HasColumnName("CPID");
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)");
@@ -3984,10 +4052,6 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ContactPersonName)
                 .IsRequired()
                 .HasMaxLength(500);
-            entity.Property(e => e.Cpid)
-                .IsRequired()
-                .HasMaxLength(50)
-                .HasColumnName("CPID");
             entity.Property(e => e.DesignationCode).HasMaxLength(50);
             entity.Property(e => e.EmployeeId)
                 .HasMaxLength(50)
@@ -4889,6 +4953,31 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsRequired()
                 .HasMaxLength(1024);
             entity.Property(e => e.UserId).HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<VendorBranchInfo>(entity =>
+        {
+            entity.HasKey(e => e.VendorBranchId).HasName("PK__VendorBr__3366A85D8B59B5FF");
+
+            entity.ToTable("VendorBranchInfo");
+
+            entity.Property(e => e.VendorBranchId)
+                .HasMaxLength(50)
+                .HasColumnName("VendorBranchID");
+            entity.Property(e => e.City).HasMaxLength(100);
+            entity.Property(e => e.ContactPerson).HasMaxLength(50);
+            entity.Property(e => e.CountryId).HasMaxLength(100);
+            entity.Property(e => e.DesignationCode).HasMaxLength(150);
+            entity.Property(e => e.Email).HasMaxLength(150);
+            entity.Property(e => e.LocationAddress).HasMaxLength(200);
+            entity.Property(e => e.Phone).HasMaxLength(50);
+            entity.Property(e => e.Remarks).HasMaxLength(100);
+            entity.Property(e => e.StateOrProvince).HasMaxLength(100);
+            entity.Property(e => e.VendorId)
+                .HasMaxLength(50)
+                .HasColumnName("VendorID");
+            entity.Property(e => e.VendorName).HasMaxLength(100);
+            entity.Property(e => e.ZipCode).HasMaxLength(100);
         });
 
         OnModelCreatingPartial(modelBuilder);

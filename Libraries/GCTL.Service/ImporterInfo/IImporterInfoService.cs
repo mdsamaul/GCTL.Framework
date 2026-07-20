@@ -14,7 +14,6 @@ namespace GCTL.Service.ImporterInfo
         Task<ImporterInfoSetupViewModel> GetByIdAsync(string code);
 
         Task<bool> SaveAsync(ImporterInfoSetupViewModel entityVM);
-
         Task<bool> UpdateAsync(ImporterInfoSetupViewModel entityVM);
 
         Task<IEnumerable<CommonSelectModel>> SelectionImporterInfoAsync();
