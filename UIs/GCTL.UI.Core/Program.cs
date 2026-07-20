@@ -7,6 +7,7 @@ using GCTL.Framework.Extensions;
 using GCTL.Service.Menu;
 //using GCTL.Data.Identity;
 using GCTL.UI.Core;
+using GCTL.UI.Core.Filters;
 using GCTL.UI.Core.Helpers.BackgroundServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -34,6 +35,7 @@ var connectionString = builder.Configuration.GetConnectionString("connection")
 // Register DB contexts and application services via extension methods
 builder.Services.ConfigureContexts(builder.Configuration);
 builder.Services.RegisterApplicationServices();
+builder.Services.ReadConfigaration(builder.Configuration);
 
 // ---------------------------------------------------------------------
 // ASP.NET Core Identity
@@ -120,7 +122,10 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // ---------------------------------------------------------------------
 // MVC + Swagger
 // ---------------------------------------------------------------------
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<BreadcrumbActionFilter>();
+});
 builder.Services.AddRazorPages(); // needed for Identity UI scaffolded pages
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
