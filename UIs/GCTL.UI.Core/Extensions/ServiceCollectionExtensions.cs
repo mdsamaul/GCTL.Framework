@@ -39,6 +39,7 @@ using GCTL.Service.MenuTab;
 using GCTL.Service.ModeType;
 using GCTL.Service.Nationalitys;
 using GCTL.Service.OpeningBalance;
+using GCTL.Service.OperationalFund;
 using GCTL.Service.PaymentModes;
 using GCTL.Service.PaymentTerms;
 using GCTL.Service.PaymentType;
@@ -179,6 +180,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IShipmentStatusService, ShipmentStatusService>();
             services.AddScoped<IDailyJobUpdateEntryService, DailyJobUpdateEntryService>();
+            services.AddScoped<Ioperational, OperationalService>();
             services.AddScoped<IMenuBreadcrumbService, MenuBreadcrumbService>();
             services.AddMemoryCache();
         }
