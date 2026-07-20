@@ -8,6 +8,44 @@
 <link href="~/css/selectCSS.css" rel="stylesheet" />
 
 <style>
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: calc(1.5em + .5rem + 2px) !important; /* Bootstrap form-select-sm */
+        padding: .25rem .5rem !important;
+        border: 1px solid #ced4da !important;
+        border-radius: .375rem !important;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-container--default .select2-selection__rendered {
+        line-height: normal !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        color: #212529;
+        font-size: .875rem;
+    }
+
+    .select2-container--default .select2-selection__arrow {
+        height: 100% !important;
+        right: 8px;
+    }
+
+    .select2-container--default .select2-selection__clear {
+        margin-right: 18px;
+    }
+
+    /* Focus */
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+    }
+
     .form-label {
         padding-left: 0rem !important;
         line-height: 1.2 !important;
@@ -15,6 +53,147 @@
         margin-bottom: 0 !important;
     }
 
+    /* ================= Toolbar ================= */
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .toolbar-left {
+        flex-shrink: 0;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    /* Large Screen (default) */
+
+    .toolbar-showing {
+        width: 120px;
+    }
+
+    /* Wrapper for the large-screen filters (customer / shipment / date) */
+    .toolbar-large-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .toolbar-customer {
+        width: 250px;
+    }
+
+    .toolbar-shipment {
+        width: 240px;
+    }
+
+    .toolbar-date {
+        width: 380px;
+    }
+
+    .toolbar-search {
+        width: 300px;
+    }
+
+    /* Small/mid screen filter block - hidden by default on large screens */
+    .sm-topshow {
+        display: none;
+    }
+
+    /* 1350px */
+
+    @@media (max-width:1370px) {
+
+        .sm-topshow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+        }
+
+            .sm-topshow .toolbar-customer-sm,
+            .sm-topshow .toolbar-shipment-sm {
+                width: 220px;
+            }
+
+            .sm-topshow .toolbar-date-sm {
+                width: 100%;
+                max-width: 420px;
+            }
+
+        .toolbar-right {
+            gap: 8px;
+        }
+        /* Hide large-screen customer/shipment/date filters */
+        .toolbar-large-filters {
+            display: none;
+        }
+
+        .toolbar-customer {
+            width: 225px;
+        }
+
+        .toolbar-search {
+            width: 225px;
+        }
+
+        .toolbar-date {
+            width: 321px;
+        }
+
+        .toolbar .form-control,
+        .toolbar .form-select,
+        .toolbar .input-group-text {
+            font-size: 13px;
+            padding: .25rem .45rem;
+        }
+    }
+
+    /* Tablet */
+
+    @@media (max-width:1200px) {
+
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-right {
+            flex-wrap: wrap;
+        }
+
+        .toolbar-search {
+            width: 100%;
+        }
+
+        .sm-topshow .toolbar-customer-sm,
+        .sm-topshow .toolbar-shipment-sm,
+        .sm-topshow .toolbar-date-sm {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+    .form-control-sm,
+    .form-select-sm {
+        font-size: 0.82rem;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
     .nav-tabs .nav-link.active {
         font-weight: 700;
         border-bottom: 2px solid #0d6efd;
@@ -34,19 +213,50 @@
         padding-bottom: 4px;
         margin: 1rem 0 .75rem;
     }
+
+    .toolbar-doc {
+    display: none;
+    opacity: 0;
+    transform: translateY(-15px);
+    transition: all .35s ease;
+}
+
+.toolbar-doc.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+    
 </style>
 
-<partial name="_PageHeader" model="Model" />
-@await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+@* <partial name="_PageHeader" model="Model" /> *@
+<!-- Toolbar Entry -->
+<div id="toolbarEntry" class="toolbar-doc show">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
     {
-    Title = "Documentation/Job Entry",
-        SaveBtnClass=""
+        Title = "Documentation/Job Entry",
+        SaveBtnClass = "doc-save-entry-btn",
+        DeleteBtnClass = "doc-delete-entry-btn",
+        ClearBtnClass = "doc-clear-entry-btn",
+        PdfBtnClass = "doc-pdf-entry-btn",
+        ExcelBtnClass = "doc-excel-entry-btn",
     })
-@await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+</div>
+
+<!-- Toolbar Upload -->
+<div id="toolbarUpload" class="toolbar-doc">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
     {
-    Title = "Documentation/Job Entry",
-        SaveBtnClass=""
+        Title = "Document Upload Info",
+        SaveBtnClass = "doc-seve-upload-btn",
+        DeleteBtnClass = "doc-delete-upload-btn",
+        ClearBtnClass = "doc-clear-upload-btn",
+        PdfBtnClass = "doc-pdf-upload-btn",
+        ExcelBtnClass = "doc-excel-upload-btn",
     })
+</div>
+
+<!-- Tabs... -->
 <form id="sepDocForm">
     @Html.AntiForgeryToken()
     <input type="hidden" id="tc" name="Tc" value="0" />
@@ -65,7 +275,138 @@
     </ul>
 
     <div class="tab-content" id="sepDocTabContent">
+        <div class="entry-only px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded toolbar-doc show">
+            <div class="mb-3">
+                <div id="jobSummary">
 
+                    <!-- Small/Mid screen filters (shown below 1350px) -->
+                    <div class="sm-topshow">
+                        <span class="label-text filter-by-sm">Filter By:</span>
+                        <div class="toolbar-customer-sm">
+                            <select class="form-select form-select-sm custom-select-single"
+                                    id="customerFilterSm"
+                                    data-placeholder="Select Customer"
+                                    asp-items="ViewBag.CustomerName as SelectList">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar-shipment-sm">
+                            <select class="form-select form-select-sm custom-select-single"
+                                    id="shipmentModeFilterSm"
+                                    data-placeholder="Select Shipment Mode"
+                                    asp-items="ViewBag.ShipmentMode as SelectList">
+                                <option value="">All Shipment Modes</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar-date-sm">
+                            <div class="input-group input-group-sm custom-date-group">
+                                <span class="input-group-text">From</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateFromSm">
+
+                                <span class="input-group-text">To</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateToSm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar mb-4">
+
+                        <!-- Left -->
+                        <div class="toolbar-left">
+                            <div class="input-group input-group-sm toolbar-showing">
+                                <span class="input-group-text">Showing</span>
+
+                                <select class="form-select" id="pageSizeSelect">
+                                    <option value="5" selected>5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Right -->
+                        <div class="toolbar-right">
+                            <span class="label-text toolbar-large-filters">Filter By:</span>
+                            <!-- Large screen filters (hidden below 1350px) -->
+                            <div class="toolbar-large-filters">
+                                <div class="toolbar-customer">
+                                    <select class="form-select form-select-sm custom-select-single"
+                                            id="customerFilter"
+                                            data-placeholder="Select Customer"
+                                            asp-items="ViewBag.CustomerName as SelectList">
+                                        <option value="">All Customers</option>
+                                    </select>
+                                </div>
+
+                                <div class="toolbar-shipment">
+                                    <select class="form-select form-select-sm custom-select-single"
+                                            id="shipmentModeFilter"
+                                            data-placeholder="Select Shipment Mode"
+                                            asp-items="ViewBag.ShipmentMode as SelectList">
+                                        <option value="">All Shipment Modes</option>
+                                    </select>
+                                </div>
+
+                                <div class="toolbar-date">
+                                    <div class="input-group input-group-sm custom-date-group">
+                                        <span class="input-group-text">Date From</span>
+                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateFrom">
+
+                                        <span class="input-group-text">To</span>
+                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateTo">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="toolbar-search">
+                                <input class="form-control form-control-sm"
+                                       id="searchInput"
+                                       type="text"
+                                       placeholder="Search">
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <div class="table-responsive ms-n1 ps-1 scrollbar">
+                        <table class="table table-bordered table-sm table-responsive-sm fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobSettingsTable">
+                            <thead>
+                                <tr>
+                                    <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo">Job No</th>
+                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="ShipmentMode">Shipment Mode</th>
+                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="JobDate">Job Date</th>
+                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="CustomerName">Customer Name</th>
+                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="DocReceivedDate">Doc Received Date</th>
+
+                                </tr>
+                            </thead>
+                            <tbody class="list" id="job-settings-table">
+                                <!-- Table rows will be populated here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
+                        <div class="d-flex">
+                            <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="dataListInfo"></p>
+                        </div>
+                        <div class="d-flex">
+                            <button class="page-link" id="paginationPrev"><span class="fas fa-chevron-left"></span></button>
+                            <ul class="mb-0 pagination" id="paginationNumbers"></ul>
+                            <button class="page-link pe-0" id="paginationNext"><span class="fas fa-chevron-right"></span></button>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                   
+            </div>
+        </div>
         <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
         <div class="tab-pane fade show active" id="entryTabPane" role="tabpanel">
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
@@ -87,6 +428,9 @@
                     </div>
 
                     <div class="col-lg-4 col-md-6">
+                       
+                    </div>
+                    <div class="col-lg-4 col-md-6">
                         <label class="form-label">Job No</label>
                         <input class="form-control form-control-sm" readonly id="jobNo" />
                     </div>
@@ -97,10 +441,26 @@
                     </div>
 
                     <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer" id="customerId" asp-items="ViewBag.CustomerName as SelectList">
-                            <option value="">Select Customer</option>
-                        </select>
+                        <label class="form-label">Customer Name<sup class="text-danger">*</sup> </label>
+                        
+                        <div class="input-group flex-nowrap">
+                            <div class="input-group input-group-sm">
+
+                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer" id="customerId" asp-items="ViewBag.CustomerName as SelectList">
+                                    <option value="">Select Customer</option>
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-outline-secondary js-quick-add"
+                                        data-url="@Url.Action("Index", "Companies")"
+                                        data-target="#CompanyCode"
+                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                        data-title="Company">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-4 col-md-6">
@@ -109,17 +469,51 @@
                     </div>
 
                     <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Delivery Address</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer Delivery" id="deliveryLocationCode" asp-items="ViewBag.CustomerDeliveryAddress as SelectList">
-                            <option value="">Select Customer Delivery</option>
-                        </select>
+                        <label class="form-label">Customer Delivery Address<sup class="text-danger">*</sup> </label>
+                        
+                        <div class="input-group flex-nowrap">
+                            <div class="input-group input-group-sm">
+
+                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer Delivery" id="deliveryLocationCode" asp-items="ViewBag.CustomerDeliveryAddress as SelectList">
+                                    <option value="">Select Customer Delivery</option>
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-outline-secondary js-quick-add"
+                                        data-url="@Url.Action("Index", "Companies")"
+                                        data-target="#CompanyCode"
+                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                        data-title="Company">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Port Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Port" id="portId" asp-items="ViewBag.PortName as SelectList">
-                            <option value="">Select Port</option>
-                        </select>
+                        </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Port Name<sup class="text-dange">*</sup></label>
+                        
+                        <div class="input-group flex-nowrap">
+                            <div class="input-group input-group-sm">
+
+                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Port" id="portId" asp-items="ViewBag.PortName as SelectList">
+                                    <option value="">Select Port</option>
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-outline-secondary js-quick-add"
+                                        data-url="@Url.Action("Index", "Companies")"
+                                        data-target="#CompanyCode"
+                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                        data-title="Company">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-4 col-md-6">
@@ -154,7 +548,14 @@
                             <select class="form-select form-select-sm custom-select-single" data-placeholder="Currency" id="currencyId" asp-items="ViewBag.Currency as SelectList">
                                 <option value="">Curr.</option>
                             </select>
+                            @* <input type="number" class="form-control form-control-sm" id="bdtRate" placeholder="BDT Rate" /> *@
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">BDT</label>
+                        <div class="d-flex gap-2">
                             <input type="number" class="form-control form-control-sm" id="bdtRate" placeholder="BDT Rate" />
+                            <input type="number" class="form-control form-control-sm" id="lcValue" placeholder="BDT Rate" />                            
                         </div>
                     </div>
 
@@ -170,9 +571,25 @@
 
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Importer Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Importer" id="importerId" asp-items="ViewBag.ImporterName as SelectList">
-                            <option value="">Select Importer</option>
-                        </select>
+                        <div class="input-group flex-nowrap">
+                            <div class="input-group input-group-sm">
+
+                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Importer" id="importerId" asp-items="ViewBag.ImporterName as SelectList">
+                                    <option value="">Select Importer</option>
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-outline-secondary js-quick-add"
+                                        data-url="@Url.Action("Index", "Companies")"
+                                        data-target="#CompanyCode"
+                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                        data-title="Company">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+
+                            </div>
+                        </div>
+                      
                     </div>
 
                     <div class="col-lg-4 col-md-6">
@@ -228,9 +645,25 @@
                         <label class="form-label">Quantity &amp; Unit</label>
                         <div class="d-flex gap-2">
                             <input type="number" class="form-control form-control-sm" id="quntity1" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Unit" id="unit1" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Unit</option>
-                            </select>
+                            <div class="input-group flex-nowrap">
+                                <div class="input-group input-group-sm">
+
+                                    <select class="form-select form-select-sm custom-select-single" data-placeholder="Unit" id="unit1" asp-items="ViewBag.QuantityUnit as SelectList">
+                                        <option value="">Unit</option>
+                                    </select>
+
+                                    <button type="button"
+                                            class="btn btn-outline-secondary js-quick-add"
+                                            data-url="@Url.Action("Index", "Companies")"
+                                            data-target="#CompanyCode"
+                                            data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                            data-title="Company">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+
+                                </div>
+                            </div>
+                           
                         </div>
                     </div>
 
@@ -238,9 +671,24 @@
                         <label class="form-label">Weight &amp; Unit</label>
                         <div class="d-flex gap-2">
                             <input type="number" class="form-control form-control-sm" id="quntity2" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Unit" id="unit2" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Unit</option>
-                            </select>
+                            <div class="input-group flex-nowrap">
+                                <div class="input-group input-group-sm">
+
+                                    <select class="form-select form-select-sm custom-select-single" data-placeholder="Unit" id="unit2" asp-items="ViewBag.QuantityUnit as SelectList">
+                                        <option value="">Unit</option>
+                                    </select>
+
+                                    <button type="button"
+                                            class="btn btn-outline-secondary js-quick-add"
+                                            data-url="@Url.Action("Index", "Companies")"
+                                            data-target="#CompanyCode"
+                                            data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                            data-title="Company">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -261,16 +709,48 @@
 
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Place of Loading</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Place of Loading" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
-                            <option value="">Select Place of Loading</option>
-                        </select>
+                        <div class="input-group flex-nowrap">
+                            <div class="input-group input-group-sm">
+
+                           
+                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Place of Loading" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
+                                    <option value="">Select Place of Loading</option>
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-outline-secondary js-quick-add"
+                                        data-url="@Url.Action("Index", "Companies")"
+                                        data-target="#CompanyCode"
+                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                        data-title="Company">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Shed/Yard</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Shed/Yard" id="shedYardId" asp-items="ViewBag.ShedYard as SelectList">
-                            <option value="">Select Shed/Yard</option>
-                        </select>
+                       
+                        <div class="input-group flex-nowrap">
+                            <div class="input-group input-group-sm">
+
+                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Shed/Yard" id="shedYardId" asp-items="ViewBag.ShedYard as SelectList">
+                                    <option value="">Select Shed/Yard</option>
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-outline-secondary js-quick-add"
+                                        data-url="@Url.Action("Index", "Companies")"
+                                        data-target="#CompanyCode"
+                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
+                                        data-title="Company">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-4 col-md-6">
@@ -383,9 +863,14 @@
                 @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                 {
                     Title = "",
-                    IsPlain = true,
-                    SaveBtnClass = "saveBtn"
+                    SaveBtnClass = "doc-save-entry-btn",
+                    ShowClear=false,
+                    ShowDelete=false,
+                    ShowFavorite=false,
+                    ShowPrint=false,
+                    IsPlain=true
                 })
+               
             </div>
 
             <!-- ==================== Grid of saved jobs ==================== -->
@@ -495,9 +980,19 @@
                 </div>
 
                 <div class="mt-3">
-                    <button type="button" class="btn btn-phoenix-primary" id="uploadDocumentBtn">
+                    @* <button type="button" class="btn btn-phoenix-primary" id="uploadDocumentBtn">
                         <i class="fas fa-upload text-primary"></i> <span>Upload</span>
-                    </button>
+                    </button> *@
+                    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                    {
+                        Title = "",
+                        SaveBtnClass = "doc-seve-upload-btn",
+                        ShowClear = false,
+                        ShowDelete = false,
+                        ShowFavorite = false,
+                        ShowPrint = false,
+                        IsPlain = true
+                    })
                 </div>
             </div>
         </div>
