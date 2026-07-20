@@ -116,6 +116,8 @@ namespace GCTL.Core.ViewModels.SepDocumentation
         public string JobNo { get; set; }
         public DateTime? JobDate { get; set; }
         public string JobDateFormatted { get; set; }
+        public string CustomerId { get; set; } = "";
+        public string ShipmentModeId { get; set; } = "";
         public string CustomerName { get; set; }
         public string CustomerAddress { get; set; }
         public string ShipmentMode { get; set; }
@@ -123,6 +125,7 @@ namespace GCTL.Core.ViewModels.SepDocumentation
         public string DocReceivedDateFormatted { get; set; }
         public decimal? LCValue { get; set; }
         public string JobStatus { get; set; }
+
     }
 
     public class SepDocPagedResult<T>

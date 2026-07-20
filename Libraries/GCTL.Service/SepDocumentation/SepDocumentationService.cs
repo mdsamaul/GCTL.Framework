@@ -51,6 +51,10 @@ namespace GCTL.Service.SepDocumentation
                     select new SepDocJobListDto
                     {
                         Tc = d.Tc,
+
+                        CustomerId = d.CustomerId,
+                        ShipmentModeId = d.ExpenseTypeId,
+
                         JobNo = d.JobNo,
                         JobDate = d.Date,
                         CustomerName = c != null ? c.CustomerName : "",
@@ -64,10 +68,14 @@ namespace GCTL.Service.SepDocumentation
                 var totalCount = await query.CountAsync();
 
                 if (!string.IsNullOrWhiteSpace(customerId))
-                    query = query.Where(x => x.CustomerName == customerId || x.CustomerName.Contains(customerId));
+                {
+                    query = query.Where(x => x.CustomerId == customerId);
+                }
 
                 if (!string.IsNullOrWhiteSpace(shipmentMode))
-                    query = query.Where(x => x.ShipmentMode == shipmentMode);
+                {
+                    query = query.Where(x => x.ShipmentModeId == shipmentMode);
+                }
 
                 if (dateFrom.HasValue)
                     query = query.Where(x => x.JobDate >= dateFrom.Value);
