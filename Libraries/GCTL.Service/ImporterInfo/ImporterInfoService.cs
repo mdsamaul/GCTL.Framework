@@ -2,8 +2,6 @@
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.ImporterInfo;
-using GCTL.Core.ViewModels.TransportInformation;
-using GCTL.Core.ViewModels.TransportType;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
@@ -203,7 +201,7 @@ namespace GCTL.Service.ImporterInfo
                 // entity.ImporterId = entityVM.ImporterId;
 
                 entity.ImporterCode = entityVM.ImporterCode ?? string.Empty;
-                entity.ImporterName = entityVM.ImporterName;
+                entity.ImporterName = entityVM.ImporterName ?? string.Empty;
                 entity.ImporterAddress = entityVM.ImporterAddress ?? string.Empty;
                 entity.CountryId = entityVM.CountryId ?? string.Empty;
                 entity.City = entityVM.City ?? string.Empty;

@@ -13,6 +13,7 @@ using GCTL.Service.ChartOfAccounts.SubSidiaryLedger;
 using GCTL.Service.CNFMaster.VendorPrefixs;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
+using GCTL.Service.ContactPersonInfo;
 using GCTL.Service.Core_Countrys;
 using GCTL.Service.CoreBankAccountInformations;
 using GCTL.Service.CoreServiceType;
@@ -26,6 +27,7 @@ using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
 using GCTL.Service.ExpenseHead;
+using GCTL.Service.ExporterInfo;
 using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
@@ -55,6 +57,7 @@ using GCTL.Service.UnitType;
 using GCTL.Service.Update;
 
 using GCTL.Service.Users;
+using GCTL.Service.VendorInfo;
 using GCTL.Service.VoucherType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -158,6 +161,9 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ITransportTypeService, TransportTypeService>();
             services.AddScoped<IImporterInfoService, ImporterInfoService>();
             services.AddScoped<IModeTypeService, ModeTypeService>();
+            services.AddScoped<IExporterInfoService, ExporterInfoService>();
+            services.AddScoped<IContactPersonInfoService, ContactPersonInfoService>();
+            services.AddScoped<IVendorInfoService, VendorInfoService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
