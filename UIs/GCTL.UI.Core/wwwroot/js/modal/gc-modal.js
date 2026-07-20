@@ -49,6 +49,36 @@
                 url: opts.url,
                 type: "GET",
                 headers: { "X-Requested-With": "XMLHttpRequest" },
+                // success: function (html) {
+                //     var $body = $modal.find(".modal-body");
+                //     var $parsed = $("<div>").html(html);
+                //     var $scripts = $parsed.find("script").remove();
+
+                //     $body.html($parsed.html());
+
+                //     if ($.validator && $.validator.unobtrusive) {
+                //         $.validator.unobtrusive.parse($body.find("form"));
+                //     }
+
+                //     var runNext = function (idx) {
+                //         if (idx >= $scripts.length) {
+                //             $modal.trigger("gc-modal:loaded");
+                //             return;
+                //         }
+                //         var el = $scripts[idx];
+                //         if (el.src) {
+                //             var s = document.createElement("script");
+                //             s.onload = function () { runNext(idx + 1); };
+                //             s.onerror = function () { runNext(idx + 1); };
+                //             s.src = el.src;
+                //             document.body.appendChild(s);
+                //         } else {
+                //             $.globalEval(el.text || el.textContent || "");
+                //             runNext(idx + 1);
+                //         }
+                //     };
+                //     runNext(0);
+                // },
                 success: function (html) {
                     var $body = $modal.find(".modal-body");
                     var $parsed = $("<div>").html(html);
@@ -62,6 +92,9 @@
 
                     var runNext = function (idx) {
                         if (idx >= $scripts.length) {
+                            // modal body er moddhe notun ashe custom select gula reinit
+                            window.initCustomDropdowns($body, true);
+
                             $modal.trigger("gc-modal:loaded");
                             return;
                         }

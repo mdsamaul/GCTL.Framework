@@ -21,6 +21,7 @@ using GCTL.Service.CurrencyType;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
+using GCTL.Service.DailyJobUpdateEntry;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
@@ -28,9 +29,11 @@ using GCTL.Service.ExpenseHead;
 using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
+using GCTL.Service.ImporterInfo;
 using GCTL.Service.Menu;
 
 using GCTL.Service.MenuTab;
+using GCTL.Service.ModeType;
 using GCTL.Service.Nationalitys;
 using GCTL.Service.OpeningBalance;
 using GCTL.Service.PaymentModes;
@@ -153,10 +156,12 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IPortNameService, PortNameService>();
             services.AddScoped<ITransportInformationService, TransportInformationService>();
             services.AddScoped<ITransportTypeService, TransportTypeService>();
+            services.AddScoped<IImporterInfoService, ImporterInfoService>();
+            services.AddScoped<IModeTypeService, ModeTypeService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
-            services.AddScoped<IJobService, JobService>();
+            //services.AddScoped<IJobService, JobService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
@@ -164,6 +169,8 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IPermissionService, PermissionService>();
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IShipmentStatusService, ShipmentStatusService>();
+            services.AddScoped<IDailyJobUpdateEntryService, DailyJobUpdateEntryService>();
 
         }
     }
