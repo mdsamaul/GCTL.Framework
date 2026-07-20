@@ -1,3 +1,4 @@
+using GCTL.Core.Configurations;
 using GCTL.Data.Context;
 using GCTL.Data.Models;
 using GCTL.Service.AdmissionTypes;
@@ -31,7 +32,7 @@ using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
 using GCTL.Service.ImporterInfo;
 using GCTL.Service.Menu;
-
+using GCTL.Service.MenuBreadcrumbs;
 using GCTL.Service.MenuTab;
 using GCTL.Service.ModeType;
 using GCTL.Service.Nationalitys;
@@ -59,6 +60,7 @@ using GCTL.Service.VoucherType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace GCTL.Framework.Extensions
 {
@@ -171,7 +173,14 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IShipmentStatusService, ShipmentStatusService>();
             services.AddScoped<IDailyJobUpdateEntryService, DailyJobUpdateEntryService>();
+            services.AddScoped<IMenuBreadcrumbService, MenuBreadcrumbService>();
+            services.AddMemoryCache();
+        }
 
+        public static void ReadConfigaration(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<ApplicationSettings>(configuration.GetSection("ApplicationSettings"));
+            services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<ApplicationSettings>>().Value);
         }
     }
 }
