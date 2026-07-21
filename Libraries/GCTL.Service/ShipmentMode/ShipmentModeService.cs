@@ -255,6 +255,29 @@ namespace GCTL.Service.ShipmentMode
                 ExpenseType = x.ExpenseType
             }).ToList();
         }
-                
+        public async Task<List<ShipmentModeVM>> GetShipmentModeDetailsAsync(string transportModeTypeId)
+        {
+            var data = await _repository.All()
+                .Where(pt => pt.TransportModeTypeId == transportModeTypeId)
+                .Select(pt => new ShipmentModeVM
+                {
+                    TC = pt.Tc,
+                    ExpenseTypeID = pt.ExpenseTypeId,
+                    ExpenseType = pt.ExpenseType ?? "",
+                    transportModeType = tMTrepository.All()
+                        .Where(t => t.TransportModeId == pt.TransportModeTypeId)
+                        .Select(t => t.TransportMode)
+                        .FirstOrDefault(),
+                    transportModeTypeId = pt.TransportModeTypeId ?? "",
+                    ShortName = pt.ShortName ?? "",
+                    Ldate = pt.Ldate,
+                    ModifyDate = pt.ModifyDate
+                })
+                .ToListAsync();
+
+            return data;
+        }
+
+
     }
 }

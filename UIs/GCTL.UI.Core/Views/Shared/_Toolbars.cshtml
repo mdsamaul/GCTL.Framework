@@ -83,17 +83,15 @@
     var containerPadding = Model.IsPlain ? "pe-0" : "";
     var buttonGroupPadding = Model.IsPlain ? "pe-0" : "pe-0";
 }
+<div class="d-flex justify-content-between align-items-center px-1 py-1 @containerPadding mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border") flex-nowrap toolbar-container">
 
-<div class="d-flex flex-wrap justify-content-between align-items-center px-1 py-1 @containerPadding mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border")">
-
-    <div class="d-flex align-items-center py-1 ps-2">
-        <h1 class="fw-bold text-dark m-0"
-            style="font-size:.95rem;letter-spacing:.5px;">
+    <div class="d-flex align-items-center py-1 ps-2 toolbar-title-wrap">
+        <h1 class="fw-bold text-dark m-0 toolbar-title">
             @Model.Title
         </h1>
     </div>
 
-    <div class="d-flex flex-wrap align-items-center gap-1 @buttonGroupPadding toolbar-btn-group">
+    <div class="d-flex align-items-center gap-1 @buttonGroupPadding toolbar-btn-group flex-nowrap">
 
         @if (Model.ShowSave)
         {

@@ -90,332 +90,6 @@ select.form-control-sm:disabled {
     }
 }
 
-/*
-.toolbar-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: #fff;
-    transition: all 0.15s ease;
-}
-
-    .toolbar-btn i {
-        font-size: 0.8rem;
-    }
-
-.toolbar-btn-save {
-    color: #2563eb;
-    border-color: #bfdbfe;
-    background: #eff6ff;
-}
-
-    .toolbar-btn-save:hover {
-        background: #dbeafe;
-    }
-
-.toolbar-btn-delete {
-    color: #dc2626;
-    border-color: #fecaca;
-    background: #fef2f2;
-}
-
-    .toolbar-btn-delete:hover {
-        background: #fee2e2;
-    }
-
-.toolbar-btn-clear {
-    color: #374151;
-    border-color: #e5e7eb;
-    background: #f9fafb;
-}
-
-    .toolbar-btn-clear:hover {
-        background: #f3f4f6;
-    }
-
-.toolbar-btn-print {
-    color: #1e293b;
-    background: #eef2f7;
-    border-color: #dbe2ea;
-}
-
-    .toolbar-btn-print:hover,
-    .toolbar-btn-print:focus {
-        background: #e2e8f0;
-        color: #1e293b;
-    }
-
-    .toolbar-btn-print.dropdown-toggle::after {
-        margin-left: 4px;
-    }
-
-.toolbar-btn-fav {
-    color: #d97706;
-    border-color: #fde68a;
-    background: #fffbeb;
-}
-
-    .toolbar-btn-fav:hover {
-        background: #fef3c7;
-    }
-
-.toolbar-print-menu {
-    min-width: 130px;
-    border-radius: 8px;
-    padding: 6px;
-    border: 1px solid #eef1f4;
-}
-
-    .toolbar-print-menu .dropdown-item {
-        font-size: 0.85rem;
-        border-radius: 6px;
-        padding: 6px 10px;
-    }
-
-        .toolbar-print-menu .dropdown-item:hover {
-            background: #f3f4f6;
-        }
-
-.sticky-bar {
-    position: sticky;
-    top: 0px;
-    z-index: 20;
-}*/
-/* Toolbar Buttons */
-/*.toolbar-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-    padding: .45rem .9rem;
-    background: #fff;
-    border: 1px solid #dcdfe3;
-    border-radius: 6px;
-    font-size: .875rem;
-    font-weight: 500;
-    transition: all .2s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,.05);
-}
-
-.toolbar-btn:hover:not(:disabled) {
-    background: #f8f9fa;
-    border-color: #cfd3d8;
-}
-
-.toolbar-btn:disabled {
-    opacity: .6;
-    cursor: not-allowed;
-}*/
-
-/* Save */
-/*.toolbar-btn-save {
-    color: #28a745;
-}
-.toolbar-btn-save i {
-    color: #28a745;
-}*/
-
-/* Delete */
-/*.toolbar-btn-delete {
-    color: #dc3545;
-}
-.toolbar-btn-delete i {
-    color: #dc3545;
-}*/
-
-/* Clear */
-/*.toolbar-btn-clear {
-    color: #212529;
-}
-.toolbar-btn-clear i {
-    color: #212529;
-}*/
-
-/* Export */
-/*.toolbar-btn-print {
-    color: #212529;
-}
-.toolbar-btn-print i {
-    color: #212529;
-}*/
-
-/* Favorite */
-/*.toolbar-btn-fav {
-    color: #f5a623;
-}
-.toolbar-btn-fav i {
-    color: #f5a623;
-}*/
-
-/* Dropdown */
-/*.dropdown-menu {
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    box-shadow: 0 6px 18px rgba(0,0,0,.12);
-}
-
-.dropdown-item {
-    font-size: .875rem;
-}
-
-.dropdown-item:hover {
-    background: #f5f5f5;
-}
-.toolbar-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-body, .btn, .form-control, table, th, td, h1, h2, h3, h4, h5, h6, p, span, label, input, select, textarea {
-    font-family: 'Times New Roman', Times, serif !important;
-}*/
-
-/* Font Awesome icons must use proper font */
-/*i.fas, i.far, i.fal, i.fab {
-    font-family: 'Font Awesome 6 Free' !important;
-}
-
-i.fab {
-    font-family: 'Font Awesome 6 Brands' !important;
-}*/
-
-/* Fix Font Awesome icons with Blazor scoping */
-/*[b-himydvh1zw=""] i.fas::before,
-[b-himydvh1zw=""] i.far::before,
-[b-himydvh1zw=""] i.fal::before,
-[b-himydvh1zw=""] i.fab::before {
-    display: inline-block !important;
-    font-family: 'Font Awesome 6 Free' !important;
-    font-style: normal;
-    font-weight: 900 !important;
-}
-
-[b-himydvh1zw=""] i.fab::before {
-    font-family: 'Font Awesome 6 Brands' !important;
-}*/
-
-/* Toolbar Buttons */
-.toolbar-btn {
-    position: relative;
-    overflow: hidden;
-    display: inline-flex;
-    align-items: center;
-    gap: .45rem;
-    padding: .35rem .4rem;
-    background: #fff;
-    border: 1px solid #dcdfe3;
-    border-radius: 6px;
-    font-size: .875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color .3s ease, border-color .3s ease, transform .25s ease, box-shadow .25s ease;
-}
-    /* Bottom -> Top Background Animation */
-    .toolbar-btn::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        height: 0;
-        background: #f3f4f6;
-        transition: height .3s ease;
-        z-index: 0;
-    }
-
-    .toolbar-btn:hover::before {
-        height: 100%;
-    }
-
-    .toolbar-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 14px rgba(0,0,0,.12);
-    }
-
-    .toolbar-btn span,
-    .toolbar-btn i {
-        position: relative;
-        z-index: 1;
-    }
-    .toolbar-btn:hover:not(:disabled) {
-        background: #f8f9fa;
-        border-color: #cfd3d8;
-    }
-
-    .toolbar-btn:disabled {
-        opacity: .6;
-        cursor: not-allowed;
-    }
-.toolbar-btn-save::before {
-    background: rgba(40,167,69,.12);
-}
-
-.toolbar-btn-delete::before {
-    background: rgba(220,53,69,.12);
-}
-
-.toolbar-btn-clear::before {
-    background: rgba(33,37,41,.08);
-}
-
-.toolbar-btn-print::before {
-    background: rgba(13,110,253,.10);
-}
-
-.toolbar-btn-fav::before {
-    background: rgba(245,166,35,.15);
-}
-
-/* Save */
-.toolbar-btn-save {
-    color: #28a745;
-}
-
-    .toolbar-btn-save i {
-        color: #28a745;
-    }
-
-/* Delete */
-.toolbar-btn-delete {
-    color: #dc3545;
-}
-
-    .toolbar-btn-delete i {
-        color: #dc3545;
-    }
-
-/* Clear */
-.toolbar-btn-clear {
-    color: #212529;
-}
-
-    .toolbar-btn-clear i {
-        color: #212529;
-    }
-
-/* Export */
-.toolbar-btn-print {
-    color: #212529;
-}
-
-    .toolbar-btn-print i {
-        color: #212529;
-    }
-
-/* Favorite */
-.toolbar-btn-fav {
-    color: #f5a623;
-}
-
-    .toolbar-btn-fav i {
-        color: #f5a623;
-    }
-
 /* Dropdown */
 .dropdown-menu {
     border-radius: 8px;
@@ -440,4 +114,44 @@ table.dataTable.table-sm > tbody > tr > td,
 table.dataTable.table-sm > thead > tr > th {
     padding-top: 0.1rem;
     padding-bottom: 0.1rem;
+}
+.form-control-sm,
+.form-select-sm {
+    font-size: 0.82rem;
+}
+
+label , .form-label {
+    font-size: 0.75rem !important;
+    font-weight: 450 !important;
+    color: #000 !important;
+    margin-bottom: 2px !important;
+}
+
+.js-quick-add {
+    border-color: #ced4da !important;
+}
+.form-control::placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
+}
+
+.form-control::-webkit-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+.form-control::-moz-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
+}
+
+.form-control:-ms-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
 }

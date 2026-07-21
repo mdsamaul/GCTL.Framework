@@ -316,7 +316,7 @@
 
         $('#tc').val(data.tc || 0);
         setSelect('#shipmentModeId', data.shipmentModeId);
-        $('#shipmentModeId').trigger('change'); // triggers Sea/Air group toggle via AJAX
+        $('#shipmentModeId').trigger('change');
 
         $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false);
         setField('#jobNo', data.jobNo);
@@ -537,7 +537,7 @@
     function clearForm(clearJobNo) {
         $('#tc').val(0);
         setSelect('#shipmentModeId', '');
-        $('#commonDeliveryGroup, #seaFieldsGroup, #airFieldsGroup').hide();
+        $('#commonDeliveryGroup, seaFieldsGroup, .airFieldsGroup').hide();
         $('#transportModeTypeId').val('');
         $('#isCustomJobNo').prop('checked', false);
         if (clearJobNo !== false) setField('#jobNo', '');
@@ -549,7 +549,7 @@
     //#endregion
 
     //#region Document Upload tab
-
+    let currentJobNo;
     $(document).on('shown.bs.tab', '#upload-tab', function () {
         if (currentJobNo) loadDocuments(currentJobNo);
     });
@@ -666,4 +666,132 @@
 
     //#endregion
 
+    //#region Shipment Mode Change - Show/Hide Dynamic Fields
+
+    // $(document).on('change', '#shipmentModeId', function () {
+    //     
+    //     const shipmentModeId = $(this).val();
+        
+
+    //     // Set the TransportModeTypeId hidden field
+    //     $('#transportModeTypeId').val(transportModeTypeId || shipmentModeId);
+
+    //     // Hide all dynamic groups first
+    //     $('#commonDeliveryGroup, seaFieldsGroup, .airFieldsGroup').hide();
+
+    //     // Show appropriate groups based on TransportModeTypeId
+    //     // 001 = Air, 002 = Sea
+    //     if (transportModeTypeId === '001' || shipmentModeId === '001') {
+    //         // Air shipment - show Air fields
+    //         $('.airFieldsGroup').show();
+    //     } else if (transportModeTypeId === '002' || shipmentModeId === '002') {
+    //         // Sea shipment - show Sea fields
+    //         $('seaFieldsGroup').show();
+    //     }
+
+    //     generateJobNo();
+    // });
+    $(document).on('change', '#shipmentModeId', function () {
+        
+        const shipmentModeId = $(this).val();
+
+        $('seaFieldsGroup, .airFieldsGroup').hide();
+
+        if (!shipmentModeId) {
+            $('#transportModeTypeId').val('');
+            generateJobNo();
+            return;
+        }
+
+        $.ajax({
+            url: '/SepDocUpdate/GetTransportModeType',
+            type: 'GET',
+            data: { shipmentModeId: shipmentModeId },
+            success: function (response) {
+
+                if (response.success) {
+                    
+                    const transportModeTypeId = response.transportModeTypeId;
+                    $('#transportModeTypeId').val(transportModeTypeId);
+
+                    if (transportModeTypeId === '001') {
+                        $('.airFieldsGroup').show();     // Air
+                    } else if (transportModeTypeId === '002') {
+                        $('.seaFieldsGroup').show();     // Sea
+                    }
+                }
+
+                generateJobNo();
+            },
+            error: function () {
+                toastr.error('Error retrieving transport mode');
+                generateJobNo();
+            }
+        });
+    });
+    //#endregion
+
+    $(document).on('change', '#customerId', function () {
+        generateJobNo();
+        let customerId = $(this).val();
+        customerInfo(customerId);
+    });
+
+    $(document).on('change', '#isCustomJobNo', function () {
+        var isChecked = $(this).is(':checked');
+        $('#jobNo').prop('readonly', !isChecked);
+        if (!isChecked) {
+            generateJobNo();
+        }
+    });
+
+    function generateJobNo() {
+        if ($('#isCustomJobNo').is(':checked')) {
+            return;
+        }
+
+        var shipmentModeId = $('#shipmentModeId').val();
+        var customerId = $('#customerId').val();
+
+        if (!shipmentModeId && !customerId) {
+            $('#jobNo').val('');
+            return;
+        }
+
+        ajaxRequest({
+            url: '/SepDocUpdate/GenerateJobNo',
+            method: 'GET',
+            data: { shipmentModeId: shipmentModeId, customerId: customerId },
+            targetSelector: '#jobNo',
+            targetProperty: 'val',
+            errorCallback: function (xhr) {
+                console.error('Error generating job no:', xhr.responseText);
+                $('#jobNo').val('');
+            }
+        });
+    }
+
+    async function customerInfo(customerId) {
+        var response = await ajaxRequest({
+            url: '/SepDocUpdate/CustomerInfo',
+            method: 'GET',
+            data: { customerId: customerId }
+        });
+
+        if (response && response.success) {
+            var customer = response.data;
+
+            $('#customerName').val(customer.customerName);
+            $('#customerAddress').val(customer.customerAddress);
+
+            var deliveryItems = customer.delivaryAddress.map(function (d) {
+                return {
+                    id: d.delivaryId,
+                    text: d.delivaryAddress
+                };
+            });
+
+            setSelect('#deliveryLocationCode', '', false, deliveryItems);
+        }
+    }
 });

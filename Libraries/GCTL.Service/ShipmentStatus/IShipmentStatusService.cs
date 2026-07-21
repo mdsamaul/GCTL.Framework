@@ -15,5 +15,6 @@ namespace GCTL.Service.ShipmentMode
         Task<string> GetLastIdAsync();
         Task<ShipmentStatusVM> GetByIdAsync(int id);
         Task<PaginationService<GCTL.Data.Models.CfShipmentStatus, ShipmentStatusVM>.PaginationResult<ShipmentStatusVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ShipmentStatusId", string sortOrder = "desc");
+        Task<List<ShipmentStatusVM>> GetShipmentStatusDetailsAsync(string transportModeTypeId);
     }
 }

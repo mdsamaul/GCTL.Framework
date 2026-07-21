@@ -103,7 +103,9 @@
         _bindCommonEvents() {
             var self = this;
 
-            this.$input.on('focus click', function () { self._openPanel(); });
+            this.$input.on('focus click', function () {
+                self._openPanelFull();
+            });
 
             this.$input.on('input', function () {
                 self._openPanel();
@@ -114,6 +116,19 @@
                     self._filterLocal(term);
                 }
             });
+            // var self = this;
+
+            // this.$input.on('focus click', function () { self._openPanel(); });
+
+            // this.$input.on('input', function () {
+            //     self._openPanel();
+            //     var term = self.$input.val();
+            //     if (self.options.isAjax) {
+            //         self._ajaxSearch(term);
+            //     } else {
+            //         self._filterLocal(term);
+            //     }
+            // });
 
             $(document).on('click.' + this._id, function (e) {
                 if (!$(e.target).closest(self.$wrapper).length) {
@@ -188,6 +203,29 @@
                 if (this.options.disableUntilParentSelected && !$(this.options.parentSelector).val()) {
                     this.setDisabled(true);
                 }
+            }
+        }
+
+        // _openPanel() {
+        //     if (this.$wrapper.hasClass('disabled')) return;
+        //     this.$wrapper.addClass('open');
+        //     if (!this.options.isAjax) {
+        //         this._filterLocal(this.$input.val());
+        //     } else if (!this.data.length) {
+        //         this._ajaxSearch('');
+        //     } else {
+        //         this._renderList(this.data);
+        //     }
+        // }
+        _openPanelFull() {
+            if (this.$wrapper.hasClass('disabled')) return;
+            this.$wrapper.addClass('open');
+            if (!this.options.isAjax) {
+                this._renderList(this.data);
+            } else if (!this.data.length) {
+                this._ajaxSearch('');
+            } else {
+                this._renderList(this.data);
             }
         }
 
@@ -540,8 +578,181 @@
     //     instance._renderList(instance.data);
     // }
 
-    function setSelect(selector, value, disabled = false) {
-        
+    // function setSelect(selector, value, disabled = false) {
+
+    //     var $el = $(selector);
+    //     var instance = $el.data('customDdInstance');
+
+    //     if (!instance) {
+    //         $el.val(value).trigger('change');
+    //         $el.prop('disabled', !!disabled);
+    //         if ($el.hasClass('select2-hidden-accessible')) {
+    //             $el.prop('disabled', !!disabled).trigger('change.select2');
+    //         }
+    //         return;
+    //     }
+
+    //     if (instance.isMulti) {
+    //         var arr = Array.isArray(value) ? value : (value ? [String(value)] : []);
+    //         instance.selected = arr.map(String);
+    //         instance._renderTags();
+    //     } else {
+    //         instance.selected = value ? [String(value)] : [];
+    //         var found = instance.data.find(function (d) { return d.id === String(value); });
+    //         instance.$input.val(found ? found.text : (value || ''));
+    //     }
+
+    //     instance._syncOriginalSelect();
+    //     instance._renderList(instance.data);
+    //     instance.setDisabled(!!disabled);
+    // }
+    // function setSelect(selector, value, disabled = false, newItems = null) {
+
+    //     var $el = $(selector);
+    //     var instance = $el.data('customDdInstance');
+
+    //     if (!instance) {
+    //         $el.val(value).trigger('change');
+    //         $el.prop('disabled', !!disabled);
+    //         if ($el.hasClass('select2-hidden-accessible')) {
+    //             $el.prop('disabled', !!disabled).trigger('change.select2');
+    //         }
+    //         return;
+    //     }
+
+    //     if (Array.isArray(newItems)) {
+    //         instance.data = newItems.map(function (i) {
+    //             return { id: String(i.id ?? i.value), text: i.text };
+    //         });
+    //     }
+
+    //     if (instance.isMulti) {
+    //         var arr = Array.isArray(value) ? value : (value ? [String(value)] : []);
+    //         instance.selected = arr.map(String);
+    //         instance._renderTags();
+    //     } else {
+    //         instance.selected = value ? [String(value)] : [];
+    //         var found = instance.data.find(function (d) { return d.id === String(value); });
+    //         instance.$input.val(found ? found.text : (value || ''));
+    //     }
+
+    //     instance._syncOriginalSelect();
+    //     instance._renderList(instance.data);
+    //     instance.setDisabled(!!disabled);
+    // }
+
+    // function setSelect(selector, value, disabled = false, newItems = null, tableShow = false, tableTitle = 'Select an Option') {
+
+    //     var $el = $(selector);
+    //     var instance = $el.data('customDdInstance');
+
+    //     if (!instance) {
+    //         $el.val(value).trigger('change');
+    //         $el.prop('disabled', !!disabled);
+    //         if ($el.hasClass('select2-hidden-accessible')) {
+    //             $el.prop('disabled', !!disabled).trigger('change.select2');
+    //         }
+    //         return;
+    //     }
+
+    //     var rawItems = Array.isArray(newItems) ? newItems : [];
+
+    //     if (rawItems.length) {
+    //         instance.data = rawItems.map(function (i) {
+    //             return { id: String(i.id ?? i.value), text: i.text };
+    //         });
+    //     }
+
+    //     instance.selected = [];
+    //     instance.$input.val('');
+    //     instance._syncOriginalSelect();
+    //     instance._renderList(instance.data);
+    //     instance.setDisabled(!!disabled);
+
+    //     if (tableShow) {
+    //         instance.$input.off('click.tableShow focus.tableShow');
+    //         instance.$input.on('click.tableShow focus.tableShow', function (e) {
+    //             e.preventDefault();
+    //             e.stopPropagation();
+    //             instance.$input.trigger('blur');
+    //             instance._closePanel();
+    //             openSelectTableModal(instance, rawItems, tableTitle);
+    //         });
+    //     }
+    // }
+
+    // function openSelectTableModal(instance, items, title) {
+    //     $('#customDdTableModal').remove();
+
+    //     if (!items.length) return;
+
+    //     // id/value বাদে বাকি সব keys dynamically column hisebe নেবে
+    //     var excludedKeys = ['id', 'value'];
+    //     var columns = Object.keys(items[0]).filter(function (key) {
+    //         return excludedKeys.indexOf(key) === -1;
+    //     });
+
+    //     function formatHeader(key) {
+    //         // camelCase -> Title Case (e.g. delivaryAddress -> Delivary Address)
+    //         var result = key.replace(/([A-Z])/g, ' $1');
+    //         return result.charAt(0).toUpperCase() + result.slice(1);
+    //     }
+
+    //     var theadHtml = columns.map(function (col) {
+    //         return '<th>' + formatHeader(col) + '</th>';
+    //     }).join('');
+
+    //     var rowsHtml = items.map(function (item) {
+    //         var idVal = item.id ?? item.value;
+    //         var cells = columns.map(function (col) {
+    //             return '<td>' + (item[col] ?? '') + '</td>';
+    //         }).join('');
+    //         return '<tr class="custom-dd-modal-row" data-id="' + idVal + '" style="cursor:pointer;">' + cells + '</tr>';
+    //     }).join('');
+
+    //     var modalHtml =
+    //         '<div class="modal fade" id="customDdTableModal" tabindex="-1" data-bs-backdrop="true" data-bs-keyboard="true">' +
+    //         '<div class="modal-dialog modal-lg modal-dialog-centered">' +
+    //         '<div class="modal-content">' +
+    //         '<div class="modal-header">' +
+    //         '<h5 class="modal-title">' + title + '</h5>' +
+    //         '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+    //         '</div>' +
+    //         '<div class="modal-body">' +
+    //         '<table class="table table-bordered table-hover">' +
+    //         '<thead><tr>' + theadHtml + '</tr></thead>' +
+    //         '<tbody>' + rowsHtml + '</tbody>' +
+    //         '</table>' +
+    //         '</div>' +
+    //         '</div>' +
+    //         '</div>' +
+    //         '</div>';
+
+    //     $('body').append(modalHtml);
+
+    //     var modalEl = document.getElementById('customDdTableModal');
+    //     var modalInstance = new bootstrap.Modal(modalEl);
+    //     modalInstance.show();
+
+    //     $(modalEl).on('click', '.custom-dd-modal-row', function () {
+    //         var selectedId = $(this).data('id').toString();
+    //         var found = instance.data.find(function (d) { return d.id === selectedId; });
+
+    //         instance.selected = [selectedId];
+    //         instance.$input.val(found ? found.text : selectedId);
+    //         instance._syncOriginalSelect();
+    //         instance._renderList(instance.data);
+    //         instance._triggerChange();
+
+    //         modalInstance.hide();
+    //     });
+
+    //     $(modalEl).on('hidden.bs.modal', function () {
+    //         $(this).remove();
+    //     });
+    // }
+    function setSelect(selector, value, disabled = false, newItems = null, tableShow = false, tableTitle = 'Select an Option') {
+
         var $el = $(selector);
         var instance = $el.data('customDdInstance');
 
@@ -554,21 +765,111 @@
             return;
         }
 
-        if (instance.isMulti) {
-            var arr = Array.isArray(value) ? value : (value ? [String(value)] : []);
-            instance.selected = arr.map(String);
-            instance._renderTags();
-        } else {
-            instance.selected = value ? [String(value)] : [];
-            var found = instance.data.find(function (d) { return d.id === String(value); });
-            instance.$input.val(found ? found.text : (value || ''));
+        var rawItems = Array.isArray(newItems) ? newItems : [];
+
+        if (rawItems.length) {
+            instance.data = rawItems.map(function (i) {
+                return { id: String(i.id ?? i.value), text: i.text };
+            });
         }
 
+        instance.selected = [];
+        instance.$input.val('');
         instance._syncOriginalSelect();
-        instance._renderList(instance.data);
         instance.setDisabled(!!disabled);
+
+        if (tableShow) {
+            instance.$input.off('focus.tableShow click.tableShow input.tableShow');
+
+            // _openPanel override kore dilam jate default _filterLocal/_renderList na chole
+            instance._openPanel = function () {
+                if (instance.$wrapper.hasClass('disabled')) return;
+                instance.$wrapper.addClass('open');
+                renderTableInPanel(instance, rawItems);
+            };
+
+            instance.$input.on('focus.tableShow click.tableShow', function (e) {
+                e.stopImmediatePropagation();
+                instance._openPanel();
+            });
+
+            instance.$input.on('input.tableShow', function () {
+                var term = (instance.$input.val() || '').toLowerCase();
+                var filteredRaw = rawItems.filter(function (item) {
+                    return Object.keys(item).some(function (k) {
+                        return String(item[k] || '').toLowerCase().indexOf(term) !== -1;
+                    });
+                });
+                instance.$wrapper.addClass('open');
+                renderTableInPanel(instance, filteredRaw);
+            });
+        } else {
+            instance._renderList(instance.data);
+        }
     }
 
+    function renderTableInPanel(instance, items) {
+        instance.$list.empty();
+
+        if (!items.length) {
+            instance.$list.append('<div class="custom-dd-empty">No results found</div>');
+            return;
+        }
+
+        var excludedKeys = ['id', 'value'];
+        var columns = Object.keys(items[0]).filter(function (key) {
+            return excludedKeys.indexOf(key) === -1;
+        });
+
+        function formatHeader(key) {
+            var result = key.replace(/([A-Z])/g, ' $1');
+            return result.charAt(0).toUpperCase() + result.slice(1);
+        }
+
+        var theadHtml = '<th></th>' + columns.map(function (col) {
+            return '<th>' + formatHeader(col) + '</th>';
+        }).join('');
+
+        var rowsHtml = items.map(function (item) {
+            var idVal = item.id ?? item.value;
+            var isSelected = instance.selected.indexOf(String(idVal)) !== -1;
+            var cells = columns.map(function (col) {
+                return '<td>' + (item[col] ?? '') + '</td>';
+            }).join('');
+            return '<tr class="custom-dd-table-row' + (isSelected ? ' selected' : '') + '" data-id="' + idVal + '" style="cursor:pointer;">' +
+                '<td><input type="checkbox" class="custom-dd-table-checkbox" ' + (isSelected ? 'checked' : '') + ' /></td>' +
+                cells +
+                '</tr>';
+        }).join('');
+
+        var tableHtml =
+            '<table class="table table-sm table-bordered table-hover mb-0">' +
+            '<thead><tr>' + theadHtml + '</tr></thead>' +
+            '<tbody>' + rowsHtml + '</tbody>' +
+            '</table>';
+
+        instance.$list.append(tableHtml);
+
+        instance.$panel.css({
+            'width': 'max-content',
+            'min-width': '100%',
+            'max-width': '50vw'
+        });
+
+        instance.$list.off('click', '.custom-dd-table-row').on('click', '.custom-dd-table-row', function (e) {
+            e.stopPropagation();
+            var selectedId = $(this).data('id').toString();
+            var found = instance.data.find(function (d) { return d.id === selectedId; });
+
+            instance.selected = [selectedId];
+            instance.$input.val(found ? found.text : selectedId);
+            instance._syncOriginalSelect();
+            instance._closePanel();
+            instance._triggerChange();
+
+            instance.$panel.css({ 'width': '', 'min-width': '', 'max-width': '' });
+        });
+    }
     window.customDropdownBase = customDropdownBase;
     window.customDropdownSingle = customDropdownSingle;
     window.customDropdownMulti = customDropdownMulti;

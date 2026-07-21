@@ -29,7 +29,9 @@
     background: transparent;
     line-height: 1.5;
 }
-
+.custom-dd-copy-icon{
+    display:none !important;
+}
 .custom-dd-copy-icon,
 .custom-dd-clear-icon,
 .custom-dd-arrow {
@@ -44,11 +46,11 @@
 }
 
 .custom-dd-clear-icon {
-    color: #dc3545;
-    font-size: 20px;
-    font-weight: bold;
+    color: #dc3545d1;
+    font-size: 18px;
+    font-weight: normal;
     line-height: 1;
-    padding-right:0px;
+    padding-right: 0px;
 }
 
 
