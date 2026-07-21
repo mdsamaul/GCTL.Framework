@@ -5,6 +5,7 @@ using GCTL.Service.AdmissionTypes;
 using GCTL.Service.BankBranchInformations;
 using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
+using GCTL.Service.BranchAddress;
 using GCTL.Service.BranchesTypeInfo;
 using GCTL.Service.ChartOfAccounts.ControlLedger;
 using GCTL.Service.ChartOfAccounts.GeneralLedger;
@@ -167,6 +168,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IExporterInfoService, ExporterInfoService>();
             services.AddScoped<IContactPersonInfoService, ContactPersonInfoService>();
             services.AddScoped<IVendorInfoService, VendorInfoService>();
+            services.AddScoped<IBranchAddressService, BranchAddressService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 

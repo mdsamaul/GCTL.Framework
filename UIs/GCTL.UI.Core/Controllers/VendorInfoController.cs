@@ -1,11 +1,12 @@
 ﻿using GCTL.Core.Data;
+using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportInformation;
 using GCTL.Core.ViewModels.VendorInfo;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
-using GCTL.Service.TransportInformation;
+using GCTL.Service.SupplierInformation;
 using GCTL.Service.VendorInfo;
-using GCTL.UI.Core.ViewModels.TransportInformation;
 using GCTL.UI.Core.ViewModels.VendorInfo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -119,6 +120,130 @@ namespace GCTL.UI.Core.Controllers
             }
 
             return PartialView($"_{nameof(Setup)}", model);
+        }
+
+        #endregion
+
+        #region GetById
+
+        [HttpGet]
+        public async Task<IActionResult> GetById(string code)
+        {
+            var result = await vendorInfoService.GetByIdAsync(code);
+            return Json(result);
+        }
+
+        #endregion
+
+        #region Post Update 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> Setup(VendorInfoSetupViewModel modelVM)
+        {
+            try
+            {
+                if (await vendorInfoService.IsExistAsync(modelVM.Name, modelVM.VendorId))
+                {
+                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                }
+
+
+                if (!ModelState.IsValid)
+                {
+
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                modelVM.ToAudit(LoginInfo, modelVM.Tc > 0);
+                if (modelVM.Tc == 0 || modelVM.Tc == null)
+                {
+                    var hasSavePermission = await vendorInfoService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (hasSavePermission)
+                    {
+                        await vendorInfoService.SaveAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.VendorId });
+
+                    }
+                    else
+                    {
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
+                    }
+                }
+                else
+                {
+
+                    var hasUpdatePermission = await vendorInfoService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (hasUpdatePermission)
+                    {
+                        await vendorInfoService.UpdateAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.VendorId });
+                    }
+                    else
+                    {
+                        return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error:{ex.Message}");
+                return RedirectToAction("Login", "Accounts");
+
+            }
+        }
+
+        #endregion
+
+        #region Delete
+
+        [HttpPost]
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
+        {
+            if (ids == null || ids.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "No IDs provided for delete." });
+            }
+
+            var hasPermission = await vendorInfoService.DeletePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return Json(new { success = false, message = "You have no access." });
+            }
+
+            DeleteHistoryViewModel model = new DeleteHistoryViewModel();
+            model.ToAudit(LoginInfo);
+            model.CompanyCode = LoginInfo.CompanyCode;
+
+            var success = await vendorInfoService.DeleteTab(ids, model);
+            if (success.succses)
+            {
+                return Json(new { success = true, message = "Deleted Successfully." });
+            }
+            else
+            {
+                return Json(new { success = false, message = success.messege });
+            }
+        }
+
+        #endregion
+
+        #region TabeleLodaing
+
+        [HttpGet]
+        public async Task<IActionResult> GetTableData()
+        {
+            try
+            {
+                var list = await vendorInfoService.GetAllAsync();
+                return Json(list);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         #endregion

@@ -1,6 +1,9 @@
 ﻿@model GCTL.Core.ViewModels.VendorInfo.VendorInfoSetupViewModel
 
 <div style="padding-top: 10px;">
+    <div class="card-header py-0">
+        @await Html.PartialAsync("_TabButton")
+    </div>
     <div class="row">
         <div class="col-lg-6">
             <span id="message"></span>
@@ -66,22 +69,10 @@
     <div class="form-group row">
         <div class="col-lg-6">
             <label asp-for="CountryId">Country</label>
-            <div class="Ven-input-wrapper">
-                <div class="Ven-select-wrap">
-                    <select asp-for="CountryId"
-                            asp-items="ViewBag.CountryDD"
-                            class="form-control form-control-sm custom-select-single"
-                            tabindex="5" data-placeholder="Select Country">
-                        <option value=""></option>
-                    </select>
-                </div>
-                <button type="button" class="btn btn-plus js-quick-add"
-                        data-url="@Url.Action("Index", "Country")"
-                        data-target="#CountryId"
-                        data-reload-url="@Url.Action("GetCountrys", "Cascading")"
-                        data-title="Country">
-                    <i class="fas fa-plus"></i>
-                </button>
+            <div class="input-group">
+                <select asp-for="CountryId" class="form-control form-control-sm custom-select-single" tabindex="3" data-placeholder="-- Select Country --" asp-items="@ViewBag.CountryDD as SelectList">
+                    <option></option>
+                </select>
             </div>
         </div>
 
@@ -142,7 +133,7 @@
                     <select asp-for="Cpid"
                             asp-items="ViewBag.ContactDD"
                         class="form-control form-control-sm custom-select-multi"
-                            tabindex="14" data-placeholder="Select Contact Person Info">
+                            tabindex="14" data-placeholder="Select Contact Person">
                         <option value=""></option>
                     </select>
                
@@ -162,30 +153,27 @@
         </div>
     </div>
 
-    @if (Model.Tc > 0)
-    {
+    <hr id="sectionBreak" />
 
-        <hr />
-        <div class="form-group row" id="LdateModifyHide">
-            <div class="col-lg-6">
-                @if (Model.Ldate.HasValue)
-                {
-                    <label>Creation Date: </label>
-
-                    <label>@Model.Ldate?.ToString("dd/MM/yyyy")</label>
-                }
-            </div>
-            <div class="col-lg-6">
-                @if (Model.ModifyDate.HasValue)
-                {
-                    <label>Last Update Date: </label>
-
-                    <label>@Model.ModifyDate?.ToString("dd/MM/yyyy")</label>
-                }
+    @* Creation / Update Dates *@
+    <div class="row" id="LdateModifyHide">
+        <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
+            <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Creation Date:</label>
+            <div class="col-6">
+                <span id="creationDateSpan">
+                    @(Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </span>
             </div>
         </div>
-
-    }
+        <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
+            <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Last Update Date:</label>
+            <div class="col-6">
+                <span id="modifyDateSpan">
+                    @(Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </span>
+            </div>
+        </div>
+    </div>
 
 </div>
 <div class="row no-print" style="margin-top: 9px;">
@@ -198,7 +186,7 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "PortName"
+            SaveBtnClass = "VendorInfo"
         })
     </div>
 </div>

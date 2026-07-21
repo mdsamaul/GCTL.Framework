@@ -44,22 +44,10 @@
     <div class="form-group row">
         <div class="col-lg-6">
             <label asp-for="CountryId">Country</label>
-            <div class="con-input-wrapper">
-                <div class="con-select-wrap">
-                    <select asp-for="CountryId"
-                            asp-items="ViewBag.CountryDD"
-                            class="form-control form-control-sm custom-select-single"
-                            tabindex="5" data-placeholder="Select Country">
-                        <option value=""></option>
-                    </select>
-                </div>
-                <button type="button" class="btn btn-plus js-quick-add"
-                        data-url="@Url.Action("Index", "Country")"
-                        data-target="#CountryId"
-                        data-reload-url="@Url.Action("GetCountrys", "Cascading")"
-                        data-title="Country">
-                    <i class="fas fa-plus"></i>
-                </button>
+            <div class="input-group">
+                <select asp-for="CountryId" class="form-control form-control-sm custom-select-single" tabindex="3" data-placeholder="-- Select Country --" asp-items="@ViewBag.CountryDD as SelectList">
+                    <option></option>
+                </select>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 ﻿using GCTL.Core.Data;
-using GCTL.Core.ViewModels.PortType;
-using GCTL.Core.ViewModels.TransportInformation;
+using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.VendorInfo;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
@@ -106,6 +106,7 @@ namespace GCTL.Service.VendorInfo
                 Fax = entity.Fax,
                 Email = entity.Email,
                 Website = entity.Website,
+                Cpid = !string.IsNullOrEmpty(entity.Cpid) ? entity.Cpid.Split(',').ToList() : new List<string>(),
                 Remarks = entity.Remarks,
                 CompanyCode = entity.CompanyCode,
                 EmployeeId = entity.EmployeeId,
@@ -119,6 +120,188 @@ namespace GCTL.Service.VendorInfo
 
         #endregion
 
+        #region SaveAsync
+
+        public async Task<bool> SaveAsync(VendorInfoSetupViewModel entityVM)
+        {
+            try
+            {
+                commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 4);
+                await vendorInforepository.BeginTransactionAsync();
+
+                var entity = new CoreVendorInformation
+                {
+                    VendorId = strMaxNO,
+                    VendorCode = entityVM.VendorCode ?? string.Empty,
+                    VendorPrefix = entityVM.VendorPrefix ?? string.Empty,
+                    Name = entityVM.Name,
+                    Address = entityVM.Address ?? string.Empty,
+                    CountryId = entityVM.CountryId ?? string.Empty,
+                    City = entityVM.City ?? string.Empty,
+                    StateOrProvince = entityVM.StateOrProvince ?? string.Empty,
+                    ZipCode = entityVM.ZipCode ?? string.Empty,
+                    VatRegNo = entityVM.VatRegNo ?? string.Empty,
+                    Phone = entityVM.Phone ?? string.Empty,
+                    Fax = entityVM.Fax ?? string.Empty,
+                    Email = entityVM.Email ?? string.Empty,
+                    Website = entityVM.Website ?? string.Empty,
+                    Cpid = entityVM.Cpid != null ? string.Join(",", entityVM.Cpid) : "",
+                    Remarks = entityVM.Remarks ?? string.Empty,
+                    CompanyCode = entityVM.UserCompany ?? string.Empty,
+                    EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty,
+                    Luser = entityVM.Luser,
+                    Lip = entityVM.Lip,
+                    Lmac = entityVM.Lmac ?? string.Empty,
+                    Ldate = DateTime.Now
+                };
+
+                await vendorInforepository.AddAsync(entity);
+                await vendorInforepository.CommitTransactionAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving ProductionType: {ex.Message}");
+                await vendorInforepository.RollbackTransactionAsync();
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region UpdateAsync
+
+        public async Task<bool> UpdateAsync(VendorInfoSetupViewModel entityVM)
+        {
+            await vendorInforepository.BeginTransactionAsync();
+
+            try
+            {
+                var entity = await vendorInforepository.GetByIdAsync(entityVM.VendorId);
+
+                if (entity == null)
+                {
+                    await vendorInforepository.RollbackTransactionAsync();
+                    return false;
+                }
+
+                // Don't update VendorId (Primary Key)
+
+                entity.VendorCode = entityVM.VendorCode ?? string.Empty;
+                entity.VendorPrefix = entityVM.VendorPrefix ?? string.Empty;
+                entity.Name = entityVM.Name;
+                entity.Address = entityVM.Address ?? string.Empty;
+                entity.CountryId = entityVM.CountryId ?? string.Empty;
+                entity.City = entityVM.City ?? string.Empty;
+                entity.StateOrProvince = entityVM.StateOrProvince ?? string.Empty;
+                entity.ZipCode = entityVM.ZipCode ?? string.Empty;
+                entity.VatRegNo = entityVM.VatRegNo ?? string.Empty;
+                entity.Phone = entityVM.Phone ?? string.Empty;
+                entity.Fax = entityVM.Fax ?? string.Empty;
+                entity.Email = entityVM.Email ?? string.Empty;
+                entity.Website = entityVM.Website ?? string.Empty;
+                entity.Cpid = entityVM.Cpid != null ? string.Join(",", entityVM.Cpid) : string.Empty;
+                entity.Remarks = entityVM.Remarks ?? string.Empty;
+                entity.CompanyCode = entityVM.UserCompany ?? string.Empty;
+                entity.EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty;
+                entity.Luser = entityVM.Luser;
+                entity.Lip = entityVM.Lip;
+                entity.Lmac = entityVM.Lmac ?? string.Empty;
+                entity.ModifyDate = DateTime.Now; // or Mdate if that's your column name
+
+                await vendorInforepository.UpdateAsync(entity);
+                await vendorInforepository.CommitTransactionAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred: {ex.Message}");
+                await vendorInforepository.RollbackTransactionAsync();
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region SelectionAsync
+
+        public async Task<IEnumerable<CommonSelectModel>> SelectionVendorInfoAsync()
+        {
+
+            var data = await vendorInforepository.All()
+                       .Select(x => new CommonSelectModel
+                       {
+                           Code = x.VendorId,
+                           Name = x.Name,
+                       }).ToListAsync();
+            return data;
+        }
+
+        #endregion
+
+        #region DeleteTab
+
+        public async Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model)
+        {
+            if (!ids.Any())
+                return (false, "No Data found to delete");
+
+            var dependencyCheck = await deleteHistoryService.CheckDependenciesAsync(
+                vendorInforepository.GetTableName(),
+                ColumnName,
+                ids.Cast<string>().ToList()
+            );
+
+            if (!dependencyCheck.CanDelete)
+                return (false, dependencyCheck.Message);
+
+            await vendorInforepository.BeginTransactionAsync();
+
+            try
+            {
+                var entity = await vendorInforepository.All().Where(x => ids.Contains(x.VendorId)).ToListAsync();
+
+                vendorInforepository.Delete(entity);
+                model.tableName = TableName;
+
+                await deleteHistoryService.LogDeletedRecordsAsync(
+                    entity, model
+                );
+
+                await vendorInforepository.CommitTransactionAsync();
+                return (true, "Delete Successfully");
+            }
+            catch (Exception ex)
+            {
+                await vendorInforepository.RollbackTransactionAsync();
+                Console.WriteLine(ex.ToString());
+                return (false, "Delete Failed");
+
+            }
+
+        }
+
+        #endregion
+
+        #region Duplicate Check 
+        public async Task<bool> IsExistByCodeAsync(string code)
+        {
+            return await vendorInforepository.All().AnyAsync(x => x.VendorId == code);
+        }
+
+        public async Task<bool> IsExistAsync(string name)
+        {
+            return await vendorInforepository.All().AnyAsync(x => x.Name == name);
+        }
+
+        public async Task<bool> IsExistAsync(string name, string typeCode)
+        {
+            return await vendorInforepository.All().AnyAsync(x => x.Name == name && x.VendorId != typeCode);
+        }
+
+        #endregion
 
         #region Permission all type
         public async Task<bool> PagePermissionAsync(string accessCode)
