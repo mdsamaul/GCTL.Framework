@@ -1,15 +1,17 @@
 ﻿
+using GCTL.Core.DataTables;
+
 namespace GCTL.Core.ViewModels.OFRSection.OperationalFund
 {
     public class JobEntryListVM 
     {
-        public string JobNo { get; set; }
-        public DateTime? JobDate { get; set; }
-        public string Customer { get; set; }
-        public string CustomerID { get; set; }
+        [Searchable]public string JobNo { get; set; }
+        [Searchable]public DateTime? JobDate { get; set; }
+        [Searchable]public string Customer { get; set; }
+         public string CustomerID { get; set; }
 
-        public DateTime? DocReceivedDate { get; set; }
-        public string? ShipmentMode { get; set; }
+        [Searchable] public DateTime? DocReceivedDate { get; set; }
+        [Searchable] public string? ShipmentMode { get; set; }
         public string? ShipmentModeID { get; set; }
 
 
