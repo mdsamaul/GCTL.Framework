@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.OFRSection.OperationalFund;
+﻿using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 using GCTL.Service.Pagination;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -19,7 +20,7 @@ namespace GCTL.Service.OperationalFund
 
         #region Job Entry List
         Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "");
-
+        Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(PaginationRequest request, string customerid = "", string shipmentmodeid = "");
         #endregion
 
         #region Get Requisition Info

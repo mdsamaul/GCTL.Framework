@@ -1,16 +1,17 @@
 ﻿
+using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using GCTL.Core.Data;
-using Sep_Documentation = GCTL.Data.Models.SepDocumentation;
 using Core_ServiceType = GCTL.Data.Models.CoreServiceType;
+using Sep_Documentation = GCTL.Data.Models.SepDocumentation;
 namespace GCTL.Service.OperationalFund
 {
     public class OperationalService : AppService<CfOperationalFundRequisitionEntry>, Ioperational
@@ -45,6 +46,58 @@ namespace GCTL.Service.OperationalFund
 
 
         #region Get All Job Entry List
+        public async Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(
+    PaginationRequest request, string customerid = "", string shipmentmodeid = "")
+        {
+            var query = from d in _genericRepository.All()          // Sep_Documentation
+                        join r in _repository.All()                  // CF_OperationalFundRequisitionEntry
+                            on d.JobNo equals r.JobNo into rr
+                        from r in rr.DefaultIfEmpty()
+
+                            //Customer LEFT JOIN
+                        join c in _customer.All()
+                            on d.CustomerId equals c.CustomerId into cc
+                        from c in cc.DefaultIfEmpty()
+
+                            //Expense Type LEFT JOIN
+                        join e in _shipmentmode.All()
+                            on d.ExpenseTypeId equals e.ExpenseTypeId into ee
+                        from e in ee.DefaultIfEmpty()
+
+                            //MAIN CONDITION
+                        where r == null
+
+                        select new JobEntryListVM
+                        {
+                            JobNo = d.JobNo,
+                            JobDate = d.Date,
+                            DocReceivedDate = d.DocReceivedDate,
+
+                            CustomerID = d.CustomerId,
+                            Customer = c != null ? c.CustomerName : "",
+
+                            ShipmentModeID = e != null ? e.ExpenseTypeId : "",
+                            ShipmentMode = e != null ? e.ExpenseType : ""
+                        };
+
+            if (!string.IsNullOrEmpty(customerid))
+                query = query.Where(x => x.CustomerID == customerid);
+
+            if (!string.IsNullOrEmpty(shipmentmodeid))
+                query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
+
+            if (request.PageSize == -1)
+            {
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
+            }
+
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(JobEntryListVM.JobNo);
+
+            return await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
+        }
+
         public async Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
         {
             var query = from d in _genericRepository.All()          // Sep_Documentation

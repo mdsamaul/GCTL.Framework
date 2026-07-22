@@ -441,3 +441,9 @@ table.dataTable.table-sm > thead > tr > th {
     padding-top: 0.1rem;
     padding-bottom: 0.1rem;
 }
+
+div.dt-layout-end,
+div.dt-layout-full,
+div.dt-layout-start {
+    padding: 0;
+}

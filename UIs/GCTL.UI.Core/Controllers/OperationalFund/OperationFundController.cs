@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.OFRSection.OperationalFund;
+﻿using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 
 using GCTL.Service.OperationalFund;
 using GCTL.UI.Core.Controllers;
@@ -32,38 +33,95 @@ namespace GCTL_App.Controllers.OperationalFund
 
 
         #region Job Entry List
-        public async Task<IActionResult> GetAllJobList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
+        [HttpGet]
+        public async Task<IActionResult> GetAllJobList(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "JobNo",
+            string sortOrder = "desc",
+            string customerid = "",
+            string shipmentmodeid = "")
         {
             try
             {
-                var result = await _service.GetAllJonEntryList(pageNumber, pageSize, searchTerm, sortColumn, sortOrder, customerid, shipmentmodeid);
+                var request = new PaginationRequest
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await _service.GetAllJonEntryList(request, customerid, shipmentmodeid);
 
                 if (result.Data == null || !result.Data.Any())
                 {
                     return Ok(new
                     {
-                        Data = new List<JobEntryListVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Job Found."
+                        draw,
+                        data = new List<JobEntryListVM>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
                     });
                 }
 
-                return Ok(result);
+                return Ok(new
+                {
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount
+                });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An Error Occurred.", error = ex.Message });
             }
         }
+        //public async Task<IActionResult> GetAllJobList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
+        //{
+        //    try
+        //    {
+        //        var request = new PaginationRequest
+        //        {
+        //            PageNumber = pageNumber,
+        //            PageSize = pageSize,
+        //            SearchTerm = searchTerm,
+        //            SortColumn = sortColumn,
+        //            SortOrder = sortOrder
+        //        };
+
+        //        var result = await _service.GetAllJonEntryList(request, customerid, shipmentmodeid);
+
+        //        if (result.Data == null || !result.Data.Any())
+        //        {
+        //            return Ok(new
+        //            {
+        //                Data = new List<JobEntryListVM>(),
+        //                TotalCount = 0,
+        //                FilterCount = 0,
+        //                PaginationInfo2 = new
+        //                {
+        //                    StartItem = 0,
+        //                    EndItem = 0,
+        //                    TotalItems = 0,
+        //                    TotalPages = 0,
+        //                    CurrentPage = 0
+        //                },
+        //                Message = "No Job Found."
+        //            });
+        //        }
+
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = "An Error Occurred.", error = ex.Message });
+        //    }
+        //}
         #endregion
 
         #region Get Requisition Header Info
