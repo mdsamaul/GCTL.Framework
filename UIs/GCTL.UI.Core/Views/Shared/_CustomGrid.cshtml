@@ -1,28 +1,59 @@
-﻿@model GridModel
+﻿@model GCTL.UI.Core.ViewModels.GridModel
 
 @{
     var tableClasses = string.Join(" ", new[]
     {
-        "table", "table-hover", "align-middle", "table-sm", "table-common",
+        "table", "align-middle", "table-common",
+        Model.Compact ? "table-sm" : "",
         Model.Striped ? "table-striped" : "",
-        Model.Bordered ? "table-bordered" : ""
+        Model.Bordered ? "table-bordered" : "",
+        Model.Hover ? "table-hover" : ""
     }.Where(c => !string.IsNullOrEmpty(c)));
+
+    var jsonOptions = new System.Text.Json.JsonSerializerOptions
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
 }
 
-<div class="table-responsive-sm overflow-hidden">
-    <table id="@Model.GridId" class="@tableClasses mb-0">
+<div class="table-responsive @Model.ContainerCssClass">
+    <table id="@Model.GridId"
+           class="@tableClasses mb-0"
+           data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
         <thead>
-            <tr class="text-center align-middle">
-                @if (Model.ShowCheckbox)
+            <tr class="text-center align-middle small">
+                @if (Model.ShowCheckbox || Model.UseRadio)
                 {
                     <th style="width:44px;">
-                        Select
-                        <input type="checkbox" class="form-check-input" id="@Model.CheckAllId" />
+                        @if (Model.UseRadio)
+                        {
+                            <span>Sel</span>
+                            <input type="radio" class="form-check-input" id="@Model.CheckAllId"
+                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                        }
+                        else
+                        {
+                            <text>Select<br /></text>
+                            <input type="checkbox" class="form-check-input" id="@Model.CheckAllId"
+                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                        }
                     </th>
                 }
-                @foreach (var col in Model.Columns)
+                @* @foreach (var col in Model.Columns.Where(c => c.Visible))
                 {
-                    <th class="@col.CssClass" style="@(col.Width != null ? $"width:{col.Width};" : "")">
+                    var style = col.Width != null ? $"width:{col.Width};" : "";
+
+                    <th class="@col.CssClass" style="@style">
+                        @col.Header
+                        @if (!string.IsNullOrEmpty(col.HeaderBangla))
+                        {
+                            <br /><small class="text-muted">@col.HeaderBangla</small>
+                        }
+                    </th>
+                } *@
+                @foreach (var col in Model.Columns.Where(c => c.Visible))
+                {
+                    <th class="fw-bold text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
                         @col.Header
                         @if (!string.IsNullOrEmpty(col.HeaderBangla))
                         {

@@ -30,6 +30,22 @@
 
 </style>
 <div class="container-fluid py-0">
+    @await Html.PartialAsync("_CustomGrid", new GridModel
+    {
+        GridId = "FundTable",
+        AjaxUrl = "/OperationFund/GetAllRequisition",
+        ServerSide = true,
+        CheckColumnData = "jobNo",
+        DefaultSortColumn = "jobNo",
+        Columns = new()
+    {
+        new() { Data = "jobNo", Header = "Job No.", Width = "30%", Align = "left" },
+        new() { Data = "jobDate", Header = "Job Date", Width = "10%", RenderFn = "formatDate" },
+        new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "15%" },
+        new() { Data = "customer", Header = "Customer Name", Width = "30%", Align = "left" },
+        new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "12%", RenderFn = "formatDate" }
+    }
+    })
     <fieldset class="border rounded p-3 bg-white shadow-sm">
 
         <div class="row mb-3 align-items-center">
