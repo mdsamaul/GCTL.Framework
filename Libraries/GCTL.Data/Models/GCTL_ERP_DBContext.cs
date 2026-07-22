@@ -4957,7 +4957,7 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<VendorBranchInfo>(entity =>
         {
-            entity.HasKey(e => e.VendorBranchId).HasName("PK__VendorBr__3366A85D8B59B5FF");
+            entity.HasKey(e => e.VendorBranchId).HasName("PK__VendorBr__3366A85DE309857E");
 
             entity.ToTable("VendorBranchInfo");
 
@@ -4969,10 +4969,27 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.CountryId).HasMaxLength(100);
             entity.Property(e => e.DesignationCode).HasMaxLength(150);
             entity.Property(e => e.Email).HasMaxLength(150);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
             entity.Property(e => e.LocationAddress).HasMaxLength(200);
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
             entity.Property(e => e.Phone).HasMaxLength(50);
             entity.Property(e => e.Remarks).HasMaxLength(100);
             entity.Property(e => e.StateOrProvince).HasMaxLength(100);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
             entity.Property(e => e.VendorId)
                 .HasMaxLength(50)
                 .HasColumnName("VendorID");

@@ -7,6 +7,8 @@ namespace GCTL.Data.Models;
 
 public partial class VendorBranchInfo
 {
+    public decimal Tc { get; set; }
+
     public string VendorBranchId { get; set; }
 
     public string VendorId { get; set; }
@@ -32,4 +34,14 @@ public partial class VendorBranchInfo
     public string Remarks { get; set; }
 
     public string City { get; set; }
+
+    public string Luser { get; set; }
+
+    public DateTime? Ldate { get; set; }
+
+    public string Lip { get; set; }
+
+    public string Lmac { get; set; }
+
+    public DateTime? ModifyDate { get; set; }
 }

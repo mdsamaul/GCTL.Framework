@@ -278,7 +278,7 @@
                     { data: "exporterAddress", className: " text-middle" },
                     { data: "phone", className: "text-center text-middle" },
                     { data: "website", className: "text-center text-middle" },
-                    { data: "email1", className: "text-center text-middle" }
+                    { data: "email", className: "text-center text-middle" }
                 ]
             });
         }

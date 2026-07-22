@@ -1,0 +1,70 @@
+﻿.tabwrap {
+    margin-bottom: 10px;
+}
+
+/* Basic styling for the tab container */
+.MenuTab {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    border-bottom: 2px solid var(--light-sky);
+    flex-wrap: wrap;
+}
+
+    /* Styling for individual list items (tabs) */
+    .MenuTab li {
+        margin: 0 1px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.1rem;
+        text-decoration: none;
+        color: #4a4a4a;
+        font-weight: bold;
+        white-space: nowrap;
+        border: 1px solid #a8d8e8;
+        border-bottom: none;
+        background: linear-gradient(to right, #ecf8fe, #ffffff) !important;
+        border-radius: 10px 10px 0 0;
+        font-size: 14px;
+        text-align: center;
+        transition: background 0.3s, color 0.3s;
+    }
+
+        /* Styling for links in the tabs */
+        .MenuTab li a {
+            display: flex;
+            text-decoration: none;
+            color: #2a6a8a;
+            font-weight: bold;
+            white-space: nowrap;
+            border: none;
+            font-size: 14px;
+            text-align: center;
+            padding: 3%;
+        }
+
+        /* Hover effect */
+        .MenuTab li:hover {
+            background: linear-gradient(to bottom, #c2e4f0, #a8d8e8);
+            color: #1a5a7a;
+        }
+
+            .MenuTab li:hover a {
+                color: var(--secondary-blue) !important;
+            }
+
+        /* Active tab (selected) styling */
+        .MenuTab li.selected {
+            background: white !important;
+            color: var(--secondary-blue) !important;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 2px solid #ffffff !important;
+        }
+
+            .MenuTab li.selected a {
+                color: var(--secondary-blue) !important;
+            }

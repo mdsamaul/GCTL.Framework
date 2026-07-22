@@ -1,0 +1,145 @@
+﻿@model GCTL.Core.ViewModels.BranchAddress.BranchAddressSetupViewModel
+
+<div style="padding-top: 10px;">
+    <div class="card-header py-0">
+        @await Html.PartialAsync("_TabButton")
+    </div>
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+    <div class="form-group row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <input type="hidden" id="lastCode" />
+        <input type="hidden" asp-for="Tc" />
+        <input type="hidden" asp-for="VendorBranchId" />
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Ldate" />
+        <input type="hidden" asp-for="ModifyDate" />
+        <div class="col-lg-6">
+            <label asp-for="VendorId">Vendor Name<span style="color:red">*</span></label>
+            <div class="input-group">
+                <select asp-for="VendorId" class="form-control form-control-sm custom-select-single" tabindex="1" data-placeholder="-- Select Vendor Name --" asp-items="@ViewBag.VendorDD as SelectList">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+       
+    </div>
+
+    <div class="form-group row">
+        <div class="col-lg-12">
+            <label asp-for="LocationAddress">Address<span style="color:red">*</span></label>
+            <textarea asp-for="LocationAddress" class="form-control form-control-sm" rows="2" style="resize : none" placeholder="Enter Address" tabindex="2"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-lg-6">
+            <label asp-for="CountryId">Country</label>
+            <div class="input-group">
+                <select asp-for="CountryId" class="form-control form-control-sm custom-select-single" tabindex="3" data-placeholder="-- Select Country --" asp-items="@ViewBag.CountryDD as SelectList">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <label asp-for="City">City</label>
+            <input type="text" asp-for="City" class="form-control form-control-sm" placeholder="Enter City" tabindex="4" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-lg-6">
+            <label asp-for="StateOrProvince">State/Province</label>
+            <input type="text" asp-for="StateOrProvince" class="form-control form-control-sm" placeholder="Enter State/Province" tabindex="5" />
+        </div>
+
+        <div class="col-lg-6">
+            <label asp-for="ZipCode">Zip Code</label>
+            <input type="text" asp-for="ZipCode" class="form-control form-control-sm" placeholder="Enter Zip Code" tabindex="6" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        
+        <div class="col-lg-6">
+            <label asp-for="Phone">Phone</label>
+            <input type="text" asp-for="Phone" class="form-control form-control-sm" placeholder="Enter Phone" tabindex="7" />
+        </div>
+        <div class="col-lg-6">
+            <label asp-for="Email">Email</label>
+            <input type="text" asp-for="Phone" class="form-control form-control-sm" placeholder="Enter Email" tabindex="8" />
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-lg-6">
+            <label asp-for="ContactPerson">Contact Person</label>
+            <div class="Ven-input-wrapper">
+
+                <select asp-for="ContactPerson"
+                        asp-items="ViewBag.ContactDD"
+                        class="form-control form-control-sm custom-select-multi"
+                        tabindex="9" data-placeholder="Select Contact Person">
+                    <option value=""></option>
+                </select>
+
+                <button type="button" class="btn btn-plus js-quick-add"
+                        data-url="@Url.Action("Index", "ContactPersonInfo")"
+                        data-target="#ContactPerson"
+                        data-reload-url="@Url.Action("GetCountrys", "Cascading")"
+                        data-title="Contact Person Info">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <label asp-for="Remarks">Remarks</label>
+            <input type="text" asp-for="Remarks" class="form-control form-control-sm" placeholder="Enter Remarks" tabindex="10" />
+        </div>
+    </div>
+
+    <hr id="sectionBreak" />
+
+    @* Creation / Update Dates *@
+    <div class="row" id="LdateModifyHide">
+        <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
+            <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Creation Date:</label>
+            <div class="col-6">
+                <span id="creationDateSpan">
+                    @(Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </span>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
+            <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Last Update Date:</label>
+            <div class="col-6">
+                <span id="modifyDateSpan">
+                    @(Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row no-print" style="margin-top: 9px;">
+    <div class="col-12">
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "BranchAddress"
+        })
+    </div>
+</div>
