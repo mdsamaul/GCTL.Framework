@@ -23,6 +23,6 @@ namespace GCTL.Service.ShipmentMode
         Task<bool> BulkDeleteAsync(List<int> ids);
         Task<bool> IsDuplicateAsync(ShipmentModeVM model);
         Task<List<ShipmentModeVM>> GetAllExpenseTypesAsync();
-
+        Task<List<ShipmentModeVM>> GetShipmentModeDetailsAsync(string transportModeTypeId);
     }
 }

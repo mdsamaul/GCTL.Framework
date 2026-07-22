@@ -21,7 +21,8 @@ namespace GCTL.Service.SepDocumentation
             IGenericRepository<SalesCustomer> customerRepository,
             IGenericRepository<SalesDeliveryLocation> deliveryLocationRepository,
             IGenericRepository<GCTL.Data.Models.SepDocumentation> sepDocumentationRepository,
-            IGenericRepository<CfDefExpenseType> shipmentModeRepository)
+            IGenericRepository<CfDefExpenseType> shipmentModeRepository
+            )
         {
             _customerRepository = customerRepository;
             _deliveryLocationRepository = deliveryLocationRepository;
@@ -430,7 +431,7 @@ namespace GCTL.Service.SepDocumentation
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.ExpenseTypeId == shipmentModeId);
 
-            return mode?.TransportModeTypeId ?? "";
+            return mode?.TransportModeTypeId.Trim() ?? "";
         }
 
         #endregion
@@ -452,6 +453,112 @@ namespace GCTL.Service.SepDocumentation
         }
 
         #endregion
+
+        public async Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId)
+        {
+            try
+            {
+                var shipmentModeShortName = await _shipmentModeRepository.All()
+                    .Where(x => x.ExpenseTypeId == shipmentModeId)
+                    .Select(x => x.ShortName)
+                    .FirstOrDefaultAsync();
+
+                var customerShortName = await _customerRepository.All()
+                    .Where(x => x.CustomerId == customerId)
+                    .Select(x => x.ShortName)
+                    .FirstOrDefaultAsync();
+
+                if (string.IsNullOrEmpty(shipmentModeShortName) && string.IsNullOrEmpty(customerShortName))
+                {
+                    return "";
+                }
+
+                var currentYear = DateTime.Now.ToString("yy");
+
+                var parts = new List<string>();
+                if (!string.IsNullOrEmpty(shipmentModeShortName)) parts.Add(shipmentModeShortName);
+                if (!string.IsNullOrEmpty(customerShortName)) parts.Add(customerShortName);
+                parts.Add(currentYear);
+
+                var prefix = string.Join("_", parts) + "_";
+
+                var lastJobNo = await _sepDocumentationRepository.All().AsNoTracking()
+                    .Where(x => x.JobNo.StartsWith(prefix))
+                    .OrderByDescending(x => x.JobNo)
+                    .Select(x => x.JobNo)
+                    .FirstOrDefaultAsync();
+
+                int nextSequence = 1;
+
+                if (!string.IsNullOrEmpty(lastJobNo))
+                {
+                    var lastSequencePart = lastJobNo.Substring(lastJobNo.LastIndexOf('_') + 1);
+                    if (int.TryParse(lastSequencePart, out int lastSequence))
+                    {
+                        nextSequence = lastSequence + 1;
+                    }
+                }
+
+                var jobNo = $"{prefix}{nextSequence.ToString("D6")}";
+
+                return jobNo;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public async Task<CommonReturnViewModel> GetCustomerInfoAsync(string customerId)
+        {
+            try
+            {
+                var data = await _customerRepository.All()
+                    .Where(x => x.CustomerId == customerId)
+                    .Select(x => new CustomerInfoDto
+                    {
+                        CustomerId = x.CustomerId,
+                        CustomerName = x.CustomerName ?? "",
+                        ShortName = x.ShortName ?? "",
+                        CustomerAddress = x.CustomerAddress ?? "",
+                        ContactPerson = x.ContactPerson ?? "",
+                        Phone = x.Phone ?? "",
+                        Email = x.Email ?? ""
+                    })
+                    .FirstOrDefaultAsync();
+                var delivaryAddress = await _deliveryLocationRepository.All().AsNoTracking()
+                    .Where(x => x.CustomerId == customerId)
+                    .Select(x => new DelivaryAddressDto
+                    {
+                        DelivaryId = x.DeliveryLocationCode,
+                        DelivaryAddress = x.LocationAddress
+                    })
+                    .ToListAsync();
+                if (data == null)
+                {
+                    return new CommonReturnViewModel
+                    {
+                        Success = false,
+                        Message = $"No customer found with CustomerId: {customerId}"
+                    };
+                }
+
+                data.DelivaryAddress = delivaryAddress;
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = "Customer info fetched successfully",
+                    Data = data
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = "Error fetching customer info: " + ex.Message
+                };
+            }
+        }
     }
 
     public class SelectListItem

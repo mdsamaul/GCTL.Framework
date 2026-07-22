@@ -183,6 +183,7 @@
             max-width: 100%;
         }
     }
+
     .form-control-sm,
     .form-select-sm {
         font-size: 0.82rem;
@@ -194,6 +195,7 @@
         color: #6c757d;
         margin-bottom: 2px;
     }
+
     .nav-tabs .nav-link.active {
         font-weight: 700;
         border-bottom: 2px solid #0d6efd;
@@ -215,18 +217,17 @@
     }
 
     .toolbar-doc {
-    display: none;
-    opacity: 0;
-    transform: translateY(-15px);
-    transition: all .35s ease;
-}
+        display: none;
+        opacity: 0;
+        transform: translateY(-15px);
+        transition: all .35s ease;
+    }
 
-.toolbar-doc.show {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
-    
+        .toolbar-doc.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
 </style>
 
 @* <partial name="_PageHeader" model="Model" /> *@
@@ -275,7 +276,7 @@
     </ul>
 
     <div class="tab-content" id="sepDocTabContent">
-        <div class="entry-only px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded toolbar-doc show">
+        <div class="entry-only px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded toolbar-doc show" style="display:none;">
             <div class="mb-3">
                 <div id="jobSummary">
 
@@ -404,7 +405,7 @@
                 </div>
 
 
-                   
+
             </div>
         </div>
         <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
@@ -414,7 +415,10 @@
 
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Shipment Mode</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Mode" id="shipmentModeId" asp-items="ViewBag.ShipmentMode as SelectList">
+                        <select class="form-select form-select-sm custom-select-multi"
+                                data-placeholder="Select Shipment Mode"
+                                id="shipmentModeId"
+                                asp-items="ViewBag.ShipmentMode as SelectList">
                             <option value="">Select Shipment Mode</option>
                         </select>
                         <input type="hidden" id="transportModeTypeId" name="TransportModeTypeId" />
@@ -428,7 +432,6 @@
                     </div>
 
                     <div class="col-lg-4 col-md-6">
-                       
                     </div>
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Job No</label>
@@ -442,7 +445,7 @@
 
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Customer Name<sup class="text-danger">*</sup> </label>
-                        
+
                         <div class="input-group flex-nowrap">
                             <div class="input-group input-group-sm">
 
@@ -470,7 +473,7 @@
 
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Customer Delivery Address<sup class="text-danger">*</sup> </label>
-                        
+
                         <div class="input-group flex-nowrap">
                             <div class="input-group input-group-sm">
 
@@ -492,10 +495,10 @@
                     </div>
 
                     <div class="col-lg-4 col-md-6">
-                        </div>
+                    </div>
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Port Name<sup class="text-dange">*</sup></label>
-                        
+
                         <div class="input-group flex-nowrap">
                             <div class="input-group input-group-sm">
 
@@ -546,16 +549,15 @@
                         <div class="d-flex gap-2">
                             <input type="number" class="form-control form-control-sm" id="lcValue" />
                             <select class="form-select form-select-sm custom-select-single" data-placeholder="Currency" id="currencyId" asp-items="ViewBag.Currency as SelectList">
-                                <option value="">Curr.</option>
+                                <option value=""></option>
                             </select>
-                            @* <input type="number" class="form-control form-control-sm" id="bdtRate" placeholder="BDT Rate" /> *@
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">BDT</label>
                         <div class="d-flex gap-2">
-                            <input type="number" class="form-control form-control-sm" id="bdtRate" placeholder="BDT Rate" />
-                            <input type="number" class="form-control form-control-sm" id="lcValue" placeholder="BDT Rate" />                            
+                            <input type="number" class="form-control form-control-sm" id="bdtRate" placeholder="Curr. Rate" />
+                            <input type="number" class="form-control form-control-sm" id="LCValueBDTAmount" placeholder="L/C Value" />
                         </div>
                     </div>
 
@@ -569,6 +571,8 @@
                         <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="ipDate" />
                     </div>
 
+                    <div class="col-lg-4 col-md-6"> </div>
+                    <div class="col-lg-4 col-md-6"> </div>
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Importer Name</label>
                         <div class="input-group flex-nowrap">
@@ -589,7 +593,7 @@
 
                             </div>
                         </div>
-                      
+
                     </div>
 
                     <div class="col-lg-4 col-md-6">
@@ -606,6 +610,14 @@
                         <label class="form-label">Invoice Value</label>
                         <div class="d-flex gap-2">
                             <input type="number" class="form-control form-control-sm" id="invoiceValue" />
+                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Currency" id="invoiceCurrencyId" asp-items="ViewBag.Currency as SelectList">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">BDT</label>
+                        <div class="d-flex gap-2">
                             <input type="number" class="form-control form-control-sm" id="assessableRate" placeholder="Assessable Rate" />
                             <input type="number" class="form-control form-control-sm" id="assessableValue" placeholder="Assessable Value" />
                         </div>
@@ -629,11 +641,6 @@
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Container Size</label>
                         <input class="form-control form-control-sm" id="containerSize" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">LCA No</label>
-                        <input class="form-control form-control-sm" id="lcaNo" />
                     </div>
 
                     <div class="col-lg-4 col-md-6">
@@ -663,7 +670,7 @@
 
                                 </div>
                             </div>
-                           
+
                         </div>
                     </div>
 
@@ -692,14 +699,13 @@
                         </div>
                     </div>
 
+                    <!-- =========== Below fields are shared by BOTH Sea and Air ===========
+                         (previously duplicated with seaFieldsGroup / had unused/orphan ids;
+                         cleaned up, cast into a single shared block, ids aligned with JS) -->
+
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">FWDR (Shipping Agent)</label>
                         <input class="form-control form-control-sm" id="fwdrShippingAgent" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Name of Freight Forwarder</label>
-                        <input class="form-control form-control-sm" id="nameOfFreightForwarder" />
                     </div>
 
                     <div class="col-lg-4 col-md-6">
@@ -712,7 +718,6 @@
                         <div class="input-group flex-nowrap">
                             <div class="input-group input-group-sm">
 
-                           
                                 <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Place of Loading" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
                                     <option value="">Select Place of Loading</option>
                                 </select>
@@ -730,9 +735,65 @@
                         </div>
                     </div>
 
+                    <!-- Shared (Sea + Air) delivery-tracking fields -->
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">ETD Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
+                    </div>
+                    <!-- ============ DYNAMIC: Sea only (4 fields) ============ -->
+                    @* <span id="seaFieldsGroup"> *@
+                        @* <div class="group-title">Sea Import &amp; Export</div> *@
+                       
+                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
+                                <label class="form-label">Final IGM Rec. Dt.</label>
+                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="seaFinalIgmRecDate" />
+                            </div>
+                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
+                                <label class="form-label">Ship Arrived</label>
+                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="seaShipArrivedDate" />
+                            </div>
+                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
+                                <label class="form-label">Unstuff/Discharge</label>
+                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffDischargeDate" />
+                            </div>
+                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
+                                <label class="form-label">Estimated Delivery</label>
+                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="seaEstimatedDeliveryDate" />
+                            </div>
+                       
+                    @* </span> *@
+
+                    <!-- ============ DYNAMIC: Air only (2 fields) ============ -->
+                    @* <div id="airFieldsGroup"> *@
+                        @* <div class="group-title">Air Import &amp; Export</div> *@
+                        @* <div class="row"> *@
+                    <div class="col-lg-4 col-md-6 airFieldsGroup">
+                                <label class="form-label">Flight Actual Arrival Date</label>
+                                <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="flightArrivalDate" />
+                            </div>
+                    <div class="col-lg-4 col-md-6 airFieldsGroup">
+                                <label class="form-label">Arrival Notice Rcvd From Express Dt.</label>
+                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="arrivalNoticeDate" />
+                            </div>
+                        @* </div> *@
+                    @* </div> *@
+
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Docs Bank Sign Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docsBankSignDate" />
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">B/E No./Date</label>
+                        <input type="text" class="form-control form-control-sm" id="beNoDate" />
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="form-label">Actual Delivery Date</label>
+                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="actualDeliveryDate" />
+                    </div>
+
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Shed/Yard</label>
-                       
+
                         <div class="input-group flex-nowrap">
                             <div class="input-group input-group-sm">
 
@@ -794,69 +855,7 @@
                     </div>
                 </div>
 
-                <!-- ============ DYNAMIC: shown for Sea + Air (common) ============ -->
-                <div id="commonDeliveryGroup" style="display:none;">
-                    <div class="group-title">Delivery Tracking</div>
-                    <div class="row">
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">ETD</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Docs Bank Sign Date</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docsBankSignDate" />
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">B/E No / Date</label>
-                            <div class="d-flex gap-2">
-                                <input class="form-control form-control-sm" id="beNo" placeholder="B/E No" />
-                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="beDate" />
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Actual Delivery</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="actualDeliveryDate" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ============ DYNAMIC: Sea only ============ -->
-                <div id="seaFieldsGroup">
-                    <div class="group-title">Sea Import &amp; Export</div>
-                    <div class="row">
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Final IGM Rec. Dt.</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="finalIgmRecDate" />
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Ship Arrived</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="shipArrivedDate" />
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Unstuff/Discharge</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffDischargeDate" />
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Estimated Delivery</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="estimatedDeliveryDate" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ============ DYNAMIC: Air only ============ -->
-                <div id="airFieldsGroup">
-                    <div class="group-title">Air Import &amp; Export</div>
-                    <div class="row">
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Flight Actual Arrival Dt.</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="flightArrivalDate" />
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Arrival Notice Rcvd From Express Dt.</label>
-                            <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="arrivalNoticeDate" />
-                        </div>
-                    </div>
-                </div>
+                
 
                 <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
 
@@ -864,13 +863,13 @@
                 {
                     Title = "",
                     SaveBtnClass = "doc-save-entry-btn",
-                    ShowClear=false,
-                    ShowDelete=false,
-                    ShowFavorite=false,
-                    ShowPrint=false,
-                    IsPlain=true
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true
                 })
-               
+
             </div>
 
             <!-- ==================== Grid of saved jobs ==================== -->
@@ -878,20 +877,20 @@
                 <div class="toolbar mb-3 d-flex justify-content-between flex-wrap gap-2">
                     <div class="input-group input-group-sm" style="width:120px">
                         <span class="input-group-text">Show</span>
-                        <select class="form-select" id="pageSizeSelect">
+                        <select class="form-select" id="pageSizeSelectBottom">
                             <option value="10">10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
                     </div>
-                    <input class="form-control form-control-sm" style="max-width:280px" id="searchInput" type="text" placeholder="Search" />
+                    <input class="form-control form-control-sm" style="max-width:280px" id="searchInputBottom" type="text" placeholder="Search" />
                 </div>
 
                 <div class="table-responsive scrollbar">
                     <table class="table table-bordered table-sm fs-9 mb-0" id="jobListTable">
                         <thead>
                             <tr>
-                                <th>Sel.</th>
+                                <th><input type="checkbox" id="selectAllJobs" /></th>
                                 <th>Job No</th>
                                 <th>Job Date</th>
                                 <th>Customer</th>
@@ -907,11 +906,11 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center py-3">
-                    <p class="mb-0" id="dataListInfo"></p>
+                    <p class="mb-0" id="dataListInfoBottom"></p>
                     <div class="d-flex">
-                        <button type="button" class="page-link" id="paginationPrev">&laquo;</button>
-                        <ul class="mb-0 pagination" id="paginationNumbers"></ul>
-                        <button type="button" class="page-link" id="paginationNext">&raquo;</button>
+                        <button type="button" class="page-link" id="paginationPrevBottom">&laquo;</button>
+                        <ul class="mb-0 pagination" id="paginationNumbersBottom"></ul>
+                        <button type="button" class="page-link" id="paginationNextBottom">&raquo;</button>
                     </div>
                 </div>
             </div>
@@ -980,9 +979,6 @@
                 </div>
 
                 <div class="mt-3">
-                    @* <button type="button" class="btn btn-phoenix-primary" id="uploadDocumentBtn">
-                        <i class="fas fa-upload text-primary"></i> <span>Upload</span>
-                    </button> *@
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
                         Title = "",

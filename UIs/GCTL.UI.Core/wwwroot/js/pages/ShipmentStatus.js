@@ -1,4 +1,5 @@
-﻿let statusCurrentPage = 1;
+﻿
+let statusCurrentPage = 1;
 let statusPageSize = 10;
 let selectedShipmentStatuses = [];
 let statusCurrentSortColumn = 'ShipmentStatusId';
@@ -362,12 +363,76 @@ $(document).on('click', '.status-row-checkbox', function () {
     $('#statusSelectAll').prop('checked', allChecked);
 });
 
-$(document).ready(function () {
+$(document).on('change', '#statusTransportModeTypeId', function () {
+    var transportModeTypeId = $(this).val();
+    if (!transportModeTypeId) {
+        loadShipmentStatuses(statusCurrentPage, statusPageSize, statusCurrentSortColumn, statusCurrentSortDirection, statusCurrentSearchTerm);
+        return;
+    }
 
+    ajaxRequest({
+        url: '/ShipmentStatus/GetShipmentStatusDetails',
+        method: 'GET',
+        data: { transportModeTypeId: transportModeTypeId },
+        successCallback: function (response) {
+            renderShipmentStatusGrid(response);
+        },
+        errorCallback: function (xhr) {
+            if (xhr.status === 404) {
+                $('#statusTblBody').html(`<tr class="no-data"><td colspan="5" class="text-center">No Data Available</td></tr>`);
+            } else {
+                console.error('Error:', xhr.responseText);
+            }
+        }
+    });
+});
+
+function renderShipmentStatusGrid(data) {
+    let rows = '';
+
+    if (data && data.length > 0) {
+        data.forEach(function (item) {
+            rows += `<tr>
+                <td class="text-center align-middle">
+                    <input type="checkbox" class="form-check-input status-row-checkbox"
+                        data-autoid="${item.autoId}">
+                </td>
+                <td class="text-center align-middle">
+                    <button class="btn btn-transfer-status"
+                        data-autoid="${item.autoId}"
+                        data-statusid="${item.shipmentStatusId}"
+                        data-status="${item.shipmentStatus}"
+                        data-shortname="${item.shortName}"
+                        data-transportmodeid="${item.transportModeTypeId}"
+                        data-ldate="${item.ldate}"
+                        data-modifydate="${item.modifyDate}">
+                        ${item.shipmentStatusId}
+                    </button>
+                </td>
+                <td>${item.shipmentStatus || ''}</td>
+                <td>${item.shortName || ''}</td>
+                <td>${item.transportModeType || ''}</td>
+            </tr>`;
+        });
+
+        $('#statusTblBody').html(rows);
+        $('#statusPaginationSummary').text(`Showing ${data.length} of ${data.length} entries`);
+        $('#statusPageNavigation').html('');
+        $('#statusSelectAll').prop('checked', false);
+    } else {
+        $('#statusTblBody').html(`<tr class="no-data"><td colspan="5" class="text-center">No Data Available</td></tr>`);
+        $('#statusPaginationSummary').text('');
+        $('#statusPageNavigation').html('');
+    }
+}
+
+$(document).ready(function () {
+    console.log("oppppp");
     // Shipment Status tab er content lazy load hobe tab click er somoy (nichey দেখুন Index.cshtml)
 
-    $(document).on("click", "#shipmentStatusFormContainer .saveShipmentStatusBtn", function (e) {
+    $(document).on("click", ".saveShipmentStatusBtn", function (e) {
         e.preventDefault();
+        
         saveOrUpdateShipmentStatus();
     });
 
@@ -395,7 +460,7 @@ $(document).ready(function () {
         loadShipmentStatuses(statusCurrentPage, statusPageSize, statusCurrentSortColumn, statusCurrentSortDirection, statusCurrentSearchTerm);
     });
 
-    $(document).on("click", "#shipmentStatusFormContainer .deleteShipmentStatusBtn", function (e) {
+    $(document).on("click", ".deleteShipmentStatusBtn", function (e) {
         e.preventDefault();
 
         let selectedIds = [...selectedShipmentStatuses];
@@ -409,7 +474,7 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on("click", "#shipmentStatusFormContainer .resetBtn", function (e) {
+    $(document).on("click", ".clearShipmentStatusBtn", function (e) {
         clearShipmentStatusForm();
     });
 
