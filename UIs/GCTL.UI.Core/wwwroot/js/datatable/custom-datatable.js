@@ -150,9 +150,19 @@
                     sortColIndex = idx;
                 }
 
-                var renderFn = (c.renderFn && window.gctlRenderers && window.gctlRenderers[c.renderFn])
-                    ? window.gctlRenderers[c.renderFn]
-                    : undefined;
+                var renderFn;
+                
+                if (c.isEditLink) {
+                    renderFn = function (data, type, row) {
+                        var editClass = c.editSelectorClass || 'edit-link';
+                        var label = c.editLabel != null ? c.editLabel : (data != null ? data : '');
+                        return $.gctlGrid.editLinkColumn
+                            ? '<a class="btn ' + editClass + '" data-id="' + (row[c.data] != null ? row[c.data] : '') + '"><i>' + label + '</i></a>'
+                            : '';
+                    };
+                } else if (c.renderFn && window.gctlRenderers && window.gctlRenderers[c.renderFn]) {
+                    renderFn = window.gctlRenderers[c.renderFn];
+                }
 
                 columns.push({
                     data: c.data,

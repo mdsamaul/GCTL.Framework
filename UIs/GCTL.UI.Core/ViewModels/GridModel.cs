@@ -11,6 +11,9 @@
         public bool Visible { get; set; } = true;
         public string? RenderFn { get; set; }         // name of a JS function registered in window.gctlRenderers
         public string Align { get; set; } = "center";  // left | center | right
+        public bool IsEditLink { get; set; } = false;
+        public string? EditSelectorClass { get; set; }   // CSS class applied to the <a>, e.g. "edit-job-btn"
+        public string? EditLabel { get; set; }
 
         public string CssClass => Align switch
         {
@@ -32,6 +35,7 @@
         public bool DisableCheckAll { get; set; } = false;
         public bool UseRadio { get; set; } = false;             // radio instead of checkbox (single-select rows)
         public string RadioName { get; set; } = "rowSelect";
+
 
         // Styling
         public bool Striped { get; set; } = true;
