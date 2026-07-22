@@ -14,13 +14,13 @@
         public bool IsEditLink { get; set; } = false;
         public string? EditSelectorClass { get; set; }   // CSS class applied to the <a>, e.g. "edit-job-btn"
         public string? EditLabel { get; set; }
-
+        public bool IsWrapable { get; set; } = true;
         public string CssClass => Align switch
         {
             "left" => "text-start",
             "right" => "text-end",
             _ => "text-center"
-        };
+        } + (IsWrapable ? "" : " text-nowrap");
     }
 
     public class GridModel
@@ -31,6 +31,7 @@
         // Selection
         public bool ShowCheckbox { get; set; } = false;
         public string CheckColumnData { get; set; } = "id";   // field DataTables reads for the checkbox value
+        public string CheckboxClass { get; set; } = "checkbox";
         public string CheckAllId { get; set; } = "checkAll";
         public bool DisableCheckAll { get; set; } = false;
         public bool UseRadio { get; set; } = false;             // radio instead of checkbox (single-select rows)

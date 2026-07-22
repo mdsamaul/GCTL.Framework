@@ -128,11 +128,12 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row) {
+                        var cls = config.checkboxClass || 'form-check-input checkbox';
                         return config.useRadio
-                            ? '<input type="radio" class="form-check-input" name="' +
+                            ? '<input type="radio" class="' + cls + '" name="' +
                             (config.radioName || 'rowSelect') + '" value="' +
                             (row[config.checkColumnData] != null ? row[config.checkColumnData] : '') + '">'
-                            : '<input type="checkbox" class="form-check-input" value="' +
+                            : '<input type="checkbox" class="' + cls + '" value="' +
                             (data != null ? data : '') + '">';
                     }
                 });
@@ -181,6 +182,7 @@
                 ajaxType: config.ajaxMethod || "GET",
                 serverSide: !!config.serverSide,
                 columns: columns,
+                checkBoxClass: config.checkboxClass || 'form-check-input checkbox', 
                 checkAllSelector: (config.showCheckbox && !config.disableCheckAll && config.checkAllId)
                     ? ('#' + config.checkAllId)
                     : null,
