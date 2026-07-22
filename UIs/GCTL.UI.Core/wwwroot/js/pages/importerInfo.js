@@ -60,7 +60,7 @@
                 }).catch((error) => {
                     console.error("Failed to load form", error);
                 });
-
+                loadSNCId();
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
                 $(settings.deleteSelector).data('id', id);
@@ -104,7 +104,7 @@
                                 .catch((error) => {
                                     console.log(error)
                                 })
-
+                            loadSNCId();
                             toastr.success(response.message);
                         }
                         else {
@@ -185,6 +185,7 @@
 
                                 loadTable();
                                 loadForm(saveUrl);
+                                loadSNCId();
                             }
                             else {
                                 toastr.error(response.message);
@@ -275,7 +276,7 @@
                     { data: "importerAddress", className: " text-middle" },
                     { data: "phone", className: "text-center text-middle" },
                     { data: "website", className: "text-center text-middle" },
-                    { data: "email1", className: "text-center text-middle" }
+                    { data: "email", className: "text-center text-middle" }
                 ]
             });
         }

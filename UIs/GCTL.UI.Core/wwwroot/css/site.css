@@ -35,7 +35,7 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
-    --sidebar-width-expanded: 250px;
+    --sidebar-width-expanded: 200px;
     --sidebar-width-collapsed: 70px;
     --topnav-height: 50px;
 
@@ -1096,7 +1096,7 @@ h6 {
         height: var(--bar-height);
     }
 }
-
+/*
 .toolbar-btn {
     height: 35px;
     min-width: 90px;
@@ -1110,8 +1110,8 @@ h6 {
     font-size: 14px;
     font-weight: 600;
     transition: .2s;
-}
-
+}*/
+/*
     .toolbar-btn:hover {
         background: #f8fafc;
         box-shadow: 0 3px 8px rgba(0,0,0,.08);
@@ -1139,7 +1139,7 @@ h6 {
 
 .toolbar-btn-fav {
     color: #f59e0b;
-}
+}*/
 
 .input-group {
     display: flex;

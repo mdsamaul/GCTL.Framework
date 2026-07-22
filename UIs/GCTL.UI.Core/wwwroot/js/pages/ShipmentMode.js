@@ -1,4 +1,31 @@
-﻿let currentPage = 1;
+﻿$(function () {
+
+    function showShipmentMode() {
+        $("#toolbarEntry").addClass("show");
+        $("#toolbarUpload").removeClass("show");
+    }
+
+    function showShipmentStatus() {
+        $("#toolbarUpload").addClass("show");
+        $("#toolbarEntry").removeClass("show");
+    }
+
+    // Default
+    showShipmentMode();
+
+    // Shipment Mode
+    $('#shipment-type-tab').on('shown.bs.tab', function () {
+        showShipmentMode();
+    });
+
+    // Shipment Status
+    $('#shipment-status-tab').on('shown.bs.tab', function () {
+        showShipmentStatus();
+    });
+
+});
+
+let currentPage = 1;
 let pageSize = 10;
 let selectedExpenseTypes = [];
 let currentSortColumn = 'ExpenseTypeID';
@@ -7,7 +34,6 @@ let totalPages = 1;
 let currentSearchTerm = "";
 
 
-console.log(`Global Call: ${selectedExpenseTypes}`);
 function getNextExpenseTypeId() {
     $.ajax({
         url: '/next-expense-type-id', 
@@ -396,71 +422,69 @@ $(document).on('click', '.row-checkbox', function () {
         $('.row-checkbox:visible:not(:checked)').length === 0;
     $('#selectAll').prop('checked', allChecked);
 });
+$(document).on('change', '#transportModeTypeId', function () {
+    var transportModeTypeId = $(this).val();
 
-// $(document).ready(function () {
-//     $('#shipmentFormContainer').load('/ShipmentMode/ShipmentForm', function () {
-//         window.initCustomDropdowns('#shipmentFormContainer', true);
-//         getNextExpenseTypeId();
-//     });
-//     $('#shipmentList').load('/ShipmentMode/ShipmentList', function () {
-//         loadExpenseTypes(currentPage, pageSize, currentSortColumn, currentSortDirection);
+    if (!transportModeTypeId) {
+        loadExpenseTypes(currentPage, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
+        return;
+    }
 
-//     });
+    ajaxRequest({
+        url: '/ShipmentMode/GetShipmentModeDetails',
+        method: 'GET',
+        data: { transportModeTypeId: transportModeTypeId },
+        successCallback: function (response) {
+            renderShipmentModeGrid(response);
+        },
+        errorCallback: function (xhr) {
+            if (xhr.status === 404) {
+                $('#tblBody').html(`<tr class="no-data"><td colspan="5" class="text-center">No Data Available</td></tr>`);
+            } else {
+                console.error('Error:', xhr.responseText);
+            }
+        }
+    });
+});
 
-//     $(document).on("click", ".saveBtn", function (e) {
-//         
-//         console.log("asdfasdf");
-//         e.preventDefault();
-//         saveOrUpdateShipmentMode();
-//     });
+function renderShipmentModeGrid(data) {
+    let rows = '';
 
-//     // Handle pagination button clicks
-//     $(document).on('click', '#firstPage', function () {
-//         loadExpenseTypes(1, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
-//     });
+    if (data && data.length > 0) {
+        data.forEach(function (item) {
+            rows += `<tr>
+                <td class="text-center align-middle">
+                    <input type="checkbox" class="form-check-input row-checkbox"
+                        data-expensetypeid="${item.tc}">
+                </td>
+                <td class="text-center align-middle">
+                    <button class="btn btn-transfer"
+                        data-tc="${item.tc}"
+                        data-expensetypeid="${item.expenseTypeID}"
+                        data-expensetype="${item.expenseType}"
+                        data-shortname="${item.shortName}"
+                        data-transportmodeid="${item.transportModeTypeId}"
+                        data-ldate="${item.ldate}"
+                        data-modifydate="${item.modifyDate}">
+                        ${item.expenseTypeID}
+                    </button>
+                </td>
+                <td>${item.expenseType || ''}</td>
+                <td>${item.shortName || ''}</td>
+                <td>${item.transportModeType || ''}</td>
+            </tr>`;
+        });
 
-//     $(document).on('click', '#prevPage', function () {
-//         if (currentPage > 1)
-//             loadExpenseTypes(currentPage - 1, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
-//     });
-
-//     $(document).on('click', '#nextPage', function () {
-//         if (currentPage < totalPages)
-//             loadExpenseTypes(currentPage + 1, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
-//     });
-
-//     $(document).on('click', '#lastPage', function () {
-//         loadExpenseTypes(totalPages, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
-//     });
-
-//     $(document).on('change', '#pageSize', function () {
-//         pageSize = parseInt($(this).val());
-//         currentPage = 1;
-//         loadExpenseTypes(currentPage, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
-//     });
-
-//     $(document).on('click', 'resetBtn', function (e) {
-//         console.log("Clear button called");
-//         clearShipmentForm();
-//     })
-
-//     $(document).on("click", ".deleteBtn", function (e) {
-//         e.preventDefault();
-//         console.log("Delete button Called");
-//         deleteSelectedShipmentModes();
-//     });
-
-//     $(document).on("click", ".resetBtn", function (e) {
-//         console.log("Clear button Called");
-//         clearShipmentForm();
-//     });
-
-//     $(document).on('input', '#searchInput', debounce(function () {
-//         currentSearchTerm = $(this).val().trim();
-//         loadExpenseTypes(1, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
-//     }, 500));
-
-// });
+        $('#tblBody').html(rows);
+        $('#paginationSummary').text(`Showing ${data.length} of ${data.length} entries`);
+        $('#pageNavigation').html('');
+        $('#selectAll').prop('checked', false);
+    } else {
+        $('#tblBody').html(`<tr class="no-data"><td colspan="5" class="text-center">No Data Available</td></tr>`);
+        $('#paginationSummary').text('');
+        $('#pageNavigation').html('');
+    }
+}
 
 $(document).ready(function () {
 
@@ -524,7 +548,7 @@ $(document).ready(function () {
         deleteSelectedShipmentModes();
     });
 
-    $(document).on("click", ".resetBtn", function (e) {
+    $(document).on("click", ".clearBtn", function (e) {
         clearShipmentForm();
     });
 

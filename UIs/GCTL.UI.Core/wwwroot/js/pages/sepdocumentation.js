@@ -1,139 +1,293 @@
 ﻿$(document).ready(function () {
+    setDate("#jobDate", new Date());
+    const entrySections = document.querySelectorAll('.entry-only');
 
-    //#region State
+    document.getElementById('entry-tab').addEventListener('shown.bs.tab', function () {
+
+        toolbarEntry.classList.add('show');
+        toolbarUpload.classList.remove('show');
+
+        entrySections.forEach(x => x.classList.add('show'));
+    });
+
+    document.getElementById('upload-tab').addEventListener('shown.bs.tab', function () {
+
+        toolbarEntry.classList.remove('show');
+        toolbarUpload.classList.add('show');
+
+        entrySections.forEach(x => x.classList.remove('show'));
+    });
+
+    //#region Populate Top Table
 
     let currentPage = 1;
-    let pageSize = 10;
+    let pageSize = 5;
     let filteredRecords = 0;
-    let currentJobNo = '';
 
     $('#pageSizeSelect').val(pageSize);
     loadJobs();
 
-    //#endregion
-
-    //#region Shipment Mode -> Sea / Air dynamic fields
-
-    $(document).on('change', '#shipmentModeId', function () {
-        const shipmentModeId = $(this).val();
-
-        // reset groups
-        $('#commonDeliveryGroup, #seaFieldsGroup, #airFieldsGroup').hide();
-        $('#transportModeTypeId').val('');
-
-        if (!shipmentModeId) return;
-
-        $.ajax({
-            url: '/SepDocumentation/GetTransportModeType',
-            type: 'GET',
-            data: { shipmentModeId: shipmentModeId },
-            success: function (res) {
-                if (!res.success) return;
-
-                const type = (res.transportModeTypeId || '').toUpperCase();
-                $('#transportModeTypeId').val(type);
-
-                if (type.indexOf('SEA') !== -1) {
-                    $('#commonDeliveryGroup, #seaFieldsGroup').show();
-                    $('#airFieldsGroup').hide();
-                } else if (type.indexOf('AIR') !== -1) {
-                    $('#commonDeliveryGroup, #airFieldsGroup').show();
-                    $('#seaFieldsGroup').hide();
-                }
-            },
-            error: function () {
-                console.error('Error fetching transport mode type');
-            }
-        });
-    });
-
-    //#endregion
-
-    //#region Grid
-
     let searchTimer;
+
+    // Search
     $(document).on('keyup', '#searchInput', function () {
+
         clearTimeout(searchTimer);
+
         searchTimer = setTimeout(function () {
+
             currentPage = 1;
             loadJobs();
+
         }, 300);
     });
 
-    $(document).on('change', '#pageSizeSelect', function () {
-        currentPage = 1;
-        pageSize = parseInt($('#pageSizeSelect').val());
-        loadJobs();
-    });
+    // Large Screen Filters
+    $(document).on(
+        'change',
+        '#customerFilter,#shipmentModeFilter,#dateFrom,#dateTo,#pageSizeSelect',
+        function () {
 
+            currentPage = 1;
+            pageSize = parseInt($('#pageSizeSelect').val());
+
+            syncFiltersFromLarge();
+
+            loadJobs();
+        });
+
+    // Small Screen Filters
+    $(document).on(
+        'change',
+        '#customerFilterSm,#shipmentModeFilterSm,#dateFromSm,#dateToSm',
+        function () {
+
+            currentPage = 1;
+            pageSize = parseInt($('#pageSizeSelect').val());
+
+            syncFiltersFromSmall();
+
+            loadJobs();
+        });
+
+    function syncFiltersFromLarge() {
+
+        $('#customerFilterSm')
+            .val($('#customerFilter').val())
+            .trigger('change.select2');
+
+        $('#shipmentModeFilterSm')
+            .val($('#shipmentModeFilter').val())
+            .trigger('change.select2');
+
+        $('#dateFromSm').val($('#dateFrom').val());
+        $('#dateToSm').val($('#dateTo').val());
+    }
+
+    function syncFiltersFromSmall() {
+
+        $('#customerFilter')
+            .val($('#customerFilterSm').val())
+            .trigger('change.select2');
+
+        $('#shipmentModeFilter')
+            .val($('#shipmentModeFilterSm').val())
+            .trigger('change.select2');
+
+        $('#dateFrom').val($('#dateFromSm').val());
+        $('#dateTo').val($('#dateToSm').val());
+    }
+
+    // Pagination
     $(document).on('click', '#paginationPrev', function () {
-        if (currentPage > 1) { currentPage--; loadJobs(); }
+
+        if (currentPage > 1) {
+
+            currentPage--;
+            loadJobs();
+        }
     });
 
     $(document).on('click', '#paginationNext', function () {
-        if (currentPage < Math.ceil(filteredRecords / pageSize)) { currentPage++; loadJobs(); }
+
+        if (currentPage < Math.ceil(filteredRecords / pageSize)) {
+
+            currentPage++;
+            loadJobs();
+        }
     });
 
     $(document).on('click', '#paginationNumbers .page-link', function (e) {
+
         e.preventDefault();
+
         currentPage = parseInt($(this).data('page'));
+
         loadJobs();
     });
 
+    // Load Data
     function loadJobs() {
+
+        const filters = {
+
+            page: currentPage,
+            pageSize: pageSize,
+
+            customerId: $('#customerFilter').val() || $('#customerFilterSm').val(),
+
+            shipmentMode: $('#shipmentModeFilter').val() || $('#shipmentModeFilterSm').val(),
+
+            dateFrom: $('#dateFrom').val() || $('#dateFromSm').val(),
+
+            dateTo: $('#dateTo').val() || $('#dateToSm').val(),
+
+            search: $('#searchInput').val()
+        };
+
+        console.log(filters); // Debug
+
         $.ajax({
-            url: '/SepDocumentation/GetJobs',
+
+            url: '/SepDocUpdate/GetJobs',
+
             type: 'GET',
-            data: {
-                page: currentPage,
-                pageSize: pageSize,
-                search: $('#searchInput').val()
-            },
+
+            data: filters,
+
             success: function (response) {
+
+                console.log(response);
+
                 renderJobTable(response.data);
+
                 filteredRecords = response.filteredRecords;
 
                 $('#dataListInfo').text(
                     `Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(currentPage * pageSize, filteredRecords)} of ${filteredRecords} entries`
                 );
+
                 renderPagination(Math.ceil(filteredRecords / pageSize));
             },
+
             error: function () {
-                toastr.error('Error loading job list');
+
+                toastr.error('Error loading jobs');
             }
         });
     }
-
     function renderJobTable(data) {
+
         let rows = '';
+
         if (!data || data.length === 0) {
-            rows = '<tr><td colspan="9" class="text-center">No records found</td></tr>';
-        } else {
-            data.forEach(j => {
-                rows += `<tr>
-                    <td class="text-center"><input type="checkbox" class="form-check-input job-row-checkbox" data-id="${j.tc}" /></td>
-                    <td><a href="#" class="text-primary fw-bold job-detail-link" data-id="${j.tc}">${j.jobNo}</a></td>
-                    <td class="text-center">${j.jobDateFormatted || '-'}</td>
-                    <td>${j.customerName || ''}</td>
-                    <td>${j.customerAddress || ''}</td>
-                    <td>${j.shipmentMode || ''}</td>
-                    <td class="text-center">${j.docReceivedDateFormatted || '-'}</td>
-                    <td class="text-end">${j.lcValue ?? ''}</td>
-                    <td>${j.jobStatus || ''}</td>
+
+            rows = `
+            <tr>
+                <td colspan="5" class="text-center">
+                    No records found
+                </td>
+            </tr>`;
+        }
+        else {
+
+            data.forEach(function (j) {
+
+                rows += `
+                <tr>
+
+                    <td class="ps-2">
+                        <a href="#"
+                           class="text-primary fw-semibold job-detail-link"
+                           data-id="${j.tc}">
+                            ${j.jobNo}
+                        </a>
+                    </td>
+
+                    <td>${j.shipmentMode ?? ''}</td>
+
+                    <td class="text-center">
+                        ${j.jobDateFormatted ?? '-'}
+                    </td>
+
+                    <td>
+                        ${j.customerName ?? ''}
+                    </td>
+
+                    <td class="text-center">
+                        ${j.docReceivedDateFormatted ?? '-'}
+                    </td>
+
                 </tr>`;
             });
-        }
-        $('#job-list-body').html(rows);
-    }
 
-    function renderPagination(totalPages) {
-        let html = '';
-        for (let i = 1; i <= totalPages; i++) {
-            html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
         }
-        $('#paginationNumbers').html(html || '<li class="page-item disabled"><a class="page-link">1</a></li>');
+
+        $('#job-settings-table').html(rows);
+    }
+    // Pagination UI
+    function renderPagination(totalPages) {
+
+        let html = '';
+
+        if (totalPages <= 7) {
+
+            for (let i = 1; i <= totalPages; i++) {
+
+                html += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">
+                    ${i}
+                </a>
+            </li>`;
+            }
+        }
+        else {
+
+            html += `
+        <li class="page-item ${currentPage === 1 ? 'active' : ''}">
+            <a class="page-link" href="#" data-page="1">1</a>
+        </li>`;
+
+            if (currentPage > 4) {
+
+                html += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
+            }
+
+            let start = Math.max(2, currentPage - 1);
+            let end = Math.min(totalPages - 1, currentPage + 1);
+
+            for (let i = start; i <= end; i++) {
+
+                html += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">
+                    ${i}
+                </a>
+            </li>`;
+            }
+
+            if (currentPage < totalPages - 3) {
+
+                html += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
+            }
+
+            html += `
+        <li class="page-item ${currentPage === totalPages ? 'active' : ''}">
+            <a class="page-link" href="#" data-page="${totalPages}">
+                ${totalPages}
+            </a>
+        </li>`;
+        }
+
+        $('#paginationNumbers').html(html);
+
         $('#paginationPrev').prop('disabled', currentPage === 1);
-        $('#paginationNext').prop('disabled', currentPage >= totalPages || totalPages === 0);
+
+        $('#paginationNext').prop(
+            'disabled',
+            currentPage >= totalPages || totalPages === 0
+        );
     }
 
     //#endregion
@@ -145,7 +299,7 @@
         const tc = $(this).data('id');
 
         $.ajax({
-            url: '/SepDocumentation/GetJobDetail',
+            url: '/SepDocUpdate/GetJobDetail',
             type: 'GET',
             data: { tc: tc },
             success: function (data) {
@@ -162,7 +316,7 @@
 
         $('#tc').val(data.tc || 0);
         setSelect('#shipmentModeId', data.shipmentModeId);
-        $('#shipmentModeId').trigger('change'); // triggers Sea/Air group toggle via AJAX
+        $('#shipmentModeId').trigger('change');
 
         $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false);
         setField('#jobNo', data.jobNo);
@@ -247,7 +401,7 @@
         const model = collectFormData();
 
         $.ajax({
-            url: '/SepDocumentation/Save',
+            url: '/SepDocUpdate/Save',
             type: 'POST',
             data: model,
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
@@ -352,7 +506,7 @@
         if (!confirm('Are you sure you want to delete ' + ids.length + ' record(s)?')) return;
 
         $.ajax({
-            url: '/SepDocumentation/DeleteJobs',
+            url: '/SepDocUpdate/DeleteJobs',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ ids: ids }),
@@ -383,7 +537,7 @@
     function clearForm(clearJobNo) {
         $('#tc').val(0);
         setSelect('#shipmentModeId', '');
-        $('#commonDeliveryGroup, #seaFieldsGroup, #airFieldsGroup').hide();
+        $('#commonDeliveryGroup, seaFieldsGroup, .airFieldsGroup').hide();
         $('#transportModeTypeId').val('');
         $('#isCustomJobNo').prop('checked', false);
         if (clearJobNo !== false) setField('#jobNo', '');
@@ -395,7 +549,7 @@
     //#endregion
 
     //#region Document Upload tab
-
+    let currentJobNo;
     $(document).on('shown.bs.tab', '#upload-tab', function () {
         if (currentJobNo) loadDocuments(currentJobNo);
     });
@@ -407,7 +561,7 @@
         }
 
         $.ajax({
-            url: '/SepDocumentation/GetJobDocuments',
+            url: '/SepDocUpdate/GetJobDocuments',
             type: 'GET',
             data: { jobNo: jobNo },
             success: function (data) {
@@ -467,7 +621,7 @@
         formData.append('uploadFile', fileInput.files[0]);
 
         $.ajax({
-            url: '/SepDocumentation/UploadDocument',
+            url: '/SepDocUpdate/UploadDocument',
             type: 'POST',
             data: formData,
             processData: false,
@@ -495,7 +649,7 @@
         if (!confirm('Delete this document?')) return;
 
         $.ajax({
-            url: '/SepDocumentation/DeleteDocument',
+            url: '/SepDocUpdate/DeleteDocument',
             type: 'POST',
             data: { tc: tc },
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
@@ -512,4 +666,132 @@
 
     //#endregion
 
+    //#region Shipment Mode Change - Show/Hide Dynamic Fields
+
+    // $(document).on('change', '#shipmentModeId', function () {
+    //     
+    //     const shipmentModeId = $(this).val();
+        
+
+    //     // Set the TransportModeTypeId hidden field
+    //     $('#transportModeTypeId').val(transportModeTypeId || shipmentModeId);
+
+    //     // Hide all dynamic groups first
+    //     $('#commonDeliveryGroup, seaFieldsGroup, .airFieldsGroup').hide();
+
+    //     // Show appropriate groups based on TransportModeTypeId
+    //     // 001 = Air, 002 = Sea
+    //     if (transportModeTypeId === '001' || shipmentModeId === '001') {
+    //         // Air shipment - show Air fields
+    //         $('.airFieldsGroup').show();
+    //     } else if (transportModeTypeId === '002' || shipmentModeId === '002') {
+    //         // Sea shipment - show Sea fields
+    //         $('seaFieldsGroup').show();
+    //     }
+
+    //     generateJobNo();
+    // });
+    $(document).on('change', '#shipmentModeId', function () {
+        
+        const shipmentModeId = $(this).val();
+
+        $('seaFieldsGroup, .airFieldsGroup').hide();
+
+        if (!shipmentModeId) {
+            $('#transportModeTypeId').val('');
+            generateJobNo();
+            return;
+        }
+
+        $.ajax({
+            url: '/SepDocUpdate/GetTransportModeType',
+            type: 'GET',
+            data: { shipmentModeId: shipmentModeId },
+            success: function (response) {
+
+                if (response.success) {
+                    
+                    const transportModeTypeId = response.transportModeTypeId;
+                    $('#transportModeTypeId').val(transportModeTypeId);
+
+                    if (transportModeTypeId === '001') {
+                        $('.airFieldsGroup').show();     // Air
+                    } else if (transportModeTypeId === '002') {
+                        $('.seaFieldsGroup').show();     // Sea
+                    }
+                }
+
+                generateJobNo();
+            },
+            error: function () {
+                toastr.error('Error retrieving transport mode');
+                generateJobNo();
+            }
+        });
+    });
+    //#endregion
+
+    $(document).on('change', '#customerId', function () {
+        generateJobNo();
+        let customerId = $(this).val();
+        customerInfo(customerId);
+    });
+
+    $(document).on('change', '#isCustomJobNo', function () {
+        var isChecked = $(this).is(':checked');
+        $('#jobNo').prop('readonly', !isChecked);
+        if (!isChecked) {
+            generateJobNo();
+        }
+    });
+
+    function generateJobNo() {
+        if ($('#isCustomJobNo').is(':checked')) {
+            return;
+        }
+
+        var shipmentModeId = $('#shipmentModeId').val();
+        var customerId = $('#customerId').val();
+
+        if (!shipmentModeId && !customerId) {
+            $('#jobNo').val('');
+            return;
+        }
+
+        ajaxRequest({
+            url: '/SepDocUpdate/GenerateJobNo',
+            method: 'GET',
+            data: { shipmentModeId: shipmentModeId, customerId: customerId },
+            targetSelector: '#jobNo',
+            targetProperty: 'val',
+            errorCallback: function (xhr) {
+                console.error('Error generating job no:', xhr.responseText);
+                $('#jobNo').val('');
+            }
+        });
+    }
+
+    async function customerInfo(customerId) {
+        var response = await ajaxRequest({
+            url: '/SepDocUpdate/CustomerInfo',
+            method: 'GET',
+            data: { customerId: customerId }
+        });
+
+        if (response && response.success) {
+            var customer = response.data;
+
+            $('#customerName').val(customer.customerName);
+            $('#customerAddress').val(customer.customerAddress);
+
+            var deliveryItems = customer.delivaryAddress.map(function (d) {
+                return {
+                    id: d.delivaryId,
+                    text: d.delivaryAddress
+                };
+            });
+
+            setSelect('#deliveryLocationCode', '', false, deliveryItems);
+        }
+    }
 });

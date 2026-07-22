@@ -2,14 +2,10 @@
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.ImporterInfo;
-using GCTL.Core.ViewModels.TransportInformation;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.ImporterInfo;
-using GCTL.Service.SupplierInformation;
-using GCTL.Service.TransportInformation;
 using GCTL.UI.Core.ViewModels.ImporterInfo;
-using GCTL.UI.Core.ViewModels.TransportInformation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 

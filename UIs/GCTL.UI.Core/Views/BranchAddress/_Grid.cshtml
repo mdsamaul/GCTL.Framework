@@ -1,0 +1,46 @@
+﻿@model List<GCTL.Core.ViewModels.BranchAddress.BranchAddressSetupViewModel>
+
+<table id="BranchAddress-grid" class="table table-striped table-bordered table-sm table-hover table-common">
+    <thead class="row-border">
+        <tr class="table row-border">
+            <th class="text-center text-middle" style="width: 5%;">
+                Select <br /> <input type="checkbox" id="BranchAddress-check-all" />
+            </th>
+            <th class="text-center text-middle" style="width: 10%;">ID</th>
+            <th class="text-center text-middle" style="width: 30%;">Vendor Name</th>
+            <th class="text-center text-middle" style="width: 17%;">Address</th>
+            <th class="text-center text-middle" style="width: 26%;">Contact Person</th>
+            <th class="text-center text-middle" style="width: 20%;">Phone</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model == null || !Model.Any())
+        {
+            <tr class="text-center text-middle">
+                @* <td colspan="6">No Data Available.</td> *@
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in Model.OrderByDescending(x => x.VendorBranchId))
+            {
+                <tr>
+                    <td class="text-center">
+                        <input type="checkbox" id="js-BranchAddress-checkbox" class="text-center text-middle checkBox" data-id="@item.VendorBranchId" value="@item.VendorBranchId" />
+                    </td>
+                    <td>
+                        <a href="#" class='btn js-BranchAddress-edit'
+                           style="text-decoration: underline; color: rebeccapurple;"
+                           data-id="@item.VendorBranchId" title="Edit">
+                            @item.VendorBranchId
+                        </a>
+                    </td>
+                    <td class="text-middle">@item.Name</td>
+                    <td class="text-middle">@item.LocationAddress</td>
+                    <td class="text-middle">@item.ContactPersonName</td>
+                    <td class="text-center text-middle">@item.Phone</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

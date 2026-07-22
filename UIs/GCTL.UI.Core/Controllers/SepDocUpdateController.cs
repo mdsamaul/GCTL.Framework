@@ -2,6 +2,7 @@
 using GCTL.Core.ViewModels.SepDocumentation;
 using GCTL.Data.Models;
 using GCTL.Service.SepDocumentation;
+using GCTL.Service.Update;
 using GCTL.UI.Core.Controllers;
 using GCTL.UI.Core.Filters;
 using GCTL.UI.Core.Helpers;
@@ -287,5 +288,35 @@ namespace GCTL_App.Controllers
         }
 
         #endregion
+
+        [HttpGet]
+        public async Task<IActionResult> GenerateJobNo(string shipmentModeId, string customerId)
+        {
+            if (string.IsNullOrEmpty(shipmentModeId) && string.IsNullOrEmpty(customerId))
+            {
+                return BadRequest("ShipmentModeId and CustomerId are required.");
+            }
+
+            var jobNo = await _service.GenerateJobNoAsync(shipmentModeId, customerId);
+
+            return Json(jobNo);
+        }
+        [HttpGet]
+        public async Task<IActionResult> CustomerInfo(string customerId)
+        {
+            if (string.IsNullOrEmpty(customerId))
+            {
+                return BadRequest("CustomerId is required.");
+            }
+
+            var result = await _service.GetCustomerInfoAsync(customerId);
+
+            if (!result.Success)
+            {
+                return NotFound(result.Message);
+            }
+
+            return Json(result);
+        }
     }
 }
