@@ -49,6 +49,7 @@
                         }
                     },
                     dataSrc: function (json) {
+                        console.log(json);
                         if (json.recordsTotal === undefined && json.totalCount !== undefined) {
                             json.recordsTotal = json.totalCount;
                         }

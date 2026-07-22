@@ -2,6 +2,7 @@
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportInformation;
 using GCTL.Core.ViewModels.VendorInfo;
+using GCTL.Core.ViewModels.VendorPrefix;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,5 +31,7 @@ namespace GCTL.Service.VendorInfo
         Task<bool> SavePermissionAsync(string accessCode);
         Task<bool> UpdatePermissionAsync(string accessCode);
         Task<bool> DeletePermissionAsync(string accessCode);
+        Task UpdateAsync(VendorPrefixSetupViewModel modelVM);
+        Task SaveAsync(VendorPrefixSetupViewModel modelVM);
     }
 }

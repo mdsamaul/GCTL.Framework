@@ -1,14 +1,13 @@
 ﻿using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.BranchAddress;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.VendorInfo;
+using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 using GCTL.Data.Models;
 using GCTL.Service.BranchAddress;
 using GCTL.Service.Common;
-using GCTL.Service.VendorInfo;
 using GCTL.UI.Core.ViewModels.BranchAddress;
-using GCTL.UI.Core.ViewModels.VendorInfo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -232,7 +231,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region TabeleLodaing
-
+        
         [HttpGet]
         public async Task<IActionResult> GetTableData()
         {

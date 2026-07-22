@@ -64,10 +64,10 @@
             //#endregion
 
             //#region GetById
-
             $(document).on('click', '.js-BranchAddress-edit', function (e) {
                 e.preventDefault();
                 var id = $(this).data('id');
+                console.log(id);
                 $.ajax({
                     url: '/BranchAddress/GetById',
                     type: 'GET',
@@ -292,21 +292,9 @@
         //#region loadTable
         
         function loadTable() {
-            $("#BranchAddress-grid tbody").empty();
-            return $.gctlGrid.init({
-                gridSelector: '#BranchAddress-grid',
-                ajaxUrl: settings.baseUrl + "/GetTableData",
-                checkAllSelector: "#BranchAddress-check-all",
-                checkBoxClass: "checkBox",
-                columns: [
-                    $.gctlGrid.checkboxColumn("vendorBranchId", "checkBox"),
-                    $.gctlGrid.editLinkColumn("vendorBranchId", "js-BranchAddress-edit"),
-                    { data: "name", className: "text-middle" },
-                    { data: "locationAddress", className: "text-middle" },
-                    { data: "contactPersonName", className: "text-middle" },
-                    { data: "phone", className: "text-center text-middle" },
-                ]
-            });
+            $.gctlGrid.initFromModel({
+                gridId:'BranchAddress-grid'
+            })
         }
 
         //#endregion
