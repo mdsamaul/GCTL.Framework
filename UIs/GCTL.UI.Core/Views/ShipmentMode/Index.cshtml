@@ -23,14 +23,54 @@
     ViewBag.Title = "Shipment Setup";
     Model.Breadcrumb = "Shipment Setup";
 }
+<style>
+    .toolbar-doc {
+        display: none;
+        opacity: 0;
+        transform: translateY(-15px);
+        transition: all .35s ease;
+    }
 
-<partial name="_PageHeader" model="Model" />
+        .toolbar-doc.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+</style>
+<!-- Shipment Mode Toolbar -->
+<div id="toolbarEntry" class="toolbar-doc show">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+    {
+        Title = "Shipment Mode",
+        SaveBtnClass = "saveBtn",
+        DeleteBtnClass = "deleteBtn",
+        ClearBtnClass = "clearBtn",
+        PdfBtnClass = "export-pdf",
+        ExcelBtnClass = "export-excel",
+        FavtBtnClass = "favBtn"
+    })
+</div>
+
+<!-- Shipment Status Toolbar -->
+<div id="toolbarUpload" class="toolbar-doc">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+    {
+        Title = "Shipment Status",
+        SaveBtnClass = "saveShipmentStatusBtn",
+        DeleteBtnClass = "deleteShipmentStatusBtn",
+        ClearBtnClass = "clearShipmentStatusBtn",
+        PdfBtnClass = "export-pdf-status",
+        ExcelBtnClass = "export-excel-status",
+        FavtBtnClass = "favShipmentStatusBtn"
+    })
+</div>
+@* <partial name="_PageHeader" model="Model" /> *@
 
 <ul class="nav nav-tabs" id="shipmentTab" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="shipment-type-tab" data-bs-toggle="tab" data-bs-target="#shipmentTypeTabPane"
                 type="button" role="tab" aria-controls="shipmentTypeTabPane" aria-selected="true">
-            Shipment Type
+            Shipment Mode
         </button>
     </li>
     <li class="nav-item" role="presentation">

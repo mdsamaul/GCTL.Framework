@@ -27,5 +27,7 @@ namespace GCTL.Service.SepDocumentation
         // --- Dropdown helpers (existing) ---
         List<SelectListItem> GetCustomers();
         List<SelectListItem> GetAddresses();
+        Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId);
+        Task<CommonReturnViewModel> GetCustomerInfoAsync(string customerId);
     }
 }

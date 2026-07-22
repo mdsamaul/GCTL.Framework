@@ -211,5 +211,28 @@ namespace GCTL.Service.ShipmentMode
                 return false;
             }
         }
+
+        public async Task<List<ShipmentStatusVM>> GetShipmentStatusDetailsAsync(string transportModeTypeId)
+        {
+            var data = await _repository.All()
+                .Where(pt => pt.TransportModeTypeId == transportModeTypeId)
+                .Select(pt => new ShipmentStatusVM
+                {
+                    AutoId = pt.AutoId,
+                    ShipmentStatusId = pt.ShipmentStatusId,
+                    ShipmentStatus = pt.ShipmentStatus ?? "",
+                    ShortName = pt.ShortName ?? "",
+                    TransportModeTypeId = pt.TransportModeTypeId ?? "",
+                    transportModeType = tMTrepository.All()
+                        .Where(t => t.TransportModeId == pt.TransportModeTypeId)
+                        .Select(t => t.TransportMode)
+                        .FirstOrDefault(),
+                    Ldate = pt.Ldate,
+                    ModifyDate = pt.ModifyDate
+                })
+                .ToListAsync();
+
+            return data;
+        }
     }
 }

@@ -162,5 +162,17 @@ namespace GCTL.Controllers.MasterSetup
 
             return Ok(new { isDuplicate = false });
         }
+        [HttpGet]
+        public async Task<IActionResult> GetShipmentStatusDetails(string transportModeTypeId)
+        {
+            var result = await _service.GetShipmentStatusDetailsAsync(transportModeTypeId);
+
+            if (result == null || !result.Any())
+            {
+                return NotFound();
+            }
+
+            return Json(result);
+        }
     }
 }
