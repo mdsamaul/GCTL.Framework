@@ -147,32 +147,46 @@ namespace GCTL_App.Controllers.OperationalFund
         #region Get All Requisition
 
         [HttpGet]
-        public async Task<IActionResult> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "OFRNo", string sortOrder = "desc")
+        public async Task<IActionResult> GetAllRequisition(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "JobNo",
+            string sortOrder = "desc"
+            )
         {
             try
             {
-                var result = await _service.GetAllRequisition(pageNumber, pageSize, searchTerm, sortColumn, sortOrder);
+                var request = new PaginationRequest
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await _service.GetAllRequisition(request);
 
                 if (result.Data == null || !result.Data.Any())
                 {
                     return Ok(new
                     {
-                        Data = new List<RequisitionVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Data Found."
+                        draw,
+                        data = new List<JobEntryListVM>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
                     });
                 }
 
-                return Ok(result);
+                return Ok(new
+                {
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount
+                });
             }
             catch (Exception ex)
             {
@@ -368,13 +382,13 @@ namespace GCTL_App.Controllers.OperationalFund
             return Json(data);
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> CopyToTmp([FromBody] string offrNo)
-        //{
-        //    int? currentUserId = await GetCurrentEmployeeIdAsync();
-        //    await _service.CopyDetailsToTmp(offrNo, currentUserId);
-        //    return Ok(new { success = true });
-        //}
+        [HttpPost]
+        public async Task<IActionResult> CopyToTmp([FromBody] string offrNo)
+        {
+            string? currentUserId = LoginInfo?.Username;
+            await _service.CopyDetailsToTmp(offrNo, currentUserId);
+            return Ok(new { success = true });
+        }
         #endregion
 
         #endregion

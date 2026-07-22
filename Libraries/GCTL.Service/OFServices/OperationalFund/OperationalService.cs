@@ -200,7 +200,7 @@ namespace GCTL.Service.OperationalFund
                               from e in ee.DefaultIfEmpty()
 
                               join curr in _currencies.All()
-                                on d.CurrencyId equals curr.CurrencyId into currs
+                                on d.InvoiceCurrencyId equals curr.CurrencyId into currs
                               from curr in currs.DefaultIfEmpty()
                               where d.JobNo == jobno
                               select new RequisitionHeaderVM
@@ -263,6 +263,41 @@ namespace GCTL.Service.OperationalFund
         #endregion
 
         #region Get All Requisition Entry
+        public async Task<PaginationResponse<RequisitionVM>> GetAllRequisition(
+    PaginationRequest request)
+        {
+            var query = from main in _repository.All()                 // CF_OperationalFundRequisitionEntry
+                        join doc in _genericRepository.All()               // Sep_Documentation
+                            on main.JobNo equals doc.JobNo
+                        join cust in _customer.All()                   // Sales_Customer
+                            on doc.CustomerId equals cust.CustomerId
+                        join exp in _shipmentmode.All()                // CF_Def_ExpenseType
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                        select new RequisitionVM
+                        {
+                            TC = main.Tc,
+                            OFRNo = main.Ofrno,
+                            OFRDate = main.Ofrdate,
+                            JobNo = main.JobNo,
+
+                            CustomerName = cust.CustomerName,
+                            BillingAddress = cust.CustomerAddress,
+
+                            ShipmentMode = exp.ExpenseType
+                        };
+
+            if (request.PageSize == -1)
+            {
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
+            }
+
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(RequisitionVM.JobNo);
+
+            return await PaginationService<RequisitionVM>.GetPaginatedData(query, request);
+        }
+
         public async Task<PaginationService<RequisitionVM, RequisitionVM>.PaginationResult<RequisitionVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "OFRNo", string sortOrder = "desc")
         {
 
@@ -869,14 +904,14 @@ namespace GCTL.Service.OperationalFund
         #endregion
 
         #region Copied To Tmp Details Table
-        public async Task<bool> CopyDetailsToTmp(string offrNo, int? currentUserId)
+        public async Task<bool> CopyDetailsToTmp(string offrNo, string? currentUserId)
         {
             var details = await _details.All().Where(d => d.Ofrno == offrNo).ToListAsync();
 
             if (!details.Any()) return false;
 
             var existingTmp = await _Tmpdetails.All()
-                .Where(x => x.Luser == currentUserId.ToString())
+                .Where(x => x.Luser == currentUserId)
                 .ToListAsync();
 
             if (existingTmp.Any())
@@ -895,7 +930,7 @@ namespace GCTL.Service.OperationalFund
                 DifferentAmount = d.DifferentAmount,
                 DifferentAmount2 = d.DifferentAmount2,
                 BillAdjustAmount = d.BillAdjustAmount,
-                Luser = currentUserId.ToString(),
+                Luser = currentUserId,
                 Ldate = d.Ldate,
                 Lmac = d.Lmac,
                 CompanyCode = d.CompanyCode,
