@@ -1,0 +1,62 @@
+﻿@{
+    bool needsActionColumn = Model.ShowQuickAdd || Model.ShowCopyIcon || Model.ReserveActionSlot;
+}
+
+@if (needsActionColumn)
+{
+    <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+        <div class="input-group input-group-sm flex-grow-1">
+            @if (!string.IsNullOrEmpty(Model.PrependText))
+            {
+                <span class="input-group-text">@Model.PrependText</span>
+            }
+            <input type="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
+                   class="@Model.ResolvedInputCss @Model.JsEventClass"
+                   id="@Model.InputId" name="@Model.ResolvedInputName"
+                   placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                   maxlength="@Model.MaxLength" minlength="@Model.MinLength"
+                   min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+                   pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
+                   disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+            @if (!string.IsNullOrEmpty(Model.AppendText))
+            {
+                <span class="input-group-text">@Model.AppendText</span>
+            }
+        </div>
+
+        @if (Model.ShowCopyIcon)
+        {
+            <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy"><i class="fas fa-copy"></i></button>
+        }
+        else if (Model.ShowQuickAdd)
+        {
+            <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add" data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget" data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"><i class="fas fa-plus"></i></button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true"><i class="fas fa-plus"></i></button>
+        }
+    </div>
+}
+else
+{
+    <div class="input-group input-group-sm w-100">
+        @if (!string.IsNullOrEmpty(Model.PrependText))
+        {
+            <span class="input-group-text">@Model.PrependText</span>
+        }
+        <input type="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
+               class="@Model.ResolvedInputCss @Model.JsEventClass"
+               id="@Model.InputId" name="@Model.ResolvedInputName"
+               placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+               maxlength="@Model.MaxLength" minlength="@Model.MinLength"
+               min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+               pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
+               disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+        @if (!string.IsNullOrEmpty(Model.AppendText))
+        {
+            <span class="input-group-text">@Model.AppendText</span>
+        }
+    </div>
+}
+<span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>

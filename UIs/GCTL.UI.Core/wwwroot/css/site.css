@@ -1140,7 +1140,7 @@ h6 {
 .toolbar-btn-fav {
     color: #f59e0b;
 }*/
-
+/*
 .input-group {
     display: flex;
     flex-wrap: nowrap;
@@ -1158,4 +1158,8 @@ h6 {
 
 .input-group-sm .custom-dd-box {
     border-radius: .375rem 0 0 .375rem;
+}*/
+.field-fixed-width .input-group .custom-dd-box,
+.field-fixed-width .input-group .custom-dd-wrapper {
+    border-radius: .375rem !important;
 }
