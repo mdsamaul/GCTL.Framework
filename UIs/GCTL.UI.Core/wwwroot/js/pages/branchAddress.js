@@ -180,10 +180,12 @@
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
                     $('input:checkbox.checkBox').each(function () {
+                     
                         if ($(this).prop('checked')) {
                             if (!selectedItems.includes($(this).val())) {
                                 selectedItems.push($(this).val());

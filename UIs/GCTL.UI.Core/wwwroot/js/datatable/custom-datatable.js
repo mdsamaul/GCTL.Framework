@@ -134,7 +134,7 @@
                             ? '<input type="radio" class="' + cls + '" name="' +
                             (config.radioName || 'rowSelect') + '" value="' +
                             (row[config.checkColumnData] != null ? row[config.checkColumnData] : '') + '">'
-                            : '<input type="checkbox" class="' + cls + '" value="' +
+                            : '<input type="checkbox" class="' + cls + '" data-id="'+(data != null ? data : '')+'" value="' +
                             (data != null ? data : '') + '">';
                     }
                 });
