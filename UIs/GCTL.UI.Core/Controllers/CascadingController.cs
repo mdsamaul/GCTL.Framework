@@ -17,6 +17,7 @@ using GCTL.Service.Religions;
 using GCTL.Service.SupplierCategory;
 using GCTL.Service.SupplierOrigin;
 using GCTL.Service.TransportType;
+using GCTL.Service.VendorPrefix;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -41,6 +42,7 @@ namespace GCTL.UI.Core.Controllers
         private readonly IPortNameService portNameService;
         private readonly ITransportTypeService transportTypeService;
         private readonly IModeTypeService modeTypeService;
+        private readonly IVendorPrefixService vendorPrefixService;
 
         public CascadingController(
             IBloodGroupService bloodGroupService,
@@ -59,7 +61,8 @@ namespace GCTL.UI.Core.Controllers
              IPortTypeService portTypeService,
              IPortNameService portNameService,
              ITransportTypeService transportTypeService,
-             IModeTypeService modeTypeService
+             IModeTypeService modeTypeService,
+             IVendorPrefixService vendorPrefixService
 
             )
         {
@@ -79,6 +82,7 @@ namespace GCTL.UI.Core.Controllers
             this.portNameService = portNameService;
             this.transportTypeService = transportTypeService;
             this.modeTypeService = modeTypeService;
+            this.vendorPrefixService = vendorPrefixService;
 
         }
 
@@ -173,6 +177,11 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> GettransportModes()
         {
             return Json(await modeTypeService.SelectionTransportModeTypeAsync());
+        }
+
+        public async Task<IActionResult> GetVendorPrefixs()
+        {
+            return Json(await vendorPrefixService.SelectionVendorPrefixAsync());
         }
 
     }
