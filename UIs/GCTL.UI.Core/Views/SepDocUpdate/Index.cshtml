@@ -418,11 +418,12 @@
                     {
                         InputId = "shipmentModeId",
                         LabelText = "Shipment Mode",
-                        FieldType = FieldType.MultiSelect,
+                        FieldType = FieldType.Select,
                         Placeholder = "Select Shipment Mode",
                         SelectItems = ViewBag.ShipmentMode as SelectList,
                         CustomAttributes = new Dictionary<string, string> { { "hidden-input", "transportModeTypeId" } },
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        IsRequired=true
                     })
                     <input type="hidden" id="transportModeTypeId" name="TransportModeTypeId" />
 
@@ -442,6 +443,7 @@
                     {
                         InputId = "jobNo",
                         LabelText = "Job No",
+                        FieldType=FieldType.Text,
                         IsReadonly = true,
                         ReserveActionSlot = true
                     })
@@ -477,7 +479,9 @@
                         InputId = "customerAddress",
                         LabelText = "Customer Address",
                         FieldType = FieldType.Textarea,
-                        ReserveActionSlot=true
+                        ReserveActionSlot=true,
+                        IsReadonly= true,
+                        Placeholder = "Customer Address"
                     })
 
                     @* ---------- Customer Delivery Address (QuickAddSelect, required) — keeps button ---------- *@
@@ -485,7 +489,6 @@
                     {
                         InputId = "deliveryLocationCode",
                         LabelText = "Customer Delivery Address",
-                        IsRequired = true,
                         FieldType = FieldType.QuickAddSelect,
                         Placeholder = "Select Customer Delivery",
                         SelectItems = ViewBag.CustomerDeliveryAddress as SelectList,
@@ -493,7 +496,8 @@
                         QuickAddUrl = Url.Action("Index", "Companies"),
                         QuickAddTarget = "#CompanyCode",
                         QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                        QuickAddTitle = "Company"
+                        QuickAddTitle = "Company",
+                        IsRequired=true
                     })
 
                     @* ---------- Blank spacer ---------- *@
@@ -521,7 +525,8 @@
                         InputId = "docReceivedDate",
                         LabelText = "Doc's Received Date",
                         FieldType = FieldType.Date,
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "Doc's Received Date"
                     })
 
                     @* ---------- Exp No — no button needed ---------- *@
@@ -529,8 +534,8 @@
                     {
                         InputId = "expNo",
                         LabelText = "Exp No",
-                        Placeholder="input ex no",
-                        ReserveActionSlot = true
+                        Placeholder="ex no",
+                        ReserveActionSlot = true,
                     })
 
                     @* ---------- Exp Date — no button needed ---------- *@
@@ -539,7 +544,8 @@
                         InputId = "expDate",
                         LabelText = "Exp Date",
                         FieldType = FieldType.Date,
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
                     })
 
                     @* ---------- LC No — no button needed ---------- *@
@@ -547,7 +553,8 @@
                     {
                         InputId = "lcNo",
                         LabelText = "LC No",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder="LC No"
                     })
 
                     @* ---------- LC Date — no button needed ---------- *@
@@ -556,7 +563,8 @@
                         InputId = "lcDate",
                         LabelText = "LC Date",
                         FieldType = FieldType.Date,
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
                     })
 
                     @* ---------- L/C Value + Currency (DualInput) — currency select has no quick-add ---------- *@
@@ -565,13 +573,15 @@
                         InputId = "lcValue",
                         LabelText = "L/C Value",
                         FieldType = FieldType.DualInput,
+                        Placeholder="L/C Value",
                         SecondField = new DynamicFieldColumnModel
                         {
                             InputId = "currencyId",
                             Placeholder = "Currency",
                             FieldType = FieldType.Select,
                             SelectItems = ViewBag.Currency as SelectList,
-                            ReserveActionSlot = true
+                            ReserveActionSlot = true,
+                            
                         }
                     })
 
@@ -582,6 +592,7 @@
                         LabelText = "BDT",
                         Placeholder = "Curr. Rate",
                         FieldType = FieldType.DualInput,
+                        
                         SecondField = new DynamicFieldColumnModel
                         {
                             InputId = "LCValueBDTAmount",
@@ -596,7 +607,8 @@
                     {
                         InputId = "ipNo",
                         LabelText = "IP/EP No",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "IP/EP No"
                     })
 
                     @* ---------- IP Date — no button needed ---------- *@
@@ -627,13 +639,7 @@
                         QuickAddTitle = "Company"
                     })
 
-                    @* ---------- Invoice No — no button needed ---------- *@
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                    {
-                        InputId = "invoiceNo",
-                        LabelText = "Invoice No",
-                        ReserveActionSlot = true
-                    })
+                   
 
                     @* ---------- Invoice Date — no button needed ---------- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -641,7 +647,15 @@
                         InputId = "invoiceDate",
                         LabelText = "Invoice Date",
                         FieldType = FieldType.Date,
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                    })
+                    @* ---------- Invoice No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "invoiceNo",
+                        LabelText = "Invoice No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Invoice No"
                     })
 
                     @* ---------- Invoice Value + Currency (DualInput) — currency select has no quick-add ---------- *@
@@ -650,6 +664,8 @@
                         InputId = "invoiceValue",
                         LabelText = "Invoice Value",
                         FieldType = FieldType.DualInput,
+                        InputType="text",
+                        Placeholder = "Invoice Value",
                         SecondField = new DynamicFieldColumnModel
                         {
                             InputId = "invoiceCurrencyId",
@@ -681,7 +697,8 @@
                     {
                         InputId = "blNo",
                         LabelText = "B/L No",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "B/L No"
                     })
 
                     @* ---------- B/L Date — no button needed ---------- *@
@@ -698,7 +715,8 @@
                     {
                         InputId = "containerNo",
                         LabelText = "Container No",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "Container No"
                     })
 
                     @* ---------- Container Size — no button needed ---------- *@
@@ -706,7 +724,8 @@
                     {
                         InputId = "containerSize",
                         LabelText = "Container Size",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "Container Size"
                     })
 
                     @* ---------- Material Description (Textarea) ---------- *@
@@ -715,7 +734,8 @@
                         InputId = "materialDescription",
                         LabelText = "Material Description",
                         FieldType = FieldType.Textarea,
-                        ReserveActionSlot=true
+                        ReserveActionSlot=true,
+                        Placeholder = "Material Description"
                     })
 
                     @* ---------- Quantity & Unit (DualInput, unit has quick-add) — keeps button ---------- *@
@@ -723,6 +743,8 @@
                     {
                         InputId = "quntity1",
                         LabelText = "Quantity & Unit",
+                        Placeholder = "Quantity",
+                        InputType="number",
                         FieldType = FieldType.DualInput,
                         SecondField = new DynamicFieldColumnModel
                         {
@@ -743,6 +765,8 @@
                     {
                         InputId = "quntity2",
                         LabelText = "Weight & Unit",
+                        Placeholder = "Weight",
+                        InputType="number",
                         FieldType = FieldType.DualInput,
                         SecondField = new DynamicFieldColumnModel
                         {
@@ -764,7 +788,8 @@
                     {
                         InputId = "fwdrShippingAgent",
                         LabelText = "FWDR (Shipping Agent)",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "FWDR (Shipping Agent)"
                     })
 
                     @* ---------- Vessel/Rott No — no button needed ---------- *@
@@ -772,7 +797,8 @@
                     {
                         InputId = "vesselRottNo",
                         LabelText = "Vessel/Rott No",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "Vessel/Rott No"
                     })
 
                     @* ---------- Place of Loading (QuickAddSelect) — keeps button ---------- *@
@@ -796,14 +822,15 @@
                         InputId = "etdDate",
                         LabelText = "ETD Date",
                         FieldType = FieldType.Date,
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "B/E No./Date"
                     })
 
                     <!-- ============ DYNAMIC: Sea only (4 fields) — no button needed ============ -->
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
                         InputId = "seaFinalIgmRecDate",
-                        LabelText = "Final IGM Rec. Dt.",
+                        LabelText = "Final IGM Rec. Date",
                         FieldType = FieldType.Date,
                         VisibilityGroup = "seaFieldsGroup",
                         ShowOnInit = false,
@@ -827,15 +854,7 @@
                         ShowOnInit = false,
                         ReserveActionSlot = true
                     })
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                    {
-                        InputId = "seaEstimatedDeliveryDate",
-                        LabelText = "Estimated Delivery",
-                        FieldType = FieldType.Date,
-                        VisibilityGroup = "seaFieldsGroup",
-                        ShowOnInit = false,
-                        ReserveActionSlot = true
-                    })
+                   
 
                     <!-- ============ DYNAMIC: Air only (2 fields) — no button needed ============ -->
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -850,7 +869,7 @@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
                         InputId = "arrivalNoticeDate",
-                        LabelText = "Arrival Notice Rcvd From Express Dt.",
+                        LabelText = "Arrival Notice Rcvd From Express Date",
                         FieldType = FieldType.Date,
                         VisibilityGroup = "airFieldsGroup",
                         ShowOnInit = false,
@@ -873,7 +892,15 @@
                         LabelText = "B/E No./Date",
                         ReserveActionSlot = true
                     })
-
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "seaEstimatedDeliveryDate",
+                        LabelText = "Estimated Delivery",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
                     @* ---------- Actual Delivery Date — no button needed ---------- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
@@ -903,7 +930,8 @@
                     {
                         InputId = "hawb",
                         LabelText = "HAWB",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "HAWB"
                     })
 
                     @* ---------- MAWB — no button needed ---------- *@
@@ -911,7 +939,8 @@
                     {
                         InputId = "mawb",
                         LabelText = "MAWB",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder="MAWB"
                     })
 
                     @* ---------- Assessment No — no button needed ---------- *@
@@ -919,7 +948,8 @@
                     {
                         InputId = "assessmentNo",
                         LabelText = "Assessment No",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        Placeholder = "Assessment No"
                     })
 
                     @* ---------- R-No / Client & Station SL No (DualInput) ---------- *@
@@ -927,12 +957,8 @@
                     {
                         InputId = "rNo",
                         LabelText = "R-No / Client & Station SL No",
-                        FieldType = FieldType.DualInput,
-                        SecondField = new DynamicFieldColumnModel
-                        {
-                            InputId = "clientStationwiseSLNo",
-                            FieldType = FieldType.Text
-                        },
+                        Placeholder = "R-No / Client & Station SL No",
+                        FieldType = FieldType.Text,                        
                         ReserveActionSlot=true
                     })
 
@@ -953,7 +979,8 @@
                         InputId = "term",
                         LabelText = "Term",
                         FieldType = FieldType.Textarea,
-                        ReserveActionSlot=true
+                        ReserveActionSlot=true,
+                        Placeholder = "Term"
                     })
 
                     @* ---------- Remarks (Textarea) ---------- *@
@@ -962,7 +989,8 @@
                         InputId = "remarks",
                         LabelText = "Remarks",
                         FieldType = FieldType.Textarea,
-                        ReserveActionSlot=true
+                        ReserveActionSlot=true,
+                        Placeholder = "Remarks"
                     })
 
                 </div>
@@ -977,7 +1005,8 @@
                     ShowDelete = false,
                     ShowFavorite = false,
                     ShowPrint = false,
-                    IsPlain = true
+                    IsPlain = true,
+                    ReserveActionSlot=true
                 })
 
             </div>

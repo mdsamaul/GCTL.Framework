@@ -19,12 +19,20 @@
     available width instead of reserving empty button space.
 
     NEW: Model.ReserveActionSlot (bool, default true)
-         Add this property to DynamicFieldColumnModel.cs.
          - true  -> current behavior (button or invisible placeholder reserved)
          - false -> no button slot reserved, input/select takes full width
+
+    NEW: Model.LabelInline (bool, default false)
+         - false -> current behavior: label stacked above the field
+         - true  -> label and field sit side-by-side in the same row
+                    (only affects Text/Number fields, which delegate
+                    to _DynamicField_InputWithGroup.cshtml)
+
+    NEW: Model.LabelColWidth (int, default 4)
+         Only used when LabelInline = true. Bootstrap column width
+         (out of 12) reserved for the label in _DynamicField_InputWithGroup.
     ============================================================
 *@
-
 @if (Model.IsVisible)
 {
     var wrapperClasses = Model.ColumnClass;
@@ -55,7 +63,10 @@
 
             @if (Model.FieldType != GCTL.UI.Core.ViewModels.FieldType.Blank)
             {
-                @if (Model.FieldType != GCTL.UI.Core.ViewModels.FieldType.Checkbox)
+                @if (Model.FieldType != GCTL.UI.Core.ViewModels.FieldType.Checkbox &&
+      !(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Text ||
+        Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ||
+        Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.ReadonlyDisplay))
                 {
                     <label class="form-label" for="@Model.InputId" title="@Model.Tooltip">
                         @if (!string.IsNullOrEmpty(Model.IconClass))
@@ -65,7 +76,7 @@
                         @Model.LabelText
                         @if (Model.IsRequired)
                         {
-                            <sup class="text-danger">*</sup>
+                             <span class="text-danger fs-6 fw-medium">*</span>
                         }
                     </label>
                 }
@@ -74,6 +85,20 @@
                 @if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Text ||
                      Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number)
                 {
+                    @if (!Model.LabelInline)
+                    {
+                        <label class="form-label" for="@Model.InputId" title="@Model.Tooltip">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-1"></i>
+                            }
+                            @Model.LabelText
+                            @if (Model.IsRequired)
+                            {
+                                <span class="text-danger fs-6 fw-medium">*</span>
+                            }
+                        </label>
+                    }
                     <partial name="_DynamicField_InputWithGroup" model="Model" />
                 }
 
@@ -89,7 +114,7 @@
                                        id="@Model.InputId"
                                        name="@Model.ResolvedInputName"
                                        value="@Model.DefaultValue"
-                                       placeholder="@Model.Placeholder"
+                                       placeholder="@(string.IsNullOrWhiteSpace(Model.Placeholder) ? "dd/mm/yyyy" : Model.Placeholder)"
                                        readonly="@Model.IsReadonly"
                                        disabled="@Model.IsDisabled"
                                        autofocus="@Model.AutoFocus"
@@ -282,7 +307,7 @@
                             @Model.LabelText
                             @if (Model.IsRequired)
                             {
-                                <sup class="text-danger">*</sup>
+                               <span class="text-danger fs-6 fw-medium">*</span>
                             }
                         </label>
                     </div>
@@ -309,7 +334,7 @@
                 }
 
                 @* ============ DUAL INPUT (e.g. Quantity + Unit, Value + Currency) ============ *@
-                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.DualInput && Model.SecondField != null)
+                @*else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.DualInput && Model.SecondField != null)
                 {
                     <div class="d-flex gap-2">
                         <div class="flex-fill" style="flex-basis:0;">
@@ -408,6 +433,291 @@
                             }
                         </div>
                     </div>
+                } *@
+                @* ============ DUAL INPUT (e.g. Quantity + Unit, Value + Currency) ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.DualInput && Model.SecondField != null)
+                {
+                    <div class="d-flex gap-2">
+                        <div class="flex-fill" style="flex-basis:0;">
+                            @if (Model.SelectItems != null)
+                            {
+                                <select class="@Model.ResolvedInputCss w-100"
+                                        id="@Model.InputId"
+                                        name="@Model.ResolvedInputName"
+                                        data-placeholder="@Model.Placeholder"
+                                        disabled="@Model.IsDisabled"
+                                        asp-items="Model.SelectItems">
+                                    <option value="">@Model.Placeholder</option>
+                                </select>
+                            }
+                            else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Radio && Model.OptionItems != null)
+                            {
+                                <div class="d-flex @(Model.IsInline ? "gap-3" : "flex-column gap-1")">
+                                    @foreach (var item in Model.OptionItems)
+                                    {
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input @Model.JsEventClass" type="radio"
+                                                   id="@(Model.InputId)_@item.Value"
+                                                   name="@Model.ResolvedInputName"
+                                                   value="@item.Value"
+                                                   checked="@item.Selected"
+                                                   disabled="@Model.IsDisabled" />
+                                            <label class="form-check-label" for="@(Model.InputId)_@item.Value">@item.Text</label>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Checkbox && Model.OptionItems != null)
+                            {
+                                <div class="d-flex @(Model.IsInline ? "gap-3" : "flex-column gap-1")">
+                                    @foreach (var item in Model.OptionItems)
+                                    {
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input @Model.JsEventClass" type="checkbox"
+                                                   id="@(Model.InputId)_@item.Value"
+                                                   name="@Model.ResolvedInputName"
+                                                   value="@item.Value"
+                                                   checked="@item.Selected"
+                                                   disabled="@Model.IsDisabled" />
+                                            <label class="form-check-label" for="@(Model.InputId)_@item.Value">@item.Text</label>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Textarea)
+                            {
+                                <textarea class="@Model.ResolvedInputCss @Model.JsEventClass w-100"
+                                          id="@Model.InputId"
+                                          name="@Model.ResolvedInputName"
+                                          placeholder="@Model.Placeholder"
+                                          readonly="@Model.IsReadonly"
+                                          disabled="@Model.IsDisabled">@Model.DefaultValue</textarea>
+                            }
+                            else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Date)
+                            {
+                                <input type="text"
+                                       class="@Model.ResolvedInputCss @Model.JsEventClass custom-datepicker w-100"
+                                       id="@Model.InputId"
+                                       name="@Model.ResolvedInputName"
+                                       placeholder="@Model.Placeholder"
+                                       value="@Model.DefaultValue"
+                                       readonly="@Model.IsReadonly"
+                                       disabled="@Model.IsDisabled" />
+                            }
+                            else
+                            {
+                                <input type="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : (Model.InputType ?? "text"))"
+                                       class="@Model.ResolvedInputCss @Model.JsEventClass w-100"
+                                       id="@Model.InputId"
+                                       name="@Model.ResolvedInputName"
+                                       placeholder="@Model.Placeholder"
+                                       value="@Model.DefaultValue"
+                                       min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+                                       readonly="@Model.IsReadonly"
+                                       disabled="@Model.IsDisabled" />
+                            }
+                        </div>
+
+                        <div class="flex-fill" style="flex-basis:0;">
+                            @if (Model.SecondField.ReserveActionSlot)
+                            {
+                                <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+
+                                    @if (Model.SecondField.SelectItems != null)
+                                    {
+                                        <div class="input-group input-group-sm flex-grow-1">
+                                            <select class="@Model.SecondField.ResolvedInputCss"
+                                                    id="@Model.SecondField.InputId"
+                                                    name="@Model.SecondField.ResolvedInputName"
+                                                    data-placeholder="@Model.SecondField.Placeholder"
+                                                    disabled="@Model.SecondField.IsDisabled"
+                                                    asp-items="Model.SecondField.SelectItems">
+                                                <option value="">@Model.SecondField.Placeholder</option>
+                                            </select>
+                                        </div>
+                                    }
+                                    else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Radio && Model.SecondField.OptionItems != null)
+                                    {
+                                        <div class="d-flex @(Model.SecondField.IsInline ? "gap-3" : "flex-column gap-1") flex-grow-1">
+                                            @foreach (var item in Model.SecondField.OptionItems)
+                                            {
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input @Model.SecondField.JsEventClass" type="radio"
+                                                           id="@(Model.SecondField.InputId)_@item.Value"
+                                                           name="@Model.SecondField.ResolvedInputName"
+                                                           value="@item.Value"
+                                                           checked="@item.Selected"
+                                                           disabled="@Model.SecondField.IsDisabled" />
+                                                    <label class="form-check-label" for="@(Model.SecondField.InputId)_@item.Value">@item.Text</label>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Checkbox && Model.SecondField.OptionItems != null)
+                                    {
+                                        <div class="d-flex @(Model.SecondField.IsInline ? "gap-3" : "flex-column gap-1") flex-grow-1">
+                                            @foreach (var item in Model.SecondField.OptionItems)
+                                            {
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input @Model.SecondField.JsEventClass" type="checkbox"
+                                                           id="@(Model.SecondField.InputId)_@item.Value"
+                                                           name="@Model.SecondField.ResolvedInputName"
+                                                           value="@item.Value"
+                                                           checked="@item.Selected"
+                                                           disabled="@Model.SecondField.IsDisabled" />
+                                                    <label class="form-check-label" for="@(Model.SecondField.InputId)_@item.Value">@item.Text</label>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Textarea)
+                                    {
+                                        <textarea class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass flex-grow-1"
+                                                  id="@Model.SecondField.InputId"
+                                                  name="@Model.SecondField.ResolvedInputName"
+                                                  placeholder="@Model.SecondField.Placeholder"
+                                                  readonly="@Model.SecondField.IsReadonly"
+                                                  disabled="@Model.SecondField.IsDisabled">@Model.SecondField.DefaultValue</textarea>
+                                    }
+                                    else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Date)
+                                    {
+                                        <input type="text"
+                                               class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass custom-datepicker flex-grow-1"
+                                               id="@Model.SecondField.InputId"
+                                               name="@Model.SecondField.ResolvedInputName"
+                                               placeholder="@Model.SecondField.Placeholder"
+                                               value="@Model.SecondField.DefaultValue"
+                                               readonly="@Model.SecondField.IsReadonly"
+                                               disabled="@Model.SecondField.IsDisabled" />
+                                    }
+                                    else
+                                    {
+                                        <input type="@(Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : (Model.SecondField.InputType ?? "text"))"
+                                               class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass flex-grow-1"
+                                               id="@Model.SecondField.InputId"
+                                               name="@Model.SecondField.ResolvedInputName"
+                                               placeholder="@Model.SecondField.Placeholder"
+                                               value="@Model.SecondField.DefaultValue"
+                                               readonly="@Model.SecondField.IsReadonly"
+                                               disabled="@Model.SecondField.IsDisabled" />
+                                    }
+
+                                    @if (Model.SecondField.ShowCopyIcon)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.SecondField.InputId" title="Copy">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    }
+                                    else if (Model.SecondField.ShowQuickAdd)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                                data-url="@Model.SecondField.QuickAddUrl"
+                                                data-target="@Model.SecondField.QuickAddTarget"
+                                                data-reload-url="@Model.SecondField.QuickAddReloadUrl"
+                                                data-title="@Model.SecondField.QuickAddTitle">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                @if (Model.SecondField.SelectItems != null)
+                                {
+                                    <div class="input-group input-group-sm w-100">
+                                        <select class="@Model.SecondField.ResolvedInputCss"
+                                                id="@Model.SecondField.InputId"
+                                                name="@Model.SecondField.ResolvedInputName"
+                                                data-placeholder="@Model.SecondField.Placeholder"
+                                                disabled="@Model.SecondField.IsDisabled"
+                                                asp-items="Model.SecondField.SelectItems">
+                                            <option value="">@Model.SecondField.Placeholder</option>
+                                        </select>
+                                    </div>
+                                }
+                                else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Radio && Model.SecondField.OptionItems != null)
+                                {
+                                    <div class="d-flex @(Model.SecondField.IsInline ? "gap-3" : "flex-column gap-1")">
+                                        @foreach (var item in Model.SecondField.OptionItems)
+                                        {
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input @Model.SecondField.JsEventClass" type="radio"
+                                                       id="@(Model.SecondField.InputId)_@item.Value"
+                                                       name="@Model.SecondField.ResolvedInputName"
+                                                       value="@item.Value"
+                                                       checked="@item.Selected"
+                                                       disabled="@Model.SecondField.IsDisabled" />
+                                                <label class="form-check-label" for="@(Model.SecondField.InputId)_@item.Value">@item.Text</label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Checkbox && Model.SecondField.OptionItems != null)
+                                {
+                                    <div class="d-flex @(Model.SecondField.IsInline ? "gap-3" : "flex-column gap-1")">
+                                        @foreach (var item in Model.SecondField.OptionItems)
+                                        {
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input @Model.SecondField.JsEventClass" type="checkbox"
+                                                       id="@(Model.SecondField.InputId)_@item.Value"
+                                                       name="@Model.SecondField.ResolvedInputName"
+                                                       value="@item.Value"
+                                                       checked="@item.Selected"
+                                                       disabled="@Model.SecondField.IsDisabled" />
+                                                <label class="form-check-label" for="@(Model.SecondField.InputId)_@item.Value">@item.Text</label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Textarea)
+                                {
+                                    <textarea class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass w-100"
+                                              id="@Model.SecondField.InputId"
+                                              name="@Model.SecondField.ResolvedInputName"
+                                              placeholder="@Model.SecondField.Placeholder"
+                                              readonly="@Model.SecondField.IsReadonly"
+                                              disabled="@Model.SecondField.IsDisabled">@Model.SecondField.DefaultValue</textarea>
+                                }
+                                else if (Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Date)
+                                {
+                                    <input type="text"
+                                           class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass custom-datepicker w-100"
+                                           id="@Model.SecondField.InputId"
+                                           name="@Model.SecondField.ResolvedInputName"
+                                           placeholder="@Model.SecondField.Placeholder"
+                                           value="@Model.SecondField.DefaultValue"
+                                           readonly="@Model.SecondField.IsReadonly"
+                                           disabled="@Model.SecondField.IsDisabled" />
+                                }
+                                else
+                                {
+                                    <input type="@(Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : (Model.SecondField.InputType ?? "text"))"
+                                           class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass w-100"
+                                           id="@Model.SecondField.InputId"
+                                           name="@Model.SecondField.ResolvedInputName"
+                                           placeholder="@Model.SecondField.Placeholder"
+                                           value="@Model.SecondField.DefaultValue"
+                                           readonly="@Model.SecondField.IsReadonly"
+                                           disabled="@Model.SecondField.IsDisabled" />
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+                @* ============ READONLY DISPLAY (label + plain text, no border) ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.ReadonlyDisplay)
+                {
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-semibold">@Model.LabelText</span>
+                        <span id="@Model.InputId" class="text-muted"></span>
+                    </div>
                 }
 
                 @if (!string.IsNullOrEmpty(Model.HelpText))
@@ -427,11 +737,25 @@
             width: 38px;
             flex-shrink: 0;
             border-radius: .375rem !important;
-            padding:3px 12px !important;
+            padding: 3px 12px !important;
         }
 
         .invisible-placeholder-btn {
             visibility: hidden;
             pointer-events: none;
+        }
+
+        .field-fixed-width {
+            min-width: 0 !important;
+            max-width: 100%;
+        }
+
+            .field-fixed-width .flex-grow-1 {
+                min-width: 0;
+            }
+
+        .custom-dd-wrapper {
+            min-width: 0;
+            max-width: 100%;
         }
     </style>

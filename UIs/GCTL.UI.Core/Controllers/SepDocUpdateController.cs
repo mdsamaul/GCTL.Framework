@@ -72,7 +72,7 @@ namespace GCTL_App.Controllers
             ViewBag.CustomerName = new SelectList(_service.GetCustomers(), "Value", "Text");
             ViewBag.CustomerDeliveryAddress = new SelectList(_service.GetAddresses(), "Value", "Text");
             ViewBag.PortName = new SelectList(_portNameRepository.All().Select(e => new { id = e.PortNameId, name = e.PortName }), "id", "name");
-            ViewBag.Currency = new SelectList(_currencyRepository.All().Select(e => new { id = e.CurrencyId, name = e.CurrencyName }), "id", "name");
+            ViewBag.Currency = new SelectList(_currencyRepository.All().Select(e => new { id = e.CurrencyId, name = e.ShortName }), "id", "name");
             ViewBag.QuantityUnit = new SelectList(_unitRepository.All().Select(e => new { id = e.UnitTypId, name = e.UnitTypeName }), "id", "name");
             ViewBag.PlaceOfLoading = new SelectList(_placeofLoadingRepository.All().Select(e => new { id = e.PlaceOfLoadingId, name = e.PlaceOfLoadingName }), "id", "name");
             ViewBag.ShedYard = new SelectList(_shedYardRepository.All().Select(e => new { id = e.ShedYardId, name = e.ShedYardName }), "id", "name");
@@ -117,6 +117,7 @@ namespace GCTL_App.Controllers
         {
             try
             {
+               
                 var transportModeTypeId = await _service.GetTransportModeTypeAsync(shipmentModeId);
                 return Json(new { success = true, transportModeTypeId });
             }
@@ -290,14 +291,18 @@ namespace GCTL_App.Controllers
         #endregion
 
         [HttpGet]
-        public async Task<IActionResult> GenerateJobNo(string shipmentModeId, string customerId)
+        public async Task<IActionResult> GenerateJobNo(string? shipmentModeId, string? customerId)
         {
+            string jobNo;
+
             if (string.IsNullOrEmpty(shipmentModeId) && string.IsNullOrEmpty(customerId))
             {
-                return BadRequest("ShipmentModeId and CustomerId are required.");
+                jobNo = await _service.GenerateJobNoWithoutIdAsync();
             }
-
-            var jobNo = await _service.GenerateJobNoAsync(shipmentModeId, customerId);
+            else
+            {
+                jobNo = await _service.GenerateJobNoAsync(shipmentModeId, customerId);
+            }
 
             return Json(jobNo);
         }

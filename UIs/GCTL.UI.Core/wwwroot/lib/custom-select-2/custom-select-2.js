@@ -243,8 +243,8 @@
 
         _closePanel() {
             this.$wrapper.removeClass('open');
+            this.$panel.css({ 'width': '', 'min-width': '', 'max-width': '' });
         }
-
         _ajaxSearch(term) {
             var self = this;
             clearTimeout(this._ajaxTimer);
@@ -751,6 +751,62 @@
     //         $(this).remove();
     //     });
     // }
+    // function setSelect(selector, value, disabled = false, newItems = null, tableShow = false, tableTitle = 'Select an Option') {
+
+    //     var $el = $(selector);
+    //     var instance = $el.data('customDdInstance');
+
+    //     if (!instance) {
+    //         $el.val(value).trigger('change');
+    //         $el.prop('disabled', !!disabled);
+    //         if ($el.hasClass('select2-hidden-accessible')) {
+    //             $el.prop('disabled', !!disabled).trigger('change.select2');
+    //         }
+    //         return;
+    //     }
+
+    //     var rawItems = Array.isArray(newItems) ? newItems : [];
+
+    //     if (rawItems.length) {
+    //         instance.data = rawItems.map(function (i) {
+    //             return { id: String(i.id ?? i.value), text: i.text };
+    //         });
+    //     }
+
+    //     instance.selected = [];
+    //     instance.$input.val('');
+    //     instance._syncOriginalSelect();
+    //     instance.setDisabled(!!disabled);
+
+    //     if (tableShow) {
+    //         instance.$input.off('focus.tableShow click.tableShow input.tableShow');
+
+    //         _openPanel override kore dilam jate default _filterLocal/_renderList na chole
+    //         instance._openPanel = function () {
+    //             if (instance.$wrapper.hasClass('disabled')) return;
+    //             instance.$wrapper.addClass('open');
+    //             renderTableInPanel(instance, rawItems);
+    //         };
+
+    //         instance.$input.on('focus.tableShow click.tableShow', function (e) {
+    //             e.stopImmediatePropagation();
+    //             instance._openPanel();
+    //         });
+
+    //         instance.$input.on('input.tableShow', function () {
+    //             var term = (instance.$input.val() || '').toLowerCase();
+    //             var filteredRaw = rawItems.filter(function (item) {
+    //                 return Object.keys(item).some(function (k) {
+    //                     return String(item[k] || '').toLowerCase().indexOf(term) !== -1;
+    //                 });
+    //             });
+    //             instance.$wrapper.addClass('open');
+    //             renderTableInPanel(instance, filteredRaw);
+    //         });
+    //     } else {
+    //         instance._renderList(instance.data);
+    //     }
+    // }
     function setSelect(selector, value, disabled = false, newItems = null, tableShow = false, tableTitle = 'Select an Option') {
 
         var $el = $(selector);
@@ -768,20 +824,29 @@
         var rawItems = Array.isArray(newItems) ? newItems : [];
 
         if (rawItems.length) {
+            // notun items dile purono data replace hobe, tারপর value select hobe
             instance.data = rawItems.map(function (i) {
                 return { id: String(i.id ?? i.value), text: i.text };
             });
         }
 
-        instance.selected = [];
-        instance.$input.val('');
+        // value ke selected e apply kora hocche (notun items thakuk ba na thakuk)
+        if (instance.isMulti) {
+            var arr = Array.isArray(value) ? value : (value ? [String(value)] : []);
+            instance.selected = arr.map(String);
+            instance._renderTags();
+        } else {
+            instance.selected = value ? [String(value)] : [];
+            var found = instance.data.find(function (d) { return d.id === String(value); });
+            instance.$input.val(found ? found.text : (value || ''));
+        }
+
         instance._syncOriginalSelect();
         instance.setDisabled(!!disabled);
 
         if (tableShow) {
             instance.$input.off('focus.tableShow click.tableShow input.tableShow');
 
-            // _openPanel override kore dilam jate default _filterLocal/_renderList na chole
             instance._openPanel = function () {
                 if (instance.$wrapper.hasClass('disabled')) return;
                 instance.$wrapper.addClass('open');
@@ -807,7 +872,6 @@
             instance._renderList(instance.data);
         }
     }
-
     function renderTableInPanel(instance, items) {
         instance.$list.empty();
 

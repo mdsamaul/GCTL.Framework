@@ -16,9 +16,10 @@ namespace GCTL.UI.Core.ViewModels
         MultiSelect,
         Checkbox,
         Radio,
-        DualInput,      // e.g. Quantity + Unit, LC Value + Currency
-        QuickAddSelect, // Select + Plus button (quick-add modal)
-        Blank           // empty spacer column
+        DualInput,      
+        QuickAddSelect,
+        Blank,
+        ReadonlyDisplay
     }
 
     public class DynamicFieldColumnModel
@@ -100,7 +101,11 @@ namespace GCTL.UI.Core.ViewModels
         // ================= Computed Helpers =================
         public string ResolvedInputName => string.IsNullOrEmpty(InputName) ? InputId : InputName;
         public bool ReserveActionSlot { get; set; } = true; // default true = current behavior unchanged
-
+        public bool LabelInline { get; set; } = false;
+        public int LabelColWidth { get; set; } = 4;
+        public List<SelectListItem> OptionItems { get; set; }
+        public bool IsInline { get; set; } = true;
+        public string InputType { get; set; }
         public string ResolvedInputCss =>
             FieldType == FieldType.Select || FieldType == FieldType.MultiSelect || FieldType == FieldType.QuickAddSelect
                 ? "form-select form-select-sm custom-select-single"

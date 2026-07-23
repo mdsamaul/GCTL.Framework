@@ -29,5 +29,6 @@ namespace GCTL.Service.SepDocumentation
         List<SelectListItem> GetAddresses();
         Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId);
         Task<CommonReturnViewModel> GetCustomerInfoAsync(string customerId);
+        Task<string> GenerateJobNoWithoutIdAsync();
     }
 }
