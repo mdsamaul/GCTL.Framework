@@ -33,6 +33,7 @@ namespace GCTL.Service.OperationalFund
 
         #region Get All Requisition
         Task<PaginationService<RequisitionVM, RequisitionVM>.PaginationResult<RequisitionVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "OFRNo", string sortOrder = "desc");
+        Task<PaginationResponse<RequisitionVM>> GetAllRequisition(PaginationRequest request);
         #endregion
 
         #region TMp Save & Update Section
@@ -50,7 +51,7 @@ namespace GCTL.Service.OperationalFund
         Task<bool> BulkDeleteAsync(List<string> ofrNos);
         #endregion
         Task<RequisitionHeaderVM> GetRequisitionDetails(string offrNo);
-        Task<bool> CopyDetailsToTmp(string offrNo, int? currentUserId);
+        Task<bool> CopyDetailsToTmp(string offrNo, string? currentUserId);
         Task<bool> ClearTmp(string? currentUserId);
         #endregion
     }

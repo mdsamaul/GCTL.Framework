@@ -1,0 +1,105 @@
+﻿@model GCTL.Core.ViewModels.ShipmentModeLedgerSetup.ShipmentModeLedgerSetupSetupViewModel
+
+<div style="padding-top: 10px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+    <div class="form-group row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <input type="hidden" id="lastCode" />
+        <input type="hidden" asp-for="Tc" />
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Ldate" />
+        <input type="hidden" asp-for="ModifyDate" />
+        <div class="col-lg-6">
+            <label asp-for="ExpenseTypeId">ID </label>
+            <div class="input-group input-group-sm">
+                <input asp-for="ExpenseTypeId" type="text" class="form-control form-control-sm js-ExpenseTypeId-code" readonly="readonly" />
+            </div>
+        </div>   
+    </div>
+
+    <div class="form-group row">
+        <div class="col-lg-6">
+            <label asp-for="ExpenseType">Shipment Mode</label>
+            <div class="input-group">
+                <select asp-for="ExpenseType" class="form-control form-control-sm custom-select-single" tabindex="3" data-placeholder="-- Select Shipment Mode --" asp-items="@ViewBag.ShipmentDD as SelectList">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-lg-6">
+            <label asp-for="ExpenseLedgerCodeNo">Expense Ledger</label>
+            <div class="input-group">
+                <select asp-for="ExpenseLedgerCodeNo" class="form-control form-control-sm custom-select-single" tabindex="3" data-placeholder="-- Select Expense Ledger --" asp-items="@ViewBag.ExpenseDD as SelectList">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <label asp-for="RevenueLedgerCodeNo">Revenue Ledger</label>
+            <div class="input-group">
+                <select asp-for="RevenueLedgerCodeNo" class="form-control form-control-sm custom-select-single" tabindex="3" data-placeholder="-- Select Expense Ledger --" asp-items="@ViewBag.RevenueDD as SelectList">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-lg-6">
+            <label asp-for="AdvanceLedgerCode">Advance Ledger</label>
+            <div class="input-group">
+                <select asp-for="AdvanceLedgerCode" class="form-control form-control-sm custom-select-single" tabindex="3" data-placeholder="-- Select Advance Ledger --" asp-items="@ViewBag.AdvanceDD as SelectList">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <hr id="sectionBreak" />
+
+    @* Creation / Update Dates *@
+    <div class="row" id="LdateModifyHide">
+        <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
+            <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Creation Date:</label>
+            <div class="col-6">
+                <label id="creationDateSpan">
+                    @(Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </label>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
+            <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Last Update Date:</label>
+            <div class="col-6">
+                <label id="modifyDateSpan">
+                    @(Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </label>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row no-print" style="margin-top: 9px;">
+    <div class="col-12">
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "ShipmentModeLedgerSetup"
+        })
+    </div>
+</div>

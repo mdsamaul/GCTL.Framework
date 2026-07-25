@@ -160,17 +160,17 @@
         <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
             <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Creation Date:</label>
             <div class="col-6">
-                <span id="creationDateSpan">
+                <label id="creationDateSpan">
                     @(Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : "")
-                </span>
+                </label>
             </div>
         </div>
         <div class="col-12 col-md-6 d-flex align-items-center justify-content-between">
             <label class="col-6 form-label col-form-label-sm d-flex justify-content-end">Last Update Date:</label>
             <div class="col-6">
-                <span id="modifyDateSpan">
+                <label id="modifyDateSpan">
                     @(Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : "")
-                </span>
+                </label>
             </div>
         </div>
     </div>
