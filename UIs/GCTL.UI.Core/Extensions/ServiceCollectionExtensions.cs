@@ -50,6 +50,7 @@ using GCTL.Service.PortType;
 using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.ShipmentMode;
+using GCTL.Service.ShipmentModeLedgerSetup;
 using GCTL.Service.SupplierCategory;
 using GCTL.Service.SupplierInformation;
 using GCTL.Service.SupplierOrigin;
@@ -186,6 +187,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IDailyJobUpdateEntryService, DailyJobUpdateEntryService>();
             services.AddScoped<Ioperational, OperationalService>();
             services.AddScoped<IMenuBreadcrumbService, MenuBreadcrumbService>();
+            services.AddScoped<IShipmentModeLedgerSetupService, ShipmentModeLedgerSetupService>();
             services.AddMemoryCache();
         }
 

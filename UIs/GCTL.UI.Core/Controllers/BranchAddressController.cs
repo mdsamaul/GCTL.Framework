@@ -24,6 +24,7 @@ namespace GCTL.UI.Core.Controllers
 
         string strMaxNO = string.Empty;
 
+
         public BranchAddressController(
             IBranchAddressService branchAddressService,
             IRepository<CoreVendorInformation> coreVendorinformationrepository,

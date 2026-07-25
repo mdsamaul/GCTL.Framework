@@ -1361,17 +1361,16 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<CfDefExpenseType>(entity =>
         {
-            entity.HasKey(e => e.Tc).HasName("PK_CF_Def_ExpenseType_TC");
+            entity.HasKey(e => e.ExpenseTypeId).HasName("PK__CF_Def_E__E082A36F4AE10E6B");
 
             entity.ToTable("CF_Def_ExpenseType");
 
-            entity.Property(e => e.Tc).HasColumnName("TC");
-            entity.Property(e => e.AdvanceLedgerCode).HasMaxLength(50);
-            entity.Property(e => e.ExpenseLedgerCodeNo).HasMaxLength(50);
-            entity.Property(e => e.ExpenseType).HasMaxLength(100);
             entity.Property(e => e.ExpenseTypeId)
                 .HasMaxLength(50)
                 .HasColumnName("ExpenseTypeID");
+            entity.Property(e => e.AdvanceLedgerCode).HasMaxLength(50);
+            entity.Property(e => e.ExpenseLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.ExpenseType).HasMaxLength(100);
             entity.Property(e => e.Ldate)
                 .HasColumnType("datetime")
                 .HasColumnName("LDate");
@@ -1387,6 +1386,9 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ModifyDate).HasColumnType("datetime");
             entity.Property(e => e.RevenueLedgerCodeNo).HasMaxLength(50);
             entity.Property(e => e.ShortName).HasMaxLength(50);
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
             entity.Property(e => e.TransportModeTypeId)
                 .HasMaxLength(10)
                 .IsFixedLength();
