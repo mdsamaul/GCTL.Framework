@@ -5,6 +5,7 @@ using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchesTypeInfo;
 using GCTL.Service.Companies;
+using GCTL.Service.ContactPersonInfo;
 using GCTL.Service.Country;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
@@ -43,6 +44,7 @@ namespace GCTL.UI.Core.Controllers
         private readonly ITransportTypeService transportTypeService;
         private readonly IModeTypeService modeTypeService;
         private readonly IVendorPrefixService vendorPrefixService;
+        private readonly IContactPersonInfoService contactPersonInfoService;
 
         public CascadingController(
             IBloodGroupService bloodGroupService,
@@ -62,7 +64,8 @@ namespace GCTL.UI.Core.Controllers
              IPortNameService portNameService,
              ITransportTypeService transportTypeService,
              IModeTypeService modeTypeService,
-             IVendorPrefixService vendorPrefixService
+             IVendorPrefixService vendorPrefixService,
+             IContactPersonInfoService contactPersonInfoService
 
             )
         {
@@ -83,6 +86,7 @@ namespace GCTL.UI.Core.Controllers
             this.transportTypeService = transportTypeService;
             this.modeTypeService = modeTypeService;
             this.vendorPrefixService = vendorPrefixService;
+            this.contactPersonInfoService = contactPersonInfoService;
 
         }
 
@@ -182,6 +186,11 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> GetVendorPrefixs()
         {
             return Json(await vendorPrefixService.SelectionVendorPrefixAsync());
+        }
+
+        public async Task<IActionResult> GetContacts()
+        {
+            return Json(await contactPersonInfoService.SelectionContactPersonAsync());
         }
 
     }
