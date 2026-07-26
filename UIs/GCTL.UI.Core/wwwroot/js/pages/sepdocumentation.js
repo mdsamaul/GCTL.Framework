@@ -693,7 +693,7 @@
     // });
     $(document).on('change', '#shipmentModeId', function () {
         
-        const shipmentModeId = $(this).val();
+        const shipmentModeId = $("#shipmentModeId").val();
 
         $('seaFieldsGroup, .airFieldsGroup').hide();
 
@@ -703,6 +703,11 @@
             return;
         }
 
+        JobNoGenerator(shipmentModeId);
+    });
+
+    function JobNoGenerator(shipmentModeId) {
+        
         $.ajax({
             url: '/SepDocUpdate/GetTransportModeType',
             type: 'GET',
@@ -710,7 +715,7 @@
             success: function (response) {
 
                 if (response.success) {
-                    
+
                     const transportModeTypeId = response.transportModeTypeId;
                     $('#transportModeTypeId').val(transportModeTypeId);
 
@@ -728,7 +733,7 @@
                 generateJobNo();
             }
         });
-    });
+    }
     //#endregion
 
     $(document).on('change', '#customerId', function () {
@@ -746,6 +751,7 @@
     });
 
     function generateJobNo() {
+        
         if ($('#isCustomJobNo').is(':checked')) {
             return;
         }
@@ -755,7 +761,17 @@
 
         if (!shipmentModeId && !customerId) {
             $('#jobNo').val('');
-            return;
+            ajaxRequest({
+                url: '/SepDocUpdate/GenerateJobNo',
+                method: 'GET',
+                data: { shipmentModeId: shipmentModeId, customerId: customerId },
+                targetSelector: '#jobNo',
+                targetProperty: 'val',
+                errorCallback: function (xhr) {
+                    console.error('Error generating job no:', xhr.responseText);
+                    $('#jobNo').val('');
+                }
+            });
         }
 
         ajaxRequest({
@@ -794,4 +810,5 @@
             setSelect('#deliveryLocationCode', '', false, deliveryItems);
         }
     }
+    generateJobNo();
 });

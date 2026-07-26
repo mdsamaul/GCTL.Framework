@@ -453,11 +453,42 @@ namespace GCTL.Service.SepDocumentation
         }
 
         #endregion
-
-        public async Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId)
+        public async Task<string> GenerateJobNoWithoutIdAsync()
         {
             try
             {
+                var currentYear = DateTime.Now.ToString("yy");
+                var prefix = $"{currentYear}_";
+
+                var lastJobNo = await _sepDocumentationRepository.All()
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.JobNo)
+                    .Select(x => x.JobNo)
+                    .FirstOrDefaultAsync();
+
+                int nextSequence = 1;
+
+                if (!string.IsNullOrEmpty(lastJobNo))
+                {
+                    var lastSequencePart = lastJobNo.Substring(prefix.Length);
+
+                    if (int.TryParse(lastSequencePart, out int lastSequence))
+                    {
+                        nextSequence = lastSequence + 1;
+                    }
+                }
+
+                return $"{prefix}{nextSequence:D6}";
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        public async Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId)
+        {
+            try
+            {               
                 var shipmentModeShortName = await _shipmentModeRepository.All()
                     .Where(x => x.ExpenseTypeId == shipmentModeId)
                     .Select(x => x.ShortName)

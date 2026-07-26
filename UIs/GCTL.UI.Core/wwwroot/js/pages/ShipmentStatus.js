@@ -37,12 +37,12 @@ function clearShipmentStatusForm() {
     getNextShipmentStatusId();
 }
 
-function saveOrUpdateShipmentStatus() {
+function saveOrUpdateShipmentStatus() {    
     let autoId = parseInt($('#shipmentStatusForm input[name="autoId"]').val()) || 0;
     const transportModeTypeId = $('#statusTransportModeTypeId').val();
     const shipmentStatusId = $('#shipmentStatusForm input[name="shipmentStatusId"]').val();
     const shipmentStatus = $('#shipmentStatusForm input[name="shipmentStatus"]').val().trim();
-    const shortName = $('#shipmentStatusForm input[name="shortName"]').val().trim();
+    const shortName = $('#shipmentStatusForm input[name="statusShortName"]').val().trim();
 
     if (!shipmentStatus) {
         toastr.warning("Shipment Status is required.");
@@ -283,7 +283,7 @@ function populateShipmentStatusForm(data) {
     
     $('#shipmentStatusForm input[name="shipmentStatusId"]').val(data.statusId);
     $('#shipmentStatusForm input[name="shipmentStatus"]').val(data.status);
-    $('#shipmentStatusForm input[name="shortName"]').val(data.shortName);
+    $('#shipmentStatusForm input[name="statusShortName"]').val(data.shortName);
     $('#shipmentStatusForm input[name="autoId"]').val(data.autoid);
     setSelect('#statusTransportModeTypeId', data.transportModeId?.trim(), false);
 
