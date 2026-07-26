@@ -274,7 +274,7 @@ namespace GCTL.Service.SepDocumentation
                 }
 
                 entity.PrifixId = model.PrifixId;
-                entity.IsCustomJobNo = model.IsCustomJobNo ? "1" : "0";
+                entity.IsCustomJobNo = model.IsCustomJobNo?.ToString();
                 entity.ExpenseTypeId = model.ShipmentModeId;
                 entity.Date = model.Date;
                 entity.CustomerId = model.CustomerId;
@@ -431,7 +431,7 @@ namespace GCTL.Service.SepDocumentation
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.ExpenseTypeId == shipmentModeId);
 
-            return mode?.TransportModeTypeId.Trim() ?? "";
+            return mode?.TransportModeTypeId?.Trim() ?? "";
         }
 
         #endregion

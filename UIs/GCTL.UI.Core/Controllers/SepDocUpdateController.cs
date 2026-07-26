@@ -130,7 +130,6 @@ namespace GCTL_App.Controllers
         #endregion
 
         #region Save / Delete
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Save(SepDocumentationEntryViewModel model)
@@ -143,7 +142,14 @@ namespace GCTL_App.Controllers
                     return permissionResult;
 
                 if (!ModelState.IsValid)
-                    return Json(ApiResponse.Error("Please correct the highlighted fields."));
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                        .ToList();
+
+                    return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+                }
 
                 string company = "001";
                 var result = await _service.SaveDocumentationAsync(model, company, LoginInfo?.EmployeeId);
@@ -155,7 +161,6 @@ namespace GCTL_App.Controllers
                 return Json(ApiResponse.Error(isNewRecord ? AppMessages.SaveFailed : AppMessages.UpdateFailed));
             }
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ModulePermission(PermissionType.Delete)]

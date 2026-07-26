@@ -395,8 +395,16 @@
 
     //#region Save
 
-    $(document).on('click', '.saveBtn', function (e) {
+    $(document).on('click', '.doc-save-entry-btn', function (e) {
+        console.log("click");
+        debugger
         e.preventDefault();
+
+        var $valid = $('#sepDocForm').valid();
+        if (!$valid) {
+            toastr.warning('Please fill required fields');
+            return;
+        }
 
         const model = collectFormData();
 
@@ -410,6 +418,7 @@
                     toastr.success(response.message || 'Saved successfully');
                     currentPage = 1;
                     loadJobs();
+                    if (typeof loadBottomJobs === 'function') loadBottomJobs();
                 } else {
                     toastr.warning(response.message || 'Save failed');
                 }
@@ -446,20 +455,19 @@
             InvoiceNo: $('#invoiceNo').val(),
             InvoiceDate: $('#invoiceDate').val(),
             InvoiceValue: $('#invoiceValue').val(),
+            InvoiceCurrencyID: $('#invoiceCurrencyId').val(),
             AssessableRate: $('#assessableRate').val(),
             AssessableValue: $('#assessableValue').val(),
             BLNo: $('#blNo').val(),
             BLDate: $('#blDate').val(),
             ContainerNo: $('#containerNo').val(),
             ContainerSize: $('#containerSize').val(),
-            LCANo: $('#lcaNo').val(),
             MaterialDescription: $('#materialDescription').val(),
             Quntity1: $('#quntity1').val(),
             Unit1: $('#unit1').val(),
             Quntity2: $('#quntity2').val(),
             Unit2: $('#unit2').val(),
             FWDR_ShippingAgent: $('#fwdrShippingAgent').val(),
-            NameOfFreightForwarder: $('#nameOfFreightForwarder').val(),
             VesselRottNo: $('#vesselRottNo').val(),
             PlaceOfLoadingID: $('#placeOfLoadingId').val(),
             ShedYardID: $('#shedYardId').val(),
@@ -467,26 +475,21 @@
             MAWB: $('#mawb').val(),
             AssessmentNo: $('#assessmentNo').val(),
             RNo: $('#rNo').val(),
-            ClientStationwiseSLNo: $('#clientStationwiseSLNo').val(),
             FreightCharge: $('#freightChargeId').val(),
             Remarks: $('#remarks').val(),
 
             // shared
             ETDDate: $('#etdDate').val(),
-            DocsBankSignDate: $('#docsBankSignDate').val(),
-            BENo: $('#beNo').val(),
-            BEDate: $('#beDate').val(),
+            BENo: $('#beNoDate').val(),
             ActualDeliveryDate: $('#actualDeliveryDate').val(),
 
             // sea
-            FinalIgmRecDate: $('#finalIgmRecDate').val(),
-            ShipArrivedDate: $('#shipArrivedDate').val(),
+            ShipArrivedDate: $('#seaShipArrivedDate').val(),
             UnstuffDischargeDate: $('#unstuffDischargeDate').val(),
-            EstimatedDeliveryDate: $('#estimatedDeliveryDate').val(),
+            EstimatedDeliveryDate: $('#seaEstimatedDeliveryDate').val(),
 
             // air
-            FlightArrivalDate: $('#flightArrivalDate').val(),
-            ArrivalNoticeDate: $('#arrivalNoticeDate').val()
+            FlightArrivalDate: $('#flightArrivalDate').val()
         };
     }
 
@@ -806,8 +809,16 @@
                     text: d.delivaryAddress
                 };
             });
-
-            setSelect('#deliveryLocationCode', '', false, deliveryItems);
+            
+            // setSelect('#deliveryLocationCode', '', false, deliveryItems);
+            setSelect(
+                '#deliveryLocationCode',
+                [],                  // value: array for multi (khali rakhle kichu pre-select thakbe na)
+                false,               // disabled
+                deliveryItems,       // newItems
+                true,                // tableShow -> table view enable
+                'Select Delivery Location(s)'
+            );
         }
     }
     generateJobNo();
