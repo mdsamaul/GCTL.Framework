@@ -57,7 +57,7 @@ namespace GCTL.Service.Pagination
                 ? await query.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync()
                 : await query.ToListAsync();
 
-            var totalPages = request.PageSize > 0 ? (int)Math.Ceiling((double)totalItems / request.PageSize) : 0;
+            var totalPages = request.PageSize > 0 ? (int)Math.Ceiling((double)fileredCount / request.PageSize) : 0;
 
             return new PaginationResponse<TEntity>
             {

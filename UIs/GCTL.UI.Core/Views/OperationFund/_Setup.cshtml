@@ -1,4 +1,13 @@
 ﻿<style>
+    #Job-InvoiceValue {
+        flex: 1;
+    }
+
+        #Job-InvoiceValue + .custom-dd-wrapper {
+            flex: 1;
+            width: auto;
+        }
+
     .form-control-sm, .form-select-sm
     textarea.form-control-sm {
         font-size: 0.85rem;
@@ -173,178 +182,178 @@
 
 </style>
 <div class="container-fluid py-0">
-        <form id="tmpDetailsForm">
-            <input type="hidden" id="ShipmentModeID" />
-            <input type="hidden" id="CustomerID" />
+    <form id="tmpDetailsForm">
+        <input type="hidden" id="ShipmentModeID" />
+        <input type="hidden" id="CustomerID" />
 
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Job No.</label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-JoBNO">
-                        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Job No.</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-JoBNO">
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Customer Name <span class="text-danger">*</span></label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-CustomerName">
-                        </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Customer Name <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-CustomerName">
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Invoice No.</label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-InvoiceNo">
-                        </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Invoice No.</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-InvoiceNo">
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">HAWB</label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-HAWB">
-                        </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">HAWB</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-HAWB">
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Qty</label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-Qty">
-                        </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Qty</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-Qty">
                     </div>
+                </div>
 
-                    <div class="row">
-                        <div class="col-sm-10 offset-sm-1">
-                            <hr class="my-3 text-muted opacity-25">
-                        </div>
+                <div class="row">
+                    <div class="col-sm-10 offset-sm-1">
+                        <hr class="my-3 text-muted opacity-25">
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Requisition No. <span class="text-danger">*</span></label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-RequisitionNo">
-                        </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Requisition No. <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-RequisitionNo">
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Service Provided By <span class="text-danger">*</span></label>
-                        <div class="col-sm-6">
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Service Provided By <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
                         <select class="form-select form-select-sm custom-select-single" id="ServiceType">
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Amount</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control form-control-sm" id="Amount">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Shipment Mode <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-ShipmentModeInput">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">L/C Value</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-LCValue">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Invoice Value</label>
+                    <div class="col-sm-6">
+                        <div class="input-group input-group-sm flex-nowrap">
+                            <input type="text" class="form-control bg-light w-50" readonly id="Job-InvoiceValue">
+                            <select class="form-select w-50" id="Job-Currencies" data-readonly="true">
                             </select>
                         </div>
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Amount</label>
-                        <div class="col-sm-6">
-                            <input type="number" class="form-control form-control-sm" id="Amount">
-                        </div>
+                </div>
+                <div class="row mb-2 align-items-start">
+                    <label class="col-sm-4 text-sm-end fw-bold">Material Description</label>
+                    <div class="col-sm-6">
+                        <textarea class="form-control form-control-sm bg-light" rows="1" readonly style="resize: none; overflow: hidden;" id="Job-MatDescription"></textarea>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Weight</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-Weight">
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Shipment Mode <span class="text-danger">*</span></label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-ShipmentModeInput">
-                        </div>
+                <div class="row">
+                    <div class="col-sm-10 offset-sm-1">
+                        <hr class="my-3 text-muted opacity-25">
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">L/C Value</label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-LCValue">
-                        </div>
-                    </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Invoice Value</label>
-                        <div class="col-sm-6">
-                            <div class="input-group input-group-sm flex-nowrap">
-                                <input type="text" class="form-control bg-light w-50" readonly id="Job-InvoiceValue">
-                                <select class="form-select w-50" id="Job-Currencies">
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-2 align-items-start">
-                        <label class="col-sm-4 text-sm-end fw-bold">Material Description</label>
-                        <div class="col-sm-6">
-                            <textarea class="form-control form-control-sm bg-light" rows="1" readonly style="resize: none; overflow: hidden;" id="Job-MatDescription"></textarea>
-                        </div>
-                    </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Weight</label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-Weight">
-                        </div>
-                    </div>
+                </div>
 
-                    <div class="row">
-                        <div class="col-sm-10 offset-sm-1">
-                            <hr class="my-3 text-muted opacity-25">
-                        </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Requisition Date <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm" id="RequisitionDate">
                     </div>
-
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Requisition Date <span class="text-danger">*</span></label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm" id="RequisitionDate">
-                        </div>
-                    </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Accounts Head</label>
-                        <div class="col-sm-6">
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Accounts Head</label>
+                    <div class="col-sm-6">
                         <select class="form-select form-select-sm custom-select-single" id="AccountHead">
-                            </select>
-                        </div>
+                        </select>
                     </div>
-                    <div class="row mb-2 align-items-center">
-                        <label class="col-sm-4 text-sm-end fw-bold">Remarks</label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control form-control-sm" id="Remark">
-                        </div>
-                        <div class="col-sm-2 text-start">
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Remarks</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm" id="Remark">
+                    </div>
+                    <div class="col-sm-2 text-start">
 
 
-                            <button type="button" class="btn-premium-action" data-tooltip="Add New" id="TmpSaveBtn">
-                                <i class="bi bi-plus-square-fill"></i>
-                            </button>
-                        </div>
+                        <button type="button" class="btn-premium-action" data-tooltip="Add New" id="TmpSaveBtn">
+                            <i class="bi bi-plus-square-fill"></i>
+                        </button>
                     </div>
                 </div>
             </div>
-        </form>
+        </div>
+    </form>
 
-        <div class="row mt-3">
-            <div class="col-12">
-                <fieldset class="custom-fieldset border rounded p-3 bg-white">
-                    <legend class="float-none w-auto px-2 fw-bold text-secondary small">Expenses in Detail</legend>
+    <div class="row mt-3">
+        <div class="col-12">
+            <fieldset class="custom-fieldset border rounded p-3 bg-white">
+                <legend class="float-none w-auto px-2 fw-bold text-secondary small">Expenses in Detail</legend>
 
-                    <div id="dataLoadContainer">
-                        <div class="table-responsive" id="expenseTableWrapper">
-                            <table class="table table-sm table-bordered align-middle shadow-sm">
-                                <thead class="table-light text-center">
-                                    <tr class="small">
-                                        <th class="fw-bold text-center" style="width:5%">SL No.</th>
-                                        <th class="fw-bold text-start" style="width:25%">Expense Head</th>
-                                        <th class="fw-bold text-center" style="width:10%">Is Rece.</th>
-                                        <th class="fw-bold text-center" style="width:15%">Service Type</th>
-                                        <th class="fw-bold text-end" style="width:10%">Req. Amount</th>
-                                        <th class="fw-bold text-start" style="width:25%">Remarks</th>
-                                        <th class="fw-bold text-center" style="width:10%">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="small fw-bold text-black" id="expenseTableBody" style="font-size: 0.85rem;">
-                                </tbody>
-                            </table>
-                        </div>
+                <div id="dataLoadContainer">
+                    <div class="table-responsive" id="expenseTableWrapper">
+                        <table class="table table-sm table-bordered align-middle shadow-sm">
+                            <thead class="table-light text-center">
+                                <tr class="small">
+                                    <th class="fw-bold text-center" style="width:5%">SL No.</th>
+                                    <th class="fw-bold text-center" style="width:25%">Expense Head</th>
+                                    <th class="fw-bold text-center" style="width:10%">Is Rece.</th>
+                                    <th class="fw-bold text-center" style="width:15%">Service Type</th>
+                                    <th class="fw-bold text-center" style="width:10%">Req. Amount</th>
+                                    <th class="fw-bold text-center" style="width:25%">Remarks</th>
+                                    <th class="fw-bold text-center" style="width:10%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small fw-bold text-black" id="expenseTableBody" style="font-size: 0.85rem;">
+                            </tbody>
+                        </table>
                     </div>
-                </fieldset>
-            </div>
+                </div>
+            </fieldset>
         </div>
+    </div>
 
-        <div class="d-flex justify-content-end mt-0">
-            <button class="btn btn-sm btn-icon-clean shadow-none"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#collapseNonInvGrid"
-                    aria-expanded="false"
-                    aria-controls="collapseNonInvGrid"
-                    title="Toggle Grid">
-                <i class="bi bi-database-fill-add"></i>
-            </button>
-        </div>
+    <div class="d-flex justify-content-end mt-0">
+        <button class="btn btn-sm btn-icon-clean shadow-none"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseNonInvGrid"
+                aria-expanded="false"
+                aria-controls="collapseNonInvGrid"
+                title="Toggle Grid">
+            <i class="bi bi-database-fill-add"></i>
+        </button>
+    </div>
 </div>

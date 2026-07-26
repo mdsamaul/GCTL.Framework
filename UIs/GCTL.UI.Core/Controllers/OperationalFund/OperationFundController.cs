@@ -57,24 +57,14 @@ namespace GCTL_App.Controllers.OperationalFund
                 };
 
                 var result = await _service.GetAllJonEntryList(request, customerid, shipmentmodeid);
-
-                if (result.Data == null || !result.Data.Any())
-                {
-                    return Ok(new
-                    {
-                        draw,
-                        data = new List<JobEntryListVM>(),
-                        recordsTotal = 0,
-                        recordsFiltered = 0
-                    });
-                }
+                var hasData = result.Data?.Any() == true;
 
                 return Ok(new
                 {
                     draw,
-                    data = result.Data,
+                    data = hasData ? result.Data : new List<JobEntryListVM>(),
                     recordsTotal = result.TotalCount,
-                    recordsFiltered = result.FilteredCount
+                    recordsFiltered = hasData ? result.FilteredCount : 0
                 });
             }
             catch (Exception ex)
@@ -214,9 +204,9 @@ namespace GCTL_App.Controllers.OperationalFund
                 var result = await _service.TmpDetailsSaveAsync(model);
 
 
-                if (!result) return BadRequest(new { message = "Insertion Failed." });
+                //if (!result.Success) return BadRequest(new { message = "Insertion Failed." });
 
-                return Ok(new { success = true, message = "Data Saved Successfully." });
+                return Ok(new { success = result.Success, message = result.Message });
             }
             catch (Exception ex)
             {

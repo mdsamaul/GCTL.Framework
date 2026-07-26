@@ -1,4 +1,5 @@
 ﻿using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 using GCTL.Service.Pagination;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -37,7 +38,7 @@ namespace GCTL.Service.OperationalFund
         #endregion
 
         #region TMp Save & Update Section
-        Task<bool> TmpDetailsSaveAsync(RequistionDetailsTmpVM model);
+        Task<CommonReturnViewModel> TmpDetailsSaveAsync(RequistionDetailsTmpVM model);
         Task<bool> DeleteTmpDetailAsync(decimal tc, string? currentUserId);
         Task<List<RequistionDetailsTmpVM>> GetAllTmpAsync(string? currentUser);
         #endregion

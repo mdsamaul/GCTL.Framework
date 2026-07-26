@@ -26,6 +26,7 @@ function RequisitionDate() {
 
 //#region Dropdown Init with Choice.js
 function InitDropdown(url, selector, placeholder, callback) {
+
     $.ajax({
         url: url,
         type: 'GET',
@@ -36,6 +37,11 @@ function InitDropdown(url, selector, placeholder, callback) {
             response.forEach(function (item) {
                 select.append(`<option value="${item.value}">${item.text}</option>`);
             });
+
+            let id = select.attr('id');
+            if (id && window.reinitCustomDropdownById) {
+                window.reinitCustomDropdownById(id);
+            }
 
             if (callback) callback();
         }
@@ -52,7 +58,10 @@ function loadAccountHeads($serviceTypeSelect, selectedHead = null) {
     // Clear dropdown
     $accountHeadSelect.empty().append('<option value="">Select Accounts Head</option>').prop('disabled', false);
 
-    if (!serviceTypeId) return;
+    if (!serviceTypeId) {
+        if (window.reinitCustomDropdownById) window.reinitCustomDropdownById('AccountHead');
+        return;
+    }
 
     $.get('/OperationFund/GetAccountsHeadDD', { serviceTypeId: serviceTypeId }, function (res) {
         res.forEach(item => {
@@ -64,13 +73,14 @@ function loadAccountHeads($serviceTypeSelect, selectedHead = null) {
         if (selectedHead) {
             $accountHeadSelect.val(selectedHead);
         }
+
+        if (window.reinitCustomDropdownById) window.reinitCustomDropdownById('AccountHead');
     });
 }
+
 $(document).on('change', '#ServiceType', function () {
     loadAccountHeads($(this));
 });
-
-
 //#endregion
 
 //#region Load Job Entry List
@@ -85,40 +95,6 @@ function loadJobEntryList() {
             d.shipmentmodeid = $('#Job-ShipmentMode').val();
         }
     });
-    // jobTable = $.gctlGrid.init({
-    //     gridSelector: '#JobTable',
-    //     ajaxUrl: '/OperationFund/GetAllJobList',
-    //     serverSide: true,
-    //     ajaxData: function (d) {
-    //         d.customerid = $('#Customer').val();
-    //         d.shipmentmodeid = $('#Job-ShipmentMode').val();
-    //     },
-    //     order: [[1, "desc"]],
-    //     columnDefs: [{ targets: [0], orderable: false }],
-    //     columns: [
-    //         {
-    //             "data": null,
-    //             "className": "text-center",
-    //             "orderable": false,
-    //             "render": function (data, type, row) {
-    //                 return `<input type="radio" class="form-check-input job-radio" name="jobSelect" value="${row.jobNo ?? ''}">`;
-    //             }
-    //         },
-    //         { "data": "jobNo", "className": "text-left" },
-    //         {
-    //             "data": "jobDate",
-    //             "className": "text-center",
-    //             "render": function (data) { return formatDate(data); }
-    //         },
-    //         { "data": "shipmentMode", "className": "text-center" },
-    //         { "data": "customer" },
-    //         {
-    //             "data": "docReceivedDate",
-    //             "className": "text-center",
-    //             "render": function (data) { return formatDate(data); }
-    //         }
-    //     ]
-    // });
 }
 //#endregion
 
@@ -170,8 +146,8 @@ $(document).on('click', 'input[name="jobSelect"]', function () {
                 $("#ShipmentModeID").val(headerdata.shipmentModeID);     // ID
                 $("#CustomerID").val(headerdata.customerID);     // ID
                 if (headerdata.currencyID) {
-                    $("#Job-Currencies").val(headerdata.currencyID).trigger('change');
-                };
+                    setCurrencyValue('#Job-Currencies', headerdata.currencyID, true);
+                }
 
                 generateRequisitionNo(jobno).done(function (res) {
                     if (res && res.requisitionNo) {
@@ -198,9 +174,8 @@ $(document).on('click', 'input[name="jobSelect"]', function () {
 //#region Clear Job Header Fileds
 function clearJobHeaderFields() {
     $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo").val("");
-    if (currencyChoice) {
-        currencyChoice.setChoiceByValue("");
-    }
+    setCurrencyValue('#Job-Currencies', '', true);
+    // window.setSelect('#Job-Currencies', '', true);
 }
 //#endregion
 
@@ -228,34 +203,16 @@ $(document).ready(function () {
     InitDropdown('/OperationFund/GetServiceTypeDD', '#ServiceType', 'Select Service Type');
     InitDropdown('/OperationFund/GetEmpDD', '#Customer', 'Select Employee');
     InitDropdown('/OperationFund/GetShipemtDD', '#Job-ShipmentMode', 'Select Shipment Mode');
-    InitDropdown('/OperationFund/GetCurenciesDD', '#Job-Currencies', 'Select C..');
+    InitDropdown('/OperationFund/GetCurenciesDD', '#Job-Currencies', 'Select C..', function () {
+        let inst = $('#Job-Currencies').data('customDdInstance');
+        if (inst) inst.setDisabled(true);
+    });
+
 
     //Load list
     loadJobEntryList();
 
 });
-//#endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//#region Renderers
-// window.gctlRenderers.ofrLink = function (data, type, row) {
-//     return `<span class="ofr-no-link" style="cursor:pointer; text-decoration:underline;">${data ?? ''}</span>`;
-// };
-// formatDate assumed already registered globally (used elsewhere, e.g. Job Entry grid)
 //#endregion
 
 //#region Grid Init
@@ -269,6 +226,24 @@ function LoadRequisitionList() {
     requisitionTable = $.gctlGrid.initFromModel({ gridId: 'FundTable' });
 }
 //#endregion
+
+function setCurrencyValue(selector, value, disabled) {
+    let $el = $(selector);
+    let instance = $el.data('customDdInstance');
+
+    if (!instance) {
+        // widget not initialized yet — just set the raw select
+        $el.val(value || '');
+        return;
+    }
+
+    let found = instance.data.find(function (d) { return d.id === String(value); });
+
+    instance.selected = value ? [String(value)] : [];
+    instance.$input.val(found ? found.text : (value || ''));
+    instance._syncOriginalSelect();     // writes back to the real <select>
+    instance.setDisabled(!!disabled);   // locks it as readonly
+}
 
 //#region Delete Single & Multi
 $('#Req-DeleteBtn').on('click', function () {
@@ -336,12 +311,18 @@ function LoadRequisitionDetails(offrNo) {
             $('#CustomerID').val(res.customerID ?? '');
             $('#ShipmentModeID').val(res.shipmentModeID ?? '');
             SetRequisitionDate(res.reqDate);
-            if (currencyChoice) currencyChoice.setChoiceByValue(res.currencyID);
+            setCurrencyValue('#Job-Currencies', res.currencyID ?? '', true);
+            // $('#Job-Currencies').val(res.currencyID ?? '');
+            // let currencyInst = $('#Job-Currencies').data('customDdInstance');
+            // if (currencyInst && typeof currencyInst.setValue === 'function') {
+            //     currencyInst.setValue(res.currencyID ?? '');
+            // } else if (window.reinitCustomDropdownById) {
+            //     window.reinitCustomDropdownById('Job-Currencies');
+            // }
             $('#Job-HAWB').val(res.hawb ?? '');
             $('#Job-MatDescription').val(res.materialDescription ?? '');
             $('#Job-Qty').val(res.qty ?? '');
             $('#Job-Weight').val(res.weight ?? '');
-            $('#Job-Currencies').val(res.currencyID ?? '');
         },
         error: function () {
             toastr.error('Failed to load requisition details!');
