@@ -87,29 +87,53 @@ namespace GCTL.UI.Core.Controllers
 
         #region Setup
 
+        //public async Task<IActionResult> Setup(string id)
+        //{
+        //    TransportInformationSetupViewModel model = new TransportInformationSetupViewModel();
+        //    commonService.FindMaxNo(ref strMaxNO, "VehicleID", "Sales_Def_Vehicle", 4);
+
+        //    ViewBag.VehicleDD = new SelectList(vehicleTypeRepository.All(), "VehicleTypeId", "VehicleType");
+        //    ViewBag.PortNameDD = new SelectList(portNameRepository.All(), "PortNameId", "PortName");
+
+        //    if (!string.IsNullOrEmpty(id))
+        //    {
+
+        //        model = await transportInformationService.GetByIdAsync(id);
+        //        if (model == null)
+        //        {
+
+        //            return NotFound();
+        //        }
+        //    }
+        //    else
+        //    {
+
+        //        model.VehicleId = strMaxNO;
+        //    }
+
+        //    return PartialView($"_{nameof(Setup)}", model);
+        //}
         public async Task<IActionResult> Setup(string id)
         {
             TransportInformationSetupViewModel model = new TransportInformationSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "VehicleID", "Sales_Def_Vehicle", 4);
 
-            ViewBag.VehicleDD = new SelectList(vehicleTypeRepository.All(), "VehicleTypeId", "VehicleType");
-            ViewBag.PortNameDD = new SelectList(portNameRepository.All(), "PortNameId", "PortName");
-
             if (!string.IsNullOrEmpty(id))
             {
-
                 model = await transportInformationService.GetByIdAsync(id);
                 if (model == null)
                 {
-
                     return NotFound();
                 }
             }
             else
             {
-
                 model.VehicleId = strMaxNO;
             }
+
+            // model লোড হওয়ার পর SelectList বানাতে হবে, selected value সহ
+            ViewBag.VehicleDD = new SelectList(vehicleTypeRepository.All(), "VehicleTypeId", "VehicleType", model.VehicleTypeId);
+            ViewBag.PortNameDD = new SelectList(portNameRepository.All(), "PortNameId", "PortName", model.PortNameId);
 
             return PartialView($"_{nameof(Setup)}", model);
         }

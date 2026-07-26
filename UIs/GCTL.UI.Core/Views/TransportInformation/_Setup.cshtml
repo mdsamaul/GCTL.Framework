@@ -29,7 +29,10 @@
             ReserveActionSlot = true,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-VehicleId-code",
-            
+
+            DefaultValue= Model?.VehicleId
+
+
         })
 
         @* ---------- Transport Type (Select + Quick Add) ---------- *@
@@ -61,7 +64,8 @@
             Placeholder = "Enter Transport No.",
             IsRequired = true,
             ReserveActionSlot = true,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-lg-6",
+            DefaultValue=Model.VehicleNo
         })
 
         @* ---------- Port Name (Select + Quick Add) ---------- *@

@@ -99,10 +99,6 @@ namespace GCTL.UI.Core.Controllers
             VendorInfoSetupViewModel model = new VendorInfoSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "VendorID", "Core_VendorInformation", 4);
 
-            ViewBag.ContactDD = new SelectList(vendorPrefixrepository.All(), "VendorPrifixId", "PrifixName");
-            ViewBag.ContactDD = new SelectList(contactPersonrepository.All(), "Cpid", "ContactPersonName");
-            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
-
             if (!string.IsNullOrEmpty(id))
             {
 
@@ -118,6 +114,11 @@ namespace GCTL.UI.Core.Controllers
 
                 model.VendorId = strMaxNO;
             }
+
+
+            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName", model.CountryId);
+            ViewBag.VendorPrefixDD = new SelectList(vendorPrefixrepository.All(), "VendorPrefixId", "VendorPrefixName", model.VendorPrefix);
+            ViewBag.ContactDD = new SelectList(contactPersonrepository.All(), "Cpid", "ContactPersonName", model.Cpid);
 
             return PartialView($"_{nameof(Setup)}", model);
         }

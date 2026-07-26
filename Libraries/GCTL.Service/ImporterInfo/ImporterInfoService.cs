@@ -146,6 +146,8 @@ namespace GCTL.Service.ImporterInfo
                     City = entityVM.City ?? string.Empty,
                     VatRegNo = entityVM.VatRegNo ?? string.Empty,
                     Phone = entityVM.Phone ?? string.Empty,
+                    StateOrProvince = entityVM.StateOrProvince ?? string.Empty,
+                    ZipCode = entityVM.ZipCode ?? string.Empty,
                     Fax = entityVM.Fax ?? string.Empty,
                     Email = entityVM.Email ?? string.Empty,
                     Website = entityVM.Website ?? string.Empty,
@@ -205,6 +207,8 @@ namespace GCTL.Service.ImporterInfo
                 entity.ImporterAddress = entityVM.ImporterAddress ?? string.Empty;
                 entity.CountryId = entityVM.CountryId ?? string.Empty;
                 entity.City = entityVM.City ?? string.Empty;
+                entity.StateOrProvince = entityVM.StateOrProvince ?? string.Empty;
+                entity.ZipCode = entityVM.ZipCode ?? string.Empty;
                 entity.VatRegNo = entityVM.VatRegNo ?? string.Empty;
                 entity.Phone = entityVM.Phone ?? string.Empty;
                 entity.Fax = entityVM.Fax ?? string.Empty;

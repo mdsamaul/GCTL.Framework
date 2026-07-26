@@ -66,6 +66,7 @@
             //#region GetById
 
             $(document).on('click', '.js-VendorInfo-edit', function (e) {
+                
                 e.preventDefault();
                 var id = $(this).data('id');
                 $.ajax({
@@ -74,9 +75,9 @@
                     data: { code: id },
                     success: function (data) {
                         if (data) {
-                          //  console.log(data)
+                            console.log(data)
                             $('#Tc').val(data.tc);
-                            $('#Id').val(data.id);
+                            $('#ID').val(data.id);
                             $('#VendorId').val(data.vendorId);
                             $('#VendorPrefix').val(data.vendorPrefix).trigger('change');
                             window.reinitCustomDropdownById('VendorPrefix');
@@ -124,7 +125,7 @@
             //#region Save
 
             $("body").on("click", settings.saveSelector, function () {
-                //debugger
+                debugger
                 validation();
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
