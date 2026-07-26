@@ -106,10 +106,19 @@ namespace GCTL.UI.Core.ViewModels
         public List<SelectListItem> OptionItems { get; set; }
         public bool IsInline { get; set; } = true;
         public string InputType { get; set; }
-        public string ResolvedInputCss =>
-            FieldType == FieldType.Select || FieldType == FieldType.MultiSelect || FieldType == FieldType.QuickAddSelect
-                ? "form-select form-select-sm custom-select-single"
-                : "form-control form-control-sm";
+        public string ResolvedInputCss
+        {
+            get
+            {
+                if (FieldType == FieldType.MultiSelect)
+                    return "form-select form-select-sm custom-select-multi";
+
+                if (FieldType == FieldType.Select || FieldType == FieldType.QuickAddSelect)
+                    return "form-select form-select-sm custom-select-single";
+
+                return "form-control form-control-sm";
+            }
+        }
 
         public string ResolvedDatepickerClass =>
             FieldType == FieldType.Date ? "custom-datepicker caiCon" : "";

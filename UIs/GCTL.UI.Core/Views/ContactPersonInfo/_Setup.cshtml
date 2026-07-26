@@ -32,7 +32,7 @@
         <div class="col-lg-6">
             <label asp-for="DesignationCode">Designation</label>
             <div class="input-group">
-                <select asp-for="DesignationCode" class="form-control form-control-sm selectpickers9" tabindex="2" data-placeholder="-- Select Designation --" asp-items="@ViewBag.DesignationDD as SelectList">
+                <select asp-for="DesignationCode" class="form-control form-control-sm custom-select-single" tabindex="2" data-placeholder="-- Select Designation --" asp-items="@ViewBag.DesignationDD as SelectList">
                     <option></option>
                 </select>
             </div>

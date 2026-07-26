@@ -89,8 +89,6 @@ namespace GCTL.UI.Core.Controllers
         {
             ExporterInfoSetupViewModel model = new ExporterInfoSetupViewModel();
 
-            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
-
             if (!string.IsNullOrEmpty(id))
             {
 
@@ -106,7 +104,7 @@ namespace GCTL.UI.Core.Controllers
                 var nextCode = commonService.GenerateCode("ExporterID", "Core_ExporterInformation", "EXP_", 6);
                 model.ExporterId = nextCode;
             }
-
+            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName", model.CountryId);
             return PartialView($"_{nameof(Setup)}", model);
         }
 

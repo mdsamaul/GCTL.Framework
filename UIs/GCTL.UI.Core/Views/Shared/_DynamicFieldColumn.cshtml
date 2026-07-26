@@ -713,12 +713,12 @@
                 }
                 @* ============ READONLY DISPLAY (label + plain text, no border) ============ *@
                 else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.ReadonlyDisplay)
-                {
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-semibold">@Model.LabelText</span>
-                        <span id="@Model.InputId" class="text-muted"></span>
-                    </div>
-                }
+                    {
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-semibold">@Model.LabelText</span>
+                            <span id="@Model.InputId" class="text-muted">@Model.DefaultValue</span>
+                        </div>
+                    }
 
                 @if (!string.IsNullOrEmpty(Model.HelpText))
                 {
