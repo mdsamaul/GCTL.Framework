@@ -12,10 +12,10 @@
 
 <style>
     /* .sticky-bar {
-            position: sticky;
-            top: 65px;
-            z-index: 1020;
-        } */
+                position: sticky;
+                top: 65px;
+                z-index: 1020;
+            } */
 
     /* Bootstrap form-select-sm style for Select2 */
     .select2-container {
@@ -364,6 +364,7 @@
         display: none !important;
         content: none;
     }
+
     .form-control-sm,
     .form-select-sm {
         font-size: 0.82rem;
@@ -549,278 +550,456 @@
 
                     </div>
 
+                    <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+                        <div class="row">
+                            @* ---------- Shipment Mode (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "shipmentModeId",
+                                LabelText = "Shipment Mode",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Shipment Mode",
+                                SelectItems = ViewBag.ShipmentMode as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "ShipmentMode"),
+                                QuickAddTarget = "#shipmentModeId",
+                                QuickAddReloadUrl = Url.Action("GetShipmentMode", "Cascading"),
+                                QuickAddTitle = "Add Shipment Mode"
+                            })
 
-                   
+                            @* ---------- Is Custom Job No (Checkbox) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "isCustomJobNo",
+                                LabelText = "Is Custom Job No",
+                                FieldType = FieldType.Checkbox,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            <div class="col-lg-4 col-md-6"></div>
+
+                            @* ---------- Job No (ReadonlyDisplay) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "jobNo",
+                                LabelText = "Job No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                IsReadonly=true,
+                                ReserveActionSlot = true
+                            })
+
+                            @* <div class="col-lg-4 col-md-6">
+                                <label class="form-label">Job No</label>
+                                <input class="form-control form-control-sm" readonly id="jobNo" />
+                                <span class="text-danger"></span>
+                            </div> *@
+                            @* ---------- Job Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "jobDate",
+                                LabelText = "Job Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Customer Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerId",
+                                LabelText = "Customer Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Customer",
+                                SelectItems = ViewBag.CustomerName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Customer"),
+                                QuickAddTarget = "#customerId",
+                                QuickAddReloadUrl = Url.Action("GetCustomer", "Cascading"),
+                                QuickAddTitle = "Add Customer"
+                            })
+
+                            @* ---------- Customer Address (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerAddress",
+                                LabelText = "Customer Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Customer Delivery Address (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerDeliveryAddress",
+                                LabelText = "Customer Delivery Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            <div class="col-lg-4 col-md-6"></div>
+
+                            @* ---------- Port Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "portId",
+                                LabelText = "Port Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Port",
+                                SelectItems = ViewBag.PortName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Port"),
+                                QuickAddTarget = "#portId",
+                                QuickAddReloadUrl = Url.Action("GetPort", "Cascading"),
+                                QuickAddTitle = "Add Port"
+                            })
+
+                            @* ---------- Docs Received Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "docsReceivedDate",
+                                LabelText = "Doc's Received Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- LC/EXP No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcExpNo",
+                                LabelText = "LC/EXP No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- L/C Value (DualInput: Number + Unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcValue",
+                                LabelText = "L/C Value",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Amount",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "lcUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    IsRequired = false
+                                }
+                            })
+
+                            @* ---------- LC Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcDate",
+                                LabelText = "LC Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- IP/EP No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "ipEpNo",
+                                LabelText = "IP/EP No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- IP Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "ipDate",
+                                LabelText = "IP Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Importer Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "importerId",
+                                LabelText = "Importer Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Importer",
+                                SelectItems = ViewBag.ImporterName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Importer"),
+                                QuickAddTarget = "#importerId",
+                                QuickAddReloadUrl = Url.Action("GetImporter", "Cascading"),
+                                QuickAddTitle = "Add Importer"
+                            })
+
+                            @* ---------- Invoice No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "invoiceNo",
+                                LabelText = "Invoice No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Invoice Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "invoiceDate",
+                                LabelText = "Invoice Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/L No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "blNo",
+                                LabelText = "B/L No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/L Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "blDate",
+                                LabelText = "B/L Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/E No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "beNo",
+                                LabelText = "B/E No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/E Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "beDate",
+                                LabelText = "B/E Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Container No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "containerNo",
+                                LabelText = "Container No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Container Size (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "containerSize",
+                                LabelText = "Container Size",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- LCA No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcaNo",
+                                LabelText = "LCA No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Discharge Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "dischargeDate",
+                                LabelText = "Discharge Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Material Description (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "materialDescription",
+                                LabelText = "Material Description",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Quantity & Unit (DualInput with QuickAdd on unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "quantity",
+                                LabelText = "Quantity & Unit (PKG)",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Quantity",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "quantityUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    ShowQuickAdd = true,
+                                    QuickAddUrl = Url.Action("Create", "QuantityUnit"),
+                                    QuickAddTarget = "#quantityUnitId",
+                                    QuickAddReloadUrl = Url.Action("GetQuantityUnit", "Cascading"),
+                                    QuickAddTitle = "Add Unit",
+                                    IsRequired = false
+                                }
+                            })
+
+                            @* ---------- Weight & Unit (DualInput with QuickAdd on unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "weight",
+                                LabelText = "Weight & Unit (KG)",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Weight",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "weightUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    ShowQuickAdd = true,
+                                    QuickAddUrl = Url.Action("Create", "QuantityUnit"),
+                                    QuickAddTarget = "#weightUnitId",
+                                    QuickAddReloadUrl = Url.Action("GetQuantityUnit", "Cascading"),
+                                    QuickAddTitle = "Add Unit",
+                                    IsRequired = false
+                                }
+                            })
+
+                            @* ---------- FWDR (Shipping Agent) (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "forwarderId",
+                                LabelText = "FWDR (Shipping Agent)",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Forwarder",
+                                SelectItems = ViewBag.ForwarderName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Forwarder"),
+                                QuickAddTarget = "#forwarderId",
+                                QuickAddReloadUrl = Url.Action("GetForwarder", "Cascading"),
+                                QuickAddTitle = "Add Forwarder"
+                            })
+
+                            @* ---------- Vessel/Rott No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "vesselRottNo",
+                                LabelText = "Vessel/Rott No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Remarks (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "remarks",
+                                LabelText = "Remarks",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
+                        @await Html.PartialAsync("_Setup", Model.Setup)
+
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "",
+                            ShowDelete = false,
+                            ShowClear = false,
+                            ShowPrint = false,
+                            ShowFavorite = false,
+                            IsPlain = true,
+                            SaveBtnClass = "saveBtn",
+                            ReserveActionSlot = true
+                        })
+                    </div>
+
                 </div>
             </div>
             @* </div> *@
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
 
-
-
-                <div class="row ">
-
-                    <!-- Shipment Mode -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Shipment Mode</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Mode" id="shipmentModeId" asp-items="ViewBag.ShipmentMode as SelectList">
-                            <option value="">Select Shipment Mode</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Is Custom Job No -->
-                    <div class="col-lg-4 col-md-6">
-                        <div class="form-check mt-4">
-                            <input type="checkbox" class="form-check-input" id="isCustomJobNo" />
-                            <label class="form-check-label">Is Custom Job No</label>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6"></div>
-                    <!-- Job No (Read-only) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Job No</label>
-                        <input class="form-control form-control-sm" readonly id="jobNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Job Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Job Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="jobDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Customer Name -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer" id="customerId" asp-items="ViewBag.CustomerName as SelectList">
-                            <option value="">Select Customer</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Customer Delivery Address -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Address</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="customerAddress"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-                    <!-- Customer Delivery Address -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Delivery Address</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="customerDeliveryAddress"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Port Name -->
-                    <div class="col-lg-4 col-md-6">
-                    </div>
-                    <!-- Port Name -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Port Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Port" id="portId" asp-items="ViewBag.PortName as SelectList">
-                            <option value="">Select Port</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Doc's Received Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Doc's Received Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docsReceivedDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- LC/EXP No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">LC/EXP No</label>
-                        <input class="form-control form-control-sm" id="lcExpNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- LC Value -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">L/C Value</label>
-                        <div class="d-flex gap-2 group-horizontal">
-                            <input type="number" class="form-control form-control-sm" id="lcValue" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="lcUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Select Unit</option>
-                            </select>
-                        </div>
-                        <span class="text-danger"></span>
-                        <span class="text-danger"></span>
-                    </div>
-                    <!-- lc Date -->
-                    <div class="col-lg-4 col-md-6 custom-date-wrapper">
-                        <label class="form-label">LC Date</label>
-                        <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="lcDate" />
-                        <span class="text-danger"></span>
-                    </div>
-                    <!-- IP/EP No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">IP/EP No</label>
-                        <input class="form-control form-control-sm" id="ipEpNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- IP Date -->
-                    <div class="col-lg-4 col-md-6 custom-date-wrapper">
-                        <label class="form-label">IP Date</label>
-                        <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="ipDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Importer Name -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Importer Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Importer" id="importerId" asp-items="ViewBag.ImporterName as SelectList">
-                            <option value="">Select Importer</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Invoice No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Invoice No</label>
-                        <input class="form-control form-control-sm" id="invoiceNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Invoice Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Invoice Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="invoiceDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/L No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/L No</label>
-                        <input class="form-control form-control-sm" id="blNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/L Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/L Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="blDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/E No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/E No</label>
-                        <input class="form-control form-control-sm" id="beNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/E Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/E Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="beDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Container No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Container No</label>
-                        <input class="form-control form-control-sm" id="containerNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Container Size -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Container Size</label>
-                        <input class="form-control form-control-sm" id="containerSize" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- LCA No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">LCA No</label>
-                        <input class="form-control form-control-sm" id="lcaNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Discharge Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Discharge Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="dischargeDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Material Description -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Material Description</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="materialDescription"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Quantity + Unit (Horizontal Group) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Quantity & Unit (PKG)</label>
-                        <div class="d-flex gap-2 group-horizontal">
-                            <input type="number" class="form-control form-control-sm" id="quantity" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="quantityUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Select Unit</option>
-                            </select>
-                        </div>
-                        <span class="text-danger"></span>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Weight + Unit (Horizontal Group) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Weight & Unit (KG)</label>
-                        <div class="d-flex gap-2 group-horizontal">
-                            <input type="number" class="form-control form-control-sm" id="weight" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="weightUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Select Unit</option>
-                            </select>
-                        </div>
-                        <span class="text-danger"></span>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- FWDR (Shipping Agent) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">FWDR (Shipping Agent)</label>
-
-                        <input class="form-control form-control-sm" id="forwarderId" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Vessel/Rott No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Vessel/Rott No</label>
-                        <input class="form-control form-control-sm" id="vesselRottNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Remarks -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Remarks</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="read-remarks"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
-                @await Html.PartialAsync("_Setup", Model.Setup)
-
-                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                {
-                    Title = "",
-                    ShowDelete = false,
-                    ShowClear = false,
-                    ShowPrint = false,
-                    ShowFavorite = false,
-                    IsPlain = true,
-                    SaveBtnClass = "saveBtn"
-                })
-            </div>
         </div>
         <div class="pb-2 d-none" id="timelineCard">
             <div class="card shadow">

@@ -3,35 +3,44 @@
 .custom-dd-wrapper {
     position: relative;
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
     outline: none;
 }
+
 .custom-dd-box {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 4px;
-    min-height: calc(1.5em + .5rem + 2px); /* Bootstrap form-select-sm এর height */
+    width: 100%;
+    min-height: calc(1.5em + .5rem);
     border: 1px solid #ced4da;
     border-radius: .375rem;
     background: #fff;
-    padding: .25rem .5rem; /* form-select-sm এর padding */
+    padding: .0rem .5rem;
     cursor: text;
     position: relative;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .custom-dd-input {
     border: none;
     outline: none;
-    flex: 1 1 60px;
-    min-width: 60px;
+    flex: 1 1 30px;
+    min-width: 20px;
     padding: 0 2px;
-    font-size: .875rem; 
+    font-size: .875rem;
     background: transparent;
     line-height: 1.5;
 }
-.custom-dd-copy-icon{
-    display:none !important;
+
+.custom-dd-copy-icon {
+    display: none !important;
 }
+
 .custom-dd-copy-icon,
 .custom-dd-clear-icon,
 .custom-dd-arrow {
@@ -53,17 +62,18 @@
     padding-right: 0px;
 }
 
-
 .custom-dd-wrapper.open .custom-dd-box {
     border-color: #80bdff;
     /*box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);*/
 }
+
 .custom-dd-wrapper:hover,
 .custom-dd-wrapper:focus {
     background: #eef4fc !important;
     outline: none !important;
 }
-.custom-dd-wrapper.disabled .custom-dd-box  {
+
+.custom-dd-wrapper.disabled .custom-dd-box {
     background-color: #f4f6f9 !important;
     border-color: #ced4da !important;
     color: #6c757d !important;
@@ -86,12 +96,16 @@
 
 .custom-dd-wrapper.disabled {
     pointer-events: none;
-    cursor:not-allowed;
+    cursor: not-allowed;
 }
+
 .custom-dd-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
 }
 
 .custom-dd-tag {
@@ -102,6 +116,9 @@
     border-radius: 3px;
     padding: 2px 6px;
     font-size: 13px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .custom-dd-tag-remove {
@@ -114,15 +131,15 @@
         color: #dc3545;
     }
 
-
 .custom-dd-arrow {
     color: #495057;
     pointer-events: none;
-        font-size: 16px;
-        padding: 0px;
-        margin: 0px;
- line-height:1;
+    font-size: 16px;
+    padding: 0px;
+    margin: 0px;
+    line-height: 1;
 }
+
 .custom-dd-copy-icon.copied {
     color: #28a745;
     background: #d4edda;
@@ -134,6 +151,7 @@
     .custom-dd-copy-icon.copied i {
         font-size: 12px;
     }
+
 .custom-dd-copy-icon:hover {
     color: #495057;
 }
@@ -242,4 +260,3 @@
     pointer-events: none;
     cursor: not-allowed;
 }
-

@@ -18,6 +18,7 @@ namespace GCTL.Service.TransportType
         Task<bool> UpdateAsync(TransportTypeSetupViewModel entityVM);
 
         Task<IEnumerable<CommonSelectModel>> SelectionTransportTypeAsync();
+
         Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model);
 
         Task<bool> IsExistByCodeAsync(string code);

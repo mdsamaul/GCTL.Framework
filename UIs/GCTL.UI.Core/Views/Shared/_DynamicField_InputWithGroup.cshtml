@@ -1,0 +1,164 @@
+﻿@model GCTL.UI.Core.ViewModels.DynamicFieldColumnModel
+
+@*
+    ============================================================
+    _DynamicField_InputWithGroup.cshtml
+
+    NEW: Model.LabelInline (bool, default false)
+         Add this property to DynamicFieldColumnModel.cs.
+         - false -> current behavior: no label here (parent renders it above)
+         - true  -> label and field sit side-by-side in the same row
+                    (label takes Model.LabelColWidth columns,
+                     field takes the remaining columns)
+
+    NEW: Model.LabelColWidth (int, default 4)
+         Only used when LabelInline = true. Bootstrap column width
+         (out of 12) reserved for the label. Field takes 12 - LabelColWidth.
+    ============================================================
+*@
+
+@{
+    bool needsActionColumn = Model.ShowQuickAdd || Model.ShowCopyIcon || Model.ReserveActionSlot;
+    int labelCol = Model.LabelColWidth > 0 ? Model.LabelColWidth : 4;
+    int fieldCol = 12 - labelCol;
+}
+
+@if (Model.LabelInline)
+{
+    <div class="row align-items-center gx-2">
+        <div class="col-@labelCol">
+            <label class="form-label mb-0" for="@Model.InputId" title="@Model.Tooltip">
+                @if (!string.IsNullOrEmpty(Model.IconClass))
+                {
+                    <i class="@Model.IconClass me-1"></i>
+                }
+                @Model.LabelText
+                @if (Model.IsRequired)
+                {
+                    <sup class="text-danger">*</sup>
+                }
+            </label>
+        </div>
+        <div class="col-@fieldCol">
+            @if (needsActionColumn)
+            {
+                <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                    <div class="input-group input-group-sm flex-grow-1">
+                        @if (!string.IsNullOrEmpty(Model.PrependText))
+                        {
+                            <span class="input-group-text">@Model.PrependText</span>
+                        }
+                        <input type="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
+                               class="@Model.ResolvedInputCss @Model.JsEventClass"
+                               id="@Model.InputId" name="@Model.ResolvedInputName"
+                               placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                               maxlength="@Model.MaxLength" minlength="@Model.MinLength"
+                               min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+                               pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
+                               disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+                        @if (!string.IsNullOrEmpty(Model.AppendText))
+                        {
+                            <span class="input-group-text">@Model.AppendText</span>
+                        }
+                    </div>
+
+                    @if (Model.ShowCopyIcon)
+                    {
+                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy"><i class="fas fa-copy"></i></button>
+                    }
+                    else if (Model.ShowQuickAdd)
+                    {
+                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add" data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget" data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"><i class="fas fa-plus"></i></button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true"><i class="fas fa-plus"></i></button>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="input-group input-group-sm w-100">
+                    @if (!string.IsNullOrEmpty(Model.PrependText))
+                    {
+                        <span class="input-group-text">@Model.PrependText</span>
+                    }
+                    <input type="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
+                           class="@Model.ResolvedInputCss @Model.JsEventClass"
+                           id="@Model.InputId" name="@Model.ResolvedInputName"
+                           placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                           maxlength="@Model.MaxLength" minlength="@Model.MinLength"
+                           min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+                           pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
+                           disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+                    @if (!string.IsNullOrEmpty(Model.AppendText))
+                    {
+                        <span class="input-group-text">@Model.AppendText</span>
+                    }
+                </div>
+            }
+            <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+        </div>
+    </div>
+}
+else
+{
+    @if (needsActionColumn)
+    {
+        <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+            <div class="input-group input-group-sm flex-grow-1">
+                @if (!string.IsNullOrEmpty(Model.PrependText))
+                {
+                    <span class="input-group-text">@Model.PrependText</span>
+                }
+                <input type="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
+                       class="@Model.ResolvedInputCss @Model.JsEventClass"
+                       id="@Model.InputId" name="@Model.ResolvedInputName"
+                       placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                       maxlength="@Model.MaxLength" minlength="@Model.MinLength"
+                       min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+                       pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
+                       disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+                @if (!string.IsNullOrEmpty(Model.AppendText))
+                {
+                    <span class="input-group-text">@Model.AppendText</span>
+                }
+            </div>
+
+            @if (Model.ShowCopyIcon)
+            {
+                <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy"><i class="fas fa-copy"></i></button>
+            }
+            else if (Model.ShowQuickAdd)
+            {
+                <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add" data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget" data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"><i class="fas fa-plus"></i></button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true"><i class="fas fa-plus"></i></button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="input-group input-group-sm w-100">
+            @if (!string.IsNullOrEmpty(Model.PrependText))
+            {
+                <span class="input-group-text">@Model.PrependText</span>
+            }
+            <input type="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
+                   class="@Model.ResolvedInputCss @Model.JsEventClass"
+                   id="@Model.InputId" name="@Model.ResolvedInputName"
+                   placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                   maxlength="@Model.MaxLength" minlength="@Model.MinLength"
+                   min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
+                   pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
+                   disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+            @if (!string.IsNullOrEmpty(Model.AppendText))
+            {
+                <span class="input-group-text">@Model.AppendText</span>
+            }
+        </div>
+    }
+    <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+}

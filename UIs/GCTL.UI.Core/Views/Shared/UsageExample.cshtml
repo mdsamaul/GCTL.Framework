@@ -1,0 +1,131 @@
+﻿@* ============================================================
+   USAGE EXAMPLE - কিভাবে আপনার existing form field গুলো
+   নতুন dynamic partial দিয়ে লিখবেন
+   ============================================================ *@
+
+@using GCTL.UI.Core.ViewModels
+
+<div class="row">
+
+    @* ---------- Shipment Mode (MultiSelect) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "shipmentModeId",
+        LabelText = "Shipment Mode",
+        FieldType = FieldType.MultiSelect,
+        Placeholder = "Select Shipment Mode",
+        SelectItems = ViewBag.ShipmentMode as SelectList
+    })
+
+    @* ---------- Is Custom Job No (Checkbox) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "isCustomJobNo",
+        LabelText = "Is Custom Job No",
+        FieldType = FieldType.Checkbox
+    })
+
+    @* ---------- Blank spacer column ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        FieldType = FieldType.Blank
+    })
+
+    @* ---------- Job No (readonly text) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "jobNo",
+        LabelText = "Job No",
+        IsReadonly = true
+    })
+
+    @* ---------- Job Date (Date) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "jobDate",
+        LabelText = "Job Date",
+        FieldType = FieldType.Date
+    })
+
+    @* ---------- Customer Name (QuickAddSelect, required) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "customerId",
+        LabelText = "Customer Name",
+        IsRequired = true,
+        FieldType = FieldType.QuickAddSelect,
+        Placeholder = "Select Customer",
+        SelectItems = ViewBag.CustomerName as SelectList,
+        ShowQuickAdd = true,
+        QuickAddUrl = Url.Action("Index", "Companies"),
+        QuickAddTarget = "#CompanyCode",
+        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+        QuickAddTitle = "Company"
+    })
+
+    @* ---------- Customer Address (Textarea, no quick-add - width still matches) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "customerAddress",
+        LabelText = "Customer Address",
+        FieldType = FieldType.Textarea
+    })
+
+    @* ---------- LC Value + Currency (DualInput) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "lcValue",
+        LabelText = "L/C Value",
+        FieldType = FieldType.DualInput,
+        SecondField = new DynamicFieldColumnModel
+        {
+            InputId = "currencyId",
+            Placeholder = "Currency",
+            SelectItems = ViewBag.Currency as SelectList
+        }
+    })
+
+    @* ---------- Quantity + Unit (DualInput with quick-add on unit) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "quntity1",
+        LabelText = "Quantity & Unit",
+        FieldType = FieldType.DualInput,
+        SecondField = new DynamicFieldColumnModel
+        {
+            InputId = "unit1",
+            Placeholder = "Unit",
+            SelectItems = ViewBag.QuantityUnit as SelectList,
+            ShowQuickAdd = true,
+            QuickAddUrl = Url.Action("Index", "Companies"),
+            QuickAddTarget = "#CompanyCode",
+            QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+            QuickAddTitle = "Company"
+        }
+    })
+
+    @* ---------- Sea-only field (VisibilityGroup, hidden until JS shows it) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "seaFinalIgmRecDate",
+        LabelText = "Final IGM Rec. Dt.",
+        FieldType = FieldType.Date,
+        VisibilityGroup = "seaFieldsGroup",
+        ShowOnInit = false
+    })
+
+    @* ---------- Radio example (not in original form, but supported) ---------- *@
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "jobStatus",
+        LabelText = "Job Status",
+        FieldType = FieldType.Radio,
+        GroupName = "jobStatusGroup",
+        RadioOptions = new List<SelectListItem>
+        {
+            new SelectListItem { Text = "Open", Value = "open", Selected = true },
+            new SelectListItem { Text = "Closed", Value = "closed" }
+        }
+    })
+
+</div>

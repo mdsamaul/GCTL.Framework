@@ -49,6 +49,7 @@
                         }
                     },
                     dataSrc: function (json) {
+                        console.log(json);
                         if (json.recordsTotal === undefined && json.totalCount !== undefined) {
                             json.recordsTotal = json.totalCount;
                         }
@@ -133,7 +134,7 @@
                             ? '<input type="radio" class="' + cls + '" name="' +
                             (config.radioName || 'rowSelect') + '" value="' +
                             (row[config.checkColumnData] != null ? row[config.checkColumnData] : '') + '">'
-                            : '<input type="checkbox" class="' + cls + '" value="' +
+                            : '<input type="checkbox" class="' + cls + '" data-id="'+(data != null ? data : '')+'" value="' +
                             (data != null ? data : '') + '">';
                     }
                 });

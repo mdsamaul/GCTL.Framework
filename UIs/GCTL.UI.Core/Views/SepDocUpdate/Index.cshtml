@@ -1,4 +1,5 @@
-﻿@model GCTL.UI.Core.ViewModels.SepDocUpdate.ShipmentUpdateSetupViewModel
+﻿@using GCTL.UI.Core.ViewModels
+@model GCTL.UI.Core.ViewModels.SepDocUpdate.ShipmentUpdateSetupViewModel
 @{
     Model.PageTitle = ViewBag.Title;
     ViewBag.Title = "Documentation / Job Entry";
@@ -404,458 +405,601 @@
 
                 </div>
 
-
-
             </div>
         </div>
+
         <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
         <div class="tab-pane fade show active" id="entryTabPane" role="tabpanel">
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
                 <div class="row">
 
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Shipment Mode</label>
-                        <select class="form-select form-select-sm custom-select-multi"
-                                data-placeholder="Select Shipment Mode"
-                                id="shipmentModeId"
-                                asp-items="ViewBag.ShipmentMode as SelectList">
-                            <option value="">Select Shipment Mode</option>
-                        </select>
-                        <input type="hidden" id="transportModeTypeId" name="TransportModeTypeId" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <div class="form-check mt-4">
-                            <input type="checkbox" class="form-check-input" id="isCustomJobNo" />
-                            <label class="form-check-label">Is Custom Job No</label>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Job No</label>
-                        <input class="form-control form-control-sm" readonly id="jobNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Job Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="jobDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Name<sup class="text-danger">*</sup> </label>
-
-                        <div class="input-group flex-nowrap">
-                            <div class="input-group input-group-sm">
-
-                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer" id="customerId" asp-items="ViewBag.CustomerName as SelectList">
-                                    <option value="">Select Customer</option>
-                                </select>
-
-                                <button type="button"
-                                        class="btn btn-outline-secondary js-quick-add"
-                                        data-url="@Url.Action("Index", "Companies")"
-                                        data-target="#CompanyCode"
-                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                        data-title="Company">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Address</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="customerAddress"></textarea>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Delivery Address<sup class="text-danger">*</sup> </label>
-
-                        <div class="input-group flex-nowrap">
-                            <div class="input-group input-group-sm">
-
-                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer Delivery" id="deliveryLocationCode" asp-items="ViewBag.CustomerDeliveryAddress as SelectList">
-                                    <option value="">Select Customer Delivery</option>
-                                </select>
-
-                                <button type="button"
-                                        class="btn btn-outline-secondary js-quick-add"
-                                        data-url="@Url.Action("Index", "Companies")"
-                                        data-target="#CompanyCode"
-                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                        data-title="Company">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Port Name<sup class="text-dange">*</sup></label>
-
-                        <div class="input-group flex-nowrap">
-                            <div class="input-group input-group-sm">
-
-                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Port" id="portId" asp-items="ViewBag.PortName as SelectList">
-                                    <option value="">Select Port</option>
-                                </select>
-
-                                <button type="button"
-                                        class="btn btn-outline-secondary js-quick-add"
-                                        data-url="@Url.Action("Index", "Companies")"
-                                        data-target="#CompanyCode"
-                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                        data-title="Company">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Doc's Received Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docReceivedDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Exp No</label>
-                        <input class="form-control form-control-sm" id="expNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Exp Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="expDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">LC No</label>
-                        <input class="form-control form-control-sm" id="lcNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">LC Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="lcDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">L/C Value</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" class="form-control form-control-sm" id="lcValue" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Currency" id="currencyId" asp-items="ViewBag.Currency as SelectList">
-                                <option value=""></option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">BDT</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" class="form-control form-control-sm" id="bdtRate" placeholder="Curr. Rate" />
-                            <input type="number" class="form-control form-control-sm" id="LCValueBDTAmount" placeholder="L/C Value" />
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">IP/EP No</label>
-                        <input class="form-control form-control-sm" id="ipNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">IP Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="ipDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6"> </div>
-                    <div class="col-lg-4 col-md-6"> </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Importer Name</label>
-                        <div class="input-group flex-nowrap">
-                            <div class="input-group input-group-sm">
-
-                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Importer" id="importerId" asp-items="ViewBag.ImporterName as SelectList">
-                                    <option value="">Select Importer</option>
-                                </select>
-
-                                <button type="button"
-                                        class="btn btn-outline-secondary js-quick-add"
-                                        data-url="@Url.Action("Index", "Companies")"
-                                        data-target="#CompanyCode"
-                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                        data-title="Company">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Invoice No</label>
-                        <input class="form-control form-control-sm" id="invoiceNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Invoice Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="invoiceDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Invoice Value</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" class="form-control form-control-sm" id="invoiceValue" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Currency" id="invoiceCurrencyId" asp-items="ViewBag.Currency as SelectList">
-                                <option value=""></option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">BDT</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" class="form-control form-control-sm" id="assessableRate" placeholder="Assessable Rate" />
-                            <input type="number" class="form-control form-control-sm" id="assessableValue" placeholder="Assessable Value" />
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/L No</label>
-                        <input class="form-control form-control-sm" id="blNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/L Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="blDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Container No</label>
-                        <input class="form-control form-control-sm" id="containerNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Container Size</label>
-                        <input class="form-control form-control-sm" id="containerSize" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Material Description</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="materialDescription"></textarea>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Quantity &amp; Unit</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" class="form-control form-control-sm" id="quntity1" />
-                            <div class="input-group flex-nowrap">
-                                <div class="input-group input-group-sm">
-
-                                    <select class="form-select form-select-sm custom-select-single" data-placeholder="Unit" id="unit1" asp-items="ViewBag.QuantityUnit as SelectList">
-                                        <option value="">Unit</option>
-                                    </select>
-
-                                    <button type="button"
-                                            class="btn btn-outline-secondary js-quick-add"
-                                            data-url="@Url.Action("Index", "Companies")"
-                                            data-target="#CompanyCode"
-                                            data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                            data-title="Company">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Weight &amp; Unit</label>
-                        <div class="d-flex gap-2">
-                            <input type="number" class="form-control form-control-sm" id="quntity2" />
-                            <div class="input-group flex-nowrap">
-                                <div class="input-group input-group-sm">
-
-                                    <select class="form-select form-select-sm custom-select-single" data-placeholder="Unit" id="unit2" asp-items="ViewBag.QuantityUnit as SelectList">
-                                        <option value="">Unit</option>
-                                    </select>
-
-                                    <button type="button"
-                                            class="btn btn-outline-secondary js-quick-add"
-                                            data-url="@Url.Action("Index", "Companies")"
-                                            data-target="#CompanyCode"
-                                            data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                            data-title="Company">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- =========== Below fields are shared by BOTH Sea and Air ===========
-                         (previously duplicated with seaFieldsGroup / had unused/orphan ids;
-                         cleaned up, cast into a single shared block, ids aligned with JS) -->
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">FWDR (Shipping Agent)</label>
-                        <input class="form-control form-control-sm" id="fwdrShippingAgent" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Vessel/Rott No</label>
-                        <input class="form-control form-control-sm" id="vesselRottNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Place of Loading</label>
-                        <div class="input-group flex-nowrap">
-                            <div class="input-group input-group-sm">
-
-                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Place of Loading" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
-                                    <option value="">Select Place of Loading</option>
-                                </select>
-
-                                <button type="button"
-                                        class="btn btn-outline-secondary js-quick-add"
-                                        data-url="@Url.Action("Index", "Companies")"
-                                        data-target="#CompanyCode"
-                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                        data-title="Company">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Shared (Sea + Air) delivery-tracking fields -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">ETD Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
-                    </div>
-                    <!-- ============ DYNAMIC: Sea only (4 fields) ============ -->
-                    @* <span id="seaFieldsGroup"> *@
-                        @* <div class="group-title">Sea Import &amp; Export</div> *@
-                       
-                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
-                                <label class="form-label">Final IGM Rec. Dt.</label>
-                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="seaFinalIgmRecDate" />
-                            </div>
-                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
-                                <label class="form-label">Ship Arrived</label>
-                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="seaShipArrivedDate" />
-                            </div>
-                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
-                                <label class="form-label">Unstuff/Discharge</label>
-                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffDischargeDate" />
-                            </div>
-                    <div class="col-lg-4 col-md-6 seaFieldsGroup">
-                                <label class="form-label">Estimated Delivery</label>
-                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="seaEstimatedDeliveryDate" />
-                            </div>
-                       
-                    @* </span> *@
-
-                    <!-- ============ DYNAMIC: Air only (2 fields) ============ -->
-                    @* <div id="airFieldsGroup"> *@
-                        @* <div class="group-title">Air Import &amp; Export</div> *@
-                        @* <div class="row"> *@
-                    <div class="col-lg-4 col-md-6 airFieldsGroup">
-                                <label class="form-label">Flight Actual Arrival Date</label>
-                                <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="flightArrivalDate" />
-                            </div>
-                    <div class="col-lg-4 col-md-6 airFieldsGroup">
-                                <label class="form-label">Arrival Notice Rcvd From Express Dt.</label>
-                                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="arrivalNoticeDate" />
-                            </div>
-                        @* </div> *@
-                    @* </div> *@
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Docs Bank Sign Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docsBankSignDate" />
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/E No./Date</label>
-                        <input type="text" class="form-control form-control-sm" id="beNoDate" />
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Actual Delivery Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="actualDeliveryDate" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Shed/Yard</label>
-
-                        <div class="input-group flex-nowrap">
-                            <div class="input-group input-group-sm">
-
-                                <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Shed/Yard" id="shedYardId" asp-items="ViewBag.ShedYard as SelectList">
-                                    <option value="">Select Shed/Yard</option>
-                                </select>
-
-                                <button type="button"
-                                        class="btn btn-outline-secondary js-quick-add"
-                                        data-url="@Url.Action("Index", "Companies")"
-                                        data-target="#CompanyCode"
-                                        data-reload-url="@Url.Action("GetCompany", "Cascading")"
-                                        data-title="Company">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">HAWB</label>
-                        <input class="form-control form-control-sm" id="hawb" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">MAWB</label>
-                        <input class="form-control form-control-sm" id="mawb" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Assessment No</label>
-                        <input class="form-control form-control-sm" id="assessmentNo" />
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">R-No / Client &amp; Station SL No</label>
-                        <div class="d-flex gap-2">
-                            <input class="form-control form-control-sm" id="rNo" />
-                            <input class="form-control form-control-sm" id="clientStationwiseSLNo" />
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Freight Charge</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Freight Charge" id="freightChargeId" asp-items="ViewBag.FreightCharge as SelectList">
-                            <option value="">Select Freight Charge</option>
-                        </select>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Term</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="term"></textarea>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Remarks</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="remarks"></textarea>
-                    </div>
+                    @* ---------- Shipment Mode (MultiSelect) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "shipmentModeId",
+                        LabelText = "Shipment Mode",
+                        FieldType = FieldType.Select,
+                        Placeholder = "Select Shipment Mode",
+                        SelectItems = ViewBag.ShipmentMode as SelectList,
+                        CustomAttributes = new Dictionary<string, string> { { "hidden-input", "transportModeTypeId" } },
+                        ReserveActionSlot = true,
+                        IsRequired=true
+                    })
+                    <input type="hidden" id="transportModeTypeId" name="TransportModeTypeId" />
+
+                    @* ---------- Is Custom Job No (Checkbox) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "isCustomJobNo",
+                        LabelText = "Is Custom Job No",
+                        FieldType = FieldType.Checkbox
+                    })
+
+                    @* ---------- Blank spacer ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+
+                    @* ---------- Job No (readonly) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "jobNo",
+                        LabelText = "Job No",
+                        FieldType=FieldType.Text,
+                        IsReadonly = true,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Job Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "jobDate",
+                        LabelText = "Job Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Customer Name (QuickAddSelect, required) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "customerId",
+                        LabelText = "Customer Name",
+                        IsRequired = true,
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Customer",
+                        SelectItems = ViewBag.CustomerName as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "Companies"),
+                        QuickAddTarget = "#CompanyCode",
+                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                        QuickAddTitle = "Company"
+                    })
+
+                    @* ---------- Customer Address (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "customerAddress",
+                        LabelText = "Customer Address",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        IsReadonly= true,
+                        Placeholder = "Customer Address",
+                        Rows=2
+                    })
+
+                    @* ---------- Customer Delivery Address (QuickAddSelect, required) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "deliveryLocationCode",
+                        LabelText = "Customer Delivery Address",
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Customer Delivery",
+                        SelectItems = ViewBag.CustomerDeliveryAddress as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "Companies"),
+                        QuickAddTarget = "#CompanyCode",
+                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                        QuickAddTitle = "Company",
+                        IsRequired=true,
+                        IsMultiple= true,
+                        
+                    })
+
+                    @* ---------- Blank spacer ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+
+                    @* ---------- Port Name (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "portId",
+                        LabelText = "Port Name",
+                        IsRequired = true,
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Port",
+                        SelectItems = ViewBag.PortName as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "Companies"),
+                        QuickAddTarget = "#CompanyCode",
+                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                        QuickAddTitle = "Company"
+                    })
+
+                    @* ---------- Doc's Received Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "docReceivedDate",
+                        LabelText = "Doc's Received Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder = "Doc's Received Date"
+                    })
+
+                    @* ---------- Exp No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "expNo",
+                        LabelText = "Exp No",
+                        Placeholder="ex no",
+                        ReserveActionSlot = true,
+                    })
+
+                    @* ---------- Exp Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "expDate",
+                        LabelText = "Exp Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
+                    })
+
+                    @* ---------- LC No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "lcNo",
+                        LabelText = "LC No",
+                        ReserveActionSlot = true,
+                        Placeholder="LC No"
+                    })
+
+                    @* ---------- LC Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "lcDate",
+                        LabelText = "LC Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
+                    })
+
+                    @* ---------- L/C Value + Currency (DualInput) — currency select has no quick-add ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "lcValue",
+                        LabelText = "L/C Value",
+                        FieldType = FieldType.DualInput,
+                        Placeholder="L/C Value",
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "currencyId",
+                            Placeholder = "Currency",
+                            FieldType = FieldType.Select,
+                            SelectItems = ViewBag.Currency as SelectList,
+                            ReserveActionSlot = true,
+                            
+                        }
+                    })
+
+                    @* ---------- BDT (Curr. Rate + L/C Value BDT) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "bdtRate",
+                        LabelText = "BDT",
+                        Placeholder = "Curr. Rate",
+                        FieldType = FieldType.DualInput,
+                        
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "LCValueBDTAmount",
+                            Placeholder = "L/C Value",
+                            FieldType = FieldType.Number
+                        },
+                        ReserveActionSlot=true
+                    })
+
+                    @* ---------- IP/EP No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "ipNo",
+                        LabelText = "IP/EP No",
+                        ReserveActionSlot = true,
+                        Placeholder = "IP/EP No"
+                    })
+
+                    @* ---------- IP Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "ipDate",
+                        LabelText = "IP Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Blank x2 spacer ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+
+                    @* ---------- Importer Name (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "importerId",
+                        LabelText = "Importer Name",
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Importer",
+                        SelectItems = ViewBag.ImporterName as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "Companies"),
+                        QuickAddTarget = "#CompanyCode",
+                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                        QuickAddTitle = "Company"
+                    })
+
+                   
+
+                    @* ---------- Invoice Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "invoiceDate",
+                        LabelText = "Invoice Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                    })
+                    @* ---------- Invoice No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "invoiceNo",
+                        LabelText = "Invoice No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Invoice No"
+                    })
+
+                    @* ---------- Invoice Value + Currency (DualInput) — currency select has no quick-add ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "invoiceValue",
+                        LabelText = "Invoice Value",
+                        FieldType = FieldType.DualInput,
+                        InputType="text",
+                        Placeholder = "Invoice Value",
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "invoiceCurrencyId",
+                            Placeholder = "Currency",
+                            FieldType=FieldType.Select,
+                            SelectItems = ViewBag.Currency as SelectList,
+                            ReserveActionSlot = true
+                        }
+                    })
+
+                    @* ---------- BDT (Assessable Rate + Value) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "assessableRate",
+                        LabelText = "BDT",
+                        Placeholder = "Assessable Rate",
+                        FieldType = FieldType.DualInput,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "assessableValue",
+                            Placeholder = "Assessable Value",
+                            FieldType = FieldType.Number
+                        },
+                        ReserveActionSlot=true
+                    })
+
+                    @* ---------- B/L No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "blNo",
+                        LabelText = "B/L No",
+                        ReserveActionSlot = true,
+                        Placeholder = "B/L No"
+                    })
+
+                    @* ---------- B/L Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "blDate",
+                        LabelText = "B/L Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Container No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "containerNo",
+                        LabelText = "Container No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Container No"
+                    })
+
+                    @* ---------- Container Size — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "containerSize",
+                        LabelText = "Container Size",
+                        ReserveActionSlot = true,
+                        Placeholder = "Container Size"
+                    })
+
+                    @* ---------- Material Description (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "materialDescription",
+                        LabelText = "Material Description",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        Placeholder = "Material Description",
+                        Rows=2
+                    })
+
+                    @* ---------- Quantity & Unit (DualInput, unit has quick-add) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "quntity1",
+                        LabelText = "Quantity & Unit",
+                        Placeholder = "Quantity",
+                        InputType="number",
+                        FieldType = FieldType.DualInput,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "unit1",
+                            Placeholder = "Unit",
+                            FieldType= FieldType.Select,
+                            SelectItems = ViewBag.QuantityUnit as SelectList,
+                            ShowQuickAdd = true,
+                            QuickAddUrl = Url.Action("Index", "Companies"),
+                            QuickAddTarget = "#CompanyCode",
+                            QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                            QuickAddTitle = "Company"
+                        }
+                    })
+
+                    @* ---------- Weight & Unit (DualInput, unit has quick-add) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "quntity2",
+                        LabelText = "Weight & Unit",
+                        Placeholder = "Weight",
+                        InputType="number",
+                        FieldType = FieldType.DualInput,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "unit2",
+                            Placeholder = "Unit",
+                            FieldType=FieldType.Select,
+                            SelectItems = ViewBag.QuantityUnit as SelectList,
+                            ShowQuickAdd = true,
+                            QuickAddUrl = Url.Action("Index", "Companies"),
+                            QuickAddTarget = "#CompanyCode",
+                            QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                            QuickAddTitle = "Company"
+                        }
+                    })
+
+                    <!-- =========== Below fields are shared by BOTH Sea and Air =========== -->
+                    @* ---------- FWDR (Shipping Agent) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "fwdrShippingAgent",
+                        LabelText = "FWDR (Shipping Agent)",
+                        ReserveActionSlot = true,
+                        Placeholder = "FWDR (Shipping Agent)"
+                    })
+
+                    @* ---------- Vessel/Rott No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "vesselRottNo",
+                        LabelText = "Vessel/Rott No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Vessel/Rott No"
+                    })
+
+                    @* ---------- Place of Loading (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "placeOfLoadingId",
+                        LabelText = "Place of Loading",
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Place of Loading",
+                        SelectItems = ViewBag.PlaceOfLoading as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "Companies"),
+                        QuickAddTarget = "#CompanyCode",
+                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                        QuickAddTitle = "Company"
+                    })
+
+                    @* ---------- ETD Date (shared Sea+Air) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "etdDate",
+                        LabelText = "ETD Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                    })
+
+                    <!-- ============ DYNAMIC: Sea only (4 fields) — no button needed ============ -->
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "seaFinalIgmRecDate",
+                        LabelText = "Final IGM Rec. Date",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "seaShipArrivedDate",
+                        LabelText = "Ship Arrived",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "unstuffDischargeDate",
+                        LabelText = "Unstuff/Discharge",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                   
+
+                    <!-- ============ DYNAMIC: Air only (2 fields) — no button needed ============ -->
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "flightArrivalDate",
+                        LabelText = "Flight Actual Arrival Date",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "airFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "arrivalNoticeDate",
+                        LabelText = "Arrival Notice Rcvd From Express Date",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "airFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Docs Bank Sign Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "docsBankSignDate",
+                        LabelText = "Docs Bank Sign Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- B/E No./Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "beNoDate",
+                        LabelText = "B/E No./Date",
+                        ReserveActionSlot = true,
+                        FieldType= FieldType.Date
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "seaEstimatedDeliveryDate",
+                        LabelText = "Estimated Delivery",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @* ---------- Actual Delivery Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "actualDeliveryDate",
+                        LabelText = "Actual Delivery Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Shed/Yard (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "shedYardId",
+                        LabelText = "Shed/Yard",
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Shed/Yard",
+                        SelectItems = ViewBag.ShedYard as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "Companies"),
+                        QuickAddTarget = "#CompanyCode",
+                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                        QuickAddTitle = "Company"
+                    })
+
+                    @* ---------- HAWB — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "hawb",
+                        LabelText = "HAWB",
+                        ReserveActionSlot = true,
+                        Placeholder = "HAWB"
+                    })
+
+                    @* ---------- MAWB — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "mawb",
+                        LabelText = "MAWB",
+                        ReserveActionSlot = true,
+                        Placeholder="MAWB"
+                    })
+
+                    @* ---------- Assessment No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "assessmentNo",
+                        LabelText = "Assessment No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Assessment No"
+                    })
+
+                    @* ---------- R-No / Client & Station SL No (DualInput) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "rNo",
+                        LabelText = "R-No / Client & Station SL No",
+                        Placeholder = "R-No / Client & Station SL No",
+                        FieldType = FieldType.Text,                        
+                        ReserveActionSlot=true
+                    })
+
+                    @* ---------- Freight Charge — Select, no quick-add ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "freightChargeId",
+                        LabelText = "Freight Charge",
+                        FieldType = FieldType.MultiSelect,
+                        Placeholder = "Select Freight Charge",
+                        SelectItems = ViewBag.FreightCharge as SelectList,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Term (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "term",
+                        LabelText = "Term",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        Placeholder = "Term",
+                        Rows=2
+                    })
+
+                    @* ---------- Remarks (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "remarks",
+                        LabelText = "Remarks",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        Placeholder = "Remarks",
+                        Rows=2
+                    })
+
                 </div>
-
-                
 
                 <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
 
@@ -867,14 +1011,15 @@
                     ShowDelete = false,
                     ShowFavorite = false,
                     ShowPrint = false,
-                    IsPlain = true
+                    IsPlain = true,
+                    ReserveActionSlot=true
                 })
 
             </div>
 
             <!-- ==================== Grid of saved jobs ==================== -->
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded mt-3">
-                <div class="toolbar mb-3 d-flex justify-content-between flex-wrap gap-2">
+                @* <div class="toolbar mb-3 d-flex justify-content-between flex-wrap gap-2">
                     <div class="input-group input-group-sm" style="width:120px">
                         <span class="input-group-text">Show</span>
                         <select class="form-select" id="pageSizeSelectBottom">
@@ -884,6 +1029,48 @@
                         </select>
                     </div>
                     <input class="form-control form-control-sm" style="max-width:280px" id="searchInputBottom" type="text" placeholder="Search" />
+                </div> *@
+                <!-- Search and Page Size -->
+                <div class="toolbar pb-2">
+
+                    <div class="toolbar-left">
+                        <div class="input-group input-group-sm toolbar-showing">
+                            <span class="input-group-text">Showing</span>
+                            <select class="form-select" id="statusPageSizeSelect">
+                                <option>10</option>
+                                <option>25</option>
+                                <option>50</option>
+                                <option>100</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="toolbar-right">
+                        <span class="label-text">Filter By:</span>
+                        <div class="toolbar-item toolbar-customer">
+                            <select class="form-select form-select-sm custom-select-single"
+                                    id="customerLoadGridFilter" data-placeholder="Select Customer"
+                                    asp-items="ViewBag.CustomerName as SelectList">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar-item toolbar-date">
+                            <div class="input-group input-group-sm custom-date-group">
+                                <span class="input-group-text">Date From</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridFrom">
+                                <span class="input-group-text">To</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridTo">
+                            </div>
+                        </div>
+
+                        <div class="toolbar-item toolbar-search">
+                            <input class="form-control form-control-sm"
+                                   id="statusSearchInput"
+                                   type="text"
+                                   placeholder="Search">
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="table-responsive scrollbar">
@@ -923,23 +1110,36 @@
                     <div class="card-header bg-light fw-bold">Main Information</div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-lg-4 col-md-6">
-                                <label class="form-label">Job No</label>
-                                <input class="form-control form-control-sm" id="uploadJobNoDisplay" readonly />
-                            </div>
-                            <div class="col-lg-4 col-md-6">
-                                <label class="form-label">Date</label>
-                                <input class="form-control form-control-sm" id="uploadJobDateDisplay" readonly />
-                            </div>
-                            <div class="col-lg-4 col-md-6"></div>
-                            <div class="col-lg-4 col-md-6">
-                                <label class="form-label">Customer</label>
-                                <input class="form-control form-control-sm" id="uploadCustomerDisplay" readonly />
-                            </div>
-                            <div class="col-lg-8 col-md-6">
-                                <label class="form-label">Address</label>
-                                <textarea class="form-control form-control-sm" rows="1" id="uploadAddressDisplay" readonly></textarea>
-                            </div>
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadJobNoDisplay",
+                                LabelText = "Job No",
+                                IsReadonly = true,
+                                ReserveActionSlot = true
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadJobDateDisplay",
+                                LabelText = "Date",
+                                IsReadonly = true,
+                                ReserveActionSlot = true
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadCustomerDisplay",
+                                LabelText = "Customer",
+                                IsReadonly = true,
+                                ReserveActionSlot = true
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                ColumnClass = "col-lg-8 col-md-6",
+                                InputId = "uploadAddressDisplay",
+                                LabelText = "Address",
+                                FieldType = FieldType.Textarea,
+                                IsReadonly = true
+                            })
                         </div>
                     </div>
                 </div>
@@ -968,14 +1168,22 @@
                         <input type="file" class="form-control form-control-sm" id="uploadFile" />
                         <small class="text-primary">Max Size 15 MB</small>
                     </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Document Name</label>
-                        <input class="form-control form-control-sm" id="documentName" placeholder="Enter Document Name" />
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="documentDescription" placeholder="Enter Document Description"></textarea>
-                    </div>
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "documentName",
+                        LabelText = "Document Name",
+                        Placeholder = "Enter Document Name",
+                        ReserveActionSlot = true
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "documentDescription",
+                        LabelText = "Description",
+                        FieldType = FieldType.Textarea,
+                        Placeholder = "Enter Document Description"
+                    })
                 </div>
 
                 <div class="mt-3">

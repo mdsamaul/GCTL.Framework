@@ -2,6 +2,7 @@
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.VendorInfo;
+using GCTL.Core.ViewModels.VendorPrefix;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
@@ -322,6 +323,16 @@ namespace GCTL.Service.VendorInfo
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
             return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Vendor Info" && x.CheckDelete);
+        }
+
+        public Task UpdateAsync(VendorPrefixSetupViewModel modelVM)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SaveAsync(VendorPrefixSetupViewModel modelVM)
+        {
+            throw new NotImplementedException();
         }
         #endregion
 

@@ -30,5 +30,7 @@
         public string ExcelBtnClass { get; set; } = "excelBtn";
         public string PdfBtnClass { get; set; } = "pdfBtn";
         public bool IsPlain { get; set; } = false;
+        public bool IsMarginRight { get; set; } = false;
+        public bool ReserveActionSlot { get; set; } = true;
     }
 }
