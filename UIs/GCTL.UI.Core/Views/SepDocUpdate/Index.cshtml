@@ -229,6 +229,21 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+    #jobListTable th,
+    #jobListTable td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+        #jobListTable td:nth-child(4),
+        #jobListTable td:nth-child(5) {
+            text-align: left;
+        }
+
+        #jobListTable td:nth-child(5){
+            max-width:450px;
+        }
 </style>
 
 @* <partial name="_PageHeader" model="Model" /> *@
@@ -490,7 +505,7 @@
                     {
                         InputId = "deliveryLocationCode",
                         LabelText = "Customer Delivery Address",
-                        FieldType = FieldType.QuickAddSelect,
+                        FieldType = FieldType.Select,
                         Placeholder = "Select Customer Delivery",
                         SelectItems = ViewBag.CustomerDeliveryAddress as SelectList,
                         ShowQuickAdd = true,
@@ -499,7 +514,6 @@
                         QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
                         QuickAddTitle = "Company",
                         IsRequired=true,
-                        IsMultiple= true,
                         
                     })
 
@@ -971,7 +985,7 @@
                     {
                         InputId = "freightChargeId",
                         LabelText = "Freight Charge",
-                        FieldType = FieldType.MultiSelect,
+                        FieldType = FieldType.Select,
                         Placeholder = "Select Freight Charge",
                         SelectItems = ViewBag.FreightCharge as SelectList,
                         ReserveActionSlot = true
@@ -1074,7 +1088,7 @@
                 </div>
 
                 <div class="table-responsive scrollbar">
-                    <table class="table table-bordered table-sm fs-9 mb-0" id="jobListTable">
+                    <table class="table table-bordered table-sm fs-9 mb-0 table-sm" id="jobListTable">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="selectAllJobs" /></th>
