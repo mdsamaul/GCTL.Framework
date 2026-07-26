@@ -356,7 +356,3 @@ function recalcTotals() {
 // Live update
 $(document).on('input', '.tmp-amount', recalcTotals);
 //#endregion
-
-
-
-

@@ -39,7 +39,7 @@ namespace GCTL.Service.OperationalFund
         #region TMp Save & Update Section
         Task<bool> TmpDetailsSaveAsync(RequistionDetailsTmpVM model);
         Task<bool> DeleteTmpDetailAsync(decimal tc, string? currentUserId);
-        Task<List<RequistionDetailsTmpVM>> GetAllTmpAsync(int? currentUser);
+        Task<List<RequistionDetailsTmpVM>> GetAllTmpAsync(string? currentUser);
         #endregion
 
         #region Master Section

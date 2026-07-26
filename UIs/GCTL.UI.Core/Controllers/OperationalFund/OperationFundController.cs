@@ -1,4 +1,5 @@
 ﻿using GCTL.Core.DataTables;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 
 using GCTL.Service.OperationalFund;
@@ -81,47 +82,6 @@ namespace GCTL_App.Controllers.OperationalFund
                 return StatusCode(500, new { message = "An Error Occurred.", error = ex.Message });
             }
         }
-        //public async Task<IActionResult> GetAllJobList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
-        //{
-        //    try
-        //    {
-        //        var request = new PaginationRequest
-        //        {
-        //            PageNumber = pageNumber,
-        //            PageSize = pageSize,
-        //            SearchTerm = searchTerm,
-        //            SortColumn = sortColumn,
-        //            SortOrder = sortOrder
-        //        };
-
-        //        var result = await _service.GetAllJonEntryList(request, customerid, shipmentmodeid);
-
-        //        if (result.Data == null || !result.Data.Any())
-        //        {
-        //            return Ok(new
-        //            {
-        //                Data = new List<JobEntryListVM>(),
-        //                TotalCount = 0,
-        //                FilterCount = 0,
-        //                PaginationInfo2 = new
-        //                {
-        //                    StartItem = 0,
-        //                    EndItem = 0,
-        //                    TotalItems = 0,
-        //                    TotalPages = 0,
-        //                    CurrentPage = 0
-        //                },
-        //                Message = "No Job Found."
-        //            });
-        //        }
-
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { message = "An Error Occurred.", error = ex.Message });
-        //    }
-        //}
         #endregion
 
         #region Get Requisition Header Info
@@ -250,7 +210,7 @@ namespace GCTL_App.Controllers.OperationalFund
             try
             {
                 if (model == null) return BadRequest(new { message = "Validation Failed." });
-
+                model.ToAudit(LoginInfo);
                 var result = await _service.TmpDetailsSaveAsync(model);
 
 
@@ -314,7 +274,7 @@ namespace GCTL_App.Controllers.OperationalFund
             try
             {
                 string? currentUser = LoginInfo.Username; //await GetCurrentEmployeeIdAsync();
-                var data = await _service.GetAllTmpAsync(1);
+                var data = await _service.GetAllTmpAsync(currentUser);
 
                 if (data == null) data = new List<RequistionDetailsTmpVM>();
 
@@ -339,7 +299,7 @@ namespace GCTL_App.Controllers.OperationalFund
             try
             {
                 if (model == null) return BadRequest(new { message = "OFFR No  is Required." });
-
+                model.ToAudit(LoginInfo);
                 var result = await _service.MasterDetailsSaveAsync(model);
 
                 if (!result) return BadRequest(new { message = "Insertion Failed." });

@@ -44,7 +44,6 @@ namespace GCTL.Service.OperationalFund
 
         #endregion
 
-
         #region Get All Job Entry List
         public async Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(
     PaginationRequest request, string customerid = "", string shipmentmodeid = "")
@@ -616,7 +615,7 @@ namespace GCTL.Service.OperationalFund
         #endregion
 
         #region Get All Tmp Details
-        public async Task<List<RequistionDetailsTmpVM>> GetAllTmpAsync(int? currentUser)
+        public async Task<List<RequistionDetailsTmpVM>> GetAllTmpAsync(string? currentUser)
         {
             var result = await (from tmp in _Tmpdetails.All()
                                 join head in _accountsHead.All()
@@ -627,8 +626,8 @@ namespace GCTL.Service.OperationalFund
                               on tmp.ServiceTypeId equals serv.ServiceTypeId
                               into servicJoin
                                 from servic in servicJoin.DefaultIfEmpty()
-                                where tmp.Luser == currentUser.ToString()
-                                orderby tmp.Tc
+                                where tmp.Luser == currentUser
+                                orderby Convert.ToInt32(head.SerialNo)
 
                                 select new RequistionDetailsTmpVM
                                 {

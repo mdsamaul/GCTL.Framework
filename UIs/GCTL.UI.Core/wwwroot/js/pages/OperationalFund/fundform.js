@@ -169,11 +169,10 @@ $(document).on('click', 'input[name="jobSelect"]', function () {
                 $("#Job-Weight").val(headerdata.weight);
                 $("#ShipmentModeID").val(headerdata.shipmentModeID);     // ID
                 $("#CustomerID").val(headerdata.customerID);     // ID
-
-                if (headerdata.currencyID && currencyChoice) {
-                    currencyChoice.setChoiceByValue(headerdata.currencyID);
+                if (headerdata.currencyID) {
+                    $("#Job-Currencies").val(headerdata.currencyID).trigger('change');
                 };
-                // Generate Requisition No
+
                 generateRequisitionNo(jobno).done(function (res) {
                     if (res && res.requisitionNo) {
                         $("#Job-RequisitionNo").val(res.requisitionNo);
