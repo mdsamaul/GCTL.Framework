@@ -481,7 +481,8 @@
                         FieldType = FieldType.Textarea,
                         ReserveActionSlot=true,
                         IsReadonly= true,
-                        Placeholder = "Customer Address"
+                        Placeholder = "Customer Address",
+                        Rows=2
                     })
 
                     @* ---------- Customer Delivery Address (QuickAddSelect, required) — keeps button ---------- *@
@@ -497,7 +498,9 @@
                         QuickAddTarget = "#CompanyCode",
                         QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
                         QuickAddTitle = "Company",
-                        IsRequired=true
+                        IsRequired=true,
+                        IsMultiple= true,
+                        
                     })
 
                     @* ---------- Blank spacer ---------- *@
@@ -735,7 +738,8 @@
                         LabelText = "Material Description",
                         FieldType = FieldType.Textarea,
                         ReserveActionSlot=true,
-                        Placeholder = "Material Description"
+                        Placeholder = "Material Description",
+                        Rows=2
                     })
 
                     @* ---------- Quantity & Unit (DualInput, unit has quick-add) — keeps button ---------- *@
@@ -823,7 +827,6 @@
                         LabelText = "ETD Date",
                         FieldType = FieldType.Date,
                         ReserveActionSlot = true,
-                        Placeholder = "B/E No./Date"
                     })
 
                     <!-- ============ DYNAMIC: Sea only (4 fields) — no button needed ============ -->
@@ -890,7 +893,8 @@
                     {
                         InputId = "beNoDate",
                         LabelText = "B/E No./Date",
-                        ReserveActionSlot = true
+                        ReserveActionSlot = true,
+                        FieldType= FieldType.Date
                     })
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
@@ -967,7 +971,7 @@
                     {
                         InputId = "freightChargeId",
                         LabelText = "Freight Charge",
-                        FieldType = FieldType.Select,
+                        FieldType = FieldType.MultiSelect,
                         Placeholder = "Select Freight Charge",
                         SelectItems = ViewBag.FreightCharge as SelectList,
                         ReserveActionSlot = true
@@ -980,7 +984,8 @@
                         LabelText = "Term",
                         FieldType = FieldType.Textarea,
                         ReserveActionSlot=true,
-                        Placeholder = "Term"
+                        Placeholder = "Term",
+                        Rows=2
                     })
 
                     @* ---------- Remarks (Textarea) ---------- *@
@@ -990,7 +995,8 @@
                         LabelText = "Remarks",
                         FieldType = FieldType.Textarea,
                         ReserveActionSlot=true,
-                        Placeholder = "Remarks"
+                        Placeholder = "Remarks",
+                        Rows=2
                     })
 
                 </div>
@@ -1013,7 +1019,7 @@
 
             <!-- ==================== Grid of saved jobs ==================== -->
             <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded mt-3">
-                <div class="toolbar mb-3 d-flex justify-content-between flex-wrap gap-2">
+                @* <div class="toolbar mb-3 d-flex justify-content-between flex-wrap gap-2">
                     <div class="input-group input-group-sm" style="width:120px">
                         <span class="input-group-text">Show</span>
                         <select class="form-select" id="pageSizeSelectBottom">
@@ -1023,6 +1029,48 @@
                         </select>
                     </div>
                     <input class="form-control form-control-sm" style="max-width:280px" id="searchInputBottom" type="text" placeholder="Search" />
+                </div> *@
+                <!-- Search and Page Size -->
+                <div class="toolbar pb-2">
+
+                    <div class="toolbar-left">
+                        <div class="input-group input-group-sm toolbar-showing">
+                            <span class="input-group-text">Showing</span>
+                            <select class="form-select" id="statusPageSizeSelect">
+                                <option>10</option>
+                                <option>25</option>
+                                <option>50</option>
+                                <option>100</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="toolbar-right">
+                        <span class="label-text">Filter By:</span>
+                        <div class="toolbar-item toolbar-customer">
+                            <select class="form-select form-select-sm custom-select-single"
+                                    id="customerLoadGridFilter" data-placeholder="Select Customer"
+                                    asp-items="ViewBag.CustomerName as SelectList">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar-item toolbar-date">
+                            <div class="input-group input-group-sm custom-date-group">
+                                <span class="input-group-text">Date From</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridFrom">
+                                <span class="input-group-text">To</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridTo">
+                            </div>
+                        </div>
+
+                        <div class="toolbar-item toolbar-search">
+                            <input class="form-control form-control-sm"
+                                   id="statusSearchInput"
+                                   type="text"
+                                   placeholder="Search">
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="table-responsive scrollbar">

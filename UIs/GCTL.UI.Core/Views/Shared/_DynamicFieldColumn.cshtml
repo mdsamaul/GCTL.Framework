@@ -237,7 +237,7 @@
                                         data-placeholder="@Model.Placeholder"
                                         data-ajax-url="@Model.AjaxSourceUrl"
                                         data-depends-on="@Model.DependsOnFieldId"
-                                        multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect)"
+                                        multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
                                         disabled="@Model.IsDisabled"
                                         asp-items="Model.SelectItems">
                                     <option value="">@Model.Placeholder</option>
@@ -283,7 +283,7 @@
                                     data-placeholder="@Model.Placeholder"
                                     data-ajax-url="@Model.AjaxSourceUrl"
                                     data-depends-on="@Model.DependsOnFieldId"
-                                    multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect)"
+                                    multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
                                     disabled="@Model.IsDisabled"
                                     asp-items="Model.SelectItems">
                                 <option value="">@Model.Placeholder</option>
