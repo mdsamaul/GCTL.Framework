@@ -1096,66 +1096,74 @@ h6 {
         height: var(--bar-height);
     }
 }
+.field-fixed-width .input-group .custom-dd-box,
+.field-fixed-width .input-group .custom-dd-wrapper {
+    border-radius: .375rem !important;
+}
+.field-fixed-width {
+    min-width: 0 !important;
+    max-width: 100%;
+}
 /*
-.toolbar-btn {
-    height: 35px;
-    min-width: 90px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: .2s;
-}*/
-/*
-    .toolbar-btn:hover {
-        background: #f8fafc;
-        box-shadow: 0 3px 8px rgba(0,0,0,.08);
-    }
-
-    .toolbar-btn i {
-        font-size: 15px;
-    }
-
-.toolbar-btn-save {
-    color: #228c37;
+.custom-dd-input::placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
 }
 
-.toolbar-btn-delete {
-    color: #ef4444;
+.custom-dd-input::-webkit-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
 }
 
-.toolbar-btn-clear {
-    color: #f59e0b;
+.custom-dd-input::-moz-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
 }
 
-.toolbar-btn-print {
-    color: #2563eb;
-}
-
-.toolbar-btn-fav {
-    color: #f59e0b;
+.custom-dd-input:-ms-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
 }*/
 
-.input-group {
-    display: flex;
-    flex-wrap: nowrap;
+.form-control::placeholder,
+.form-select::placeholder,
+.custom-dd-input::placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
 }
 
-    .input-group .custom-dd-wrapper {
-        flex: 1 1 auto;
-        width: 1%;
-        min-width: 0;
-    }
+.form-control::-webkit-input-placeholder,
+.custom-dd-input::-webkit-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
 
-    .input-group .btn {
-        flex: 0 0 auto;
-    }
+.form-control::-moz-placeholder,
+.custom-dd-input::-moz-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
+}
 
-.input-group-sm .custom-dd-box {
-    border-radius: .375rem 0 0 .375rem;
+.form-control:-ms-input-placeholder,
+.custom-dd-input:-ms-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+select.form-select option[value=""],
+select.form-control option[value=""] {
+    color: #8a9bb8;
+    font-style: italic;
 }

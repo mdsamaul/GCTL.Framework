@@ -4,117 +4,183 @@
         @Html.AntiForgeryToken()
 
         <input type="hidden" asp-for="JobNo" id="jobNoHidden" value="" />
-        <input type="hidden" asp-for="AutoId" id="autoId" value="0"/>
-        <div class="col-lg-4 col-md-6">
-            <label class="form-label">ETA Delivery Date</label>
-            <input asp-for="ETADeliveryDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" />
-            <span asp-validation-for="ETADeliveryDate" class="text-danger"></span>
+        <input type="hidden" asp-for="AutoId" id="autoId" value="0" />
+
+        @* ---------- ETA Delivery Date ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "etaDeliveryDate",
+            LabelText = "ETA Delivery Date",
+            FieldType = FieldType.Date,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-4 col-md-6",
+            IsRequired = false
+        })
+
+        @* ---------- Actual Delivery Date ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "actualDeliveryDate",
+            LabelText = "Actual Delivery Date",
+            FieldType = FieldType.Date,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-4 col-md-6",
+            IsRequired = false
+        })
+
+        @* ---------- Unstuffing Date ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "unstuffingDate",
+            LabelText = "Unstuffing Date",
+            FieldType = FieldType.Date,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-4 col-md-6",
+            IsRequired = false
+        })
+
+        @* ---------- Place of Loading (Select) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "placeOfLoadingId",
+            LabelText = "Place of Loading",
+            FieldType = FieldType.Select,
+            Placeholder = "Select Place",
+            SelectItems = ViewBag.PlaceOfLoading as SelectList,
+            ColumnClass = "col-lg-4 col-md-6",
+            IsRequired = false,
+            ReserveActionSlot = true,
+            ShowQuickAdd = true,
+            QuickAddUrl = Url.Action("Create", "PlaceOfLoading"),
+            QuickAddTarget = "#placeOfLoadingId",
+            QuickAddReloadUrl = Url.Action("GetPlaceOfLoading", "Cascading"),
+            QuickAddTitle = "Add Place of Loading"
+        })
+
+        @* ---------- ETD Date ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "etdDate",
+            LabelText = "ETD Date",
+            FieldType = FieldType.Date,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-4 col-md-6",
+            IsRequired = false
+        })
+
+        @* ---------- Shed / Yard (Select with QuickAdd) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "shedYardId",
+            LabelText = "Shed / Yard",
+            FieldType = FieldType.Select,
+            Placeholder = "Select Shed/Yard",
+            SelectItems = ViewBag.ShedYard as SelectList,
+            ColumnClass = "col-lg-4 col-md-6",
+            IsRequired = false,
+            ReserveActionSlot = true,
+            ShowQuickAdd = true,
+            QuickAddUrl = Url.Action("Create", "ShedYard"),
+            QuickAddTarget = "#shedYardId",
+            QuickAddReloadUrl = Url.Action("GetShedYard", "Cascading"),
+            QuickAddTitle = "Add Shed/Yard"
+        })
+
+        @* ---------- Freight Charge (Select with QuickAdd) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "freightChargeId",
+            LabelText = "Freight Charge",
+            FieldType = FieldType.Select,
+            Placeholder = "Select Freight Charge",
+            SelectItems = ViewBag.FreightCharge as SelectList,
+            ColumnClass = "col-lg-4 col-md-6",
+            IsRequired = false,
+            ReserveActionSlot = true,
+            ShowQuickAdd = true,
+            QuickAddUrl = Url.Action("Create", "FreightCharge"),
+            QuickAddTarget = "#freightChargeId",
+            QuickAddReloadUrl = Url.Action("GetFreightCharge", "Cascading"),
+            QuickAddTitle = "Add Freight Charge"
+        })
+
+        @* ---------- Highlighted Section: Shipment Status, Date & Time, Remarks ---------- *@
+        <div style="display: flex; background: #FFFFE0; align-content: center; align-items: center; padding: 12px; margin: 12px 0;">
+
+            @* ---------- Shipment Status (Select) ---------- *@
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "shipmentStatus",
+                LabelText = "Shipment Status",
+                FieldType = FieldType.Select,
+                Placeholder = "Select Shipment Status",
+                SelectItems = ViewBag.shipStatus as SelectList,
+                ColumnClass = "col-lg-4 col-md-6",
+                CustomCssClass = "flex-fill",
+                CustomAttributes = new Dictionary<string, string> { { "style", "padding-right:12px;" } },
+                IsRequired = false,
+                ReserveActionSlot = true
+            })
+
+            @* ---------- Date & Time (DualInput: Date + Time) ---------- *@
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "dateField",
+                LabelText = "Date & Time",
+                FieldType = FieldType.DualInput,
+                Placeholder = "Date",
+                ColumnClass = "col-lg-4 col-md-6",
+                CustomCssClass = "flex-fill",
+                CustomAttributes = new Dictionary<string, string> { { "style", "padding-left:12px;" } },
+                IsRequired = false,
+                ReserveActionSlot = true,
+                SecondField = new DynamicFieldColumnModel
+                {
+                    InputId = "timeField",
+                    Placeholder = "Time",
+                    FieldType = FieldType.Text,
+                    IsRequired = false
+                }
+            })
+
+            @* ---------- Remarks (Textarea) ---------- *@
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "updateRemarks",
+                LabelText = "Remarks",
+                FieldType = FieldType.Textarea,
+                Placeholder = "Shipment Status",
+                Rows = 1,
+                ColumnClass = "col-lg-4 col-md-6",
+                CustomCssClass = "flex-fill",
+                CustomAttributes = new Dictionary<string, string> { { "style", "padding-left:12px;" } },
+                IsRequired = false,
+                ReserveActionSlot = true
+            })
         </div>
 
-        <!-- Actual Delivery Date -->
-        <div class="col-lg-4 col-md-6">
-            <label class="form-label">Actual Delivery Date</label>
-            <input asp-for="ActualDeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
-                   id="actualDeliveryDate" />
-            <span asp-validation-for="ActualDeliveryDate" class="text-danger"></span>
-        </div>
-
-        <!-- Unstuffing Date -->
-        <div class="col-lg-4 col-md-6">
-            <label class="form-label">Unstuffing Date</label>
-            <input asp-for="UnstuffingDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffingDate" />
-            <span asp-validation-for="UnstuffingDate" class="text-danger"></span>
-        </div>
-
-        <!-- Place of Loading -->
-        <div class="col-lg-4 col-md-6">
-            <label class="form-label">Place of Loading</label>
-            <select asp-for="PlaceOfLoadingID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Place" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
-                <option value="">Select Place</option>
-            </select>
-            <span asp-validation-for="PlaceOfLoadingID" class="text-danger"></span>
-        </div>
-
-        <!-- ETD Date -->
-        <div class="col-lg-4 col-md-6">
-            <label class="form-label">ETD Date</label>
-            <input asp-for="ETDDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
-            <span asp-validation-for="ETDDate" class="text-danger"></span>
-        </div>
-
-        <!-- Shed / Yard -->
-        <div class="col-lg-4 col-md-6">
-            <label class="form-label">Shed / Yard</label>
-            <select asp-for="ShedYardID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shed/Yard" id="shedYardId" asp-items="ViewBag.ShedYard as SelectList">
-                <option value="">Select Shed/Yard</option>
-            </select>
-            <span asp-validation-for="ShedYardID" class="text-danger"></span>
-        </div>
-
-        <!-- Freight Charge -->
-        <div class="col-lg-4 col-md-6">
-            <label class="form-label">Freight Charge</label>
-            <select asp-for="FreightChargeID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Freight Charge" id="freightChargeId" asp-items="ViewBag.FreightCharge as SelectList">
-                <option value="">Select Freight Charge</option>
-            </select>
-            <span asp-validation-for="FreightChargeID" class="text-danger"></span>
-        </div>
-        <div class="col-lg-4 col-md-6"></div>
-        <div class="col-lg-4 col-md-6"></div>
-        <!-- Shipment Status (Highlighted) -->
-        <div style="display: flex;background: #FFFFE0;align-content: center;align-items: center;padding: 12px;margin: 12px 0;">
-
-                        
-            <div class="col-lg-4 col-md-6" style="padding-right:12px;">
-                <label class="form-label">Shipment Status</label>
-                <select asp-for="ShipmentStatus" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Status" asp-items="ViewBag.shipStatus as SelectList">
-                    <option value="">Select Shipment Status</option>
-                </select>
-                <span asp-validation-for="ShipmentStatus" class="text-danger"></span>
-            </div>
-            <!-- ETD Date -->
-            <!-- Quantity + Unit (Horizontal Group) -->
-            <div class="col-lg-4 col-md-6" style="padding-left: 12px;">
-                <label class="form-label">Date & Time</label>
-
-                <div class="row g-2">
-                    <div class="col flex-grow-1" style="min-width: 70px;">
-                        <input type="text"
-                               class="form-control form-control-sm custom-datepicker w-100"
-                               asp-for="Date" />
-                    </div>
-
-                    <div class="col-auto" style="min-width: 150px; margin-top: 6px;">
-                        <input type="text"
-                               class="form-control form-control-sm custom-timepicker w-100"
-                               asp-for="Time" />
-                    </div>
-                </div>
-
-                <span class="text-danger"></span>
-            </div>
-
-
-            <div class="col-lg-4 col-md-6" style="padding-left: 12px;">
-                <label class="form-label">Remarks</label>
-                <textarea class="form-control form-control-sm" placeholder="Shipment Status" rows="1" asp-for="UpdateRemarks"></textarea>
-                <span class="text-danger"></span>
-            </div>
-        </div>
-
-                       
-        <!-- Creation Date -->
-        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
-            <label class="form-label text-nowrap ">Creation Date:</label>
-            <span class="form-control-plaintext flex-grow-1 fs-9" id="creationDate"></span>
-        </div>
+        @* ---------- Creation Date (ReadonlyDisplay) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "creationDate",
+            LabelText = "Creation Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ColumnClass = "col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow",
+            IsRequired = false,
+            ReserveActionSlot = true
+        })
 
         <div class="col-lg-4 col-md-6 create-modify-dateshow"></div>
 
-        <!-- Updated Date -->
-        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
-            <label class="form-label  text-nowrap mb-0">Updated Date:</label>
-            <span class="form-control-plaintext flex-grow-1 fs-9" id="updatedDate"></span>
-        </div>
+        @* ---------- Updated Date (ReadonlyDisplay) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "updatedDate",
+            LabelText = "Updated Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ColumnClass = "col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow",
+            IsRequired = false,
+            ReserveActionSlot = true
+        })
     </div>
 </form>

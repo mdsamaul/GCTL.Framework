@@ -267,6 +267,7 @@
                     type: 'GET',
                     cache: false,
                     success: function (data) {
+                        console.log(data);
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));

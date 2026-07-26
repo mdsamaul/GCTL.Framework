@@ -127,23 +127,26 @@
                 <div class="card">
                     <div class="card-body p-2 pt-3">
                         <div class="js-BranchAddress-grid-container">
+
                             @await Html.PartialAsync("_CustomGrid", new GridModel
                             {
                                 GridId = "BranchAddress-grid",
-                                CheckAllId = "js-BranchAddress-checkall",
-                                Columns = new List<GridColumn>
+                                AjaxUrl = "/BranchAddress/GetTableData", 
+                                ServerSide = false,
+                                ShowCheckbox = true,
+                                CheckboxClass = "checkBox",
+                                CheckColumnData = "vendorBranchId",
+                                DefaultSortColumn = "vendorBranchId",
+                                Columns = new()
                                 {
-                                    new() { Header = "ID", Width="10%"  },
-                                    new() { Header = "Vendor Name",Width="30%" },
-                                    new() { Header = "Address" ,Width="17%" },
-                                    new() { Header = "Contact Person" ,Width="26%" },
-                                    new() { Header = "Phone",Width="17%" },
-                                },
-                                ShowCheckbox = true,   // ← add this
-                                Bordered = true,
-                                Striped = true
+                                    new() { Data = "vendorBranchId",IsEditLink=true,EditSelectorClass="js-BranchAddress-edit", Header = "ID", Width = "5%" },
+                                    new() { Data = "name", Header = "Vendor Name", Width = "25%", Align="left" },
+                                    new() { Data = "locationAddress", Header = "Address", Width = "30%",Align="left" },
+                                    new() { Data = "contactPersonName", Header = "Contact Person", Width = "25%", Align = "left" },
+                                    new() { Data = "phone", Header = "Phone", Width = "12%" }
+                                }
                             })
-
+                           
                         </div>
                     </div>
                 </div>

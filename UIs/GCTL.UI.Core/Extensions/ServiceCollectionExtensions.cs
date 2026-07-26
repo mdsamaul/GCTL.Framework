@@ -12,7 +12,7 @@ using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
 using GCTL.Service.ChartOfAccounts.SubControlLedger;
 using GCTL.Service.ChartOfAccounts.SubSidiaryLedger;
-using GCTL.Service.CNFMaster.VendorPrefixs;
+//using GCTL.Service.CNFMaster.VendorPrefixs;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
 using GCTL.Service.ContactPersonInfo;
@@ -50,6 +50,7 @@ using GCTL.Service.PortType;
 using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.ShipmentMode;
+using GCTL.Service.ShipmentModeLedgerSetup;
 using GCTL.Service.SupplierCategory;
 using GCTL.Service.SupplierInformation;
 using GCTL.Service.SupplierOrigin;
@@ -61,6 +62,7 @@ using GCTL.Service.Update;
 
 using GCTL.Service.Users;
 using GCTL.Service.VendorInfo;
+using GCTL.Service.VendorPrefix;
 using GCTL.Service.VoucherType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -159,7 +161,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<IHRMCompanyWeekEndService, HRMCompanyWeekEndService>();
             services.AddScoped<IPortTypeService, PortTypeService>();
-            services.AddScoped<IVendorPrefixService, VendorPrefixService>();
+            //services.AddScoped<IVendorPrefixService, VendorPrefixService>();
             services.AddScoped<IPortNameService, PortNameService>();
             services.AddScoped<ITransportInformationService, TransportInformationService>();
             services.AddScoped<ITransportTypeService, TransportTypeService>();
@@ -169,6 +171,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IContactPersonInfoService, ContactPersonInfoService>();
             services.AddScoped<IVendorInfoService, VendorInfoService>();
             services.AddScoped<IBranchAddressService, BranchAddressService>();
+            services.AddScoped<IVendorPrefixService, VendorPrefixService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
@@ -184,6 +187,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IDailyJobUpdateEntryService, DailyJobUpdateEntryService>();
             services.AddScoped<Ioperational, OperationalService>();
             services.AddScoped<IMenuBreadcrumbService, MenuBreadcrumbService>();
+            services.AddScoped<IShipmentModeLedgerSetupService, ShipmentModeLedgerSetupService>();
             services.AddMemoryCache();
         }
 
