@@ -32,7 +32,7 @@
         <div class="col-lg-6">
             <label asp-for="DesignationCode">Designation</label>
             <div class="input-group">
-                <select asp-for="DesignationCode" class="form-control form-control-sm custom-select-single" tabindex="2" data-placeholder="-- Select Designation --" asp-items="@ViewBag.DesignationDD as SelectList">
+                <select asp-for="DesignationCode" class="form-control form-control-sm selectpickers9" tabindex="2" data-placeholder="-- Select Designation --" asp-items="@ViewBag.DesignationDD as SelectList">
                     <option></option>
                 </select>
             </div>
@@ -78,15 +78,8 @@
 </div>
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-        {
-            Title = "",
-            ShowClear = false,
-            ShowDelete = false,
-            ShowPrint = false,
-            ShowFavorite = false,
-            IsPlain = true,
-            SaveBtnClass = "ContactPersonInfo"
-        })
+        <button type="button" class="btn btn-default success-btn btn btn-outline-success btn-common btn-circle float-right js-ContactPersonInfo-save" data-id="@Model.Cpid">
+            <i class="fas fa-save"></i> Save
+        </button>
     </div>
 </div>

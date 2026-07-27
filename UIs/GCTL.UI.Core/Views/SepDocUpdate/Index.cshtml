@@ -482,10 +482,10 @@
                         Placeholder = "Select Customer",
                         SelectItems = ViewBag.CustomerName as SelectList,
                         ShowQuickAdd = true,
-                        QuickAddUrl = Url.Action("Index", "Companies"),
-                        QuickAddTarget = "#CompanyCode",
-                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                        QuickAddTitle = "Company"
+                        QuickAddUrl = Url.Action("Index", "SalesCustomer"),
+                        QuickAddTarget = "#customerId",
+                        QuickAddReloadUrl = Url.Action("GetCustomerName", "Cascading"),
+                        QuickAddTitle = "Customer Name"
                     })
 
                     @* ---------- Customer Address (Textarea) ---------- *@
@@ -509,10 +509,10 @@
                         Placeholder = "Select Customer Delivery",
                         SelectItems = ViewBag.CustomerDeliveryAddress as SelectList,
                         ShowQuickAdd = true,
-                        QuickAddUrl = Url.Action("Index", "Companies"),
-                        QuickAddTarget = "#CompanyCode",
-                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                        QuickAddTitle = "Company",
+                        QuickAddUrl = Url.Action("Index", "SalesCustomer"),
+                        QuickAddTarget = "#deliveryLocationCode",
+                        QuickAddReloadUrl = Url.Action("GetCustomerName", "Cascading"),
+                        QuickAddTitle = "Customer Address",
                         IsRequired=true,
                         
                     })
@@ -650,10 +650,10 @@
                         Placeholder = "Select Importer",
                         SelectItems = ViewBag.ImporterName as SelectList,
                         ShowQuickAdd = true,
-                        QuickAddUrl = Url.Action("Index", "Companies"),
-                        QuickAddTarget = "#CompanyCode",
-                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                        QuickAddTitle = "Company"
+                        QuickAddUrl = Url.Action("Index", "ImporterInfo"),
+                        QuickAddTarget = "#importerId",
+                        QuickAddReloadUrl = Url.Action("GetImporter", "Cascading"),
+                        QuickAddTitle = "Importer Info"
                     })
 
                    
@@ -771,10 +771,10 @@
                             FieldType= FieldType.Select,
                             SelectItems = ViewBag.QuantityUnit as SelectList,
                             ShowQuickAdd = true,
-                            QuickAddUrl = Url.Action("Index", "Companies"),
-                            QuickAddTarget = "#CompanyCode",
-                            QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                            QuickAddTitle = "Company"
+                            QuickAddUrl = Url.Action("Index", "UnitType"),
+                            QuickAddTarget = "#unit1",
+                            QuickAddReloadUrl = Url.Action("GetUnite", "Cascading"),
+                            QuickAddTitle = "Unit Type"
                         }
                     })
 
@@ -793,10 +793,10 @@
                             FieldType=FieldType.Select,
                             SelectItems = ViewBag.QuantityUnit as SelectList,
                             ShowQuickAdd = true,
-                            QuickAddUrl = Url.Action("Index", "Companies"),
-                            QuickAddTarget = "#CompanyCode",
-                            QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                            QuickAddTitle = "Company"
+                            QuickAddUrl = Url.Action("Index", "UnitType"),
+                            QuickAddTarget = "#unit2",
+                            QuickAddReloadUrl = Url.Action("GetUnite", "Cascading"),
+                            QuickAddTitle = "Unit Type"
                         }
                     })
 
