@@ -213,9 +213,9 @@
 
     <div class="form-group row">
         @* ---------- Contact Person (MultiSelect + Quick Add) ---------- *@
-        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        @* @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
-            InputId = "ContactPerson",
+            InputId = "Cpid",
             LabelText = "Contact Person",
             FieldType = FieldType.MultiSelect,
             Placeholder = "Select Contact Person",
@@ -226,7 +226,22 @@
             QuickAddTarget = "#ContactPerson",
             QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
             QuickAddTitle = "Contact Person Info"
-        })
+        }) *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+{
+    InputId = "Cpid",
+    LabelText = "Contact Person",
+    FieldType = FieldType.MultiSelect,
+    Placeholder = "Select Contact Person",
+    SelectItems = ViewBag.ContactDD as SelectList,
+    ColumnClass = "col-lg-6",
+    ShowQuickAdd = true,
+    QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+    QuickAddTarget = "#ContactPerson",
+    QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+    QuickAddTitle = "Contact Person Info",
+    CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
+})
 
         @* ---------- Remarks ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -281,7 +296,7 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "VendorInfo",
+            SaveBtnClass = "js-VendorInfo-save",
             ReserveActionSlot = true,
             IsMarginRight = true
         })

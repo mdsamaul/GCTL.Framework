@@ -7,6 +7,7 @@ using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchAddress;
 using GCTL.Service.BranchesTypeInfo;
+using GCTL.Service.CfDefPlaceOfLoading;
 using GCTL.Service.ChartOfAccounts.ControlLedger;
 using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
@@ -181,6 +182,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IAccessCodeService, AccessCodeService>();
 
             services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<ICfDefPlaceOfLoadingService, CfDefPlaceOfLoadingService>();
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IShipmentStatusService, ShipmentStatusService>();

@@ -48,7 +48,7 @@
             $('#sectionBreak').hide();
 
             //#region formatDateTime
-
+            loadContactPersonsTable();
             function formatDateTime(dateStr) {
                 var date = new Date(dateStr);
                 return date.toLocaleString('en-GB', {
@@ -66,7 +66,7 @@
             //#region GetById
 
             $(document).on('click', '.js-VendorInfo-edit', function (e) {
-                
+
                 e.preventDefault();
                 var id = $(this).data('id');
                 $.ajax({
@@ -94,9 +94,9 @@
                             $('#Fax').val(data.fax);
                             $('#Email').val(data.email);
                             $('#Website').val(data.website);
-                            $('#Cpid').val(data.cpid).trigger('change');
-                            window.reinitCustomDropdownById('Cpid');
                             $('#Remarks').val(data.remarks);
+
+                            loadContactPersonsTableForEdit(data.cpid);
 
                             $('#LdateModifyHide').show();
                             $('#sectionBreak').show();
@@ -125,7 +125,7 @@
             //#region Save
 
             $("body").on("click", settings.saveSelector, function () {
-                debugger
+    
                 validation();
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
@@ -254,6 +254,22 @@
 
             //#endregion
 
+            $('body').on('click', '.load-branch-btn', function () {
+                debugger
+                $.ajax({
+                    url: '/BranchAddress/Index',
+                    type: 'GET',
+                    success: function (res) {
+                        $('#branchAddressContent').html(res);
+                        // Switch to tab
+                        new bootstrap.Tab(document.querySelector('#vendorTabs a[href="#branchAddress"]')).show();
+                    },
+                    error: function () {
+                        alert('Error loading branch address');
+                    }
+                });
+            });
+
             //#region topSelector & decimalSelector
 
             $("body").on("click", settings.topSelector, function (e) {
@@ -345,17 +361,20 @@
         //#region ResetVendorInfoForm
 
         $(document).on('click', '.js-VendorInfo-clear', function () {
+
             ResetVendorInfoForm();
-            loadTable(); // if applicable
+
+            $.get('/VendorInfo/GetNewVendorId', function (res) {
+                $('#VendorId').val(res.vendorId);
+            });
+
+            // loadTable();
         });
 
         function ResetVendorInfoForm() {
-            // Reset hidden/control fields
             $('#Tc').val(0);
             $('#Id').val('');
-            $('#VendorId').val('');
 
-            // Reset text inputs
             $('#VendorCode').val('');
             $('#Name').val('');
             $('#Address').val('');
@@ -371,20 +390,14 @@
 
             setSelect('#VendorPrefix', '', false);
             setSelect('#CountryId', '', false);
-            setSelect('#Cpid', '', false);
+            loadContactPersonsTable();
 
-            // Hide sections
             $('#LdateModifyHide').hide();
 
-            // Optional: clear checkbox selections if you have a grid
             selectedItems?.clear?.();
 
             $("#VendorInfo-check-all").prop("checked", false);
             $('#VendorInfo-grid input[type="checkbox"]').prop('checked', false);
-
-            // Optional: hide additional containers
-            // $('#sectionBreak').hide();
-            // $('#employeeIdContainer').addClass('d-none');
         }
 
         //#endregion
@@ -413,6 +426,84 @@
         }
 
         //#endregion
+        function loadContactPersonsTableForEdit(selectedCpid) {
+            $.ajax({
+                url: '/VendorInfo/GetContactPersonsForTable',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        var contactItems = response.data.map(function (c) {
+                            return {
+                                id: c.id,
+                                text: c.name,
+                                designation: c.designation,
+                                phone: c.phone,
+                                email: c.email
+                            };
+                        });
+
+                        var selectedValues = [];
+                        if (selectedCpid) {
+                            selectedValues = Array.isArray(selectedCpid)
+                                ? selectedCpid
+                                : selectedCpid.toString().split(',').map(x => x.trim()).filter(x => x);
+                        }
+
+                        setSelect(
+                            '#Cpid',
+                            selectedValues,
+                            false,
+                            contactItems,
+                            true,
+                            'Select Contact Person(s)'
+                        );
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Error loading contact persons');
+                }
+            });
+        }
+       
+        
+     
+
+        function loadContactPersonsTable() {
+
+            $.ajax({
+                url: '/VendorInfo/GetContactPersonsForTable',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        var contactItems = response.data.map(function (c) {
+                            return {
+                                id: c.id,
+                                text: c.name,
+                                designation: c.designation,
+                                phone: c.phone,
+                                email: c.email
+                            };
+                        });
+
+                        setSelect(
+                            '#Cpid',
+                            [],
+                            false,
+                            contactItems,
+                            true,
+                            'Select Contact Person(s)'
+                        );
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Error loading contact persons');
+                }
+            });
+        }
 
     }
 

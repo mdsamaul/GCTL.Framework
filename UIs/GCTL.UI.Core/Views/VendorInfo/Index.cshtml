@@ -1,10 +1,9 @@
-﻿@model GCTL.UI.Core.ViewModels.VendorInfo.VendorInfoPageViewModel
-
-@{
+﻿@model GCTL.UI.Core.ViewModels.VendorInfo.VendorInfoPageViewModel;
+@* @{
     Model.PageTitle = ViewBag.Title;
     ViewBag.Title = "Vendor Info";
     Model.Breadcrumb = "Vendor Info";
-}
+} *@
 
 <style>
     #VendorInfoDeleteModalBodyHeightFeixd {
@@ -109,7 +108,14 @@
                             ClearBtnClass = "js-VendorInfo-clear"
                         })
                     </div>
+                  
 
+                   <div>
+                        @if (Model.TabModel != null)
+                        {
+                            @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
+                        }
+                    </div>
                     <div class="card-body px-2">
 
                         <form asp-action="Setup" method="post" id="VendorInfo-form" asp-controller="VendorInfo">

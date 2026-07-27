@@ -110,4 +110,8 @@
     <ProjectReference Include="..\..\Libraries\GCTL.Service\GCTL.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\js\tabs\" />
+  </ItemGroup>
+
 </Project>
