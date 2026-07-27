@@ -1,0 +1,76 @@
+﻿@model GCTL.UI.Core.ViewModels.Relationship.RelationshipPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Relationship Info ";
+    Model.Breadcrumb = "Relationship Info ";
+}
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 pr-0">
+                <div class="card">
+                    <div class="card-header px-2">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Relationship Info",
+                            SaveBtnClass = "js-Relationships-save",
+                            DeleteBtnClass = "js-Relationships-delete-confirm",
+                            ClearBtnClass = "js-Relationships-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+
+                        <form asp-action="Setup" method="post" id="Relationships-form" asp-controller="Relationships">
+
+
+                            <partial name="_Setup" model="Model.Setup" />
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body p-2 pt-3">
+                        <div class="js-Relationships-grid-container">
+
+                            @await Html.PartialAsync("_Grid", Model.RelationshipList)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/relationships.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "Relationships")'
+        };
+        options.load = () => {
+        };
+
+        $.relationships(options);
+    </script>
+}

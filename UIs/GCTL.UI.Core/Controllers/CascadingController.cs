@@ -7,8 +7,10 @@ using GCTL.Service.BranchesTypeInfo;
 using GCTL.Service.Companies;
 using GCTL.Service.ContactPersonInfo;
 using GCTL.Service.Country;
+using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
+using GCTL.Service.ImporterInfo;
 using GCTL.Service.ModeType;
 using GCTL.Service.Nationalitys;
 using GCTL.Service.PaymentModes;
@@ -18,6 +20,7 @@ using GCTL.Service.Religions;
 using GCTL.Service.SupplierCategory;
 using GCTL.Service.SupplierOrigin;
 using GCTL.Service.TransportType;
+using GCTL.Service.UnitType;
 using GCTL.Service.VendorPrefix;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -45,6 +48,9 @@ namespace GCTL.UI.Core.Controllers
         private readonly IModeTypeService modeTypeService;
         private readonly IVendorPrefixService vendorPrefixService;
         private readonly IContactPersonInfoService contactPersonInfoService;
+        private readonly ISalesCustomerService salesCustomerService;
+        private readonly IImporterInfoService importerInfoService;
+        private readonly IUnitType unitType;
 
         public CascadingController(
             IBloodGroupService bloodGroupService,
@@ -65,7 +71,10 @@ namespace GCTL.UI.Core.Controllers
              ITransportTypeService transportTypeService,
              IModeTypeService modeTypeService,
              IVendorPrefixService vendorPrefixService,
-             IContactPersonInfoService contactPersonInfoService
+             IContactPersonInfoService contactPersonInfoService,
+             ISalesCustomerService salesCustomerService,
+             IImporterInfoService importerInfoService,
+             IUnitType unitType
 
             )
         {
@@ -87,6 +96,9 @@ namespace GCTL.UI.Core.Controllers
             this.modeTypeService = modeTypeService;
             this.vendorPrefixService = vendorPrefixService;
             this.contactPersonInfoService = contactPersonInfoService;
+            this.salesCustomerService = salesCustomerService;
+            this.importerInfoService = importerInfoService;
+            this.unitType = unitType;
 
         }
 
@@ -195,6 +207,21 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> GetContacts()
         {
             return Json(await contactPersonInfoService.SelectionContactPersonAsync());
+        }
+
+        public async Task<IActionResult> GetCustomerName()
+        {
+            return Json(await salesCustomerService.SelectionCustomerAsync());
+        }
+
+        public async Task<IActionResult> GetImporter()
+        {
+            return Json(await importerInfoService.SelectionImporterInfoAsync());
+        }
+
+        public async Task<IActionResult> GetUnite()
+        {
+            return Json(await unitType.SelectionUnitTypeAsync());
         }
 
     }

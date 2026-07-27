@@ -211,6 +211,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Core_PeriodInfo]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Core_ServiceType]",
          "ObjectType": 0
       },
@@ -255,6 +259,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HMS_Shift]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Holidays]",
          "ObjectType": 0
       },
@@ -263,7 +271,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_ATD_Holiday]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_ATD_Shift]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_ClientInfo]",
          "ObjectType": 0
       },
       {
@@ -276,6 +292,10 @@
       },
       {
          "Name": "[dbo].[HRM_Def_Designation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_District]",
          "ObjectType": 0
       },
       {
@@ -292,6 +312,14 @@
       },
       {
          "Name": "[dbo].[HRM_Def_Grade]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_GradeType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_HolidayType]",
          "ObjectType": 0
       },
       {
@@ -312,6 +340,10 @@
       },
       {
          "Name": "[dbo].[HRM_Def_Sex]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EIS_Def_DisbursementMethod]",
          "ObjectType": 0
       },
       {
