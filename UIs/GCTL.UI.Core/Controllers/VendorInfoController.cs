@@ -1,5 +1,6 @@
 ﻿using GCTL.Core.Data;
 using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportInformation;
 using GCTL.Core.ViewModels.VendorInfo;
@@ -26,11 +27,11 @@ namespace GCTL.UI.Core.Controllers
 
         public VendorInfoController(
             IVendorInfoService vendorInfoService,
-            IRepository<SalesContactPerson> contactPersonrepository, 
+            IRepository<SalesContactPerson> contactPersonrepository,
             IRepository<CaDefCountry> caDefCountryRepository,
             IRepository<CfDefVendorPrefix> vendorPrefixrepository,
             ICommonService commonService
-            
+
         )
         {
             this.vendorInfoService = vendorInfoService;
@@ -44,6 +45,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Index
 
+        // VendorInfoController.cs
         public async Task<IActionResult> Index()
         {
             var hasPermission = await vendorInfoService.PagePermissionAsync(LoginInfo.AccessCode);
@@ -59,7 +61,6 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
-
                 var list = await vendorInfoService.GetAllAsync();
                 model.VendorInfoList = list ?? new List<VendorInfoSetupViewModel>();
 
@@ -74,10 +75,31 @@ namespace GCTL.UI.Core.Controllers
                     VendorId = strMaxNO
                 };
 
+                model.TabModel = new TabGroupModel
+                {
+                    GroupId = "vendorTabGroup",
+                    Tabs = new List<TabItemModel>
+                    {
+                        new TabItemModel
+                        {
+                            TabId = "vendorInfo",
+                            TabTitle = "Vendor Info",
+                            ControllerName = "VendorInfo",
+                            ActionName = "Index",
+                            IsActive = true
+                        },
+                        new TabItemModel
+                        {
+                            TabId = "branchAddress",
+                            TabTitle = "Branch Address",
+                            ControllerName = "BranchAddress",
+                            ActionName = "Index"
+                        }
+                    }
+                };
             }
             catch (Exception ex)
             {
-
                 model.VendorInfoList = new List<VendorInfoSetupViewModel>();
                 model.Setup = new VendorInfoSetupViewModel();
                 Console.WriteLine("Error" + ex.Message);
@@ -117,7 +139,12 @@ namespace GCTL.UI.Core.Controllers
 
 
             ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName", model.CountryId);
-            ViewBag.VendorPrefixDD = new SelectList(vendorPrefixrepository.All(), "VendorPrefixId", "VendorPrefixName", model.VendorPrefix);
+            ViewBag.VendorPrefixDD = new SelectList(
+      vendorPrefixrepository.All(),
+      "VendorPrifixId",
+      "PrifixName",
+      model.VendorPrefix
+  );
             ViewBag.ContactDD = new SelectList(contactPersonrepository.All(), "Cpid", "ContactPersonName", model.Cpid);
 
             return PartialView($"_{nameof(Setup)}", model);
@@ -145,10 +172,6 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (await vendorInfoService.IsExistAsync(modelVM.Name, modelVM.VendorId))
-                {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
-                }
 
 
                 if (!ModelState.IsValid)
@@ -164,6 +187,10 @@ namespace GCTL.UI.Core.Controllers
                     var hasSavePermission = await vendorInfoService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)
                     {
+                        if (await vendorInfoService.IsExistAsync(modelVM.Name, modelVM.VendorId))
+                        {
+                            return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                        }
                         await vendorInfoService.SaveAsync(modelVM);
                         return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.VendorId });
 
@@ -248,6 +275,25 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
+
+        [HttpGet]
+        public IActionResult GetNewVendorId()
+        {
+            string maxNo = string.Empty;
+
+            commonService.FindMaxNo(ref maxNo, "VendorID", "Core_VendorInformation", 4);
+
+            return Json(new { vendorId = maxNo });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetContactPersonsForTable()
+        {
+            var result = await vendorInfoService.GetContactPersonsForTableAsync();
+            return Json(result);
+        }
+
+
 
     }
 }

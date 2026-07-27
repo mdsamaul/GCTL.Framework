@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.Common;
+﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportInformation;
 using GCTL.Core.ViewModels.VendorInfo;
@@ -33,5 +34,6 @@ namespace GCTL.Service.VendorInfo
         Task<bool> DeletePermissionAsync(string accessCode);
         Task UpdateAsync(VendorPrefixSetupViewModel modelVM);
         Task SaveAsync(VendorPrefixSetupViewModel modelVM);
+        Task<CommonReturnViewModel> GetContactPersonsForTableAsync();
     }
 }

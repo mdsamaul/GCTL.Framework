@@ -77,6 +77,7 @@
         }
     </div>
 </div> *@
+
 @model ToobarModel
 @{
     var containerPadding = Model.IsPlain ? "" : "";
@@ -84,11 +85,11 @@
     var containerStyle = Model.IsMarginRight ? "padding-right: 46px !important;" : "";
     var extraClass = Model.ReserveActionSlot ? "pe-0" : "pe-3";
 }
-<div class="d-flex justify-content-between align-items-center px-1 py-1 @containerPadding @extraClass mb-3 sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border") flex-nowrap toolbar-container"
+<div class="d-flex justify-content-between align-items-center px-1 py-1 @containerPadding @extraClass sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border") flex-nowrap toolbar-container"
      style="@containerStyle">
 
     <div class="d-flex align-items-center py-1 ps-2 toolbar-title-wrap">
-        <span class="fw-bold text-dark m-0 toolbar-title">
+        <span class="fw-normal text-dark m-0 toolbar-title">
             @Model.Title
         </span>
     </div>

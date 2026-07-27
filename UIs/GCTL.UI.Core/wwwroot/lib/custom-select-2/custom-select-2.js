@@ -582,9 +582,8 @@
             var result = key.replace(/([A-Z])/g, ' $1');
             return result.charAt(0).toUpperCase() + result.slice(1);
         }
-
-        var theadHtml = '<th></th>' + columns.map(function (col) {
-            return '<th>' + formatHeader(col) + '</th>';
+        var theadHtml = '<th class="text-center"></th>' + columns.map(function (col) {
+            return '<th class="text-center">' + formatHeader(col) + '</th>';
         }).join('');
 
         var rowsHtml = items.map(function (item) {

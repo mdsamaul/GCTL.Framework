@@ -1,4 +1,5 @@
 ﻿using GCTL.Core.Data;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.VendorInfo;
@@ -6,6 +7,7 @@ using GCTL.Core.ViewModels.VendorPrefix;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
+using GCTL.Service.Designations;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -26,7 +28,7 @@ namespace GCTL.Service.VendorInfo
         private readonly IRepository<CoreAccessCode> accessCodeRepository;
         private readonly ICommonService commonService;
         private readonly IDeleteHistoryService deleteHistoryService;
-
+        private readonly IRepository<HrmDefDesignation> desiRepo;
         string strMaxNO = string.Empty;
         private const string TableName = "Core_VendorInformation";
         private const string ColumnName = "VendorID";
@@ -38,7 +40,8 @@ namespace GCTL.Service.VendorInfo
             IRepository<CoreAccessCode> accessCodeRepository,
             IRepository<CfDefVendorPrefix> vendorPrefixrepository,
              ICommonService commonService,
-            IDeleteHistoryService deleteHistoryService
+            IDeleteHistoryService deleteHistoryService,
+            IRepository<HrmDefDesignation> desiRepo
 
             ) 
             
@@ -51,6 +54,7 @@ namespace GCTL.Service.VendorInfo
             this.accessCodeRepository = accessCodeRepository;
             this.commonService = commonService;
             this.deleteHistoryService = deleteHistoryService;
+            this.desiRepo = desiRepo;
         }
 
         #endregion
@@ -335,6 +339,42 @@ namespace GCTL.Service.VendorInfo
             throw new NotImplementedException();
         }
         #endregion
+
+        public async Task<CommonReturnViewModel> GetContactPersonsForTableAsync()
+        {
+            try
+            {
+                var data = await (
+                    from cp in contactPersonrepository.All().AsNoTracking()
+                    join d in desiRepo.All().AsNoTracking()
+                        on cp.DesignationCode equals d.DesignationCode into dg
+                    from d in dg.DefaultIfEmpty()
+                    select new ContactPersonTableDto
+                    {
+                        Id = cp.Cpid,
+                        Name = cp.ContactPersonName ?? "",
+                        Designation = d != null ? d.DesignationName : "",
+                        Phone = cp.ContactPersonMobile ?? "",
+                        Email = cp.ContactPersonEmail ?? ""
+                    }
+                ).ToListAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = "Contact persons fetched successfully",
+                    Data = data
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
 
     }
 }

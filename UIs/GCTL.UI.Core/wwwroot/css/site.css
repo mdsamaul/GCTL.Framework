@@ -1167,3 +1167,18 @@ select.form-control option[value=""] {
     color: #8a9bb8;
     font-style: italic;
 }
+
+/* All table headers */
+.table thead th,
+table.dataTable thead th,
+.table-common thead th {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+
+/* Header row */
+.table thead tr,
+table.dataTable thead tr {
+    vertical-align: middle !important;
+}
