@@ -530,10 +530,10 @@
                         Placeholder = "Select Port",
                         SelectItems = ViewBag.PortName as SelectList,
                         ShowQuickAdd = true,
-                        QuickAddUrl = Url.Action("Index", "Companies"),
-                        QuickAddTarget = "#CompanyCode",
-                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                        QuickAddTitle = "Company"
+                        QuickAddUrl = Url.Action("Index", "PortName"),
+                        QuickAddTarget = "#portId",
+                        QuickAddReloadUrl = Url.Action("GetPortName", "Cascading"),
+                        QuickAddTitle = "Port Name"
                     })
 
                     @* ---------- Doc's Received Date — no button needed ---------- *@
