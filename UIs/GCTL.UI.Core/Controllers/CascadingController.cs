@@ -182,6 +182,10 @@ namespace GCTL.UI.Core.Controllers
         {
             return Json(await modeTypeService.SelectionTransportModeTypeAsync());
         }
+        public async Task<IActionResult> GetPortName()
+        {
+            return Json(await portNameService.SelectionPortNameAsync());
+        }
 
         public async Task<IActionResult> GetVendorPrefixs()
         {
