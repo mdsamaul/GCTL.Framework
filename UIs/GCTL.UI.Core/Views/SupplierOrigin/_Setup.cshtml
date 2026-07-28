@@ -1,4 +1,5 @@
 ﻿@model GCTL.Core.ViewModels.SupplierOrigin.SupplierOriginSetupViewModel
+@using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
     <div class="row">
@@ -8,6 +9,7 @@
         <div class="col-lg-6">
         </div>
     </div>
+
     <div class="form-group row">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -16,47 +18,67 @@
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <div class="col-lg-6">
-            <label asp-for="SupplierOriginId">ID </label>
-            <div class="input-group input-group-sm">
-                <input asp-for="SupplierOriginId" type="text" class="form-control form-control-sm js-SupplierOriginId-code" readonly="readonly" />
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <label asp-for="SupplierOrigin">Supplier Origin <span style="color:red">*</span> </label>
-            <input type="text" asp-for="SupplierOrigin" class="form-control form-control-sm js-SupplierOrigin-check-duplicateName" autofocus required placeholder="Enter Supplier Origin" tabindex="1" />
-        </div>
+
+        @* ---------- ID (readonly) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "SupplierOriginId",
+            LabelText = "ID",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-SupplierOriginId-code",
+            DefaultValue = Model?.SupplierOriginId
+        })
+
+        @* ---------- Supplier Origin ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "SupplierOrigin",
+            LabelText = "Supplier Origin",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Supplier Origin",
+            IsRequired = true,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-SupplierOrigin-check-duplicateName",
+            DefaultValue = Model.SupplierOrigin
+        })
     </div>
 
     @if (Model.Tc > 0)
     {
-
         <hr />
         <div class="form-group row" id="LdateModifyHide">
-            <div class="col-lg-6">
-                @if (Model.Ldate.HasValue)
-                {
-                    <label>Creation Date: </label>
 
-                    <label>@Model.Ldate?.ToString("dd/MM/yyyy")</label>
-                }
-            </div>
-            <div class="col-lg-6">
-                @if (Model.ModifyDate.HasValue)
-                {
-                    <label>Last Update Date: </label>
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
+            })
 
-                    <label>@Model.ModifyDate?.ToString("dd/MM/yyyy")</label>
-                }
-            </div>
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
+            })
+
         </div>
-
     }
 
 </div>
+
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
             ShowClear = false,
@@ -64,7 +86,9 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "js-SupplierOrigin-save"
+            SaveBtnClass = "js-SupplierOrigin-save",
+            ReserveActionSlot = true,
+            IsMarginRight = true
         })
     </div>
 </div>

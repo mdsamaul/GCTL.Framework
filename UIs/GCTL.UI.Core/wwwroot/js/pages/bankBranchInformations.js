@@ -200,19 +200,19 @@
 
         }
 
-        function select2DD() {
-            $('.selectpickerBankDD').select2({
-                width: '100%',
-                language: {
-                    noResults: function () {
+        // function select2DD() {
+        //     $('.selectpickerBankDD').select2({
+        //         width: '100%',
+        //         language: {
+        //             noResults: function () {
 
-                    }
-                },
-                escapeMarkup: function (markup) {
-                    return markup;
-                }
-            });
-        }
+        //             }
+        //         },
+        //         escapeMarkup: function (markup) {
+        //             return markup;
+        //         }
+        //     });
+        // }
 
 
         function loadTableData() {
@@ -261,7 +261,7 @@
 
             $(settings.formSelector)[0].reset();
             $('#BankBranchAutoId').val('');
-            $('.selectpickerBankDD').val(null).trigger('change');
+           // $('.selectpickerBankDD').val(null).trigger('change');
             $('#BankBranchMasterId').val('');
             $('#BankBranchName').val('');
             $('#Address').val('');

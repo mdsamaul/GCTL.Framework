@@ -10,6 +10,7 @@ namespace GCTL.UI.Core.Controllers
 {
     public class RelationshipsController : BaseController
     {
+        #region Service 
         private readonly IRelationshipsService service;
         private readonly ICommonService commonService;
         string strMaxNO = "";
@@ -19,7 +20,10 @@ namespace GCTL.UI.Core.Controllers
             this.commonService = commonService;
         }
 
+        #endregion
+
         #region GettALLById
+
         public async Task<IActionResult> Index(string? id)
         {
             var hasPermission = await service.PagePermissionAsync(LoginInfo.AccessCode);
@@ -27,26 +31,75 @@ namespace GCTL.UI.Core.Controllers
             {
                 return RedirectToAction("Login", "Accounts");
             }
-            //Get all
-            RelationshipPageViewModel model = new RelationshipPageViewModel();
-            var list = await service.GetAllAsync();
-            model.RelationshipList = list ?? new List<RelationshipSetupViewModel>();
 
-            //Get By Id
-            if (!string.IsNullOrEmpty(id))
+            var model = new RelationshipPageViewModel
             {
+                PageUrl = Url.Action(nameof(Index))
+            };
 
-                model.Setup = await service.GetByIdAsync(id);
+            try
+            {
+                // Get all records
+                var list = await service.GetAllAsync();
+                model.RelationshipList = list ?? new List<RelationshipSetupViewModel>();
 
+                // Get by Id or create new setup
+                if (!string.IsNullOrEmpty(id))
+                {
+                    model.Setup = await service.GetByIdAsync(id);
+                }
+                else
+                {
+                    commonService.FindMaxNo(ref strMaxNO, "RelationshipCode", "HRM_Def_Relationship", 2);
+
+                    model.Setup = new RelationshipSetupViewModel
+                    {
+                        RelationshipCode = strMaxNO
+                    };
+                }
             }
-            //
+            catch (Exception ex)
+            {
+                model.RelationshipList = new List<RelationshipSetupViewModel>();
+                model.Setup = new RelationshipSetupViewModel();
 
-            //
-            model.PageUrl = Url.Action(nameof(Index));
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
+
             return View(model);
         }
-        #endregion
 
+        //public async Task<IActionResult> Index(string? id)
+        //{
+        //    var hasPermission = await service.PagePermissionAsync(LoginInfo.AccessCode);
+        //    if (!hasPermission)
+        //    {
+        //        return RedirectToAction("Login", "Accounts");
+        //    }
+        //    //Get all
+        //    RelationshipPageViewModel model = new RelationshipPageViewModel();
+        //    var list = await service.GetAllAsync();
+        //    model.RelationshipList = list ?? new List<RelationshipSetupViewModel>();
+
+        //    //Get By Id
+        //    if (!string.IsNullOrEmpty(id))
+        //    {
+
+        //        model.Setup = await service.GetByIdAsync(id);
+
+        //    }
+        //    //
+
+        //    //
+        //    model.PageUrl = Url.Action(nameof(Index));
+        //    return View(model);
+        //}
+        #endregion
 
         #region Post Update 
         [HttpPost]
@@ -104,7 +157,6 @@ namespace GCTL.UI.Core.Controllers
         }
         #endregion
 
-
         #region CheckAvailability
         [HttpPost]
         public async Task<JsonResult> CheckAvailability(string name, string code)
@@ -119,7 +171,6 @@ namespace GCTL.UI.Core.Controllers
             return Json(new { isSuccess = false });
         }
         #endregion
-
 
         #region Delete
         [HttpPost]
@@ -191,7 +242,6 @@ namespace GCTL.UI.Core.Controllers
         //}
         #endregion
 
-
         #region NeaxtCode
         [HttpGet]
         public async Task<IActionResult> GenerateNextCode()
@@ -200,7 +250,6 @@ namespace GCTL.UI.Core.Controllers
             return Json(nextCode);
         }
         #endregion
-
 
         #region TabeleLodaing
 
