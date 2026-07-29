@@ -108,6 +108,8 @@ namespace GCTL.UI.Core.ViewModels
         public string InputType { get; set; }
 
         public bool IsMultiple { get; set; } = false;
+        // DynamicFieldColumnModel.cs
+        public bool IsActionDisabled { get; set; } = false;
         public string ResolvedInputCss
         {
             get
