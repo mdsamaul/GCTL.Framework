@@ -123,7 +123,11 @@
 
                             @if (Model.ShowCopyIcon)
                             {
-                                <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy">
+                                <button type="button"
+                                        class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                        data-target="#@Model.InputId"
+                                        title="Copy"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             }
@@ -134,13 +138,18 @@
                                         data-url="@Model.QuickAddUrl"
                                         data-target="@Model.QuickAddTarget"
                                         data-reload-url="@Model.QuickAddReloadUrl"
-                                        data-title="@Model.QuickAddTitle">
+                                        data-title="@Model.QuickAddTitle"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             }
                             else
                             {
-                                <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true">
+                                <button type="button"
+                                        class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                        tabindex="-1"
+                                        aria-hidden="true"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             }
@@ -179,7 +188,11 @@
 
                             @if (Model.ShowCopyIcon)
                             {
-                                <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy">
+                                <button type="button"
+                                        class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                        data-target="#@Model.InputId"
+                                        title="Copy"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             }
@@ -190,13 +203,18 @@
                                         data-url="@Model.QuickAddUrl"
                                         data-target="@Model.QuickAddTarget"
                                         data-reload-url="@Model.QuickAddReloadUrl"
-                                        data-title="@Model.QuickAddTitle">
+                                        data-title="@Model.QuickAddTitle"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             }
                             else
                             {
-                                <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true">
+                                <button type="button"
+                                        class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                        tabindex="-1"
+                                        aria-hidden="true"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             }
@@ -246,7 +264,11 @@
 
                             @if (Model.ShowCopyIcon)
                             {
-                                <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy">
+                                <button type="button"
+                                        class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                        data-target="#@Model.InputId"
+                                        title="Copy"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-copy"></i>
                                 </button>
                             }
@@ -257,13 +279,18 @@
                                         data-url="@Model.QuickAddUrl"
                                         data-target="@Model.QuickAddTarget"
                                         data-reload-url="@Model.QuickAddReloadUrl"
-                                        data-title="@Model.QuickAddTitle">
+                                        data-title="@Model.QuickAddTitle"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             }
                             else
                             {
-                                <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true">
+                                <button type="button"
+                                        class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                        tabindex="-1"
+                                        aria-hidden="true"
+                                        disabled="@(Model.IsActionDisabled)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             }
@@ -332,108 +359,7 @@
                         }
                     </div>
                 }
-
-                @* ============ DUAL INPUT (e.g. Quantity + Unit, Value + Currency) ============ *@
-                @*else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.DualInput && Model.SecondField != null)
-                {
-                    <div class="d-flex gap-2">
-                        <div class="flex-fill" style="flex-basis:0;">
-                            <input type="number"
-                                   class="@Model.ResolvedInputCss @Model.JsEventClass w-100"
-                                   id="@Model.InputId"
-                                   name="@Model.ResolvedInputName"
-                                   placeholder="@Model.Placeholder"
-                                   value="@Model.DefaultValue"
-                                   min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
-                                   readonly="@Model.IsReadonly"
-                                   disabled="@Model.IsDisabled" />
-                        </div>
-
-                        <div class="flex-fill" style="flex-basis:0;">
-                            @if (Model.SecondField.ReserveActionSlot)
-                            {
-                                <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
-
-                                    @if (Model.SecondField.SelectItems != null)
-                                    {
-                                        <div class="input-group input-group-sm flex-grow-1">
-                                            <select class="@Model.SecondField.ResolvedInputCss"
-                                                    id="@Model.SecondField.InputId"
-                                                    name="@Model.SecondField.ResolvedInputName"
-                                                    data-placeholder="@Model.SecondField.Placeholder"
-                                                    disabled="@Model.SecondField.IsDisabled"
-                                                    asp-items="Model.SecondField.SelectItems">
-                                                <option value="">@Model.SecondField.Placeholder</option>
-                                            </select>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <input type="@(Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
-                                               class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass flex-grow-1"
-                                               id="@Model.SecondField.InputId"
-                                               name="@Model.SecondField.ResolvedInputName"
-                                               placeholder="@Model.SecondField.Placeholder"
-                                               value="@Model.SecondField.DefaultValue"
-                                               readonly="@Model.SecondField.IsReadonly"
-                                               disabled="@Model.SecondField.IsDisabled" />
-                                    }
-
-                                    @if (Model.SecondField.ShowCopyIcon)
-                                    {
-                                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.SecondField.InputId" title="Copy">
-                                            <i class="fas fa-copy"></i>
-                                        </button>
-                                    }
-                                    else if (Model.SecondField.ShowQuickAdd)
-                                    {
-                                        <button type="button"
-                                                class="btn btn-outline-secondary detached-action-btn js-quick-add"
-                                                data-url="@Model.SecondField.QuickAddUrl"
-                                                data-target="@Model.SecondField.QuickAddTarget"
-                                                data-reload-url="@Model.SecondField.QuickAddReloadUrl"
-                                                data-title="@Model.SecondField.QuickAddTitle">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                @if (Model.SecondField.SelectItems != null)
-                                {
-                                    <div class="input-group input-group-sm w-100">
-                                        <select class="@Model.SecondField.ResolvedInputCss"
-                                                id="@Model.SecondField.InputId"
-                                                name="@Model.SecondField.ResolvedInputName"
-                                                data-placeholder="@Model.SecondField.Placeholder"
-                                                disabled="@Model.SecondField.IsDisabled"
-                                                asp-items="Model.SecondField.SelectItems">
-                                            <option value="">@Model.SecondField.Placeholder</option>
-                                        </select>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <input type="@(Model.SecondField.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text")"
-                                           class="@Model.SecondField.ResolvedInputCss @Model.SecondField.JsEventClass w-100"
-                                           id="@Model.SecondField.InputId"
-                                           name="@Model.SecondField.ResolvedInputName"
-                                           placeholder="@Model.SecondField.Placeholder"
-                                           value="@Model.SecondField.DefaultValue"
-                                           readonly="@Model.SecondField.IsReadonly"
-                                           disabled="@Model.SecondField.IsDisabled" />
-                                }
-                            }
-                        </div>
-                    </div>
-                } *@
+                
                 @* ============ DUAL INPUT (e.g. Quantity + Unit, Value + Currency) ============ *@
                 else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.DualInput && Model.SecondField != null)
                 {
@@ -604,7 +530,7 @@
 
                                     @if (Model.SecondField.ShowCopyIcon)
                                     {
-                                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.SecondField.InputId" title="Copy">
+                                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" disabled="@(Model.IsActionDisabled)" data-target="#@Model.SecondField.InputId" title="Copy">
                                             <i class="fas fa-copy"></i>
                                         </button>
                                     }
@@ -615,13 +541,14 @@
                                                 data-url="@Model.SecondField.QuickAddUrl"
                                                 data-target="@Model.SecondField.QuickAddTarget"
                                                 data-reload-url="@Model.SecondField.QuickAddReloadUrl"
+                                                disabled="@(Model.IsActionDisabled)"
                                                 data-title="@Model.SecondField.QuickAddTitle">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     }
                                     else
                                     {
-                                        <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true">
+                                        <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" disabled="@(Model.IsActionDisabled)" tabindex="-1" aria-hidden="true">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     }
