@@ -22,6 +22,7 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #region GettALLById
+
         public async Task<IActionResult> Index(string? id)
         {
             var hasPermission = await service.PagePermissionAsync(LoginInfo.AccessCode);
@@ -29,24 +30,74 @@ namespace GCTL.UI.Core.Controllers
             {
                 return RedirectToAction("Login", "Accounts");
             }
-            //Get all
-            DistrictsPageViewModel model = new DistrictsPageViewModel();
-            var list = await service.GetAllAsync();
-            model.DistrictList = list ?? new List<DistrictsSetupViewModel>();
 
-            //Get By Id
-            if (!string.IsNullOrEmpty(id))
+            var model = new DistrictsPageViewModel
             {
+                PageUrl = Url.Action(nameof(Index))
+            };
 
-                model.Setup = await service.GetByIdAsync(id);
+            try
+            {
+                // Get all districts
+                var list = await service.GetAllAsync();
+                model.DistrictList = list ?? new List<DistrictsSetupViewModel>();
 
+                // Get existing record or create new setup
+                if (!string.IsNullOrEmpty(id))
+                {
+                    model.Setup = await service.GetByIdAsync(id);
+                }
+                else
+                {
+                    commonService.FindMaxNo(ref strMaxNO, "DistrictID", "HRM_Def_District", 2);
+
+                    model.Setup = new DistrictsSetupViewModel
+                    {
+                        DistrictId = strMaxNO
+                    };
+                }
             }
-            //
+            catch (Exception ex)
+            {
+                model.DistrictList = new List<DistrictsSetupViewModel>();
+                model.Setup = new DistrictsSetupViewModel();
 
-            //
-            model.PageUrl = Url.Action(nameof(Index));
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
+
             return View(model);
         }
+
+        //public async Task<IActionResult> Index(string? id)
+        //{
+        //    var hasPermission = await service.PagePermissionAsync(LoginInfo.AccessCode);
+        //    if (!hasPermission)
+        //    {
+        //        return RedirectToAction("Login", "Accounts");
+        //    }
+        //    //Get all
+        //    DistrictsPageViewModel model = new DistrictsPageViewModel();
+        //    var list = await service.GetAllAsync();
+        //    model.DistrictList = list ?? new List<DistrictsSetupViewModel>();
+
+        //    //Get By Id
+        //    if (!string.IsNullOrEmpty(id))
+        //    {
+
+        //        model.Setup = await service.GetByIdAsync(id);
+
+        //    }
+        //    //
+
+        //    //
+        //    model.PageUrl = Url.Action(nameof(Index));
+        //    return View(model);
+        //}
         #endregion
 
 

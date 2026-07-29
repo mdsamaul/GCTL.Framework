@@ -1,4 +1,5 @@
 ﻿@model GCTL.Core.ViewModels.Departments.DepartmentSetupViewModel
+@using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
 
@@ -11,67 +12,100 @@
     </div>
 
     <div class="form-group row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
         <input type="hidden" id="lastCode" />
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <div class="col-lg-6">
-            <label asp-for="DepartmentCode">Department Id</label>
-            <div class="input-group input-group-sm">
-                <input asp-for="DepartmentCode" class="form-control form-control-sm js-department-code" readonly="readonly" />
-            </div>
-        </div>
+
+        @* ---------- Department Id (readonly) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "DepartmentCode",
+            LabelText = "Department Id",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-department-code",
+            DefaultValue = Model?.DepartmentCode
+        })
     </div>
 
     <div class="form-group row">
-        <div class="col-lg-6">
-            <label asp-for="DepartmentName">Department<span style="color:red">*</span></label>
-            <input asp-for="DepartmentName" class="form-control form-control-sm js-department-check-availability" placeholder="Enter Department" />
-            <span asp-validation-for="DepartmentName" class="text-danger" />
-        </div>
-        <div class="col-lg-6">
-            <label asp-for="DepartmentShortName">Short Name</label>
-            <input asp-for="DepartmentShortName" class="form-control form-control-sm" placeholder="Enter Short Name" />
-        </div>
+
+        @* ---------- Department Name ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "DepartmentName",
+            LabelText = "Department",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Department",
+            IsRequired = true,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-department-check-availability",
+            DefaultValue = Model.DepartmentName
+        })
+
+        @* ---------- Short Name ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "DepartmentShortName",
+            LabelText = "Short Name",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Short Name",
+            ColumnClass = "col-lg-6",
+            DefaultValue = Model.DepartmentShortName
+        })
     </div>
 
     <div class="form-group row">
-        <div class="col-lg-6">
-            <label asp-for="BanglaDepartment">Department (বাংলা) </label>
-            <span class="text-danger"></span>
-            <input asp-for="BanglaDepartment" class="form-control form-control-sm" placeholder="Enter Department (বাংলা)" />
-        </div>
-        <div class="col-lg-6">
 
-        </div>
+        @* ---------- Department (বাংলা) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "BanglaDepartment",
+            LabelText = "Department (বাংলা)",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Department (বাংলা)",
+            ColumnClass = "col-lg-6",
+            DefaultValue = Model.BanglaDepartment
+        })
     </div>
 
     @if (Model.Id > 0)
     {
         <hr />
-        <div class="form-group row">
-            <div class="col-lg-6">
-                @if (Model.Ldate.HasValue)
-                {
-                    <label>Creation Date: </label>
-                    <label>@Model.Ldate.Value.ToString()</label>
-                }
-            </div>
-            <div class="col-lg-6">
-                @if (Model.ModifyDate.HasValue)
-                {
-                    <label>Last Update Date: </label>
-                    <label>@Model.ModifyDate.Value.ToString()</label>
-                }
-            </div>
+        <div class="form-group row" id="LdateModifyHide">
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
+            })
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
+            })
+
         </div>
     }
 </div>
 
-<div class="row" style="margin-top: 9px;">
+<div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-       
-        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
             ShowClear = false,
@@ -79,7 +113,9 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "js-department-save"
+            SaveBtnClass = "js-department-save",
+            ReserveActionSlot = true,
+            IsMarginRight = true
         })
     </div>
 </div>

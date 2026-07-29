@@ -126,7 +126,7 @@
                         <div class="card-body pt-1">
                             <div style="padding-top: 10px;">
                                 <div class="row">
-                                    <div class="col-lg-12 gc-inline-select2">
+                                    <div class="col-lg-12">
                                         @* <input type="hidden" id="lastCode" /> *@
                                         <input type="hidden" asp-for="Id" />
                                         <input type="hidden" asp-for="Ldate" />
@@ -154,7 +154,7 @@
                                                                 <label asp-for="CompanyCode" class="col-form-label-sm required">Company</label>
                                                             </div>
                                                             <div class="col-lg-8">
-                                                                <select asp-for="CompanyCode" tabindex="1" data-placeholder="Select Company" class="form-control form-control-sm gc-select2 js-" asp-items="@ViewBag.CoreCompanyDD as SelectList">
+                                                                <select asp-for="CompanyCode" tabindex="1" data-placeholder="Select Company" class="form-control form-control-sm custom-select-single" asp-items="@ViewBag.CoreCompanyDD as SelectList">
                                                                     <option value=""></option>
                                                                 </select>
                                                             </div>
@@ -165,7 +165,7 @@
                                                                 <label asp-for="EmployeeId" class="col-form-label-sm required">Employee Id<span style="color:red">*</span></label>
                                                             </div>
                                                             <div class="col-lg-8">
-                                                                <select asp-for="EmployeeId" tabindex="3" data-placeholder="Select Employee" class="form-control form-control-sm gc-select2 js-" required asp-items="@ViewBag.EmployeeDD as SelectList">
+                                                                <select asp-for="EmployeeId" tabindex="3" data-placeholder="Select Employee" class="form-control form-control-sm custom-select-single" required asp-items="@ViewBag.EmployeeDD as SelectList">
                                                                     <option value=""></option>
                                                                 </select>
                                                             </div>
@@ -188,7 +188,7 @@
                                                                 <label asp-for="BranchCode" class="col-form-label-sm required">Branch</label>
                                                             </div>
                                                             <div class="col-lg-8">
-                                                                <select asp-for="BranchCode" tabindex="2" data-placeholder="Select Branch" class="form-control form-control-sm gc-select2 js-">
+                                                                <select asp-for="BranchCode" tabindex="2" data-placeholder="Select Branch" class="form-control form-control-sm custom-select-single">
                                                                     <option value=""></option>
                                                                 </select>
                                                             </div>
@@ -256,7 +256,7 @@
                                                 <div class="form-group">
                                                     <label class="col-form-label-sm" asp-for="ParmanentDistrict">District</label>
                                                     <div class="input-group input-group-sm">
-                                                        <select asp-for="ParmanentDistrict" tabindex="9" data-placeholder="Select District" class="form-control form-control-sm gc-select2" asp-items="@ViewBag.DistrictDD as SelectList">
+                                                        <select asp-for="ParmanentDistrict" tabindex="9" data-placeholder="Select District" class="form-control form-control-sm custom-select-single" asp-items="@ViewBag.DistrictDD as SelectList">
                                                             <option value=""></option>
                                                         </select>
                                                         <div class="input-group-append">
@@ -324,7 +324,7 @@
                                                 <div class="form-group">
                                                     <label class="col-form-label-sm" asp-for="PresentDistrict">District</label>
                                                     <div class="input-group input-group-sm">
-                                                        <select asp-for="PresentDistrict" tabindex="16" data-placeholder="Select District" class="form-control form-control-sm gc-select2" asp-items="@ViewBag.DistrictDD as SelectList">
+                                                        <select asp-for="PresentDistrict" tabindex="16" data-placeholder="Select District" class="form-control form-control-sm custom-select-single" asp-items="@ViewBag.DistrictDD as SelectList">
                                                             <option value=""></option>
                                                         </select>
                                                     </div>
@@ -363,7 +363,7 @@
                                                 <div class="form-group">
                                                     <label class="col-form-label-sm" asp-for="EmContactRelation1">Relationship</label>
                                                     <div class="input-group input-group-sm">
-                                                        <select asp-for="EmContactRelation1" tabindex="22" data-placeholder="Select Relationship" class="form-control form-control-sm gc-select2" asp-items="@ViewBag.RelationshipDD as SelectList">
+                                                        <select asp-for="EmContactRelation1" tabindex="22" data-placeholder="Select Relationship" class="form-control form-control-sm custom-select-single" asp-items="@ViewBag.RelationshipDD as SelectList">
                                                             <option value=""></option>
                                                         </select>
                                                         <div class="input-group-append">
@@ -423,7 +423,7 @@
                                                 <div class="form-group">
                                                     <label class="col-form-label-sm" asp-for="EmContactRelation2">Relationship</label>
                                                     <div class="input-group input-group-sm">
-                                                        <select asp-for="EmContactRelation2" tabindex="29" data-placeholder="Select Relationship" class="form-control form-control-sm gc-select2" asp-items="@ViewBag.RelationshipDD as SelectList">
+                                                        <select asp-for="EmContactRelation2" tabindex="29" data-placeholder="Select Relationship" class="form-control form-control-sm custom-select-single" asp-items="@ViewBag.RelationshipDD as SelectList">
                                                             <option value=""></option>
                                                         </select>
                                                     </div>

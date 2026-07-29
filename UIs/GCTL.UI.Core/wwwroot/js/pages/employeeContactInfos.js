@@ -260,6 +260,7 @@
 
             // ── Clear All Fields ─────────────────────────────────────────────────
             function clearAllFields() {
+                
                 $('#FullName').text('');
                 $('#DesignationName').text('');
                 $('#DepartmentName').text('');
@@ -304,7 +305,7 @@
                 if ($el.find('option[value="' + value + '"]').length === 0) {
                     $el.append(new Option(displayLabel, value, true, true));
                 }
-                $el.val(value).trigger('change.select2'); // UI sync only — no cascade
+                $el.val(value).trigger('change.select2'); 
             }
 
             /**
@@ -321,52 +322,6 @@
             });
 
             let loadUrl, target, reloadUrl, title, lastCode;
-
-            // ── Quick Add ────────────────────────────────────────────────────────
-            //$("body").on("click", settings.quickAddSelector, function (e) {
-            //    e.stopPropagation();
-            //    e.preventDefault();
-            //    e.stopImmediatePropagation();
-
-            //    loadUrl = $(this).data("url");
-            //    target = $(this).data("target");
-            //    reloadUrl = $(this).data("reload-url");
-            //    title = $(this).data("title");
-
-            //    $(settings.quickAddModal + " .modal-title").html(title);
-            //    $(settings.quickAddModal + " .modal-body").empty();
-            //    $(settings.quickAddModal + " .modal-body").load(loadUrl, function () {
-            //        $(settings.quickAddModal).modal("show");
-            //        $("#header").hide();
-            //        $("#left_menu").hide();
-            //        $("#main-content").toggleClass("collapse-main");
-            //        $("body").removeClass("sidebar-mini");
-            //    });
-            //});
-
-            //$("body").on("click", ".js-modal-dismiss", function () {
-            //    $("body").removeClass("sidebar-mini").addClass("sidebar-mini");
-            //    $("#header").show();
-            //    $("#left_menu").show();
-            //    $("#main-content").toggleClass("collapse-main");
-
-            //    lastCode = $(settings.quickAddModal + " #lastCode").val();
-            //    $(settings.quickAddModal + " .modal-body").empty();
-            //    $(settings.quickAddModal).modal("hide");
-
-            //    $(target).empty();
-            //    $(target).append($('<option>', { value: '', text: '--Select ' + title + '--' }));
-            //    $.ajax({
-            //        url: reloadUrl,
-            //        method: "GET",
-            //        success: function (response) {
-            //            $.each(response, function (i, item) {
-            //                $(target).append($('<option>', { value: item.code, text: item.name }));
-            //            });
-            //            $(target).val(lastCode).trigger('change.select2');
-            //        }
-            //    });
-            //});
 
             // ── Quick Add ────────────────────────────────────────────────────────
             $("body").on("click", settings.quickAddSelector, function (e) {
