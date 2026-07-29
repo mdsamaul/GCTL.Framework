@@ -1,0 +1,136 @@
+﻿@model GCTL.Core.ViewModels.ShipmentModeLedgerSetup.ShipmentModeLedgerSetupSetupViewModel
+@using GCTL.UI.Core.ViewModels
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div style="padding-top: 10px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <input type="hidden" id="lastCode" />
+        <input type="hidden" asp-for="Tc" />
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Ldate" />
+        <input type="hidden" asp-for="ModifyDate" />
+
+        @* ---------- Expense Type ID (readonly) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ExpenseTypeId",
+            LabelText = "ID",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-ExpenseTypeId-code",
+            DefaultValue = Model?.ExpenseTypeId
+        })
+    </div>
+
+    <div class="form-group row">
+        @* ---------- Shipment Mode ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ExpenseType",
+            LabelText = "Shipment Mode",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Shipment Mode --",
+            SelectItems = ViewBag.ShipmentDD as SelectList,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6"
+        })
+    </div>
+
+    <div class="form-group row">
+        @* ---------- Expense Ledger ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ExpenseLedgerCodeNo",
+            LabelText = "Expense Ledger",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Expense Ledger --",
+            SelectItems = ViewBag.ExpenseDD as SelectList,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6"
+        })
+
+        @* ---------- Revenue Ledger ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "RevenueLedgerCodeNo",
+            LabelText = "Revenue Ledger",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Expense Ledger --",
+            SelectItems = ViewBag.RevenueDD as SelectList,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6"
+        })
+    </div>
+
+    <div class="form-group row">
+        @* ---------- Advance Ledger ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "AdvanceLedgerCode",
+            LabelText = "Advance Ledger",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Advance Ledger --",
+            SelectItems = ViewBag.AdvanceDD as SelectList,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6"
+        })
+    </div>
+
+    @if (Model.Tc > 0)
+    {
+        <hr id="sectionBreak" />
+        <div class="form-group row" id="LdateModifyHide">
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : ""
+            })
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : ""
+            })
+
+        </div>
+    }
+
+</div>
+
+<div class="row no-print" style="margin-top: 9px;">
+    <div class="col-12">
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
+            ReserveActionSlot = true,
+            IsMarginRight = true
+        })
+    </div>
+</div>

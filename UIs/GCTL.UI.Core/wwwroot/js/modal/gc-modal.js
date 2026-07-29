@@ -22,13 +22,13 @@
             var $modal = $(
                 '<div class="modal fade" id="' + modalId + '" tabindex="-1" role="dialog" ' +
                 'data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">' +
-                '  <div class="modal-dialog modal-lg" role="document" style="min-width:80% !important">' +
+                '  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document" style="min-width:80% !important">' +
                 '    <div class="modal-content">' +
                 '      <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">' +
                 '        <h5 class="modal-title">' + (opts.title || "Quick Add") + '</h5>' +
-                '        <button type="button" class="close js-gc-modal-close" aria-label="Close" style="margin-left:auto;">' +
-                '          <span aria-hidden="true">&times;</span>' +
-                '        </button>' +
+                '        <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm js-gc-modal-close" aria-label="Close" style="width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;">' +
+                '            <i class="bi bi-x-lg"></i>' +
+                '        </button>'+
                 '      </div>' +
                 '      <div class="modal-body"><div class="gc-modal-loading text-center p-4">Loading...</div></div>' +
                 '    </div>' +
@@ -85,7 +85,7 @@
                     var $scripts = $parsed.find("script").remove();
 
                     $body.html($parsed.html());
-
+                    $body.find(".bottom-nav").closest(".row").hide();
                     if ($.validator && $.validator.unobtrusive) {
                         $.validator.unobtrusive.parse($body.find("form"));
                     }

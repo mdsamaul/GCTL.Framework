@@ -1,0 +1,79 @@
+﻿@model GCTL.UI.Core.ViewModels.CfDefPlaceOfLoading.CfDefPlaceOfLoadingPageViewModel
+
+
+<div id="PlaceOfLoading-page">
+
+    <div class="row">
+
+        <div class="col-lg-6">
+
+            <form id="PlaceOfLoading-form"
+                  asp-action="Setup"
+                  asp-controller="CfDefPlaceOfLoading"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="card">
+
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            
+                            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                                    {
+                                Title = "Place Of Loading Information",
+                                SaveBtnClass = "js-PlaceOfLoading-save",
+                                DeleteBtnClass = "js-PlaceOfLoading-delete-confirm",
+                                ClearBtnClass = "js-PlaceOfLoading-clear"
+                                    })
+                        </h5>
+                    </div>
+
+                    <div class="card-body js-PlaceOfLoading-form-container">
+
+                        @await Html.PartialAsync("_Setup", Model.Setup)
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <div class="col-lg-6">
+
+            <div class="card">
+
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        Place Of Loading List
+                    </h5>
+                </div>
+
+                <div class="card-body js-PlaceOfLoading-grid-container">
+
+                    @await Html.PartialAsync("_Grid", Model.PlaceOfLoadingList)
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@await Html.PartialAsync("_DeleteModal") 
+@section Scripts
+{
+    <script src="~/js/pages/placeofloading.js"></script>
+    <script>
+        $(function () {
+            $.placeOfLoading({
+                baseUrl: '/CfDefPlaceOfLoading'
+            });
+        });
+    </script>
+}

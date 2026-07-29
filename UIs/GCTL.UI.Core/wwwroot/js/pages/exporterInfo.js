@@ -56,16 +56,21 @@
                 let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
                 loadForm(url).then((data) => {
-                   // console.info("Form Loaded Successfully", data);
+                    // console.info("Form Loaded Successfully", data);
                 }).catch((error) => {
                     console.error("Failed to load form", error);
                 });
-                loadSNCId();
+
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
                 $(settings.deleteSelector).data('id', id);
+
                 $("html, body").animate({ scrollTop: 0 }, 500);
 
+                // Call only for clear button
+                if ($(this).is(settings.clearSelector)) {
+                    loadSNCId();
+                }
             });
 
             //#endregion
@@ -278,7 +283,7 @@
                     { data: "exporterAddress", className: " text-middle" },
                     { data: "phone", className: "text-center text-middle" },
                     { data: "website", className: "text-center text-middle" },
-                    { data: "email1", className: "text-center text-middle" }
+                    { data: "email", className: "text-center text-middle" }
                 ]
             });
         }

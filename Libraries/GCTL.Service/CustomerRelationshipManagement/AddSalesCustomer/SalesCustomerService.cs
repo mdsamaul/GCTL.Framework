@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
 using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using Microsoft.Data.SqlClient;
@@ -598,7 +599,21 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             throw new NotImplementedException();
         }
 
+        #region SelectionAsync
 
+        public async Task<IEnumerable<CommonSelectModel>> SelectionCustomerAsync()
+        {
+
+            var data = await _salesCustomer.All()
+                       .Select(x => new CommonSelectModel
+                       {
+                           Code = x.CustomerId,
+                           Name = x.CustomerName,
+                       }).ToListAsync();
+            return data;
+        }
+
+        #endregion
 
         #endregion
     }

@@ -35,7 +35,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Index
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool child = false)
         {
             var hasPermission = await contactPersonInfoService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -66,10 +66,8 @@ namespace GCTL.UI.Core.Controllers
                 Console.WriteLine("Error" + ex.Message);
             }
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
+            if (child)
                 return PartialView(model);
-            }
 
             return View(model);
         }
@@ -221,7 +219,7 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> GenerateNewId()
         {
             await Task.Delay(100);
-            var nextCode = commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 5, "CP");
+            var nextCode = commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 3, "CP");
             return Json(nextCode);
         }
 

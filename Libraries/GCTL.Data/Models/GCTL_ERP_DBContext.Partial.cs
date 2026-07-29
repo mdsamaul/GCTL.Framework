@@ -175,6 +175,38 @@ namespace GCTL.Data.Models
                 entity.Property(p => p.Tc)
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
+
+            modelBuilder.Entity<VendorBranchInfo>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<CfDefVendorPrefix>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmEmployee>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmEmployeeContactInfo>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmDefRelationship>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmDefDistrict>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
         }
     }
 }
