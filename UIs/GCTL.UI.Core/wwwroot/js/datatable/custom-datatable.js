@@ -26,6 +26,7 @@
             }
 
             var dtOptions = $.extend(true, {
+                autoWidth: false,
                 serverSide: settings.serverSide,
                 ajax: {
                     url: settings.ajaxUrl,
@@ -128,6 +129,7 @@
                     className: "text-center",
                     orderable: false,
                     searchable: false,
+                    width: "3%",
                     render: function (data, type, row) {
                         var cls = config.checkboxClass || 'form-check-input checkbox';
                         return config.useRadio

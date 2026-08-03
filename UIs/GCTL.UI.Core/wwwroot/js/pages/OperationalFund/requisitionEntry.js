@@ -69,6 +69,7 @@ function LoadRequisitionDetails(offrNo) {
         type: 'GET',
         data: { offrNo: offrNo },
         success: function (res) {
+            console.log(res);
             if (!res) {
                 toastr.warning('No data found');
                 return;
@@ -83,12 +84,12 @@ function LoadRequisitionDetails(offrNo) {
             $('#CustomerID').val(res.customerID ?? '');
             $('#ShipmentModeID').val(res.shipmentModeID ?? '');
             SetRequisitionDate(res.reqDate);
-            if (currencyChoice) currencyChoice.setChoiceByValue(res.currencyID);
+            // if (currencyChoice) currencyChoice.setChoiceByValue(res.currencyID);
             $('#Job-HAWB').val(res.hawb ?? '');
             $('#Job-MatDescription').val(res.materialDescription ?? '');
             $('#Job-Qty').val(res.qty ?? '');
             $('#Job-Weight').val(res.weight ?? '');
-            $('#Job-Currencies').val(res.currencyID ?? '');
+            setCurrencyValue('#Job-Currencies', res.currencyID ?? '', true);
         },
         error: function () {
             toastr.error('Failed to load requisition details!');

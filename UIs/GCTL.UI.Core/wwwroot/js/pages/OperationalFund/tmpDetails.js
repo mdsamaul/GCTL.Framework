@@ -74,7 +74,10 @@ function saveTmpDetails() {
         JobNo: $("#Job-JoBNO").val()
     };
 
-    if (!validateTmpDetails(model)) return;
+    if (!validateTmpDetails(model)) {
+        $("#TmpSaveBtn").prop("disabled", false);
+        return;
+    }
 
     $.ajax({
         url: "/OperationFund/CreateTmpDetails",
@@ -82,12 +85,27 @@ function saveTmpDetails() {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(model),
         success: function (res) {
-            toastr.success(res.message || "Data Saved Successfully");
-            clearTmpForm();
-            loadTmpDetails();
+
+            if (res.success) {
+                //toastr.success(res.message || "Data Saved Successfully");
+                clearTmpForm();
+                loadTmpDetails();
+            } else {
+                if (res.message)
+                    toastr.warning(res.message);
+                else
+                    toastr.error(res.message || "Operation Failed");
+            }
+
+            // toastr.success(res.message || "Data Saved Successfully");
+            // clearTmpForm();
+            // loadTmpDetails();
         },
         error: function (err) {
             toastr.error(err.responseJSON?.message || "Insertion Failed");
+        },
+        complete: function () {
+            $("#TmpSaveBtn").prop("disabled", false);
         }
     });
 }
@@ -101,14 +119,12 @@ function ClearAfterClikButton() {
     $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo,#Amount,#Remark").val("");
     $("#Job-SearchInput,#Req-Search").val("");
     // Choices dropdowns reset
-    const choicesSelectors = ['#ServiceType', '#AccountHead', '#Customer', '#Job-ShipmentMode', '#Job-Currencies'];
-    choicesSelectors.forEach(sel => {
-        let choiceInstance = $(sel).data('choices');
-        if (choiceInstance) {
-            choiceInstance.setChoiceByValue('');
-        }
+    const customSelectors = ['ServiceType', 'AccountHead', 'Customer', 'Job-ShipmentMode', 'Job-Currencies'];
+    customSelectors.forEach(id => {
+        if (window.clearCustomDropdownById) window.clearCustomDropdownById(id);
     });
-    //Uncheck Select All checkbox
+    setCurrencyValue('#Job-Currencies', '', true);
+
     $('#Req-selectAll').prop('checked', false);
 
     //Uncheck all row checkboxes
@@ -120,25 +136,19 @@ function ClearFullForm() {
     $('.job-radio').prop('checked', false);
     $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo,#Amount,#Remark").val("");
     // Choices dropdowns reset
-    const choicesSelectors = ['#ServiceType', '#AccountHead', '#Customer', '#Job-ShipmentMode', '#Job-Currencies'];
-    choicesSelectors.forEach(sel => {
-        let choiceInstance = $(sel).data('choices');
-        if (choiceInstance) {
-            choiceInstance.setChoiceByValue('');
-        }
+    const customSelectors = ['ServiceType', 'AccountHead', 'Customer', 'Job-ShipmentMode'];
+    customSelectors.forEach(id => {
+        if (window.clearCustomDropdownById) window.clearCustomDropdownById(id);
     });
-
+    setCurrencyValue('#Job-Currencies', '', true);
 }
 function clearTmpForm() {
     $("#Amount,#Remark").val("");
 
     // Choices dropdowns reset
-    const choicesSelectors = ['#ServiceType', '#AccountHead'];
-    choicesSelectors.forEach(sel => {
-        let choiceInstance = $(sel).data('choices');
-        if (choiceInstance) {
-            choiceInstance.setChoiceByValue('');
-        }
+    const customSelectors = ['ServiceType', 'AccountHead'];
+    customSelectors.forEach(sel => {
+        if (window.clearCustomDropdownById) window.clearCustomDropdownById(sel);
     });
 }
 
@@ -193,10 +203,12 @@ function MasterAndDetailSaved() {
     $('.tmp-amount').each(function () {
         const tc = $(this).data('tc'); // row id
         const amount = parseFloat($(this).val()) || 0;
+        const remark = $(`.tmp-remark[data-tc="${tc}"]`).val() ?? '';
 
         masterdata.Details.push({
             Tc: tc,
-            Amount: amount
+            Amount: amount,
+            Remark: remark
         });
     });
     console.log("Master Data,", masterdata);
@@ -228,8 +240,18 @@ $(document).ready(function () {
     //Load Tmp Table
     loadTmpDetails();
     //Click Tmp Save Button
+    //$(document).on("click", "#TmpSaveBtn", function (e) {
+    //    e.preventDefault();
+    //    saveTmpDetails();
+    //});
     $(document).on("click", "#TmpSaveBtn", function (e) {
-        e.preventDefault();
+        const $btn = $(this);
+
+        if ($btn.prop("disabled")) {
+            return;
+        }
+
+        $btn.prop("disabled", true);
         saveTmpDetails();
     });
     //Click Master & Details Save Button
@@ -286,7 +308,12 @@ function loadTmpDetails() {
                                    data-tc="${item.tc}"
                                    data-service-type="${serviceType}" />
                         </td>
-                        <td>${item.remark ?? ''}</td>
+                        <td>
+                            <input type="text"
+                                   class="form-control form-control-sm tmp-remark"
+                                   value="${item.remark ?? ''}"
+                                   data-tc="${item.tc}" />
+                        </td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteTmpDetail(${item.tc})">
                                 <i class="bi bi-trash3-fill"></i> Delete
@@ -356,7 +383,3 @@ function recalcTotals() {
 // Live update
 $(document).on('input', '.tmp-amount', recalcTotals);
 //#endregion
-
-
-
-

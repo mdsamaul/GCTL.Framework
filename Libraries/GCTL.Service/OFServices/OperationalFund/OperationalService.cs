@@ -1,6 +1,7 @@
 ﻿
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
@@ -44,7 +45,6 @@ namespace GCTL.Service.OperationalFund
 
         #endregion
 
-
         #region Get All Job Entry List
         public async Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(
     PaginationRequest request, string customerid = "", string shipmentmodeid = "")
@@ -79,7 +79,7 @@ namespace GCTL.Service.OperationalFund
                             ShipmentModeID = e != null ? e.ExpenseTypeId : "",
                             ShipmentMode = e != null ? e.ExpenseType : ""
                         };
-
+            int a = await query.CountAsync();
             if (!string.IsNullOrEmpty(customerid))
                 query = query.Where(x => x.CustomerID == customerid);
 
@@ -94,8 +94,18 @@ namespace GCTL.Service.OperationalFund
 
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(JobEntryListVM.JobNo);
+            try
+            {
+                var result = await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
+                result.TotalCount = a;
+                return result;
+            }
+            catch (Exception ex)
+            {
 
-            return await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
+                throw;
+            }
+            
         }
 
         public async Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
@@ -470,18 +480,36 @@ namespace GCTL.Service.OperationalFund
         #region TMP Section
 
         #region Tmp Details Requisition Save and Update
-        public async Task<bool> TmpDetailsSaveAsync(RequistionDetailsTmpVM model)
+        public async Task<CommonReturnViewModel> TmpDetailsSaveAsync(RequistionDetailsTmpVM model)
         {
             await _Tmpdetails.BeginTransactionAsync();
             try
             {
                 if (string.IsNullOrEmpty(model.ReqNo) || model.RequDate == DateTime.MinValue || string.IsNullOrEmpty(model.ServiceTypeID) || string.IsNullOrEmpty(model.CustomerNameID) || string.IsNullOrEmpty(model.ShipmentModeID))
                 {
-                    return false;
+                    await _Tmpdetails.RollbackTransactionAsync();
+                    return new CommonReturnViewModel
+                    {
+                        Success = false, Message = "Validation Failed."
+                    };
                 }
+
+                bool accountHeadAlreadyAdded = await _Tmpdetails.All()
+                    .AnyAsync(x => x.Luser == model.Luser
+                        && x.JobNo == model.JobNo
+                        && x.ExpenseHeadId == model.AccountHeadID);
+
+                if (accountHeadAlreadyAdded)
+                {
+                    await _Tmpdetails.RollbackTransactionAsync();
+                    return new CommonReturnViewModel
+                    {
+                        Success = false, Message = "Already been added for this job."
+                    };
+                }
+
                 string newOffrNO = await GenerateRequisitionNoAsync(model.JobNo);
                 string newOFRDetailsID = await GenerateOfrDetailsId();
-
 
                 var entity = new CfOperationalFundRequisitionDetailsTemp
                 {
@@ -509,14 +537,20 @@ namespace GCTL.Service.OperationalFund
                 await _Tmpdetails.AddAsync(entity);
                 await _Tmpdetails.CommitTransactionAsync();
 
-                return true;
+                return new CommonReturnViewModel
+                {
+                    Success = true
+                };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Insertion Failed: {ex.Message}");
                 await _Tmpdetails.RollbackTransactionAsync();
 
-                return false;
+                return new CommonReturnViewModel
+                {
+                    Success = false, Message = "Insertation Failed!"
+                };
             }
         }
 
@@ -616,7 +650,7 @@ namespace GCTL.Service.OperationalFund
         #endregion
 
         #region Get All Tmp Details
-        public async Task<List<RequistionDetailsTmpVM>> GetAllTmpAsync(int? currentUser)
+        public async Task<List<RequistionDetailsTmpVM>> GetAllTmpAsync(string? currentUser)
         {
             var result = await (from tmp in _Tmpdetails.All()
                                 join head in _accountsHead.All()
@@ -627,8 +661,8 @@ namespace GCTL.Service.OperationalFund
                               on tmp.ServiceTypeId equals serv.ServiceTypeId
                               into servicJoin
                                 from servic in servicJoin.DefaultIfEmpty()
-                                where tmp.Luser == currentUser.ToString()
-                                orderby tmp.Tc
+                                where tmp.Luser == currentUser
+                                orderby Convert.ToInt32(head.SerialNo)
 
                                 select new RequistionDetailsTmpVM
                                 {
@@ -708,6 +742,7 @@ namespace GCTL.Service.OperationalFund
                         if (tmp != null)
                         {
                             tmp.EstimatedAmount = inputDetail.Amount ?? 0;
+                            tmp.ExpenseHeadRemarks = inputDetail.Remark ?? "";
                             await _Tmpdetails.UpdateAsync(tmp);
                         }
                     }
@@ -715,7 +750,7 @@ namespace GCTL.Service.OperationalFund
 
                 //Get Tmp Details for this JobNo + User
                 var tmpDetails = await _Tmpdetails.All().Where(d => d.Luser == model.Luser    /*.CreatedBy.ToString()*/ && d.JobNo == model.JobNo).ToListAsync();
-
+                var currentDetailIds = new List<string>();
                 //Move Tmp Details → Actual Details Table
                 foreach (var tmp in tmpDetails)
                 {
@@ -746,13 +781,16 @@ namespace GCTL.Service.OperationalFund
                         existingDetail.ExpenseHeadRemarks = tmp.ExpenseHeadRemarks ?? "";
 
                         await _details.UpdateAsync(existingDetail);
+                        currentDetailIds.Add(existingDetail.OfrDetailsId);
                     }
                     else
                     {
                         //Insert new
+                        var newId = await GenerateOfrDetailsId();
+
                         var newDetail = new CfOperationalFundRequisitionDetail
                         {
-                            OfrDetailsId = await GenerateOfrDetailsId(),
+                            OfrDetailsId = newId,
                             Ofrno = ofrNo,
                             JobNo = tmp.JobNo,
                             ExpenseHeadId = tmp.ExpenseHeadId,
@@ -778,11 +816,12 @@ namespace GCTL.Service.OperationalFund
                         };
 
                         await _details.AddAsync(newDetail);
+                        currentDetailIds.Add(newId);
                     }
                 }
 
                 // Find real detail rows for this OFR that no longer exist in tmp
-                var currentDetailIds = tmpDetails.Select(t => t.OfrDetailsId).ToList(); // or your matching key
+                //var currentDetailIds = tmpDetails.Select(t => t.OfrDetailsId).ToList(); // or your matching key
                 var detailsToRemove = await _details.All()
                     .Where(d => d.Ofrno == ofrNo && !currentDetailIds.Contains(d.OfrDetailsId))
                     .ToListAsync();
@@ -896,7 +935,7 @@ namespace GCTL.Service.OperationalFund
                                   MaterialDescription = doc != null ? doc.MaterialDescription : null,
                                   Qty = doc != null ? doc.Quntity1 : null,
                                   Weight = doc != null ? doc.Quntity2 : null,
-                                  CurrencyID = doc != null ? doc.CurrencyId : null
+                                  CurrencyID = doc != null ? doc.InvoiceCurrencyId : null
                               }).FirstOrDefaultAsync();
 
             return data;

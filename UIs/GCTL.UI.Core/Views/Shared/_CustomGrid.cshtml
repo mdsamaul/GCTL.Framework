@@ -39,21 +39,9 @@
                         }
                     </th>
                 }
-                @* @foreach (var col in Model.Columns.Where(c => c.Visible))
-                {
-                    var style = col.Width != null ? $"width:{col.Width};" : "";
-
-                    <th class="@col.CssClass" style="@style">
-                        @col.Header
-                        @if (!string.IsNullOrEmpty(col.HeaderBangla))
-                        {
-                            <br /><small class="text-muted">@col.HeaderBangla</small>
-                        }
-                    </th>
-                } *@
                 @foreach (var col in Model.Columns.Where(c => c.Visible))
                 {
-                    <th class="fw-bold text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
+                    <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
                         @col.Header
                         @if (!string.IsNullOrEmpty(col.HeaderBangla))
                         {
