@@ -1,15 +1,15 @@
 ﻿
+using Azure.Core;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OFRApproval;
 using GCTL.Data.Models;
-
 using GCTL.Service.Pagination;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-
-using Sep_Documentation = GCTL.Data.Models.SepDocumentation;
 using Core_ServiceType = GCTL.Data.Models.CoreServiceType;
+using Sep_Documentation = GCTL.Data.Models.SepDocumentation;
 
 namespace GCTL.Service.OFRApproval
 {
@@ -59,7 +59,7 @@ namespace GCTL.Service.OFRApproval
         #endregion
 
         #region Get All Requisition Entry in Top Grid
-        public async Task<PaginationService<OFRApprovalTopGridVM, OFRApprovalTopGridVM>.PaginationResult<OFRApprovalTopGridVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
+        public async Task<PaginationResponse<OFRApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "")
         {
             var query = from main in _repository.All()
                         join doc in _documentation.All()
@@ -73,7 +73,7 @@ namespace GCTL.Service.OFRApproval
                             TC = main.Tc,
                             JobNo = main.JobNo,
                             CustomerID = cust.CustomerId,
-                            CustomerName = cust.CustomerName,
+                            CustomerName = cust != null ?  cust.CustomerName : "",
                             ShipmentModeID = exp.ExpenseTypeId,
                             ShipmentMode = exp.ExpenseType
                         };
@@ -87,22 +87,13 @@ namespace GCTL.Service.OFRApproval
             {
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
             }
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            // PaginationService
-            var paginatedResult = await PaginationService<OFRApprovalTopGridVM, OFRApprovalTopGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
-                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
-                    ob => ob
-             );
-
-            return paginatedResult;
+            return  await PaginationService<OFRApprovalTopGridVM>.GetPaginatedData(query, request);
         }
         #endregion
 
@@ -138,7 +129,7 @@ namespace GCTL.Service.OFRApproval
         #endregion
 
         #region Get Requisition Details in Expense Details
-        public async Task<bool> CopyDetailsToTmp(string jobNo, int? currentUserId)
+        public async Task<bool> CopyDetailsToTmp(string jobNo, string? currentUserId)
         {
             var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
 
@@ -175,7 +166,7 @@ namespace GCTL.Service.OFRApproval
         #endregion
 
         #region Get All Tmp Details
-        public async Task<List<OFRApprovalDetailsVM>> GetAllTmpAsync(string jobno, int? userId)
+        public async Task<List<OFRApprovalDetailsVM>> GetAllTmpAsync(string jobno, string? userId)
         {
             var result = await (from tmp in _Tmpdetails.All()
                                 join head in _accountsHead.All()
@@ -248,7 +239,7 @@ namespace GCTL.Service.OFRApproval
         #endregion
 
         #region Approval Amount Update
-        public async Task<bool> SaveApprovalAsync(List<OFRApprovalDetailsSaveVM> model, int? Approveduser)
+        public async Task<bool> SaveApprovalAsync(List<OFRApprovalDetailsSaveVM> model, string? Approveduser)
         {
             await _repository.BeginTransactionAsync();
             try
@@ -327,7 +318,7 @@ namespace GCTL.Service.OFRApproval
         #endregion
 
         #region Get All Requisition for Bottom Grid
-        public async Task<PaginationService<OFRApprovalBottomGridVM, OFRApprovalBottomGridVM>.PaginationResult<OFRApprovalBottomGridVM>> AllRequisitionforBottomGrid(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc")
+        public async Task<PaginationResponse<OFRApprovalBottomGridVM>> AllRequisitionforBottomGrid(PaginationRequest request)
         {
             var query = from main in _repository.All()
                         join doc in _documentation.All()
@@ -346,22 +337,12 @@ namespace GCTL.Service.OFRApproval
                             ShipmentMode = exp.ExpenseType
                         };
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
-
-            // PaginationService
-            var paginatedResult = await PaginationService<OFRApprovalBottomGridVM, OFRApprovalBottomGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
-                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
-                    ob => ob
-             );
-
-            return paginatedResult;
+            return await PaginationService<OFRApprovalBottomGridVM>.GetPaginatedData(query, request);
         }
         #endregion
 
@@ -417,7 +398,7 @@ namespace GCTL.Service.OFRApproval
         #endregion
 
         #region Copied To Tmp Details Table
-        public async Task<bool> CopyDetailsToTmpTable(string jobNo, int? currentUserId, BaseViewModel model)
+        public async Task<bool> CopyDetailsToTmpTable(string jobNo, string? currentUserId, BaseViewModel model)
         {
             var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
 

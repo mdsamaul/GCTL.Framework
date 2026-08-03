@@ -69,6 +69,7 @@ function LoadRequisitionDetails(offrNo) {
         type: 'GET',
         data: { offrNo: offrNo },
         success: function (res) {
+            console.log(res);
             if (!res) {
                 toastr.warning('No data found');
                 return;

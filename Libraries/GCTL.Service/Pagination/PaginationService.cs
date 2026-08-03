@@ -29,50 +29,61 @@ namespace GCTL.Service.Pagination
         public static async Task<PaginationResponse<TEntity>> GetPaginatedData(
         IQueryable<TEntity> query, PaginationRequest request)
         {
-            var type = typeof(TEntity);
-            var stringProps = _stringProps.GetOrAdd(type, t => Searchable(t, typeof(string)));
-            var intProps = _intProps.GetOrAdd(type, t => Searchable(t, typeof(int)).Concat(Searchable(t, typeof(int?))).ToArray());
-            var decimalProps = _decimalProps.GetOrAdd(type, t => Searchable(t, typeof(decimal)).Concat(Searchable(t, typeof(decimal?))).ToArray());
-            var dateProps = _dateProps.GetOrAdd(type, t => Searchable(t, typeof(DateTime)).Concat(Searchable(t, typeof(DateTime?))).ToArray());
-            var totalItems = await query.CountAsync();
-
-            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            try
             {
-                var term = request.SearchTerm.Trim();
-                var predicate = BuildSearchPredicate<TEntity>(term, stringProps, intProps, decimalProps, dateProps);
-                if (predicate != null)
-                    query = query.Where(predicate);
-            }
+                var type = typeof(TEntity);
+                var stringProps = _stringProps.GetOrAdd(type, t => Searchable(t, typeof(string)));
+                var intProps = _intProps.GetOrAdd(type, t => Searchable(t, typeof(int)).Concat(Searchable(t, typeof(int?))).ToArray());
+                var decimalProps = _decimalProps.GetOrAdd(type, t => Searchable(t, typeof(decimal)).Concat(Searchable(t, typeof(decimal?))).ToArray());
+                var dateProps = _dateProps.GetOrAdd(type, t => Searchable(t, typeof(DateTime)).Concat(Searchable(t, typeof(DateTime?))).ToArray());
+                var totalItems = await query.CountAsync();
 
-            if (!string.IsNullOrEmpty(request.SortColumn))
-            {
-                var prop = type.GetProperty(request.SortColumn, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-                if (prop != null)
-                    query = BuildOrderBy(query, prop, request.SortOrder);
-            }
-
-            var fileredCount = await query.CountAsync();
-
-            var data = request.PageSize > 0
-                ? await query.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync()
-                : await query.ToListAsync();
-
-            var totalPages = request.PageSize > 0 ? (int)Math.Ceiling((double)fileredCount / request.PageSize) : 0;
-
-            return new PaginationResponse<TEntity>
-            {
-                Data = data,
-                TotalCount = totalItems,
-                FilteredCount = fileredCount,
-                PaginationInfo = new PaginationResponse<TEntity>.PaginationInfo2
+                if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
-                    StartItem = totalItems == 0 ? 0 : (request.PageNumber - 1) * request.PageSize + 1,
-                    EndItem = Math.Min(request.PageNumber * request.PageSize, totalItems),
-                    TotalItems = totalItems,
-                    TotalPages = totalPages,
-                    CurrentPage = request.PageNumber
+                    var term = request.SearchTerm.Trim();
+                    Console.WriteLine(query);
+                    var predicate = BuildSearchPredicate<TEntity>(term, stringProps, intProps, decimalProps, dateProps);
+                    if (predicate != null)
+                        query = query.Where(predicate);
+                    Console.WriteLine(query);
                 }
-            };
+
+                if (!string.IsNullOrEmpty(request.SortColumn))
+                {
+                    var prop = type.GetProperty(request.SortColumn, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                    if (prop != null)
+                        query = BuildOrderBy(query, prop, request.SortOrder);
+                }
+
+                var fileredCount = await query.CountAsync();
+
+                var data = request.PageSize > 0
+                    ? await query.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync()
+                    : await query.ToListAsync();
+
+                var totalPages = request.PageSize > 0 ? (int)Math.Ceiling((double)fileredCount / request.PageSize) : 0;
+
+                return new PaginationResponse<TEntity>
+                {
+                    Data = data,
+                    TotalCount = totalItems,
+                    FilteredCount = fileredCount,
+                    PaginationInfo = new PaginationResponse<TEntity>.PaginationInfo2
+                    {
+                        StartItem = totalItems == 0 ? 0 : (request.PageNumber - 1) * request.PageSize + 1,
+                        EndItem = Math.Min(request.PageNumber * request.PageSize, totalItems),
+                        TotalItems = totalItems,
+                        TotalPages = totalPages,
+                        CurrentPage = request.PageNumber
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            
         }
 
         private static Expression<Func<T, bool>> BuildSearchPredicate<T>(
@@ -153,7 +164,6 @@ namespace GCTL.Service.Pagination
 
         private static readonly string[] _dateFormats =
         {
-            "dd/MM/","dd-MM-",
             "dd/MM/yyyy", "d/M/yyyy", "dd/M/yy", "d/M/yy",
             "MM/dd/yyyy", "M/d/yyyy", "MM/dd/yy", "M/d/yy",
             "dd-MM-yyyy", "d-M-yyyy", "dd-M-yy", "d-M-yy",
@@ -167,6 +177,10 @@ namespace GCTL.Service.Pagination
 
         private static bool TryParseAnyDate(string term, out DateTime result)
         {
+            // 3. Explicit format list — catches anything ambiguous the above two rejected
+            if (DateTime.TryParseExact(term, _dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                return true;
+
             // 1. Loose parse, invariant culture — catches most natural typed dates
             if (DateTime.TryParse(term, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
                 return true;
@@ -175,9 +189,7 @@ namespace GCTL.Service.Pagination
             if (DateTime.TryParse(term, CultureInfo.CurrentCulture, DateTimeStyles.None, out result))
                 return true;
 
-            // 3. Explicit format list — catches anything ambiguous the above two rejected
-            if (DateTime.TryParseExact(term, _dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-                return true;
+
 
             result = default;
             return false;

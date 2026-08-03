@@ -85,10 +85,21 @@ function saveTmpDetails() {
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify(model),
         success: function (res) {
-            console.log(res);
-            toastr.success(res.message || "Data Saved Successfully");
-            clearTmpForm();
-            loadTmpDetails();
+
+            if (res.success) {
+                //toastr.success(res.message || "Data Saved Successfully");
+                clearTmpForm();
+                loadTmpDetails();
+            } else {
+                if (res.message)
+                    toastr.warning(res.message);
+                else
+                    toastr.error(res.message || "Operation Failed");
+            }
+
+            // toastr.success(res.message || "Data Saved Successfully");
+            // clearTmpForm();
+            // loadTmpDetails();
         },
         error: function (err) {
             toastr.error(err.responseJSON?.message || "Insertion Failed");
@@ -113,13 +124,7 @@ function ClearAfterClikButton() {
         if (window.clearCustomDropdownById) window.clearCustomDropdownById(id);
     });
     setCurrencyValue('#Job-Currencies', '', true);
-    // choicesSelectors.forEach(sel => {
-    //     let choiceInstance = $(sel).data('choices');
-    //     if (choiceInstance) {
-    //         choiceInstance.setChoiceByValue('');
-    //     }
-    // });
-    //Uncheck Select All checkbox
+
     $('#Req-selectAll').prop('checked', false);
 
     //Uncheck all row checkboxes
@@ -203,7 +208,7 @@ function MasterAndDetailSaved() {
         masterdata.Details.push({
             Tc: tc,
             Amount: amount,
-            Remark: remark 
+            Remark: remark
         });
     });
     console.log("Master Data,", masterdata);

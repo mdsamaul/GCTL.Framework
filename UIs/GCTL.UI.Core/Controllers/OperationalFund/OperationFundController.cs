@@ -55,7 +55,6 @@ namespace GCTL_App.Controllers.OperationalFund
                     SortColumn = sortColumn,
                     SortOrder = sortOrder
                 };
-
                 var result = await _service.GetAllJonEntryList(request, customerid, shipmentmodeid);
                 var hasData = result.Data?.Any() == true;
 
@@ -66,6 +65,7 @@ namespace GCTL_App.Controllers.OperationalFund
                     recordsTotal = result.TotalCount,
                     recordsFiltered = hasData ? result.FilteredCount : 0
                 });
+
             }
             catch (Exception ex)
             {

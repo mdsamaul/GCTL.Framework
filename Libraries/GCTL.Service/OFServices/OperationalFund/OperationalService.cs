@@ -94,10 +94,18 @@ namespace GCTL.Service.OperationalFund
 
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(JobEntryListVM.JobNo);
+            try
+            {
+                var result = await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
+                result.TotalCount = a;
+                return result;
+            }
+            catch (Exception ex)
+            {
 
-            var result = await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
-            result.TotalCount = a;
-            return result;
+                throw;
+            }
+            
         }
 
         public async Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
@@ -531,7 +539,7 @@ namespace GCTL.Service.OperationalFund
 
                 return new CommonReturnViewModel
                 {
-                    Success = false
+                    Success = true
                 };
             }
             catch (Exception ex)
@@ -927,7 +935,7 @@ namespace GCTL.Service.OperationalFund
                                   MaterialDescription = doc != null ? doc.MaterialDescription : null,
                                   Qty = doc != null ? doc.Quntity1 : null,
                                   Weight = doc != null ? doc.Quntity2 : null,
-                                  CurrencyID = doc != null ? doc.CurrencyId : null
+                                  CurrencyID = doc != null ? doc.InvoiceCurrencyId : null
                               }).FirstOrDefaultAsync();
 
             return data;
