@@ -1,4 +1,5 @@
 ﻿using GCTL.Core.Data;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.BranchAddress;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -25,7 +26,7 @@ namespace GCTL.Service.BranchAddress
         private readonly IRepository<CoreAccessCode> accessCodeRepository;
         private readonly ICommonService commonService;
         private readonly IDeleteHistoryService deleteHistoryService;
-
+        private readonly IRepository<HrmDefDesignation> desiRepo;
         string strMaxNO = string.Empty;
         private const string TableName = "VendorBranchInfo";
         private const string ColumnName = "VendorBranchID";
@@ -37,7 +38,8 @@ namespace GCTL.Service.BranchAddress
             IRepository<CaDefCountry> caDefCountryRepository,
             IRepository<CoreAccessCode> accessCodeRepository,
              ICommonService commonService,
-            IDeleteHistoryService deleteHistoryService
+            IDeleteHistoryService deleteHistoryService,
+            IRepository<HrmDefDesignation> desiRepo
 
             ) 
             
@@ -50,6 +52,7 @@ namespace GCTL.Service.BranchAddress
             this.accessCodeRepository = accessCodeRepository;
             this.commonService = commonService;
             this.deleteHistoryService = deleteHistoryService;
+            this.desiRepo = desiRepo;
         }
 
         #endregion
@@ -330,6 +333,44 @@ namespace GCTL.Service.BranchAddress
             return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Branch Address" && x.CheckDelete);
         }
         #endregion
+
+        public async Task<CommonReturnViewModel> GetContactPersonsForTableAsync()
+        {
+            try
+            {
+                var data = await (
+            from cp in contactPersonrepository.All()
+            join d in desiRepo.All()
+                on cp.DesignationCode equals d.DesignationCode into dg
+            from d in dg.DefaultIfEmpty()
+            select new ContactPersonTableDto
+            {
+                Id = cp.Cpid,
+                Name = cp.ContactPersonName ?? "",
+                Designation = d != null ? d.DesignationName : "",
+                Phone = cp.ContactPersonMobile ?? "",
+                Email = cp.ContactPersonEmail ?? ""
+            }
+        ).ToListAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = "Contact persons fetched successfully",
+                    Data = data
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = "Error fetching contact persons: " + ex.Message
+                };
+            }
+        }
+
+       
 
     }
 }

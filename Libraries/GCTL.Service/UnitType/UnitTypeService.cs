@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
+﻿using GCTL.Core.Data;
+using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.UnitType;
 using GCTL.Data.Models;
+using GCTL.Service.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography.X509Certificates;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Security.Cryptography;
-using GCTL.Service.Pagination;
-using GCTL.Core.Data;
-using GCTL.Core.ViewModels.UnitType;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace GCTL.Service.UnitType
 {
@@ -272,6 +273,22 @@ namespace GCTL.Service.UnitType
             }
             return macAddress;
         }
+        #endregion
+
+        #region SelectionAsync
+
+        public async Task<IEnumerable<CommonSelectModel>> SelectionUnitTypeAsync()
+        {
+
+            var data = await _repository.All()
+                       .Select(x => new CommonSelectModel
+                       {
+                           Code = x.UnitTypId,
+                           Name = x.UnitTypeName,
+                       }).ToListAsync();
+            return data;
+        }
+
         #endregion
     }
 }

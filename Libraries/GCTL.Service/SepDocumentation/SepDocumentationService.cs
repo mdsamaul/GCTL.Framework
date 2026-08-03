@@ -428,8 +428,8 @@ namespace GCTL.Service.SepDocumentation
             if (string.IsNullOrWhiteSpace(shipmentModeId)) return "";
 
             var mode = await _shipmentModeRepository.All()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.ExpenseTypeId == shipmentModeId);
+                .AsNoTracking().Where(s => s.ExpenseTypeId == shipmentModeId)
+                .FirstOrDefaultAsync();
 
             return mode?.TransportModeTypeId?.Trim() ?? "";
         }

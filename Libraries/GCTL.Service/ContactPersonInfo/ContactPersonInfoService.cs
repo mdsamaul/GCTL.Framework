@@ -109,7 +109,7 @@ namespace GCTL.Service.ContactPersonInfo
 
         public async Task<bool> SaveAsync(ContactPersonInfoSetupViewModel entityVM)
         {
-            var nextCode= commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 5, "CP");
+            var nextCode= commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 3, "CP");
             await contactPersonrepository.BeginTransactionAsync();
             try
             {

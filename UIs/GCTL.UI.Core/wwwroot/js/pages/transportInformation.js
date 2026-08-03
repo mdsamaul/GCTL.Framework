@@ -48,6 +48,7 @@
             //#region editSelector & clearSelector
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+               
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
@@ -55,9 +56,10 @@
                 let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
                 loadForm(url).then((data) => {
+                   
                     console.info("Form Loaded Successfully", data);
                 }).catch((error) => {
-                    console.error("Failed to load form", error);
+                   // console.error("Failed to load form", error);
                 });         
 
                 // Setting id on the delete selector for delete
@@ -268,6 +270,7 @@
                     cache: false,
                     success: function (data) {
                         console.log(data);
+
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));

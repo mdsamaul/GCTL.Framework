@@ -1,4 +1,5 @@
 ﻿using GCTL.Core.Data;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.BranchAddress;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -31,5 +32,6 @@ namespace GCTL.Service.BranchAddress
         Task<bool> SavePermissionAsync(string accessCode);
         Task<bool> UpdatePermissionAsync(string accessCode);
         Task<bool> DeletePermissionAsync(string accessCode);
+        Task<CommonReturnViewModel> GetContactPersonsForTableAsync();
     }
 }

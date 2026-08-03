@@ -92,6 +92,7 @@ select.form-control-sm:disabled {
 
 /* Dropdown */
 .dropdown-menu {
+    margin-top: 4px !important;
     border-radius: 8px;
     border: 1px solid #ddd;
     box-shadow: 0 6px 18px rgba(0,0,0,.12);
@@ -166,4 +167,16 @@ label , .form-label {
     div.dt-layout-full,
     div.dt-layout-start {
         padding: 0;
+    }
+}
+
+
+.toolbar-container,
+.card-header,
+.card-body {
+    overflow: visible !important;
+}
+
+    .toolbar-container .dropdown-menu {
+        z-index: 99999 !important;
     }

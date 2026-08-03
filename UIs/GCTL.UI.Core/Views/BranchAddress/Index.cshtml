@@ -109,7 +109,10 @@
                             ClearBtnClass = "js-BranchAddress-clear"
                         })
                     </div>
-
+                  @if (Model.TabModel != null)
+                    {
+                        @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
+                    }
                     <div class="card-body px-2">
 
                         <form asp-action="Setup" method="post" id="BranchAddress-form" asp-controller="BranchAddress">

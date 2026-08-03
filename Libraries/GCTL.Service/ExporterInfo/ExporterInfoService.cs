@@ -144,6 +144,8 @@ namespace GCTL.Service.ExporterInfo
                     ExporterAddress = entityVM.ExporterAddress ?? string.Empty,
                     CountryId = entityVM.CountryId ?? string.Empty,
                     City = entityVM.City ?? string.Empty,
+                    StateOrProvince = entityVM.StateOrProvince ?? string.Empty,
+                    ZipCode = entityVM.ZipCode ?? string.Empty,
                     VatRegNo = entityVM.VatRegNo ?? string.Empty,
                     Phone = entityVM.Phone ?? string.Empty,
                     Fax = entityVM.Fax ?? string.Empty,
@@ -202,6 +204,8 @@ namespace GCTL.Service.ExporterInfo
                 entity.ExporterAddress = entityVM.ExporterAddress ?? string.Empty;
                 entity.CountryId = entityVM.CountryId ?? string.Empty;
                 entity.City = entityVM.City ?? string.Empty;
+                entity.StateOrProvince = entityVM.StateOrProvince ?? string.Empty;
+                entity.ZipCode = entityVM.ZipCode ?? string.Empty;
                 entity.VatRegNo = entityVM.VatRegNo ?? string.Empty;
                 entity.Phone = entityVM.Phone ?? string.Empty;
                 entity.Fax = entityVM.Fax ?? string.Empty;
