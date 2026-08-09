@@ -484,7 +484,7 @@ namespace GCTL.Service.EmployeeContactInfos
         }
         #endregion
 
-        #region Get Company, Branch, Department
+        #region GetContactInfoByEmployeeId
 
         public async Task<EmployeeContactInfosSetupViewModel> GetContactInfoByEmployeeId(string employeeId)
         {
@@ -574,6 +574,7 @@ namespace GCTL.Service.EmployeeContactInfos
                         EmContactPhone2 = ec != null ? ec.EmContactPhone2 ?? "" : "",
                         EmContactFax2 = ec != null ? ec.EmContactFax2 ?? "" : "",
                         EmContactEmai2 = ec != null ? ec.EmContactEmai2 ?? "" : "",
+
                     }).FirstOrDefaultAsync();
             }
             catch (Exception ex)
