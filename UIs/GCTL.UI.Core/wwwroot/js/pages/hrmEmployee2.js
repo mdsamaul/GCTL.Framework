@@ -1031,7 +1031,15 @@
             }
         }
         function clearImage(file, tag) {
-            $(file).removeAttr("src");
+            var $img = $(file);
+            var defaultSrc = $img.data("default");   // default image path
+
+            if (defaultSrc) {
+                $img.attr("src", defaultSrc);
+            } else {
+                $img.removeAttr("src");
+            }
+
             $(tag).val(true);
         }
 
@@ -1168,10 +1176,10 @@
 
         // ── Date pickers ─────────────────────────────────────────────────────
         function AllDatePicker() {
-            flatpickr(
-                $("#DateOfBirthOrginal, #DateOfBirthCertificate, #MarriageDate"),
-                CalendarService.createConfig({})
-            );
+            // flatpickr(
+            //     $("#DateOfBirthOrginal, #DateOfBirthCertificate, #MarriageDate"),
+            //     CalendarService.createConfig({})
+            // );
         }
 
         // ── English → Bangla transliteration ─────────────────────────────────
