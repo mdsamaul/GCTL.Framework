@@ -121,7 +121,6 @@ namespace GCTL.Service.ExporterInfo
             catch (Exception ex)
             {
                 return null;
-
             }
         }
 
