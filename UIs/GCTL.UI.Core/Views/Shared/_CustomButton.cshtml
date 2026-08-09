@@ -1,0 +1,123 @@
+﻿@model GCTL.UI.Core.ViewModels.ToolbarButton
+
+@if (Model.IsDropdown)
+{
+    <div class="dropdown">
+        <button type="button"
+                id="@Model.Id"
+                class="btn toolbar-btn dropdown-toggle @Model.CssClass"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="@Model.Title"
+                disabled="@(!Model.Enabled)">
+            @if (!string.IsNullOrEmpty(Model.Icon))
+            {
+                <i class="@Model.Icon"></i>
+            }
+            @if (!string.IsNullOrEmpty(Model.Text))
+            {
+                <span>@Model.Text</span>
+            }
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            @foreach (var item in Model.DropdownItems)
+            {
+                <li>
+                    <a class="dropdown-item d-flex align-items-center @item.CssClass"
+                       href="@item.Href"
+                       id="@item.Id">
+                        @if (!string.IsNullOrEmpty(item.Icon))
+                        {
+                            <i class="@item.Icon me-2"></i>
+                        }
+                        @item.Text
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+}
+else if (Model.IsLink)
+{
+    <a href="@Model.Href"
+       id="@Model.Id"
+       class="btn toolbar-btn @Model.CssClass"
+       title="@Model.Title"
+        @(string.IsNullOrEmpty(Model.OnClick) ? "" : $"onclick=\"{Model.OnClick}\"")>
+        @if (!string.IsNullOrEmpty(Model.Icon))
+        {
+            <i class="@Model.Icon"></i>
+        }
+        @if (!string.IsNullOrEmpty(Model.Text))
+        {
+            <span>@Model.Text</span>
+        }
+    </a>
+}
+else
+{
+    <button type="button"
+            id="@Model.Id"
+            class="btn toolbar-btn @Model.CssClass"
+            title="@Model.Title"
+            disabled="@(!Model.Enabled)"
+        @(string.IsNullOrEmpty(Model.OnClick) ? "" : $"onclick=\"{Model.OnClick}\"")>
+        @if (!string.IsNullOrEmpty(Model.Icon))
+        {
+            <i class="@Model.Icon"></i>
+        }
+        @if (!string.IsNullOrEmpty(Model.Text))
+        {
+            <span>@Model.Text</span>
+        }
+    </button>
+}
+
+
+@* 
+    normal button example:
+@await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
+{
+    Id = "btnAdd",
+    Text = "Add New",
+    Icon = "fas fa-plus",
+    CssClass = "btn-primary"
+}) 
+
+Disabled 
+@await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
+{
+    Id = "btnSave",
+    Text = "Save",
+    Icon = "fas fa-save",
+    CssClass = "doc-save-entry-btn",
+    Enabled = false
+})
+
+Dropdown
+@await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
+{
+    Id = "btnMore",
+    Text = "More",
+    Icon = "fas fa-ellipsis-v",
+    CssClass = "btn-secondary",
+    IsDropdown = true,
+    DropdownItems = new List<GCTL.UI.Core.ViewModels.ToolbarDropdownItem>
+    {
+        new() { Id = "opt1", Text = "Import", Icon = "fas fa-upload" },
+        new() { Id = "opt2", Text = "Export", Icon = "fas fa-download" }
+    }
+})
+
+link button
+@await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
+{
+    Id = "btnBack",
+    Text = "Back", 
+    Icon = "fas fa-arrow-left",
+    CssClass = "btn-outline-secondary",
+    IsLink = true,
+    Href = "/Home/Index"
+})
+*@

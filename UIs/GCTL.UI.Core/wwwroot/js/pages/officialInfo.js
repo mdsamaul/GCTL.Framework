@@ -489,33 +489,21 @@
         // ── Initialize Select2 ─────────────────────────────────────────────────────
         function initialize() {
             $(document).ready(async function () {
-                AllDatePicker();
-                s2_InitSingle("#EmployeeId", "/GcFilters/employeeOff", "Select Employee", null);
-                s2_InitSingle("#OfficialInfoCompanyCode", "/GcFilters/company", "Select Company", "company", [null]);
-                s2_InitSingle("#OfficialInfoBranchCode", "/GcFilters/branch", "Select Branch", null);
-                s2_InitSingle("#DivisionCode", "/GcFilters/division", "Select Division", null);
-                s2_InitSingle("#DepartmentCode", "/GcFilters/department", "Select Department", null, [null]);
-                s2_InitSingle("#DesignationCode", "/GcFilters/designation", "Select Designation", null);
+                AllDatePicker();             
 
-                await s2_LoadNext("#OfficialInfoCompanyCode", "/GcFilters/company");
-
-                var $comp = $("#OfficialInfoCompanyCode");
-                var defaultCode = "001";
-                var defaultName = $comp.find('option[value="' + defaultCode + '"]').text();
-                await s2_SetDefault("#OfficialInfoCompanyCode", defaultCode, defaultName, true);
             });
         }
 
         // ── Flatpickr init ─────────────────────────────────────────────────────────
 
         function AllDatePicker() {
-            flatpickr(
-                document.querySelectorAll(
-                    "#JoiningDate,            #ConfirmeDate, " +
-                    "#AppointmentLetterDate,  #ContractEndDate"
-                ),
-                CalendarService.createConfig({ dateFormat: "m-d-Y" })
-            );
+            // flatpickr(
+            //     document.querySelectorAll(
+            //         "#JoiningDate,            #ConfirmeDate, " +
+            //         "#AppointmentLetterDate,  #ContractEndDate"
+            //     ),
+            //     CalendarService.createConfig({ dateFormat: "m-d-Y" })
+            // );
         }
 
         // ── Load grid ──────────────────────────────────────────────────────────────

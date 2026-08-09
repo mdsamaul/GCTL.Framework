@@ -62,6 +62,7 @@
     }
 
     }
+    
 </style>
 <partial name="_PageHeader" model="Model" />
 
@@ -89,6 +90,17 @@
                    @*  <div class="card-header px-2">
                         @await Html.PartialAsync("_TabButton")
                     </div> *@
+                    <div>
+                        @await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
+                        {
+                            Id = "add_employee",
+                            Text = "Add Employee",
+                            Icon = "fa-solid fa-plus",
+                            CssClass = "btn-dark px-3 text-dark",
+                            IsLink = true,
+                            Href = "/HrmEmployee2/Setup"
+                        })
+                    </div>
                     <div class="card-header border-transparent">
                         <h3 class="card-title">@ViewBag.Title</h3>
                     </div>
