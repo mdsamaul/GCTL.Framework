@@ -1,37 +1,29 @@
-﻿@* @model GCTL.Core.ViewModels.HrmEmployeeOfficialInfo.HrmEmployeeOfficialInfoSetupViewModel
-@model GCTL.UI.Core.ViewModels.HrmEmployeeOfficialInfo.HrmEmployeeOfficialInfoPageViewModel
+﻿@model GCTL.Core.ViewModels.HrmEmployeeOfficialInfo.HrmEmployeeOfficialInfoSetupViewModel
+@using GCTL.UI.Core.ViewModels
 
-@{
-    ViewBag.Title = "Official Info";
-    Model.PageTitle = ViewBag.Title;
-    Model.Breadcrumb = "Official Info";
-} *@
-
-@model GCTL.Core.ViewModels.HrmEmployeeOfficialInfo.HrmEmployeeOfficialInfoSetupViewModel
 @{
     ViewBag.Title = "Official Info";
     Model.PageTitle = ViewBag.Title;
     Model.Breadcrumb = "Official Info";
 }
 
-
 <div id="customLoadingOverlay" style="
-        display: flex;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;">
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;">
     <div style="
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            text-align: center;">
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        text-align: center;">
         <div class="spinner-border text-primary" role="status">
             <span class="sr-only">Loading...</span>
         </div>
@@ -39,28 +31,7 @@
     </div>
 </div>
 
-@* <partial name="_PageHeader" model="Model" /> *@
-
-<section class="content-header" style="padding-bottom: 0;">
-    <div class="container-fluid">
-        <div class="calloutx callout-info" style="height: 35px;">
-            <div class="row mb-2">
-                <div class="col-md-8 row">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class=""><a href="@Url.Action("Index")" class="linkbutton1 btn btn-sm btn-success" style="font-size:13px; text-decoration: none;"> <i class="fas fa-arrow-alt-circle-left">&nbsp;</i> Back to List </a></li>
-                    </ol>
-                </div>
-                <div class="col-md-4">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="/Dashboard">Home</a></li>
-                        <li class="breadcrumb-item"><a href="/OfficialInfo">Official Info List</a></li>
-                        <li class="breadcrumb-item active">Official Info</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<partial name="_PageHeader" model="Model" />
 
 <section class="content">
     <div class="container-fluid">
@@ -68,12 +39,12 @@
             <div class="col-md-12">
                 <div class="card mb-0">
                     <div class="card-header border-transparent py-1">
-                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
                         {
                             Title = "Official Info",
-                            SaveBtnClass = "js-officialInfo-save",
-                            DeleteBtnClass = "js-officialInfo-delete-confirm",
-                            ClearBtnClass = "js-officialInfo-clear"
+                            SaveBtnClass = "js-HrmEmployee2-save",
+                            DeleteBtnClass = "js-HrmEmployee2-delete-confirm",
+                            ClearBtnClass = "js-HrmEmployee2-clear"
                         })
                     </div>
                 </div>
@@ -87,449 +58,604 @@
         <div class="container-fluid">
             <div class="form-group row pt-2">
                 <div class="col-md-12">
-                    <div class="card mb-0 ">
+                    <div class="card mb-0">
                         <div class="card-body pt-1">
                             <div class="card-header p-0">
                                 @await Html.PartialAsync("_TabButton")
                             </div>
-                            <div class="row p-2 rounded">
-                                <div class="col-sm-12 gc-inline-select2">
-                                    <div style="padding-top: 5px;">
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <div class="row shadow px-4 pt-1 pb-0 rounded"
-                                                     style="
-                                                        background: linear-gradient(to right, #f7fcff, #ffffff) !important;
-                                                        ">
-                                                    <input type="hidden" asp-for="AutoId" />
-                                                    <div class="title">
-                                                    </div>
 
-                                                    <div class="col-sm-3 text-end" style="text-align: right;">
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="EmployeeId">Employee Id <span style="color: red">*</span></label><br />
-                                                        </div>
+                            <div style="padding-top: 10px;">
 
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="DesignationCode">Designation: </label>
-                                                        </div>
-                                                    </div>
+                                <input type="hidden" asp-for="AutoId" />
 
-                                                    <div class="col-sm-3">
-                                                        <div class="form-group">
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="EmployeeId" class="form-control selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Employee ----" tabindex="1">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
+                                <!-- ==================== HEADER (Employee Info) ==================== -->
+                                <div class="row shadow px-4 pt-2 pb-2 rounded"
+                                     style="background: linear-gradient(to right, #f7fcff, #ffffff) !important;">
 
-                                                        <div class="form-group">
-                                                            <input type="text" class="form-control form-control-sm border-0 bg-white" asp-for="DesignationName" readonly="readonly" />
-                                                        </div>
-                                                    </div>
+                                    <div class="form-group row w-100">
 
-                                                    <div class="col-sm-3 text-end" style="text-align: right;">
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" id="">Employee Name: </label>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" id="">Department: </label>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-sm-3">
-                                                        <div class="form-group">
-                                                            <input type="text" class="form-control form-control-sm border-0 bg-white" asp-for="FullName" readonly="readonly" />
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <input type="text" class="form-control form-control-sm border-0 bg-white" asp-for="DepartmentName" readonly="readonly" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div style="position:relative;background: white;" class="row shadow mt-2 py-1 rounded">
-                                                    <div class="col-sm-4">
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="OfficialInfoCompanyCode">Company <span style="color: red">*</span></label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="OfficialInfoCompanyCode" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Company ----" tabindex="2">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="DepartmentCode">Department <span style="color: red">*</span></label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="DepartmentCode" class="form-control selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Department ----" tabindex="5">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-sm btn-outline-secondary js-quick-add-officialInfo input-group-textc"
-                                                                            style="white-space: nowrap; flex-shrink: 0;"
-                                                                            data-url="@Url.Action("Index", "Departments")"
-                                                                            data-target="#DepartmentCode"
-                                                                            data-reload-url="@Url.Action("GetDepartments", "Cascading")"
-                                                                            data-title="Department">
-                                                                        <i class="fas fa-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="EmploymentNatureId">Employment Nature</label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="EmploymentNatureId" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Nature ----" asp-items="@ViewBag.EmployeeNatureDD as SelectList" tabindex="8">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="ShiftCode">Shift </label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="ShiftCode" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Shift ----" asp-items="@ViewBag.ShiftDD as SelectList" tabindex="11">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="MobileNo">Official Phone</label><br />
-                                                            <input type="text" class="form-control form-control-sm" asp-for="MobileNo" placeholder="Enter Official Phone" tabindex="14" />
-                                                        </div>
-
-                                                        <div class="form-group dropdown-wrapper">
-                                                            <label class="col-form-label-sm" style="font-weight: bold; font-size: 15px;" asp-for="ClientId">Client</label>
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="ClientId" class="form-control form-control-sm gc-multiselect" data-placeholder="---- Select Client ----" asp-items="@ViewBag.ClientDD as SelectList" multiple="multiple" tabindex="17">
-                                                                </select>
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-sm btn-outline-secondary js-quick-add-officialInfo input-group-textc"
-                                                                            style="white-space: nowrap; flex-shrink: 0;"
-                                                                            data-url="@Url.Action("Index", "ClientInformationEntry")"
-                                                                            data-target="#ClientId"
-                                                                            data-reload-url="@Url.Action("GetClientInformationEntry", "Cascading")"
-                                                                            data-title="Client Information Entry">
-                                                                        <i class="fas fa-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-
-                                                    <div class="col-sm-4">
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="OfficialInfoBranchCode">Branch</label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="OfficialInfoBranchCode" class="form-control selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Branch ----" tabindex="3">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-sm btn-outline-secondary js-quick-add-officialInfo input-group-textc"
-                                                                            style="white-space: nowrap; flex-shrink: 0;"
-                                                                            data-url="@Url.Action("Index", "BranchesTypeInfo")"
-                                                                            data-target="#OfficialInfoBranchCode"
-                                                                            data-reload-url="@Url.Action("GetCompanieBranchSelections", "Cascading")"
-                                                                            data-title="Branch">
-                                                                        <i class="fas fa-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="DesignationCode">Designation <span style="color: red">*</span></label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="DesignationCode" class="form-control selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Designation ----" tabindex="6">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-sm btn-outline-secondary js-quick-add-officialInfo input-group-textc"
-                                                                            style="white-space: nowrap; flex-shrink: 0;"
-                                                                            data-url="@Url.Action("Index", "Designations")"
-                                                                            data-target="#DesignationCode"
-                                                                            data-reload-url="@Url.Action("GetDesignations", "Cascading")"
-                                                                            data-title="Designation">
-                                                                        <i class="fas fa-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="GradeCode">Grade No </label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="GradeCode" class="form-control selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Grade No ----" asp-items="@ViewBag.GradeDD as SelectList" tabindex="9">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-sm btn-outline-secondary js-quick-add-officialInfo input-group-textc"
-                                                                            style="white-space: nowrap; flex-shrink: 0;"
-                                                                            data-url="@Url.Action("Index", "Grades")"
-                                                                            data-target="#GradeCode"
-                                                                            data-reload-url="@Url.Action("GetGradeDD", "Cascading")"
-                                                                            data-title="Grade">
-                                                                        <i class="fas fa-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="ReportingTo">Immediate Supervisor</label>
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="ReportingTo" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Immediate Supervisor ----" asp-items="@ViewBag.SupervisorDD as SelectList" tabindex="12">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="Email">Official Email</label>
-                                                            <input type="text" class="form-control form-control-sm" asp-for="Email" placeholder="Enter Official Email" tabindex="15" />
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="EmployeeStatus">Employee Status</label>
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="EmployeeStatus" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Employee Status ----" asp-items="@ViewBag.EmployeeStatusDD as SelectList" tabindex="18">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-sm-4">
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="DivisionCode">Division</label>
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="DivisionCode" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Division ----" tabindex="4">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="EmpTypeCode">Employee Type</label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="EmpTypeCode" class="form-control selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Employee Type ----" asp-items="@ViewBag.EmployeeTypeDD as SelectList" tabindex="7">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-sm btn-outline-secondary js-quick-add-officialInfo input-group-textc"
-                                                                            style="white-space: nowrap; flex-shrink: 0;"
-                                                                            data-url="@Url.Action("Index", "HrmDefEmpType")"
-                                                                            data-target="#EmpTypeCode"
-                                                                            data-reload-url="@Url.Action("GetEmployeeTypes", "Cascading")"
-                                                                            data-title="Employee Type">
-                                                                        <i class="fas fa-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="PayId">Pay ID</label>
-                                                            <input type="text" class="form-control form-control-sm" asp-for="PayId" placeholder="Enter Pay ID" tabindex="10" />
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="Hod">Head of Department</label><br />
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="Hod" class="form-control selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Head of Department ----" asp-items="@ViewBag.HeadOfDepartmentDD as SelectList" tabindex="13">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                                <div class="input-group-append">
-                                                                    <button type="button" class="btn btn-sm btn-outline-secondary js-quick-add-officialInfo input-group-textc"
-                                                                            style="white-space: nowrap; flex-shrink: 0;"
-                                                                            data-url="@Url.Action("Setup", "HrmEmployee2")"
-                                                                            data-target="#Hod"
-                                                                            data-reload-url="@Url.Action("GetEmployeeSummary", "Cascading")"
-                                                                            data-title="Head of Department">
-                                                                        <i class="fas fa-plus"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="AttendenceId">Attendence ID</label>
-                                                            <input type="text" class="form-control form-control-sm" asp-for="AttendenceId" placeholder="Enter Attendence ID" tabindex="16" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div style="position:relative; background: white;border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
-                                            <div style="position:absolute; top:-10px; background:#fff; padding:0 10px;border: .5px solid #dddddd82;left: 10px;" class="rounded">
-                                                <h5 style="margin:0;"><strong>Others Information</strong></h5>
-                                            </div>
-                                            <div class="col-sm-4">
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="IsLunchBilEligible">Is Lunch Bill Eligible</label><br />
-                                                    <div class="input-group input-group-sm flex-nowrap">
-                                                        <select asp-for="IsLunchBilEligible" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select is Food Bill Eligible ----" asp-items="@ViewBag.LunchBillEligibleDD as SelectList" tabindex="19">
-                                                            <option value=""></option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="IsGovtHolidayEligible">Is Gov't Holiday Eligible</label><br />
-                                                    <div class="input-group input-group-sm flex-nowrap">
-                                                        <select asp-for="IsGovtHolidayEligible" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Is Gov't Holiday Eligible ----" asp-items="@ViewBag.GovtHolidayEligibleDD as SelectList" tabindex="22">
-                                                            <option value=""></option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-4">
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="IsOverTimeEligible">Is Over Time Eligible</label><br />
-                                                    <div class="input-group input-group-sm flex-nowrap">
-                                                        <select asp-for="IsOverTimeEligible" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" asp-items="@ViewBag.OverTimeEligibleDD as SelectList" tabindex="20">
-                                                            <option value=""> 0% </option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="IsAttendanceBonusEligible">Is Attendance Bonus Eligible</label><br />
-                                                    <div class="input-group input-group-sm flex-nowrap">
-                                                        <select asp-for="IsAttendanceBonusEligible" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Is Attendance Bonus Eligible ----" asp-items="@ViewBag.AttendanceBonusEligibleDD as SelectList" tabindex="23">
-                                                            <option value=""></option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-4">
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="IsExtraDutyEligible">Is Extra Duty Eligible</label><br />
-                                                    <div class="input-group input-group-sm flex-nowrap">
-                                                        <select asp-for="IsExtraDutyEligible" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" asp-items="@ViewBag.ExtraDutyEligibleDD as SelectList" tabindex="21">
-                                                            <option value=""> 0% </option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div style="position:relative; background: white;border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
-                                            <div style="position:absolute; top:-10px; background:#fff; padding:0 10px;border: .5px solid #dddddd82;left: 10px;" class="rounded">
-
-                                                <h5 style="margin:0;"><strong>Joining Information</strong></h5>
-                                            </div>
-
-                                            <div class="col-sm-4">
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="AppointmentLetterNo">AppointmentLetter No</label>
-                                                    <input type="text" class="form-control form-control-sm" asp-for="AppointmentLetterNo" placeholder="Enter AppointmentLetter No" tabindex="24" />
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="JoiningSalary">Joining Salary</label>
-                                                    <input type="text" class="form-control form-control-sm" asp-for="JoiningSalary" placeholder="Enter Joining Salary" tabindex="27" />
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="ConfirmationRefNo">Confirmation Ref/Letter No.</label>
-                                                    <input type="text" class="form-control form-control-sm" asp-for="ConfirmationRefNo" placeholder="Enter Confirmation Ref/Letter No" tabindex="31" />
-                                                </div>
-                                            </div>
-
-                                            <div class="col-sm-4">
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="AppointmentLetterDate">Appointment Letter Date</label>
-                                                    <input type="text" class="form-control form-control-sm flatpickr" asp-for="AppointmentLetterDate" placeholder="Enter Appointment Letter Date" tabindex="25" />
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-sm-6">
-                                                        <div class="form-group">
-                                                            <label class="col-form-label-sm" asp-for="ProbationPeriod">Probation Period</label>
-                                                            <input type="text" class="form-control form-control-sm" asp-for="ProbationPeriod" placeholder="Enter Probation Period" tabindex="28" />
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-6">
-                                                        <div class="form-group" style="padding-top: 30px;">
-                                                            <div class="input-group input-group-sm flex-nowrap">
-                                                                <select asp-for="ProbationPeriodType" class="form-control form-control-sm selectpickerOfficialInfo gc-select2" data-placeholder="---- Select Probation Period ----" asp-items="@ViewBag.ProbationTimeDD as SelectList" tabindex="29">
-                                                                    <option value=""></option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="ContractEndDate">Contract End Date</label>
-                                                    <input type="text" class="form-control form-control-sm flatpickr" asp-for="ContractEndDate" placeholder="Enter Contract End Date" tabindex="32" />
-                                                </div>
-                                            </div>
-
-                                            <div class="col-sm-4">
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="JoiningDate">Joining Date</label>
-                                                    <input type="text" class="form-control form-control-sm flatpickr" asp-for="JoiningDate" placeholder="Enter Joining Date" tabindex="26" />
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <label class="col-form-label-sm" asp-for="ConfirmeDate">Confirmation Date</label>
-                                                    <input type="text" class="form-control form-control-sm flatpickr" asp-for="ConfirmeDate" placeholder="Enter Confirmation Date" tabindex="30" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        @if (Model.AutoId > 0)
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                         {
-                                            <hr />
-                                            <div class="form-group row" id="LdateModifyDate">
-                                                @if (Model.Ldate.HasValue)
-                                                {
-                                                    <div class="col-sm-8">
-                                                        <label>Entry Date: </label>
-                                                        <label>@Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt")</label>
-                                                    </div>
-                                                }
-                                                @if (Model.ModifyDate.HasValue)
-                                                {
-                                                    <div class="col-sm-4">
-                                                        <label>Last Modify Date: </label>
-                                                        <label>@Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")</label>
-                                                    </div>
-                                                }
-                                            </div>
-                                        }
+                                            InputId = "EmployeeId",
+                                            LabelText = "Employee Id",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "Select Employee",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",
+                                            LabelCssClass = "fw-semibold",
+                                            SelectItems = ViewBag.EmployeeDD as SelectList,
+                                            DefaultValue = Model.EmployeeId,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "FullName",
+                                            LabelText = "Employee Name:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,                 // ← এটা
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",      // ← এটা
+                                            LabelCssClass = "form-label mb-0 fw-semibold",
+                                            DefaultValue = Model.EmployeeName
+                                        })
+
+                                    </div>
+
+                                    <!-- Row 3: Designation + Department -->
+                                    <div class="form-group row mt-2">
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DesignationName",
+                                            LabelText = "Designation:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,                 // ← এটা
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",
+                                            LabelCssClass = "form-label mb-0 fw-semibold",
+                                            DefaultValue = Model.DesignationName
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DepartmentName",
+                                            LabelText = "Department:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,                 // ← এটা
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",
+                                            LabelCssClass = "form-label mb-0 fw-semibold",
+                                            DefaultValue = Model.DepartmentName
+                                        })
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="form-group row mt-2">
-                                <div class="col-12">
-                                    <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle"><i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List</a>
-                                    <button type="button" class="btn btn-default btn-common js-officialInfo-save btn-circle float-right">
-                                        <i class="fas fa-save"></i>
-                                        @if (@ViewBag.IsEditMode != null && (bool)@ViewBag.IsEditMode)
+                                <!-- ==================== MAIN OFFICIAL INFO ==================== -->
+                                <div style="position:relative; background: white;" class="row shadow mt-3 py-3 rounded">
+
+                                    <div class="form-group row w-100">
+
+                                        @* ---- Column 1 ---- *@
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                         {
-                                            <text>Update</text>
-                                        }
-                                        else
+                                            InputId = "OfficialInfoCompanyCode",
+                                            LabelText = "Company",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Company ----",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            DefaultValue = Model.OfficialInfoCompanyCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                         {
-                                            <text>Save</text>
-                                        }
-                                    </button>
+                                            InputId = "OfficialInfoBranchCode",
+                                            LabelText = "Branch",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Branch ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "BranchesTypeInfo"),
+                                            QuickAddTarget = "#OfficialInfoBranchCode",
+                                            QuickAddReloadUrl = Url.Action("GetCompanieBranchSelections", "Cascading"),
+                                            QuickAddTitle = "Branch",
+                                            DefaultValue = Model.OfficialInfoBranchCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DivisionCode",
+                                            LabelText = "Division",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Division ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            DefaultValue = Model.DivisionCode,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DepartmentCode",
+                                            LabelText = "Department",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Department ----",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "Departments"),
+                                            QuickAddTarget = "#DepartmentCode",
+                                            QuickAddReloadUrl = Url.Action("GetDepartments", "Cascading"),
+                                            QuickAddTitle = "Department",
+                                            DefaultValue = Model.DepartmentCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DesignationCode",
+                                            LabelText = "Designation",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Designation ----",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "Designations"),
+                                            QuickAddTarget = "#DesignationCode",
+                                            QuickAddReloadUrl = Url.Action("GetDesignations", "Cascading"),
+                                            QuickAddTitle = "Designation",
+                                            DefaultValue = Model.DesignationCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmpTypeCode",
+                                            LabelText = "Employee Type",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Employee Type ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.EmployeeTypeDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "HrmDefEmpType"),
+                                            QuickAddTarget = "#EmpTypeCode",
+                                            QuickAddReloadUrl = Url.Action("GetEmployeeTypes", "Cascading"),
+                                            QuickAddTitle = "Employee Type",
+                                            DefaultValue = Model.EmpTypeCode,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmploymentNatureId",
+                                            LabelText = "Employment Nature",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Nature ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.EmployeeNatureDD as SelectList,
+                                            DefaultValue = Model.EmploymentNatureId,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "GradeCode",
+                                            LabelText = "Grade No",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Grade No ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.GradeDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "Grades"),
+                                            QuickAddTarget = "#GradeCode",
+                                            QuickAddReloadUrl = Url.Action("GetGradeDD", "Cascading"),
+                                            QuickAddTitle = "Grade",
+                                            DefaultValue = Model.GradeCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PayId",
+                                            LabelText = "Pay ID",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Pay ID",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.PayId,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ShiftCode",
+                                            LabelText = "Shift",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Shift ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.ShiftDD as SelectList,
+                                            DefaultValue = Model.ShiftCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ReportingTo",
+                                            LabelText = "Immediate Supervisor",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Immediate Supervisor ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.SupervisorDD as SelectList,
+                                            DefaultValue = Model.ReportingTo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "Hod",
+                                            LabelText = "Head of Department",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Head of Department ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.HeadOfDepartmentDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Setup", "HrmEmployee2"),
+                                            QuickAddTarget = "#Hod",
+                                            QuickAddReloadUrl = Url.Action("GetEmployeeSummary", "Cascading"),
+                                            QuickAddTitle = "Head of Department",
+                                            DefaultValue = Model.Hod,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "MobileNo",
+                                            LabelText = "Official Phone",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Official Phone",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.MobileNo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "Email",
+                                            LabelText = "Official Email",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Official Email",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.Email,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "AttendenceId",
+                                            LabelText = "Attendence ID",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Attendence ID",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.AttendenceId,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ClientId",
+                                            LabelText = "Client",
+                                            FieldType = FieldType.MultiSelect,
+                                            Placeholder = "---- Select Client ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "gc-multiselect",
+                                            SelectItems = ViewBag.ClientDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "ClientInformationEntry"),
+                                            QuickAddTarget = "#ClientId",
+                                            QuickAddReloadUrl = Url.Action("GetClientInformationEntry", "Cascading"),
+                                            QuickAddTitle = "Client Information Entry",
+                                           // DefaultValue = Model.ClientId,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmployeeStatus",
+                                            LabelText = "Employee Status",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Employee Status ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.EmployeeStatusDD as SelectList,
+                                            DefaultValue = Model.EmployeeStatus,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
                                 </div>
+
+                                <!-- ==================== OTHERS INFORMATION ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
+                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                        <h5 style="margin:0;"><strong>Others Information</strong></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsLunchBilEligible",
+                                            LabelText = "Is Lunch Bill Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select is Food Bill Eligible ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.LunchBillEligibleDD as SelectList,
+                                            DefaultValue = Model.IsLunchBilEligible,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsOverTimeEligible",
+                                            LabelText = "Is Over Time Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "0%",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligible,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsExtraDutyEligible",
+                                            LabelText = "Is Extra Duty Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "0%",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.ExtraDutyEligibleDD as SelectList,
+                                            DefaultValue = Model.IsExtraDutyEligible,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsGovtHolidayEligible",
+                                            LabelText = "Is Gov't Holiday Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Gov't Holiday Eligible ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.GovtHolidayEligibleDD as SelectList,
+                                            DefaultValue = Model.IsGovtHolidayEligible,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsAttendanceBonusEligible",
+                                            LabelText = "Is Attendance Bonus Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Attendance Bonus Eligible ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.AttendanceBonusEligibleDD as SelectList,
+                                            DefaultValue = Model.IsAttendanceBonusEligible,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+                                </div>
+
+                                <!-- ==================== JOINING INFORMATION ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
+                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                        <h5 style="margin:0;"><strong>Joining Information</strong></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "AppointmentLetterNo",
+                                            LabelText = "AppointmentLetter No",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter AppointmentLetter No",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.AppointmentLetterNo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "AppointmentLetterDate",
+                                            LabelText = "Appointment Letter Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Appointment Letter Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                           // DefaultValue = Model.AppointmentLetterDate,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "JoiningDate",
+                                            LabelText = "Joining Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Joining Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                           // DefaultValue = Model.JoiningDate,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "JoiningSalary",
+                                            LabelText = "Joining Salary",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Joining Salary",
+                                            ColumnClass = "col-lg-4",
+                                          //  DefaultValue = Model.JoiningSalary,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ProbationPeriod",
+                                            LabelText = "Probation Period",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Probation Period",
+                                            ColumnClass = "col-lg-2",
+                                            DefaultValue = Model.ProbationPeriod,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ProbationPeriodType",
+                                            LabelText = " ",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Probation Period ----",
+                                            ColumnClass = "col-lg-2",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.ProbationTimeDD as SelectList,
+                                            DefaultValue = Model.ProbationPeriodType,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ConfirmeDate",
+                                            LabelText = "Confirmation Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Confirmation Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                          //  DefaultValue = Model.ConfirmeDate,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ConfirmationRefNo",
+                                            LabelText = "Confirmation Ref/Letter No.",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Confirmation Ref/Letter No",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.ConfirmationRefNo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ContractEndDate",
+                                            LabelText = "Contract End Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Contract End Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                           // DefaultValue = Model.ContractEndDate,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+                                </div>
+
+                                @if (Model.AutoId > 0)
+                                {
+                                    <hr />
+                                    <div class="form-group row" id="LdateModifyDate">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "displayLDate",
+                                            LabelText = "Entry Date:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-4",
+                                            ShowOnInit = Model.Ldate.HasValue,
+                                            DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt")
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "displayModifyDate",
+                                            LabelText = "Last Modify Date:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-4",
+                                            ShowOnInit = Model.ModifyDate.HasValue,
+                                            DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")
+                                        })
+                                    </div>
+                                }
+
+                                <div class="form-group row mt-2">
+                                    <div class="col-12">
+                                        <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle">
+                                            <i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List
+                                        </a>
+                                        <button type="button" class="btn btn-default btn-common js-officialInfo-save btn-circle float-right">
+                                            <i class="fas fa-save"></i>
+                                            @if (ViewBag.IsEditMode != null && (bool)ViewBag.IsEditMode)
+                                            {
+                                                <text>Update</text>
+                                            }
+                                            else
+                                            {
+                                                <text>Save</text>
+                                            }
+                                        </button>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
 
         <section class="content">
             <div class="container-fluid">
@@ -547,9 +673,9 @@
                 <partial name="_BottomNavigation" />
             </div>
         </section>
-
     </form>
 </section>
+
 <partial name="DeleteModal" />
 <partial name="_QuickAddModalOfficialInfo" />
 
@@ -557,15 +683,12 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
     <script src="~/js/pages/officialinfo.js"></script>
     <script type="text/javascript">
         var options = {
-            baseUrl: '@Url.Action("", "OfficialInfo")'
+        baseUrl: '@Url.Action("", "OfficialInfo")'
         };
-        options.load = () => {
-        };
-
+        options.load = () => { };
         $.officialInfo(options);
     </script>
 }
