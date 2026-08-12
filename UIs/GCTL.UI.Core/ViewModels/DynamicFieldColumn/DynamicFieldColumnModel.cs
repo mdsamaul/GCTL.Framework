@@ -3,9 +3,7 @@ using System.Collections.Generic;
 
 namespace GCTL.UI.Core.ViewModels
 {
-    /// <summary>
-    /// Supported field render types for DynamicFieldColumn partial.
-    /// </summary>
+
     public enum FieldType
     {
         Text,
@@ -108,8 +106,11 @@ namespace GCTL.UI.Core.ViewModels
         public string InputType { get; set; }
 
         public bool IsMultiple { get; set; } = false;
+        public string LabelColumnClass { get; set; } = "";
+        public string LabelCssClass { get; set; } = "";    
         // DynamicFieldColumnModel.cs
         public bool IsActionDisabled { get; set; } = false;
+        public string ValueCssClass { get; set; } = "readonly-value";
         public string ResolvedInputCss
         {
             get
@@ -123,29 +124,7 @@ namespace GCTL.UI.Core.ViewModels
                 return "form-control form-control-sm";
             }
         }
-        //public string ResolvedInputCss
-        //{
-        //    get
-        //    {
-        //        if (FieldType == FieldType.MultiSelect)
-        //            return "form-select form-select-sm custom-select-multi";
-
-        //        if (FieldType == FieldType.Select || FieldType == FieldType.QuickAddSelect)
-
-        //            return "form-select form-select-sm custom-select-single";
-
-        //        else 
-        //        {
-        //            return IsMultiple
-        //                ? "form-select form-select-sm custom-select-multi"
-        //                : "form-select form-select-sm custom-select-single";
-        //        }
-
-
-        //        return "form-control form-control-sm";
-        //    }
-        //}
-
+        
         public string ResolvedDatepickerClass =>
             FieldType == FieldType.Date ? "custom-datepicker caiCon" : "";
     }

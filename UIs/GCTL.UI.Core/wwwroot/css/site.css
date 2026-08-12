@@ -1182,3 +1182,9 @@ table.dataTable thead th,
 table.dataTable thead tr {
     vertical-align: middle !important;
 }
+
+.required-star {
+    color: #dc3545 !important;
+    font-size: 1rem !important;
+    font-weight: 600;
+}
