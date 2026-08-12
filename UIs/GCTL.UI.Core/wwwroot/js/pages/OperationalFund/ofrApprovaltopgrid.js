@@ -1,4 +1,4 @@
-﻿//#region Ready Part
+//#region Ready Part
 $(document).ready(function () {
     //Load Dropdown
     InitDropdown('/OperationFund/GetEmpDD', '#Customer', 'Select Employee');
@@ -11,11 +11,11 @@ $(document).ready(function () {
     //Load Requisition List For Top Grid
     BottomGrid();
     // ClearTmpDetail();
-    //Clear Event Button
-    // $(document).on("click", "#Approve-Clear", function (e) {
-    //     e.preventDefault();
-    //     ClearApprovedForm();
-    // });
+    // Clear Event Button
+    $(document).on("click", "#Approve-Clear", function (e) {
+        e.preventDefault();
+        ClearApprovedForm();
+    });
 });
 //#endregion
 
@@ -216,66 +216,37 @@ $(document).on('click', 'input[name="jobSelect"]', function () {
 
 //#endregion
 
-//#region Load Cash Bank Dropdown with js
-function initCashBankChoices() {
-    $('.cashbank-select').each(function () {
-
-        if (!$(this).data('choices')) {
-            let choice = new Choices(this, {
-                searchEnabled: false,
-                shouldSort: false,
-                placeholderValue: 'Select...',
-                removeItemButton: true
-            });
-
-            $(this).data('choices', choice);
-        }
-    });
-}
-//#endregion
-
 //#region Load Bank Accounts
 function loadBankAccounts($cashBankSelect, selectedBank = null) {
     let value = $cashBankSelect.val();
     let tc = $cashBankSelect.data('tc');
     let $bankSelect = $('.bankaccount-select[data-tc="' + tc + '"]');
 
-    // Destroy old Choices instance
-    if ($bankSelect.data('choices')) {
-        $bankSelect.data('choices').destroy();
-        $bankSelect.removeData('choices');
-    }
-
     // Clear dropdown
     $bankSelect.empty().append('<option value="">Select Bank Account</option>');
 
-    $bankSelect.prop('disabled', false);
+    if (!value || value === 'Cash' || value === 'Employee') {
+        $bankSelect.prop('disabled', true);
+        return;
+    }
 
+    $bankSelect.prop('disabled', false);
 
     // Load bank accounts via AJAX
     $.get('/OFRApproval/BankAccountDD', { value: value }, function (res) {
-        res.forEach(item => {
-            $bankSelect.append(`<option value="${item.value}">${item.text}</option>`);
-        });
+        if (res && res.length > 0) {
+            res.forEach(item => {
+                $bankSelect.append(`<option value="${item.value}">${item.text}</option>`);
+            });
+        }
 
         // Auto-select bank account
         if (selectedBank) {
             $bankSelect.val(selectedBank);
         }
-        else if (value === '10200400001' && res.length > 0) {
+        else if (value === '10200400001' && res && res.length > 0) {
             $bankSelect.val(res[0].value);
         }
-        //else if (res.length > 0) {
-        //    $bankSelect.val(res[0].value);
-        //}
-
-        // Initialize Choices.js for Bank Account
-        $bankSelect.data('choices', new Choices($bankSelect[0], {
-            searchEnabled: true,
-            shouldSort: false,
-            placeholderValue: 'Select Bank Account',
-            removeItemButton: true
-        }));
     });
 }
 
@@ -283,53 +254,6 @@ function loadBankAccounts($cashBankSelect, selectedBank = null) {
 $(document).on('change', '.cashbank-select', function () {
     loadBankAccounts($(this));
 });
-//$(document).on('change', '.cashbank-select', function () {
-//    let choiceInstance = $(this).data('choices');
-//    let value = choiceInstance ? choiceInstance.getValue(true) : $(this).val();
-//    let selectedType = $(this).find('option:selected').data('type'); // Cash / Bank / Employee
-//    let tc = $(this).data('tc');
-
-//    let $bankSelect = $('.bankaccount-select[data-tc="' + tc + '"]');
-
-//    // Destroy old Choices instance first
-//    if ($bankSelect.data('choices')) {
-//        $bankSelect.data('choices').destroy();
-//        $bankSelect.removeData('choices');
-//    }
-
-//    // Clear dropdown
-//    $bankSelect.empty().append('<option value="">Select Bank Account</option>');
-
-//    // Disable if nothing selected or Cash selected
-//    if (!value) {
-//        $bankSelect.prop('disabled', true);
-//        return; // skip AJAX for Cash
-//    }
-
-//    // Enable for Bank / Employee
-//    $bankSelect.prop('disabled', false);
-
-//    // Load bank account data via AJAX
-//    $.ajax({
-//        url: '/OFRApproval/BankAccountDD',
-//        type: 'GET',
-//        data: { value: value },
-//        success: function (res) {
-//            res.forEach(item => {
-//                $bankSelect.append(`<option value="${item.value}">${item.text}</option>`);
-//            });
-
-//            // Re-initialize Choices.js
-//            let bankChoice = new Choices($bankSelect[0], {
-//                searchEnabled: true,
-//                shouldSort: false,
-//                placeholderValue: 'Select Bank Account'
-//            });
-
-//            $bankSelect.data('choices', bankChoice);
-//        }
-//    });
-//});
 //#endregion
 
 //#region Load Tmp Details Table with live totals
@@ -419,7 +343,7 @@ function loadTmpDetails(jobNo) {
 
         // Grand Total row
         const grandTotalReq = res.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-        const grandTotalApproval = grandTotalReq;
+        const grandTotalApproval = res.reduce((sum, item) => sum + (parseFloat(item.approvalAmount) || parseFloat(item.amount) || 0), 0);
         $tbody.append(`
                         <tr class="grand-total-row">
                             <td colspan="5" class="text-end text-primary fw-bold fs-8">Grand Total</td>
@@ -428,7 +352,6 @@ function loadTmpDetails(jobNo) {
                             <td colspan="2"></td>
                         </tr>
         `);
-        initCashBankChoices();
     });
 }
 
@@ -664,10 +587,18 @@ $('#Approve-SaveBtn').on('click', function () {
 //#region Clear Function
 function ClearApprovedForm() {
     $('.job-radio').prop('checked', false);
+    $('input[name="jobSelect"]').data('waschecked', false);
     $("#Appro-ReqNo,#Appro-JobNo,#Appro-Cutomer,#Appro-invoiceNo,#Appro-Qty,#Appro-ReqDate,#Appro-Shipment,#Appro-LCValue,#Appro-MatDescription,#Appro-Weight, #bottom-Search, #Appro-SearchInput").val("");
+    
+    const customSelectors = ['Customer', 'Appro-ShipmentMode'];
+    customSelectors.forEach(id => {
+        if (window.clearCustomDropdownById) window.clearCustomDropdownById(id);
+    });
+
+    $('#Tmp-TableBody').empty();
+
     ClearTmpDetail();
-    loadTmpDetails();
-    loadRequisitionList();
+    if (jobTable) jobTable.ajax.reload();
     BottomGrid();
 }
 //#endregion

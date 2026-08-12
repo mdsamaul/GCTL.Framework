@@ -1,4 +1,4 @@
-﻿
+
 using Azure.Core;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
@@ -131,11 +131,18 @@ namespace GCTL.Service.OFRApproval
         #region Get Requisition Details in Expense Details
         public async Task<bool> CopyDetailsToTmp(string jobNo, string? currentUserId)
         {
-            var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
+            if (string.IsNullOrEmpty(currentUserId)) return false;
 
+            var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
             if (!details.Any()) return false;
 
-            // Map to temporary table (use the Temp model)
+            var existingTmp = await _Tmpdetails.All()
+                .Where(x => x.Luser == currentUserId)
+                .ToListAsync();
+
+            if (existingTmp.Any())
+                await _Tmpdetails.DeleteRangeAsync(existingTmp);
+
             var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
             {
                 OfrDetailsId = d.OfrDetailsId,
@@ -148,17 +155,15 @@ namespace GCTL.Service.OFRApproval
                 DifferentAmount = d.DifferentAmount,
                 DifferentAmount2 = d.DifferentAmount2,
                 BillAdjustAmount = d.BillAdjustAmount,
-                Luser = currentUserId?.ToString(),
-                Ldate = d.Ldate,
+                Luser = currentUserId,
+                Ldate = DateTime.Now,
+                Lip = d.Lip,
                 Lmac = d.Lmac,
                 CompanyCode = d.CompanyCode,
                 EmployeeId = d.EmployeeId,
                 ExpenseHeadRemarks = d.ExpenseHeadRemarks
             }).ToList();
-            if (tmpDetails == null || !tmpDetails.Any())
-            {
-                throw new InvalidOperationException("Failed to map details to temporary table");
-            }
+
             await _Tmpdetails.AddRangeAsync(tmpDetails);
             return true;
         }
@@ -170,26 +175,29 @@ namespace GCTL.Service.OFRApproval
         {
             var result = await (from tmp in _Tmpdetails.All()
                                 join head in _accountsHead.All()
-                                    on tmp.ExpenseHeadId equals head.ExpenseHeadId
+                                    on tmp.ExpenseHeadId equals head.ExpenseHeadId into headGroup
+                                from head in headGroup.DefaultIfEmpty()
                                 join serv in _serviceType.All()
-                                    on tmp.ServiceTypeId equals serv.ServiceTypeId
+                                    on tmp.ServiceTypeId equals serv.ServiceTypeId into servGroup
+                                from serv in servGroup.DefaultIfEmpty()
                                 join ofrDet in _details.All()  
-                                    on tmp.OfrDetailsId equals ofrDet.OfrDetailsId
-                                where tmp.Luser == userId.ToString() && tmp.JobNo == jobno
+                                    on tmp.OfrDetailsId equals ofrDet.OfrDetailsId into ofrGroup
+                                from ofrDet in ofrGroup.DefaultIfEmpty()
+                                where tmp.Luser == userId && tmp.JobNo == jobno
                                 orderby tmp.Tc
                                 select new OFRApprovalDetailsVM
                                 {
                                     Tc = tmp.Tc,
                                     OFRDetailsID = tmp.OfrDetailsId,
-                                    SerialNo = head.SerialNo,
-                                    AccountHeadName = head.ExpenseHead,
-                                    IsReceivetable = head.IsReceiptable,
-                                    ServiceTypeName = serv.ServiceTypeName,
+                                    SerialNo = head != null ? head.SerialNo : "",
+                                    AccountHeadName = head != null ? head.ExpenseHead : "",
+                                    IsReceivetable = head != null ? head.IsReceiptable : "",
+                                    ServiceTypeName = serv != null ? serv.ServiceTypeName : "",
                                     Amount = tmp.EstimatedAmount,
                                     ApprovalAmount = tmp.ActualAmount,
                                     Remark = tmp.ExpenseHeadRemarks,
-                                    CashBank = ofrDet.DetailsCashBank,
-                                    BankAccount = ofrDet.DetailsBankAccount
+                                    CashBank = ofrDet != null ? ofrDet.DetailsCashBank : "",
+                                    BankAccount = ofrDet != null ? ofrDet.DetailsBankAccount : ""
                                 }).ToListAsync();
 
             return result;
@@ -400,34 +408,7 @@ namespace GCTL.Service.OFRApproval
         #region Copied To Tmp Details Table
         public async Task<bool> CopyDetailsToTmpTable(string jobNo, string? currentUserId, BaseViewModel model)
         {
-            var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
-
-            if (!details.Any()) return false;
-
-            // Map to temporary table (use the Temp model)
-            var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
-            {
-                OfrDetailsId = d.OfrDetailsId,
-                Ofrno = d.Ofrno,
-                JobNo = d.JobNo,
-                ExpenseHeadId = d.ExpenseHeadId,
-                ServiceTypeId = d.ServiceTypeId,
-                EstimatedAmount = d.EstimatedAmount,
-                ActualAmount = d.ActualAmount,
-                DifferentAmount = d.DifferentAmount,
-                DifferentAmount2 = d.DifferentAmount2,
-                BillAdjustAmount = d.BillAdjustAmount,
-                Luser = d.Luser,// currentUserId.ToString(),
-                Ldate = DateTime.Now,
-                Lip = model.Lip,
-                Lmac = model.Lmac,
-                CompanyCode = d.CompanyCode,
-                EmployeeId = d.EmployeeId,
-                ExpenseHeadRemarks = d.ExpenseHeadRemarks
-            }).ToList();
-
-            await _Tmpdetails.AddRangeAsync(tmpDetails);
-            return true;
+            return await CopyDetailsToTmp(jobNo, currentUserId);
         }
         #endregion
 
