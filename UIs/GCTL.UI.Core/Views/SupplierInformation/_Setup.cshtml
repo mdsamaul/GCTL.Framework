@@ -386,7 +386,7 @@
                                         <div class="input-group">
                                             <!-- Dropdown -->
                                             <select asp-for="SupplierCategoryId" data-placeholder="-- Select Supplier Category --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 gc-select2 js-"
+                                                    class="form-control form-control-sm selectpickerSup gc-select2 custom-select-single"
                                                     tabindex="3"
                                                     asp-items="@ViewBag.SupplierCatDD as SelectList">
                                                 <option value=""></option> <!-- Default option -->
@@ -444,7 +444,7 @@
                                         <div class="input-group">
                                             <!-- Dropdown -->
                                             <select asp-for="CompanyId" data-placeholder="-- Select Supplier Company --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="5"
                                                     asp-items="@ViewBag.SupplierComDD as SelectList">
                                                 <option value=""></option> <!-- Default option -->
@@ -505,7 +505,7 @@
                                         <div class="input-group">
                                             <!-- Dropdown -->
                                             <select asp-for="CountryId" data-placeholder="-- Select Supplier Country --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="8"
                                                     asp-items="@ViewBag.SCountryDD as SelectList">
                                                 <option value=""></option> <!-- Default option -->
@@ -843,7 +843,7 @@
                                                 <div class="input-group">
                                                     <!-- Dropdown -->
                                                     <select asp-for="Optype" data-placeholder="-- Select Optype --"
-                                                            class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                            class="form-control form-control-sm custom-select-single"
                                                             tabindex="25"
                                                             asp-items="@ViewBag.OptypeDD as SelectList">
                                                         <option value=""></option> <!-- Default option -->
@@ -864,7 +864,7 @@
                                         <div class="input-group">
                                             <!-- Dropdown -->
                                             <select asp-for="SalesPersonId" data-placeholder="-- Select Sales Person --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="26"
                                                     asp-items="@ViewBag.SalesPersonDD as SelectList">
                                                 <option value=""></option> <!-- Default option -->
@@ -901,7 +901,7 @@
                                         <div class="input-group">
                                             <!-- Dropdown -->
                                             <select asp-for="Active" data-placeholder="-- Select Sales Person --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="28"
                                                     asp-items="@ViewBag.ActiveDD as SelectList">
                                                 <option value=""></option> <!-- Default option -->
@@ -1284,7 +1284,7 @@
 
     <div style="padding-top:1px">
         <div class="row">
-            <div class="col-lg-12 gc-inline-select2">
+            <div class="col-lg-12">
                 <input type="hidden" asp-for="Id" />
                 <input type="hidden" asp-for="Ldate" />
                 <input type="hidden" asp-for="ModifyDate" />
@@ -1339,7 +1339,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="input-group">
                                             <select asp-for="SupplierCategoryId" data-placeholder="-- Select Supplier Category --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="3"
                                                     asp-items="@ViewBag.SupplierCatDD as SelectList">
                                                 <option value=""></option>
@@ -1368,7 +1368,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="input-group">
                                             <select asp-for="SupplierOriginId" data-placeholder="-- Select Supplier Type/ Origin --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="4"
                                                     asp-items="@ViewBag.SupplierTypeDD as SelectList">
                                                 <option value=""></option>
@@ -1393,7 +1393,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="input-group">
                                             <select asp-for="CompanyId" data-placeholder="-- Select Supplier Company --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="5"
                                                     asp-items="@ViewBag.SupplierComDD as SelectList">
                                                 <option value=""></option>
@@ -1450,7 +1450,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="input-group">
                                             <select asp-for="CountryId" data-placeholder="-- Select Supplier Country --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="8"
                                                     asp-items="@ViewBag.SCountryDD as SelectList">
                                                 <option value=""></option>
@@ -1666,7 +1666,7 @@
                                             <select asp-for="SupplierBankId"
                                                     data-placeholder="--Select Supplier Bank--"
                                                     asp-items="ViewBag.SupplierBankDD as SelectList"
-                                                    class="form-control form-select-sm selectpickerSup gc-select2"
+                                                    class="form-control form-select-sm custom-select-single"
                                                     tabindex="21">
                                                 <option value=""></option>
                                             </select>
@@ -1687,7 +1687,7 @@
                                             <select asp-for="SupplierBankBranchId"
                                                     data-placeholder="--Select Supplier Branch--"
                                                     asp-items="ViewBag.SupplierBankBranchDD as SelectList"
-                                                    class="form-control form-select-sm selectpickerSup gc-select2"
+                                                    class="form-control form-select-sm custom-select-single"
                                                     tabindex="22">
                                                 <option value="">--Select Branch--</option>
                                             </select>
@@ -1743,7 +1743,7 @@
                                             <div class="col-6">
                                                 <div class="input-group">
                                                     <select asp-for="Optype" data-placeholder="-- Select Optype --"
-                                                            class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                            class="form-control form-control-sm custom-select-single"
                                                             tabindex="25"
                                                             asp-items="@ViewBag.OptypeDD as SelectList">
                                                         <option value=""></option>
@@ -1762,7 +1762,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="input-group">
                                             <select asp-for="SalesPersonId" data-placeholder="-- Select Sales Person --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="26"
                                                     asp-items="@ViewBag.SalesPersonDD as SelectList">
                                                 <option value=""></option>
@@ -1797,7 +1797,7 @@
                                     <div class="col-12 col-md-6">
                                         <div class="input-group">
                                             <select asp-for="Active" data-placeholder="-- Select Active --"
-                                                    class="form-control form-control-sm selectpickerSup gc-select2 js-"
+                                                    class="form-control form-control-sm custom-select-single"
                                                     tabindex="28"
                                                     asp-items="@ViewBag.ActiveDD as SelectList">
                                                 <option value=""></option>
@@ -1842,7 +1842,8 @@
                                     ShowPrint = false,
                                     ShowFavorite = false,
                                     IsPlain = true,
-                                    SaveBtnClass = "SupplierInformation"
+                                    SaveBtnClass = "js-SupplierInformation-save"
+
                                 })
                             </div>
                         </div>

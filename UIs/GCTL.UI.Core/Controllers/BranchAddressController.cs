@@ -2,6 +2,7 @@
 using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.BranchAddress;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 using GCTL.Data.Models;
@@ -69,7 +70,15 @@ namespace GCTL.UI.Core.Controllers
                 ViewBag.VendorDD = new SelectList(coreVendorinformationrepository.All(), "VendorId", "Name");
                 ViewBag.ContactDD = new SelectList(contactPersonrepository.All(), "Cpid", "ContactPersonName");
                 ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
-
+                model.TabModel = new TabGroupModel
+                        {
+                            GroupId = "vendorTabGroup",
+                            Tabs = new List<TabItemModel>
+                        {
+                            new TabItemModel { TabId = "vendorInfo", TabTitle = "Vendor Info", ControllerName = "VendorInfo", ActionName = "Index" },
+                            new TabItemModel { TabId = "branchAddress", TabTitle = "Branch Address", ControllerName = "BranchAddress", ActionName = "Index", IsActive = true }
+                        }
+                };
                 model.Setup = new BranchAddressSetupViewModel
                 {
                     VendorId = strMaxNO
@@ -248,6 +257,11 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
-
+        [HttpGet]
+        public async Task<IActionResult> GetContactPersonsForTable()
+        {
+            var result = await branchAddressService.GetContactPersonsForTableAsync();
+            return Json(result);
+        }
     }
 }

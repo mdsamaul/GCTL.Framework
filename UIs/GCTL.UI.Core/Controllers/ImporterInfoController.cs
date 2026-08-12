@@ -89,7 +89,7 @@ namespace GCTL.UI.Core.Controllers
             ImporterInfoSetupViewModel model = new ImporterInfoSetupViewModel();
           //  commonService.FindMaxNo(ref strMaxNO, "ImporterID", "Core_ImporterInformation", 10);
 
-            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
+
 
             if (!string.IsNullOrEmpty(id))
             {
@@ -106,7 +106,7 @@ namespace GCTL.UI.Core.Controllers
                 var nextCode = commonService.GenerateCode("ImporterID", "Core_ImporterInformation", "IMP_", 6);
                 model.ImporterId = nextCode;
             }
-
+            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName", model.CountryId);
             return PartialView($"_{nameof(Setup)}", model);
         }
 

@@ -1167,12 +1167,18 @@ select.form-control option[value=""] {
     color: #8a9bb8;
     font-style: italic;
 }
-.input-group-sm .custom-dd-box {
-    border-radius: .375rem 0 0 .375rem;
+
+/* All table headers */
+.table thead th,
+table.dataTable thead th,
+.table-common thead th {
+    text-align: center !important;
+    vertical-align: middle !important;
 }
 
-.form-check-input:focus {
-    border-color: #86b7fe;
-    outline: 0;
-    box-shadow: none;
+
+/* Header row */
+.table thead tr,
+table.dataTable thead tr {
+    vertical-align: middle !important;
 }

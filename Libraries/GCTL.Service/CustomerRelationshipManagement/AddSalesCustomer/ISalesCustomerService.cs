@@ -1,11 +1,12 @@
-﻿using System;
+﻿using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Core.ViewModels.Common;
+using GCTL.Data.Models;
+using GCTL.Service.Pagination;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GCTL.Core.ViewModels.AddSalesCustomer;
-using GCTL.Data.Models;
-using GCTL.Service.Pagination;
 
 namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
 {
@@ -22,6 +23,8 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
         Task<string> GenerateCustomerIdAsync();
         Task<bool> BulkDeleteAsync(List<string> customerIds);
         Task<List<CoreCompany>> GetCountryDropdownAsync();
+
+        Task<IEnumerable<CommonSelectModel>> SelectionCustomerAsync();
 
         #region CustomerReport
 

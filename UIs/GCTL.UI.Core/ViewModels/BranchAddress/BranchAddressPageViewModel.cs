@@ -1,5 +1,6 @@
 ﻿using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.BranchAddress;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.VendorInfo;
 
 namespace GCTL.UI.Core.ViewModels.BranchAddress
@@ -8,5 +9,6 @@ namespace GCTL.UI.Core.ViewModels.BranchAddress
     {
         public BranchAddressSetupViewModel Setup { get; set; } = new BranchAddressSetupViewModel();
         public List<BranchAddressSetupViewModel> BranchAddressList { get; set; } = new List<BranchAddressSetupViewModel>();
+        public TabGroupModel TabModel { get; set; }
     }
 }

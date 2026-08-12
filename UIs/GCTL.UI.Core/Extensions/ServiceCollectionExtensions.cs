@@ -1,4 +1,5 @@
 using GCTL.Core.Configurations;
+using GCTL.Core.Interfaces.Services;
 using GCTL.Data.Context;
 using GCTL.Data.Models;
 using GCTL.Service.AdmissionTypes;
@@ -7,6 +8,7 @@ using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchAddress;
 using GCTL.Service.BranchesTypeInfo;
+using GCTL.Service.CfDefPlaceOfLoading;
 using GCTL.Service.ChartOfAccounts.ControlLedger;
 using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
@@ -28,11 +30,15 @@ using GCTL.Service.DailyJobUpdateEntry;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
+using GCTL.Service.Districts;
+using GCTL.Service.EmployeeContactInfos;
+using GCTL.Service.EmployeeOfficialInfo;
 using GCTL.Service.ExpenseHead;
 using GCTL.Service.ExporterInfo;
 using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
+using GCTL.Service.HrmEmployees2;
 using GCTL.Service.ImporterInfo;
 using GCTL.Service.Menu;
 using GCTL.Service.MenuBreadcrumbs;
@@ -48,8 +54,10 @@ using GCTL.Service.PaymentType;
 using GCTL.Service.Permissions;
 using GCTL.Service.PortName;
 using GCTL.Service.PortType;
+using GCTL.Service.Relationships;
 using GCTL.Service.Religions;
 using GCTL.Service.SepDocumentation;
+using GCTL.Service.Services;
 using GCTL.Service.ShipmentMode;
 using GCTL.Service.ShipmentModeLedgerSetup;
 using GCTL.Service.SupplierCategory;
@@ -169,10 +177,16 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IImporterInfoService, ImporterInfoService>();
             services.AddScoped<IModeTypeService, ModeTypeService>();
             services.AddScoped<IExporterInfoService, ExporterInfoService>();
-            services.AddScoped<IContactPersonInfoService, ContactPersonInfoService>();
             services.AddScoped<IVendorInfoService, VendorInfoService>();
             services.AddScoped<IBranchAddressService, BranchAddressService>();
             services.AddScoped<IVendorPrefixService, VendorPrefixService>();
+            services.AddScoped<IHrmEmployee2Service, HrmEmployee2Service>();
+            services.AddScoped<IEmployeeOfficialInfoService, EmployeeOfficialInfoService>();
+            services.AddScoped<IContactPersonInfoService, ContactPersonInfoService>();
+            services.AddScoped<IHrmEmployeeBulkImportService, HrmEmployeeBulkImportService>();
+            services.AddScoped<IEmployeeContactInfoService, EmployeeContactInfoService>();
+            services.AddScoped<IRelationshipsService, RelationshipsService>();
+            services.AddScoped<IDistrictsService, DistrictsService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
@@ -182,6 +196,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IAccessCodeService, AccessCodeService>();
 
             services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<ICfDefPlaceOfLoadingService, CfDefPlaceOfLoadingService>();
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IShipmentStatusService, ShipmentStatusService>();
