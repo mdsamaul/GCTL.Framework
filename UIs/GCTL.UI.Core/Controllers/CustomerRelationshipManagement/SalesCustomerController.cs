@@ -3,7 +3,9 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Data.Models;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.UI.Core.Controllers;
@@ -20,6 +22,7 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -40,17 +43,32 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
     {
         private readonly ISalesCustomerService _salesCustomerService;
         private readonly IContactPersonService _contactPersonService;
-        public SalesCustomerController( ISalesCustomerService salesCustomerService, IContactPersonService contactPersonService) : base()
+        private readonly IRepository<SalesContactPerson> contactPersonrepository;
+        private readonly IRepository<CaDefCountry> caDefCountryRepository;
+
+        public SalesCustomerController( 
+            ISalesCustomerService salesCustomerService, 
+            IContactPersonService contactPersonService, 
+            IRepository<SalesContactPerson> contactPersonrepository,
+            IRepository<CaDefCountry> caDefCountryRepository
+
+
+            ) : base()
         {
             _salesCustomerService = salesCustomerService;
             _contactPersonService = contactPersonService;
+            this.contactPersonrepository = contactPersonrepository;
+            this.caDefCountryRepository = caDefCountryRepository;
         }
 
 
         public async Task<IActionResult> Index()
         {
+            ViewBag.ContactDD = new SelectList(contactPersonrepository.All(), "Cpid", "ContactPersonName");
+            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
             SalesCustomerViewModel model = new SalesCustomerViewModel();
             return View(model);
+        
         }
 
         public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "CustomerID", string sortOrder = "desc")

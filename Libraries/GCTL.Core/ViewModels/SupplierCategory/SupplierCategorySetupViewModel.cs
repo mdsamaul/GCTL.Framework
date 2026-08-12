@@ -12,8 +12,8 @@ namespace GCTL.Core.ViewModels.SupplierCategory
 {
     public class SupplierCategorySetupViewModel : BaseViewModel
     {
-        public int SupplierCategoryCode { get; set; }
-        public string SupplierCategoryId { get; set; }
+        public int? SupplierCategoryCode { get; set; }
+        public string? SupplierCategoryId { get; set; }
         [Required(ErrorMessage = "Supplier Category is required")]
         public string SupplierCategory { get; set; }
 

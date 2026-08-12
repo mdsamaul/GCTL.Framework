@@ -5,7 +5,7 @@ namespace GCTL.Core.ViewModels.BranchesTypeInfo
     public class BranchTypeSetupViewModel : BaseViewModel
     {
 
-        public string BranchCode { get; set; }
+        public string? BranchCode { get; set; }
 
         public string? CompanyCode { get; set; }
 

@@ -14,6 +14,8 @@ using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
 using GCTL.Service.ChartOfAccounts.SubControlLedger;
 using GCTL.Service.ChartOfAccounts.SubSidiaryLedger;
+using GCTL.Service.ClientInformationEntry;
+
 //using GCTL.Service.CNFMaster.VendorPrefixs;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
@@ -187,6 +189,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IEmployeeContactInfoService, EmployeeContactInfoService>();
             services.AddScoped<IRelationshipsService, RelationshipsService>();
             services.AddScoped<IDistrictsService, DistrictsService>();
+            services.AddScoped<IClientInformationEntryService, ClientInformationEntryService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 

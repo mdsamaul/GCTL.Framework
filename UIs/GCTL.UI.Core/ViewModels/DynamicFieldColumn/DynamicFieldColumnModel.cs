@@ -125,7 +125,6 @@ namespace GCTL.UI.Core.ViewModels
             }
         }
         
-        public string ResolvedDatepickerClass =>
-            FieldType == FieldType.Date ? "custom-datepicker caiCon" : "";
+        public string ResolvedDatepickerClass => FieldType == FieldType.Date ? "custom-datepicker caiCon" : "";
     }
 }

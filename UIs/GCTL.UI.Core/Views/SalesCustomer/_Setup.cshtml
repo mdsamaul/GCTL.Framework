@@ -43,10 +43,6 @@
         margin: 0;
     }
 
-    contact-person-list-container{
-
-    }
-
     .dropdown-menu {
         position: absolute;
         background: #fff;
@@ -55,10 +51,9 @@
         overflow-y: auto;
         border: 1px solid #ddd;
         padding: 10px;
-        /* display: none; */
         border-radius: 5px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        z-index: 1050; /* Ensuring it appears above other elements */
+        z-index: 1050;
     }
 
     #contactSearch {
@@ -68,28 +63,20 @@
         border-radius: 5px;
         font-size: 14px;
     }
-    
-    /* Dropdown CSS */
-    #contactPersonDropdown{
+
+    #contactPersonDropdown {
         width: 650px;
     }
-    #contactPersonDropdown .table-responsive {
-        max-height: 600px; 
-        overflow-y: auto;
-    }
 
-   
+        #contactPersonDropdown .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
 </style>
 
- @model GCTL.Core.ViewModels.AddSalesCustomer.SalesCustomerViewModel;
-@{
-    // var countryList = ((IEnumerable<dynamic>)ViewBag.CountryDD)
-    //     .Select(c => new SelectListItem
-    //             {
-    //                 Value = c.CountryID.ToString(),
-    //                 Text = c.CountryName.ToString()
-    //             }).ToList();
-}
+@model GCTL.Core.ViewModels.AddSalesCustomer.SalesCustomerViewModel
+@using GCTL.UI.Core.ViewModels
+
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Customer Information</h5>
@@ -117,121 +104,197 @@
     <div class="card-body">
         <form id="customerForm">
             <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" asp-for="CustomerId" placeholder="Customer Id" readonly>
-                        <label for="CustomerId">Customer Id</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="CustomerCode" asp-for="CustomerCode" placeholder="Customer Code">
-                        <label for="CustomerCode">Customer Code</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="CustomerName" asp-for="CustomerName" placeholder="Customer Name" required>
-                        <label for="CustomerName">Customer Name<span style="color:red">*</span></label>
-                    </div>
-                </div>
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="ShortName" asp-for="ShortName" placeholder="Short Name">
-                        <label for="ShortName">Short Name</label>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="CustomerAddress" asp-for="CustomerAddress" placeholder="Address">
-                        <label for="CustomerAddress">Address <span style="color:red">*</span></label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "CustomerId",
+                    LabelText = "Customer Id",
+                    FieldType = FieldType.Text,
+                    IsReadonly = true,
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model?.CustomerId
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <select class="form-select" id="CountryId" name="CountryId">
-                            <option value=""></option>
-                        </select>
-                        <label for="CountryId"></label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "CustomerCode",
+                    LabelText = "Customer Code",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Customer Code",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.CustomerCode
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="City" asp-for="City" placeholder="City">
-                        <label for="City">City</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "CustomerName",
+                    LabelText = "Customer Name",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Customer Name",
+                    IsRequired = true,
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.CustomerName
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="StateOrProvince" asp-for="StateOrProvince" placeholder="State/Province">
-                        <label for="StateOrProvince">State/Province</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="ZipCode" asp-for="ZipCode" placeholder="Zip Code">
-                        <label for="ZipCode">Zip Code</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "ShortName",
+                    LabelText = "Short Name",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Short Name",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.ShortName
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="tel" class="form-control" id="Phone" asp-for="Phone" placeholder="Phone Number">
-                        <label for="Phone">Phone</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="tel" class="form-control" id="Fax" asp-for="Fax" placeholder="Fax">
-                        <label for="Fax">Fax</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "CustomerAddress",
+                    LabelText = "Address",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Address",
+                    IsRequired = true,
+                    ColumnClass = "col-md-12",
+                    DefaultValue = Model.CustomerAddress
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="email" class="form-control" id="Email" asp-for="Email" placeholder="Email">
-                        <label for="Email">Email</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="url" class="form-control" id="Url" asp-for="Url" placeholder="URL">
-                        <label for="Url">URL</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "CountryId",
+                    LabelText = "Country",
+                    FieldType = FieldType.Select,
+                    Placeholder = "Select Country",
+                    SelectItems = ViewBag.CountryDD as SelectList,
+                    ColumnClass = "col-md-6",
+                    ShowQuickAdd = true,
+                    QuickAddUrl = Url.Action("Index", "Country"),
+                    QuickAddTarget = "#CountryId",
+                    QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+                    QuickAddTitle = "Country"
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="VatRegNo" asp-for="VatRegNo" placeholder="VAT Reg No">
-                        <label for="VatRegNo">VAT Reg No</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="Bin" asp-for="Bin" placeholder="BIN">
-                        <label for="Bin">BIN</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "City",
+                    LabelText = "City",
+                    FieldType = FieldType.Text,
+                    Placeholder = "City",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.City
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="Tin" asp-for="Tin" placeholder="TIN">
-                        <label for="Tin">TIN</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "StateOrProvince",
+                    LabelText = "State/Province",
+                    FieldType = FieldType.Text,
+                    Placeholder = "State/Province",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.StateOrProvince
+                })
 
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "ZipCode",
+                    LabelText = "Zip Code",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Zip Code",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.ZipCode
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Phone",
+                    LabelText = "Phone",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Phone Number",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Phone
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Fax",
+                    LabelText = "Fax",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Fax",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Fax
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Email",
+                    LabelText = "Email",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Email",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Email
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Url",
+                    LabelText = "URL",
+                    FieldType = FieldType.Text,
+                    Placeholder = "URL",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Url
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "VatRegNo",
+                    LabelText = "VAT Reg No",
+                    FieldType = FieldType.Text,
+                    Placeholder = "VAT Reg No",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.VatRegNo
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Bin",
+                    LabelText = "BIN",
+                    FieldType = FieldType.Text,
+                    Placeholder = "BIN",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Bin
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Tin",
+                    LabelText = "TIN",
+                    FieldType = FieldType.Text,
+                    Placeholder = "TIN",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Tin
+                })
 
                
-                <div class="col-12">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "Cpid",
+                        LabelText = "Contact Person",
+                        FieldType = FieldType.MultiSelect,
+                        Placeholder = "Select Contact Person",
+                        SelectItems = ViewBag.ContactDD as SelectList,
+                        ColumnClass = "col-lg-6",
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+                        QuickAddTarget = "#ContactPerson",
+                        QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+                        QuickAddTitle = "Contact Person Info",
+                        CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
+                    })
+
+                @* <div class="col-12">
                     <div class="d-flex align-items-start gap-2">
                         <div class="col-md-6">
                             <div class="form-floating form-floating-advance-select">
                                 <button class="form-select form-control-sm dropdown-toggle" id="dropdownButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                     Contact Person
+                                    Contact Person
                                 </button>
                                 <ul class="dropdown-menu p-2" aria-labelledby="dropdownButton" id="contactPersonDropdown">
                                     <div class="search-container mb-2">
@@ -263,80 +326,103 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> *@
 
-               
-                <div class="col-md-3">
-                    <div class="form-floating">
-                        <input type="number" class="form-control" id="OpeningBalance" asp-for="OpeningBalance" placeholder="Opening Balance">
-                        <label for="OpeningBalance">Opening Balance</label>
-                    </div>
-				</div>
-                
-                <div class="col-md-3">
-					<div class="form-floating">
-						<select class="form-select" id="TransactionType" asp-for="TransactionType">
-							<option value="">--Select Type--</option>
-							<option value="Debit">Debit</option>
-							<option value="Credit">Credit</option>
-						</select>
-						<label for="TransactionType">Type</label>
-					</div>
-				</div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="date" class="form-control" id="OpeningDate" asp-for="OpeningDate" placeholder="Opening Date">
-                        <label for="OpeningDate">Opening Date</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "OpeningBalance",
+                    LabelText = "Opening Balance",
+                    FieldType = FieldType.Number,
+                    Placeholder = "Opening Balance",
+                    ColumnClass = "col-md-3",
+                   // DefaultValue = Model.OpeningBalance
+                })
 
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "TransactionType",
+                    LabelText = "Type",
+                    FieldType = FieldType.Select,
+                    Placeholder = "--Select Type--",
+                    SelectItems = new SelectList(new[] { "Debit", "Credit" }),
+                    ColumnClass = "col-md-3",
+                    DefaultValue = Model.TransactionType
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="number" class="form-control" id="CreditLimit" asp-for="CreditLimit" placeholder="Credit Limit">
-                        <label for="CreditLimit">Credit Limit</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "OpeningDate",
+                    LabelText = "Opening Date",
+                    FieldType = FieldType.Date,
+                    Placeholder = "Opening Date",
+                    ColumnClass = "col-md-6",
+                   // DefaultValue = Model.OpeningDate
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <select class="form-select" id="CustomerType" asp-for="CustomerType">
-                            <option value="">--Select Type--</option>
-                            <option value="0">General</option>
-                            <option value="1"> In House</option>
-                        </select>
-                        <label for="CustomerType">Customer Type</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "CreditLimit",
+                    LabelText = "Credit Limit",
+                    FieldType = FieldType.Number,
+                    Placeholder = "Credit Limit",
+                    ColumnClass = "col-md-6",
+                   // DefaultValue = Model.CreditLimit
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <select class="form-select" id="Category" asp-for="Category">
-                            <option value="">--Select Customer Category--</option>
-                            <option value="regular">Regular Customer</option>
-                            <option value="premium">Premium Customer</option>
-                            <option value="vip">VIP Customer</option>
-                            <option value="new">New Customer</option>
-                        </select>
-                        <label for="Category">Customer Category</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <select class="form-select" id="SalesPerson" asp-for="SalesPerson">
-                            <option value="">--Select Sales Person--</option>
-                            <option value="sabbir_ahmed">Sabbir Ahmed</option>
-                            <option value="nabila_sultana">Nabila Sultana</option>
-                            <option value="rafi_miah">Rafi Miah</option>
-                            <option value="tara_karim">Tara Karim</option>
-                            <option value="soumya_ray">Soumya Ray</option>
-                        </select>
-                        <label for="SalesPerson">Sales Person</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "CustomerType",
+                    LabelText = "Customer Type",
+                    FieldType = FieldType.Select,
+                    Placeholder = "--Select Type--",
+                    SelectItems = new SelectList(new[]
+                    {
+                        new { Value = "0", Text = "General" },
+                        new { Value = "1", Text = "In House" }
+                    }, "Value", "Text"),
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.CustomerType
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Category",
+                    LabelText = "Customer Category",
+                    FieldType = FieldType.Select,
+                    Placeholder = "--Select Customer Category--",
+                    SelectItems = new SelectList(new[]
+                    {
+                        new { Value = "regular", Text = "Regular Customer" },
+                        new { Value = "premium", Text = "Premium Customer" },
+                        new { Value = "vip", Text = "VIP Customer" },
+                        new { Value = "new", Text = "New Customer" }
+                    }, "Value", "Text"),
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Category
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "SalesPerson",
+                    LabelText = "Sales Person",
+                    FieldType = FieldType.Select,
+                    Placeholder = "--Select Sales Person--",
+                    SelectItems = new SelectList(new[]
+                    {
+                        new { Value = "sabbir_ahmed", Text = "Sabbir Ahmed" },
+                        new { Value = "nabila_sultana", Text = "Nabila Sultana" },
+                        new { Value = "rafi_miah", Text = "Rafi Miah" },
+                        new { Value = "tara_karim", Text = "Tara Karim" },
+                        new { Value = "soumya_ray", Text = "Soumya Ray" }
+                    }, "Value", "Text"),
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.SalesPerson
+                })
+
             </div>
         </form>
     </div>
+
     <div class="card-footer d-flex justify-content-between text-muted small d-none" id="salesCustomer-Footer">
         <div id="salesCustomer-entryDate">Entry Date: --</div>
         <div id="salesCustomer-lastUpdateDate">Last Updated: --</div>
@@ -344,8 +430,6 @@
 
     <div class="card-footer">
         <div class="d-flex justify-content-between align-items-center">
-            <!-- Buttons Section -->
-            @**@
             <div>
                 <button class="btn btn-light btn-sm me-2 rounded-pill" id="previewBtn">
                     <span class="text-dark link-primary">Preview</span>
@@ -353,67 +437,13 @@
                 <button class="btn btn-light btn-sm rounded-pill" id="listPreviewBtn">
                     <span class="text-dark link-primary">List Preview</span>
                 </button>
-@*                 <button class="btn btn-light btn-sm rounded-pill" id="listPreviewBtn" onclick="window.open('/SalesCustomer/ListPreview','_blank')">
-                    <span class="text-dark link-primary">List Preview</span>
-                </button> *@
             </div>
-
-            
-            @* <div class="dropdown">
-                <button class="btn btn-phoenix-secondary dropdown-toggle" type="button" id="customerDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                    Select Customers
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="customerDropdown" style="min-width: 300px; max-height: 400px; overflow-y: auto;">
-                    <li>
-                        <label class="dropdown-item">
-                            <input type="checkbox" id="selectAll" > Select All
-                        </label>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <div id="customerList"></div>
-                </ul>
-            </div> *@
-
         </div>
     </div>
 </div>
 
-
-
-@* 
-<div class="modal  fade" id="contactPersonModal" tabindex="-1" aria-labelledby="contactPersonModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="contactPersonModalLabel">Contact Person Management</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row equal-height-row">
-                    <div class="col-md-6">
-                        <div id="contact-person-form-container">
-
-                            @await Html.PartialAsync("~/Views/ContactPerson/_ContactPersonForm.cshtml", new GCTL.Core.ViewModels.AddSalesCustomer.SalesContactPersonViewModel())
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div id="contact-person-list-container">
-                            @await Html.PartialAsync("~/Views/ContactPerson/_ContactPersonTable.cshtml")
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div> *@
-@section Script{
+@section Script {
     <script>
-                 // Modify the dropdown HTML to include the customer list and select all functionality
-       
-
+        // Modify the dropdown HTML to include the customer list and select all functionality
     </script>
 }
-
-
-
-       
