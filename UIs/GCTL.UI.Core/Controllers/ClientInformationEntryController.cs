@@ -116,7 +116,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
 
-                if (await clientInformationEntryService.IsExistAsync(modelVM.ClientId, modelVM.ClientId))
+                if (await clientInformationEntryService.IsExistAsync(modelVM.ClientId, modelVM.ClientName))
                 {
                     return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                 }

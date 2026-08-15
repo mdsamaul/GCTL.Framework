@@ -45,7 +45,8 @@
             IsRequired = true,
             CustomCssClass = "js-ClientName-check-duplicateName",
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.ClientName
+            DefaultValue = Model.ClientName,
+            AutoFocus = true
         })
 
         @* ---------- Short Name ---------- *@
@@ -75,7 +76,19 @@
     <div class="form-group row">
 
         @* ---------- Country (Select + Quick Add) ---------- *@
+
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "CountryId",
+            LabelText = "Country",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Country --",
+            SelectItems = ViewBag.CountryDD as SelectList,
+            ReserveActionSlot = true,
+            ColumnClass = "col-lg-6"
+        })
+
+        @* @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "CountryId",
             LabelText = "Country",
@@ -88,7 +101,7 @@
             QuickAddTarget = "#CountryId",
             QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
             QuickAddTitle = "Country"
-        })
+        }) *@
 
         @* ---------- City ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel

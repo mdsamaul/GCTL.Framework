@@ -133,7 +133,8 @@
                     Placeholder = "Customer Name",
                     IsRequired = true,
                     ColumnClass = "col-md-6",
-                    DefaultValue = Model.CustomerName
+                    DefaultValue = Model.CustomerName,
+                    AutoFocus = true
                 })
 
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel

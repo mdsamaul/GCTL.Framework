@@ -19,6 +19,7 @@ using GCTL.Service.ClientInformationEntry;
 //using GCTL.Service.CNFMaster.VendorPrefixs;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
+using GCTL.Service.CompanyInfo;
 using GCTL.Service.ContactPersonInfo;
 using GCTL.Service.Core_Countrys;
 using GCTL.Service.CoreBankAccountInformations;
@@ -190,6 +191,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IRelationshipsService, RelationshipsService>();
             services.AddScoped<IDistrictsService, DistrictsService>();
             services.AddScoped<IClientInformationEntryService, ClientInformationEntryService>();
+            services.AddScoped<ICompanyInfoSupService, CompanyInfoSupService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 

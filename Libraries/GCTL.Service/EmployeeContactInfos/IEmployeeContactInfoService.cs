@@ -12,11 +12,9 @@ namespace GCTL.Service.EmployeeContactInfos
         Task<EmployeeContactInfosSetupViewModel> GetByIdAsync(string id);
         Task<bool> SaveAsync(EmployeeContactInfosSetupViewModel entityVM, string CompanyCode);
         Task<bool> UpdateAsync(EmployeeContactInfosSetupViewModel entityVM);
-       // bool DeleteLeaveType(string id);
         Task<bool> DeleteTab(List<string> ids, DeleteHistoryViewModel model);
 
         Task<EmployeeContactInfosSetupViewModel> GetContactInfoByEmployeeId(string employeeId);
-       // Task<EmployeeContactInfosSetupViewModel> GetEmployeeByCode(string employeeId);
         Task<List<EmployeeContactInfosSetupViewModel>> GetComapnyByBranchCode(string companyCode);
         Task<List<EmployeeContactInfosSetupViewModel>> GetComapnyByCode(string companyCode);
 

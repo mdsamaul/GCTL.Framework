@@ -9,7 +9,7 @@ namespace GCTL.Core.ViewModels.ClientInformationEntry
 {
     public class ClientInformationEntrySetupViewModel : BaseViewModel
     {
-        public decimal? AutoId { get; set; }
+        public decimal AutoId { get; set; }
         public string? ClientId { get; set; }
         [Required(ErrorMessage = "Client Name is required")]
         public string ClientName { get; set; }
@@ -21,11 +21,11 @@ namespace GCTL.Core.ViewModels.ClientInformationEntry
         public string? ZipCode { get; set; }
         [RegularExpression(@"^(?:(?:\+|00)88|01)?\d{11}$", ErrorMessage = "Invalid Phone")]
         [MaxLength(14)]
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
         [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Only letters and numbers are allowed")]
-        public string Fax { get; set; }
+        public string? Fax { get; set; }
         [EmailAddress(ErrorMessage = "Please enter valid email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public string? Url { get; set; }
         public string? Bin { get; set; }
         public string? Vat { get; set; }
@@ -41,9 +41,9 @@ namespace GCTL.Core.ViewModels.ClientInformationEntry
         public string? Designation2 { get; set; }
         [RegularExpression(@"^(?:(?:\+|00)88|01)?\d{11}$", ErrorMessage = "Invalid Phone")]
         [MaxLength(14)]
-        public string Phone2 { get; set; }
+        public string? Phone2 { get; set; }
         [EmailAddress(ErrorMessage = "Please enter valid email")]
-        public string Email2 { get; set; }
+        public string? Email2 { get; set; }
         public string? UserEmployeeId { get; set; }
         public string? CompanyCode { get; set; }
     }
