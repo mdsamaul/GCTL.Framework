@@ -1,9 +1,11 @@
+using DocumentFormat.OpenXml.Bibliography;
 using GCTL.Data.Context;
 using GCTL.Data.Models;
 using GCTL.Service.BankBranchInformations;
 using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchesTypeInfo;
+using GCTL.Service.ChartOfAccounts;
 using GCTL.Service.ChartOfAccounts.ControlLedger;
 using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
@@ -144,6 +146,42 @@ namespace GCTL.Framework.Extensions
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
             services.AddScoped<IUserService, UserService>();
+
+            #region Added by Abu Sayed
+            //services.AddScoped<ICoreCountryService, CoreCountryService>();
+            //services.AddScoped<IHrmDefDesignationService, HrmDefDesignationService>();
+            //services.AddScoped<IVendorPrefixService, VendorPrefixService>();
+            services.AddScoped<ICurrencyType, CurrencyTypeService>();
+            services.AddScoped<IUnitType, UnitTypeService>();
+            services.AddScoped<IShipmentMode, ShipmentModeService>();
+            services.AddScoped<IExpenseHead, ExpenseHeadService>();
+            services.AddScoped<IServiceType, ServiceTypeService>();
+            services.AddScoped<ISalesCustomerService, SalesCustomerService>();
+            services.AddScoped<ISalesDeliveryLocationService, SalesDeliveryLocationService>();
+            //services.AddScoped<IDepartment, GCTL.Service.MasterSetup.HrmDefDepartment.DepartmentService>();
+            //services.AddScoped<ICoreBranch, CoreBranchService>();
+            //services.AddScoped<IBankInfo, BankInfoService>();
+            //services.AddScoped<IBankBranch, BankBranchService>();
+            //services.AddScoped<IBankAccount, BankAccountService>();
+            //services.AddScoped<ICoreCompany, CoreCompanyService>();
+            services.AddScoped<IContactPersonService, ContactPersonService>();
+            services.AddScoped<IGroupLedger, GroupLedgerService>();
+            services.AddScoped<IContrlLedger, ControlLedgerService>();
+            services.AddScoped<ISubControlLedger, SubControlLedgerService>();
+            services.AddScoped<ISubSidiaryLedger, SubSidiaryLedgerService>();
+            services.AddScoped<IGeneralLedger, GeneralLedgerService>();
+            services.AddScoped<LedgerReportService>();
+            services.AddScoped<IVoucherType, VoucherTypeService>();
+            services.AddScoped<IOpeningBalance, OpeningBalanceService>();
+            //services.AddScoped<IVoucherEntry, VoucherEntryService>();
+            //services.AddScoped<IVoucherDetails, VoucherDetailsService>();
+            //services.AddScoped<VoucherReportService>();
+            //services.AddScoped<Ioperational, OperationalService>();
+            services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
+            //services.AddScoped<IOFRApproval, OFRApprovalService>();
+            //services.AddScoped<IOFRBillAdjust, OFRBillAdjustService>();
+            //services.AddScoped<IOFRAdjustApproval, OFRAdjustApprovalService>();
+            #endregion
         }
     }
 }
