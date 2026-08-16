@@ -107,7 +107,6 @@ namespace GCTL.Service.Relationships
             }
         }
 
-
         public async Task<bool> UpdateAsync(RelationshipSetupViewModel entityVM)
         {
             await relationshipRepository.BeginTransactionAsync();

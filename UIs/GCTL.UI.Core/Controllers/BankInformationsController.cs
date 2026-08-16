@@ -1,10 +1,12 @@
-﻿using GCTL.Core.ViewModels.BankInformations;
+﻿using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.BankInformations;
+using GCTL.Core.ViewModels.Relationship;
 using GCTL.Service.BankInformations;
 using GCTL.Service.Common;
-using GCTL.UI.Core.ViewModels.BankInformations;
-using Microsoft.AspNetCore.Mvc;
-using GCTL.Core.Helpers;
 using GCTL.UI.Core.Helpers;
+using GCTL.UI.Core.ViewModels.BankInformations;
+using GCTL.UI.Core.ViewModels.Relationship;
+using Microsoft.AspNetCore.Mvc;
 namespace GCTL.UI.Core.Controllers
 {
     public class BankInformationsController : BaseController
@@ -21,6 +23,35 @@ namespace GCTL.UI.Core.Controllers
 
 
         #region GettALLById
+//        public async Task<IActionResult> Index(string? id)
+//        {
+//            var hasPermission = await service.PagePermissionAsync(LoginInfo.AccessCode);
+//            if (!hasPermission)
+//            {
+//                return RedirectToAction("Login", "Accounts");
+//            }
+
+//            BankInformationsPageViewModel model = new BankInformationsPageViewModel();
+//            commonService.FindMaxNo(ref strMaxNO, "BankId", "SALES_Def_BankInfo", 2);
+
+//            if (!string.IsNullOrEmpty(id))
+//            {
+
+//                model.Setup = await service.GetByIdAsync(id)
+//;
+//            }
+//            else
+//            {
+//                model.Setup.BankId = strMaxNO;
+//            }
+
+
+//            model.PageUrl = Url.Action(nameof(Index));
+
+//            return View(model);
+//        }
+
+
         public async Task<IActionResult> Index(string? id)
         {
             var hasPermission = await service.PagePermissionAsync(LoginInfo.AccessCode);
@@ -29,25 +60,48 @@ namespace GCTL.UI.Core.Controllers
                 return RedirectToAction("Login", "Accounts");
             }
 
-            BankInformationsPageViewModel model = new BankInformationsPageViewModel();
-            commonService.FindMaxNo(ref strMaxNO, "BankId", "SALES_Def_BankInfo", 2);
-
-            if (!string.IsNullOrEmpty(id))
+            var model = new BankInformationsPageViewModel
             {
+                PageUrl = Url.Action(nameof(Index))
+            };
 
-                model.Setup = await service.GetByIdAsync(id)
-;
-            }
-            else
+            try
             {
-                model.Setup.BankId = strMaxNO;
+                // Get all records
+                var list = await service.GetAllAsync();
+                model.tableDataList = list ?? new List<BankInformationsSetupViewModel>();
+
+                // Get by Id or create new setup
+                if (!string.IsNullOrEmpty(id))
+                {
+                    model.Setup = await service.GetByIdAsync(id);
+                }
+                else
+                {
+                    commonService.FindMaxNo(ref strMaxNO, "BankId", "SALES_Def_BankInfo", 2);
+
+                    model.Setup = new BankInformationsSetupViewModel
+                    {
+                        BankId = strMaxNO
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                model.tableDataList = new List<BankInformationsSetupViewModel>();
+                model.Setup = new BankInformationsSetupViewModel();
+
+                Console.WriteLine("Error: " + ex.Message);
             }
 
-
-            model.PageUrl = Url.Action(nameof(Index));
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
 
             return View(model);
         }
+
         #endregion
 
 

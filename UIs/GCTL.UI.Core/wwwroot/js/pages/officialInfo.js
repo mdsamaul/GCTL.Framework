@@ -1,5 +1,4 @@
 ﻿
-
 (function ($) {
     $.officialInfo = function (options) {
 

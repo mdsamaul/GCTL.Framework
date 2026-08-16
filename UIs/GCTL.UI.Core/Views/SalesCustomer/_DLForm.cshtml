@@ -2,25 +2,21 @@
     .saveBtn:hover {
         color: darkgreen !important;
         background-color: lightgray !important;
-        
     }
 
     .deleteBtn:hover {
         color: red !important;
         background-color: lightgray !important;
-        
     }
 
     .resetBtn:hover {
         color: lightgoldenrodyellow !important;
         background-color: lightgray !important;
-        
     }
 
     .printBtn:hover {
         color: blue !important;
         background-color: lightgray !important;
-        
     }
 
     .favBtn:hover {
@@ -36,7 +32,6 @@
         font-size: 14px;
     }
 
-    /* Dropdown CSS */
     #DLcontactPersonDropdown {
         width: 650px;
     }
@@ -45,19 +40,11 @@
             max-height: 600px;
             overflow-y: auto;
         }
-
-
 </style>
-@model GCTL.Core.ViewModels.AddSalesCustomer.SalesDeliveryLocationViewModel
 
-@{
-    // var countryList = ((IEnumerable<dynamic>)ViewBag.CountryDD)
-    //     .Select(c => new SelectListItem
-    //             {
-    //                 Value = c.CountryID.ToString(),
-    //                 Text = c.CountryName.ToString()
-    //             }).ToList();
-}
+@model GCTL.Core.ViewModels.AddSalesCustomer.SalesDeliveryLocationViewModel
+@using GCTL.UI.Core.ViewModels
+
 <div class="card mb-3">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Delivery Location Information</h5>
@@ -84,90 +71,134 @@
     </div>
     <div class="card-body">
         <form id="deliveryForm">
-           @*  <input type="hidden" asp-for="DeliveryLocationCode" id="DeliveryLocationCode" /> *@
-
             <div class="row g-3">
+
                 <div class="col-md-12">
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <select class="form-select" id="CustomerIdForDelivery" name="CustomerId" required></select>
-                          
-                            @* <label for="CustomerIdForDelivery">Customer Name</label> *@
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="DeliveryLocationCode" name="DeliveryLocationCode" readonly required>
-                        <label for="DeliveryLocationCode">Delivery Code</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="LocationAddress" asp-for="LocationAddress" placeholder="Delivery Address" required>
-                        <label for="LocationAddress">Delivery Address<span style="color:red">*</span></label>
-                    </div>
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "CustomerIdForDelivery",
+                        LabelText = "",
+                        FieldType = FieldType.Select,
+                        Placeholder = "Select Customer",
+                        SelectItems = ViewBag.CustomerDD as SelectList,
+                        IsRequired = true,
+                        ColumnClass = "col-md-6",
+                        CustomCssClass = "js-CustomerIdForDelivery"
+                    })
                 </div>
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <select class="form-select" id="DeliveryCountryId" asp-for="CountryId">
-                            <option value="">--Select Country--</option>
-                          
-                            </select>
-                        <label for="DeliveryCountryId"> </label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryLocationCode",
+                    LabelText = "Delivery Code",
+                    FieldType = FieldType.Text,
+                    IsReadonly = true,
+                    IsRequired = true,
+                    ColumnClass = "col-md-6"
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="DeliveryStateOrProvince" asp-for="StateOrProvince" placeholder="State/Province">
-                        <label for="DeliveryStateOrProvince">State/Province</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="DeliveryCity" asp-for="City" placeholder="City">
-                        <label for="DeliveryCity">City</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "LocationAddress",
+                    LabelText = "Delivery Address",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Delivery Address",
+                    IsRequired = true,
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.LocationAddress
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="DeliveryZipCode" asp-for="ZipCode" placeholder="Zip Code">
-                        <label for="DeliveryZipCode">Zip Code</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="tel" class="form-control" id="DeliveryPhone" asp-for="Phone" placeholder="Phone Number">
-                        <label for="DeliveryPhone">Phone</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="email" class="form-control" id="DeliveryEmail" asp-for="Email" placeholder="Email">
-                        <label for="DeliveryEmail">Email</label>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryCountryId",
+                    LabelText = "Country",
+                    FieldType = FieldType.Select,
+                    Placeholder = "Select Country",
+                    SelectItems = ViewBag.CountryDD as SelectList,
+                    ColumnClass = "col-md-6",
+                    ShowQuickAdd = true,
+                    QuickAddUrl = Url.Action("Index", "Country"),
+                    QuickAddTarget = "#DeliveryCountryId",
+                    QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+                    QuickAddTitle = "Country",
+                    DefaultValue = Model.CountryId
+                })
 
-                @* <div class="col-md-6">
-                    <div class="form-floating">
-                        <select class="form-select" id="DeliveryContactPerson" asp-for="ContactPerson">
-                            <option value="">--Select Contact Person--</option>
-                            </select>
-                        <label for="DeliveryContactPerson">Contact Person</label>
-                    </div>
-                </div> *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryStateOrProvince",
+                    LabelText = "State/Province",
+                    FieldType = FieldType.Text,
+                    Placeholder = "State/Province",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.StateOrProvince
+                })
 
-                <div class="col-12">
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryCity",
+                    LabelText = "City",
+                    FieldType = FieldType.Text,
+                    Placeholder = "City",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.City
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryZipCode",
+                    LabelText = "Zip Code",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Zip Code",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.ZipCode
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryPhone",
+                    LabelText = "Phone",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Phone Number",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Phone
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryEmail",
+                    LabelText = "Email",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Email",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Email
+                })
+
+              
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "Cpid",
+                        LabelText = "Contact Person",
+                        FieldType = FieldType.MultiSelect,
+                        Placeholder = "Select Contact Person",
+                        SelectItems = ViewBag.ContactDD as SelectList,
+                        ColumnClass = "col-lg-6",
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+                        QuickAddTarget = "#ContactPerson",
+                        QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+                        QuickAddTitle = "Contact Person Info",
+                        CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
+                    })
+
+                @* <div class="col-12">
                     <div class="d-flex align-items-start gap-2">
                         <div class="col-md-6">
                             <div class="form-floating form-floating-advance-select">
                                 <button class="form-select form-control-sm dropdown-toggle" id="DLdropdownButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     Contact Person
                                 </button>
-                                <ul class="dropdown-menu p-2" aria-labelledby="dropdownButton" id="DLcontactPersonDropdown">
+                                <ul class="dropdown-menu p-2" aria-labelledby="DLdropdownButton" id="DLcontactPersonDropdown">
                                     <div class="search-container mb-2">
                                         <input type="text" id="DLcontactSearch" class="form-control form-control-sm" placeholder="Search contacts...">
                                     </div>
@@ -190,33 +221,22 @@
                                 <input type="hidden" id="DLselectedContactPersonIds" name="ContactPerson" />
                             </div>
                         </div>
-
-                        @* <div class="pt-2">
-                            <button type="button" id="btnAddContactPerson" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-plus me-1"></i>
-                            </button>
-                        </div> *@
                     </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="DeliveryRemarks" asp-for="Remarks" placeholder="Remarks">
-                        <label for="DeliveryRemarks">Remarks</label>
-                    </div>
-                </div>
-@* 
-                <div class="col-12">
-                    <button type="button" id="btnSaveDelivery" class="btn btn-primary">Save</button>
-                    <button type="button" id="btnCancelDelivery" class="btn btn-secondary">Cancel</button>
                 </div> *@
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryRemarks",
+                    LabelText = "Remarks",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Remarks",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Remarks
+                })
+
             </div>
         </form>
     </div>
-@*     <div class="card-footer d-flex d-none justify-content-between text-muted small" id="Dlfooter">
-        <div id="entryDate">Entry Date: --</div>
-        <div id="lastUpdateDate">Last Updated: --</div>
-    </div> *@
 </div>
 
 @section Scripts {
