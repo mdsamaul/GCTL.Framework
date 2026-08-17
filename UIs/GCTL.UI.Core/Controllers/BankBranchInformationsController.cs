@@ -1,14 +1,17 @@
 ﻿using GCTL.Core.Data;
+using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.BankInformations;
 using GCTL.Core.ViewModels.SalesDefBankBranchInfos;
+using GCTL.Core.ViewModels.ServiceType;
 using GCTL.Data.Models;
 using GCTL.Service.BankBranchInformations;
+using GCTL.Service.BankInformations;
 using GCTL.Service.Common;
+using GCTL.UI.Core.Helpers;
+using GCTL.UI.Core.ViewModels.BankInformations;
 using GCTL.UI.Core.ViewModels.SalesDefBankBranchInfos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using GCTL.Core.Helpers;
-using GCTL.Service.BankInformations;
-using GCTL.UI.Core.Helpers;
 namespace GCTL.UI.Core.Controllers
 {
     public class BankBranchInformationsController : BaseController
@@ -46,11 +49,17 @@ namespace GCTL.UI.Core.Controllers
 
             model.PageUrl = Url.Action(nameof(Index));
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
+
             return View(model);
 
 
-
         }
+
+
         #endregion
 
 
@@ -77,7 +86,7 @@ namespace GCTL.UI.Core.Controllers
 
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0)
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
                     await bankBranchInfosService.SaveAsync(modelVM);
                     return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.BankBranchId });

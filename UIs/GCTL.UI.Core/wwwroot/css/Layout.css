@@ -29,7 +29,7 @@
 
 .sticky-bar {
     position: sticky;
-    top: 0px;
+    top: -10px;
     z-index: 20;
 }
 
@@ -90,133 +90,93 @@ select.form-control-sm:disabled {
     }
 }
 
-
-.toolbar-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: #fff;
-    transition: all 0.15s ease;
-}
-
-    .toolbar-btn i {
-        font-size: 0.8rem;
-    }
-
-.toolbar-btn-save {
-    color: #2563eb;
-    border-color: #bfdbfe;
-    background: #eff6ff;
-}
-
-    .toolbar-btn-save:hover {
-        background: #dbeafe;
-    }
-
-.toolbar-btn-delete {
-    color: #dc2626;
-    border-color: #fecaca;
-    background: #fef2f2;
-}
-
-    .toolbar-btn-delete:hover {
-        background: #fee2e2;
-    }
-
-.toolbar-btn-clear {
-    color: #374151;
-    border-color: #e5e7eb;
-    background: #f9fafb;
-}
-
-    .toolbar-btn-clear:hover {
-        background: #f3f4f6;
-    }
-
-.toolbar-btn-print {
-    color: #1e293b;
-    background: #eef2f7;
-    border-color: #dbe2ea;
-}
-
-    .toolbar-btn-print:hover,
-    .toolbar-btn-print:focus {
-        background: #e2e8f0;
-        color: #1e293b;
-    }
-
-    .toolbar-btn-print.dropdown-toggle::after {
-        margin-left: 4px;
-    }
-
-.toolbar-btn-fav {
-    color: #d97706;
-    border-color: #fde68a;
-    background: #fffbeb;
-}
-
-    .toolbar-btn-fav:hover {
-        background: #fef3c7;
-    }
-
-.toolbar-print-menu {
-    min-width: 130px;
+/* Dropdown */
+.dropdown-menu {
+    margin-top: 4px !important;
     border-radius: 8px;
-    padding: 6px;
-    border: 1px solid #eef1f4;
+    border: 1px solid #ddd;
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
 }
 
-    .toolbar-print-menu .dropdown-item {
-        font-size: 0.85rem;
-        border-radius: 6px;
-        padding: 6px 10px;
+.dropdown-item {
+    font-size: .875rem;
+}
+
+    .dropdown-item:hover {
+        background: #f5f5f5;
     }
 
-        .toolbar-print-menu .dropdown-item:hover {
-            background: #f3f4f6;
-        }
 
-.sticky-bar {
-    position: sticky;
-    top: 0px;
-    z-index: 20;
+.form-control:focus {
+    box-shadow: 0 0 0 0; 
 }
 
-.toolbar-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
+table.dataTable.table-sm > tbody > tr > td,
+table.dataTable.table-sm > thead > tr > th {
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+}
+.form-control-sm,
+.form-select-sm {
+    font-size: 0.82rem;
 }
 
-body, .btn, .form-control, table, th, td, h1, h2, h3, h4, h5, h6, p, span, label, input, select, textarea {
-    font-family: 'Times New Roman', Times, serif !important;
+label , .form-label {
+    font-size: 0.75rem !important;
+    font-weight: 450 !important;
+    color: #000 !important;
+    margin-bottom: 2px !important;
 }
 
-/* Font Awesome icons must use proper font */
-i.fas, i.far, i.fal, i.fab {
-    font-family: 'Font Awesome 6 Free' !important;
+.js-quick-add {
+    border-color: #ced4da !important;
+}
+.form-control::placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
 }
 
-i.fab {
-    font-family: 'Font Awesome 6 Brands' !important;
+.form-control::-webkit-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
 }
 
-/* Fix Font Awesome icons with Blazor scoping */
-[b-himydvh1zw=""] i.fas::before,
-[b-himydvh1zw=""] i.far::before,
-[b-himydvh1zw=""] i.fal::before,
-[b-himydvh1zw=""] i.fab::before {
-    display: inline-block !important;
-    font-family: 'Font Awesome 6 Free' !important;
-    font-style: normal;
-    font-weight: 900 !important;
+.form-control::-moz-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
 }
 
-[b-himydvh1zw=""] i.fab::before {
-    font-family: 'Font Awesome 6 Brands' !important;
+
+.form-control:-ms-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+
+    table.dataTable.table-sm > tbody > tr > td,
+    table.dataTable.table-sm > thead > tr > th {
+        padding-top: 0.1rem;
+        padding-bottom: 0.1rem;
+    }
+
+    div.dt-layout-end,
+    div.dt-layout-full,
+    div.dt-layout-start {
+        padding: 0;
+    }
 }
+
+
+.toolbar-container,
+.card-header,
+.card-body {
+    overflow: visible !important;
+}
+
+    .toolbar-container .dropdown-menu {
+        z-index: 99999 !important;
+    }

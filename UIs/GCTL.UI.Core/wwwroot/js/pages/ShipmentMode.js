@@ -1,4 +1,31 @@
-﻿let currentPage = 1;
+﻿$(function () {
+
+    function showShipmentMode() {
+        $("#toolbarEntry").addClass("show");
+        $("#toolbarUpload").removeClass("show");
+    }
+
+    function showShipmentStatus() {
+        $("#toolbarUpload").addClass("show");
+        $("#toolbarEntry").removeClass("show");
+    }
+
+    // Default
+    showShipmentMode();
+
+    // Shipment Mode
+    $('#shipment-type-tab').on('shown.bs.tab', function () {
+        showShipmentMode();
+    });
+
+    // Shipment Status
+    $('#shipment-status-tab').on('shown.bs.tab', function () {
+        showShipmentStatus();
+    });
+
+});
+
+let currentPage = 1;
 let pageSize = 10;
 let selectedExpenseTypes = [];
 let currentSortColumn = 'ExpenseTypeID';
@@ -7,7 +34,6 @@ let totalPages = 1;
 let currentSearchTerm = "";
 
 
-console.log(`Global Call: ${selectedExpenseTypes}`);
 function getNextExpenseTypeId() {
     $.ajax({
         url: '/next-expense-type-id', 
@@ -40,6 +66,7 @@ function clearShipmentForm() {
 }
 function saveOrUpdateShipmentMode() {
     let tcId = parseInt($('#shipmentForm input[name="tcId"]').val()) || 0; // force number
+    const transportModeTypeId = $('#transportModeTypeId').val();
     const expenseTypeId = $('#shipmentForm input[name="expenseTypeId"]').val();
     const expenseType = $('#shipmentForm input[name="expenseType"]').val().trim();
     const shortName = $('#shipmentForm input[name="shortName"]').val().trim();
@@ -52,11 +79,12 @@ function saveOrUpdateShipmentMode() {
 
     let model = {
         TC: tcId,
+        transportModeTypeId: transportModeTypeId,
         ExpenseTypeID: expenseTypeId,
         ExpenseType: expenseType,
         ShortName: shortName
     };
-
+    
     $.ajax({
         url: '/shipment-mode/is-duplicate',
         type: 'POST',
@@ -67,7 +95,7 @@ function saveOrUpdateShipmentMode() {
                 toastr.warning(response.message || "Data already exists!");
                 return;
             }
-
+            
             if (tcId === 0) {   
                 $.ajax({
                     url: '/shipment-mode',
@@ -162,7 +190,7 @@ function loadExpenseTypes(page = 1, pageSize = 10, sortColumn = currentSortColum
         success: function (response) {
             console.log('Expense Table:', response);
             let rows = '';
-
+            
             if (response.data && response.data.length > 0) {
                 response.data.forEach(function (item) {
                     rows += `<tr>
@@ -176,13 +204,15 @@ function loadExpenseTypes(page = 1, pageSize = 10, sortColumn = currentSortColum
                         data-expensetypeid="${item.expenseTypeID}"
                         data-expensetype="${item.expenseType}"
                         data-shortname="${item.shortName}"
-                        data-ldate="${item.lDate}"
+                        data-transportmodeid="${item.transportModeTypeId}"
+                        data-ldate="${item.ldate}"
                         data-modifydate="${item.modifyDate}">
                         ${item.expenseTypeID}
                     </button>
                 </td>
                 <td>${item.expenseType || ''}</td>
                 <td>${item.shortName || ''}</td>
+                <td>${item.transportModeType || ''}</td>
             </tr>`;
                 });
 
@@ -316,6 +346,7 @@ $(document).on('click', '.btn-transfer', function () {
     const data = {
         tc: $(this).data('tc'),
         expenseTypeID: $(this).data('expensetypeid'),
+        transportModeId: $(this).data('transportmodeid'),
         expenseType: $(this).data('expensetype'),
         shortName: $(this).data('shortname'),
         lDate: $(this).data('ldate'),
@@ -330,7 +361,8 @@ function populateExpenseTypeForm(data) {
     $('#shipmentForm input[name="expenseType"]').val(data.expenseType);
     $('#shipmentForm input[name="shortName"]').val(data.shortName);
     $('#shipmentForm input[name="tcId"]').val(data.tc);
-
+    setSelect('#transportModeTypeId', data.transportModeId?.trim(), false);
+    
     if (data.lDate) {
         const formattedLDate = new Date(data.lDate).toLocaleDateString('en-GB');
         $('#displayLDate').text(formattedLDate);
@@ -390,17 +422,98 @@ $(document).on('click', '.row-checkbox', function () {
         $('.row-checkbox:visible:not(:checked)').length === 0;
     $('#selectAll').prop('checked', allChecked);
 });
+$(document).on('change', '#transportModeTypeId', function () {
+    var transportModeTypeId = $(this).val();
+
+    if (!transportModeTypeId) {
+        loadExpenseTypes(currentPage, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
+        return;
+    }
+
+    ajaxRequest({
+        url: '/ShipmentMode/GetShipmentModeDetails',
+        method: 'GET',
+        data: { transportModeTypeId: transportModeTypeId },
+        successCallback: function (response) {
+            renderShipmentModeGrid(response);
+        },
+        errorCallback: function (xhr) {
+            if (xhr.status === 404) {
+                $('#tblBody').html(`<tr class="no-data"><td colspan="5" class="text-center">No Data Available</td></tr>`);
+            } else {
+                console.error('Error:', xhr.responseText);
+            }
+        }
+    });
+});
+
+function renderShipmentModeGrid(data) {
+    let rows = '';
+
+    if (data && data.length > 0) {
+        data.forEach(function (item) {
+            rows += `<tr>
+                <td class="text-center align-middle">
+                    <input type="checkbox" class="form-check-input row-checkbox"
+                        data-expensetypeid="${item.tc}">
+                </td>
+                <td class="text-center align-middle">
+                    <button class="btn btn-transfer"
+                        data-tc="${item.tc}"
+                        data-expensetypeid="${item.expenseTypeID}"
+                        data-expensetype="${item.expenseType}"
+                        data-shortname="${item.shortName}"
+                        data-transportmodeid="${item.transportModeTypeId}"
+                        data-ldate="${item.ldate}"
+                        data-modifydate="${item.modifyDate}">
+                        ${item.expenseTypeID}
+                    </button>
+                </td>
+                <td>${item.expenseType || ''}</td>
+                <td>${item.shortName || ''}</td>
+                <td>${item.transportModeType || ''}</td>
+            </tr>`;
+        });
+
+        $('#tblBody').html(rows);
+        $('#paginationSummary').text(`Showing ${data.length} of ${data.length} entries`);
+        $('#pageNavigation').html('');
+        $('#selectAll').prop('checked', false);
+    } else {
+        $('#tblBody').html(`<tr class="no-data"><td colspan="5" class="text-center">No Data Available</td></tr>`);
+        $('#paginationSummary').text('');
+        $('#pageNavigation').html('');
+    }
+}
 
 $(document).ready(function () {
-    $('#shipmentFormContainer').load('/ShipmentMode/ShipmentForm', function () {
-        getNextExpenseTypeId(); 
-    });
-    $('#shipmentList').load('/ShipmentMode/ShipmentList', function () {
-        loadExpenseTypes(currentPage, pageSize, currentSortColumn, currentSortDirection);
 
+    $.ajax({
+        url: '/ShipmentMode/ShipmentForm',
+        type: 'GET',
+        success: function (data) {
+            $('#shipmentFormContainer').html(data);
+            window.initCustomDropdowns('#shipmentFormContainer', true);
+            getNextExpenseTypeId();
+        },
+        error: function (xhr, status, error) {
+            console.error("Failed to load ShipmentForm:", error);
+        }
     });
 
-    $(document).on("submit", "#shipmentForm", function (e) {
+    $.ajax({
+        url: '/ShipmentMode/ShipmentList',
+        type: 'GET',
+        success: function (data) {
+            $('#shipmentList').html(data);
+            loadExpenseTypes(currentPage, pageSize, currentSortColumn, currentSortDirection);
+        },
+        error: function (xhr, status, error) {
+            console.error("Failed to load ShipmentList:", error);
+        }
+    });
+
+    $(document).on("click", ".saveBtn", function (e) {
         e.preventDefault();
         saveOrUpdateShipmentMode();
     });
@@ -430,20 +543,13 @@ $(document).ready(function () {
         loadExpenseTypes(currentPage, pageSize, currentSortColumn, currentSortDirection, currentSearchTerm);
     });
 
-    $(document).on('click', 'resetBtn', function (e) {
-        console.log("Clear button called");
-        clearShipmentForm();
-    })
-  
     $(document).on("click", ".deleteBtn", function (e) {
         e.preventDefault();
-        console.log("Delete button Called");
-        deleteSelectedShipmentModes(); 
+        deleteSelectedShipmentModes();
     });
 
-    $(document).on("click", ".resetBtn", function (e) {
-        console.log("Clear button Called");
-        clearShipmentForm(); 
+    $(document).on("click", ".clearBtn", function (e) {
+        clearShipmentForm();
     });
 
     $(document).on('input', '#searchInput', debounce(function () {

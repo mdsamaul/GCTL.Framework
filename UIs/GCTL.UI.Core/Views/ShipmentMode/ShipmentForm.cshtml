@@ -1,139 +1,106 @@
-﻿@{
-    ViewData["Title"] = "ExpenseForm";
-}
-
-<style>
-    #button-div button {
-        padding: 8px 6px;
-        width: 75px;
-    }
-
-    .saveBtn:hover {
-        color: darkgreen !important;
-        background-color: lightgray !important;
-    }
-
-    .deleteBtn:hover {
-        color: red !important;
-        background-color: lightgray !important;
-    }
-
-    .resetBtn:hover {
-        color: goldenrod !important;
-        background-color: lightgray !important;
-    }
-
-    .favBtn:hover {
-        color: orangered !important;
-        background-color: lightgray !important;
-    }
-
-    .form-floating label {
-        font-size: 13px;
-        text-transform: none;
-    }
-</style>
+﻿@using GCTL.UI.Core.ViewModels
 
 <div class="card shadow-sm rounded-2">
-    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
-        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
-            <div>
-                <h4 class="mb-0 heading-nowrap" style="font-size:14px">Shipment Mode</h4>
-            </div>
-
-            <div class="d-flex gap-1" id="button-div">
-                <button type="submit" form="shipmentForm" class="btn btn-sm btn-outline-primary saveBtn">
-                    <i class="fas fa-save me-1"></i> Save
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-danger deleteBtn">
-                    <i class="fas fa-trash me-1"></i> Delete
-                </button>
-                <button type="reset" class="btn btn-sm btn-outline-secondary resetBtn">
-                    <i class="fas fa-eraser me-1"></i> Clear
-                </button>
-                <div class="dropdown">
-                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fas fa-print me-1"></i> Print
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
-                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
-                    </ul>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-warning favBtn">
-                    <i class="fas fa-star me-1"></i> Fav
-                </button>
-            </div>
-        </div>
-    </div>
 
     <div class="card-body">
         <form id="shipmentForm">
             <input type="hidden" id="tcId" name="tcId" />
 
-            <div class="row gy-3">
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" readonly class="form-control" name="expenseTypeId" id="expenseTypeId" placeholder="Expense Type ID">
-                        <label for="expenseTypeId">Expense Type ID</label>
-                    </div>
-                </div>
+            <div class="row g-3">
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" name="expenseType" id="expenseType" placeholder="Enter Expense Type">
-                        <label for="expenseType">Expense Type<span style="color:red">*</span></label>
-                    </div>
-                </div>
+                @* ---------- Transport Mode Type (Select + Quick Add) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "transportModeTypeId",
+                    LabelText = "Transport Mode Type",
+                    FieldType = FieldType.Select,
+                    Placeholder = "Select Transport Mode",
+                    SelectItems = ViewBag.TransportModeTypes as SelectList,
+                    ColumnClass = "col-md-6 mt-1",
+                    ShowQuickAdd = true,
+                    QuickAddUrl = Url.Action("Index", "TransportModeType"),
+                    QuickAddTarget = "#transportModeTypeId",
+                    QuickAddReloadUrl = Url.Action("GettransportModes", "Cascading"),
+                    QuickAddTitle = "Transport Mode Type"
+                })
 
-                <div class="col-md-6">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" name="shortName" id="shortName" placeholder="Enter Short Name">
-                        <label for="shortName">Short Name</label>
-                    </div>
-                </div>
+                <div class="col-md-6 mt-1"></div>
+
+                @* ---------- Expense Type ID (readonly text) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "expenseTypeId",
+                    LabelText = "Expense Type ID",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Select Expense Type",
+                    IsReadonly = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6 mt-1"
+                })
+
+                @* ---------- Expense Type (required text) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "expenseType",
+                    LabelText = "Expense Type",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Expense Type",
+                    IsRequired = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6 mt-1"
+                })
+
+                @* ---------- Short Name (text) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "shortName",
+                    LabelText = "Short Name",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Short Name",
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6 mt-1"
+                })
+
             </div>
 
-            <div class="row g-3 mt-2">
-                <div class="col-md-6" id="lDateContainer" style="display: none;">
-                    <label class="form-label fw-bold text-muted small" style="font-size:13px">Creation Date</label>
-                    <div id="displayLDate" class="bg-white p-3 border rounded-3"></div>
-                </div>
-                <div class="col-md-6" id="modifyDateContainer" style="display: none;">
-                    <label class="form-label fw-bold text-muted small" style="font-size:13px">Modify Date</label>
-                    <div id="displayModifyDate" class="bg-white p-3 border rounded-3"></div>
-                </div>
-            </div>
 
-            <div class="row mt-4">
-                <div class="col-12 d-flex justify-content-end">
-                    <button type="submit" class="btn btn-outline-primary btn-sm saveBtn">
-                        <i class="fas fa-save"></i> Save
-                    </button>
+                <div class="row g-3 mt-2">
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        ContainerId = "lDateContainer",
+                        InputId = "displayLDate",
+                        LabelText = "Creation Date",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        ColumnClass = "col-md-6 mt-1",
+                        ShowOnInit = false
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        ContainerId = "modifyDateContainer",
+                        InputId = "displayModifyDate",
+                        LabelText = "Modify Date",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        ColumnClass = "col-md-6 mt-1",
+                        ShowOnInit = false
+                    })
+
                 </div>
+
+
+            <div class="row mt-3">
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    SaveBtnClass = "saveBtn",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true,
+                    IsMarginRight=true
+                })
             </div>
         </form>
     </div>
 </div>
-
-
-
-
-
-
-
-
-@*  <div class="col-md-6">
-                <div class="form-floating">
-                    <input type="date" class="form-control" name="lDate" id="lDate" placeholder="Enter Last Date">
-                    <label for="lDate">Last Date</label>
-                </div>
-            </div>
-
-
-            <div class="col-md-6">
-                <div class="form-floating">
-                    <input type="date" class="form-control" name="modifyDate" id="modifyDate" placeholder="Enter Modify Date">
-                    <label for="modifyDate">Modify Date</label>
-                </div>
-            </div> *@

@@ -1,0 +1,121 @@
+﻿@model GCTL.UI.Core.ViewModels.HrmEmployees2.HrmEmployee2PageViewModel
+ @{
+    ViewBag.Title = "Employee Information List";
+    Model.PageTitle = ViewBag.Title;
+    Model.Breadcrumb = "Employee Information System";
+} 
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .custom-file-upload {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+        .custom-file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+    .file-name-display {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .card-header h6 {
+        font-size: 1rem;
+    }
+
+    .form-label.small {
+        font-size: 0.8rem;
+    }
+
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .bi {
+        font-size: 0.8rem;
+    }
+
+    .progress {
+        font-size: 0.6rem;
+    }
+    @@media (min-width: 1400px) {
+        .custom-lg-9
+
+    {
+        flex: 0 0 auto;
+        width: 75%;
+    }
+
+    }
+    
+</style>
+
+<partial name="_PageHeader" model="Model" />
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div>
+                        @await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
+                        {
+                            Id = "add_employee",
+                            Text = "Add Employee",
+                            Icon = "fa-solid fa-plus",
+                            CssClass = "btn-dark px-3 text-dark",
+                            IsLink = true,
+                            Href = "/HrmEmployee2/Setup"
+                        })
+                    </div>
+                    <div class="card-header border-transparent">
+                        <h3 class="card-title">@ViewBag.Title</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body p-2 pt-3">
+                       
+                        <div class="js-HrmEmployee2-grid-container">
+
+                            @await Html.PartialAsync("_Grid", Model.ListTableData)
+                          
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/hrmEmployee2.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "HrmEmployee2")'
+        };
+        options.load = () => {
+        };
+
+        $.hrmEmployee2(options);
+    </script>
+}

@@ -46,6 +46,9 @@
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Supplier Information",
+                            SaveBtnClass = "js-SupplierInformation-save",
+                            DeleteBtnClass = "js-SupplierInformation-delete-confirm",
+                            ClearBtnClass = "js-SupplierInformation-clear"
                         })
                     </div>
                     <div class="card-body">

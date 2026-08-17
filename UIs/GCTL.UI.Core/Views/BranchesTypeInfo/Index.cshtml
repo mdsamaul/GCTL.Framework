@@ -10,6 +10,16 @@
     .dataTables_filter {
         margin-right: 0px;
     }
+
+    .btn-group-sm > .btn, .btn-sm {
+        --bs-btn-padding-y: 0.3rem !important;
+    }
+
+    
+
+    /* .custom-dd-box {
+        border-radius: .375rem .0rem 0rem .375rem;       
+    } */
 </style>
 
 <partial name="_PageHeader" model="Model" />
@@ -23,6 +33,9 @@
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
                     Title = "Branch",
+                            SaveBtnClass = "js-branch-save",
+                            DeleteBtnClass = "js-branch-delete-confirm",
+                            ClearBtnClass = "js-branch-clear"
                 })
                     </div>
                     <div class="card-body px-2">
@@ -47,11 +60,11 @@
         <partial name="_BottomNavigation" />
     </div>
 </section>
-<partial name="DeleteModal" />
-<partial name="QuickAddModal" />
+@* <partial name="DeleteModal" /> *@
+@* <partial name="QuickAddModal" /> *@
 
                 
-@section Scripts {
+@* @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
@@ -66,4 +79,18 @@
 
         $.branchesTypeInfo(options);
     </script>
-}
+} *@
+
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/branchesTypeInfo.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+    if (window.jQuery && typeof $.branchesTypeInfo === "function") {
+    var options = { baseUrl: '@Url.Action("", "BranchesTypeInfo")' };
+    options.load = () => { };
+    $.branchesTypeInfo(options);
+    } else {
+    setTimeout(waitForJQuery, 30);
+    }
+    })();
+</script>

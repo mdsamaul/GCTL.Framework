@@ -57,6 +57,9 @@
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Desgination",
+                            SaveBtnClass = "js-designation-save",
+                            DeleteBtnClass = "js-designation-delete-confirm",
+                            ClearBtnClass = "js-designation-clear"
 
                         })
                     </div>
@@ -71,7 +74,7 @@
             </div>
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-body p-2 pr-3">
+                    <div class="card-body pb-2 px-2 p-0">
                         <div class="js-designation-grid-container">
                             <partial name="_Grid" />
                         </div>
@@ -84,7 +87,7 @@
 </section>
 <partial name="DeleteModal" />
 
-@section Scripts {
+@* @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
@@ -98,7 +101,20 @@
 
         $.designations(options);
     </script>
-}
+} *@
 
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/designations.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+    if (window.jQuery && typeof $.designations === "function") {
+    var options = { baseUrl: '@Url.Action("", "Designations")' };
+    options.load = () => { };
+    $.designations(options);
+    } else {
+    setTimeout(waitForJQuery, 30);
+    }
+    })();
+</script>
 
 

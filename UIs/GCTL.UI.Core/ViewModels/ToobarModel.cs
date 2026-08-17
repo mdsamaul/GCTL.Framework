@@ -27,6 +27,36 @@
         public string ClearBtnClass { get; set; } = "clearBtn";
         public string PrintBtnClass { get; set; } = "printBtn";
         public string FavtBtnClass { get; set; } = "favtBtn";
+        public string ExcelBtnClass { get; set; } = "excelBtn";
+        public string PdfBtnClass { get; set; } = "pdfBtn";
         public bool IsPlain { get; set; } = false;
+        public bool IsMarginRight { get; set; } = false;
+        public bool ReserveActionSlot { get; set; } = true;
+    }
+
+    public class ToolbarButton
+    {
+        public string Id { get; set; } = "";
+        public string Text { get; set; } = "";
+        public string Icon { get; set; } = "";              // "fas fa-plus"
+        public string CssClass { get; set; } = "";
+        public string Title { get; set; } = "";             // tooltip
+        public bool Enabled { get; set; } = true;
+
+        public bool IsDropdown { get; set; } = false;
+        public List<ToolbarDropdownItem> DropdownItems { get; set; } = new();
+
+        public string OnClick { get; set; } = "";
+        public string Href { get; set; } = "#";
+        public bool IsLink { get; set; } = false;
+    }
+
+    public class ToolbarDropdownItem
+    {
+        public string Id { get; set; } = "";
+        public string Text { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string CssClass { get; set; } = "";
+        public string Href { get; set; } = "#";
     }
 }

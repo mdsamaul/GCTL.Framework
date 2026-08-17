@@ -7,11 +7,14 @@ using GCTL.Framework.Extensions;
 using GCTL.Service.Menu;
 //using GCTL.Data.Identity;
 using GCTL.UI.Core;
+using GCTL.UI.Core.Filters;
 using GCTL.UI.Core.Helpers.BackgroundServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using QuestPDF.Infrastructure;
 using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,7 @@ var connectionString = builder.Configuration.GetConnectionString("connection")
 // Register DB contexts and application services via extension methods
 builder.Services.ConfigureContexts(builder.Configuration);
 builder.Services.RegisterApplicationServices();
+builder.Services.ReadConfigaration(builder.Configuration);
 
 // ---------------------------------------------------------------------
 // ASP.NET Core Identity
@@ -120,12 +124,26 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 // ---------------------------------------------------------------------
 // MVC + Swagger
 // ---------------------------------------------------------------------
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<BreadcrumbActionFilter>();
+});
 builder.Services.AddRazorPages(); // needed for Identity UI scaffolded pages
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Make HttpContext available to non-controller code via IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// Quest PDF License
+QuestPDF.Settings.License = LicenseType.Community;
+ExcelPackage.License.SetNonCommercialOrganization("GCTL");
 
 var app = builder.Build();
 
@@ -151,7 +169,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 

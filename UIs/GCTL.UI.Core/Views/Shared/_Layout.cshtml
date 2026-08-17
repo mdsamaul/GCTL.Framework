@@ -1,9 +1,12 @@
+@using GCTL.Core.Configurations
+@inject ApplicationSettings applicationSettings
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - GCTL HRM</title>
+    <title>@ViewData["Title"] - Formosa</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" /> 
@@ -13,7 +16,7 @@
     <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
     <link href="~/lib/toastr/css/toastr.min.css" rel="stylesheet" />
     <link href="~/lib/custom-inline-timepicker/custom-inline-timepicker.css" rel="stylesheet" />
-    <link href="~/lib/custom-select-2/custom-select-2.css" rel="stylesheet" />
+   
 
     <!-- Flatpickr base CSS first -->
     @* <link href="~/js/layout/flatpickr/flatpickr.min.css" rel="stylesheet" /> *@
@@ -21,6 +24,8 @@
     <link href="~/lib/custom-datepicker/custom-datepicker.css" rel="stylesheet" />
 
     <link href="~/css/layout.css" rel="stylesheet" />
+    <link href="~/css/toolbars.css" rel="stylesheet" />
+    <link href="~/lib/custom-select-2/custom-select-2.css" rel="stylesheet" />
 </head>
 <body>
     <div id="app-wrapper">
@@ -121,8 +126,12 @@
             </header>
 
             <main class="app-main-content">
+                @if(ViewData["HideBreadcrumb"] as bool? != true){
+                    @await Component.InvokeAsync("Breadcrumb")
+                }
                 @RenderBody()
             </main>
+            <div id="gcModalStack"></div>
         </div>
     </div>
 
@@ -149,6 +158,10 @@
     <script src="~/lib/custom-inline-timepicker/custom-inline-timepicker.js"></script>
     <script src="~/lib/custom-select-2/custom-select-2.js"></script>
     <script src="~/js/pages/getholidayslist.js"></script>
+    <script src="~/js/modal/gc-modal.js"></script>
+    <script src="~/js/modal/gc-delete.js"></script>
+    <script src="~/js/datatable/custom-datatable.js"></script>
+    <script src="~/ajax/gc-ajax.js"></script>
     <script>
         window.config = {
         config: {
@@ -172,5 +185,16 @@
         });
         });
     </script>
+
+    @if (TempData["PermissionDeniedMessage"] != null)
+    {
+        <script>
+            $(function () {
+            toastr.error('@TempData["PermissionDeniedMessage"]');
+            });
+        </script>
+    }
+    <partial name="_DeleteModal" />
+@* <script src="~/js/tabs/gc-tabs.js"></script> *@
 </body>
 </html>

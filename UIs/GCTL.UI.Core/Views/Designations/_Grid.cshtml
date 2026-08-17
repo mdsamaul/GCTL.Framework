@@ -1,19 +1,120 @@
-﻿<div class="table-responsive">
-    <table id="designation-grid" class="table table-striped table-hover table-bordered table-sm table-common">
+﻿@* <style>
+    .designation-grid-wrap {
+        /* border: 1px solid #e2e6ea; */
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+
+    .designation-table {
+        margin-bottom: 0;
+        font-size: 0.875rem;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        /* Header */
+        .designation-table thead th {
+            background: #f8f9fb;
+            color: #4b5563;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            /* border-bottom: 1px solid #e5e7eb; */
+            padding: 0.65rem 0.75rem;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+    /* Kill the table-sm override problem from DataTables */
+    table.dataTable.designation-table > tbody > tr > td,
+    table.dataTable.designation-table > thead > tr > th {
+        padding-top: 0.1rem;
+        padding-bottom: 0.1rem;
+    }
+
+    .designation-table tbody td {
+        padding: 0.55rem 0.75rem;
+        vertical-align: middle;
+        color: #1f2937;
+        /* border-bottom: 1px solid #f1f3f5; */
+    }
+
+    .designation-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Hover, no zebra clutter */
+    .designation-table tbody tr {
+        transition: background-color 0.12s ease;
+    }
+
+        .designation-table tbody tr:hover td {
+            background-color: #f5f7ff;
+        }
+
+    .designation-table .col-check {
+        width: 44px;
+    }
+
+    .designation-table .form-check-input {
+        cursor: pointer;
+        width: 1.05rem;
+        height: 1.05rem;
+        border-color: #c7cdd6;
+    }
+
+        .designation-table .form-check-input:checked {
+            background-color: #2f5fdb;
+            border-color: #2f5fdb;
+        }
+
+    /* Rounded outer corners without fighting DataTables' own borders */
+    .designation-table thead th:first-child {
+        border-top-left-radius: 10px;
+    }
+
+    .designation-table thead th:last-child {
+        border-top-right-radius: 10px;
+    }
+</style> *@
+<style>
+    table.dataTable.table-sm > tbody > tr > td,
+    table.dataTable.table-sm > thead > tr > th {
+        padding-top: 0.1rem;
+        padding-bottom: 0.1rem;
+    }
+</style>
+@* <div class="table-responsive-sm overflow-hidden">
+    <table id="designation-grid" class="table table-hover table- table-striped table-bordered align-middle table-sm table-common mb-0">
         <thead>
-            <tr>
-                <th class="text-center text-middle">
-                   Select <br/> <input type="checkbox" id="designation-check-all" />
+            <tr class="text-center align-middle">
+                <th class="text-center align-middle" style="width:44px;">
+                    Select
+                    <input type="checkbox" class="form-check-input" id="designation-check-all" />
                 </th>
-                <th class="text-center">Designation ID</th>
-                <th class=" text-left">Designation </th>
-                <th class="text-center ">Short Name</th>
-                 <th class=" text-left">Designation (বাংলা)</th>
+                <th>ID</th>
+                <th>Designation</th>
+                <th>Short Name</th>
+                <th>Designation (বাংলা)</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Data will be dynamically populated by DataTables -->
-        </tbody>
+        <tbody></tbody>
     </table>
-</div> 
+</div> *@
 
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "designation-grid",
+    CheckAllId = "designation-check-all",
+    Columns = new List<GridColumn>
+    {
+        new() { Header = "ID" },
+        new() { Header = "Designation" },
+        new() { Header = "Short Name" },
+        new() { Header = "Designation", HeaderBangla = "(বাংলা)" }
+    },
+    Bordered = true,
+    Striped =true
+})

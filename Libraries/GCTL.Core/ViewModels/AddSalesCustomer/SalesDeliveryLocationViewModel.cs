@@ -8,9 +8,9 @@ namespace GCTL.Core.ViewModels.AddSalesCustomer
 {
     public class SalesDeliveryLocationViewModel
     {
-        public string DeliveryLocationCode { get; set; } = null!;
-        public string CustomerId { get; set; }
-        public string CustomerName { get; set; }
+        public string? DeliveryLocationCode { get; set; } = null!;
+        public string? CustomerId { get; set; }
+        public string? CustomerName { get; set; }
         public string? DesignationCode { get; set; }
         public string? LocationAddress { get; set; }
         public string? CountryId { get; set; }

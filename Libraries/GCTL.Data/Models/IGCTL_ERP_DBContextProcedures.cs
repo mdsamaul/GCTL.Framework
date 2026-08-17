@@ -13,6 +13,7 @@ namespace GCTL.Data.Models
 {
     public partial interface IGCTL_ERP_DBContextProcedures
     {
+        Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<usp_GetHolidayListResult>> usp_GetHolidayListAsync(int? year, int? month, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
     }
 }

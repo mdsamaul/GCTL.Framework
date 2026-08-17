@@ -27,3 +27,4 @@ public partial class HrmEisDefEmploymentNature
         public string CompanyCode { get; set; }
         public string BanglaEmployeeNature { get; set; }
     }
+

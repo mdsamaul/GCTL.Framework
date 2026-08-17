@@ -25,9 +25,28 @@ $(document).ready(function () {
     });
 
 
-    $('#exportForm').on('submit', function () {
+    // $('#exportForm').on('submit', function () {
+    //     let nodes = getExpandedNodes();
+    //     console.log("Expand Nodes :",nodes);
+    //     $('#expandedNodes').val(nodes.join(','));
+    // });
+
+    $('#exportForm').on('submit', function (e) {
+
+        let format = $('select[name="format"]').val();
+
+        if (!format) {
+            e.preventDefault();
+
+            toastr.warning('Please select PDF or Excel report format.');
+
+            return false;
+        }
+
         let nodes = getExpandedNodes();
-        console.log("Expand Nodes :",nodes);
+
+        console.log("Expand Nodes :", nodes);
+
         $('#expandedNodes').val(nodes.join(','));
     });
 

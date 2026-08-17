@@ -12,6 +12,7 @@ namespace GCTL.Service.Users
         //List<CoreUserInfo> GetUsers();
         Task<List<UserViewModel>> GetAllUsers();
         Task<List<CommonSelectModel>> GetEmployees();
+        Task<List<CommonSelectModel>> GetCustomers();
         Task<CoreUserInfo> GetUser(int id);
         Task<int>  GetIdByEmployee(string code);
         Task<int> GetIdByUser(string code);

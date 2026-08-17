@@ -17,9 +17,12 @@ namespace GCTL.Service.ShipmentMode
     public class ShipmentModeService : AppService<CfDefExpenseType>, IShipmentMode
     {
         private readonly IRepository<CfDefExpenseType> _repository;
-        public ShipmentModeService(IRepository<CfDefExpenseType> genericRepository) : base(genericRepository)
+        private readonly IRepository<TransportModeType> tMTrepository;
+
+        public ShipmentModeService(IRepository<CfDefExpenseType> genericRepository, IRepository<TransportModeType> tMTrepository) : base(genericRepository)
         {
             _repository = genericRepository;
+            this.tMTrepository = tMTrepository;
         }
         public async Task<bool> BulkDeleteAsync(List<int> ids)
         {
@@ -85,10 +88,10 @@ namespace GCTL.Service.ShipmentMode
                             ExpenseTypeID = pt.ExpenseTypeId,
                             ExpenseType = pt.ExpenseType ?? "",
                             ShortName = pt.ShortName ?? "",
-                            LUser = pt.Luser,                         
-                            LIP = pt.Lip,
-                            LMAC = pt.Lmac ?? "",
-                            LDate = pt.Ldate,
+                            Luser = pt.Luser,                         
+                            Lip = pt.Lip,
+                            Lmac = pt.Lmac ?? "",
+                            Ldate = pt.Ldate,
                             ModifyDate = pt.ModifyDate,
                             ExpenseLedgerCodeNo = pt.ExpenseLedgerCodeNo,
                             RevenueLedgerCodeNo = pt.RevenueLedgerCodeNo,
@@ -124,17 +127,25 @@ namespace GCTL.Service.ShipmentMode
                 searchTerm,
                 currentSortColumn,
                 sortOrder,
-                term => sc =>
-                    EF.Functions.Like(sc.ExpenseTypeId ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ExpenseType ?? "", $"{term}%") ||
-                    EF.Functions.Like(sc.ShortName ?? "", $"%{term}%"),
+               term => sc =>
+                EF.Functions.Like(sc.ExpenseTypeId ?? "", $"%{term}%") ||
+                EF.Functions.Like(sc.ExpenseType ?? "", $"%{term}%") ||
+                EF.Functions.Like(sc.ShortName ?? "", $"%{term}%") ||
+                EF.Functions.Like(
+                    tMTrepository.All()
+                        .Where(t => t.TransportModeId == sc.TransportModeTypeId)
+                        .Select(t => t.TransportMode)
+                        .FirstOrDefault() ?? "",
+                    $"%{term}%"),
                 pt => new ShipmentModeVM
                 {
                     TC = pt.Tc,
                     ExpenseTypeID = pt.ExpenseTypeId,
                     ExpenseType = pt.ExpenseType ?? "",
+                    transportModeType = tMTrepository.All().Where(t => t.TransportModeId == pt.TransportModeTypeId).Select(t => t.TransportMode).FirstOrDefault(),
+                    transportModeTypeId=pt.TransportModeTypeId??"",
                     ShortName = pt.ShortName ?? "",                  
-                    LDate = pt.Ldate,
+                    Ldate = pt.Ldate,
                     ModifyDate = pt.ModifyDate,
                 });
 
@@ -170,11 +181,12 @@ namespace GCTL.Service.ShipmentMode
                     ShortName = model.ShortName ?? "",
                     Luser = "", // Set based on your auth system, e.g., User.Identity.Name
                     Ldate = DateTime.Now,
-                    Lip = GetLocalIP() ?? "",
-                    Lmac = GetMacAddress() ?? "",
+                    Lip = model.Lip ?? "",
+                    Lmac = model.Lmac ?? "",
                     ExpenseLedgerCodeNo = model.ExpenseLedgerCodeNo?? "",
                     RevenueLedgerCodeNo = model.RevenueLedgerCodeNo ?? "",
-                    AdvanceLedgerCode = model.AdvanceLedgerCode ?? ""
+                    AdvanceLedgerCode = model.AdvanceLedgerCode ?? "",
+                    TransportModeTypeId = model.transportModeTypeId ?? ""
                 };
 
                 await _repository.AddAsync(entity);
@@ -202,9 +214,10 @@ namespace GCTL.Service.ShipmentMode
                 entity.ExpenseTypeId = model.ExpenseTypeID;
                 entity.ExpenseType = model.ExpenseType;
                 entity.ShortName = model.ShortName ?? "";
+                entity.TransportModeTypeId = model.transportModeTypeId ?? "";
                 entity.Luser = ""; // Set based on your auth system, e.g., User.Identity.Name
-                entity.Lip = GetLocalIP() ?? "";
-                entity.Lmac = GetMacAddress() ?? "";
+                entity.Lip = model.Lip ?? "";
+                entity.Lmac = model.Lmac ?? "";
                 entity.ModifyDate = DateTime.Now;
 
                 await _repository.UpdateAsync(entity);
@@ -242,37 +255,29 @@ namespace GCTL.Service.ShipmentMode
                 ExpenseType = x.ExpenseType
             }).ToList();
         }
-
-
-        #region Ip & Mac
-        public string GetLocalIP()
+        public async Task<List<ShipmentModeVM>> GetShipmentModeDetailsAsync(string transportModeTypeId)
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
+            var data = await _repository.All()
+                .Where(pt => pt.TransportModeTypeId == transportModeTypeId)
+                .Select(pt => new ShipmentModeVM
                 {
-                    return ip.ToString();
-                }
-            }
-            return string.Empty;
+                    TC = pt.Tc,
+                    ExpenseTypeID = pt.ExpenseTypeId,
+                    ExpenseType = pt.ExpenseType ?? "",
+                    transportModeType = tMTrepository.All()
+                        .Where(t => t.TransportModeId == pt.TransportModeTypeId)
+                        .Select(t => t.TransportMode)
+                        .FirstOrDefault(),
+                    transportModeTypeId = pt.TransportModeTypeId ?? "",
+                    ShortName = pt.ShortName ?? "",
+                    Ldate = pt.Ldate,
+                    ModifyDate = pt.ModifyDate
+                })
+                .ToListAsync();
+
+            return data;
         }
 
-        public string GetMacAddress()
-        {
-            var nics = NetworkInterface.GetAllNetworkInterfaces();
-            var macAddress = string.Empty;
-            foreach (var adapter in nics)
-            {
-                if (adapter.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                {
-                    macAddress = adapter.GetPhysicalAddress().ToString();
-                    break;
-                }
-            }
-            return macAddress;
-        }
 
-        #endregion
     }
 }

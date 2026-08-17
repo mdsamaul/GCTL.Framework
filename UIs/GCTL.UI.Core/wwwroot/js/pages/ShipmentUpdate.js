@@ -1,5 +1,7 @@
 ﻿$(document).ready(function () {
 
+
+    //shipment update page js
     showDev('loaded')
 
     //#region Select 2
@@ -494,8 +496,17 @@
                         toastr.error(response.message || 'Error deleting records');
                     }
                 },
-                error: function () {
-                    toastr.error('Error occurred while deleting records');
+                error: function (xhr) {
+                    if (xhr.status === 403) {
+                        try {
+                            const resp = JSON.parse(xhr.responseText);
+                            toastr.error(resp.message || 'You do not have permission to perform this action');
+                        } catch (e) {
+                            toastr.error('You do not have permission to perform this action');
+                        }
+                    } else {
+                        toastr.error('Error occurred while deleting records');
+                    }
                 }
             });
         }
@@ -516,7 +527,7 @@
 
     //#region Submit
 
-    $('#saveBtn').on('click', function (e) {
+    $('.saveBtn').on('click', function (e) {
         e.preventDefault();
 
         var formData = $('#shipmentForm').serialize();
@@ -589,7 +600,7 @@ function clearForm() {
     setField('#weight', '', false);
     setField('#vesselRottNo', '', false);
     setField('#UpdateRemarks', '', false);
-    setDate('#etaDeliveryDate', '', false);
+    setDate('#ETADeliveryDatev', '', false);
     setDate('#actualDeliveryDate', '', false);
     setDate('#unstuffingDate', '', false);
     setDate('#unstuffingDate', '', false);
@@ -602,7 +613,7 @@ function clearForm() {
     setSelect('#ShipmentStatus', '', false);
     setField('#creationDate', '', false);
     setField('#updatedDate', '', false);
-    setField('#autoId', '', false);
+    setField('#autoId', '0', false);
     setTime('#Time', new Date().toTimeString().split(' ')[0], true);
     $('.create-modify-dateshow').addClass('d-none');
     $('#timelineCard').addClass('d-none');
@@ -614,7 +625,7 @@ function clearForm() {
 function populateBottomForm(data) {
     showDev(data);    
     if (data.etaDeliveryDate) {
-        setDate('#etaDeliveryDate', data.etaDeliveryDate.split('T')[0]);
+        setDate('#ETADeliveryDate', data.etaDeliveryDate.split('T')[0]);
     }
     if (data.actualDeliveryDate) {
         setDate('#actualDeliveryDate', data.actualDeliveryDate.split('T')[0]);
@@ -646,7 +657,7 @@ function populateBottomForm(data) {
     if (data.shipmentStatus) {
         setSelect('#ShipmentStatus', data.shipmentStatus);
     }
-
+    setField('#UpdateRemarks', data.updateRemarks || '', false);
 
     if (data.autoId) {
         setField('#autoId', data.autoId);
@@ -807,6 +818,6 @@ function populateForm(data) {
     setField('#weight', data.weight || '', true);
     setField('#vesselRottNo', data.vesselRottNo || '', true);
     setField('#read-remarks', data.remarks || '', true);
-    setField('#remarks', data.remarks || '', false);
+    
 }
 //#endregion

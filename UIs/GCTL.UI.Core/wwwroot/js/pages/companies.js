@@ -59,7 +59,7 @@
 
             //Report Xls , Pdf
             $(document).on('click', '.js-export-excel', function () {
-                //debugger;
+                //;
                 $("#loadingIndicator").show();
 
                 $.ajax({
@@ -78,7 +78,7 @@
             });
            
             $(document).on('click', '.js-export-pdf', function () {
-               // debugger;
+               // ;
                 $("#loadingIndicator").show();
                 $.ajax({
                     url: '/Companies/ExportToPdf',
@@ -100,54 +100,91 @@
             //
 
             // Save
-            $("body").on("click", settings.saveSelector, function () {
+            // $("body").on("click", settings.saveSelector, function () {
+            //     
+            //     if (!validation()) return false;
+
+            //     var $valid = $(settings.formSelector).valid();
+            //     if (!$valid) {
+            //         return false;
+            //     }
+
+            //     var data;
+            //     if (settings.haseFile)
+            //         data = new FormData($(settings.formSelector)[0]);
+            //     else
+            //         data = $(settings.formSelector).serialize();
+
+            //     var url = $(settings.formSelector).attr("action");
+
+            //     var options = {
+            //         url: url,
+            //         method: "POST",
+            //         data: data,
+            //         success: function (response) {
+            //             if (response.isSuccess) {
+            //                 loadForm(saveUrl)
+            //                     .then((data) => {
+            //                         loadCompanies(settings.baseUrl, settings.gridSelector);
+            //                         $(settings.lastCodeSelector).val(response.lastCode);
+            //                         //alert($(settings.lastCodeSelector).val());
+            //                         
+            //                         GcModal.markSuccess($(this), response.lastCode);
+            //                         GcModal.close($(this)); 
+            //                     })
+            //                     .catch((error) => {
+            //                         console.log(error)
+            //                     })
+
+            //                 toastr.success(response.message);
+            //             }
+            //             else {
+            //                 toastr.warning(response.message);
+            //                 console.log(response);
+            //             }
+            //         }
+            //     }
+            //     if (settings.haseFile) {
+            //         options.processData = false;
+            //         options.contentType = false;
+            //     }
+            //     $.ajax(options);
+            // });
+
+            $('body').on('click', settings.saveSelector, function () {
+
                 if (!validation()) return false;
+                var validForm = $(settings.formSelector).valid();
+                if (!validForm) return false;
 
-                var $valid = $(settings.formSelector).valid();
-                if (!$valid) {
-                    return false;
-                }
-
-                var data;
-                if (settings.haseFile)
-                    data = new FormData($(settings.formSelector)[0]);
-                else
-                    data = $(settings.formSelector).serialize();
-
+                var data = $(settings.formSelector).serialize();
                 var url = $(settings.formSelector).attr("action");
+                var self = this;
 
-                var options = {
+                $.ajax({
                     url: url,
                     method: "POST",
                     data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            loadForm(saveUrl)
-                                .then((data) => {
-                                    loadCompanies(settings.baseUrl, settings.gridSelector);
-                                    $(settings.lastCodeSelector).val(response.lastCode);
-                                    //alert($(settings.lastCodeSelector).val());
-                                })
-                                .catch((error) => {
-                                    console.log(error)
-                                })
-
                             toastr.success(response.message);
-                        }
-                        else {
-                            toastr.warning(response.message);
-                            console.log(response);
+                                                     
+                            var $modalAncestor = $(self).closest(".modal");
+                            if ($modalAncestor.length && window.GcModal) {
+                                GcModal.markSuccess($modalAncestor, response.lastCode);
+                                GcModal.close($modalAncestor);
+                            } else {
+                                // normal page এ থাকলে আগের মতোই form reload করো
+                                loadForm(saveUrl).then(() => {
+                                    loadCompanies(settings.baseUrl, settings.gridSelector);
+                                });
+                            }
+                        } else {
+                            toastr.error(response.message);
                         }
                     }
-                }
-                if (settings.haseFile) {
-                    options.processData = false;
-                    options.contentType = false;
-                }
-                $.ajax(options);
+                });
             });
-
-
 
             $("body").on("click", settings.selectAllSelector, function () {
                 $(".checkBox").prop('checked',
@@ -155,8 +192,31 @@
             });
 
 
+            // $("body").on("click", settings.deleteSelector, function (e) {
+            //     
+            //     e.preventDefault();
+            //     if ($(this).data('id')) {
+            //         selectedItems.push($(this).data('id'));
+            //     } else {
+            //         $('input:checkbox.checkBox').each(function () {
+            //             if ($(this).prop('checked')) {
+            //                 if (!selectedItems.includes($(this).val())) {
+            //                     selectedItems.push($(this).val());
+            //                 }
+            //             }
+            //         });
+            //     }
+
+            //     if (selectedItems.length > 0) {
+            //         $(settings.deleteModal).modal("show");
+            //     } else {
+            //         toastr.info("Please select at least one item.");
+            //     }
+            // });
+
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
@@ -170,7 +230,26 @@
                 }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    GcDelete.confirm("Are you sure to delete?", function () {
+                        $.ajax({
+                            url: deleteUrl + "/" + selectedItems,
+                            method: "POST",
+                            success: function (response) {
+                                
+                                if (response.success) {
+                                    toastr.success(response.message);
+                                    selectedItems = [];
+                                    loadCompanies(settings.baseUrl, settings.gridSelector);
+                                    loadForm(saveUrl);
+                                } else {
+                                    if (response.refSuccess) {
+                                        toastr.warning(response.message, 'Warning');
+                                    }
+                                    toastr.error(response.message, 'Error');
+                                }
+                            }
+                        });
+                    });
                 } else {
                     toastr.info("Please select at least one item.");
                 }
@@ -178,6 +257,7 @@
 
 
             $("body").on('show.bs.modal', settings.deleteModal, function (event) {
+                
                 //event.preventDefault();
                 // Get button that triggered the modal
                 var source = $(event.relatedTarget);

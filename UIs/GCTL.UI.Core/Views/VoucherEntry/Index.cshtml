@@ -1,0 +1,282 @@
+﻿<style>
+    .form-floating .selectLabel {
+        font-size: 14px !important;
+    }
+
+    .form-floating label {
+        text-transform: none;
+        font-size: 13px;
+    }
+
+    .VoucherEntrysaveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherEntrydeleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherEntryresetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherEntryfavBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    #button-div button {
+        padding: 8px 6px;
+        width: 80px;
+    }
+    /* CSS for error styling */
+    .border-error {
+        border: 1px solid red !important;
+    }
+
+    .row.border {
+        border: 1px solid #ddd; /* Light border color */
+        border-radius: 5px; /* Optional: rounded corners for the border */
+        padding: 10px;
+    }
+
+    .btn-sm {
+        margin-top: 8px; /* tweak as needed for exact vertical match */
+    }
+
+
+    .ledger-row {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 3px;
+    }
+
+    .ledger-label {
+        width: 170px; /* fixed width for label so all colons align */
+        text-align: right;
+        padding-right: 10px;
+        font-weight: bold;
+    }
+
+    .ledger-value {
+        text-align: left;
+    }
+
+    .details-icon-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px; /* Space between icons */
+        margin-top: 10px; /* Space from Cheque Date field */
+        margin-bottom: 20px; /* Space before the table starts */
+    }
+
+        .details-icon-group i {
+            font-size: 30px;
+            cursor: pointer;
+            color: #6c757d; /* Default icon color */
+        }
+    /* Style for the table to match the look */
+    .voucher-entry-table thead th {
+        background-color: #f8f9fa; /* Light background for header */
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .voucher-entry-table tbody td {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .detailsicon {
+        border: none;
+        cursor: pointer;
+        background-color: white;
+    }
+
+        .detailsicon:hover {
+            color: #007bff;
+        }
+
+    .select2-container .select2-selection--single {
+        height: calc(2.9rem + 2px) !important;
+        align-items: center !important;
+    }
+
+    .btn-transfer:focus,
+    .btn-transfer.focus {
+        outline: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .tmp-details {
+        display: inline-flex; /* inline-flex keeps button inline */
+    }
+
+    .details-icon-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* Details button style */
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        border: none;
+        background: #f4f4f4;
+        color: #4a4a4a;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        transition: 0.2s;
+    }
+
+        /* Hover */
+        .icon-btn:hover {
+            background: #e3e3e3;
+            transform: translateY(-2px);
+        }
+
+        /* Active */
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Specific colors */
+        .icon-btn.add {
+            color: #1B873F;
+        }
+
+        .icon-btn.cancel {
+            color: #C71F2D;
+        }
+
+        .icon-btn.refresh {
+            color: #0A6BE7;
+        }
+/* Details button Tooltrip */
+    .icon-btn {
+        position: relative;
+    }
+
+        /* Tooltip box */
+        .icon-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 5px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+            z-index: 99;
+        }
+
+        /* Tooltip arrow */
+        .icon-btn::before {
+            content: "";
+            position: absolute;
+            bottom: 38px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+            opacity: 0;
+            transition: 0.2s;
+            z-index: 98;
+        }
+
+        /* Show tooltip on hover */
+        .icon-btn:hover::after,
+        .icon-btn:hover::before {
+            opacity: 1;
+        }
+/* main grid button tooltrip */
+    .tooltip-btn {
+        position: relative;
+    }
+
+        /* Tooltip box */
+        .tooltip-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s ease;
+            z-index: 999999;
+        }
+
+        /* Tooltip arrow */
+        .tooltip-btn::before {
+            content: "";
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+            opacity: 0;
+            transition: 0.2s ease;
+            z-index: 999999;
+        }
+
+        /* Hover effect */
+        .tooltip-btn:hover::after,
+        .tooltip-btn:hover::before {
+            opacity: 1;
+        }
+
+    #Narration {
+        resize: none; /* User cannot resize */
+    }
+
+
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <div id="VoucherFormView">
+            @await Html.PartialAsync("~/Views/VoucherEntry/_VoucherEntryForm.cshtml")
+        </div>
+    </div>
+
+    <div class="col-md-12 mt-3">
+        <div id="VoucherListView">
+            @await Html.PartialAsync("~/Views/VoucherEntry/_VoucherEntryList.cshtml")
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script src="~/js/pages/VoucherEntry/VoucherEntry.js"></script>
+    <script src="~/js/pages/VoucherEntry/DetailsVoucher.js"></script>
+
+}

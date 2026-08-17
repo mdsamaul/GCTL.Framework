@@ -29,7 +29,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Index
-        public async Task<IActionResult> Index(bool child = false)
+        public async Task<IActionResult> Index()
         {
             var hasPermission = await supplierOriginService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -44,7 +44,6 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
-
                 var list = await supplierOriginService.GetAllAsync();
                 model.SupplierOriginList = list ?? new List<SupplierOriginSetupViewModel>();
 
@@ -58,14 +57,15 @@ namespace GCTL.UI.Core.Controllers
             }
             catch (Exception ex)
             {
-
                 model.SupplierOriginList = new List<SupplierOriginSetupViewModel>();
                 model.Setup = new SupplierOriginSetupViewModel();
                 Console.WriteLine("Error" + ex.Message);
             }
 
-            if (child)
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
                 return PartialView(model);
+            }
 
             return View(model);
         }
@@ -123,7 +123,7 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.Tc > 0);
-                if (modelVM.Tc == 0)
+                if (modelVM.Tc == 0 || modelVM.Tc == null)
                 {
                     var hasSavePermission = await supplierOriginService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)

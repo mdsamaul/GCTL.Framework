@@ -6,7 +6,10 @@ using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
+
+using GCTL.UI.Core.Filters;
 using GCTL.UI.Core.Helpers;
+
 using GCTL.UI.Core.ViewModels.Companies;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
@@ -37,6 +40,20 @@ namespace GCTL.UI.Core.Controllers
             this.mapper = mapper;
         }
 
+        //public IActionResult Index()
+        //{
+        //    CompanyPageViewModel model = new CompanyPageViewModel()
+        //    {
+        //        PageUrl = Url.Action(nameof(Index))
+        //    };
+        //    commonService.FindMaxNo(ref strMaxNO, "CompanyCode", "Core_Company", 3);
+        //    model.Setup = new CompanySetupViewModel
+        //    {
+        //        CompanyCode = strMaxNO,
+        //    };
+
+        //    return View(model);
+        //}
         public IActionResult Index()
         {
             CompanyPageViewModel model = new CompanyPageViewModel()
@@ -48,6 +65,11 @@ namespace GCTL.UI.Core.Controllers
             {
                 CompanyCode = strMaxNO,
             };
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
 
             return View(model);
         }
@@ -112,12 +134,10 @@ namespace GCTL.UI.Core.Controllers
                     {
                         return Json(new { isSuccess = false, message = "You have no access" });
                     }
-
                 }
-
             }
 
-            return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
+            return Json(new { isSuccess = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
         }
 
         public ActionResult Grid()
@@ -127,6 +147,7 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpPost]
+        [ModulePermission(PermissionType.Delete)]
         public async Task<ActionResult> Delete(string id)
         {
             var hasPermission = companyService.DeletePermission(LoginInfo.AccessCode);

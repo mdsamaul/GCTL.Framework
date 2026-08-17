@@ -35,7 +35,7 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
-    --sidebar-width-expanded: 250px;
+    --sidebar-width-expanded: 200px;
     --sidebar-width-collapsed: 70px;
     --topnav-height: 50px;
 
@@ -572,7 +572,7 @@ h6 {
 }*/
 .app-main-content {
     flex-grow: 1;
-    padding: 0px;
+    padding: 10px;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -1095,4 +1095,96 @@ h6 {
     to {
         height: var(--bar-height);
     }
+}
+.field-fixed-width .input-group .custom-dd-box,
+.field-fixed-width .input-group .custom-dd-wrapper {
+    border-radius: .375rem !important;
+}
+.field-fixed-width {
+    min-width: 0 !important;
+    max-width: 100%;
+}
+/*
+.custom-dd-input::placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
+}
+
+.custom-dd-input::-webkit-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+.custom-dd-input::-moz-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
+}
+
+.custom-dd-input:-ms-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}*/
+
+.form-control::placeholder,
+.form-select::placeholder,
+.custom-dd-input::placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
+}
+
+.form-control::-webkit-input-placeholder,
+.custom-dd-input::-webkit-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+.form-control::-moz-placeholder,
+.custom-dd-input::-moz-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
+}
+
+.form-control:-ms-input-placeholder,
+.custom-dd-input:-ms-input-placeholder {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+select.form-select option[value=""],
+select.form-control option[value=""] {
+    color: #8a9bb8;
+    font-style: italic;
+}
+
+/* All table headers */
+.table thead th,
+table.dataTable thead th,
+.table-common thead th {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+
+/* Header row */
+.table thead tr,
+table.dataTable thead tr {
+    vertical-align: middle !important;
+}
+
+.required-star {
+    color: #dc3545 !important;
+    font-size: 1rem !important;
+    font-weight: 600;
 }

@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
 using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using Microsoft.Data.SqlClient;
@@ -305,59 +306,6 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             }
         }
 
-        //public async Task<List<SalesCustomerViewModel>> GetAllAsync()
-        //{
-        //    //var customer = salesCustomer.All();
-
-        //    var data = await _salesCustomer.All()
-        //      .Select(sc => new SalesCustomerViewModel
-        //      {
-        //            CustomerId = sc.CustomerId,
-        //            CustomerName = sc.CustomerName ?? "",
-        //            //CustomerCode = sc.CustomerCode,
-        //            ShortName = sc.ShortName ?? "",
-        //            CustomerAddress = sc.CustomerAddress ==null ? "": sc.CustomerAddress,
-        //            //CountryId = sc.CountryId,
-        //            //City = sc.City,
-        //            //StateOrProvince = sc.StateOrProvince,
-        //            //ZipCode = sc.ZipCode,
-        //            Phone = sc.Phone ?? "",
-        //            Email = sc.Email ?? "",
-        //            //Url = sc.Url,
-        //            Fax = sc.Fax ?? "",
-        //            //Bin = sc.Bin,
-        //            //Tin = sc.Tin,
-        //            //VatRegNo = sc.VatRegNo,
-        //            //ContactPerson = sc.ContactPerson,
-        //            OpeningBalance = sc.OpeningBalance ?? 0.00m,
-        //            OpeningDate = sc.OpeningDate,
-        //            //CreditLimit = sc.CreditLimit,
-        //            //Category = sc.Category,
-        //            //CustomerType = sc.CustomerType,
-        //            //SalesPerson = sc.SalesPersonId,
-        //            //OpeningDate = sc.OpeningDate,
-
-        //            // Manually fetching delivery locations based on CustomerId
-        //            //DeliveryLocations = salesDeliveryLocation.All()
-        //            //    .Where(dl => dl.CustomerId == sc.CustomerId)
-        //            //    .Select(dl => new SalesDeliveryLocationViewModel
-        //            //    {
-        //            //        CustomerId = dl.CustomerId!,
-        //            //        DeliveryLocationCode = dl.DeliveryLocationCode,
-        //            //        LocationAddress = dl.LocationAddress,
-        //            //        ContactPerson = dl.ContactPerson,
-        //            //        Phone = dl.Phone,
-        //            //        Email = dl.Email,
-        //            //        CountryId = dl.CountryId,
-        //            //        City = dl.City,
-        //            //        StateOrProvince = dl.StateOrProvince,
-        //            //        ZipCode = dl.ZipCode,
-        //            //        Remarks = dl.Remarks
-        //            //    }).ToList()
-        //        }).ToListAsync();
-
-        //    return data;
-        //}
 
         public async Task<List<SalesCustomerViewModel>> GetAllAsync()
         {
@@ -510,10 +458,7 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 using var connection = new SqlConnection(_configuration.GetConnectionString("connection"));
                 await connection.OpenAsync();
 
-                var result = await connection.QueryAsync<CustomerReportVM>(
-                    "sp_GetCustomerReportsInfo",
-                    commandType: System.Data.CommandType.StoredProcedure
-                );
+                var result = await connection.QueryAsync<CustomerReportVM>("sp_GetCustomerReportsInfo", commandType: System.Data.CommandType.StoredProcedure);
 
                 return result.ToList();
             }
@@ -525,28 +470,6 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             }
         }
 
-
-        //public async Task<List<CustomerDeliveryReportVM>> GetCustomerDeliveryReportAsync()
-        //{
-        //    try
-        //    {
-        //        using var connection = new SqlConnection(_configuration.GetConnectionString("connection"));
-        //        await connection.OpenAsync();
-
-        //        var result = await connection.QueryAsync<CustomerDeliveryReportVM>(
-        //            "sp_GetAllCustomerDeliveryInfo",
-        //            commandType: System.Data.CommandType.StoredProcedure
-        //        );
-
-        //        return result.ToList();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-
-        //        return new List<CustomerDeliveryReportVM>();
-        //    }
-        //}
         public async Task<List<CustomerDeliveryReportVM>> GetCustomerDeliveryReportAsync()
         {
             using var connection = new SqlConnection(_configuration.GetConnectionString("connection"));
@@ -598,7 +521,21 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             throw new NotImplementedException();
         }
 
+        #region SelectionAsync
 
+        public async Task<IEnumerable<CommonSelectModel>> SelectionCustomerAsync()
+        {
+
+            var data = await _salesCustomer.All()
+                       .Select(x => new CommonSelectModel
+                       {
+                           Code = x.CustomerId,
+                           Name = x.CustomerName,
+                       }).ToListAsync();
+            return data;
+        }
+
+        #endregion
 
         #endregion
     }

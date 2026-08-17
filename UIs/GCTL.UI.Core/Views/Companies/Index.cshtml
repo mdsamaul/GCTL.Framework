@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
+﻿@* @model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
 @{
     ViewBag.Title = "Companies";
     Model.Breadcrumb = "Company";
@@ -55,9 +55,12 @@
                     <div class="card-header px-2">
                      @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
-                    Title = "Companies",
+                            Title = "Companies",
+                            SaveBtnClass = "js-company-save",
+                            DeleteBtnClass = "js-company-delete-confirm",
+                            ClearBtnClass = "js-company-clear"
                    
-                })
+                    })
                     </div>
                     <div class="card-body px-2">
                         <form asp-action="Setup" id="company-form">
@@ -81,7 +84,7 @@
         <partial name="_BottomNavigation" />
     </div>
 </section>
-<partial name="DeleteModal" />
+<partial name="DeleteModal" /> 
 
 @section Scripts {
     @{
@@ -102,3 +105,113 @@
 
 
 
+ *@
+
+@model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
+@{
+    ViewBag.Title = "Companies";
+    Model.Breadcrumb = "Company";
+    Model.PageTitle = ViewBag.Title;
+}
+@* @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+} *@
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .btn-common {
+        border-radius: 14px !important;
+        padding: .375rem 1.35rem !important;
+        box-shadow: 0px 2px 6px #e9e9e9;
+        margin-left: 5px;
+        color: black !important;
+    }
+
+        .btn-common:hover {
+            color: #28a745 !important;
+        }
+
+    .btn-default {
+        border-color: #ddd !important;
+    }
+
+    .form-control[readonly] {
+        background-color: #e9ecef !important;
+    }
+
+        .form-control[readonly]:focus {
+            box-shadow: none;
+            border-color: inherit;
+        }
+
+    .form-control:focus:not(:disabled):not([readonly]) {
+        --bs-focus-ring-width: 0.2rem;
+        --bs-focus-ring-color: rgba(0, 123, 255, 0.25);
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, .25);
+    }
+</style>
+
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 pr-0">
+                <div class="card">
+                    <div class="card-header px-2">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Companies",
+                            SaveBtnClass = "js-ClientInformationEntry-save",
+                            DeleteBtnClass = "js-ClientInformationEntry-delete-confirm",
+                            ClearBtnClass = "js-ClientInformationEntry-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+                        <form asp-action="Setup" id="company-form">
+                            <div class="js-company-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body p-2 pt-3">
+                        <div class="js-company-grid-container">
+                            <partial name="_Grid" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+@* <partial name="DeleteModal" />  *@
+@* <script src="~/js/app.input.validation.js"></script>
+<script src="~/js/pages/companies.js"></script>
+<script type="text/javascript">
+    var options = { baseUrl: '@Url.Action("", "Companies")' };
+    options.load = () => { };
+    $.companies(options);
+</script> *@
+
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/companies.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+    if (window.jQuery && typeof $.companies === "function") {
+    var options = { baseUrl: '@Url.Action("", "Companies")' };
+    options.load = () => { };
+    $.companies(options);
+    } else {
+    setTimeout(waitForJQuery, 30);
+    }
+    })();
+</script>

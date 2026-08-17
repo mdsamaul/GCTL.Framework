@@ -22,6 +22,7 @@ namespace GCTL.Service.ExpenseHead
 {
     public class ExpenseHeadService : AppService<CfDefExpenseHead>, IExpenseHead
     {
+        #region
         private readonly IRepository<CfDefExpenseHead> _repository;
         private readonly GCTL_ERP_DBContext _context;
         private readonly string _connectionString;
@@ -32,7 +33,9 @@ namespace GCTL.Service.ExpenseHead
             _context = context;
             _connectionString = configuration.GetConnectionString("connection");
         }
+        #endregion
 
+        #region
         public async Task<bool> BulkDeleteAsync(List<int> ids)
         {
             await _repository.BeginTransactionAsync();
@@ -305,6 +308,7 @@ namespace GCTL.Service.ExpenseHead
 
             return nextSerial;
         }
+        #endregion
 
         #region Ip & Mac
         public string GetLocalIP()
@@ -338,7 +342,6 @@ namespace GCTL.Service.ExpenseHead
         #endregion
 
         #region Report
-
         public async Task<List<ExpenseHeadReportVM>> GetExpenseHeadReportAsync(string expenseTypeId = "")
         {
             var result = new List<ExpenseHeadReportVM>();
@@ -378,7 +381,9 @@ namespace GCTL.Service.ExpenseHead
 
             return result;
         }
+        #endregion
 
+        #region Gnereate Excel Report
         public async Task<byte[]> GenerateExcelReportAsync(string expenseTypeId = "")
         {
             var data = await GetExpenseHeadReportAsync(expenseTypeId);
@@ -536,7 +541,9 @@ namespace GCTL.Service.ExpenseHead
 
             return ms.ToArray();
         }
+        #endregion
 
+        #region Generate PDF Report
         public async Task<byte[]> GeneratePdfReportAsync(string expenseTypeId = "")
         {
             var data = await GetExpenseHeadReportAsync(expenseTypeId);
@@ -736,9 +743,6 @@ namespace GCTL.Service.ExpenseHead
 
             return pdfBytes;
         }
-
         #endregion
-
-
     }
 }

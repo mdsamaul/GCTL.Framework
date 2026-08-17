@@ -41,7 +41,7 @@ namespace GCTL.UI.Core.Controllers
             BranchTypePageViewModel model = new BranchTypePageViewModel()
             {
                 PageUrl = Url.Action(nameof(Index)),
-                //AddUrl = Url.Action(nameof(Setup))
+                
             };
             commonService.FindMaxNo(ref strMaxNO, "BranchCode", "Core_Branch", 3);
             model.Setup = new BranchTypeSetupViewModel
@@ -51,8 +51,11 @@ namespace GCTL.UI.Core.Controllers
             var comapanies =  branchTypeInfoService.DropSelection();
             string selectedCompanyCode = comapanies.Count() == 1 ? comapanies.First().Code : null;
             ViewBag.CompanyCodeDD = new SelectList( branchTypeInfoService.DropSelection(), "Code", "Name", selectedCompanyCode);
-           // ViewBag.CompanyCodeDD = new SelectList(branchTypeInfoService.DropSelection(), "Code", "Name");
-
+            
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
 
             return View(model);
         }

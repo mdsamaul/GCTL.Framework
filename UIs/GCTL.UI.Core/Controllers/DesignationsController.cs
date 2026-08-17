@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using ClosedXML.Excel;
 using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.Companies;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Designations;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.Designations;
 using GCTL.UI.Core.Helpers;
+using GCTL.UI.Core.ViewModels.Companies;
 using GCTL.UI.Core.ViewModels.Designations;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
@@ -36,7 +38,25 @@ namespace GCTL.UI.Core.Controllers
             this.mapper = mapper;
         }
 
-        public IActionResult Index(bool child = false)
+        //public IActionResult Index(bool child = false)
+        //{
+        //    DesignationPageViewModel model = new DesignationPageViewModel()
+        //    {
+        //        PageUrl = Url.Action(nameof(Index))
+        //    };
+        //    commonService.FindMaxNo(ref strMaxNO, "DesignationCode", "HRM_Def_Designation", 3);
+        //    model.Setup = new DesignationSetupViewModel
+        //    {
+        //        DesignationCode = strMaxNO
+        //    };
+
+        //    if (child)
+        //        return PartialView(model);
+
+        //    return View(model);
+        //}
+
+        public IActionResult Index()
         {
             DesignationPageViewModel model = new DesignationPageViewModel()
             {
@@ -45,11 +65,13 @@ namespace GCTL.UI.Core.Controllers
             commonService.FindMaxNo(ref strMaxNO, "DesignationCode", "HRM_Def_Designation", 3);
             model.Setup = new DesignationSetupViewModel
             {
-                DesignationCode = strMaxNO
+                DesignationCode = strMaxNO,
             };
 
-            if (child)
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
                 return PartialView(model);
+            }
 
             return View(model);
         }
@@ -72,7 +94,6 @@ namespace GCTL.UI.Core.Controllers
 
             return PartialView($"_{nameof(Setup)}", model);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]

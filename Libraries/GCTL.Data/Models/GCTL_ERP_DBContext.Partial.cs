@@ -91,6 +91,132 @@ namespace GCTL.Data.Models
                 entity.Property(p => p.Tc)
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
+
+            modelBuilder.Entity<CaDefCountry>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<HrmAtdCompanyWeekEnd>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefBankInfo>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefBankBranchInfo>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<CoreBankAccountInformation>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefPortType>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefPortName>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefVehicle>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefVehicleType>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<CoreImporterInformation>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<TransportModeType>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<CoreExporterInformation>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesContactPerson>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<CoreVendorInformation>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<VendorBranchInfo>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<CfDefVendorPrefix>(entity =>
+            {
+                entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmEmployee>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmEmployeeContactInfo>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmDefRelationship>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmDefDistrict>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            modelBuilder.Entity<HrmClientInfo>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+            //modelBuilder.Entity<InvDefCompanyInfo>(entity =>
+            //{
+            //    entity.Property(p => p.Tc)
+            //    .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            //});
         }
     }
 }
