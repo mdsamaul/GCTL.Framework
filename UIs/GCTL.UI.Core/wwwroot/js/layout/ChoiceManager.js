@@ -18,6 +18,7 @@
 
 
 // Example: Populate multiple dropdowns with auto-detected keys
+console.log("Choice Manager Loaded");
 const branchDataDummy = [
     { organizationBranchID: 1, organizationBranchName: "Googleplex" },
     { organizationBranchID: 2, organizationBranchName: "New York, USA" },
