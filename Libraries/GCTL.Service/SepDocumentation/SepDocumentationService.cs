@@ -226,136 +226,356 @@ namespace GCTL.Service.SepDocumentation
 
         #region Save / Delete
 
+        //public async Task<CommonReturnViewModel> SaveDocumentationAsync(SepDocumentationEntryViewModel model, string company, string loginUser)
+        //{
+        //    await _sepDocumentationRepository.BeginTransactionAsync();
+        //    try
+        //    {
+        //        bool isNew = model.Tc == 0;
+        //        GCTL.Data.Models.SepDocumentation entity;
+
+        //        if (isNew)
+        //        {
+        //            var dupExists = await _sepDocumentationRepository.All()
+        //                .AnyAsync(x => (x.InvoiceNo == model.InvoiceNo && !string.IsNullOrEmpty(model.InvoiceNo))
+        //                            || (x.ExpNo == model.ExpNo && !string.IsNullOrEmpty(model.ExpNo)));
+        //            if (dupExists)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
+        //            }
+
+        //            entity = new GCTL.Data.Models.SepDocumentation
+        //            {
+        //                JobNo = model.JobNo,
+        //                Ldate = DateTime.Now,
+        //                Luser = loginUser,
+        //                CompanyCode = company
+        //            };
+        //        }
+        //        else
+        //        {
+        //            entity = await _sepDocumentationRepository.All().FirstOrDefaultAsync(x => x.Tc == model.Tc);
+        //            if (entity == null)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Job not found" };
+        //            }
+
+        //            var duplicate = await _sepDocumentationRepository.All()
+        //                .AnyAsync(x => x.Tc != model.Tc &&
+        //                              ((x.InvoiceNo == model.InvoiceNo && !string.IsNullOrEmpty(model.InvoiceNo))
+        //                            || (x.ExpNo == model.ExpNo && !string.IsNullOrEmpty(model.ExpNo))));
+        //            if (duplicate)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
+        //            }
+        //        }
+
+        //        entity.PrifixId = model.PrifixId??"";
+        //        entity.IsCustomJobNo = model.IsCustomJobNo?.ToString()??"";
+        //        entity.ExpenseTypeId = model.ShipmentModeId??"";
+        //        entity.Date = model.Date??null;
+        //        entity.CustomerId = model.CustomerId??"";
+        //        entity.CustomerAddress = model.CustomerAddress??"";
+        //        entity.DeliveryLocationCode = model.DeliveryLocationCode??"";
+        //        entity.PortId = model.PortId??"";
+        //        entity.PortNameId = model.PortNameId??"";
+        //        entity.DocReceivedDate = model.DocReceivedDate??null;
+        //        entity.ExpNo = model.ExpNo??"";
+        //        entity.ExpDate = model.ExpDate??null;
+        //        entity.Lcno = model.LCNo??"";
+        //        entity.Lcdate = model.LCDate??null;
+        //        entity.Lcvalue = model.LCValue??0m;
+        //        entity.CurrencyId = model.CurrencyId??"";
+        //        entity.Bdtrate = model.BDTRate??0m;
+        //        entity.Ipno = model.IPNo??"";
+        //        entity.Ipdate = model.IPDate??null;
+        //        entity.ImporterId = model.ImporterID??"";
+        //        entity.ExporterId = model.ExporterID??"";
+        //        entity.InvoiceNo = model.InvoiceNo??"";
+        //        entity.InvoiceDate = model.InvoiceDate??null;
+        //        entity.InvoiceValue = model.InvoiceValue??0m;
+        //        entity.InvoiceCurrencyId = model.InvoiceCurrencyID??"";
+        //        entity.AssessableRate = model.AssessableRate??0m;
+        //        entity.AssessableValue = model.AssessableValue??0m;
+        //        entity.Bldate = model.BLDate??null;
+        //        entity.ContainerNo = model.ContainerNo??"";
+        //        entity.ContainerSize = model.ContainerSize??"";
+        //        entity.MaterialDescription = model.MaterialDescription??"";
+        //        entity.Quntity1 = model.Quntity1??0m;
+        //        entity.Unit1 = model.Unit1??"";
+        //        entity.Quntity2 = model.Quntity2??0m;
+        //        entity.Unit2 = model.Unit2??"";
+        //        entity.FwdrShippingAgent = model.FWDR_ShippingAgent??"";
+        //        entity.NameOfFreightForwarder = model.NameOfFreightForwarder??"";
+        //        entity.VesselRottNo = model.VesselRottNo??"";
+        //        entity.PlaceOfLoadingId = model.PlaceOfLoadingID??"";
+        //        entity.ShedYardId = model.ShedYardID??"";
+        //        entity.Hawb = model.HAWB??"";
+        //        entity.Mawb = model.MAWB??"";
+        //        entity.AssessmentNo = model.AssessmentNo??"";
+        //        entity.Rno = model.RNo??"";
+        //        entity.ClientStationwiseSlno = model.ClientStationwiseSLNo??"";
+        //        entity.FreightCharge = model.FreightCharge??"";
+        //        entity.Lcano = model.LCANo??"";
+        //        entity.Remarks = model.Remarks??"";
+
+        //        // shared Sea+Air fields
+        //        entity.Etddate = model.ETDDate??null;
+        //        //entity.DocsBankSignDate = model.DocsBankSignDate;
+        //        entity.Beno = model.BENo??"";
+        //        entity.Bedate = model.BEDate??null;
+        //        entity.Ata = model.ActualDeliveryDate?? null;
+
+        //        // Sea-only fields (only persist if Sea, otherwise leave / clear)
+        //        var transportType = (model.TransportModeTypeId ?? await GetTransportModeTypeAsync(model.ShipmentModeId) ?? "").ToUpperInvariant();
+
+        //        if (transportType.Contains("SEA"))
+        //        {
+        //            //entity.FinalIgmRecDate = model.FinalIgmRecDate;
+        //            entity.Shiparriveddate = model.ShipArrivedDate ?? null;
+        //            entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? null;
+        //            entity.Eta = model.EstimatedDeliveryDate ?? null;
+
+        //            // clear air-only
+        //            entity.Atb = null;
+        //            //entity.ArrivalNoticeDate = null;
+        //        }
+        //        else if (transportType.Contains("AIR"))
+        //        {
+        //            entity.Atb = model.FlightArrivalDate ?? null;
+        //            //entity.ArrivalNoticeDate = model.ArrivalNoticeDate;
+
+        //            // clear sea-only
+        //            //entity.FinalIgmRecDate = null;
+        //            entity.Shiparriveddate = model.ShipArrivedDate ?? null;
+        //            entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? null;
+        //            entity.Eta = model.ETDDate ?? null;
+        //        }
+
+        //        entity.Luser = loginUser ?? entity.Luser??"";
+
+        //        if (isNew)
+        //        {
+        //            await _sepDocumentationRepository.AddAsync(entity);
+        //        }
+        //        else
+        //        {
+        //            entity.ModifyDate = DateTime.Now;
+        //            await _sepDocumentationRepository.UpdateAsync(entity);
+        //        }
+
+        //        await _sepDocumentationRepository.CommitTransactionAsync();
+
+        //        return new CommonReturnViewModel
+        //        {
+        //            Success = true,
+        //            Message = isNew ? "Data added successfully" : "Record updated successfully",
+        //            Data = entity.JobNo
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _sepDocumentationRepository.RollbackTransactionAsync();
+        //        return new CommonReturnViewModel { Success = false, Message = "Failed to save data: " + ex.Message };
+        //    }
+        //}
+
         public async Task<CommonReturnViewModel> SaveDocumentationAsync(SepDocumentationEntryViewModel model, string company, string loginUser)
         {
             await _sepDocumentationRepository.BeginTransactionAsync();
             try
             {
-                bool isNew = model.Tc == 0;
+                if (model == null)
+                {
+                    await _sepDocumentationRepository.RollbackTransactionAsync();
+                    return new CommonReturnViewModel { Success = false, Message = "Invalid documentation data." };
+                }
+
+                bool isNew = !model.Tc.HasValue || model.Tc.Value == 0;
                 GCTL.Data.Models.SepDocumentation entity;
+                DateTime now = DateTime.Now;
 
                 if (isNew)
                 {
-                    var dupExists = await _sepDocumentationRepository.All()
-                        .AnyAsync(x => (x.InvoiceNo == model.InvoiceNo && !string.IsNullOrEmpty(model.InvoiceNo))
-                                    || (x.ExpNo == model.ExpNo && !string.IsNullOrEmpty(model.ExpNo)));
-                    if (dupExists)
+                    var duplicateExists = await _sepDocumentationRepository
+                        .All()
+                        .AnyAsync(x =>
+                            (!string.IsNullOrWhiteSpace(model.InvoiceNo) && x.InvoiceNo == model.InvoiceNo) ||
+                            (!string.IsNullOrWhiteSpace(model.ExpNo) && x.ExpNo == model.ExpNo));
+
+                    if (duplicateExists)
                     {
                         await _sepDocumentationRepository.RollbackTransactionAsync();
-                        return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
+                        return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists." };
                     }
 
                     entity = new GCTL.Data.Models.SepDocumentation
                     {
-                        JobNo = model.JobNo,
-                        Ldate = DateTime.Now,
-                        Luser = loginUser,
-                        CompanyCode = company
+                        Ldate = now,
+                        Luser = loginUser ?? string.Empty,
+                        CompanyCode = company ?? string.Empty,
+
                     };
                 }
                 else
                 {
-                    entity = await _sepDocumentationRepository.All().FirstOrDefaultAsync(x => x.Tc == model.Tc);
+                    entity = await _sepDocumentationRepository
+                        .All()
+                        .FirstOrDefaultAsync(x => x.Tc == model.Tc.Value);
+
                     if (entity == null)
                     {
                         await _sepDocumentationRepository.RollbackTransactionAsync();
-                        return new CommonReturnViewModel { Success = false, Message = "Job not found" };
+                        return new CommonReturnViewModel { Success = false, Message = "Documentation record not found." };
                     }
 
-                    var duplicate = await _sepDocumentationRepository.All()
-                        .AnyAsync(x => x.Tc != model.Tc &&
-                                      ((x.InvoiceNo == model.InvoiceNo && !string.IsNullOrEmpty(model.InvoiceNo))
-                                    || (x.ExpNo == model.ExpNo && !string.IsNullOrEmpty(model.ExpNo))));
-                    if (duplicate)
+                    var duplicateExists = await _sepDocumentationRepository
+                        .All()
+                        .AnyAsync(x =>
+                            x.Tc != model.Tc.Value &&
+                            ((!string.IsNullOrWhiteSpace(model.InvoiceNo) && x.InvoiceNo == model.InvoiceNo) ||
+                             (!string.IsNullOrWhiteSpace(model.ExpNo) && x.ExpNo == model.ExpNo)));
+
+                    if (duplicateExists)
                     {
                         await _sepDocumentationRepository.RollbackTransactionAsync();
-                        return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
+                        return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists." };
                     }
                 }
 
-                entity.PrifixId = model.PrifixId;
-                entity.IsCustomJobNo = model.IsCustomJobNo?.ToString();
-                entity.ExpenseTypeId = model.ShipmentModeId;
-                entity.Date = model.Date;
-                entity.CustomerId = model.CustomerId;
-                entity.CustomerAddress = model.CustomerAddress;
-                entity.DeliveryLocationCode = model.DeliveryLocationCode;
-                entity.PortId = model.PortId;
-                entity.PortNameId = model.PortNameId;
-                entity.DocReceivedDate = model.DocReceivedDate;
-                entity.ExpNo = model.ExpNo;
-                entity.ExpDate = model.ExpDate;
-                entity.Lcno = model.LCNo;
-                entity.Lcdate = model.LCDate;
-                entity.Lcvalue = model.LCValue;
-                entity.CurrencyId = model.CurrencyId;
-                entity.Bdtrate = model.BDTRate;
-                entity.Ipno = model.IPNo;
-                entity.Ipdate = model.IPDate;
-                entity.ImporterId = model.ImporterID;
-                entity.ExporterId = model.ExporterID;
-                entity.InvoiceNo = model.InvoiceNo;
-                entity.InvoiceDate = model.InvoiceDate;
-                entity.InvoiceValue = model.InvoiceValue;
-                entity.InvoiceCurrencyId = model.InvoiceCurrencyID;
-                entity.AssessableRate = model.AssessableRate;
-                entity.AssessableValue = model.AssessableValue;
-                entity.Bldate = model.BLDate;
-                entity.ContainerNo = model.ContainerNo;
-                entity.ContainerSize = model.ContainerSize;
-                entity.MaterialDescription = model.MaterialDescription;
-                entity.Quntity1 = model.Quntity1;
-                entity.Unit1 = model.Unit1;
-                entity.Quntity2 = model.Quntity2;
-                entity.Unit2 = model.Unit2;
-                entity.FwdrShippingAgent = model.FWDR_ShippingAgent;
-                entity.NameOfFreightForwarder = model.NameOfFreightForwarder;
-                entity.VesselRottNo = model.VesselRottNo;
-                entity.PlaceOfLoadingId = model.PlaceOfLoadingID;
-                entity.ShedYardId = model.ShedYardID;
-                entity.Hawb = model.HAWB;
-                entity.Mawb = model.MAWB;
-                entity.AssessmentNo = model.AssessmentNo;
-                entity.Rno = model.RNo;
-                entity.ClientStationwiseSlno = model.ClientStationwiseSLNo;
-                entity.FreightCharge = model.FreightCharge;
-                entity.Lcano = model.LCANo;
-                entity.Remarks = model.Remarks;
+                entity.JobNo = model.JobNo ?? entity.JobNo ?? string.Empty;
+                entity.PrifixId = model.PrifixId ?? entity.PrifixId ?? string.Empty;
+                entity.Date = model.Date ?? entity.Date;
+                entity.IsCustomJobNo = model.IsCustomJobNo.HasValue ? model.IsCustomJobNo.Value.ToString() : (entity.IsCustomJobNo ?? string.Empty);
+                entity.ExpenseTypeId = model.ShipmentModeId ?? entity.ExpenseTypeId ?? string.Empty;
+                entity.CustomerId = model.CustomerId ?? entity.CustomerId ?? string.Empty;
+                entity.CustomerAddress = model.CustomerAddress ?? entity.CustomerAddress ?? string.Empty;
+                entity.DeliveryLocationCode = model.DeliveryLocationCode ?? entity.DeliveryLocationCode ?? string.Empty;
+                entity.PortId = model.PortId ?? entity.PortId ?? string.Empty;
+                entity.PortNameId = model.PortNameId ?? entity.PortNameId ?? string.Empty;
+                entity.DocReceivedDate = model.DocReceivedDate ?? entity.DocReceivedDate;
 
-                // shared Sea+Air fields
-                entity.Etddate = model.ETDDate;
-                //entity.DocsBankSignDate = model.DocsBankSignDate;
-                entity.Beno = model.BENo;
-                entity.Bedate = model.BEDate;
-                entity.Ata = model.ActualDeliveryDate;
+                entity.ExpNo = model.ExpNo ?? entity.ExpNo ?? string.Empty;
+                entity.ExpDate = model.ExpDate ?? entity.ExpDate;
 
-                // Sea-only fields (only persist if Sea, otherwise leave / clear)
-                var transportType = (model.TransportModeTypeId ?? await GetTransportModeTypeAsync(model.ShipmentModeId) ?? "").ToUpperInvariant();
+                entity.Lcno = model.LCNo ?? entity.Lcno ?? string.Empty;
+                entity.Lcdate = model.LCDate ?? entity.Lcdate;
+                entity.Lcvalue = model.LCValue ?? entity.Lcvalue ?? 0m;
+                entity.CurrencyId = model.CurrencyId ?? entity.CurrencyId ?? string.Empty;
+                entity.Bdtrate = model.BDTRate ?? entity.Bdtrate ?? 0m;
+
+                entity.Ipno = model.IPNo ?? entity.Ipno ?? string.Empty;
+                entity.Ipdate = model.IPDate ?? entity.Ipdate;
+
+                entity.ImporterId = model.ImporterID ?? entity.ImporterId ?? string.Empty;
+                entity.ExporterId = model.ExporterID ?? entity.ExporterId ?? string.Empty;
+
+                entity.InvoiceNo = model.InvoiceNo ?? entity.InvoiceNo ?? string.Empty;
+                entity.InvoiceDate = model.InvoiceDate ?? entity.InvoiceDate;
+                entity.InvoiceValue = model.InvoiceValue ?? entity.InvoiceValue ?? 0m;
+                entity.InvoiceCurrencyId = model.InvoiceCurrencyID ?? entity.InvoiceCurrencyId ?? string.Empty;
+
+                entity.AssessableRate = model.AssessableRate ?? entity.AssessableRate ?? 0m;
+                entity.AssessableValue = model.AssessableValue ?? entity.AssessableValue ?? 0m;
+
+                entity.ContainerNo = model.ContainerNo ?? entity.ContainerNo ?? string.Empty;
+                entity.ContainerSize = model.ContainerSize ?? entity.ContainerSize ?? string.Empty;
+                entity.MaterialDescription = model.MaterialDescription ?? entity.MaterialDescription ?? string.Empty;
+                entity.Quntity1 = model.Quntity1 ?? entity.Quntity1 ?? 0m;
+                entity.Unit1 = model.Unit1 ?? entity.Unit1 ?? string.Empty;
+                entity.Quntity2 = model.Quntity2 ?? entity.Quntity2 ?? 0m;
+                entity.Unit2 = model.Unit2 ?? entity.Unit2 ?? string.Empty;
+
+                entity.FwdrShippingAgent = model.FWDR_ShippingAgent ?? entity.FwdrShippingAgent ?? string.Empty;
+                entity.NameOfFreightForwarder = model.NameOfFreightForwarder ?? entity.NameOfFreightForwarder ?? string.Empty;
+                entity.VesselRottNo = model.VesselRottNo ?? entity.VesselRottNo ?? string.Empty;
+                entity.PlaceOfLoadingId = model.PlaceOfLoadingID ?? entity.PlaceOfLoadingId ?? string.Empty;
+                entity.ShedYardId = model.ShedYardID ?? entity.ShedYardId ?? string.Empty;
+
+                entity.Hawb = model.HAWB ?? entity.Hawb ?? string.Empty;
+                entity.Mawb = model.MAWB ?? entity.Mawb ?? string.Empty;
+
+                entity.AssessmentNo = model.AssessmentNo ?? entity.AssessmentNo ?? string.Empty;
+                entity.Rno = model.RNo ?? entity.Rno ?? string.Empty;
+                entity.ClientStationwiseSlno = model.ClientStationwiseSLNo ?? entity.ClientStationwiseSlno ?? string.Empty;
+
+                entity.FreightCharge = model.FreightCharge ?? entity.FreightCharge ?? string.Empty;
+                entity.Lcano = model.LCANo ?? entity.Lcano ?? string.Empty;
+                entity.Remarks = model.Remarks ?? entity.Remarks ?? string.Empty;
+
+                entity.Etddate = model.ETDDate ?? entity.Etddate;
+                entity.Beno = model.BENo ?? entity.Beno ?? string.Empty;
+                entity.Bedate = model.BEDate ?? entity.Bedate;
+                entity.Ata = model.ActualDeliveryDate ?? entity.Ata;
+
+                var transportType = (model.TransportModeTypeId ?? await GetTransportModeTypeAsync(model.ShipmentModeId) ?? string.Empty)
+                    .Trim()
+                    .ToUpperInvariant();
 
                 if (transportType.Contains("SEA"))
                 {
-                    //entity.FinalIgmRecDate = model.FinalIgmRecDate;
-                    entity.Shiparriveddate = model.ShipArrivedDate;
-                    entity.UnStuffingLocationDate = model.UnstuffDischargeDate;
-                    entity.Eta = model.EstimatedDeliveryDate;
-
-                    // clear air-only
-                    entity.Atb = null;
-                    //entity.ArrivalNoticeDate = null;
+                    entity.Shiparriveddate = model.ShipArrivedDate ?? entity.Shiparriveddate;
+                    entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? entity.UnStuffingLocationDate;
+                    entity.Eta = model.EstimatedDeliveryDate ?? entity.Eta;
+                    entity.Atb = entity.Atb;
                 }
                 else if (transportType.Contains("AIR"))
                 {
-                    entity.Atb = model.FlightArrivalDate;
-                    //entity.ArrivalNoticeDate = model.ArrivalNoticeDate;
-
-                    // clear sea-only
-                    //entity.FinalIgmRecDate = null;
-                    entity.Shiparriveddate = null;
-                    entity.UnStuffingLocationDate = null;
-                    entity.Eta = null;
+                    entity.Atb = model.FlightArrivalDate ?? entity.Atb;
+                    entity.Shiparriveddate = model.ShipArrivedDate ?? entity.Shiparriveddate;
+                    entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? entity.UnStuffingLocationDate;
+                    entity.Eta = model.ETDDate ?? entity.Eta;
+                }
+                else
+                {
+                    entity.Shiparriveddate = model.ShipArrivedDate ?? entity.Shiparriveddate;
+                    entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? entity.UnStuffingLocationDate;
+                    entity.Eta = model.EstimatedDeliveryDate ?? model.ETDDate ?? entity.Eta;
+                    entity.Atb = model.FlightArrivalDate ?? entity.Atb;
                 }
 
-                entity.Luser = loginUser ?? entity.Luser;
+                entity.FinalIgmRecDate = model.FinalIgmRecDate ?? entity.FinalIgmRecDate;
+                entity.DocsBankSignDate = model.DocsBankSignDate ?? entity.DocsBankSignDate;
+                entity.ArrivalNoticeDate = model.ArrivalNoticeDate ?? entity.ArrivalNoticeDate;
+
+                entity.UndertakingNo = entity.UndertakingNo ?? string.Empty;
+                entity.BillNo = entity.BillNo ?? string.Empty;
+                entity.Pono = entity.Pono ?? string.Empty;
+                entity.Etb = entity.Etb??null;
+                entity.DateOfClearence = entity.DateOfClearence;
+                entity.ShipmentStatus = entity.ShipmentStatus ?? string.Empty;
+                entity.Lip = entity.Lip ?? string.Empty;
+                entity.Lmac = entity.Lmac ?? string.Empty;
+                entity.EmployeeId = entity.EmployeeId ?? string.Empty;
+                entity.SupplierId = entity.SupplierId ?? string.Empty;
+                entity.TransportCost = entity.TransportCost ?? 0m;
+                entity.VehicleId = entity.VehicleId ?? string.Empty;
+                entity.Vehicle = entity.Vehicle ?? string.Empty;
+                entity.Vendor = entity.Vendor ?? string.Empty;
+                entity.DocumentationId = entity.DocumentationId ?? string.Empty;
+                entity.ConsoleNo = entity.ConsoleNo ?? string.Empty;
+                entity.IsEdit = entity.IsEdit ?? false;
+                entity.MinimumAgencyCom = entity.MinimumAgencyCom ?? 0m;
+                entity.CommOnInvoiceValue = entity.CommOnInvoiceValue ?? 0m;
+                entity.DocumentTypeId = entity.DocumentTypeId ?? string.Empty;
+                entity.Dischargedate = entity.Dischargedate;
+                entity.CustomerIdImporter = entity.CustomerIdImporter ?? string.Empty;
+                entity.DocumentHandoverDate = entity.DocumentHandoverDate;
+                entity.CargoHandoverDate = entity.CargoHandoverDate;
+                entity.DepotId = entity.DepotId ?? string.Empty;
+                entity.BookingConfirmationReference = entity.BookingConfirmationReference ?? string.Empty;
+                entity.PackingQuantity = entity.PackingQuantity ?? 0m;
+                entity.PackingUnitType = entity.PackingUnitType ?? string.Empty;
+                entity.Etactgport = entity.Etactgport;
+                entity.Bldate = entity.Bldate;
+
+                entity.Luser = loginUser ?? entity.Luser ?? string.Empty;
+                entity.Ldate = entity.Ldate ?? now;
+                entity.CompanyCode = company ?? entity.CompanyCode ?? string.Empty;
+                entity.ModifyDate = isNew ? entity.ModifyDate : now;
 
                 if (isNew)
                 {
@@ -363,12 +583,10 @@ namespace GCTL.Service.SepDocumentation
                 }
                 else
                 {
-                    entity.ModifyDate = DateTime.Now;
                     await _sepDocumentationRepository.UpdateAsync(entity);
                 }
 
                 await _sepDocumentationRepository.CommitTransactionAsync();
-
                 return new CommonReturnViewModel
                 {
                     Success = true,

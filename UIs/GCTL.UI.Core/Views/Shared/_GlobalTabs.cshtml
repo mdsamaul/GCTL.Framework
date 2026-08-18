@@ -10,6 +10,7 @@
         </button>
     }
 } *@
+@model GCTL.Core.ViewModels.Common.TabGroupModel
 
 <style>
     /* Tab Container */
@@ -68,18 +69,46 @@
                 box-shadow: none;
             }
 </style>
-@model GCTL.Core.ViewModels.Common.TabGroupModel
 
 @if (Model != null && Model.Tabs != null && Model.Tabs.Any())
 {
-    <div class="custom-tabs">
+    <div class="custom-tabs" id="@Model.GroupId">
         @foreach (var tab in Model.Tabs)
         {
             <button type="button"
-                    class="tab-btn @(tab.IsActive ? "active" : "")"
-                    onclick="window.location.href='@Url.Action(tab.ActionName, tab.ControllerName)'">
+                    id="@tab.BtnId"
+                    class="tab-btn @tab.BtnClass @(tab.IsActive ? "active" : "")"
+                    onclick="window.location.href='@Url.Action(tab.ActionName, tab.ControllerName, tab.RouteValues)'">
+                @if (!string.IsNullOrEmpty(tab.IconClass))
+                {
+                    <i class="@tab.IconClass me-1"></i>
+                }
                 @tab.TabTitle
             </button>
         }
     </div>
 }
+
+@* 
+@await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel
+{
+    GroupId = "vendorTabGroup",
+    Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
+    {
+        new GCTL.Core.ViewModels.Common.TabItemModel
+        {
+            TabId = "vendorInfo",
+            TabTitle = "Vendor Info",
+            ControllerName = "VendorInfo",
+            ActionName = "Index",
+            IsActive = true
+        },
+        new GCTL.Core.ViewModels.Common.TabItemModel
+        {
+            TabId = "branchAddress",
+            TabTitle = "Branch Address",
+            ControllerName = "BranchAddress",
+            ActionName = "Index"
+        }
+    }
+}) *@
