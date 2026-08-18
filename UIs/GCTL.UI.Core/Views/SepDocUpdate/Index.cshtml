@@ -6,8 +6,8 @@
     Model.Breadcrumb = "Documentation";
 }
 
-<link href="~/css/selectCSS.css" rel="stylesheet" />
-
+@* <link href="~/css/selectCSS.css" rel="stylesheet" /> *@
+@* 
 <style>
     .select2-container {
         width: 100% !important;
@@ -244,8 +244,284 @@
         #jobListTable td:nth-child(5){
             max-width:450px;
         }
-</style>
 
+
+
+    .custom-tabs {
+        display: flex;
+        align-items: flex-end;
+        border-bottom: 1px solid #d8dce3;
+        margin-bottom: 20px;
+    }
+
+        .custom-tabs .nav-link {
+            padding: 10px 35px;
+            margin-right: 4px;
+            border: 1px solid #d8dce3;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            background: #fff;
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all .25s ease;
+            cursor: pointer;
+        }
+
+            .custom-tabs .nav-link:hover {
+                background: #f8fbff;
+                color: #0d6efd;
+            }
+
+            .custom-tabs .nav-link.active {
+                background: #eaf4fb;
+                color: #212529;
+                font-weight: 700;
+                border-color: #d8dce3;
+                position: relative;
+                top: 1px;
+            }
+
+            .custom-tabs .nav-link:not(.active) {
+                background: #f2f9fc;
+                color: #0d6efd;
+            }
+
+            .custom-tabs .nav-link.active::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: -1px;
+                width: 100%;
+                height: 2px;
+                background: #eaf4fb;
+            }
+
+            .custom-tabs .nav-link:focus {
+                outline: none;
+                box-shadow: none;
+            }
+</style>
+ *@
+
+<style>
+   
+    /* ================= Toolbar ================= */
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .toolbar-left {
+        flex-shrink: 0;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .toolbar-showing {
+        width: 120px;
+    }
+
+    .toolbar-large-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .toolbar-customer {
+        width: 250px;
+    }
+
+    .toolbar-shipment {
+        width: 240px;
+    }
+
+    .toolbar-date {
+        width: 380px;
+    }
+
+    .toolbar-search {
+        width: 300px;
+    }
+
+    .sm-topshow {
+        display: none;
+    }
+
+    @@media (max-width:1370px) {
+
+        .sm-topshow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+        }
+
+            .sm-topshow .toolbar-customer-sm,
+            .sm-topshow .toolbar-shipment-sm {
+                width: 220px;
+            }
+
+            .sm-topshow .toolbar-date-sm {
+                width: 100%;
+                max-width: 420px;
+            }
+
+        .toolbar-right {
+            gap: 8px;
+        }
+
+        .toolbar-large-filters {
+            display: none;
+        }
+
+        .toolbar-customer {
+            width: 225px;
+        }
+
+        .toolbar-search {
+            width: 225px;
+        }
+
+        .toolbar-date {
+            width: 321px;
+        }
+
+        .toolbar .form-control,
+        .toolbar .form-select,
+        .toolbar .input-group-text {
+            font-size: 13px;
+            padding: .25rem .45rem;
+        }
+    }
+
+    @@media (max-width:1200px) {
+
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-right {
+            flex-wrap: wrap;
+        }
+
+        .toolbar-search {
+            width: 100%;
+        }
+
+        .sm-topshow .toolbar-customer-sm,
+        .sm-topshow .toolbar-shipment-sm,
+        .sm-topshow .toolbar-date-sm {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    .form-control-sm,
+    .form-select-sm {
+        font-size: 0.82rem;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: 700;
+    }
+
+    #seaFieldsGroup, #airFieldsGroup {
+        display: none;
+    }
+
+    .group-title {
+        font-size: .8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #6c757d;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 4px;
+        margin: 1rem 0 .75rem;
+    }
+
+    .toolbar-doc {
+        display: none;
+        opacity: 0;
+        transform: translateY(-15px);
+        transition: all .35s ease;
+    }
+
+        .toolbar-doc.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    #jobListTable th{
+    font-size:13.5px;
+    }
+
+    #jobListTable td {
+      font-size:12px;
+    }
+    #jobListTable th,
+    #jobListTable td {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+        /* #jobListTable td:nth-child(4),
+        #jobListTable td:nth-child(5) {
+            text-align: left;
+        } */
+
+        #jobListTable td:nth-child(5) {
+            max-width: 450px;
+        }
+
+    .custom-tabs .nav-link {
+        margin: 0 1px;
+        padding: 10px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.1rem;
+        text-decoration: none;
+        color: #4a4a4a;
+        font-weight: bold;
+        white-space: nowrap;
+        border: 1px solid #a8d8e8;
+        border-bottom: none;
+        background: linear-gradient(to right, #ecf8fe, #ffffff) !important;
+        border-radius: 10px 10px 0 0;
+        font-size: 14px;
+        text-align: center;
+        transition: background 0.3s, color 0.3s;
+    }
+
+        .custom-tabs .nav-link.active {
+            background: white !important;
+            color: var(--secondary-blue) !important;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 2px solid #ffffff !important;
+        }
+</style>
 @* <partial name="_PageHeader" model="Model" /> *@
 <!-- Toolbar Entry -->
 <div id="toolbarEntry" class="toolbar-doc show">
@@ -278,7 +554,19 @@
     @Html.AntiForgeryToken()
     <input type="hidden" id="tc" name="Tc" value="0" />
 
-    <ul class="nav nav-tabs mb-3" id="sepDocTabs" role="tablist">
+  @*   <ul class="nav nav-tabs mb-3" id="sepDocTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="entry-tab" data-bs-toggle="tab" data-bs-target="#entryTabPane" type="button" role="tab">
+                Documentation/Job Entry
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#uploadTabPane" type="button" role="tab">
+                Document Upload Info
+            </button>
+        </li>
+    </ul> *@
+    <ul class="nav nav-tabs custom-tabs mt-3 " id="sepDocTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="entry-tab" data-bs-toggle="tab" data-bs-target="#entryTabPane" type="button" role="tab">
                 Documentation/Job Entry
@@ -583,6 +871,24 @@
                         ReserveActionSlot = true,
                         Placeholder="dd/mm/yyyy"
                     })
+                    @* ---------- Be No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "beNo",
+                        LabelText = "BE No",
+                        ReserveActionSlot = true,
+                        Placeholder="LC No"
+                    })
+
+                    @* ---------- Be Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "beDate",
+                        LabelText = "BE Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
+                    })
 
                     @* ---------- L/C Value + Currency (DualInput) — currency select has no quick-add ---------- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -638,8 +944,8 @@
                     })
 
                     @* ---------- Blank x2 spacer ---------- *@
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+                    @* @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank }) *@
 
                     @* ---------- Importer Name (QuickAddSelect) — keeps button ---------- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -809,7 +1115,14 @@
                         ReserveActionSlot = true,
                         Placeholder = "FWDR (Shipping Agent)"
                     })
-
+                    @* ---------- ETD Date (shared Sea+Air) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "etactgport",
+                        LabelText = "ETA CTG PORT",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                    })
                     @* ---------- Vessel/Rott No — no button needed ---------- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
@@ -952,6 +1265,14 @@
                         Placeholder = "HAWB"
                     })
 
+                    @* ---------- R-No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "RNo",
+                        LabelText = "R-No.",
+                        ReserveActionSlot = true,
+                        Placeholder = "R-No."
+                    })
                     @* ---------- MAWB — no button needed ---------- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
