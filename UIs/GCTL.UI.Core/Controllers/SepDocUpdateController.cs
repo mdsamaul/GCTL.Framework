@@ -134,8 +134,8 @@ namespace GCTL_App.Controllers
         public async Task<IActionResult> Create(ShipmentUpdateViewModel model)
         {
 
-            //var company = 1;// await GetCurrentOrganizationIdAsync();
-            int company =  int.Parse(LoginInfo.CompanyCode);
+            var company = 1;// await GetCurrentOrganizationIdAsync();
+            //int company =  int.Parse(LoginInfo.CompanyCode);
             var result = await _jobService.UpdateJobs(model, company);
             return Ok(result);
 

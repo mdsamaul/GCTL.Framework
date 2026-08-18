@@ -1,7 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
-using DocumentFormat.OpenXml.Spreadsheet;
+﻿
 using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Data.Models;
