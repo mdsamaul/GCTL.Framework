@@ -1,5 +1,5 @@
 ﻿{
-   "CodeGenerationMode": 6,
+   "CodeGenerationMode": 4,
    "ContextClassName": "GCTL_ERP_DBContext",
    "ContextNamespace": null,
    "FilterSchemas": false,
@@ -18,6 +18,66 @@
    "SingularRules": null,
    "T4TemplatePath": null,
    "Tables": [
+      {
+         "Name": "[dbo].[Acc_CashFlowType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_Company_Opening_Balance]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_ControlLedger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_Duration_Type]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_GeneralLedger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_SubControlLedger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_SubsidiaryLedger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_SubSubsidiaryLedger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_VoucherEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_VoucherEntryDetails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_VoucherEntryDetailsTemp]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_VoucherType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ActionLogs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ActionTaken]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AlertForEmployee]",
+         "ObjectType": 0
+      },
       {
          "Name": "[dbo].[AspNetRoleClaims]",
          "ObjectType": 0
@@ -47,7 +107,87 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[AttributeDef]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AttributeValue]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BundleComponent]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CA_Def_Country]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CA_Def_Currency]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_BillEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_BillEntryDetails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_BillEntryDetails_CHCHead]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_DailyJobUpdateEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_ExpenseHead]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_ExpenseType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_PlaceOfLoading]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_ShedYard]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_Def_VendorPrefix]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_OperationalFundRequisitionDetails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_OperationalFundRequisitionDetailsTemp]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_OperationalFundRequisitionEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_ShipmentStatus]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Core_AccessCode]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_BankAccountInformation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_Branch]",
          "ObjectType": 0
       },
       {
@@ -55,7 +195,59 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Core_Country]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_ExporterInformation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_ImporterInformation]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Core_MenuTab]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_PeriodInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_ServiceType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_UserInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_UserLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Core_VendorInformation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Country]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CustomerHandilingCharge]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CustomerWiseCostingDetailsEntry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CustomerWiseCostingDetailsEntryTemp]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CustomerWiseCostingEntry]",
          "ObjectType": 0
       },
       {
@@ -63,11 +255,143 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[EmployeeSalarySettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HMS_Shift]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Holidays]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_ATD_CompanyWeekEnd]",
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[HRM_ATD_Holiday]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_ATD_Shift]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_ClientInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_BloodGroup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Department]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Designation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_District]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Division]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_EmployeeStatus]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_EmpType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Grade]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_GradeType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_HolidayType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_MaritalStatus]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[HRM_Def_Nationality]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Relationship]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Religion]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Def_Sex]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EIS_Def_DisbursementMethod]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EIS_Def_EmploymentNature]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmpDigitalSignature]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Employee]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmployeeAdditionalInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmployeeContactInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmployeeEducation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmployeeOfficialInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_EmployeePhoto]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HRM_Separation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_CompanyFor]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_CompanyInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inv_Def_SalesPerson]",
          "ObjectType": 0
       },
       {
@@ -81,6 +405,186 @@
       {
          "Name": "[dbo].[Inv_Def_SupplierType]",
          "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inventory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[InventoryTx]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LanguageInd_bn]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LanguageInd_hi]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LanguageInd_zh]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LanguageLists]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LanguageMainTables]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LicenceTypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentModes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentPeriodTypes]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RMG_Def_Supplier]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RMG_Prod_Def_UnitType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RoleElementPermissions]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_ContactPerson]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Customer]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_BankBranchInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SALES_Def_BankInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_ImporterInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_PaymentMode]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_PaymentTerms]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_PaymentType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_PortName]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_PortType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_ShipmentStatusInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_Vehicle]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_Def_VehicleType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_DeliveryLocation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_SupplierBankAccount]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sales_SupplierBankAccountTemp]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SalesInvoice]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SalesLine]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sep_Documentation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Sep_DocumentInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TenantInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Transport_Mode_Type]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserVisitLogs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VendorBranchInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FullEmployeeDetailsGetByid]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[GetExpenseHeadReport]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[GetLedgerTree]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetAllCustomerDeliveryInfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetCustomerReportsInfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetVoucherPreviewData]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[SP_HrmEmployee2_GetPagedList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[usp_GetHolidayList]",
+         "ObjectType": 1
       }
    ],
    "UiHint": null,

@@ -9,7 +9,7 @@ namespace GCTL.Core.ViewModels.SupplierOrigin
 {
     public class SupplierOriginSetupViewModel : BaseViewModel
     {
-        public int Tc { get; set; }
+        public int? Tc { get; set; }
         public string SupplierOriginId { get; set; }
         [Required(ErrorMessage = "Supplier Origin is required")]
         public string SupplierOrigin { get; set; }

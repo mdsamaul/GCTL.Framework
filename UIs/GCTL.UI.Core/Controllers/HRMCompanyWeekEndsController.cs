@@ -2,7 +2,6 @@
 using GCTL.Core.ViewModels.HRMCompanyWeekEnds;
 using GCTL.Service.Common;
 using GCTL.Service.HRMCompanyWeekEnds;
-using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.HRMCompanyWeekEnds;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -108,7 +107,7 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0)
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
                     var hasSavePermission = await hrmAtdComapanyWeekendService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)
@@ -146,6 +145,8 @@ namespace GCTL.UI.Core.Controllers
 
 
         #endregion
+
+
 
         #region Delete
 
@@ -244,6 +245,9 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
     }
+    
+
+
     
 }
 

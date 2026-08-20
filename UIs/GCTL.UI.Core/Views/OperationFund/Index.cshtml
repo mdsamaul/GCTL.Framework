@@ -1,0 +1,136 @@
+﻿@* @model GCTL.UI.Core.ViewModels.EmployeeNonInvestmentEntry.EmployeeNonInvestmentPageViewModel *@
+
+@* @{
+    Model.Breadcrumb = "EmployeeNonInvestmentEntry";
+    Model.PageTitle = "Employee Non Investment Entry";
+} *@
+
+<style>
+    #employee-filter-grid tbody tr td:first-child {
+        width: 5%;
+        padding: 0;
+    }
+
+    #employee-filter-grid thead th:first-child {
+        width: 5%;
+    }
+
+    th.no-sort::after,
+    th.no-sort::before {
+        display: none !important;
+    }
+
+    .single-row-form .row {
+        flex-wrap: nowrap !important;
+    }
+
+    .single-row-form .col-equal {
+        flex: 1;
+        min-width: 0;
+        max-width: none;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .single-row-form .label-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+        padding: 0.25rem;
+    }
+
+    .single-row-form .form-label {
+        margin: 0;
+        font-size: 0.875rem;
+        text-align: start;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+
+    .single-row-form .form-control,
+    .single-row-form .form-select {
+        flex: 1;
+    }
+
+
+    .custom-fieldset {
+        position: relative;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        padding: 30px 20px 20px 20px;
+        margin: 20px 0;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+        .custom-fieldset legend {
+            position: absolute;
+            top: -14px;
+            left: 20px;
+            background-color: white;
+            padding: 0 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #727272;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: auto;
+        }
+
+        .custom-fieldset input[type="submit"] {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            .custom-fieldset input[type="submit"]:hover {
+                background-color: #45a049;
+                border-color: #45a049;
+            }
+</style>
+
+<div class="container-fluid">
+    @* <div class="card rounded">
+        <div class="card-header bg-white px-2">
+            <partial name="_Toolbars" ></partial>
+        </div>
+    </div> *@
+    @* <partial name="_Toolbars" /> *@
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+    {
+        Title = "Operational Fund Requisition Entry",
+        SaveBtnId = "Req-SaveBtn",
+        DeleteBtnId = "Req-DeleteBtn",
+        ClearBtnId = "Req-Clear"
+    })
+    <fieldset class="custom-fieldset card p-2 pt-4">
+        <legend class="float-none w-auto px-2 fw-bold text-secondary small">Job Entry List</legend>
+        <partial name="_Grid" />
+    </fieldset>
+
+    <fieldset class="custom-fieldset card p-2">
+        <partial name="_Setup" />
+    </fieldset>
+
+    @* <fieldset class="custom-fieldset card">
+        <partial name="_nonInvGrid"></partial>
+    </fieldset> *@
+    <div class="collapse" id="collapseNonInvGrid">
+        <fieldset class="custom-fieldset card p-2">
+            <partial name="_nonInvGrid" />
+        </fieldset>
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="~/js/pages/OperationalFund/fundform.js"></script>
+    <script src="~/js/pages/OperationalFund/requisitionEntry.js"></script>
+    <script src="~/js/pages/OperationalFund/tmpDetails.js"></script>
+
+}

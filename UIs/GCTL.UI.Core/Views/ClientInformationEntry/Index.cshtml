@@ -1,0 +1,149 @@
+﻿@model GCTL.UI.Core.ViewModels.ClientInformationEntry.ClientInformationEntryPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Client Information Entry";
+    Model.Breadcrumb = "Client Information Entry";
+}
+
+<style>
+    #ClientInformationEntryDeleteModalBodyHeightFeixd {
+        height: 50px !important;
+    }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    /* Plus Button Style */
+    .btn-plus {
+        background-color: #ffffff;
+        color: #333;
+        border: 1px solid #ced4da;
+        padding: 0 10px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+        .btn-plus:hover {
+            background-color: #0d6efd; /* Bootstrap blue */
+            color: #ffffff;
+            border-color: #0d6efd;
+        }
+
+        .btn-plus:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+    /* Country wrapper */
+    .country-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .country-select-wrap {
+        flex: 1;
+        min-width: 0; /* flex child shrink fix */
+    }
+
+        /* Select2 container full width */
+        .country-select-wrap .select2-container {
+            width: 100% !important;
+        }
+
+    /* Plus button */
+    .btn-plus {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        background-color: #ffffff;
+        color: #333;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+        .btn-plus:hover {
+            background-color: #0d6efd;
+            color: #ffffff;
+            border-color: #0d6efd;
+        }
+
+        .btn-plus:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+</style>
+
+<section class="content consistent-look">
+    <partial name="_PageHeader" model="Model" />
+
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-md-6 pr-0">
+                <div class="card">
+                    <div class="card-header px-2 py-2">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Client Information Entry",
+                            SaveBtnClass = "js-ClientInformationEntry-save",
+                            DeleteBtnClass = "js-ClientInformationEntry-delete-confirm",
+                            ClearBtnClass = "js-ClientInformationEntry-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+
+                        <form asp-action="Setup" method="post" id="ClientInformationEntry-form" asp-controller="ClientInformationEntry">
+
+                            <div class="js-ClientInformationEntry-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6" style="height:570px;overflow:auto;">
+                <div class="card">
+                    <div class="card-body p-2 pt-3">
+                        <div class="js-ClientInformationEntry-grid-container">
+                            @await Html.PartialAsync("_Grid", Model.ClientInformationEntryList)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/clientInformationEntry.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "ClientInformationEntry")'
+        };
+        options.load = () => {
+        };
+
+        $.clientInformationEntry(options);
+    </script>
+}
+

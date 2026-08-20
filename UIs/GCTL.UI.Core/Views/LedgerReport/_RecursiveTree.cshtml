@@ -1,0 +1,28 @@
+﻿@using GCTL.Core.ViewModels.ChartOfAccount
+@model List<TreeLedgerReportVM>
+
+
+
+<ul>
+    @foreach (var node in Model)
+    {
+        <li data-code="@node.CodeNo">
+            @if (node.Children != null && node.Children.Count > 0)
+            {
+                <i class="bi bi-plus-square-fill parent-toggle me-1"></i>
+                <span class="tree-label @(node.Children != null && node.Children.Count > 0 ? "parent-label" : "")">
+                    @node.Name@(string.IsNullOrEmpty(node.ParentName) ? "" : $" - {node.ParentName}")
+                </span>
+
+                @Html.Partial("_RecursiveTree", node.Children)
+            }
+            else
+            {
+                <i class="bi bi-square-fill leaf-toggle me-1"></i>
+                <span class="tree-label">
+                    @node.Name@(string.IsNullOrEmpty(node.ParentName) ? "" : $" - {node.ParentName}")
+                </span>
+            }
+        </li>
+    }
+</ul>

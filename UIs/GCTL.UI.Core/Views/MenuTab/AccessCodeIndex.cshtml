@@ -1,14 +1,14 @@
-﻿@* @model GCTL.UI.Core.ViewModels.AccessCodes.AccessCodePageViewModel
+@model GCTL.UI.Core.ViewModels.AccessCodes.AccessCodePageViewModel
 @{
     ViewBag.Title = "Access Code";
     Model.Breadcrumb = "AccessCode";
     Model.PageTitle = ViewBag.Title;
-} *@
+}
 
 <partial name="_PageHeader" model="Model" />
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-6 pr-0">
+        <div class="col-md-6 pe-0">
             <div class="card">
                 <div class="card-header px-2">
                     <div class="row">
@@ -51,11 +51,11 @@
                             <table id="access-code-grid" class="table table-striped table-bordered table-sm table-common">
                                 <thead>
                                     <tr>
-                                        <th class="text-center text-middle" width="5%">
+                                        <th class="text-center align-middle" width="5%">
                                             Select <br /> <input type="checkbox" id="access-code-check-all" />
                                         </th>
-                                        <th class="text-center text-middle">ID</th>
-                                        <th class="text-center text-middle">Name</th>
+                                        <th class="text-center align-middle">ID</th>
+                                        <th class="text-center align-middle">Name</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -76,7 +76,7 @@
     <script src="~/js/pages/accessCodesEntry.js"></script>
     <script type="text/javascript">
         var options = {
-            isModal: false
+        isModal: false
         };
         options.load = () => {
 

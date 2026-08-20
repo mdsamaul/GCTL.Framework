@@ -30,9 +30,20 @@
         });
     }
     function hideEmptyTrailingRow(fpInstance) {
+        if (!fpInstance || !fpInstance.days) {
+            return;
+        }
+
         setTimeout(function () {
+
             var dayContainer = fpInstance.days;
-            var days = Array.prototype.slice.call(dayContainer.querySelectorAll('.flatpickr-day'));
+
+            if (!dayContainer) return;
+
+            var days = Array.prototype.slice.call(
+                dayContainer.querySelectorAll('.flatpickr-day')
+            );
+
             if (!days.length) return;
             days.forEach(function (d) {
                 d.style.removeProperty('visibility');
@@ -174,7 +185,7 @@
                     dayElem.classList.add('custom-holiday');
                     dayElem.setAttribute('data-holiday-name', holiday.name);
 
-                
+
                     dayElem.addEventListener('mouseenter', function () {
                         if (activeTooltip) { activeTooltip.remove(); activeTooltip = null; }
 
@@ -296,7 +307,7 @@
         if (disabled) fp.close();
     };
 
-    
+
     $(function () {
         initAll('.custom-datepicker');
     });

@@ -8,8 +8,8 @@
         border-radius: 5px;  */
        padding-left:100px;
     }
-</style>
 
+</style>
 <div style="padding-top: 10px;padding-left:15px;">
     <div class="row">
         <div class="col-lg-6">
@@ -88,9 +88,8 @@
         <div class="col-lg-6">
           
             <label asp-for="EffectiveDate">Effective Date <span style="color:red;">*</span></label>
-            <input type="hidden" id="EffectiveDateHidden" name="EffectiveDate" />
-            <input type="text" id="EffectiveDate" placeholder="dd/MM/yyyy" asp-for="EffectiveDate" class="form-control form-control-sm datepicker" required tabindex="7" />
- 
+            <input type="text" id="EffectiveDate" asp-for="EffectiveDate" class="form-control form-control-sm custom-datepicker" required tabindex="7" />
+
         </div>
 
     </div>
@@ -122,108 +121,16 @@
 
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        <button type="button" class="btn btn-default success-btn btn btn-outline-success btn-common btn-circle float-right js-companyWeekEnds-save" data-id="@Model.CompanyWeekEndCode ">
-            <i class="fas fa-save"></i> Save
-        </button>
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-companyWeekEnds-save"
+        })
     </div>
 </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@*     <div class="form-group row">
-        <div class="col-lg-8">
-
-            <div class="form-group d-flex align-items-center justify-content-between">
-                <label class="d-flex justify-content-end form-label col-form-label-sm text-lg-right" asp-for="CompanyWeekEndCode">Weekend Id </label>
-                <div class="input-wrapper">
-                    <input asp-for="CompanyWeekEndCode" type="text" class="form-control form-control-sm js-CompanyWeekEndCode-code" readonly="readonly" />
-
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-
-        </div>
-    </div>
-
-
-
-    <div class="col-md-6">
-        <div class="form-group d-flex align-items-center justify-content-between">
-            <label asp-for="Weekend" class="control-label">Weekend Day <span style="color: red">*</span></label>
-            <div class="input-wrapper  checkbox-container">
-                <div class="form-group col-md-6 p-3  " tabindex="1">
-                    <div class="form-check">
-                        <input type="checkbox" name="Weekend" value="Friday" class="form-check-input"  id="friday">
-                        <label class="form-check-label" for="friday">Friday</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="Weekend" value="Saturday" class="form-check-input" id="saturday">
-                        <label class="form-check-label" for="saturday">Saturday</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="Weekend" value="Sunday" class="form-check-input" id="sunday">
-                        <label class="form-check-label" for="sunday">Sunday</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="Weekend" value="Monday" class="form-check-input" id="monday">
-                        <label class="form-check-label" for="monday">Monday</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="Weekend" value="Tuesday" class="form-check-input" id="tuesday">
-                        <label class="form-check-label" for="tuesday">Tuesday</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="Weekend" value="Wednesday" class="form-check-input" id="wednesday">
-                        <label class="form-check-label" for="wednesday">Wednesday</label>
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="Weekend" value="Thursday" class="form-check-input" id="thursday">
-                        <label class="form-check-label" for="thursday">Thursday</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-
-
-    <div class="form-group row">
-        <div class="col-lg-8">
-
-            <div class="form-group d-flex align-items-center justify-content-between">
-                <label class="d-flex justify-content-end form-label col-form-label-sm text-lg-right" asp-for="EffectiveDate">Effective Date </label>
-                <div class="input-wrapper">
-
-                    <input type="text" id="EffectiveDate" placeholder="dd/MM/yyyy" asp-for="EffectiveDate" style="width:40px;" class="form-control form-control-sm datepicker" tabindex="2" />
-                    <input type="hidden" id="EffectiveDateHidden" name="Wef" />
-                </div>
-            </div>
-        </div>
-
-    </div> *@

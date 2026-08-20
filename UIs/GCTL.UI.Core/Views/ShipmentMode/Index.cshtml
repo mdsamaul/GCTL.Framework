@@ -1,0 +1,143 @@
+﻿@* @model GCTL.UI.Core.ViewModels.ShipmentMode.ShipmentModeSetupVm
+@{
+
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Shipment Mode";
+    Model.Breadcrumb = "Shipment Mode";
+}
+<partial name="_PageHeader" model="Model" />
+<div class="row g-0">
+    <div class="col-6" id="shipmentFormContainer"></div>
+    <div class="col-6" id="shipmentList"></div>
+</div>
+@section Scripts {
+    <script src="~/js/pages/ShipmentMode.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+}
+ *@
+
+@model GCTL.UI.Core.ViewModels.ShipmentMode.ShipmentModeSetupVm
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Shipment Setup";
+    Model.Breadcrumb = "Shipment Setup";
+}
+<style>
+    .toolbar-doc {
+        display: none;
+        opacity: 0;
+        transform: translateY(-15px);
+        transition: all .35s ease;
+    }
+
+        .toolbar-doc.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+</style>
+<!-- Shipment Mode Toolbar -->
+<div id="toolbarEntry" class="toolbar-doc show">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+    {
+        Title = "Shipment Mode",
+        SaveBtnClass = "saveBtn",
+        DeleteBtnClass = "deleteBtn",
+        ClearBtnClass = "clearBtn",
+        PdfBtnClass = "export-pdf",
+        ExcelBtnClass = "export-excel",
+        FavtBtnClass = "favBtn"
+    })
+</div>
+
+<!-- Shipment Status Toolbar -->
+<div id="toolbarUpload" class="toolbar-doc">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+    {
+        Title = "Shipment Status",
+        SaveBtnClass = "saveShipmentStatusBtn",
+        DeleteBtnClass = "deleteShipmentStatusBtn",
+        ClearBtnClass = "clearShipmentStatusBtn",
+        PdfBtnClass = "export-pdf-status",
+        ExcelBtnClass = "export-excel-status",
+        FavtBtnClass = "favShipmentStatusBtn"
+    })
+</div>
+@* <partial name="_PageHeader" model="Model" /> *@
+
+<ul class="nav nav-tabs" id="shipmentTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="shipment-type-tab" data-bs-toggle="tab" data-bs-target="#shipmentTypeTabPane"
+                type="button" role="tab" aria-controls="shipmentTypeTabPane" aria-selected="true">
+            Shipment Mode
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="shipment-status-tab" data-bs-toggle="tab" data-bs-target="#statusTabPane"
+                type="button" role="tab" aria-controls="statusTabPane" aria-selected="false">
+            Shipment Status
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content border border-top-0 p-2" id="shipmentTabContent">
+
+    <div class="tab-pane fade show active" id="shipmentTypeTabPane" role="tabpanel" aria-labelledby="shipment-type-tab">
+        <div class="row g-0">
+            <div class="col-6" id="shipmentFormContainer"></div>
+            <div class="col-6" id="shipmentList"></div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="statusTabPane" role="tabpanel" aria-labelledby="shipment-status-tab">
+        <div class="row g-0">
+            <div class="col-6" id="shipmentStatusFormContainer"></div>
+            <div class="col-6" id="shipmentStatusList"></div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/ShipmentMode.js"></script>
+    <script src="~/js/pages/ShipmentStatus.js"></script>
+
+    <script>
+        var statusTabLoaded = false;
+
+        $(document).ready(function () {
+        // Shipment Status tab prothom bar click hole content load hobe
+        $('#shipment-status-tab').on('shown.bs.tab', function () {    
+            
+        if (statusTabLoaded) return;
+        statusTabLoaded = true;
+        
+        $.ajax({
+        url: '/ShipmentStatus/ShipmentStatusForm',
+        type: 'GET',
+        success: function (data) {
+        $('#shipmentStatusFormContainer').html(data);
+        window.initCustomDropdowns('#shipmentStatusFormContainer', true);
+        getNextShipmentStatusId();
+        },
+        error: function (xhr, status, error) {
+        console.error("Failed to load ShipmentStatusForm:", error);
+        }
+        });
+
+        $.ajax({
+        url: '/ShipmentStatus/ShipmentStatusList',
+        type: 'GET',
+        success: function (data) {
+        $('#shipmentStatusList').html(data);
+        loadShipmentStatuses(statusCurrentPage, statusPageSize, statusCurrentSortColumn, statusCurrentSortDirection);
+        },
+        error: function (xhr, status, error) {
+        console.error("Failed to load ShipmentStatusList:", error);
+        }
+        });
+        });
+        });
+    </script>
+}

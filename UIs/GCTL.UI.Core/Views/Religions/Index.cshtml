@@ -1,0 +1,79 @@
+﻿@model GCTL.UI.Core.ViewModels.Religions.ReligionPageViewModel
+@{
+    ViewBag.Title = "Religions";
+    Model.Breadcrumb = "Religion";
+    Model.PageTitle = ViewBag.Title;
+}
+
+<style type="text/css">
+    .consistent-look .card {
+        min-height: 316px !important;
+    }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+
+<section class="content consistent-look">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 pr-0">
+                <div class="card">
+                    <div class="card-header px-2">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Religion",
+                            SaveBtnClass = "js-religion-save",
+                            DeleteBtnClass = "js-religion-delete-confirm",
+                            ClearBtnClass = "js-religion-clear"
+
+                        })
+                    </div>
+                    <div class="card-body px-2">
+                        <form asp-action="Setup" id="religion-form">
+                            <div class="js-religion-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body p-2 pt-3">
+                        <div class="js-religion-grid-container">
+                            <partial name="_Grid" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/religions.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "Religions")',
+        };
+        options.load = () => {
+        };
+
+        $.religions(options);
+    </script>
+}
+
+
+

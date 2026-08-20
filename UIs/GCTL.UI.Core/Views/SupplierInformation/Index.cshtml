@@ -1,0 +1,99 @@
+﻿@model GCTL.UI.Core.ViewModels.SupplierInformation.SupplierInformationPageViewModel
+
+<!-- Content Header (Page header) -->
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Supplier Information";
+    Model.Breadcrumb = "Supplier Information";
+}
+
+<style>
+    .dataTables_filter label {
+        margin-right: 0px !important;
+    }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+</style>
+@* 
+<section class="content-header" style="padding-bottom: 0;">
+    <div class="container-fluid">
+        <div class="calloutx callout-info" style="height: 30px;">
+            <div class="row">
+                <div class="col-md-8 row">
+                    <ol class="breadcrumb float-sm-right">
+                    </ol>
+                </div>
+                <div class="col-md-4">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="/Dashboard">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/SupplierInformation">Supplier Information</a></li>
+                        <li class="breadcrumb-item active"></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div> 
+</section> *@
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="form-group row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header px-lg-4">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Supplier Information",
+                            SaveBtnClass = "js-SupplierInformation-save",
+                            DeleteBtnClass = "js-SupplierInformation-delete-confirm",
+                            ClearBtnClass = "js-SupplierInformation-clear"
+                        })
+                    </div>
+                    <div class="card-body">
+                        <div style="padding-top: 5px;">
+                            <div class="row">
+
+                                <div class="col-lg-12">
+                                    <form asp-action="Setup" method="post" id="SupplierInformation-form" asp-controller="SupplierInformation">
+                                        <div class="js-SupplierInformation-form-container">
+                                            @await Html.PartialAsync("_Setup", Model.Setup)
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="col-lg-12" style="overflow:auto;">
+                                    <div class="js-SupplierInformation-grid-container">
+                                        @await Html.PartialAsync("_Grid", Model.SupplierInformationList)
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <partial name="_BottomNavigation" />
+            </div>
+        </div>
+    </div>
+</section>
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/supplierInformation.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "SupplierInformation")'
+        };
+        options.load = () => {
+        };
+
+        $.supplierInformation(options);
+    </script>
+}

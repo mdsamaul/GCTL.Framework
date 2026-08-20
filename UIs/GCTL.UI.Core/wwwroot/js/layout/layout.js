@@ -1,4 +1,4 @@
-﻿
+console.log("layout.js loaded, handleApiResponse type:", typeof handleApiResponse);
 function showDeleteModal(deleteCallback) {
     // Show the modal
     $('#confirmDeleteModal').modal('show');
@@ -9,6 +9,11 @@ function showDeleteModal(deleteCallback) {
     });
 };
 
+$(function () {
+    $('.toolbar-btn-group').closest('div[class*="d-flex"]').each(function () {
+        $(this).addClass('sticky-bar');
+    });
+});
 
 
 
@@ -431,3 +436,20 @@ function hideModal(id) {
 }
 
 //#endregion
+
+function handleApiResponse(response, onSuccessCallback) {
+    if (response.success) {
+        toastr.success(response.message);
+        if (typeof onSuccessCallback === "function") {
+            onSuccessCallback(response.data);
+        }
+    } else {
+        toastr.error(response.message);
+    }
+}
+
+
+$('.table-sm').on('draw.dt', function () {
+    $('.table-sm tbody tr td input[type="checkbox"]').addClass('form-check-input');
+    $('.table-sm thead th input[type="checkbox"]').addClass('form-check-input');
+});

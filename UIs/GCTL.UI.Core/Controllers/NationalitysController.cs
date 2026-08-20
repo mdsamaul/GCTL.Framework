@@ -3,6 +3,7 @@ using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Nationalitys;
 using GCTL.Service.Common;
 using GCTL.Service.Nationalitys;
+using GCTL.Service.SupplierType;
 using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.Nationalitys;
 using Microsoft.AspNetCore.Mvc;
@@ -123,7 +124,7 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0)
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
                     var hasSavePermission = await nationalitysService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)
@@ -195,7 +196,7 @@ namespace GCTL.UI.Core.Controllers
 
             DeleteHistoryViewModel model = new DeleteHistoryViewModel();
             model.ToAudit(LoginInfo);
-           // model.CompanyCode = LoginInfo.CompanyCode;
+            model.CompanyCode = LoginInfo.CompanyCode;
 
             var success = await nationalitysService.DeleteTab(ids, model);
             if (success.succses)

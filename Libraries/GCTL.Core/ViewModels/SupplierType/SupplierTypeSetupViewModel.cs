@@ -9,7 +9,7 @@ namespace GCTL.Core.ViewModels.SupplierType
 {
     public class SupplierTypeSetupViewModel : BaseViewModel
     {
-        public int SupplierTypeCode { get; set; }
+        public int? SupplierTypeCode { get; set; }
         public string SupplierTypeId { get; set; }
         [Required(ErrorMessage = "Supplier TypeName is required")]
         public string SupplierTypeName { get; set; }

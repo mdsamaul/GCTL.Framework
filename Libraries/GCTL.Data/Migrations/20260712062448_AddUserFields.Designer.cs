@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace GCTL.Data.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(GctlHrmContext))]
     [Migration("20260712062448_AddUserFields")]
     partial class AddUserFields
     {

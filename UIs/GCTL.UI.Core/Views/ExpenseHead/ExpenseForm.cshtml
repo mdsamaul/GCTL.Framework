@@ -1,0 +1,158 @@
+﻿@using GCTL.UI.Core.ViewModels
+
+<div class="card shadow-sm rounded-2">
+
+    @await Html.PartialAsync("_Toolbars", new ToobarModel
+    {
+        Title = "Expense Head",
+        SaveBtnClass = "saveBtn",
+        DeleteBtnId = "deleteBtn",
+        DeleteBtnClass = "deleteBtn",
+        ClearBtnClass = "resetBtn",
+        ExcelBtnClass = "export-excel",
+        PdfBtnClass = "export-pdf",
+        FavtBtnClass = "favBtn",
+        ReserveActionSlot=false
+    })
+
+    <div class="card-body">
+        <form id="expenseForm">
+            <input type="hidden" id="tc" name="tc" />
+
+            <div class="row g-3">
+
+                @* ---------- Expense Head ID (readonly) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "expenseHeadId",
+                    LabelText = "Expense Head ID",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Expense Head ID",
+                    IsReadonly = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6"
+                })
+
+                @* ---------- Shipment Mode (Select) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "expenseType",
+                    LabelText = "Shipment Mode",
+                    FieldType = FieldType.Select,
+                    IsRequired = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6"
+                })
+
+                @* ---------- Is Receiptable (Checkbox) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "isReceiptable",
+                    LabelText = "Is Receiptable Expense?",
+                    FieldType = FieldType.Checkbox,
+                    ColumnClass = "col-md-6"
+                })
+
+                @* ---------- Expense Head Name ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "expenseHead",
+                    LabelText = "Expense Head",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Expense Head",
+                    IsRequired = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6"
+                })
+
+                @* ---------- Short Name ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "shortName",
+                    LabelText = "Short Name",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Short Name",
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6"
+                })
+
+                @* ---------- Amount ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "amount",
+                    LabelText = "Amount",
+                    FieldType = FieldType.Number,
+                    Placeholder = "Amount",
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6"
+                })
+
+                @* ---------- Serial No ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "serialNo",
+                    LabelText = "Serial No",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Serial No",
+                    IsRequired = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6"
+                })
+
+                @* ---------- Service Provided By (Select) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "serviceProvider",
+                    LabelText = "Service Provided By",
+                    FieldType = FieldType.Select,
+                    IsRequired = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6",
+                    DependsOnFieldId = "serviceProvider"
+                })
+
+            </div>
+
+            @* ---------- Creation & Modify Date ---------- *@
+            <div class="row g-3 mt-3">
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    ContainerId = "lDateContainer",
+                    InputId = "displayLDate",
+                    LabelText = "Creation Date",
+                    FieldType = FieldType.ReadonlyDisplay,
+                    ColumnClass = "col-md-6",
+                    ShowOnInit = false
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    ContainerId = "modifyDateContainer",
+                    InputId = "displayModifyDate",
+                    LabelText = "Modify Date",
+                    FieldType = FieldType.ReadonlyDisplay,
+                    ColumnClass = "col-md-6",
+                    ShowOnInit = false
+                })
+
+            </div>
+
+           
+            <div class="row mt-3">
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    SaveBtnClass = "saveBtn",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true,
+                    ReserveActionSlot=false,
+                    IsMarginRight=true
+                })
+            </div>
+
+        </form>
+    </div>
+</div>

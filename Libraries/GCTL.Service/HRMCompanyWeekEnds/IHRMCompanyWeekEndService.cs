@@ -18,7 +18,7 @@ namespace GCTL.Service.HRMCompanyWeekEnds
         Task<HRMCompanyWeekEndSetupViewModel> GetByIdAsync(string code);
         Task<bool> SaveAsync(HRMCompanyWeekEndSetupViewModel entityVM);
         Task<bool> UpdateAsync(HRMCompanyWeekEndSetupViewModel entityVM);
-      //  Task<bool> DeleteAsync(string id);
+       // Task<bool> DeleteAsync(string id);
         Task<string> GenerateNextCode();
         Task<bool> IsExistByCodeAsync(string code);
         Task<bool> IsExistAsync(string name);

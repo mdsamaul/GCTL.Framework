@@ -1,0 +1,172 @@
+﻿@model GCTL.UI.Core.ViewModels.ExporterInfo.ExporterInfoPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Exporter Info";
+    Model.Breadcrumb = "Exporter Info";
+}
+
+<style>
+    #ExporterInfoDeleteModalBodyHeightFeixd {
+        height: 50px !important;
+    }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .bg-light {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #fff !important;
+    }
+
+    /* Plus Button Style */
+    .btn-plus {
+        background-color: #ffffff;
+        color: #333;
+        border: 1px solid #ced4da;
+        padding: 0 10px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+        .btn-plus:hover {
+            background-color: #0d6efd; /* Bootstrap blue */
+            color: #ffffff;
+            border-color: #0d6efd;
+        }
+
+        .btn-plus:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+    /* Country wrapper */
+    .con-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .con-select-wrap {
+        flex: 1;
+        min-width: 0; /* flex child shrink fix */
+    }
+
+        /* Select2 container full width */
+        .con-select-wrap .select2-container {
+            width: 100% !important;
+        }
+
+    /* Plus button */
+    .btn-plus {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        background-color: #ffffff;
+        color: #333;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+        .btn-plus:hover {
+            background-color: #0d6efd;
+            color: #ffffff;
+            border-color: #0d6efd;
+        }
+
+        .btn-plus:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-md-6 pr-0">
+                <div class="card">
+                    <div class="card-header px-2">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Exporter Info",
+                            SaveBtnClass = "js-ExporterInfo-save",
+                            DeleteBtnClass = "js-ExporterInfo-delete-confirm",
+                            ClearBtnClass = "js-ExporterInfo-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+
+                        <form asp-action="Setup" method="post" id="ExporterInfo-form" asp-controller="ExporterInfo">
+
+                            <div class="js-ExporterInfo-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6" style="height:570px;overflow:auto;">
+                <div class="card">
+                    <div class="card-body p-2 pt-3">
+                        <div class="js-ExporterInfo-grid-container">
+                            @await Html.PartialAsync("_CustomGrid", new GridModel
+                            {
+                                GridId = "ExporterInfo-grid",
+                                CheckAllId = "js-ExporterInfo-checkall",
+                                Columns = new List<GridColumn>
+                                {
+                                    new() { Header = "Exporter Id", Width="8%"  },
+                                    new() { Header = "Name",Width="23%" },
+                                    new() { Header = "Address" ,Width="17%" },
+                                    new() { Header = "Phone",Width="17%" },
+                                    new() { Header = "Website",Width="13%" },
+                                    new() { Header = "Email",Width="15%" }
+                                },
+                                ShowCheckbox = true,   // ← add this
+                                Bordered = true,
+                                Striped = true
+                            })
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/exporterInfo.js"></script>
+    <script type="text/javascript">
+        var options = {
+        baseUrl: '@Url.Action("", "ExporterInfo")'
+        };
+        options.load = () => {
+        };
+
+        $.exporterInfo(options);
+    </script>
+}

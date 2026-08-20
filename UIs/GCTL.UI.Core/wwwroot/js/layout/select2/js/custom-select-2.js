@@ -1,42 +1,6 @@
 ﻿$(function () {
 
-    function initSingle($el) {
-        if ($el.data('customDdInstance')) return;
-        var options = {
-            placeholder: $el.data('placeholder') || 'Select',
-            showClear: true,
-            showCopyId: true
-        };
-
-        var items = [];
-        $el.find('option').each(function () {
-            var val = $(this).val();
-            if (!val) return; 
-            items.push({
-                id: val,
-                text: $(this).text(),
-                selected: $(this).is(':selected')
-            });
-        });
-        options.items = items;
-
-        if ($el.data('parent')) {
-            options.parentSelector = $el.data('parent');
-        }
-
-        var instance = new customDropdownSingle('#' + $el.attr('id'), options).init();
-        $el.data('customDdInstance', instance);
-    }
-
-    function initMulti($el) {
-        if ($el.data('customDdInstance')) return;
-        var options = {
-            placeholder: $el.data('placeholder') || 'Select',
-            showClear: true,
-            showCopyId: true,
-            copyAsJsonArray: true
-        };
-
+    function getItems($el) {
         var items = [];
         $el.find('option').each(function () {
             var val = $(this).val();
@@ -47,7 +11,58 @@
                 selected: $(this).is(':selected')
             });
         });
-        options.items = items;
+        return items;
+    }
+
+    function destroyInstance($el) {
+        var instance = $el.data('customDdInstance');
+        if (instance) {
+            if (typeof instance.destroy === 'function') {
+                instance.destroy();
+            } else {
+                // fallback: remove generated wrapper if plugin has no destroy()
+                $el.nextAll('.custom-dd-wrapper').first().remove();
+                $el.show();
+            }
+        }
+        $el.removeData('customDdInstance');
+    }
+
+    function initSingle($el, forceReinit) {
+        if ($el.data('customDdInstance')) {
+            if (!forceReinit) return $el.data('customDdInstance');
+            destroyInstance($el);
+        }
+
+        var options = {
+            placeholder: $el.data('placeholder') || 'Select',
+            showClear: true,
+            showCopyId: true,
+            items: getItems($el)
+        };
+
+        if ($el.data('parent')) {
+            options.parentSelector = $el.data('parent');
+        }
+
+        var instance = new customDropdownSingle('#' + $el.attr('id'), options).init();
+        $el.data('customDdInstance', instance);
+        return instance;
+    }
+
+    function initMulti($el, forceReinit) {
+        if ($el.data('customDdInstance')) {
+            if (!forceReinit) return $el.data('customDdInstance');
+            destroyInstance($el);
+        }
+
+        var options = {
+            placeholder: $el.data('placeholder') || 'Select',
+            showClear: true,
+            showCopyId: true,
+            copyAsJsonArray: true,
+            items: getItems($el)
+        };
 
         if ($el.data('parent')) {
             options.parentSelector = $el.data('parent');
@@ -55,10 +70,102 @@
 
         var instance = new customDropdownMulti('#' + $el.attr('id'), options).init();
         $el.data('customDdInstance', instance);
+        return instance;
     }
 
-    // Page load hote e shob select initialize
-    $('.custom-select-single').each(function () { initSingle($(this)); });
-    $('.custom-select-multi').each(function () { initMulti($(this)); });
+    // data-placeholder attribute-based select gulo (jemon _DynamicFieldColumn theke asha
+    // select, .custom-select-single/.custom-select-multi class chara) initialize korar jonno.
+    // <select multiple> attribute thakle multi, na thakle single hisebe init hobe.
+    function initDynamicPlaceholderSelects($container, forceReinit) {
+        $container = $container ? $($container) : $(document);
+
+        $container.find('select[data-placeholder]').each(function () {
+            var $el = $(this);
+
+            // custom-select-single/custom-select-multi class thakle upore already handle hoyeche, skip
+            if ($el.hasClass('custom-select-single') || $el.hasClass('custom-select-multi')) return;
+
+            if ($el.data('customDdInstance')) {
+                if (!forceReinit) return;
+                destroyInstance($el);
+            }
+
+            var isMulti = $el.prop('multiple');
+
+            if (isMulti) {
+                initMulti($el, forceReinit);
+            } else {
+                initSingle($el, forceReinit);
+            }
+        });
+    }
+
+    // Container er moddhe shob single/multi select initialize/reinitialize kore
+    // $container: jekono jQuery element/selector (default: document)
+    // forceReinit: true dile already-init hoye thakleo notun kore init hobe (AJAX load er por use korun)
+    function initCustomDropdowns($container, forceReinit) {
+        $container = $container ? $($container) : $(document);
+
+        $container.find('.custom-select-single').each(function () {
+            initSingle($(this), forceReinit);
+        });
+
+        $container.find('.custom-select-multi').each(function () {
+            initMulti($(this), forceReinit);
+        });
+
+        // notun: data-placeholder based select gulo (jemon deliveryLocationCode)
+        initDynamicPlaceholderSelects($container, forceReinit);
+    }
+
+    // Ekta single select ke id diye reinit korar jonno (dorkar hole)
+    function reinitById(id) {
+        var $el = $('#' + id);
+        if (!$el.length) return;
+        if ($el.hasClass('custom-select-multi') || $el.prop('multiple')) {
+            initMulti($el, true);
+        } else {
+            initSingle($el, true);
+        }
+    }
+
+    // Ekta select clear korar jonno (id diye)
+    function clearById(id) {
+        var $el = $('#' + id);
+        if (!$el.length) return;
+        var instance = $el.data('customDdInstance');
+        if (instance && typeof instance.clear === 'function') {
+            instance.clear();
+        } else {
+            // fallback: value reset kore reinit
+            $el.val('');
+            if ($el.hasClass('custom-select-multi') || $el.prop('multiple')) {
+                initMulti($el, true);
+            } else {
+                initSingle($el, true);
+            }
+        }
+    }
+
+    // Container er moddhe shob custom select clear korar jonno
+    function clearAll($container) {
+        $container = $container ? $($container) : $(document);
+        $container.find('.custom-select-single, .custom-select-multi, select[data-placeholder]').each(function () {
+            clearById($(this).attr('id'));
+        });
+    }
+
+    // Global e expose kora hocche jate baire theke call kora jay
+    // Example: window.initCustomDropdowns('.js-branch-form-container', true);
+    // Example: window.reinitCustomDropdownById('CompanyCode');
+    // Example: window.clearCustomDropdownById('CompanyCode');
+    // Example: window.clearAllCustomDropdowns('.js-branch-form-container');
+    window.initCustomDropdowns = initCustomDropdowns;
+    window.reinitCustomDropdownById = reinitById;
+    window.clearCustomDropdownById = clearById;
+    window.clearAllCustomDropdowns = clearAll;
+
+    // Page load hote e shob select initialize (first time)
+    initCustomDropdowns(document, false);
 
 });

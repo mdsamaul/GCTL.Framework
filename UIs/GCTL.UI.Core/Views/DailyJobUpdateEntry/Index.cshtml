@@ -1,0 +1,1123 @@
+﻿@* @model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel *@
+@model GCTL.UI.Core.ViewModels.DailyJobUpdateEntry.DailyJobUpdateEntrySetupViewModel
+@{
+    // ViewData["Title"] = "Shipment Entry";
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Shipment Entry";
+    Model.Breadcrumb = "Shipment Entry";
+}
+
+<link href="~/css/selectCSS.css" rel="stylesheet" />
+
+
+<style>
+    /* .sticky-bar {
+                position: sticky;
+                top: 65px;
+                z-index: 1020;
+            } */
+
+    /* Bootstrap form-select-sm style for Select2 */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: calc(1.5em + .5rem + 2px) !important; /* Bootstrap form-select-sm */
+        padding: .25rem .5rem !important;
+        border: 1px solid #ced4da !important;
+        border-radius: .375rem !important;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-container--default .select2-selection__rendered {
+        line-height: normal !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        color: #212529;
+        font-size: .875rem;
+    }
+
+    .select2-container--default .select2-selection__arrow {
+        height: 100% !important;
+        right: 8px;
+    }
+
+    .select2-container--default .select2-selection__clear {
+        margin-right: 18px;
+    }
+
+    /* Focus */
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+    }
+
+    .form-label {
+        padding-left: 0rem !important;
+        line-height: 1.2 !important;
+        text-transform: capitalize !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ================= Toolbar ================= */
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .toolbar-left {
+        flex-shrink: 0;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    /* Large Screen (default) */
+
+    .toolbar-showing {
+        width: 120px;
+    }
+
+    /* Wrapper for the large-screen filters (customer / shipment / date) */
+    .toolbar-large-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .toolbar-customer {
+        width: 250px;
+    }
+
+    .toolbar-shipment {
+        width: 240px;
+    }
+
+    .toolbar-date {
+        width: 380px;
+    }
+
+    .toolbar-search {
+        width: 300px;
+    }
+
+    /* Small/mid screen filter block - hidden by default on large screens */
+    .sm-topshow {
+        display: none;
+    }
+
+    /* 1350px */
+
+    @@media (max-width:1370px) {
+
+        .sm-topshow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+        }
+
+            .sm-topshow .toolbar-customer-sm,
+            .sm-topshow .toolbar-shipment-sm {
+                width: 220px;
+            }
+
+            .sm-topshow .toolbar-date-sm {
+                width: 100%;
+                max-width: 420px;
+            }
+
+        .toolbar-right {
+            gap: 8px;
+        }
+        /* Hide large-screen customer/shipment/date filters */
+        .toolbar-large-filters {
+            display: none;
+        }
+
+        .toolbar-customer {
+            width: 225px;
+        }
+
+        .toolbar-search {
+            width: 225px;
+        }
+
+        .toolbar-date {
+            width: 321px;
+        }
+
+        .toolbar .form-control,
+        .toolbar .form-select,
+        .toolbar .input-group-text {
+            font-size: 13px;
+            padding: .25rem .45rem;
+        }
+    }
+
+    /* Tablet */
+
+    @@media (max-width:1200px) {
+
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-right {
+            flex-wrap: wrap;
+        }
+
+        .toolbar-search {
+            width: 100%;
+        }
+
+        .sm-topshow .toolbar-customer-sm,
+        .sm-topshow .toolbar-shipment-sm,
+        .sm-topshow .toolbar-date-sm {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+
+    .timeline {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 20px 30px 10px;
+    }
+
+    .timeline-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        text-align: center;
+    }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: -50%;
+            width: 100%;
+            height: 3px;
+            background-color: #d3d3d3;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .timeline-item:first-child::before {
+            display: none;
+        }
+
+        .timeline-item.completed::before,
+        .timeline-item.active::before {
+            background-color: #d3d3d3;
+        }
+
+        .timeline-item.completed::after,
+        .timeline-item.active::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: -50%;
+            width: 100%;
+            height: 3px;
+            background-color: #28a745;
+            z-index: 1;
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: fillLine 0.6s ease forwards;
+        }
+
+        .timeline-item.completed::after,
+        .timeline-item.active::after {
+            animation-delay: var(--delay, 0s);
+        }
+
+    .timeline-marker {
+        position: relative;
+        z-index: 2;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        border: 3px solid #d3d3d3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #d3d3d3;
+        margin-bottom: 10px;
+        transition: all 0.4s ease;
+    }
+
+
+    .timeline-item.completed .timeline-marker {
+        border-color: #28a745;
+        background-color: #28a745;
+        color: #fff;
+        animation: popIn 0.4s ease;
+    }
+
+    .timeline-item.active .timeline-marker {
+        border-color: #007bff;
+        background-color: #007bff;
+        color: #fff;
+        animation: popIn 0.4s ease, pulse 1.5s ease-in-out infinite;
+    }
+
+    @@keyframes popIn {
+        0% {
+            transform: scale(0.6);
+            opacity: 0;
+        }
+
+        60% {
+            transform: scale(1.15);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(0,123,255,0.4);
+        }
+
+        50% {
+            box-shadow: 0 0 0 8px rgba(0,123,255,0);
+        }
+    }
+
+    .timeline-item.pending .timeline-marker {
+        border-color: #d3d3d3;
+        background-color: #f8f9fa;
+        color: #adb5bd;
+    }
+
+    .timeline-marker {
+        animation-delay: var(--delay, 0s);
+    }
+
+    .timeline-item h6 {
+        position: relative;
+        z-index: 2;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #495057;
+    }
+
+    .timeline-item.pending h6 {
+        color: #adb5bd;
+    }
+
+    .timeline-date {
+        position: relative;
+        z-index: 2;
+        font-size: 11px;
+        color: #6c757d;
+    }
+
+    @@keyframes fillLine {
+        from {
+            transform: scaleX(0);
+        }
+
+        to {
+            transform: scaleX(1);
+        }
+    }
+
+    .timeline-item:first-child::before,
+    .timeline-item:first-child.completed::before,
+    .timeline-item:first-child.active::before,
+    .timeline-item:first-child.pending::before {
+        display: none !important;
+        content: none;
+    }
+
+    .timeline-item:first-child.completed::after,
+    .timeline-item:first-child.active::after {
+        display: none !important;
+        content: none;
+    }
+
+    .form-control-sm,
+    .form-select-sm {
+        font-size: 0.82rem;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+</style>
+
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<div class="">
+    <div class="">
+        <div class="">
+
+            @* <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 rounded shadow-sm border mb-3 sticky-bar">
+                <div class="d-flex align-items-center py-1 ps-2">
+                    <h1 class="fw-bold text-dark m-0" style="font-size: 0.95rem; letter-spacing: 0.5px;">
+                        Daily Job Update
+                    </h1>
+                </div>
+                <div class="d-flex flex-wrap align-items-end pe-1">
+                    <button type="button" class="btn btn-phoenix-primary" id="saveShipmentBtn">
+                        <i class="fas fa-save text-success"></i>
+                        <span>Save</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="deleteShipmentBtn">
+                        <i class="fas fa-trash text-danger"></i>
+                        <span>Delete</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="clearShipmentBtn">
+                        <i class="fas fa-sync text-primary"></i>
+                        <span>Clear</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="printShipmentBtn">
+                        <i class="fas fa-print text-dark"></i>
+                        <span>Print</span>
+                    </button>
+                    <button type="button" class="btn btn-phoenix-primary" id="favtShipmentBtn">
+                        <i class="fas fa-star text-warning"></i>
+                        <span>Favt</span>
+                    </button>
+                </div>
+            </div> *@
+
+
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title = "Daily Job Update",
+                SaveBtnClass = "saveBtn"
+            })
+            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+                <div class="mb-3">
+                    <div id="jobSummary">
+
+                        <!-- Small/Mid screen filters (shown below 1350px) -->
+                        <div class="sm-topshow">
+                            <span class="label-text filter-by-sm">Filter By:</span>
+                            <div class="toolbar-customer-sm">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="customerFilterSm"
+                                        data-placeholder="Select Customer"
+                                        asp-items="ViewBag.CustomerName as SelectList">
+                                    <option value="">All Customers</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-shipment-sm">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="shipmentModeFilterSm"
+                                        data-placeholder="Select Shipment Mode"
+                                        asp-items="ViewBag.ShipmentMode as SelectList">
+                                    <option value="">All Shipment Modes</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-date-sm">
+                                <div class="input-group input-group-sm custom-date-group">
+                                    <span class="input-group-text">From</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateFromSm">
+
+                                    <span class="input-group-text">To</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateToSm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="toolbar mb-4">
+
+                            <!-- Left -->
+                            <div class="toolbar-left">
+                                <div class="input-group input-group-sm toolbar-showing">
+                                    <span class="input-group-text">Showing</span>
+
+                                    <select class="form-select" id="pageSizeSelect">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Right -->
+                            <div class="toolbar-right">
+                                <span class="label-text toolbar-large-filters">Filter By:</span>
+                                <!-- Large screen filters (hidden below 1350px) -->
+                                <div class="toolbar-large-filters">
+                                    <div class="toolbar-customer">
+                                        <select class="form-select form-select-sm custom-select-single"
+                                                id="customerFilter"
+                                                data-placeholder="Select Customer"
+                                                asp-items="ViewBag.CustomerName as SelectList">
+                                            <option value="">All Customers</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="toolbar-shipment">
+                                        <select class="form-select form-select-sm custom-select-single"
+                                                id="shipmentModeFilter"
+                                                data-placeholder="Select Shipment Mode"
+                                                asp-items="ViewBag.ShipmentMode as SelectList">
+                                            <option value="">All Shipment Modes</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="toolbar-date">
+                                        <div class="input-group input-group-sm custom-date-group">
+                                            <span class="input-group-text">Date From</span>
+                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateFrom">
+
+                                            <span class="input-group-text">To</span>
+                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateTo">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="toolbar-search">
+                                    <input class="form-control form-control-sm"
+                                           id="searchInput"
+                                           type="text"
+                                           placeholder="Search">
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <div class="table-responsive ms-n1 ps-1 scrollbar">
+                            <table class="table table-bordered table-sm table-responsive-sm fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobSettingsTable">
+                                <thead>
+                                    <tr>
+                                        <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo">Job No</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="ShipmentMode">Shipment Mode</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="JobDate">Job Date</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="CustomerName">Customer Name</th>
+                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="DocReceivedDate">Doc Received Date</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody class="list" id="job-settings-table">
+                                    <!-- Table rows will be populated here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
+                            <div class="d-flex">
+                                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="dataListInfo"></p>
+                            </div>
+                            <div class="d-flex">
+                                <button class="page-link" id="paginationPrev"><span class="fas fa-chevron-left"></span></button>
+                                <ul class="mb-0 pagination" id="paginationNumbers"></ul>
+                                <button class="page-link pe-0" id="paginationNext"><span class="fas fa-chevron-right"></span></button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+                        <div class="row">
+                            @* ---------- Shipment Mode (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "shipmentModeId",
+                                LabelText = "Shipment Mode",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Shipment Mode",
+                                SelectItems = ViewBag.ShipmentMode as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "ShipmentMode"),
+                                QuickAddTarget = "#shipmentModeId",
+                                QuickAddReloadUrl = Url.Action("GetShipmentMode", "Cascading"),
+                                QuickAddTitle = "Add Shipment Mode",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Is Custom Job No (Checkbox) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "isCustomJobNo",
+                                LabelText = "Is Custom Job No",
+                                FieldType = FieldType.Checkbox,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            <div class="col-lg-4 col-md-6"></div>
+
+                            @* ---------- Job No (ReadonlyDisplay) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "jobNo",
+                                LabelText = "Job No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                IsReadonly=true,
+                                ReserveActionSlot = true
+                            })
+
+                            @* <div class="col-lg-4 col-md-6">
+                                <label class="form-label">Job No</label>
+                                <input class="form-control form-control-sm" readonly id="jobNo" />
+                                <span class="text-danger"></span>
+                            </div> *@
+                            @* ---------- Job Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "jobDate",
+                                LabelText = "Job Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Customer Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerId",
+                                LabelText = "Customer Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Customer",
+                                SelectItems = ViewBag.CustomerName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Customer"),
+                                QuickAddTarget = "#customerId",
+                                QuickAddReloadUrl = Url.Action("GetCustomer", "Cascading"),
+                                QuickAddTitle = "Add Customer",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Customer Address (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerAddress",
+                                LabelText = "Customer Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Customer Delivery Address (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerDeliveryAddress",
+                                LabelText = "Customer Delivery Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            <div class="col-lg-4 col-md-6"></div>
+
+                            @* ---------- Port Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "portId",
+                                LabelText = "Port Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Port",
+                                SelectItems = ViewBag.PortName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Port"),
+                                QuickAddTarget = "#portId",
+                                QuickAddReloadUrl = Url.Action("GetPort", "Cascading"),
+                                QuickAddTitle = "Add Port",
+                                IsActionDisabled=true,
+                            })
+
+                            @* ---------- Docs Received Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "docsReceivedDate",
+                                LabelText = "Doc's Received Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- LC/EXP No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcExpNo",
+                                LabelText = "LC/EXP No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- L/C Value (DualInput: Number + Unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcValue",
+                                LabelText = "L/C Value",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Amount",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "lcUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    IsRequired = false,
+                                    IsActionDisabled=true,
+                                }
+                            })
+
+                            @* ---------- LC Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcDate",
+                                LabelText = "LC Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- IP/EP No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "ipEpNo",
+                                LabelText = "IP/EP No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- IP Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "ipDate",
+                                LabelText = "IP Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Importer Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "importerId",
+                                LabelText = "Importer Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Importer",
+                                SelectItems = ViewBag.ImporterName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Importer"),
+                                QuickAddTarget = "#importerId",
+                                QuickAddReloadUrl = Url.Action("GetImporter", "Cascading"),
+                                QuickAddTitle = "Add Importer",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Invoice No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "invoiceNo",
+                                LabelText = "Invoice No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Invoice Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "invoiceDate",
+                                LabelText = "Invoice Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/L No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "blNo",
+                                LabelText = "B/L No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/L Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "blDate",
+                                LabelText = "B/L Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/E No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "beNo",
+                                LabelText = "B/E No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/E Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "beDate",
+                                LabelText = "B/E Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Container No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "containerNo",
+                                LabelText = "Container No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Container Size (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "containerSize",
+                                LabelText = "Container Size",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- LCA No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcaNo",
+                                LabelText = "LCA No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Discharge Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "dischargeDate",
+                                LabelText = "Discharge Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Material Description (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "materialDescription",
+                                LabelText = "Material Description",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Quantity & Unit (DualInput with QuickAdd on unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "quantity",
+                                LabelText = "Quantity & Unit (PKG)",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Quantity",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                IsActionDisabled=true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "quantityUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    ShowQuickAdd = true,
+                                    QuickAddUrl = Url.Action("Create", "QuantityUnit"),
+                                    QuickAddTarget = "#quantityUnitId",
+                                    QuickAddReloadUrl = Url.Action("GetQuantityUnit", "Cascading"),
+                                    QuickAddTitle = "Add Unit",
+                                    IsRequired = false,
+                                },
+                                
+                            })
+
+                            @* ---------- Weight & Unit (DualInput with QuickAdd on unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "weight",
+                                LabelText = "Weight & Unit (KG)",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Weight",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "weightUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    ShowQuickAdd = true,
+                                    QuickAddUrl = Url.Action("Create", "QuantityUnit"),
+                                    QuickAddTarget = "#weightUnitId",
+                                    QuickAddReloadUrl = Url.Action("GetQuantityUnit", "Cascading"),
+                                    QuickAddTitle = "Add Unit",
+                                    IsRequired = false,
+                                    IsActionDisabled=true
+                                },
+                                IsActionDisabled=true,
+                            })
+
+                            @* ---------- FWDR (Shipping Agent) (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "forwarderId",
+                                LabelText = "FWDR (Shipping Agent)",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Forwarder",
+                                SelectItems = ViewBag.ForwarderName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Forwarder"),
+                                QuickAddTarget = "#forwarderId",
+                                QuickAddReloadUrl = Url.Action("GetForwarder", "Cascading"),
+                                QuickAddTitle = "Add Forwarder",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Vessel/Rott No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "vesselRottNo",
+                                LabelText = "Vessel/Rott No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Remarks (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "remarks",
+                                LabelText = "Remarks",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+                        </div>
+
+                        <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
+                        @await Html.PartialAsync("_Setup", Model.Setup)
+
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "",
+                            ShowDelete = false,
+                            ShowClear = false,
+                            ShowPrint = false,
+                            ShowFavorite = false,
+                            IsPlain = true,
+                            SaveBtnClass = "saveBtn",
+                            ReserveActionSlot = true
+                        })
+                    </div>
+
+                </div>
+            </div>
+            @* </div> *@
+
+        </div>
+        <div class="pb-2 d-none" id="timelineCard">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Shipment Progress Timeline</h5>
+                </div>
+                <div class="card-body p-1">
+                    <div class="timeline" id="shipmentTimeline">
+                        <!-- জাভাস্ক্রিপ্ট dynamic ভাবে item গুলো এখানে বসাবে, .timeline-line লাগবে না -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border border-body-emplhsish border-1 opacity-100 mx-auto mb-2">
+
+
+        <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+            <div class="mb-9">
+                <div id="jobStatusSummary">
+                    <!-- Search and Page Size -->
+                    <div class="toolbar pb-2">
+
+                        <div class="toolbar-left">
+                            <div class="input-group input-group-sm toolbar-showing">
+                                <span class="input-group-text">Showing</span>
+                                <select class="form-select" id="statusPageSizeSelect">
+                                    <option>10</option>
+                                    <option>25</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="toolbar-right">
+                            <span class="label-text">Filter By:</span>
+                            <div class="toolbar-item toolbar-customer">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="customerLoadGridFilter" data-placeholder="Select Customer"
+                                        asp-items="ViewBag.CustomerName as SelectList">
+                                    <option value="">All Customers</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-item toolbar-date">
+                                <div class="input-group input-group-sm custom-date-group">
+                                    <span class="input-group-text">Date From</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridFrom">
+                                    <span class="input-group-text">To</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridTo">
+                                </div>
+                            </div>
+
+                            <div class="toolbar-item toolbar-search">
+                                <input class="form-control form-control-sm"
+                                       id="statusSearchInput"
+                                       type="text"
+                                       placeholder="Search">
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Table -->
+                    <div class="table-responsive ms-n1 ps-1 scrollbar">
+                        <table class="table table-sm table-bordered fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobStatusTable">
+                            <thead>
+                                <tr>
+                                    <th class="sort white-space-nowrap align-middle text-center ps-0" style="width:110px" scope="col" data-sort="Status">
+                                        <input type="checkbox" id="checkAll" class="form-check-input" />  Select All
+                                    </th>
+                                    <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ID">ID</th>
+                                    <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="JobNo">Job No</th>
+                                    <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ShipmentStatus">Shipment Status</th>
+                                    <th class="sort white-space-nowrap align-middle text-center ps-2 text-end" scope="col" data-sort="DateTime">Date Time</th>
+
+                                </tr>
+                            </thead>
+                            <tbody class="list" id="jobStatusTableBody">
+                                <!-- Rows populated via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
+                        <div class="d-flex">
+                            <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="statusDataListInfo"></p>
+                        </div>
+                        @* <div class="d-flex">
+                                <button class="page-link" id="statusPaginationPrev"><span class="fas fa-chevron-left"></span></button>
+                                <ul class="mb-0 pagination" id="statusPaginationNumbers"></ul>
+                                <button class="page-link pe-0" id="statusPaginationNext"><span class="fas fa-chevron-right"></span></button>
+                            </div> *@
+                        <div class="d-flex">
+                            <button class="page-link" id="paginationFirst"><span class="bi bi-chevron-bar-left"></span></button>
+                            <button class="page-link" id="paginationPrev"><span class="bi bi-chevron-left"></span></button>
+                            <ul class="mb-0 pagination" id="paginationNumbers"></ul>
+                            <button class="page-link pe-0" id="paginationNext"><span class="bi bi-chevron-right"></span></button>
+                            <button class="page-link pe-0" id="paginationLast"><span class="bi bi-chevron-bar-right"></span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/DailyJobUpdateEntry.js"></script>
+}

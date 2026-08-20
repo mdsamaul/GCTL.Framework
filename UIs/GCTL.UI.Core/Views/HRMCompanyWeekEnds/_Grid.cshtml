@@ -7,7 +7,7 @@
                 <th class="text-center text-middle">
                     Select <br /> <input type="checkbox" id="companyWeekEnds-check-all" />
                 </th>
-                <th class="text-center text-middle">Weekend Id</th>
+                <th class="text-center text-middle">ID</th>
                 <th class="text-center text-middle">Weekend Day(s)</th>
                 <th class="text-center text-middle">Effective Date</th>
 
@@ -18,7 +18,7 @@
             @if (Model == null || !Model.Any())
             {
                 <tr class="text-center text-middle">
-                    <td colspan="5">No Weekend day  Available.</td>
+                   @*  <td colspan="5">No Weekend day  Available.</td> *@
                 </tr>
             }
             else
@@ -27,7 +27,7 @@
                 {
                     <tr>
                         <td class="text-center">
-                            <input type="checkbox" class="text-center text-middle checkBox" data-id="@item.CompanyWeekEndCode" value="@item.CompanyWeekEndCode" />
+                        <input type="checkbox" class="text-center text-middle checkBox" data-id="@item.CompanyWeekEndCode" value="@item.CompanyWeekEndCode" />
                         </td>
                         <td>
                             <a href="#" class='btn js-companyWeekEnds-edit'
@@ -47,5 +47,6 @@
 
 
         </tbody>
- </table>
+</table>
+
 

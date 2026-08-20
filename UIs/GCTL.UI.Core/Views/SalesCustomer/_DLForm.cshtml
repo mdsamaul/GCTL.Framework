@@ -1,0 +1,244 @@
+﻿<style>
+    .saveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+    }
+
+    .deleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+    }
+
+    .resetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+    }
+
+    .favBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    #DLcontactSearch {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    #DLcontactPersonDropdown {
+        width: 650px;
+    }
+
+        #DLcontactPersonDropdown .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+</style>
+
+@model GCTL.Core.ViewModels.AddSalesCustomer.SalesDeliveryLocationViewModel
+@using GCTL.UI.Core.ViewModels
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Delivery Location Information</h5>
+        <div>
+            <button type="submit" id="btnSaveDL" class="btn btn-light btn-sm text-dark rounded-start px-2 text-nowrap saveBtn">
+                <i class="fas fa-save me-1"></i> Save
+            </button>
+            <button type="submit" id="btnDeleteDL" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap deleteBtn">
+                <i class="fas fa-trash me-1"></i> Delete
+            </button>
+            <button type="button" id="btnBulkDeleteDL" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap d-none deleteBtn">
+                <i class="fas fa-trash me-1"></i> Delete
+            </button>
+            <button type="reset" id="btnResetDL" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap resetBtn">
+                <i class="fas fa-eraser me-1"></i> Clear
+            </button>
+            <button type="button" class="btn btn-light btn-sm text-dark rounded px-2 text-nowrap printBtn">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+            <button type="button" class="btn btn-light btn-sm text-dark rounded-end px-2 text-nowrap favBtn">
+                <i class="fas fa-star me-1"></i> Fav
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="deliveryForm">
+            <div class="row g-3">
+
+                <div class="col-md-12">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "CustomerIdForDelivery",
+                        LabelText = "",
+                        FieldType = FieldType.Select,
+                        Placeholder = "Select Customer",
+                        SelectItems = ViewBag.CustomerDD as SelectList,
+                        IsRequired = true,
+                        ColumnClass = "col-md-6",
+                        CustomCssClass = "js-CustomerIdForDelivery"
+                    })
+                </div>
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryLocationCode",
+                    LabelText = "Delivery Code",
+                    FieldType = FieldType.Text,
+                    IsReadonly = true,
+                    IsRequired = true,
+                    ColumnClass = "col-md-6"
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "LocationAddress",
+                    LabelText = "Delivery Address",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Delivery Address",
+                    IsRequired = true,
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.LocationAddress
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryCountryId",
+                    LabelText = "Country",
+                    FieldType = FieldType.Select,
+                    Placeholder = "Select Country",
+                    SelectItems = ViewBag.CountryDD as SelectList,
+                    ColumnClass = "col-md-6",
+                    ShowQuickAdd = true,
+                    QuickAddUrl = Url.Action("Index", "Country"),
+                    QuickAddTarget = "#DeliveryCountryId",
+                    QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+                    QuickAddTitle = "Country",
+                    DefaultValue = Model.CountryId
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryStateOrProvince",
+                    LabelText = "State/Province",
+                    FieldType = FieldType.Text,
+                    Placeholder = "State/Province",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.StateOrProvince
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryCity",
+                    LabelText = "City",
+                    FieldType = FieldType.Text,
+                    Placeholder = "City",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.City
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryZipCode",
+                    LabelText = "Zip Code",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Zip Code",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.ZipCode
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryPhone",
+                    LabelText = "Phone",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Phone Number",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Phone
+                })
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryEmail",
+                    LabelText = "Email",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Email",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Email
+                })
+
+              
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "Cpid",
+                        LabelText = "Contact Person",
+                        FieldType = FieldType.MultiSelect,
+                        Placeholder = "Select Contact Person",
+                        SelectItems = ViewBag.ContactDD as SelectList,
+                        ColumnClass = "col-lg-6",
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+                        QuickAddTarget = "#ContactPerson",
+                        QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+                        QuickAddTitle = "Contact Person Info",
+                        CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
+                    })
+
+                @* <div class="col-12">
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="col-md-6">
+                            <div class="form-floating form-floating-advance-select">
+                                <button class="form-select form-control-sm dropdown-toggle" id="DLdropdownButton" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Contact Person
+                                </button>
+                                <ul class="dropdown-menu p-2" aria-labelledby="DLdropdownButton" id="DLcontactPersonDropdown">
+                                    <div class="search-container mb-2">
+                                        <input type="text" id="DLcontactSearch" class="form-control form-control-sm" placeholder="Search contacts...">
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm m-0">
+                                            <thead>
+                                                <tr>
+                                                    <th><input type="checkbox" id="DLselectAllContacts"></th>
+                                                    <th>Name</th>
+                                                    <th>Designation</th>
+                                                    <th>Phone</th>
+                                                    <th>Email</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="DLcontactPersonList"></tbody>
+                                        </table>
+                                    </div>
+                                </ul>
+
+                                <input type="hidden" id="DLselectedContactPersonIds" name="ContactPerson" />
+                            </div>
+                        </div>
+                    </div>
+                </div> *@
+
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "DeliveryRemarks",
+                    LabelText = "Remarks",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Remarks",
+                    ColumnClass = "col-md-6",
+                    DefaultValue = Model.Remarks
+                })
+
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+
+}

@@ -58,9 +58,9 @@
             }, options || {});
 
             this.isMulti = false;
-            this.data = [];       // full item list {id, text}
+            this.data = [];
             this.filtered = [];
-            this.selected = [];   // array of ids (single: max 1)
+            this.selected = [];
             this._id = 'customdd_' + Math.random().toString(36).slice(2, 8);
             this._ajaxTimer = null;
         }
@@ -103,7 +103,9 @@
         _bindCommonEvents() {
             var self = this;
 
-            this.$input.on('focus click', function () { self._openPanel(); });
+            this.$input.on('focus click', function () {
+                self._openPanelFull();
+            });
 
             this.$input.on('input', function () {
                 self._openPanel();
@@ -120,33 +122,6 @@
                     self._closePanel();
                 }
             });
-
-            // this.$clearIcon.on('click', function (e) {
-            //     e.stopPropagation();
-            //     self.clear();
-            // });
-
-            // this.$copyIcon.on('click', function (e) {
-            //     e.stopPropagation();
-            //     var val = self.getValue();
-            //     var isEmpty = Array.isArray(val) ? val.length === 0 : !val;
-            //     if (isEmpty) { toast('Kono item select kora nai'); return; }
-            //     var text = Array.isArray(val)
-            //         ? (self.options.copyAsJsonArray ? JSON.stringify(val) : val.join(','))
-            //         : val;
-            //     copyText(text);
-            //     toast('Copied: ' + text);
-
-
-            //     self.$copyIcon.html('<i class="fas fa-check"></i>');
-            //     self.$copyIcon.addClass('copied');
-
-            //     clearTimeout(self._copyIconTimer);
-            //     self._copyIconTimer = setTimeout(function () {
-            //         self.$copyIcon.html('<i class="fas fa-copy"></i>');
-            //         self.$copyIcon.removeClass('copied');
-            //     }, 1500);
-            // });
 
             this.$clearIcon.on('click', function (e) {
                 e.stopPropagation();
@@ -191,6 +166,18 @@
             }
         }
 
+        _openPanelFull() {
+            if (this.$wrapper.hasClass('disabled')) return;
+            this.$wrapper.addClass('open');
+            if (!this.options.isAjax) {
+                this._renderList(this.data);
+            } else if (!this.data.length) {
+                this._ajaxSearch('');
+            } else {
+                this._renderList(this.data);
+            }
+        }
+
         _openPanel() {
             if (this.$wrapper.hasClass('disabled')) return;
             this.$wrapper.addClass('open');
@@ -205,6 +192,7 @@
 
         _closePanel() {
             this.$wrapper.removeClass('open');
+            this.$panel.css({ 'width': '', 'min-width': '', 'max-width': '' });
         }
 
         _ajaxSearch(term) {
@@ -269,11 +257,6 @@
             });
         }
 
-        // setDisabled(disabled) {
-        //     this.$wrapper.toggleClass('disabled', !!disabled);
-        //     this.$input.prop('disabled', !!disabled);
-        // }
-
         setDisabled(disabled) {
             this.$wrapper.toggleClass('disabled', !!disabled);
             this.$input.prop('disabled', !!disabled);
@@ -286,6 +269,7 @@
                 this.$clearIcon.removeClass('dd-icon-disabled');
             }
         }
+
         loadStaticItems(items) {
             this.data = (items || []).map(function (i) {
                 return { id: String(i.id ?? i.value), text: i.text, selected: !!i.selected };
@@ -321,14 +305,7 @@
             this._triggerChange();
         }
 
-        // _triggerChange() {
-        //     if (typeof this.options.onChange === 'function') {
-        //         this.options.onChange(this.getValue(), this);
-        //     }
-        //     this.$original.trigger('custom:change');
-        // }
         _triggerChange() {
-
             this.$original.trigger({
                 type: 'change',
                 customDropdown: true
@@ -338,13 +315,25 @@
                 this.options.onChange(this.getValue(), this);
             }
         }
+
         init() {
             if (!this.$original.length) {
                 console.warn('customDropdown: element pawa jayni -> ' + this.originalSelector);
                 return this;
             }
+
+            var existing = this.$original.data('customDdInstance');
+            if (existing && existing.$wrapper) {
+                existing.$wrapper.remove();
+                $(document).off('click.' + existing._id);
+            }
+
+            this.$original.next('.custom-dd-wrapper').remove();
+
             this._buildSkeleton();
             this._bindCommonEvents();
+            this.$original.data('customDdInstance', this);
+
             if (this.options.items) this.loadStaticItems(this.options.items);
             return this;
         }
@@ -380,7 +369,7 @@
             super(selector, Object.assign({
                 showSelectAll: true,
                 showCountBadge: true,
-                countThreshold: 2 // eyi shonkhar beshi select korle tags er bodole count dekhabe
+                countThreshold: 2
             }, options || {}));
             this.isMulti = true;
         }
@@ -408,7 +397,6 @@
             var allSelected = allIds.length > 0 && allIds.every(function (id) { return self.selected.indexOf(id) !== -1; });
 
             if (allSelected) {
-                // shob already selected thakle -> unselect
                 this.selected = this.selected.filter(function (id) { return allIds.indexOf(id) === -1; });
             } else {
                 allIds.forEach(function (id) {
@@ -485,6 +473,14 @@
                 });
                 self.$tagsArea.append($tag);
             });
+
+            if (this.selected.length === 0) {
+                this.$tagsArea.hide();
+                this.$input.attr("placeholder", this.options.placeholder);
+            } else {
+                this.$tagsArea.show();
+                this.$input.attr("placeholder", "");
+            }
         }
 
         _syncOriginalSelect() {
@@ -493,32 +489,17 @@
         }
     }
 
-    // function setSelect(selector, value) {
-    //     var $el = $(selector);
-    //     var instance = $el.data('customDdInstance');
+    function setSelect(selectorOrElement, value, disabled = false, newItems = null, tableShow = false, tableTitle = 'Select an Option', extraClass = '') {
 
-    //     if (!instance) {
-    //         $el.val(value).trigger('change');
-    //         return;
-    //     }
+        var $el = $(selectorOrElement);
 
-    //     if (instance.isMulti) {
-    //         var arr = Array.isArray(value) ? value : (value ? [String(value)] : []);
-    //         instance.selected = arr.map(String);
-    //         instance._renderTags();
-    //     } else {
-    //         instance.selected = value ? [String(value)] : [];
-    //         var found = instance.data.find(function (d) { return d.id === String(value); });
-    //         instance.$input.val(found ? found.text : (value || ''));
-    //     }
+        if ($el.length > 1) {
+            $el.each(function () {
+                setSelect(this, value, disabled, newItems, tableShow, tableTitle, extraClass);
+            });
+            return;
+        }
 
-    //     instance._syncOriginalSelect();
-    //     instance._renderList(instance.data);
-    // }
-
-    function setSelect(selector, value, disabled = false) {
-        
-        var $el = $(selector);
         var instance = $el.data('customDdInstance');
 
         if (!instance) {
@@ -528,6 +509,14 @@
                 $el.prop('disabled', !!disabled).trigger('change.select2');
             }
             return;
+        }
+
+        var rawItems = Array.isArray(newItems) ? newItems : [];
+
+        if (rawItems.length) {
+            instance.data = rawItems.map(function (i) {
+                return { id: String(i.id ?? i.value), text: i.text };
+            });
         }
 
         if (instance.isMulti) {
@@ -541,13 +530,117 @@
         }
 
         instance._syncOriginalSelect();
-        instance._renderList(instance.data);
         instance.setDisabled(!!disabled);
+
+        if (extraClass) {
+            instance.$wrapper.addClass(extraClass);
+        }
+
+        if (tableShow) {
+            instance.$input.off('focus.tableShow click.tableShow input.tableShow');
+
+            instance._openPanel = function () {
+                if (instance.$wrapper.hasClass('disabled')) return;
+                instance.$wrapper.addClass('open');
+                renderTableInPanel(instance, rawItems, tableTitle);
+            };
+
+            instance.$input.on('focus.tableShow click.tableShow', function (e) {
+                e.stopImmediatePropagation();
+                instance._openPanel();
+            });
+
+            instance.$input.on('input.tableShow', function () {
+                var term = (instance.$input.val() || '').toLowerCase();
+                var filteredRaw = rawItems.filter(function (item) {
+                    return Object.keys(item).some(function (k) {
+                        return String(item[k] || '').toLowerCase().indexOf(term) !== -1;
+                    });
+                });
+                instance.$wrapper.addClass('open');
+                renderTableInPanel(instance, filteredRaw, tableTitle);
+            });
+        } else {
+            instance._renderList(instance.data);
+        }
+    }
+
+    function renderTableInPanel(instance, items, title) {
+        instance.$list.empty();
+
+        if (!items.length) {
+            instance.$list.append('<div class="custom-dd-empty">No results found</div>');
+            return;
+        }
+
+        var excludedKeys = ['id', 'value'];
+        var columns = Object.keys(items[0]).filter(function (key) {
+            return excludedKeys.indexOf(key) === -1;
+        });
+
+        function formatHeader(key) {
+            var result = key.replace(/([A-Z])/g, ' $1');
+            return result.charAt(0).toUpperCase() + result.slice(1);
+        }
+        var theadHtml = '<th class="text-center"></th>' + columns.map(function (col) {
+            return '<th class="text-center">' + formatHeader(col) + '</th>';
+        }).join('');
+
+        var rowsHtml = items.map(function (item) {
+            var idVal = item.id ?? item.value;
+            var isSelected = instance.selected.indexOf(String(idVal)) !== -1;
+            var cells = columns.map(function (col) {
+                return '<td>' + (item[col] ?? '') + '</td>';
+            }).join('');
+            return '<tr class="custom-dd-table-row' + (isSelected ? ' selected' : '') + '" data-id="' + idVal + '" style="cursor:pointer;">' +
+                '<td><input type="checkbox" class="custom-dd-table-checkbox" ' + (isSelected ? 'checked' : '') + ' /></td>' +
+                cells +
+                '</tr>';
+        }).join('');
+
+        var tableHtml =
+            '<table class="table table-sm table-bordered table-hover mb-0">' +
+            '<thead><tr>' + theadHtml + '</tr></thead>' +
+            '<tbody>' + rowsHtml + '</tbody>' +
+            '</table>';
+
+        instance.$list.append(tableHtml);
+
+        instance.$panel.css({
+            'width': 'max-content',
+            'min-width': '100%',
+            'max-width': '50vw'
+        });
+
+        instance.$list.off('click', '.custom-dd-table-row').on('click', '.custom-dd-table-row', function (e) {
+            e.stopPropagation();
+            var selectedId = $(this).data('id').toString();
+            var found = instance.data.find(function (d) { return d.id === selectedId; });
+
+            if (instance.isMulti) {
+                var idx = instance.selected.indexOf(selectedId);
+                if (idx === -1) {
+                    instance.selected.push(selectedId);
+                } else {
+                    instance.selected.splice(idx, 1);
+                }
+                instance._syncOriginalSelect();
+                instance._triggerChange();
+                renderTableInPanel(instance, items, title);
+            } else {
+                instance.selected = [selectedId];
+                instance.$input.val(found ? found.text : selectedId);
+                instance._syncOriginalSelect();
+                instance._closePanel();
+                instance._triggerChange();
+                instance.$panel.css({ 'width': '', 'min-width': '', 'max-width': '' });
+            }
+        });
     }
 
     window.customDropdownBase = customDropdownBase;
     window.customDropdownSingle = customDropdownSingle;
     window.customDropdownMulti = customDropdownMulti;
-    window.setSelect = setSelect; 
+    window.setSelect = setSelect;
 
 })(window, window.jQuery);

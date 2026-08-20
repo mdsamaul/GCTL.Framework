@@ -1,0 +1,284 @@
+﻿<div class="card shadow-sm rounded-2">
+
+    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
+
+            <div>
+                <h4 class="mb-0 heading-nowrap " style="font-size:14px">Voucher Entry</h4>
+            </div>
+            <div class="d-flex gap-1" id="button-div">
+
+                <button type="submit" form="VoucherEntryForm" class="btn btn-sm btn-outline-primary VoucherEntrysaveBtn">
+                    <i class="fas fa-save me-1"></i> Save
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-danger VoucherEntrydeleteBtn" id="VoucherEntrydeleteBtn">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+
+                <button type="reset" class="btn btn-sm btn-outline-secondary VoucherEntryresetBtn">
+                    <i class="fas fa-eraser me-1"></i> Clear
+                </button>
+
+                <div class="dropdown">
+                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
+                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-warning VoucherEntryfavBtn">
+                    <i class="fas fa-star me-1"></i> Fav
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card-body">
+        <form id="VoucherEntryForm">
+            <fieldset style="border:1px solid #ccc; padding:5px; border-radius:5px;">
+
+                <input type="hidden" id="VoucherEntryAutoID" name="autoId" />
+
+                @* Main Information Section *@
+                <fieldset class="border rounded-3 p-3 position-relative">
+                    <legend class="float-none w-auto px-2 fw-bold "
+                            style="font-size: 15px; border: 1px solid #dee2e6; border-radius: 6px; background-color: #f8f9fa;">
+                        Main Information
+                    </legend>
+                    <div class="row g-3">
+
+                        @* Company *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="CompanyCode" name="CompanyCode">
+                                </select>
+                                <label for="CompanyCode"></label>
+                            </div>
+                        </div>
+
+                        @* Branch *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="BranchCode" name="BranchCode" tabindex="0">
+                                </select>
+                                <label for="BranchCode"></label>
+                            </div>
+                        </div>
+
+                        @* Voucher Type *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="VoucherTypeCode" name="VoucherType_Code">
+                                </select>
+                                <label for="VoucherType_Code"></label>
+                            </div>
+                        </div>
+
+                        @* Voucher Date *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="VoucherDate" name="VoucherDate" >
+                                <label for="VoucherDate">Voucher Date<span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+
+                        @* Voucher No *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input readonly type="text" class="form-control" id="VoucherNo" name="VoucherNo" placeholder="Voucher No">
+                                <label for="VoucherNo">Voucher No<span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+
+                        @* Narration *@
+                        <div class="col-md-12">
+                            <div class="form-floating">
+                                <textarea class="form-control" id="Narration" name="Narration" placeholder="Narration" rows="2"></textarea>
+                                <label for="Narration">Narration <span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </fieldset>
+                <input type="hidden" id="TmpDetailsAutoID">
+
+                @* Details Information Section *@
+                <fieldset class="border rounded-3 p-3 position-relative mt-2">
+                    <legend class="float-none w-auto px-2 fw-bold"
+                            style="font-size: 15px; border: 1px solid #dee2e6; border-radius: 6px; background-color: #f8f9fa;">
+                        Details Information
+                    </legend>
+
+                    <div class="row g-3">
+                        @* Tr. Type  *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="TrType" name="TrType">
+                                    <option value="" selected disabled>Select Tr. Type</option>
+                                    <option value="Dr">Dr</option>
+                                    <option value="Cr">Cr</option>
+                                </select>
+                                <label for="TrType"></label>
+                            </div>
+                        </div>
+                        <div class="col-md-6"></div>
+
+                        @* Ledger Section  *@
+                        <div class="col-md-6" style="display:none;">
+                            <div class="ledger-row">
+                                <span class="ledger-label">Group Ledger :</span>
+                                <span class="ledger-value" id="GroupLedgerValue"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6" style="display:none;">
+                            <div class="ledger-row">
+                                <span class="ledger-label">Control Ledger :</span>
+                                <span class="ledger-value" id="ControlLedgerValue"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6" style="display:none;">
+                            <div class="ledger-row">
+                                <span class="ledger-label">Sub-Control Ledger :</span>
+                                <span class="ledger-value" id="SubControlLedgerValue"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6" style="display:none;">
+                            <div class="ledger-row">
+                                <span class="ledger-label">Sub-Sidiary Ledger :</span>
+                                <span class="ledger-value" id="SubSidiaryLedgerValue"></span>
+                            </div>
+                        </div>
+
+                        @* Account Head *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="AccCode" name="AccCode">
+                                </select>
+                                <label for="AccCode"></label>
+                            </div>
+                        </div>
+                        <div class="col-md-6"></div>
+
+                        @* Description and Amount  *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input readonly type="text" class="form-control" id="Description" name="Description" placeholder="Description">
+                                <label for="Description">Description</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="Amount" name="Amount" placeholder="Amount">
+                                <label for="Amount">Amount<span style="color:red">*</span></label>
+                            </div>
+                        </div>
+
+                        @* Cheque No *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="ChequeNo" name="ChequeNo" placeholder="Enter Cheque No">
+                                <label for="ChequeNo">Cheque No</label>
+                            </div>
+                        </div>
+
+                        @* Cheque Date *@
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="date" class="form-control" id="ChequeDate" name="ChequeDate">
+                                <label for="ChequeDate">Cheque Date</label>
+                            </div>
+                        </div>
+
+                        @* Details Button *@
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="details-icon-group">
+                                    <button type="button" id="AddDetails" data-tooltip="Add" class="icon-btn add">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+
+                                    <button type="button" id="CancelDetails" data-tooltip="Cancel" class="icon-btn cancel">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+
+                                    <button type="button" id="RefreshDetails" data-tooltip="Refresh" class="icon-btn refresh">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        @* Details Table *@
+                        <div class="row">
+                            <div class="col-12 table-responsive">
+                                <table class="table table-bordered table-striped voucher-entry-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 5%; text-align:center;">Select</th>
+                                            <th style="width: 15%; text-align:center;" data-column="AccCode">Acc. Code</th>
+                                            <th style="width: 30%; text-align:center;" data-column="AccountHeadName">Account Head</th>
+                                            <th style="width: 20%; text-align:center;" data-column="Description">Description</th>
+                                            <th style="width: 15%; text-align:center;" data-column="DebitAmount">Debit</th>
+                                            <th style="width: 15%; text-align:center;" data-column="CreditAmount">Credit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        <tr>
+                                            <td colspan="4" class="text-end fw-bold">Total</td>
+                                            <td class="fw-bold">0.00</td>
+                                            <td class="fw-bold">0.00</td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                                <small class="text-muted"></small>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                @* Creation/Modify Date Display *@
+                @* <div class="row g-3 mt-2">
+                    <div class="col-md-6" style="display:none;">
+                        <div class="ldateupdatesection">
+                            <span class="entry-label">Entry Date : </span>
+                            <span class="entry-value" id="EntryDate"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6" style="display:none;">
+                        <div class="ldateupdatesection">
+                            <span class="entry-label">Last Update Date :</span>
+                            <span class="entry-value" id="UpdateDate"></span>
+                        </div>
+                    </div>
+                </div> *@
+                <hr class="my-4 mx-2">
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <div>
+                            <span>Entry Date : </span>
+                            <span id="EntryDate"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div>
+                            <span>Last Update Date :</span>
+                            <span id="UpdateDate"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>

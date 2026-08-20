@@ -30,4 +30,6 @@ public partial class HrmDefDepartment
     public string BanglaShortName { get; set; }
 
     public string CompanyCode { get; set; }
+
+    public string EmployeeId { get; set; }
 }

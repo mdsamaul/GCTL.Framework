@@ -22,7 +22,14 @@
             <div class="col-md-6 pr-0">
                 <div class="card">
                     <div class="card-header px-2">
-                        <partial name="_Toolbars" model="new ToobarModel() { Title = Model.Breadcrumb, Code = Model.Code, Name = Model.Setup.NationalityCode }" />
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Nationality Info",
+                            SaveBtnClass = "js-Nationalitys-save",
+                            DeleteBtnClass = "js-Nationalitys-delete-confirm",
+                            ClearBtnClass = "js-Nationalitys-clear"
+
+                        })
                     </div>
                     <div class="card-body px-2">
 

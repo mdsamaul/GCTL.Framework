@@ -87,42 +87,6 @@
 
                
 
-                
-                //$("body").on("change", "input[name='Weekend']", function () {
-                //    let code = $(".js-ShiftCode-code").val();
-                //    let weekends = $("input[name='Weekend']:checked").map(function () {
-                //        return $(this).val();
-                //    }).get();
-
-                //    $.ajax({
-                //        url: duplicateCheckURL,
-                //        method: "POST",
-                //        data: { code: code, weekends: weekends },
-                //        traditional: true,
-                //        success: function (response)
-                //        {
-                //            if (response.isSuccess)
-                //            {
-                              
-                //                toastr.error(response.message);
-                //            }
-                            
-                //        },
-                //        error: function (xhr, status, error) {
-                //            console.log("Error occurred:", error);
-                //        }
-                //    });
-                //});
-
-
-
-
-
-                //
-
-
-
-
                 //Orginall Code 
 
 
@@ -134,7 +98,7 @@
                     {
 
                         $(settings.formSelector).html($(result).find(settings.formSelector).html());
-                        EffectiveDatePicker();
+                       // EffectiveDatePicker();
                         $(settings.saveSelector).html('<i class="fas fa-edit"></i> Update');
                         $(settings.formSelector).attr('action', testSave);
                         $(settings.deleteSelector).data('id', id);
@@ -223,10 +187,13 @@
             // Initialization function
             function initialize()
             {
-                EffectiveDatePicker();
+              
+                
+               // EffectiveDatePicker();
                 GenerateNextCode();
                 loadTableData();
                 ResetForm();
+                setDate("#EffectiveDate", new Date());
             }
            
 
@@ -261,39 +228,39 @@
             }
 
 
-            function EffectiveDatePicker()
-            {
-                flatpickr("#EffectiveDate", CalendarService.createConfig({
-                    defaultDate:'today',
-                    dateFormat: "d-m-Y",
-                    onChange: function (selectedDates) {
-                        debugger;
-                        if (selectedDates.length > 0) {
-                            var formattedInitialDate = flatpickr.formatDate(selectedDates[0], 'm/d/Y');
+            // function EffectiveDatePicker()
+            // {
+            //     flatpickr("#EffectiveDate", CalendarService.createConfig({
+            //         defaultDate:'today',
+            //         dateFormat: "d-m-Y",
+            //         onChange: function (selectedDates) {
+            //             debugger;
+            //             if (selectedDates.length > 0) {
+            //                 var formattedInitialDate = flatpickr.formatDate(selectedDates[0], 'm/d/Y');
 
-                            // Save both the raw string and formatted version if needed
-                            $('#EffectiveDateHidden').val(formattedInitialDate);
+            //                 // Save both the raw string and formatted version if needed
+            //                 $('#EffectiveDateHidden').val(formattedInitialDate);
 
-                        }
-                        else {
-                            $('#EffectiveDateHidden').val('');
+            //             }
+            //             else {
+            //                 $('#EffectiveDateHidden').val('');
 
-                        }                        
-                    }
-                }));
+            //             }                        
+            //         }
+            //     }));
 
 
-                var initialDate = $("#EffectiveDate").val();
-                if (initialDate) {
-                    var formattedInitialDate = flatpickr.formatDate(new Date(initialDate.split('-').reverse().join('-')), 'm/d/Y');
-                    //var formattedInitialDate = $.datepicker.formatDate('mm/dd/yy', $("#EffectiveDate").datepicker('getDate'));
-                    $('#EffectiveDateHidden').val(formattedInitialDate);
-                }
+            //     var initialDate = $("#EffectiveDate").val();
+            //     if (initialDate) {
+            //         var formattedInitialDate = flatpickr.formatDate(new Date(initialDate.split('-').reverse().join('-')), 'm/d/Y');
+            //         //var formattedInitialDate = $.datepicker.formatDate('mm/dd/yy', $("#EffectiveDate").datepicker('getDate'));
+            //         $('#EffectiveDateHidden').val(formattedInitialDate);
+            //     }
 
-                $(".datepicker").trigger("input");
+            //     $(".datepicker").trigger("input");
 
                 
-            }
+            // }
 
 
             

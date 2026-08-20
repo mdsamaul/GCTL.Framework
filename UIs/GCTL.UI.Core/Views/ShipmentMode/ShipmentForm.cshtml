@@ -1,0 +1,106 @@
+﻿@using GCTL.UI.Core.ViewModels
+
+<div class="card shadow-sm rounded-2">
+
+    <div class="card-body">
+        <form id="shipmentForm">
+            <input type="hidden" id="tcId" name="tcId" />
+
+            <div class="row g-3">
+
+                @* ---------- Transport Mode Type (Select + Quick Add) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "transportModeTypeId",
+                    LabelText = "Transport Mode Type",
+                    FieldType = FieldType.Select,
+                    Placeholder = "Select Transport Mode",
+                    SelectItems = ViewBag.TransportModeTypes as SelectList,
+                    ColumnClass = "col-md-6 mt-1",
+                    ShowQuickAdd = true,
+                    QuickAddUrl = Url.Action("Index", "TransportModeType"),
+                    QuickAddTarget = "#transportModeTypeId",
+                    QuickAddReloadUrl = Url.Action("GettransportModes", "Cascading"),
+                    QuickAddTitle = "Transport Mode Type"
+                })
+
+                <div class="col-md-6 mt-1"></div>
+
+                @* ---------- Expense Type ID (readonly text) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "expenseTypeId",
+                    LabelText = "Expense Type ID",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Select Expense Type",
+                    IsReadonly = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6 mt-1"
+                })
+
+                @* ---------- Expense Type (required text) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "expenseType",
+                    LabelText = "Expense Type",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Expense Type",
+                    IsRequired = true,
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6 mt-1"
+                })
+
+                @* ---------- Short Name (text) ---------- *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "shortName",
+                    LabelText = "Short Name",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Short Name",
+                    ReserveActionSlot = true,
+                    ColumnClass = "col-md-6 mt-1"
+                })
+
+            </div>
+
+
+                <div class="row g-3 mt-2">
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        ContainerId = "lDateContainer",
+                        InputId = "displayLDate",
+                        LabelText = "Creation Date",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        ColumnClass = "col-md-6 mt-1",
+                        ShowOnInit = false
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        ContainerId = "modifyDateContainer",
+                        InputId = "displayModifyDate",
+                        LabelText = "Modify Date",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        ColumnClass = "col-md-6 mt-1",
+                        ShowOnInit = false
+                    })
+
+                </div>
+
+
+            <div class="row mt-3">
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    SaveBtnClass = "saveBtn",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true,
+                    IsMarginRight=true
+                })
+            </div>
+        </form>
+    </div>
+</div>
