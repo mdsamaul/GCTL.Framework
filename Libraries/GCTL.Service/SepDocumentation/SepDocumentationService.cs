@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.SepDocumentation;
 using GCTL.Data.Models;
