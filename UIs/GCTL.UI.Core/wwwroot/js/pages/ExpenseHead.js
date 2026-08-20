@@ -50,6 +50,7 @@ function loadServiceProviderDropdown() {
         url: '/core-service-dropdown',
         method: 'GET',
         success: function (response) {
+            console.log("Service Type DD Value", response)
             let $dropdown = $('#serviceProvider');
             $dropdown.empty();
             $dropdown.append(`<option value=""> </option>`);
@@ -518,10 +519,10 @@ $(document).ready(function () {
     });
 
     // Handle print button
-    $(".printBtn").on("click", function (e) {
-        e.preventDefault();
-        printForm();
-    });
+    // $(".printBtn").on("click", function (e) {
+    //     e.preventDefault();
+    //     printForm();
+    // });
 
     // Handle favorite button
     $(".favBtn").on("click", function () {
@@ -560,7 +561,7 @@ $(document).ready(function () {
     });
 
 
-    //Report section
+    //#region Report section
 
     // PDF Export
     $(document).on('click', '.export-pdf', function (e) {
@@ -573,11 +574,12 @@ $(document).ready(function () {
         e.preventDefault();
         ExportExpenseHeadReport('excel');
     });
+    //#endregion
 });
 
 
 
-// ------------------------- Report Export -------------------------
+//#region Report Export 
 function ExportExpenseHeadReport(format) {
     let expenseTypeId = $('#expenseType').val() || '';
 
@@ -617,6 +619,7 @@ function ExportExpenseHeadReport(format) {
         }
     });
 }
+//#endregion
 
 
 

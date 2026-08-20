@@ -11,13 +11,14 @@ using System.Net.Sockets;
 
 namespace GCTL.Service.ChartOfAccounts.ControlLedger
 {
-    public class ControlLedgerService:AppService<AccSubControlLedger>, IContrlLedger
+    public class ControlLedgerService : AppService<AccSubControlLedger>, IContrlLedger
     {
         private readonly IRepository<AccSubControlLedger> _repository;
-        private readonly IRepository<AccSubControlLedger> _groupledger;
-        public ControlLedgerService(IRepository<AccSubControlLedger> genericRepository, IRepository<AccSubControlLedger> groupledger) : base(genericRepository)
+        private readonly IRepository<AccControlLedger> _groupledger;
+
+        public ControlLedgerService(IRepository<AccSubControlLedger> repository, IRepository<AccControlLedger> groupledger) : base(repository)
         {
-            _repository = genericRepository;
+            _repository = repository;
             _groupledger = groupledger;
         }
 
@@ -93,8 +94,8 @@ namespace GCTL.Service.ChartOfAccounts.ControlLedger
 
         public async Task<ControlLedgerVM> GetByIdAsync(int id)
         {
-            var data = await (from control in _repository.All() 
-                              join gro in _groupledger.All() 
+            var data = await (from control in _repository.All()
+                              join gro in _groupledger.All()
                                   on control.ControlLedgerCodeNo equals gro.ControlLedgerCodeNo
                               where control.AutoId == id
                               select new ControlLedgerVM
@@ -108,7 +109,7 @@ namespace GCTL.Service.ChartOfAccounts.ControlLedger
                                   ModifyDate = control.ModifyDate,
 
                                   // From parent (Acc_ControlLedger)
-                                  GroupLedgerName = gro.SubControlLedgerName,
+                                  GroupLedgerName = gro.ControlLedgerName,
                                   GroupLedgerShortName = gro.ShortName
                               }).FirstOrDefaultAsync();
 
@@ -182,7 +183,7 @@ namespace GCTL.Service.ChartOfAccounts.ControlLedger
         }
 
 
-        public async Task<PaginationService<AccSubControlLedger, ControlLedgerVM>.PaginationResult<ControlLedgerVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "SubControlLedgerCodeNo", string sortOrder = "desc" , string groupLedgerCode = "")
+        public async Task<PaginationService<AccSubControlLedger, ControlLedgerVM>.PaginationResult<ControlLedgerVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "SubControlLedgerCodeNo", string sortOrder = "desc", string groupLedgerCode = "")
         {
             var query = _repository.All();
 
@@ -310,28 +311,29 @@ namespace GCTL.Service.ChartOfAccounts.ControlLedger
         #region Group Ledger Dropdown
         public async Task<List<CommonChoiceVM>> GroupLedgerDropdown()
         {
-            var groupledger = await _groupledger.All().Select(e => new CommonChoiceVM {
-                Id = e.ControlLedgerCodeNo, 
-                Name = e.SubControlLedgerName,
+            var groupledger = await _groupledger.All().Select(e => new CommonChoiceVM
+            {
+                Id = e.ControlLedgerCodeNo,
+                Name = e.ControlLedgerName,
             }).ToListAsync();
 
             return groupledger;
         }
 
-        //public async Task<AccSubControlLedger> GetAllGroupLedger(string groupcode)
-        //{
-        //    var ledger = await _groupledger.All()
-        //        .Where(e => e.ControlLedgerCodeNo == groupcode)
-        //        .Select(e => new AccControlLedger
-        //        {
-        //            ControlLedgerCodeNo = e.ControlLedgerCodeNo,
-        //            ControlLedgerName = e.SubControlLedgerName,
-        //            ShortName = e.ShortName
-        //        })
-        //        .FirstOrDefaultAsync(); 
+        public async Task<AccControlLedger> GetAllGroupLedger(string groupcode)
+        {
+            var ledger = await _groupledger.All()
+                .Where(e => e.ControlLedgerCodeNo == groupcode)
+                .Select(e => new AccControlLedger
+                {
+                    ControlLedgerCodeNo = e.ControlLedgerCodeNo,
+                    ControlLedgerName = e.ControlLedgerName,
+                    ShortName = e.ShortName
+                })
+                .FirstOrDefaultAsync();
 
-        //    return ledger;
-        //}
+            return ledger;
+        }
 
         #endregion
 
@@ -364,11 +366,6 @@ namespace GCTL.Service.ChartOfAccounts.ControlLedger
                 }
             }
             return macAddress;
-        }
-
-        public Task<AccControlLedger> GetAllGroupLedger(string groupcode)
-        {
-            throw new NotImplementedException();
         }
 
 

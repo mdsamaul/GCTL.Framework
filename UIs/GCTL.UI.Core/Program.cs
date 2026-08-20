@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using QuestPDF.Infrastructure;
 using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -138,6 +140,11 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+// Quest PDF License
+QuestPDF.Settings.License = LicenseType.Community;
+ExcelPackage.License.SetNonCommercialOrganization("GCTL");
+
 var app = builder.Build();
 
 // Expose the DI service provider to the ServiceLocator for extension helpers.

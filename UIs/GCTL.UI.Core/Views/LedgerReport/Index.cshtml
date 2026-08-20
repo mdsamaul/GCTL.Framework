@@ -1,0 +1,109 @@
+﻿@using GCTL.Core.ViewModels.ChartOfAccount
+@model List<TreeLedgerReportVM>
+
+@{
+    ViewData["Title"] = "Ledger Report";
+}
+
+<style>
+    .ledger-tree ul {
+        list-style: none;
+        padding-left: 20px;
+        margin: 0;
+    }
+
+    .ledger-tree li {
+        margin: 3px 0;
+    }
+
+    .tree-toggle {
+        cursor: pointer;
+        font-weight: bold;
+        margin-right: 6px;
+        font-size: 22px;
+    }
+
+
+    .tree-label {
+        cursor: default;
+        font-weight: normal; /* default: not bold */
+        font-size: 18px;
+        color: black;
+    }
+
+    .parent-label {
+        font-weight: 600; /* parent node bold */
+        color: black; /* optional darker text */
+        font-size: 22px;
+    }
+
+    .leaf-toggle {
+        font-size: 8px; /* icon size */
+        vertical-align: middle;
+    }
+
+    .parent-toggle {
+        font-size: 14px;
+        cursor: pointer;
+        vertical-align: middle;
+    }
+
+    .ledger-tree ul ul {
+        padding-left: 20px; /* nested UL indent */
+    }
+
+</style>
+
+<div class="container mt-2">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <div class="mb-3 d-flex justify-content-center gap-lg-6">
+                @* <button id="btnListView" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-list"></i> Listview Report
+                    </button> *@
+
+                <form id="exportForm" method="post" action="/LedgerReport/Export" class="d-flex gap-2">
+                    @Html.AntiForgeryToken()
+                    <select name="format" class="form-select form-select-sm" style="width:140px;">
+                        <option value="">Listview Report</option>
+                        <option value="PDF">PDF</option>
+                        <option value="Excel">Excel</option>
+                    </select>
+
+                    <input type="hidden" name="expandedNodes" id="expandedNodes" value="" />
+
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </form>
+
+
+                <button id="btnTreeView" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-diagram-3"></i> Treeview Report
+                </button>
+
+            </div>
+
+            <div class="border rounded p-3 bg-white ledger-tree" style="min-height:300px;">
+                <ul>
+
+                    <li>
+                        <i class="bi bi-dash-square-fill parent-toggle me-1"></i>
+                        <span class="tree-label" style="font-weight:bold;font-size:22px;">Account Head</span>
+                        @Html.Partial("_RecursiveTree", Model)
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="~/js/pages/ChartOfAccount/TreeReport.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+}
