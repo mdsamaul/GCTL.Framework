@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OFRApproval;
 using GCTL.Core.ViewModels.OFRSection.OFRBillAdjust;
 using GCTL.Service.Pagination;
@@ -12,24 +13,24 @@ namespace GCTL.Service.OFRBillAdjust
         Task<OFRBillAdjustMasterVM> GetRequisitionMasterByJobNo(string jobNo);
         #endregion
         #region Get Requisition Details into Tmp Details
-        Task<bool> CopyDetailsToTmp(string jobNo, int? currentUserId, BaseViewModel model);
+        Task<bool> CopyDetailsToTmp(string jobNo, string? currentUserId, BaseViewModel model);
         #endregion
         #endregion
 
         #region Get Tmp Details All
-        Task<List<OFRBillAdjustDetailsVM>> GetAllTmpAsync(int? currentUser);
+        Task<List<OFRBillAdjustDetailsVM>> GetAllTmpAsync(string jobno, string? currentUser);
         #endregion
 
         #region Approval Bill Adjust Amount Update
-        Task<bool> SaveApprovalBillAdjustAsync(List<OFRBillAdjustDetailsSaveVM> model, int? Approveduser);
+        Task<bool> SaveApprovalBillAdjustAsync(List<OFRBillAdjustDetailsSaveVM> model, string? Approveduser);
         #endregion
 
         #region Get All Requisition for Bottom Grid
-        Task<PaginationService<OFRBillAdjustBottomGridVM, OFRBillAdjustBottomGridVM>.PaginationResult<OFRBillAdjustBottomGridVM>> GetBottomGrid(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc");
+        Task<PaginationResponse<OFRBillAdjustBottomGridVM>> GetBottomGrid(PaginationRequest request);
         #endregion
 
         #region Get All Job Requisition Entry in Top Grid
-        Task<PaginationService<OFRApprovalTopGridVM, OFRApprovalTopGridVM>.PaginationResult<OFRApprovalTopGridVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "");
+        Task<PaginationResponse<OFRApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "");
         #endregion
     }
 }

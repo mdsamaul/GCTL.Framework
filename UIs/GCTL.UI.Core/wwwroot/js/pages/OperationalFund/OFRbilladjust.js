@@ -1,10 +1,15 @@
-﻿//#region Ready Part
+//#region Ready Part
 $(document).ready(function () {
     //Load Dropdown
     InitDropdown('/OperationFund/GetEmpDD', '#Bill-Customer', 'Select Employee');
     InitDropdown('/OperationFund/GetShipemtDD', '#Bill-ShipmentMode', 'Select Shipment Mode');
+
+    $('#Bill-Customer, #Bill-ShipmentMode').on('change', function () {
+        if (jobTable) jobTable.ajax.reload();
+    });
+
     //Load Requisition List For Top Grid for Bill Adjust UI
-    RequisitionListForBilUI();
+    loadRequisitionList();
     ClearTmpDetail();
     // Set Entry Date
     $('#CreateDate').text(DateTimeBDFormate());
@@ -19,129 +24,28 @@ $(document).ready(function () {
 //#endregion
 
 //#region Grid Section
+let jobTable = null;
+let bottomTable = null;
+window.gctlRenderers = window.gctlRenderers || {};
+window.gctlRenderers.formatDate = function (data) { return formatDate(data); };
 
-//#region Global Veriable
-let BillPageNumber = 1;
-let BillSortColumn = "JobNo";
-let BillSortOrder = "desc";
-//For Bottom Grid
-let BottomPageNumber = 1;
-let BottomSortColumn = "JobNo";
-let BottomSortOrder = "desc";
-//#endregion
-
-//#region Load Requisition Entry List for Top Grid for Bill Adjust UI
-function RequisitionListForBilUI() {
-    $.ajax({
-        url: '/OFRBillAdjust/GetAllRequisitionList',
-        type: 'GET',
-        data: {
-            pageNumber: BillPageNumber,
-            pageSize: $('#Bill-PageSize').val(),
-            searchTerm: $('#Bill-SearchInput').val(),
-            sortColumn: BillSortColumn,
-            sortOrder: BillSortOrder,
-            customerid: $('#Bill-Customer').val(),
-            shipmentmodeid: $('#Bill-ShipmentMode').val()
-        },
-        success: function (res) {
-            console.log("Bill Adjust UI Top Grid Data :", res);
-            let rows = '';
-
-            if (!res.data || res.data.length === 0) {
-                rows = `
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-3">
-                                No data found
-                            </td>
-                        </tr>`;
-            } else {
-
-                $.each(res.data, function (i, item) {
-                    rows += `
-                            <tr>
-                                <td class="text-center">
-                                    <input type="radio" class="form-check-input adjust-radio" name="AdjustSelect" value="${item.jobNo}">
-                                </td>
-                                <td>${item.jobNo ?? ''}</td>
-                                <td>${item.customerName ?? ''}</td>
-                                <td class="text-center">${item.shipmentMode ?? ''}</td>
-                            </tr>`;
-                });
-            }
-
-            $('#Bill-tbody').html(rows);
-
-            buildJobPagination(res.totalCount);
-            updateJobEntryInfo(res.totalCount);
+function loadRequisitionList() {
+    jobTable = $.gctlGrid.initFromModel({
+        gridId: 'Bill-Table',
+        ajaxData: function (d) {
+            d.customerid = $('#Bill-Customer').val();
+            d.shipmentmodeid = $('#Bill-ShipmentMode').val();
         }
     });
 }
-//#endregion
 
-//#region Bottom Grid Select All Checkbox
-$(document).on('change', '#bottom-selectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.bottom-checkbox').prop('checked', isChecked);
-});
-
-// Individual checkbox change - update select all
-$(document).on('change', '.bottom-checkbox', function () {
-    const totalCheckboxes = $('.bottom-checkbox').length;
-    const checkedCheckboxes = $('.bottom-checkbox:checked').length;
-
-    $('#bottom-selectAll').prop('checked', totalCheckboxes === checkedCheckboxes);
-});
-//#endregion
-
-//#region Load Requisition Entry List for Bottom Grid
 function BottomGrid() {
-    $.ajax({
-        url: '/OFRBillAdjust/GetAllRequisitionForBottomGrid',
-        type: 'GET',
-        data: {
-            pageNumber: BottomPageNumber,
-            pageSize: $('#bottom-PageSize').val(),
-            searchTerm: $('#bottom-Search').val(),
-            sortColumn: BottomSortColumn,
-            sortOrder: BottomSortOrder,
-        },
-        success: function (res) {
-            console.log("Approval UI Bottom Grid Data :", res);
-            let rows = '';
-
-            if (!res.data || res.data.length === 0) {
-                rows = `
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-3">
-                                No data found
-                            </td>
-                        </tr>`;
-            } else {
-
-                $.each(res.data, function (i, item) {
-                    rows += `
-                            <tr>
-                                <td class="text-center">
-                                    <input type="checkbox" class="form-check-input bottom-checkbox" name="bottom-checkbox" value="${item.jobNo}">
-                                </td>
-                                <td class="text-center fw-bold text-dark">
-                                    <span class="job-no" style="cursor:pointer; text-decoration:underline;">
-                                        ${item.jobNo ?? ''}
-                                    </span>
-                                </td>
-                                <td class="text-center text-dark text-muted fs-9 fw-bold">${item.customerName ?? ''}</td>
-                                <td class="text-center text-dark text-muted fs-9 fw-bold">${item.shipmentMode ?? ''}</td>
-                            </tr>`;
-                });
-            }
-
-            $('#bottom-body').html(rows);
-            // Reset select all checkbox
-            $('#bottom-selectAll').prop('checked', false);
-            BottomPagination(res.totalCount);
-            updateBottomEntryInfo(res.totalCount);
-        }
+    if (bottomTable) {
+        bottomTable.ajax.reload();
+        return;
+    }
+    bottomTable = $.gctlGrid.initFromModel({
+        gridId: 'bottomGrid'
     });
 }
 //#endregion
@@ -409,8 +313,9 @@ $('#bottomGrid thead th[data-column]').on('click', function () {
 //#region Tmp Grid Section
 
 //#region Load Tmp Details Table with live totals
-function TmpDetailsLoad() {
-    $.get('/OFRBillAdjust/TmpDetailsBillAdjustUI', function (res) {
+function TmpDetailsLoad(jobNo) {
+    if (!jobNo) jobNo = $('#BillAdjust-JobNo').val();
+    $.get('/OFRBillAdjust/TmpDetailsBillAdjustUI', { jobNo: jobNo }, function (res) {
         const $tbody = $('#BillAdjust-Body');
         $tbody.html('');
 
@@ -491,14 +396,14 @@ function TmpDetailsLoad() {
 
             // Subtotal row
             $tbody.append(`
-                                <tr class="subtotal-row" data-service-type="${serviceType}">
-                                    <td colspan="5" class="text-end text-info fw-bold fs-8">Subtotal</td>
-                                    <td class="subtotal-req text-end fw-bold text-info fs-8">${subTotalReq.toFixed(2)}</td>
-                                    <td class="subtotal-approval text-end fw-bold text-info fs-8">${subTotalApproval.toFixed(2)}</td>
-                                    <td class="subtotal-adjust text-end fw-bold text-info fs-8">0.00</td>
-                                    <td class="subtotal-diff text-end fw-bold text-info fs-8">0.00</td>
-                                </tr>
-                                `);
+                <tr class="subtotal-row" data-service-type="${serviceType}">
+                    <td colspan="5" class="text-end fw-bold fs-8">Subtotal</td>
+                    <td class="subtotal-req text-end fw-bold fs-8">${subTotalReq.toFixed(2)}</td>
+                    <td class="subtotal-approval text-end fw-bold fs-8">${subTotalApproval.toFixed(2)}</td>
+                    <td class="subtotal-adjust text-end fw-bold fs-8">0.00</td>
+                    <td class="subtotal-diff text-end fw-bold fs-8">0.00</td>
+                </tr>
+            `);
 
         });
 
@@ -507,14 +412,14 @@ function TmpDetailsLoad() {
         const grandTotalApproval = grandTotalReq;
 
         $tbody.append(`
-                                        <tr class="grand-total-row">
-                                            <td colspan="5" class="text-end text-primary fs-8 fw-bold">Grand Total</td>
-                                            <td class="grand-total-req text-end fw-bold text-primary fs-8">${grandTotalReq.toFixed(2)}</td>
-                                            <td class="grand-total-approval text-end fw-bold text-primary fs-8">${grandTotalApproval.toFixed(2)}</td>
-                                            <td class="grand-total-adjust text-end fw-bold text-primary fs-8">0.00</td>
-                                            <td class="grand-total-diff text-end fw-bold text-primary fs-8">0.00</td>
-                                        </tr>
-                                        `);
+            <tr class="grand-total-row">
+                <td colspan="5" class="text-end fs-8 fw-bold">Grand Total</td>
+                <td class="grand-total-req text-end fw-bold fs-8">${grandTotalReq.toFixed(2)}</td>
+                <td class="grand-total-approval text-end fw-bold fs-8">${grandTotalApproval.toFixed(2)}</td>
+                <td class="grand-total-adjust text-end fw-bold fs-8">0.00</td>
+                <td class="grand-total-diff text-end fw-bold fs-8">0.00</td>
+            </tr>
+        `);
 
         recalcAdjustAndDiffTotals();
 
@@ -585,7 +490,6 @@ $(document).on('input', '.adjust-amount', function () {
 //#endregion
 
 //#region Dropdown Init Section
-//#region Dropdown Init with Choice.js
 function InitDropdown(url, selector, placeholder) {
     $.ajax({
         url: url,
@@ -598,25 +502,9 @@ function InitDropdown(url, selector, placeholder) {
             response.forEach(function (item) {
                 select.append(`<option value="${item.value}">${item.text}</option>`);
             });
-
-            // already initialized
-            if (!select.data('choices')) {
-
-                let choiceInstance = new Choices(selector, {
-                    removeItemButton: true,
-                    shouldSort: false,
-                    dropdownAutoWidth: false,
-                    placeholderValue: placeholder
-                });
-
-                // store instance in element
-                select.data('choices', choiceInstance);
-
-            }
         }
     });
 }
-//#endregion
 //#endregion
 
 //#region Clear Function Section
@@ -641,10 +529,11 @@ function ClearTmpDetail() {
 //#region Clear Function
 function ClearBillAdjustForm() {
     $('.job-radio').prop('checked', false);
+    $('input[name="AdjustSelect"]').data('waschecked', false);
     $("#BillAdjust-ReqNo,#BillAdjust-JobNo,#BillAdjust-Cutomer,#BillAdjust-invoiceNo,#BillAdjust-Qty,#BillAdjust-ReqDate,#BillAdjust-Shipment,#BillAdjust-LCValue,#BillAdjust-MatDescription,#BillAdjust-Weight, #BillAdjust-Search, #Appro-SearchInput, #BillAdjust-Port, #BillAdjust-DutyChalan, #BillAdjust-Asycoda, #BillAdjust-Shipping").val("");
     ClearTmpDetail();
-    RequisitionListForBilUI();
-    //    BottomGrid();
+    if (jobTable) jobTable.ajax.reload();
+    if (bottomTable) bottomTable.ajax.reload();
 }
 //#endregion
 
@@ -692,7 +581,7 @@ $(document).on('click', 'input[name="AdjustSelect"]', function () {
                 $("#BillAdjust-Qty").val(data.quantity);
                 $("#BillAdjust-Weight").val(data.weight);
 
-                TmpDetailsLoad();
+                TmpDetailsLoad(jobno);
 
             },
             error: function () {
@@ -771,7 +660,7 @@ $('#BillAdjust-SaveBtn').on('click', function () {
 //#region When User Click Bottom Grid job no Edit Button
 $(document).on('click', '.job-no', function () {
 
-    let jobno = $(this).text().trim();
+    let jobno = $(this).data('id') || $(this).text().trim();
 
     if (!jobno) {
         toastr.warning("Invalid Job No");
@@ -814,7 +703,7 @@ $(document).on('click', '.job-no', function () {
 
 
             // Load temp details grid
-            TmpDetailsLoad();
+            TmpDetailsLoad(jobno);
 
             toastr.success(res.message);
         },

@@ -1,11 +1,10 @@
-﻿using GCTL.Core.DataTables;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OFRApproval;
 using GCTL.Service.OFRApproval;
-using GCTL.UI.Core.Controllers;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GCTL_App.Controllers.OFRApproval
+namespace GCTL.UI.Core.Controllers
 {
     public class OFRApprovalController : BaseController
     {
@@ -26,11 +25,16 @@ namespace GCTL_App.Controllers.OFRApproval
         #endregion
 
         #region Get All Requisition List for Top Grid
+        [HttpGet]
         public async Task<IActionResult> GetAllRequisitionList(
             int draw = 1,
-            int pageNumber = 1, int pageSize = 5, string searchTerm = "",
-            string sortColumn = "JobNo", string sortOrder = "desc",
-            string customerid = "", string shipmentmodeid = "")
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "JobDate",
+            string sortOrder = "desc",
+            string customerid = "",
+            string shipmentmodeid = "")
         {
             try
             {
@@ -44,27 +48,15 @@ namespace GCTL_App.Controllers.OFRApproval
                 };
 
                 var result = await _service.GetAllRequisition(request, customerid, shipmentmodeid);
+                var hasData = result.Data?.Any() == true;
 
-                if (result.Data == null || !result.Data.Any())
+                return Ok(new
                 {
-                    return Ok(new
-                    {
-                        Data = new List<OFRApprovalTopGridVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Job Found."
-                    });
-                }
-
-                return Ok(result);
+                    draw,
+                    data = hasData ? result.Data : new List<OFRApprovalTopGridVM>(),
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = hasData ? result.FilteredCount : 0
+                });
             }
             catch (Exception ex)
             {
@@ -74,7 +66,14 @@ namespace GCTL_App.Controllers.OFRApproval
         #endregion
 
         #region Get All Requisition List for Bottom Grid
-        public async Task<IActionResult> GetAllRequisitionForTopGrid(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc")
+        [HttpGet]
+        public async Task<IActionResult> GetAllRequisitionForTopGrid(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "OFRNo",
+            string sortOrder = "desc")
         {
             try
             {
@@ -87,27 +86,15 @@ namespace GCTL_App.Controllers.OFRApproval
                     SortOrder = sortOrder
                 };
                 var result = await _service.AllRequisitionforBottomGrid(request);
+                var hasData = result.Data?.Any() == true;
 
-                if (result.Data == null || !result.Data.Any())
+                return Ok(new
                 {
-                    return Ok(new
-                    {
-                        Data = new List<OFRApprovalBottomGridVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Job Found."
-                    });
-                }
-
-                return Ok(result);
+                    draw,
+                    data = hasData ? result.Data : new List<OFRApprovalBottomGridVM>(),
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = hasData ? result.FilteredCount : 0
+                });
             }
             catch (Exception ex)
             {

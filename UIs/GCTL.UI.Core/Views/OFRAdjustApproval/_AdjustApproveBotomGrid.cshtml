@@ -1,0 +1,49 @@
+<style>
+    /* Table Header Styling */
+    .table thead th {
+        font-size: 0.85rem;
+        color: #212529;
+        background-color: #f8f9fa !important;
+        font-weight: 700 !important; /* Bold Headers */
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+
+    /* Remove Pagination Focus Outline */
+    .page-link:focus {
+        box-shadow: none;
+    }
+
+    /* Custom Scrollbar for better look */
+    .table-responsive::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 10px;
+    }
+</style>
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "bottomGrid",
+    AjaxUrl = "/OFRAdjustApproval/GetAllRequisitionForBottomGrid",
+    AjaxMethod = "GET",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "jobNo",
+    CheckAllId = "bottom-selectAll",
+    RadioName = "jobSelect",
+    DefaultSortColumn = "ofrNo",
+    DefaultSortDirection = "desc",
+    Bordered = true,
+    Columns = new()
+    {
+        new() { Data = "ofrNo", Header = "OFR No", Width = "12%", IsEditLink=true, IdField="jobNo", EditSelectorClass="job-no ofr-no-link text-decoration-underline" },
+        new() { Data = "ofrDate", Header = "OFR Date", Width = "12%", RenderFn = "formatDate" },
+        new() { Data = "jobNo", Header = "Job No", Width = "12%", Align="left", IsEditLink=true, IdField="jobNo", EditSelectorClass="job-no text-decoration-underline" },
+        new() { Data = "customerName", Header = "Customer Name", Width = "20%", Align="left" },
+        new() { Data = "billingAddress", Header = "Billing Address", Width = "24%", Align = "left" },
+        new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "20%" }
+    }
+})

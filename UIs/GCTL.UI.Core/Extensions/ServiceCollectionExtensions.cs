@@ -50,7 +50,9 @@ using GCTL.Service.MenuBreadcrumbs;
 using GCTL.Service.MenuTab;
 using GCTL.Service.ModeType;
 using GCTL.Service.Nationalitys;
+using GCTL.Service.OFRAdjustApproval;
 using GCTL.Service.OFRApproval;
+using GCTL.Service.OFRBillAdjust;
 using GCTL.Service.OpeningBalance;
 using GCTL.Service.OperationalFund;
 using GCTL.Service.PaymentModes;
@@ -249,6 +251,8 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IMenuBreadcrumbService, MenuBreadcrumbService>();
             services.AddScoped<IShipmentModeLedgerSetupService, ShipmentModeLedgerSetupService>();
             services.AddScoped<IOFRApproval, OFRApprovalService>();
+            services.AddScoped<IOFRBillAdjust, OFRBillAdjustService>();
+            services.AddScoped<IOFRAdjustApproval, OFRAdjustApprovalService>();
             services.AddMemoryCache();
         }
 

@@ -1,9 +1,10 @@
-﻿
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OFRAdjustApproval;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using Sep_Documentation = GCTL.Data.Models.SepDocumentation;
@@ -14,7 +15,6 @@ namespace GCTL.Service.OFRAdjustApproval
     public class OFRAdjustApprovalService : AppService<CfOperationalFundRequisitionEntry>, IOFRAdjustApproval
     {
         #region Service
-        //private readonly IUserInfoService _userInfoService;
         private readonly IRepository<CfOperationalFundRequisitionEntry> _repository;
         private readonly IRepository<CfOperationalFundRequisitionDetail> _details;
         private readonly IRepository<CfOperationalFundRequisitionDetailsTemp> _Tmpdetails;
@@ -26,24 +26,21 @@ namespace GCTL.Service.OFRAdjustApproval
         private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
 
-
         public OFRAdjustApprovalService
             (
                 IRepository<CfOperationalFundRequisitionEntry> genericRepository,
-                //IUserInfoService userInfoService,
                 IRepository<CfOperationalFundRequisitionEntry> repository,
-                IRepository<CfDefExpenseType> shipmentmode, 
+                IRepository<CfDefExpenseType> shipmentmode,
                 IRepository<SalesCustomer> customer,
                 IRepository<Sep_Documentation> documentation,
-                IRepository<CfOperationalFundRequisitionDetail> details, 
+                IRepository<CfOperationalFundRequisitionDetail> details,
                 IRepository<CfDefExpenseHead> accountsHead,
                 IRepository<Core_ServiceType> serviceType,
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails,
-                IRepository<AccSubSubsidiaryLedger> generalLedger, 
+                IRepository<AccSubSubsidiaryLedger> generalLedger,
                 IRepository<Sep_Documentation> sepDocumentation
             ) : base(genericRepository)
         {
-            //_userInfoService = userInfoService;
             _repository = repository;
             _shipmentmode = shipmentmode;
             _customer = customer;
@@ -60,64 +57,77 @@ namespace GCTL.Service.OFRAdjustApproval
         #region Grid Section
 
         #region Get All Requisition for Bottom Grid
-        public async Task<PaginationService<OFRAdjustApprovalBottomGridVM, OFRAdjustApprovalBottomGridVM>.PaginationResult<OFRAdjustApprovalBottomGridVM>> AllRequisitionforBottomGrid(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc")
+        public async Task<PaginationResponse<OFRAdjustApprovalBottomGridVM>> AllRequisitionforBottomGrid(PaginationRequest request)
         {
             var query = from main in _repository.All()
                         join doc in _documentation.All()
                             on main.JobNo equals doc.JobNo
                         join cust in _customer.All()
-                            on doc.CustomerId equals cust.CustomerId
+                            on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
                         join exp in _shipmentmode.All()
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
+                        where !string.IsNullOrEmpty(main.BillAdjustApprovalUser)
                         select new OFRAdjustApprovalBottomGridVM
                         {
                             TC = main.Tc,
+                            OFRNo = main.Ofrno,
+                            OFRDate = main.Ofrdate,
                             JobNo = main.JobNo,
-                            CustomerID = cust.CustomerId,
-                            CustomerName = cust.CustomerName,
-                            ShipmentModeID = exp.ExpenseTypeId,
-                            ShipmentMode = exp.ExpenseType
+                            CustomerID = cust != null ? cust.CustomerId : "",
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            BillingAddress = cust != null ? cust.CustomerAddress : "",
+                            ShipmentModeID = exp != null ? exp.ExpenseTypeId : "",
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            // PaginationService
-            var paginatedResult = await PaginationService<OFRAdjustApprovalBottomGridVM, OFRAdjustApprovalBottomGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
-                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
-                    ob => ob
-             );
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(OFRAdjustApprovalBottomGridVM.OFRNo);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
 
-            return paginatedResult;
+            return await PaginationService<OFRAdjustApprovalBottomGridVM>.GetPaginatedData(query, request);
         }
         #endregion
 
         #region Get All Requisition Entry in Top Grid
-        public async Task<PaginationService<OFRAdjustApprovalTopGridVM, OFRAdjustApprovalTopGridVM>.PaginationResult<OFRAdjustApprovalTopGridVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
+        public async Task<PaginationResponse<OFRAdjustApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "")
         {
             var query = from main in _repository.All()
                         join doc in _documentation.All()
                             on main.JobNo equals doc.JobNo
                         join cust in _customer.All()
-                            on doc.CustomerId equals cust.CustomerId
+                            on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
                         join exp in _shipmentmode.All()
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
+                        where string.IsNullOrEmpty(main.BillAdjustApprovalUser)
                         select new OFRAdjustApprovalTopGridVM
                         {
                             TC = main.Tc,
                             JobNo = main.JobNo,
-                            CustomerID = cust.CustomerId,
-                            CustomerName = cust.CustomerName,
-                            ShipmentModeID = exp.ExpenseTypeId,
-                            ShipmentMode = exp.ExpenseType
+                            JobDate = doc.Date,
+                            DocReceivedDate = doc.DocReceivedDate,
+                            CustomerID = doc.CustomerId,
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            CustomerAddress = cust != null ? cust.CustomerAddress : "",
+                            Invoice = doc.InvoiceNo,
+                            BENo = doc.Beno,
+                            ShipmentModeID = doc.ExpenseTypeId,
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
-            //Filtering with Customer ID
+
+            int a = await query.CountAsync();
+
+            // Filtering with Customer ID
             if (!string.IsNullOrEmpty(customerid))
             {
                 query = query.Where(x => x.CustomerID == customerid);
@@ -127,27 +137,26 @@ namespace GCTL.Service.OFRAdjustApproval
             {
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
             }
-            if (pageSize == -1)
+
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            // PaginationService
-            var paginatedResult = await PaginationService<OFRAdjustApprovalTopGridVM, OFRAdjustApprovalTopGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
-                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
-                    ob => ob
-             );
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(OFRAdjustApprovalTopGridVM.JobDate);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
 
-            return paginatedResult;
+            var result = await PaginationService<OFRAdjustApprovalTopGridVM>.GetPaginatedData(query, request);
+            result.TotalCount = a;
+            return result;
         }
         #endregion
         #endregion
 
-        #region When User Checked on radion then fill input fields and Detaisl data Copied to Tmp Details
+        #region When User Checked on radio then fill input fields and Details data Copied to Tmp Details
         #region Get Requisition Info in Input fields
         public async Task<OFRAdjustApprovalMasterVM> GetRequisitionMasterByJobNo(string jobNo)
         {
@@ -163,12 +172,12 @@ namespace GCTL.Service.OFRAdjustApproval
                             OFRNo = ofr.Ofrno,
                             JobNo = ofr.JobNo,
                             OFRDate = ofr.Ofrdate,
-                            CustomerID = cust.CustomerId,
-                            CustomerName = cust.CustomerName ?? "",
+                            CustomerID = cust != null ? cust.CustomerId : "",
+                            CustomerName = cust != null ? cust.CustomerName : "",
                             InvoiceNo = doc.InvoiceNo,
                             Quantity = doc.Quntity1,
-                            ShipmentModeID = expType.ExpenseTypeId,
-                            ShipmentMode = expType.ExpenseType,
+                            ShipmentModeID = expType != null ? expType.ExpenseTypeId : "",
+                            ShipmentMode = expType != null ? expType.ExpenseType : "",
                             LCValue = doc.Lcvalue,
                             MaterialDescription = doc.MaterialDescription,
                             Weight = doc.Quntity2
@@ -179,7 +188,7 @@ namespace GCTL.Service.OFRAdjustApproval
         #endregion
 
         #region Get Requisition Details into Tmp Details
-        public async Task<bool> CopyDetailsToTmp(string jobNo, int? currentUserId, BaseViewModel model)
+        public async Task<bool> CopyDetailsToTmp(string jobNo, string? currentUserId, BaseViewModel model)
         {
             var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
 
@@ -197,14 +206,15 @@ namespace GCTL.Service.OFRAdjustApproval
                 ActualAmount = d.ActualAmount,
                 DifferentAmount = d.DifferentAmount,
                 BillAdjustAmount = d.BillAdjustAmount,
-                Luser = currentUserId?.ToString(),
+                Luser = currentUserId,
                 Ldate = DateTime.Now,
                 Lmac = model.Lmac,
                 Lip = model.Lip,
                 CompanyCode = d.CompanyCode,
-                EmployeeId = currentUserId.ToString(),
+                EmployeeId = currentUserId,
                 ExpenseHeadRemarks = d.ExpenseHeadRemarks
             }).ToList();
+
             if (tmpDetails == null || !tmpDetails.Any())
             {
                 throw new InvalidOperationException("Failed to map details to temporary table");
@@ -216,7 +226,7 @@ namespace GCTL.Service.OFRAdjustApproval
         #endregion
 
         #region Get All Tmp Details
-        public async Task<List<OFRAdjustApprovalDetailsVM>> GetDetailsWithCashBank(string jobno, int? userId)
+        public async Task<List<OFRAdjustApprovalDetailsVM>> GetDetailsWithCashBank(string jobno, string? userId)
         {
             var result = await (from tmp in _Tmpdetails.All()
                                 join head in _accountsHead.All()
@@ -225,7 +235,7 @@ namespace GCTL.Service.OFRAdjustApproval
                                     on tmp.ServiceTypeId equals serv.ServiceTypeId
                                 join ofrDet in _details.All()   // Original table for Cash/Bank
                                     on tmp.OfrDetailsId equals ofrDet.OfrDetailsId
-                                where tmp.Luser == userId.ToString() && tmp.JobNo == jobno
+                                where tmp.Luser == userId && tmp.JobNo == jobno
                                 orderby tmp.Tc
                                 select new OFRAdjustApprovalDetailsVM
                                 {
@@ -246,43 +256,22 @@ namespace GCTL.Service.OFRAdjustApproval
 
             return result;
         }
-
-        //public async Task<List<OFRAdjustApprovalDetailsVM>> GetAllTmpAsync(int? currentUser)
-        //{
-        //    var result = await (from tmp in _Tmpdetails.All()
-        //                        join head in _accountsHead.All()
-        //                            on tmp.ExpenseHeadID equals head.ExpenseHeadID
-        //                            into headJoin
-        //                        from head in headJoin.DefaultIfEmpty()
-        //                        join serv in _serviceType.All()
-        //                      on tmp.ServiceTypeID equals serv.ServiceTypeID
-        //                      into servicJoin
-        //                        from servic in servicJoin.DefaultIfEmpty()
-        //                        where tmp.LUser == currentUser.ToString()
-        //                        orderby tmp.TC
-
-        //                        select new OFRAdjustApprovalDetailsVM
-        //                        {
-        //                            Tc = tmp.TC,
-        //                            OFRDetailsID = tmp.OFR_DetailsID,
-        //                            SerialNo = head.SerialNo,
-        //                            AccountHeadName = head.ExpenseHead,
-        //                            IsReceivetable = head.IsReceiptable,
-        //                            ServiceTypeName = servic.ServiceTypeName,
-        //                            Amount = tmp.EstimatedAmount,
-        //                            ApprovalAmount = tmp.ActualAmount,
-        //                            AdjustAmount = tmp.BillAdjustAmount,
-        //                            DiffentAmount = tmp.DifferentAmount,
-        //                            Remark = tmp.ExpenseHeadRemarks
-        //                        }).ToListAsync();
-
-        //    return result;
-        //}
-
         #endregion
 
-        #region Approval  Adjust Amount Update
-        public async Task<bool> SaveAdjustApprovalAsync(List<OFRAdjustApprovalDetailsSaveVM> model, int? Approveduser)
+        #region Bank Account Dropdown
+        public async Task<IEnumerable<SelectListItem>> GetBankAccount(string value)
+        {
+            return await _generalLedger.All().Where(e => e.SubsidiaryLedgerCodeNo == value)
+                .Select(e => new SelectListItem
+                {
+                    Value = e.SubSusidiaryLedgerCodeNo.ToString(),
+                    Text = e.SubSubsidiaryLedgerName
+                }).ToListAsync();
+        }
+        #endregion
+
+        #region Approval Adjust Amount Update
+        public async Task<bool> SaveAdjustApprovalAsync(List<OFRAdjustApprovalDetailsSaveVM> model, string? Approveduser)
         {
             if (model == null || !model.Any()) return false;
 
@@ -299,12 +288,13 @@ namespace GCTL.Service.OFRAdjustApproval
 
                 // Header-level Cash/Bank (first non-empty from details)
                 entry.CashBank2 = model.Select(x => x.CashBank).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
-
                 entry.BankAccount2 = model.Select(x => x.BankAcount).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+                entry.BillAdjustApprovalUser = Approveduser;
+                entry.BillAdjustApproveDate = DateTime.Now;
 
                 await _repository.UpdateAsync(entry);
 
-                //DETAILS UPDATE (ROW-WISE)
+                // DETAILS UPDATE (ROW-WISE)
                 foreach (var item in model)
                 {
                     var details = await _details.All().FirstOrDefaultAsync(x => x.OfrDetailsId == item.OFR_DetailsID && x.Ofrno == ofrNo);
@@ -317,12 +307,13 @@ namespace GCTL.Service.OFRAdjustApproval
                     // Row-wise Cash / Bank
                     details.AdjustDetailsCashBank = item.CashBank;
                     details.AdjustDetailsBankAccount = item.BankAcount;
+                    details.AdjustUser = Approveduser;
 
                     await _details.UpdateAsync(details);
                 }
 
-                //TEMP DATA CLEANUP
-                var tmpToDelete = await _Tmpdetails.All().Where(x => x.Ofrno == ofrNo && x.Luser == Approveduser.ToString()).ToListAsync();
+                // TEMP DATA CLEANUP
+                var tmpToDelete = await _Tmpdetails.All().Where(x => x.Ofrno == ofrNo && x.Luser == Approveduser).ToListAsync();
 
                 foreach (var tmp in tmpToDelete)
                 {
@@ -339,8 +330,6 @@ namespace GCTL.Service.OFRAdjustApproval
                 return false;
             }
         }
-
-
         #endregion
     }
 }

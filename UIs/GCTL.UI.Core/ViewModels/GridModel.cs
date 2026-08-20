@@ -1,4 +1,4 @@
-﻿namespace GCTL.UI.Core.ViewModels
+namespace GCTL.UI.Core.ViewModels
 {
     public class GridColumn
     {
@@ -14,6 +14,9 @@
         public bool IsEditLink { get; set; } = false;
         public string? EditSelectorClass { get; set; }   // CSS class applied to the <a>, e.g. "edit-job-btn"
         public string? EditLabel { get; set; }
+        public string? SortField { get; set; }      // IF need to sort based on another column, not base column
+        public string? IdField { get; set; }             // Field name to use for data-id attribute (defaults to Data if null)
+        public List<string>? DataAttributes { get; set; } // Additional data-* attribute field names to attach to edit link <a>
         public bool IsWrapable { get; set; } = true;
         public string CssClass => Align switch
         {

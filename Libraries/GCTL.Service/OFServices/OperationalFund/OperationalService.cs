@@ -1,4 +1,4 @@
-﻿
+
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
@@ -13,6 +13,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Core_ServiceType = GCTL.Data.Models.CoreServiceType;
 using Sep_Documentation = GCTL.Data.Models.SepDocumentation;
+
 namespace GCTL.Service.OperationalFund
 {
     public class OperationalService : AppService<CfOperationalFundRequisitionEntry>, Ioperational
@@ -64,6 +65,10 @@ namespace GCTL.Service.OperationalFund
                             on d.ExpenseTypeId equals e.ExpenseTypeId into ee
                         from e in ee.DefaultIfEmpty()
 
+                        join cash in _currencies.All()
+                            on d.InvoiceCurrencyId equals cash.CurrencyId into cashG
+                        from cash in cashG.DefaultIfEmpty()
+
                             //MAIN CONDITION
                         where r == null
 
@@ -75,6 +80,10 @@ namespace GCTL.Service.OperationalFund
 
                             CustomerID = d.CustomerId,
                             Customer = c != null ? c.CustomerName : "",
+                            CustomerAddress = c != null ? c.CustomerAddress : "",
+
+                            Invoice = d.InvoiceNo,
+                            BENo = d.Beno,
 
                             ShipmentModeID = e != null ? e.ExpenseTypeId : "",
                             ShipmentMode = e != null ? e.ExpenseType : ""
@@ -93,7 +102,9 @@ namespace GCTL.Service.OperationalFund
             }
 
             if (string.IsNullOrEmpty(request.SortColumn))
-                request.SortColumn = nameof(JobEntryListVM.JobNo);
+                request.SortColumn = nameof(JobEntryListVM.JobDate);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
             try
             {
                 var result = await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
@@ -105,7 +116,7 @@ namespace GCTL.Service.OperationalFund
 
                 throw;
             }
-            
+
         }
 
         public async Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
