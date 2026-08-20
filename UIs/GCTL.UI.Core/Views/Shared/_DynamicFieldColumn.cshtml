@@ -6,8 +6,11 @@
     Full support for:
     - LabelInline (true = same line, false = label on top)
     - LabelColWidth
-    - LabelCssClass          → <label> tag-এর উপর class
+    - LabelCssClass         → <label> tag-এর উপর class
     - LabelColumnClass       → LabelInline=true হলে col-* div-এর উপর class
+    - CustomStyle           → Container div-এর উপর inline CSS style
+    - LabelStyle            → <label> / <span> tag-এর উপর inline CSS style
+    - InputStyle            → Input / Select / Textarea-এর উপর inline CSS style
     ============================================================
 *@
 
@@ -25,12 +28,13 @@
 
     var styleAttr = Model.ShowOnInit ? "" : "display:none;";
     var orderAttr = Model.Order.HasValue ? $"order:{Model.Order.Value};" : "";
+    var customContainerStyle = !string.IsNullOrEmpty(Model.CustomStyle) ? Model.CustomStyle : "";
+    var fullContainerStyle = $"{styleAttr}{orderAttr}{customContainerStyle}";
 
     bool needsActionColumn = Model.ShowQuickAdd || Model.ShowCopyIcon || Model.ReserveActionSlot;
     int labelCol = Model.LabelColWidth > 0 ? Model.LabelColWidth : 4;
     int fieldCol = 12 - labelCol;
 
-    // Label-এর class (inline + stacked দুই জায়গাতেই ব্যবহার হবে)
     var labelClass = Model.LabelInline ? "form-label mb-0" : "form-label";
     if (!string.IsNullOrEmpty(Model.LabelCssClass))
     {
@@ -39,7 +43,7 @@
 
     <div class="@wrapperClasses"
          id="@Model.ContainerId"
-         style="@styleAttr@orderAttr"
+         style="@fullContainerStyle"
         @if (!string.IsNullOrEmpty(Model.DataBindField))
         {
             <text> data-bind-field="@Model.DataBindField" </text>
@@ -60,7 +64,7 @@
                     {
                         <div class="row align-items-center gx-2">
                             <div class="col-@labelCol @Model.LabelColumnClass">
-                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                                     @if (!string.IsNullOrEmpty(Model.IconClass))
                                     {
                                         <i class="@Model.IconClass me-1"></i>
@@ -79,7 +83,7 @@
                     }
                     else
                     {
-                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                             @if (!string.IsNullOrEmpty(Model.IconClass))
                             {
                                 <i class="@Model.IconClass me-1"></i>
@@ -101,7 +105,7 @@
                     {
                         <div class="row align-items-center gx-2">
                             <div class="col-@labelCol @Model.LabelColumnClass">
-                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                                     @if (!string.IsNullOrEmpty(Model.IconClass))
                                     {
                                         <i class="@Model.IconClass me-1"></i>
@@ -127,6 +131,7 @@
                                                    readonly="@Model.IsReadonly"
                                                    disabled="@Model.IsDisabled"
                                                    autofocus="@Model.AutoFocus"
+                                                   style="@Model.InputStyle"
                                                    data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
                                         </div>
                                         @if (Model.ShowCopyIcon)
@@ -165,6 +170,7 @@
                                            readonly="@Model.IsReadonly"
                                            disabled="@Model.IsDisabled"
                                            autofocus="@Model.AutoFocus"
+                                           style="@Model.InputStyle"
                                            data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
                                 }
                                 <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
@@ -173,7 +179,7 @@
                     }
                     else
                     {
-                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                             @if (!string.IsNullOrEmpty(Model.IconClass))
                             {
                                 <i class="@Model.IconClass me-1"></i>
@@ -198,6 +204,7 @@
                                            readonly="@Model.IsReadonly"
                                            disabled="@Model.IsDisabled"
                                            autofocus="@Model.AutoFocus"
+                                           style="@Model.InputStyle"
                                            data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
                                 </div>
                                 @if (Model.ShowCopyIcon)
@@ -236,6 +243,7 @@
                                    readonly="@Model.IsReadonly"
                                    disabled="@Model.IsDisabled"
                                    autofocus="@Model.AutoFocus"
+                                   style="@Model.InputStyle"
                                    data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
                         }
                         <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
@@ -249,7 +257,7 @@
                     {
                         <div class="row align-items-center gx-2">
                             <div class="col-@labelCol @Model.LabelColumnClass">
-                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                                     @if (!string.IsNullOrEmpty(Model.IconClass))
                                     {
                                         <i class="@Model.IconClass me-1"></i>
@@ -269,7 +277,7 @@
                                                   id="@Model.InputId" name="@Model.ResolvedInputName"
                                                   rows="@Model.Rows" placeholder="@Model.Placeholder"
                                                   readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
-                                                  maxlength="@Model.MaxLength">@Model.DefaultValue</textarea>
+                                                  maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
                                         @if (Model.ShowCopyIcon)
                                         {
                                             <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
@@ -301,7 +309,7 @@
                                               id="@Model.InputId" name="@Model.ResolvedInputName"
                                               rows="@Model.Rows" placeholder="@Model.Placeholder"
                                               readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
-                                              maxlength="@Model.MaxLength">@Model.DefaultValue</textarea>
+                                              maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
                                 }
                                 <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
                             </div>
@@ -309,7 +317,7 @@
                     }
                     else
                     {
-                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                             @if (!string.IsNullOrEmpty(Model.IconClass))
                             {
                                 <i class="@Model.IconClass me-1"></i>
@@ -328,7 +336,7 @@
                                           id="@Model.InputId" name="@Model.ResolvedInputName"
                                           rows="@Model.Rows" placeholder="@Model.Placeholder"
                                           readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
-                                          maxlength="@Model.MaxLength">@Model.DefaultValue</textarea>
+                                          maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
                                 @if (Model.ShowCopyIcon)
                                 {
                                     <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
@@ -360,7 +368,7 @@
                                       id="@Model.InputId" name="@Model.ResolvedInputName"
                                       rows="@Model.Rows" placeholder="@Model.Placeholder"
                                       readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
-                                      maxlength="@Model.MaxLength">@Model.DefaultValue</textarea>
+                                      maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
                         }
                         <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
                     }
@@ -375,7 +383,7 @@
                     {
                         <div class="row align-items-center gx-2">
                             <div class="col-@labelCol @Model.LabelColumnClass">
-                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                                     @if (!string.IsNullOrEmpty(Model.IconClass))
                                     {
                                         <i class="@Model.IconClass me-1"></i>
@@ -403,6 +411,7 @@
                                                     data-depends-on="@Model.DependsOnFieldId"
                                                     multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
                                                     disabled="@Model.IsDisabled"
+                                                    style="@Model.InputStyle"
                                                     asp-items="Model.SelectItems">
                                                 <option value="">@Model.Placeholder</option>
                                             </select>
@@ -446,6 +455,7 @@
                                                 data-depends-on="@Model.DependsOnFieldId"
                                                 multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
                                                 disabled="@Model.IsDisabled"
+                                                style="@Model.InputStyle"
                                                 asp-items="Model.SelectItems">
                                             <option value="">@Model.Placeholder</option>
                                         </select>
@@ -457,7 +467,7 @@
                     }
                     else
                     {
-                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip">
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                             @if (!string.IsNullOrEmpty(Model.IconClass))
                             {
                                 <i class="@Model.IconClass me-1"></i>
@@ -484,6 +494,7 @@
                                             data-depends-on="@Model.DependsOnFieldId"
                                             multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
                                             disabled="@Model.IsDisabled"
+                                            style="@Model.InputStyle"
                                             asp-items="Model.SelectItems">
                                         <option value="">@Model.Placeholder</option>
                                     </select>
@@ -527,6 +538,7 @@
                                         data-depends-on="@Model.DependsOnFieldId"
                                         multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
                                         disabled="@Model.IsDisabled"
+                                        style="@Model.InputStyle"
                                         asp-items="Model.SelectItems">
                                     <option value="">@Model.Placeholder</option>
                                 </select>
@@ -545,8 +557,9 @@
                                id="@Model.InputId"
                                name="@Model.ResolvedInputName"
                                checked="@Model.CheckedState"
-                               disabled="@Model.IsDisabled" />
-                        <label class="form-check-label @Model.LabelCssClass" for="@Model.InputId">
+                               disabled="@Model.IsDisabled"
+                               style="@Model.InputStyle" />
+                        <label class="form-check-label @Model.LabelCssClass" for="@Model.InputId" style="@Model.LabelStyle">
                             @Model.LabelText
                             @if (Model.IsRequired)
                             {
@@ -559,7 +572,7 @@
                 @* ============ RADIO ============ *@
                 else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Radio && Model.RadioOptions != null)
                 {
-                    <label class="@labelClass" title="@Model.Tooltip">
+                    <label class="@labelClass" title="@Model.Tooltip" style="@Model.LabelStyle">
                         @Model.LabelText
                         @if (Model.IsRequired)
                         {
@@ -576,8 +589,9 @@
                                        id="@(Model.InputId + "_" + opt.Value)"
                                        value="@opt.Value"
                                        checked="@opt.Selected"
-                                       disabled="@Model.IsDisabled" />
-                                <label class="form-check-label" for="@(Model.InputId + "_" + opt.Value)">@opt.Text</label>
+                                       disabled="@Model.IsDisabled"
+                                       style="@Model.InputStyle" />
+                                <label class="form-check-label" for="@(Model.InputId + "_" + opt.Value)" style="@Model.LabelStyle">@opt.Text</label>
                             </div>
                         }
                     </div>
@@ -590,18 +604,18 @@
                     {
                         <div class="row align-items-center gx-2">
                             <div class="col-@labelCol @Model.LabelColumnClass">
-                                <span class="fw-semibold @Model.LabelCssClass">@Model.LabelText</span>
+                                <span class="fw-semibold @Model.LabelCssClass" style="@Model.LabelStyle">@Model.LabelText</span>
                             </div>
                             <div class="col-@fieldCol">
-                                <span id="@Model.InputId" class="text-muted">@Model.DefaultValue</span>
+                                <span id="@Model.InputId" class="text-muted" style="@Model.InputStyle">@Model.DefaultValue</span>
                             </div>
                         </div>
                     }
                     else
                     {
                         <div class="d-flex align-items-center gap-2">
-                            <span class="fw-semibold @Model.LabelCssClass">@Model.LabelText</span>
-                            <span id="@Model.InputId" class="text-muted">@Model.DefaultValue</span>
+                            <span class="fw-semibold @Model.LabelCssClass" style="@Model.LabelStyle">@Model.LabelText</span>
+                            <span id="@Model.InputId" class="text-muted" style="@Model.InputStyle">@Model.DefaultValue</span>
                         </div>
                     }
                 }

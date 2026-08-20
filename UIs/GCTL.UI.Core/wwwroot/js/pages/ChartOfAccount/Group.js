@@ -101,7 +101,7 @@ function SaveOrUpdateGroupLedger() {
                         ModalLoadGroupLedger(1, ModalpageSize, ModalcurrentSortColumn, ModalcurrentSortDirection);
                         ModalLoadNextGroupLedgerCode();
                         ModalSubSidiaryForGeneralUI();
-                        ModalLoadDropdownGRLCRL();
+                        // ModalLoadDropdownGRLCRL();
                     } else {
                         toastr.error(response.message || "Operation Failed!");
                         console.error('Error saving Group Ledger :', response);
@@ -484,10 +484,17 @@ $(document).ready(function () {
 
 
     //Handle Save Or Update Button Handle
-    $(document).on("submit", "#groupForm", function (e) {
+    $(document).on("submit", "#groupForm, .saveBtn", function (e) {
+        debugger
           e.preventDefault();
           SaveOrUpdateGroupLedger();
      });
+
+    $(document).on("click", ".saveBtn, .js-GroupLedger-save", function (e) {
+        e.preventDefault();
+        SaveOrUpdateGroupLedger();
+    });
+
 
     // Handle Delete Button
     $(document).on("click", ".deleteBtn", function (e) {

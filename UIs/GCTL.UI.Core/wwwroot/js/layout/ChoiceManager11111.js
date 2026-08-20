@@ -1,7 +1,7 @@
 ﻿//#region  Example Section
 
 
-//<select class="form-select choiceDD" asp-for="LicenceTypeID" asp-items="@ViewBag.LicenseTypeDD as SelectList">
+//<select class="form-select custom-select-single" asp-for="LicenceTypeID" asp-items="@ViewBag.LicenseTypeDD as SelectList">
 //    <option value="">@Html.SmartLocalize("Select License Type")</option>
 //</select>
 
@@ -53,7 +53,7 @@ const deb = false
 //#region Unversal Choice Version 3
 
 class UniversalChoices {
-    constructor(className = 'choiceDD') {
+    constructor(className = 'custom-select-single') {
         this.className = className;
         this.instances = {};
         this.defaultConfig = {
@@ -173,8 +173,8 @@ class UniversalChoices {
     // choiceManager.resetAllChoices()
 
     resetAllChoices() {
-        // Find all select elements with class 'choiceDD'
-        const selects = document.querySelectorAll("select.choiceDD");
+        // Find all select elements with class 'custom-select-single'
+        const selects = document.querySelectorAll("select.custom-select-single");
 
         selects.forEach(selectElement => {
             const id = selectElement.id || "(no id)";
@@ -883,7 +883,7 @@ choiceXA.reset('myDropdown');
 //#region Unversal Choice Version 2
 
 //class UniversalChoices {
-//    constructor(className = 'choiceDD') {
+//    constructor(className = 'custom-select-single') {
 //        this.className = className;
 //        this.instances = {};
 //        this.defaultConfig = {
@@ -961,7 +961,7 @@ choiceXA.reset('myDropdown');
 //#region Universal Choices Dropdown Manager
 
 //class UniversalChoices {
-//    constructor(className = 'choiceDD') {
+//    constructor(className = 'custom-select-single') {
 
 //        this.className = className;
 //        this.instances = {};
