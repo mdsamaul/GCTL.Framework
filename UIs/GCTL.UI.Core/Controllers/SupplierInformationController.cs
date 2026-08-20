@@ -35,7 +35,25 @@ namespace GCTL.UI.Core.Controllers
 
         string strMaxNO = string.Empty;
 
-        public SupplierInformationController(ISupplierInformationService supplierInformationService, IRepository<CoreAccessCode> accessCodeRepository, ICommonService commonService, IRepository<InvDefSupplierOrigin> supplierInformationOriginRepository, IRepository<InvDefSupplierType> supplierInformationTypeRepository, IRepository<InvDefSupplierCategory> supplierInformationCategoryRepository, IRepository<InvDefCompanyInfo> supplierInformationCoreCompanyRepository, IRepository<CaDefCountry> caDefCountryRepository, IRepository<SalesContactPerson> salesContactPersonRepository, IRepository<SalesDefBankInfo> salesDefBankInfoRepository, IRepository<SalesDefBankBranchInfo> salesDefBankBranchInfoRepository, IRepository<CoreBankAccountInformation> salesDefBankAccountInformationRepository, IRepository<SalesSupplierBankAccountTemp> salesSupplierBankAccountTempRepository, IRepository<RmgDefSupplier> supplierInformationRepository, IRepository<InvDefSalesPerson> invDefSalesPersonRepository, IRepository<HrmDefDesignation> hrmDesignationRepository)
+        public SupplierInformationController(
+            ISupplierInformationService supplierInformationService,
+            IRepository<CoreAccessCode> accessCodeRepository,
+            ICommonService commonService,
+            IRepository<InvDefSupplierOrigin> supplierInformationOriginRepository,
+            IRepository<InvDefSupplierType> supplierInformationTypeRepository, 
+            IRepository<InvDefSupplierCategory> supplierInformationCategoryRepository,
+            IRepository<InvDefCompanyInfo> supplierInformationCoreCompanyRepository,
+            IRepository<CaDefCountry> caDefCountryRepository,
+            IRepository<SalesContactPerson> salesContactPersonRepository,
+            IRepository<SalesDefBankInfo> salesDefBankInfoRepository,
+            IRepository<SalesDefBankBranchInfo> salesDefBankBranchInfoRepository,
+            IRepository<CoreBankAccountInformation> salesDefBankAccountInformationRepository,
+            IRepository<SalesSupplierBankAccountTemp> salesSupplierBankAccountTempRepository,
+            IRepository<RmgDefSupplier> supplierInformationRepository,
+            IRepository<InvDefSalesPerson> invDefSalesPersonRepository,
+            IRepository<HrmDefDesignation> hrmDesignationRepository
+            
+            )
         {
             this.supplierInformationService = supplierInformationService;
             this.accessCodeRepository = accessCodeRepository;

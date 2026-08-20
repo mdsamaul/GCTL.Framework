@@ -13,7 +13,7 @@ namespace GCTL.Core.ViewModels.SupplierInformation
         public decimal? Tc { get; set; } = 0;
         public string? SupplierId { get; set; }
         [Required(ErrorMessage = "Supplier Name is required")]
-        public string? SupplierName { get; set; }
+        public string SupplierName { get; set; }
         public string? SupplierTitle { get; set; }
         public string? SupplierCode { get; set; }
         public string? SupplierCategoryId { get; set; }
