@@ -8,7 +8,7 @@
         Title = "Sub-Sidiary Ledger",
         ShowSave = true,
         SaveBtnId = "btnSave",
-        SaveBtnClass = "js-SubSidiary-save saveBtn",
+        SaveBtnClass = "js-SubSidiary-save",
         EnableSave = true,
 
         ShowDelete = true,
@@ -222,10 +222,13 @@
                         ShowOnInit = true,
                         ColumnClass = "col-md-6",
                         FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "SubSidiaryldisplayLDate",
-                        LabelText = "Entry Date :",
+                        InputId = "EntryDate",
+                        LabelText = "Entry Date:",
                         LabelInline = true,
-                        LabelColWidth = 4
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
                     })
 
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -234,19 +237,32 @@
                         ShowOnInit = true,
                         ColumnClass = "col-md-6",
                         FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "SubSidiarydisplayModifyDate",
-                        LabelText = "Last Update Date :",
+                        InputId = "UpdateDate",
+                        LabelText = "Last Update Date:",
                         LabelInline = true,
-                        LabelColWidth = 4
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
                     })
                 </div>
 
                 @* Bottom Save Button *@
-                <div class="row mt-3">
-                    <div class="col-12 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-outline-primary btn-sm saveBtn">
-                            <i class="fas fa-save me-1"></i> Save
-                        </button>
+                <div class="row no-print" style="margin-top: 9px;">
+                    <div class="col-12">
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
+                        {
+                            Title = "",
+                            ShowClear = false,
+                            ShowDelete = false,
+                            ShowPrint = false,
+                            ShowFavorite = false,
+                            IsPlain = true,
+                            ReserveActionSlot = true,
+                            IsMarginRight = true,
+                            SaveBtnType = "submit"
+
+                        })
                     </div>
                 </div>
 

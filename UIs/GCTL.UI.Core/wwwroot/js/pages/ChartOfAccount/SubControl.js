@@ -586,6 +586,10 @@ $(document).ready(function () {
         e.preventDefault();
         SubControlLedgerSaveOrUpdate();
     });
+    $(document).on("click", ".js-SubControl-save", function (e) {
+        e.preventDefault();
+        SubControlLedgerSaveOrUpdate();
+    });
 
     $(document).on("click", "#SubcontroldeleteBtn, .js-SubControl-delete-confirm", function (e) {
         e.preventDefault();

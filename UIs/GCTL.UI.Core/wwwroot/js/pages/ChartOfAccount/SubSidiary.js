@@ -673,6 +673,10 @@ $(document).ready(function () {
         e.preventDefault();
         SubSidiaryLedgerSaveOrUpdate();
     });
+    $(document).on("click", ".js-SubSidiary-save", function (e) {
+        e.preventDefault();
+        SubSidiaryLedgerSaveOrUpdate();
+    });
 
     $(document).on("click", "#SubSidiarydeleteBtn, .js-SubSidiary-delete-confirm", function (e) {
         e.preventDefault();

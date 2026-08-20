@@ -484,13 +484,14 @@ $(document).ready(function () {
 
 
     //Handle Save Or Update Button Handle
-    $(document).on("submit", "#groupForm, .saveBtn", function (e) {
+    $(document).on("submit", "#groupForm", function (e) {
         debugger
           e.preventDefault();
           SaveOrUpdateGroupLedger();
      });
 
-    $(document).on("click", ".saveBtn, .js-GroupLedger-save", function (e) {
+    $(document).on("click", ".js-GroupLedger-save", function (e) {
+        debugger
         e.preventDefault();
         SaveOrUpdateGroupLedger();
     });
