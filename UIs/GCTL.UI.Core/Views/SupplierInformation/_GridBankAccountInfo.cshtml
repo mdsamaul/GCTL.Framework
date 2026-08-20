@@ -1,42 +1,40 @@
 ﻿@model List<GCTL.Core.ViewModels.SupplierBankAccountTemp.SupplierBankAccountTempSetupViewModel>
 
-<div class="card">
-    <div class="card-body">
-        <table id="SupplierBankAccountTemp-grid" class="table table-striped text-center table-bordered table-sm table-hover table-common">
-            <thead class="row-border">
-                <tr class="table row-border">
-                    <th class="text-center text-middle" style="width: 5%;">BD ID</th>
-                    <th class="text-center text-middle" style="width: 32%;">Bank Name</th>
-                    <th class="text-center text-middle" style="width: 31%;">Branch</th>
-                    <th class="text-center text-middle" style="width: 32%;">Account Name</th>
+<div class="table-responsive pt-1">
+    <table id="SupplierBankAccountTemp-grid" class="table table-striped text-center table-bordered table-sm table-hover table-common">
+        <thead class="row-border">
+            <tr class="table row-border">
+                <th class="text-center text-middle" style="width: 9%;">BD ID</th>
+                <th class="text-center text-middle" style="width: 30%;">Bank Name</th>
+                <th class="text-center text-middle" style="width: 30%;">Branch</th>
+                <th class="text-center text-middle" style="width: 28%;">Account Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model == null || !Model.Any())
+            {
+                <tr class="text-center text-middle">
+                    @* <td colspan="5">No Data Available.</td> *@
                 </tr>
-            </thead>
-            <tbody>
-                @if (Model == null || !Model.Any())
+            }
+            else
+            {
+                @foreach (var item in Model.OrderByDescending(x => x.Sbaid))
                 {
-                    <tr class="text-center text-middle">
-                        <td colspan="5">No Data Available.</td>
+                    <tr>
+                        <td>
+                            <a href="#" class='btn js-SupplierBankAccountTemp-edit'
+                               style="text-decoration: underline; color: rebeccapurple;"
+                               data-id="@item.Sbaid" title="Edit">
+                                @item.Sbaid
+                            </a>
+                        </td>
+                        <td class="text-center text-middle">@item.BankName</td>
+                        <td class="text-center text-middle">@item.BankBranchName</td>
+                        <td class="text-center text-middle">@item.AccountName</td>
                     </tr>
                 }
-                else
-                {
-                    @foreach (var item in Model.OrderByDescending(x => x.Sbaid))
-                    {
-                        <tr>
-                            <td>
-                                <a href="#" class='btn js-SupplierBankAccountTemp-edit'
-                                   style="text-decoration: underline; color: rebeccapurple;"
-                                   data-id="@item.Sbaid" title="Edit">
-                                    @item.Sbaid
-                                </a>
-                            </td>
-                            <td class="text-center text-middle">@item.BankName</td>
-                            <td class="text-center text-middle">@item.BankBranchName</td>
-                            <td class="text-center text-middle">@item.AccountName</td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
+            }
+        </tbody>
+    </table>
 </div>

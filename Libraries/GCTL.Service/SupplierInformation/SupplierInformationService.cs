@@ -230,7 +230,8 @@ namespace GCTL.Service.SupplierInformation
                     ZipCode = sup.ZipCode,
                     ExportLicenceNo = sup.ExportLicenceNo,
                     ContatPerson1 = sup.ContatPerson1,
-                    
+                    DesignationId = sup.DesignationId,
+
                     // Category, Type, Origin
                     SupplierCategoryId = sup.SupplierCategoryId,
                     SupplierCategory = cat.SupplierCategory,
@@ -401,9 +402,22 @@ namespace GCTL.Service.SupplierInformation
                     VatregNo = entityVM.VatregNo ?? string.Empty,
                     SupplierTin = entityVM.SupplierTin ?? string.Empty,
                     ExportLicenceNo = entityVM.ExportLicenceNo ?? string.Empty,
-                    ContatPerson1 = entityVM.ContatPerson1 ?? string.Empty,
                     SupplierBankId = entityVM?.SupplierBankId ?? string.Empty,
                     SupplierBankBranchId = entityVM?.SupplierBankBranchId ?? string.Empty,
+                    DesignationId = entityVM?.DesignationId ?? string.Empty,
+                    DesignationId2 = entityVM?.DesignationId2 ?? string.Empty,
+                    DesignationId3 = entityVM?.DesignationId3 ?? string.Empty,
+                    ContatPerson1 = entityVM.ContatPerson1 ?? string.Empty,
+                    ContatPerson2 = entityVM?.ContatPerson2 ?? string.Empty,
+                    ContatPerson3 = entityVM?.ContatPerson3 ?? string.Empty,
+                    IalbankId = entityVM?.IalbankId ?? string.Empty,
+                    IalbankBranchId = entityVM?.IalbankBranchId ?? string.Empty,
+                    Phone1 = entityVM?.Phone1 ?? string.Empty,
+                    Phone2 = entityVM?.Phone2 ?? string.Empty,
+                    Phone3 = entityVM?.Phone3 ?? string.Empty,
+                    Email1 = entityVM?.Email1 ?? string.Empty,
+                    Email2 = entityVM?.Email2 ?? string.Empty,
+                    Email3 = entityVM?.Email3 ?? string.Empty,
                     AccountNo = entityVM?.AccountNo ?? string.Empty,
                     OpeningBalance = entityVM.OpeningBalance ?? 0,
                     Optype = entityVM.Optype ?? string.Empty,
@@ -518,9 +532,22 @@ namespace GCTL.Service.SupplierInformation
                 entity.VatregNo = entityVM.VatregNo ?? string.Empty;
                 entity.SupplierTin = entityVM.SupplierTin ?? string.Empty;
                 entity.ExportLicenceNo = entityVM.ExportLicenceNo ?? string.Empty;
-                entity.ContatPerson1 = entityVM.ContatPerson1 ?? string.Empty;
                 entity.SupplierBankId = entityVM.SupplierBankId ?? string.Empty;
+                entity.DesignationId = entityVM.DesignationId ?? string.Empty;
+                entity.DesignationId2 = entityVM.DesignationId2 ?? string.Empty;
+                entity.DesignationId3 = entityVM.DesignationId3 ?? string.Empty;
                 entity.SupplierBankBranchId = entityVM.SupplierBankBranchName ?? string.Empty;
+                entity.ContatPerson1 = entityVM.ContatPerson1 ?? string.Empty;
+                entity.ContatPerson2 = entityVM.ContatPerson2 ?? string.Empty;
+                entity.ContatPerson3 = entityVM.ContatPerson3 ?? string.Empty;
+                entity.IalbankId = entityVM.IalbankId ?? string.Empty;
+                entity.IalbankBranchId = entityVM.IalbankBranchId ?? string.Empty;
+                entity.Phone1 = entityVM.Phone1 ?? string.Empty;
+                entity.Phone2 = entityVM.Phone2 ?? string.Empty;
+                entity.Phone3 = entityVM.Phone3 ?? string.Empty;
+                entity.Email1 = entityVM.Email1 ?? string.Empty;
+                entity.Email2 = entityVM.Email2 ?? string.Empty;
+                entity.Email3 = entityVM.Email3 ?? string.Empty;
                 entity.AccountNo = entityVM.AccountNo ?? string.Empty;
                 entity.OpeningBalance = entityVM.OpeningBalance ?? 0;
                 entity.Optype = entityVM.Optype ?? string.Empty;

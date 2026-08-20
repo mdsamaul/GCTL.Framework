@@ -89,6 +89,7 @@
                             $('#SupplierName').val(data.supplierName);
                             $('#SupplierCode').val(data.supplierCode);
                             $('#SupplierCategoryId').val(data.supplierCategoryId).trigger('change');
+                            $('#DesignationId').val(data.designationId).trigger('change');
                             $('#SupplierTypeId').val(data.supplierTypeId).trigger('change');
                             $('#SupplierOriginId').val(data.supplierOriginId).trigger('change');
                             $('#CompanyId').val(data.companyId).trigger('change');
@@ -544,6 +545,7 @@
 
             // Reset dropdowns/selects to default (empty or first option)
             $('#SupplierCategoryId').val('').trigger('change');
+            $('#DesignationId').val('').trigger('change');
             $('#SupplierTypeId').val('').trigger('change');
             $('#SupplierOriginId').val('').trigger('change');
             $('#CompanyId').val('').trigger('change');
@@ -867,14 +869,14 @@
 
         $(document).on('click', "#BankAccountInfoSaveBtn", function () {
             var infoValue = BankAccountInfoValue();
-            console.log(infoValue);
+           // console.log(infoValue);
             $.ajax({
                 url: "/SupplierInformation/BankAccountInfoSaveEdit",
                 type: "POST",
                 contentType: 'application/json',
                 data: JSON.stringify(infoValue),
                 success: function (res) {
-                    console.log(res);
+                   // console.log(res);
                     ResetBankAccountInfoForm();
                     loadBankAccountInfoTable();
                     $('.SupplierBankAccountTemp-grid-container').show();
@@ -943,7 +945,7 @@
             let table = $("#SupplierBankAccountTemp-grid").DataTable();
             let row = table.row($(this).closest('tr'));
             const rowValue = row.data();
-            console.log(rowValue);
+           // console.log(rowValue);
             $('#Sbaid').val(rowValue.sbaid);
             //$('#SupplierId').val(rowValue.);
             $('#SupplierBankId').val(rowValue.bankId).trigger('change');
@@ -959,7 +961,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify(sbaid),
                 success: function (res) {
-                    console.log(res);
+                   // console.log(res);
                     ResetBankAccountInfoForm();
                     loadBankAccountInfoTable();
                 },
