@@ -117,7 +117,7 @@ namespace GCTL_App.Controllers
         {
             try
             {
-               
+
                 var transportModeTypeId = await _service.GetTransportModeTypeAsync(shipmentModeId);
                 return Json(new { success = true, transportModeTypeId });
             }

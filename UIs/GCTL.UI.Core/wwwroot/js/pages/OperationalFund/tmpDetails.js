@@ -1,4 +1,4 @@
-﻿//#region Validation Function for Tmp Details
+//#region Validation Function for Tmp Details
 function validateTmpDetails(model) {
     if (!$("#Job-RequisitionNo").val()) {
         toastr.warning("Please Enter Requisition No.");
@@ -326,10 +326,10 @@ function loadTmpDetails() {
             // Subtotal row
             $tbody.append(`
                 <tr class="subtotal-row" data-service-type="${serviceType}">
-                    <td colspan="4" class="text-end text-info fs-8 fw-bold">
+                    <td colspan="4" class="text-end fs-8 fw-bold">
                         Subtotal
                     </td>
-                    <td class="subtotal-amount text-end text-info fs-8 fw-bold">${subTotal.toFixed(2)}</td>
+                    <td class="subtotal-amount text-end fs-8 fw-bold">${subTotal.toFixed(2)}</td>
                     <td colspan="2"></td>
                 </tr>
             `);
@@ -343,8 +343,8 @@ function loadTmpDetails() {
         // Grand Total row
         $tbody.append(`
             <tr class="grand-total-row">
-                <td colspan="4" class="text-end text-primary fs-8 fw-bold">Grand Total</td>
-                <td class="grand-total-amount text-end text-primary fs-8 fw-bold">${grandTotal.toFixed(2)}</td>
+                <td colspan="4" class="text-end fs-8 fw-bold">Grand Total</td>
+                <td class="grand-total-amount text-end fs-8 fw-bold">${grandTotal.toFixed(2)}</td>
                 <td colspan="2"></td>
             </tr>
         `);

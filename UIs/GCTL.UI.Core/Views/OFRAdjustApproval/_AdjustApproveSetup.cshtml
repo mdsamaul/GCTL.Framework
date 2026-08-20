@@ -1,0 +1,196 @@
+<style>
+    .form-control-sm, .form-select-sm,
+    textarea.form-control-sm {
+        font-size: 0.85rem;
+        padding: 2px 5px;
+        height: 28px;
+        border-radius: 3px;
+        color: #000 !important;
+    }
+
+    .input-group .form-control {
+        color: #000 !important;
+        font-size: 0.85rem;
+    }
+
+    label {
+        font-size: 0.78rem;
+        color: #444;
+    }
+
+    .bg-light {
+        background-color: #f0f1f2 !important;
+    }
+
+    thead th {
+        background-color: #f8f9fa !important;
+        color: #333;
+        font-size: 0.8rem;
+    }
+
+    legend {
+        font-size: 0.85rem !important;
+    }
+
+    .table-sm td {
+        padding: 0.4rem;
+    }
+
+    .btn-icon-clean {
+        background: transparent !important;
+        border: none !important;
+        padding: 4px 6px;
+        color: #212529;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-icon-clean i {
+            font-size: 1.3rem;
+            font-weight: 900;
+            stroke-width: 2;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-icon-clean:hover i {
+            color: #0d6efd;
+            transform: scale(1.1);
+        }
+
+        .btn-icon-clean.rotate i {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+    select.form-select-sm {
+        color: #000 !important;
+        font-weight: 700 !important;
+    }
+</style>
+
+<div class="container-fluid py-0">
+    <form id="tmpDetailsForm">
+        <input type="hidden" id="ShipmentModeID" />
+        <input type="hidden" id="CustomerID" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Requisition No.<span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-ReqNo">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Job No</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-JobNo">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Customer Name<span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-Cutomer">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Invoice No</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-invoiceNo">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Qty</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-Qty">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Requisition Date<span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-ReqDate">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Shipment Mode<span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-Shipment">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">L/C Value</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-LCValue">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-start">
+                    <label class="col-sm-4 text-sm-end fw-bold">Material Description</label>
+                    <div class="col-sm-6">
+                        <textarea class="form-control form-control-sm bg-light" rows="1" readonly style="resize: none; overflow: hidden;" id="Adjust-MatDescription"></textarea>
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end fw-bold">Weight</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Adjust-Weight">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <fieldset class="custom-fieldset border rounded p-3 bg-white">
+                <legend class="float-none w-auto px-2 fw-bold text-secondary small">Expenses in Detail</legend>
+
+                <div id="dataLoadContainer">
+                    <div class="table-responsive" id="expenseTableWrapper" style="overflow:visible; max-height:none;">
+                        <table class="table table-sm table-bordered align-middle shadow-sm">
+                            <thead class="table-light text-center">
+                                <tr class="small">
+                                    <th class="fw-bold text-center" style="width:4%">SL No.</th>
+                                    <th class="fw-bold text-start" style="width:15%">Expense Head</th>
+                                    <th class="fw-bold text-center" style="width:4%">Is Rece.</th>
+                                    <th class="fw-bold text-end" style="width:10%">Req. Amount</th>
+                                    <th class="fw-bold text-end" style="width:10%">Approved Amount</th>
+                                    <th class="fw-bold text-end" style="width:10%">Adjust Amount</th>
+                                    <th class="fw-bold text-end" style="width:10%">Confirm Amount</th>
+                                    <th class="fw-bold text-end" style="width:10%">Difference Amount</th>
+                                    <th class="fw-bold text-center" style="width:9%">Cash/Bank</th>
+                                    <th class="fw-bold text-center" style="width:18%">Bank Account</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small fw-bold text-black" id="Adjust-Body" style="font-size: 0.85rem;">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    @* Bottom Table Collapse Button *@
+    <div class="d-flex justify-content-end mt-0">
+        <button class="btn btn-sm btn-icon-clean shadow-none"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseNonInvGrid"
+                aria-expanded="false"
+                aria-controls="collapseNonInvGrid"
+                title="Toggle Grid">
+            <i class="bi bi-database-fill-add"></i>
+        </button>
+    </div>
+</div>

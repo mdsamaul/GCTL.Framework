@@ -1,0 +1,69 @@
+<style>
+    fieldset {
+        border: 1px solid #dee2e6 !important;
+    }
+
+    .page-link:focus {
+        box-shadow: none;
+    }
+
+    div.dt-layout-end,
+    div.dt-layout-full,
+    div.dt-layout-start {
+        padding: 0;
+    }
+</style>
+
+<div class="row mb-2">
+    <div class="col-12">
+        <span class="text-dark" style="font-size: 0.8rem; border-bottom: 2px solid #0d6efd; padding-bottom: 2px;">
+            <i class="fas fa-filter me-1"></i> Filter By
+        </span>
+    </div>
+</div>
+
+<div class="row g-5">
+    <div class="col-lg-4">
+        <div class="row align-items-center gx-2">
+            <label class="col-auto col-form-label fw-semibold">
+                Customer
+            </label>
+            <div class="col">
+                <select id="Bill-Customer" class="form-select form-select-sm custom-select-single"></select>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="row align-items-center gx-2">
+            <label class="col-auto col-form-label fw-semibold">
+                Shipment Mode
+            </label>
+            <div class="col">
+                <select id="Bill-ShipmentMode" class="form-select form-select-sm custom-select-single"></select>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "Bill-Table",
+    AjaxUrl = "/OFRAdjustApproval/GetAllRequisitionTopGrid",
+    ServerSide = true,
+    UseRadio = true,
+    RadioName = "ApproveChecked",
+    CheckColumnData = "jobNo",
+    DefaultSortColumn = "jobDate",
+    DefaultSortDirection = "desc",
+    Columns = new()
+    {
+        new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },
+        new() { Data = "jobDate", Header = "Job Date", Width = "8%", RenderFn = "formatDate" },
+        new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "12%" },
+        new() { Data = "customerName", Header = "Customer", Width = "18%", Align = "left" },
+        new() { Data = "customerAddress", Header = "Address", Width = "27%", Align = "left" },
+        new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "8%", RenderFn = "formatDate" },
+        new() { Data = "invoice", SortField = "invoice", Header = "Invoice No.", Width = "10%", Align = "right" },
+        new() { Data = "beNo", Header = "B/E No.", Width = "9%", Align = "left", IsWrapable = false }
+    }
+})

@@ -65,18 +65,29 @@ namespace GCTL.Service.OFRApproval
                         join doc in _documentation.All()
                             on main.JobNo equals doc.JobNo
                         join cust in _customer.All()
-                            on doc.CustomerId equals cust.CustomerId
+                            on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
                         join exp in _shipmentmode.All()
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
+                        where string.IsNullOrEmpty(main.ApprovedUser)
                         select new OFRApprovalTopGridVM
                         {
                             TC = main.Tc,
                             JobNo = main.JobNo,
-                            CustomerID = cust.CustomerId,
-                            CustomerName = cust != null ?  cust.CustomerName : "",
-                            ShipmentModeID = exp.ExpenseTypeId,
-                            ShipmentMode = exp.ExpenseType
+                            JobDate = doc.Date,
+                            DocReceivedDate = doc.DocReceivedDate,
+                            CustomerID = doc.CustomerId,
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            CustomerAddress = cust != null ? cust.CustomerAddress : "",
+                            Invoice = doc.InvoiceNo,
+                            BENo = doc.Beno,
+                            ShipmentModeID = doc.ExpenseTypeId,
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
+
+            int a = await query.CountAsync();
+
             //Filtering with Customer ID
             if (!string.IsNullOrEmpty(customerid))
             {
@@ -93,7 +104,14 @@ namespace GCTL.Service.OFRApproval
                 request.PageNumber = 1;
             }
 
-            return  await PaginationService<OFRApprovalTopGridVM>.GetPaginatedData(query, request);
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(OFRApprovalTopGridVM.JobDate);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
+
+            var result = await PaginationService<OFRApprovalTopGridVM>.GetPaginatedData(query, request);
+            result.TotalCount = a;
+            return result;
         }
         #endregion
 
@@ -332,17 +350,23 @@ namespace GCTL.Service.OFRApproval
                         join doc in _documentation.All()
                             on main.JobNo equals doc.JobNo
                         join cust in _customer.All()
-                            on doc.CustomerId equals cust.CustomerId
+                            on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
                         join exp in _shipmentmode.All()
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
+                        where !string.IsNullOrEmpty(main.ApprovedUser)
                         select new OFRApprovalBottomGridVM
                         {
                             TC = main.Tc,
+                            OFRNo = main.Ofrno,
+                            OFRDate = main.Ofrdate,
                             JobNo = main.JobNo,
-                            CustomerID = cust.CustomerId,
-                            CustomerName = cust.CustomerName,
-                            ShipmentModeID = exp.ExpenseTypeId,
-                            ShipmentMode = exp.ExpenseType
+                            CustomerID = cust != null ? cust.CustomerId : "",
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            BillingAddress = cust != null ? cust.CustomerAddress : "",
+                            ShipmentModeID = exp != null ? exp.ExpenseTypeId : "",
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
 
             if (request.PageSize == -1)
@@ -350,6 +374,12 @@ namespace GCTL.Service.OFRApproval
                 request.PageSize = await query.CountAsync();
                 request.PageNumber = 1;
             }
+
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(OFRApprovalBottomGridVM.OFRNo);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
+
             return await PaginationService<OFRApprovalBottomGridVM>.GetPaginatedData(query, request);
         }
         #endregion

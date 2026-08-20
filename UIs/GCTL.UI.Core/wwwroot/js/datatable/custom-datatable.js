@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.gctlGrid = {
         init: function (options) {
             var settings = $.extend({
@@ -36,8 +36,12 @@
                             d.pageNumber = Math.floor(d.start / d.length) + 1;
                             d.pageSize = d.length;
 
-                            if (d.order && d.order.length && d.columns && d.columns[d.order[0].column]) {
-                                d.sortColumn = d.columns[d.order[0].column].data;
+                            if (d.order && d.order.length) {
+                                var colIndex = d.order[0].column;
+                                console.log(settings.sortFieldMap);
+                                var sortField = (settings.sortFieldMap && settings.sortFieldMap[colIndex])
+                                    || (d.columns && d.columns[colIndex] && d.columns[colIndex].data);
+                                d.sortColumn = sortField;
                                 d.sortOrder = d.order[0].dir;
                             }
 
@@ -121,6 +125,8 @@
             }
 
             var columns = [];
+            var sortFieldMap = [];
+
             var hasSelectCol = config.showCheckbox || config.useRadio;
 
             if (hasSelectCol) {
@@ -140,6 +146,7 @@
                             (data != null ? data : '') + '">';
                     }
                 });
+                sortFieldMap.push(null);
             }
 
             var visibleCols = (config.columns || []).filter(function (c) {
@@ -155,14 +162,24 @@
                 }
 
                 var renderFn;
-                
+
                 if (c.isEditLink) {
                     renderFn = function (data, type, row) {
                         var editClass = c.editSelectorClass || 'edit-link';
                         var label = c.editLabel != null ? c.editLabel : (data != null ? data : '');
-                        return $.gctlGrid.editLinkColumn
-                            ? '<a class="btn ' + editClass + '" data-id="' + (row[c.data] != null ? row[c.data] : '') + '"><i>' + label + '</i></a>'
-                            : '';
+                        var idValField = c.idField || c.data;
+                        var idVal = row && row[idValField] != null ? row[idValField] : (data != null ? data : '');
+
+                        var extraAttrs = '';
+                        if (c.dataAttributes && Array.isArray(c.dataAttributes)) {
+                            c.dataAttributes.forEach(function (attrField) {
+                                var kebabAttr = attrField.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+                                var attrVal = row && row[attrField] != null ? row[attrField] : '';
+                                extraAttrs += ' data-' + kebabAttr + '="' + attrVal + '"';
+                            });
+                        }
+
+                        return '<a class="btn ' + editClass + '" data-id="' + idVal + '"' + extraAttrs + '><i>' + label + '</i></a>';
                     };
                 } else if (c.renderFn && window.gctlRenderers && window.gctlRenderers[c.renderFn]) {
                     renderFn = window.gctlRenderers[c.renderFn];
@@ -175,6 +192,8 @@
                     searchable: c.searchable !== false,
                     render: renderFn
                 });
+
+                sortFieldMap.push(c.sortField || c.data);
             });
 
             var pageLengths = config.pageLengths || [10, 25, 50, 100];
@@ -185,14 +204,15 @@
                 ajaxType: config.ajaxMethod || "GET",
                 serverSide: !!config.serverSide,
                 columns: columns,
-                checkBoxClass: config.checkboxClass || 'form-check-input checkbox', 
+                checkBoxClass: config.checkboxClass || 'form-check-input checkbox',
                 checkAllSelector: (config.showCheckbox && !config.disableCheckAll && config.checkAllId)
                     ? ('#' + config.checkAllId)
                     : null,
                 order: [[sortColIndex, config.defaultSortDirection || "desc"]],
                 pageLength: config.defaultPageLength || 10,
                 lengthMenu: [pageLengths, pageLengths],
-                columnDefs: hasSelectCol ? [{ targets: [0], orderable: false }] : []
+                columnDefs: hasSelectCol ? [{ targets: [0], orderable: false }] : [],
+                sortFieldMap: sortFieldMap
             };
 
             return this.init($.extend(true, builtSettings, overrides));
@@ -223,9 +243,19 @@
     };
 
     // Registry that GridColumn.RenderFn names are resolved against.
-    // Populate on each page before calling initFromModel, e.g.:
-    //   window.gctlRenderers.formatDate = function (data) { return formatDate(data); };
     window.gctlRenderers = window.gctlRenderers || {};
+
+    if (!window.gctlRenderers.formatDate) {
+        window.gctlRenderers.formatDate = function (data) {
+            if (!data) return '';
+            var d = new Date(data);
+            if (isNaN(d.getTime())) return data;
+            var day = String(d.getDate()).padStart(2, '0');
+            var month = String(d.getMonth() + 1).padStart(2, '0');
+            var year = d.getFullYear();
+            return day + '/' + month + '/' + year;
+        };
+    }
 
 }(jQuery));
 

@@ -1,15 +1,14 @@
-﻿using GCTL.Core.DataTables;
+using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 
 using GCTL.Service.OperationalFund;
-using GCTL.UI.Core.Controllers;
 
 //using GCTL.Service.UserProfile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GCTL_App.Controllers.OperationalFund
+namespace GCTL.UI.Core.Controllers
 {
     [Authorize]
     public class OperationFundController : BaseController
@@ -40,7 +39,7 @@ namespace GCTL_App.Controllers.OperationalFund
             int pageNumber = 1,
             int pageSize = 10,
             string searchTerm = "",
-            string sortColumn = "JobNo",
+            string sortColumn = "JobDate",
             string sortOrder = "desc",
             string customerid = "",
             string shipmentmodeid = "")

@@ -1,4 +1,4 @@
-﻿//#region Global Veriable
+//#region Global Veriable
 let serviceTypeChoice = null;
 let accountHeadChoice = null;
 let customerChoice = null;
@@ -215,18 +215,6 @@ $(document).ready(function () {
 });
 //#endregion
 
-//#region Grid Init
-let requisitionTable = null;
-
-function LoadRequisitionList() {
-    if (requisitionTable) {
-        requisitionTable.ajax.reload();
-        return;
-    }
-    requisitionTable = $.gctlGrid.initFromModel({ gridId: 'FundTable' });
-}
-//#endregion
-
 function setCurrencyValue(selector, value, disabled) {
     let $el = $(selector);
     let instance = $el.data('customDdInstance');
@@ -244,106 +232,3 @@ function setCurrencyValue(selector, value, disabled) {
     instance._syncOriginalSelect();     // writes back to the real <select>
     instance.setDisabled(!!disabled);   // locks it as readonly
 }
-
-//#region Delete Single & Multi
-$('#Req-DeleteBtn').on('click', function () {
-    let ofrNos = $('#FundTable input.form-check-input:checked')
-        .map(function () { return $(this).val(); }).get();
-
-    if (ofrNos.length === 0) {
-        toastr.warning('Please select at least one record');
-        return;
-    }
-
-    $.ajax({
-        url: '/OperationFund/DeleteRequisition',
-        type: 'POST',
-        data: JSON.stringify(ofrNos),
-        contentType: 'application/json',
-        success: function () {
-            toastr.success('Deleted successfully');
-            requisitionTable.ajax.reload();
-            loadJobEntryList();
-            ClearAfterClikButton();
-            ClearTmpDetail();
-        },
-        error: function () {
-            toastr.error('Delete Failed!');
-        }
-    });
-});
-//#endregion
-
-//#region Requisition Details (unchanged)
-function SetRequisitionDate(dateStr) {
-    if (reqDatePicker) {
-        let jsDate = dateStr ? new Date(dateStr) : new Date();
-        reqDatePicker.setDate(jsDate, true, "d-m-Y");
-    }
-}
-
-function copyToTmp(offrNo) {
-    return $.ajax({
-        url: '/OperationFund/CopyToTmp',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(offrNo)
-    });
-}
-
-function LoadRequisitionDetails(offrNo) {
-    $.ajax({
-        url: '/OperationFund/GetRequisitionDetails',
-        type: 'GET',
-        data: { offrNo: offrNo },
-        success: function (res) {
-            console.log(res);
-            if (!res) {
-                toastr.warning('No data found');
-                return;
-            }
-            $('#Job-JoBNO').val(res.jobNo ?? '');
-            $('#Job-ShipmentModeInput').val(res.shipmentMode ?? '');
-            $('#Job-CustomerName').val(res.customerName ?? '');
-            $('#Job-LCValue').val(res.lcValue ?? '');
-            $('#Job-InvoiceNo').val(res.invoiceNo ?? '');
-            $('#Job-InvoiceValue').val(res.invoiceValue ?? '');
-            $('#Job-RequisitionNo').val(res.reqNo ?? '');
-            $('#CustomerID').val(res.customerID ?? '');
-            $('#ShipmentModeID').val(res.shipmentModeID ?? '');
-            SetRequisitionDate(res.reqDate);
-            setCurrencyValue('#Job-Currencies', res.currencyID ?? '', true);
-            // $('#Job-Currencies').val(res.currencyID ?? '');
-            // let currencyInst = $('#Job-Currencies').data('customDdInstance');
-            // if (currencyInst && typeof currencyInst.setValue === 'function') {
-            //     currencyInst.setValue(res.currencyID ?? '');
-            // } else if (window.reinitCustomDropdownById) {
-            //     window.reinitCustomDropdownById('Job-Currencies');
-            // }
-            $('#Job-HAWB').val(res.hawb ?? '');
-            $('#Job-MatDescription').val(res.materialDescription ?? '');
-            $('#Job-Qty').val(res.qty ?? '');
-            $('#Job-Weight').val(res.weight ?? '');
-        },
-        error: function () {
-            toastr.error('Failed to load requisition details!');
-        }
-    });
-}
-//#endregion
-
-//#region Ready
-$(document).ready(function () {
-    LoadRequisitionList();
-
-    $(document).on('click', '.ofr-no-link', function () {
-        let ofrNo = $(this).text().trim();
-        copyToTmp(ofrNo).done(function () {
-            LoadRequisitionDetails(ofrNo);
-            loadTmpDetails();
-        }).fail(function () {
-            toastr.error('Failed to load Expenses in Details!');
-        });
-    });
-});
-//#endregion

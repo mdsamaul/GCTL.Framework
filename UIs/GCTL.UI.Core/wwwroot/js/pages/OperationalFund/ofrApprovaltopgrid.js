@@ -5,7 +5,7 @@ $(document).ready(function () {
     InitDropdown('/OperationFund/GetShipemtDD', '#Appro-ShipmentMode', 'Select Shipment Mode');
     loadRequisitionList();
 
-    $('#Customer, #Job-ShipmentMode').on('change', function () {
+    $('#Customer, #Appro-ShipmentMode').on('change', function () {
         if (jobTable) jobTable.ajax.reload();
     });
     //Load Requisition List For Top Grid
@@ -26,6 +26,7 @@ $(document).ready(function () {
 
 //#region Load Requisition Entry List for Top Grid
 let jobTable = null;
+window.gctlRenderers = window.gctlRenderers || {};
 window.gctlRenderers.formatDate = function (data) { return formatDate(data); };
 
 function loadRequisitionList() {
@@ -101,60 +102,16 @@ $(document).on('change', '.bottom-checkbox', function () {
 });
 //#endregion
 
-//#region Load Requisition Entry List for Bottom Grid
+//#region //#region Load Requisition Entry List for Bottom Grid
+let bottomTable = null;
 function BottomGrid() {
-    let bottomTable = null;
+    if (bottomTable) {
+        bottomTable.ajax.reload();
+        return;
+    }
     bottomTable = $.gctlGrid.initFromModel({
         gridId: 'bottomGrid',
     });
-    // $.ajax({
-    //     url: '/OFRApproval/GetAllRequisitionForTopGrid',
-    //     type: 'GET',
-    //     data: {
-    //         pageNumber: BottomPageNumber,
-    //         pageSize: $('#bottom-PageSize').val(),
-    //         searchTerm: $('#bottom-Search').val(),
-    //         sortColumn: BottomSortColumn,
-    //         sortOrder: BottomSortOrder,
-    //     },
-    //     success: function (res) {
-    //         console.log("Approval UI Bottom Grid Data :", res);
-    //         let rows = '';
-
-    //         if (!res.data || res.data.length === 0) {
-    //             rows = `
-    //                     <tr>
-    //                         <td colspan="6" class="text-center text-muted py-3">
-    //                             No data found
-    //                         </td>
-    //                     </tr>`;
-    //         } else {
-
-    //             $.each(res.data, function (i, item) {
-    //                 rows += `
-    //                         <tr>
-    //                             <td class="text-center">
-    //                                 <input type="checkbox" class="form-check-input bottom-checkbox" name="bottom-checkbox" value="${item.jobNo}">
-    //                             </td>
-    //                             <td class="text-center fw-bold text-dark">
-    //                                 <span class="job-no" style="cursor:pointer; text-decoration:underline;">
-    //                                     ${item.jobNo ?? ''}
-    //                                 </span>
-    //                             </td>
-    //                             <td class="text-center text-dark text-muted fs-9 fw-bold">${item.customerName ?? ''}</td>
-    //                             <td class="text-center text-dark text-muted fs-9 fw-bold">${item.shipmentMode ?? ''}</td>
-    //                         </tr>`;
-    //             });
-    //         }
-
-    //         $('#bottom-body').html(rows);
-    //         // Reset select all checkbox
-    //         $('#bottom-selectAll').prop('checked', false);
-
-    //         BottomPagination(res.totalCount);
-    //         updateBottomEntryInfo(res.filterCount, res.totalCount);
-    //     }
-    // });
 }
 //#endregion
 
@@ -333,9 +290,9 @@ function loadTmpDetails(jobNo) {
             // Subtotal row
             $tbody.append(`
                 <tr class="subtotal-row" data-service-type="${serviceType}">
-                    <td colspan="5" class="text-end text-info fw-bold fs-8">Subtotal</td>
-                    <td class="subtotal-req text-end text-info fw-bold fs-8">${subTotalReq.toFixed(2)}</td>
-                    <td class="subtotal-approval text-end text-info fw-bold fs-8">${subTotalApproval.toFixed(2)}</td>
+                    <td colspan="5" class="text-end fw-bold fs-8">Subtotal</td>
+                    <td class="subtotal-req text-end fw-bold fs-8">${subTotalReq.toFixed(2)}</td>
+                    <td class="subtotal-approval text-end fw-bold fs-8">${subTotalApproval.toFixed(2)}</td>
                     <td colspan="2"></td>
                 </tr>
             `);
@@ -345,12 +302,12 @@ function loadTmpDetails(jobNo) {
         const grandTotalReq = res.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
         const grandTotalApproval = res.reduce((sum, item) => sum + (parseFloat(item.approvalAmount) || parseFloat(item.amount) || 0), 0);
         $tbody.append(`
-                        <tr class="grand-total-row">
-                            <td colspan="5" class="text-end text-primary fw-bold fs-8">Grand Total</td>
-                            <td class="grand-total-req text-end text-primary fw-bold fs-8">${grandTotalReq.toFixed(2)}</td>
-                            <td class="grand-total-approval text-end text-primary fw-bold fs-8">${grandTotalApproval.toFixed(2)}</td>
-                            <td colspan="2"></td>
-                        </tr>
+            <tr class="grand-total-row">
+                <td colspan="5" class="text-end fw-bold fs-8">Grand Total</td>
+                <td class="grand-total-req text-end fw-bold fs-8">${grandTotalReq.toFixed(2)}</td>
+                <td class="grand-total-approval text-end fw-bold fs-8">${grandTotalApproval.toFixed(2)}</td>
+                <td colspan="2"></td>
+            </tr>
         `);
     });
 }
@@ -893,7 +850,7 @@ function ClearTmpDetail() {
 //#region When User Click Bottom Grid job no Edit Button
 $(document).on('click', '.job-no', function () {
 
-    let jobno = $(this).text().trim();
+    let jobno = $(this).data('id') || $(this).text().trim();
 
     if (!jobno) {
         toastr.warning("Invalid Job No");

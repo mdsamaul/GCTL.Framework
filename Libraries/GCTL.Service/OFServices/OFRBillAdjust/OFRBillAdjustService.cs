@@ -1,4 +1,5 @@
-﻿
+
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OFRApproval;
 using GCTL.Core.ViewModels.OFRSection.OFRBillAdjust;
@@ -29,15 +30,15 @@ namespace GCTL.Service.OFRBillAdjust
 
         public OFRBillAdjustService
             (
-                IRepository<CfOperationalFundRequisitionEntry> genericRepository, 
-                //IUserInfoService userInfoService, 
+                IRepository<CfOperationalFundRequisitionEntry> genericRepository,
+                //IUserInfoService userInfoService,
                 IRepository<CfOperationalFundRequisitionEntry> repository,
                 IRepository<CfDefExpenseType> shipmentmode,
-                IRepository<SalesCustomer> customer, 
-                IRepository<Sep_Documentation> documentation, 
-                IRepository<CfOperationalFundRequisitionDetail> details, 
+                IRepository<SalesCustomer> customer,
+                IRepository<Sep_Documentation> documentation,
+                IRepository<CfOperationalFundRequisitionDetail> details,
                 IRepository<CfDefExpenseHead> accountsHead,
-                IRepository<Core_ServiceType> serviceType, 
+                IRepository<Core_ServiceType> serviceType,
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails,
                 IRepository<AccSubSubsidiaryLedger> generalLedger,
                 IRepository<Sep_Documentation> sepDocumentation
@@ -95,11 +96,19 @@ namespace GCTL.Service.OFRBillAdjust
         #endregion
 
         #region Get Requisition Details into Tmp Details
-        public async Task<bool> CopyDetailsToTmp(string jobNo, int? currentUserId, BaseViewModel model)
+        public async Task<bool> CopyDetailsToTmp(string jobNo, string? currentUserId, BaseViewModel model)
         {
-            var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
+            if (string.IsNullOrEmpty(currentUserId)) return false;
 
+            var details = await _details.All().Where(d => d.JobNo == jobNo).ToListAsync();
             if (!details.Any()) return false;
+
+            var existingTmp = await _Tmpdetails.All()
+                .Where(x => x.Luser == currentUserId)
+                .ToListAsync();
+
+            if (existingTmp.Any())
+                await _Tmpdetails.DeleteRangeAsync(existingTmp);
 
             // Map to temporary table (use the Temp model)
             var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
@@ -113,14 +122,15 @@ namespace GCTL.Service.OFRBillAdjust
                 ActualAmount = d.ActualAmount,
                 DifferentAmount = d.DifferentAmount,
                 BillAdjustAmount = d.BillAdjustAmount,
-                Luser = currentUserId?.ToString(),
+                Luser = currentUserId,
                 Ldate = DateTime.Now,
                 Lmac = model.Lmac,
                 Lip = model.Lip,
                 CompanyCode = d.CompanyCode,
-                EmployeeId = currentUserId.ToString(),
+                EmployeeId = currentUserId,
                 ExpenseHeadRemarks = d.ExpenseHeadRemarks
             }).ToList();
+
             if (tmpDetails == null || !tmpDetails.Any())
             {
                 throw new InvalidOperationException("Failed to map details to temporary table");
@@ -132,7 +142,7 @@ namespace GCTL.Service.OFRBillAdjust
         #endregion
 
         #region Get All Tmp Details
-        public async Task<List<OFRBillAdjustDetailsVM>> GetAllTmpAsync(int? currentUser)
+        public async Task<List<OFRBillAdjustDetailsVM>> GetAllTmpAsync(string jobno, string? currentUser)
         {
             var result = await (from tmp in _Tmpdetails.All()
                                 join head in _accountsHead.All()
@@ -143,7 +153,7 @@ namespace GCTL.Service.OFRBillAdjust
                               on tmp.ServiceTypeId equals serv.ServiceTypeId
                               into servicJoin
                                 from servic in servicJoin.DefaultIfEmpty()
-                                where tmp.Luser == currentUser.ToString()
+                                where tmp.Luser == currentUser && tmp.JobNo == jobno
                                 orderby tmp.Tc
 
                                 select new OFRBillAdjustDetailsVM
@@ -167,7 +177,7 @@ namespace GCTL.Service.OFRBillAdjust
         #endregion
 
         #region Approval Bill Adjust Amount Update
-        public async Task<bool> SaveApprovalBillAdjustAsync(List<OFRBillAdjustDetailsSaveVM> model, int? Approveduser)
+        public async Task<bool> SaveApprovalBillAdjustAsync(List<OFRBillAdjustDetailsSaveVM> model, string? Approveduser)
         {
             await _repository.BeginTransactionAsync();
             try
@@ -214,7 +224,7 @@ namespace GCTL.Service.OFRBillAdjust
                     {
 
                         //First time approve
-                        entry.BillAdjustApprovalUser = Approveduser.ToString();
+                        entry.BillAdjustApprovalUser = Approveduser;
                         entry.BillAdjustApproveDate = DateTime.Now;
                     }
                     else
@@ -226,7 +236,7 @@ namespace GCTL.Service.OFRBillAdjust
                     await _repository.UpdateAsync(entry);
                 }
 
-                var tmpToDelete = await _Tmpdetails.All().Where(d => d.Luser == Approveduser.ToString() && d.Ofrno == ofrNo).ToListAsync();
+                var tmpToDelete = await _Tmpdetails.All().Where(d => d.Luser == Approveduser && d.Ofrno == ofrNo).ToListAsync();
 
                 if (tmpToDelete.Any())
                 {
@@ -249,108 +259,107 @@ namespace GCTL.Service.OFRBillAdjust
         #endregion
 
         #region Get All Requisition for Bottom Grid
-        public async Task<PaginationService<OFRBillAdjustBottomGridVM, OFRBillAdjustBottomGridVM>.PaginationResult<OFRBillAdjustBottomGridVM>> GetBottomGrid(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc")
+        public async Task<PaginationResponse<OFRBillAdjustBottomGridVM>> GetBottomGrid(PaginationRequest request)
         {
             var query = from main in _repository.All()
                         join doc in _documentation.All()
                             on main.JobNo equals doc.JobNo
                         join cust in _customer.All()
-                            on doc.CustomerId equals cust.CustomerId
+                            on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
                         join exp in _shipmentmode.All()
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
-                        where _details.All().Where(det => det.Ofrno == main.Ofrno)
-                                .All(det => string.IsNullOrWhiteSpace(det.AdjustUser))
-                        //where _details.All().Any(det => det.OFRNo == main.OFRNo
-                        //                        && !string.IsNullOrWhiteSpace(det.AdjustUser))
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
+                        where _details.All().Any(det => det.Ofrno == main.Ofrno)
+                              && !_details.All().Any(det => det.Ofrno == main.Ofrno && (string.IsNullOrEmpty(det.AdjustUser) || det.AdjustUser.Trim() == ""))
                         select new OFRBillAdjustBottomGridVM
                         {
                             TC = main.Tc,
+                            OFRNo = main.Ofrno,
+                            OFRDate = main.Ofrdate,
                             JobNo = main.JobNo,
-                            CustomerID = cust.CustomerId,
-                            CustomerName = cust.CustomerName,
-                            ShipmentModeID = exp.ExpenseTypeId,
-                            ShipmentMode = exp.ExpenseType
+                            CustomerID = cust != null ? cust.CustomerId : "",
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            BillingAddress = cust != null ? cust.CustomerAddress : "",
+                            ShipmentModeID = exp != null ? exp.ExpenseTypeId : "",
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            // PaginationService
-            var paginatedResult = await PaginationService<OFRBillAdjustBottomGridVM, OFRBillAdjustBottomGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
-                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
-                    ob => ob
-             );
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(OFRBillAdjustBottomGridVM.OFRNo);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
 
-            return paginatedResult;
+            return await PaginationService<OFRBillAdjustBottomGridVM>.GetPaginatedData(query, request);
         }
 
         #endregion
 
         #region Get All Requisition Entry in Top Grid
-        public async Task<PaginationService<OFRApprovalTopGridVM, OFRApprovalTopGridVM>.PaginationResult<OFRApprovalTopGridVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
+        public async Task<PaginationResponse<OFRApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "")
         {
             var query = from main in _repository.All()
                         join doc in _documentation.All()
                             on main.JobNo equals doc.JobNo
+
                         join cust in _customer.All()
-                            on doc.CustomerId equals cust.CustomerId
+                            on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
+
                         join exp in _shipmentmode.All()
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+                            on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
+
                         where _details.All().Any(det => det.Ofrno == main.Ofrno
-                                                    && string.IsNullOrWhiteSpace(det.AdjustUser))
+                                                    && (string.IsNullOrEmpty(det.AdjustUser) || det.AdjustUser.Trim() == ""))
+
                         select new OFRApprovalTopGridVM
                         {
                             TC = main.Tc,
                             JobNo = main.JobNo,
-                            CustomerID = cust.CustomerId,
-                            CustomerName = cust.CustomerName,
-                            ShipmentModeID = exp.ExpenseTypeId,
-                            ShipmentMode = exp.ExpenseType
+                            JobDate = doc.Date,
+                            DocReceivedDate = doc.DocReceivedDate,
+                            CustomerID = doc.CustomerId,
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            CustomerAddress = cust != null ? cust.CustomerAddress : "",
+                            Invoice = doc.InvoiceNo,
+                            BENo = doc.Beno,
+                            ShipmentModeID = doc.ExpenseTypeId,
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
-            //Filtering with Customer ID
-            int totalCount = 0;
-            totalCount = await query.CountAsync();
-            bool changed = false;
+
+            int a = await query.CountAsync();
 
             if (!string.IsNullOrEmpty(customerid))
             {
                 query = query.Where(x => x.CustomerID == customerid);
-                changed = true;
             }
 
             if (!string.IsNullOrEmpty(shipmentmodeid))
             {
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
-                changed = true;
             }
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            // PaginationService
-            var paginatedResult = await PaginationService<OFRApprovalTopGridVM, OFRApprovalTopGridVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
-                        EF.Functions.Like(sc.JobNo ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.CustomerName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.ShipmentMode ?? "", $"%{term}%"),
-                    ob => ob
-             );
+            if (string.IsNullOrEmpty(request.SortColumn))
+                request.SortColumn = nameof(OFRApprovalTopGridVM.JobDate);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
 
-            if (changed)
-            {
-                paginatedResult.TotalCount = totalCount;
-            }
-
-            return paginatedResult;
+            var result = await PaginationService<OFRApprovalTopGridVM>.GetPaginatedData(query, request);
+            result.TotalCount = a;
+            return result;
         }
         #endregion
 

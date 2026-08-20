@@ -86,14 +86,17 @@
     UseRadio = true,
     RadioName = "jobSelect",
     CheckColumnData = "jobNo",
-    DefaultSortColumn = "jobNo",
+    DefaultSortColumn = "jobDate",
+    DefaultSortDirection = "desc",
     Columns = new()
-            {
-                new() { Data = "jobNo", Header = "Job No.", Width = "40%", Align = "left" },
-                // new() { Data = "jobDate", Header = "Job Date", Width = "10%", RenderFn = "formatDate" },
-                new() { Data = "customerName", Header = "Customer Name", Width = "40%", Align = "left" },
-                new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "17%" },
-
-                // new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "10%", RenderFn = "formatDate" }
-            }
+    {
+        new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },
+        new() { Data = "jobDate", Header = "Job Date", Width = "8%", RenderFn = "formatDate" },
+        new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "12%" },
+        new() { Data = "customerName", Header = "Customer", Width = "18%", Align = "left" },
+        new() { Data = "customerAddress", Header = "Address", Width = "27%", Align = "left" },
+        new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "8%", RenderFn = "formatDate" },
+        new() { Data = "invoice", SortField = "invoice", Header = "Invoice No.", Width = "10%", Align = "right" },
+        new() { Data = "beNo", Header = "B/E No.", Width = "9%", Align = "left", IsWrapable = false }
+    }
 })
