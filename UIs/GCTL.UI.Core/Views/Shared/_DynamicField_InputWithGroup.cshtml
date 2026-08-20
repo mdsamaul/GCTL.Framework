@@ -1,33 +1,22 @@
 ﻿@model GCTL.UI.Core.ViewModels.DynamicFieldColumnModel
 
-@*
-    ============================================================
-    _DynamicField_InputWithGroup.cshtml
-
-    NEW: Model.LabelInline (bool, default false)
-         Add this property to DynamicFieldColumnModel.cs.
-         - false -> current behavior: no label here (parent renders it above)
-         - true  -> label and field sit side-by-side in the same row
-                    (label takes Model.LabelColWidth columns,
-                     field takes the remaining columns)
-
-    NEW: Model.LabelColWidth (int, default 4)
-         Only used when LabelInline = true. Bootstrap column width
-         (out of 12) reserved for the label. Field takes 12 - LabelColWidth.
-    ============================================================
-*@
-
 @{
     bool needsActionColumn = Model.ShowQuickAdd || Model.ShowCopyIcon || Model.ReserveActionSlot;
     int labelCol = Model.LabelColWidth > 0 ? Model.LabelColWidth : 4;
     int fieldCol = 12 - labelCol;
+
+    var labelClass = Model.LabelInline ? "form-label mb-0" : "form-label";
+    if (!string.IsNullOrEmpty(Model.LabelCssClass))
+    {
+        labelClass += " " + Model.LabelCssClass;
+    }
 }
 
 @if (Model.LabelInline)
 {
     <div class="row align-items-center gx-2">
-        <div class="col-@labelCol">
-            <label class="form-label mb-0" for="@Model.InputId" title="@Model.Tooltip">
+        <div class="col-@labelCol @Model.LabelColumnClass">
+            <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
                 @if (!string.IsNullOrEmpty(Model.IconClass))
                 {
                     <i class="@Model.IconClass me-1"></i>
@@ -55,7 +44,8 @@
                                maxlength="@Model.MaxLength" minlength="@Model.MinLength"
                                min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
                                pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
-                               disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+                               disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip"
+                               style="@Model.InputStyle" />
                         @if (!string.IsNullOrEmpty(Model.AppendText))
                         {
                             <span class="input-group-text">@Model.AppendText</span>
@@ -64,15 +54,15 @@
 
                     @if (Model.ShowCopyIcon)
                     {
-                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy"><i class="fas fa-copy"></i></button>
+                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)"><i class="fas fa-copy"></i></button>
                     }
                     else if (Model.ShowQuickAdd)
                     {
-                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add" data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget" data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"><i class="fas fa-plus"></i></button>
+                        <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add" data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget" data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle" disabled="@(Model.IsActionDisabled)"><i class="fas fa-plus"></i></button>
                     }
                     else
                     {
-                        <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true"><i class="fas fa-plus"></i></button>
+                        <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)"><i class="fas fa-plus"></i></button>
                     }
                 </div>
             }
@@ -90,7 +80,8 @@
                            maxlength="@Model.MaxLength" minlength="@Model.MinLength"
                            min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
                            pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
-                           disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+                           disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip"
+                           style="@Model.InputStyle" />
                     @if (!string.IsNullOrEmpty(Model.AppendText))
                     {
                         <span class="input-group-text">@Model.AppendText</span>
@@ -118,7 +109,8 @@ else
                        maxlength="@Model.MaxLength" minlength="@Model.MinLength"
                        min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
                        pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
-                       disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+                       disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip"
+                       style="@Model.InputStyle" />
                 @if (!string.IsNullOrEmpty(Model.AppendText))
                 {
                     <span class="input-group-text">@Model.AppendText</span>
@@ -127,15 +119,15 @@ else
 
             @if (Model.ShowCopyIcon)
             {
-                <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy"><i class="fas fa-copy"></i></button>
+                <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value" data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)"><i class="fas fa-copy"></i></button>
             }
             else if (Model.ShowQuickAdd)
             {
-                <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add" data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget" data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"><i class="fas fa-plus"></i></button>
+                <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add" data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget" data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle" disabled="@(Model.IsActionDisabled)"><i class="fas fa-plus"></i></button>
             }
             else
             {
-                <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true"><i class="fas fa-plus"></i></button>
+                <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn" tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)"><i class="fas fa-plus"></i></button>
             }
         </div>
     }
@@ -153,7 +145,8 @@ else
                    maxlength="@Model.MaxLength" minlength="@Model.MinLength"
                    min="@Model.MinValue" max="@Model.MaxValue" step="@Model.Step"
                    pattern="@Model.ValidationPattern" readonly="@Model.IsReadonly"
-                   disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip" />
+                   disabled="@Model.IsDisabled" autofocus="@Model.AutoFocus" title="@Model.Tooltip"
+                   style="@Model.InputStyle" />
             @if (!string.IsNullOrEmpty(Model.AppendText))
             {
                 <span class="input-group-text">@Model.AppendText</span>

@@ -111,6 +111,10 @@ namespace GCTL.UI.Core.ViewModels
         // DynamicFieldColumnModel.cs
         public bool IsActionDisabled { get; set; } = false;
         public string ValueCssClass { get; set; } = "readonly-value";
+
+        public string CustomStyle { get; set; } = string.Empty; 
+        public string LabelStyle { get; set; } = string.Empty;  
+        public string InputStyle { get; set; } = string.Empty; 
         public string ResolvedInputCss
         {
             get
