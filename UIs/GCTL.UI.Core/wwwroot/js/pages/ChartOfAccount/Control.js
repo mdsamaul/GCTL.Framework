@@ -490,6 +490,12 @@ $(document).ready(function () {
     $('#ControlEntryDate').text(getBangladeshDateTime());
 
     $(document).on("submit", "#controlForm", function (e) {
+        debugger
+        e.preventDefault();
+        SaveOrUpdateControlLedger();
+    });
+    $(document).on("click", ".js-ControlLedger-save", function (e) {
+        debugger
         e.preventDefault();
         SaveOrUpdateControlLedger();
     });

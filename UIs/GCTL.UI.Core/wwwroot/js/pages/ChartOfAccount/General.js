@@ -830,6 +830,10 @@ $(document).ready(function () {
         e.preventDefault();
         GeneralLedgerSaveOrUpdate();
     });
+    $(document).on("click", ".js-GeneralLedger-save", function (e) {
+        e.preventDefault();
+        GeneralLedgerSaveOrUpdate();
+    });
 
     $(document).on("click", "#GeneraldeleteBtn, .js-GeneralLedger-delete-confirm", function (e) {
         e.preventDefault();

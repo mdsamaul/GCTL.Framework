@@ -32,6 +32,12 @@
         public bool IsPlain { get; set; } = false;
         public bool IsMarginRight { get; set; } = false;
         public bool ReserveActionSlot { get; set; } = true;
+
+        public string SaveBtnType { get; set; } = "button";
+        public string DeleteBtnType { get; set; } = "button";
+        public string ClearBtnType { get; set; } = "button";
+        public string PrintBtnType { get; set; } = "button";
+        public string FavtBtnType { get; set; } = "button";
     }
 
     public class ToolbarButton

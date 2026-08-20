@@ -77,14 +77,21 @@
         }
     </div>
 </div> *@
-
 @model ToobarModel
 @{
     var containerPadding = Model.IsPlain ? "" : "";
     var buttonGroupPadding = Model.IsPlain ? "pe-0" : "pe-0";
     var containerStyle = Model.IsMarginRight ? "padding-right: 46px !important;" : "";
     var extraClass = Model.ReserveActionSlot ? "pe-0" : "pe-3";
+
+    // Dynamic Button Types with default fallback to "button"
+    var saveBtnType = string.IsNullOrWhiteSpace(Model.SaveBtnType) ? "button" : Model.SaveBtnType;
+    var deleteBtnType = string.IsNullOrWhiteSpace(Model.DeleteBtnType) ? "button" : Model.DeleteBtnType;
+    var clearBtnType = string.IsNullOrWhiteSpace(Model.ClearBtnType) ? "button" : Model.ClearBtnType;
+    var printBtnType = string.IsNullOrWhiteSpace(Model.PrintBtnType) ? "button" : Model.PrintBtnType;
+    var favtBtnType = string.IsNullOrWhiteSpace(Model.FavtBtnType) ? "button" : Model.FavtBtnType;
 }
+
 <div class="d-flex justify-content-between align-items-center px-1 py-1 @containerPadding @extraClass sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border") flex-nowrap toolbar-container"
      style="@containerStyle">
 
@@ -98,7 +105,7 @@
 
         @if (Model.ShowSave)
         {
-            <button type="button"
+            <button type="@saveBtnType"
                     id="@Model.SaveBtnId"
                     class="btn toolbar-btn toolbar-btn-save @Model.SaveBtnClass"
                     disabled="@(!Model.EnableSave)">
@@ -109,7 +116,7 @@
 
         @if (Model.ShowDelete)
         {
-            <button type="button"
+            <button type="@deleteBtnType"
                     id="@Model.DeleteBtnId"
                     class="btn toolbar-btn toolbar-btn-delete @Model.DeleteBtnClass"
                     disabled="@(!Model.EnableDelete)">
@@ -120,7 +127,7 @@
 
         @if (Model.ShowClear)
         {
-            <button type="button"
+            <button type="@clearBtnType"
                     id="@Model.ClearBtnId"
                     class="btn toolbar-btn toolbar-btn-clear @Model.ClearBtnClass"
                     disabled="@(!Model.EnableClear)">
@@ -133,7 +140,7 @@
         {
             <div class="dropdown">
 
-                <button type="button"
+                <button type="@printBtnType"
                         id="@Model.PrintBtnId"
                         class="btn toolbar-btn toolbar-btn-print dropdown-toggle @Model.PrintBtnClass"
                         data-bs-toggle="dropdown"
@@ -172,7 +179,7 @@
 
         @if (Model.ShowFavorite)
         {
-            <button type="button"
+            <button type="@favtBtnType"
                     id="@Model.FavtBtnId"
                     class="btn toolbar-btn toolbar-btn-fav @Model.FavtBtnClass"
                     disabled="@(!Model.EnableFavorite)">
@@ -182,5 +189,4 @@
         }
 
     </div>
-
 </div>
