@@ -88,7 +88,8 @@ function LoadGroupLedgerDropdown(selectedId = null) {
                             $.ajax({
                                 url: '/next-control-ledger-code',
                                 type: 'GET',
-                                data: { groupcode: data.controlLedgerCodeNo },
+                                // data: { groupcode: data.controlLedgerCodeNo },
+                                data: { groupLedgerCode: data.controlLedgerCodeNo },
                                 success: function (nextCode) {
                                     $('#SubControlLedgerCodeNo').val(nextCode);
                                 }
