@@ -1,4 +1,4 @@
-﻿
+
 (function ($) {
     $.gender = function (options) {
         // Default options
@@ -11,7 +11,7 @@
             editSelector: ".js-Sex-edit",
             saveSelector: ".js-Sex-save",
             selectAllSelector: "#Sex-check-all",
-            deleteSelector: ".js-Sex-delete-confirm",          
+            deleteSelector: ".js-Sex-delete-confirm",
             deleteModal: "#Sex-delete-modal",
             finalDeleteSelector: ".js-Sex-delete",
             clearSelector: ".js-Sex-clear",
@@ -41,7 +41,7 @@
         $(() => {
 
             loadTable();
-           
+
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -118,16 +118,11 @@
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
-                    });
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('genderGridContainer') : [];
                 }
 
                 if (selectedItems.length > 0) {
@@ -192,53 +187,13 @@
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            //$("body").on("keyup", settings.availabilitySelector, function () {
-            //    var self = $(this);
-            //    let code = $(".js-SexCode-code").val();
-            //    let name = self.val();
-
-            //    // check
-            //    $.ajax({
-            //        url: settings.baseUrl + "/CheckAvailability",
-            //        method: "POST",
-            //        data: { code: code, name: name },
-            //        success: function (response) {
-            //            console.log(response);
-            //            if (response.isSuccess) {
-            //                toastr.error(response.message);
-            //            }
-            //        }
-            //    });
-            //});
-
         });
 
-        //
+        // Dynamic Grid Load Table
         function loadTable() {
-            $.get(settings.baseUrl + "/GetTableData")
-                .done(html => {
-                    $(settings.gridContainer).html(html);
-
-                    if ($.fn.DataTable.isDataTable(settings.gridSelector)) {
-                        $(settings.gridSelector).DataTable().destroy();
-                    }
-
-                    $(settings.gridSelector).DataTable({
-                        lengthChange: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, -1],
-                            [10, 25, 50, 'All'],
-                        ],
-                        order: [[1, "desc"]],
-                        destroy: true, // Allow reinitialization
-                        paging: true,
-                        searching: true,
-                        responsive: true,
-                    });
-
-                })
-                .fail(() => toastr.error("Failed to load table data."));
+            if (window.loadGridPage) {
+                window.loadGridPage('genderGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
 
         function loadForm(url) {
@@ -252,7 +207,7 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        resolve(data)                     
+                        resolve(data)
                     },
                     error: function (error) {
                         reject(error)

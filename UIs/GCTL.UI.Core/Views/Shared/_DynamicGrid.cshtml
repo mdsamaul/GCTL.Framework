@@ -1,0 +1,254 @@
+@model GCTL.UI.Core.ViewModels.DynamicGridModel
+
+@{
+    int totalColumns = Model.Headers.Count + (Model.HasCheckbox ? 1 : 0);
+    string linkCol = Model.LinkColumn ?? Model.PrimaryKey;
+}
+
+<div id="@Model.GridId" class="dynamic-grid-card rounded mb-4" data-ajax-url="@Model.AjaxUrl" data-page-size="@Model.PageSize">
+    <link rel="stylesheet" href="~/css/dynamic-grid.css" asp-append-version="true" />
+
+    <!-- Top Header Control Toolbar (Page Size & Live Search) -->
+    <div class="card-header bg-white border-bottom border-light-subtle px-3 dynamic-grid-header">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+            <!-- Page Size Dropdown Selector -->
+            <div class="d-flex align-items-center gap-2 me-auto">
+                <span class="small text-secondary fw-medium">Show</span>
+                <select class="form-select form-select-sm grid-pagesize-select shadow-none" 
+                        style="width: auto;" 
+                        data-grid-id="@Model.GridId" 
+                        onchange="GridManager.changePageSize('@Model.GridId', '@Model.AjaxUrl', this.value)">
+                    @foreach (var size in new[] { 10, 25, 50, 100 })
+                    {
+                        if (Model.PageSize == size)
+                        {
+                            <option value="@size" selected>@size</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    }
+                </select>
+                <span class="small text-secondary fw-medium">entries</span>
+            </div>
+
+            <!-- Live Search Box (Aligned to Far Right) -->
+            <div class="d-flex align-items-center justify-content-end ms-auto" style="max-width: 250px; width: 100%;">
+                <div class="input-group input-group-sm shadow-sm rounded-2 w-100">
+                    <span class="input-group-text bg-white border-end-0 text-muted px-2">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control border-start-0 ps-0 shadow-none grid-search-input" 
+                           placeholder="Search..." 
+                           value="@Model.SearchTerm" 
+                           data-grid-id="@Model.GridId" 
+                           onkeyup="GridManager.handleSearchKeyup(event, '@Model.GridId', '@Model.AjaxUrl', @Model.PageSize)" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Responsive Container -->
+    <div class="table-responsive">
+        <table class="table align-middle dynamic-grid-table table-sm">
+            <thead>
+                <tr>
+                    @if (Model.HasCheckbox)
+                    {
+                        string cbWidth = "110px";
+                        if (Model.ColumnWidths != null && (Model.ColumnWidths.TryGetValue("Checkbox", out var customCbWidth) || Model.ColumnWidths.TryGetValue("SelectAll", out customCbWidth)))
+                        {
+                            cbWidth = customCbWidth;
+                        }
+                        <th class="text-center align-middle" style="width: @cbWidth; min-width: @cbWidth;">
+                            <div class="d-inline-flex align-items-center justify-content-center gap-1">
+                                <input type="checkbox" 
+                                       class="form-check-input grid-select-all" 
+                                       data-grid-id="@Model.GridId" 
+                                       id="selectAll_@Model.GridId"
+                                       title="Select All" />
+                                <label for="selectAll_@Model.GridId" class="mb-0 user-select-none cursor-pointer">Select All</label>
+                            </div>
+                        </th>
+                    }
+                    @foreach (var header in Model.Headers)
+                    {
+                        string colWidthStyle = "";
+                        if (Model.ColumnWidths != null && (Model.ColumnWidths.TryGetValue(header, out var w) || Model.ColumnWidths.TryGetValue(header.Replace(" ", ""), out w)))
+                        {
+                            colWidthStyle = $"width: {w}; min-width: {w};";
+                        }
+                        <th class="text-center align-middle" style="@colWidthStyle">@header</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Rows == null || !Model.Rows.Any())
+                {
+                    <tr>
+                        <td colspan="@totalColumns" class="dynamic-grid-empty-state">
+                            <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="bi bi-inbox dynamic-grid-empty-icon"></i>
+                                <span class="fw-medium text-secondary">@Model.EmptyText</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var row in Model.Rows)
+                    {
+                        object? rawPkValue = null;
+                        if (!string.IsNullOrEmpty(Model.PrimaryKey) && row.ContainsKey(Model.PrimaryKey))
+                        {
+                            rawPkValue = row[Model.PrimaryKey];
+                        }
+                        else if (row.Count > 0)
+                        {
+                            rawPkValue = row.Values.FirstOrDefault();
+                        }
+                        
+                        string primaryKeyValue = rawPkValue?.ToString() ?? string.Empty;
+
+                        <tr data-id="@primaryKeyValue">
+                            @if (Model.HasCheckbox)
+                            {
+                                <td class="text-center align-middle">
+                                    <input type="checkbox" 
+                                           class="form-check-input grid-row-checkbox" 
+                                           value="@primaryKeyValue" 
+                                           data-grid-id="@Model.GridId" />
+                                </td>
+                            }
+                            @foreach (var kvp in row)
+                            {
+                                string cellKey = kvp.Key;
+                                object? cellVal = kvp.Value;
+                                string displayVal = cellVal?.ToString() ?? "-";
+
+                                string alignClass = "text-center";
+                                if (Model.ColumnAlignments != null && Model.ColumnAlignments.TryGetValue(cellKey, out var userAlign))
+                                {
+                                    alignClass = userAlign.ToLower() switch
+                                    {
+                                        "left" or "start" or "text-left" or "text-start" => "text-start",
+                                        "right" or "end" or "text-right" or "text-end" => "text-end",
+                                        _ => "text-center"
+                                    };
+                                }
+
+                                <td class="align-middle @alignClass">
+                                    @if (!string.IsNullOrEmpty(Model.ActionUrlPattern) && string.Equals(cellKey, linkCol, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        string linkUrl = Model.ActionUrlPattern.Replace("{id}", primaryKeyValue);
+                                        <a href="@linkUrl" class="dynamic-grid-link js-Sex-edit" data-id="@primaryKeyValue">
+                                            @displayVal
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @displayVal
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div class="dynamic-grid-footer">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <!-- Summary Info -->
+            <div class="small text-secondary text-center text-md-start fw-medium">
+                @if (Model.TotalRecords > 0)
+                {
+                    <text>Showing <span class="fw-bold text-dark">@Model.StartRecord</span> to <span class="fw-bold text-dark">@Model.EndRecord</span> of <span class="fw-bold text-dark">@Model.TotalRecords</span> entries</text>
+                }
+                else
+                {
+                    <text>Showing <span class="fw-bold text-dark">0</span> entries</text>
+                }
+            </div>
+
+            <!-- Page Controls -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Grid navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Previous Button -->
+                        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                            <button class="page-link shadow-none" 
+                                    type="button"
+                                    onclick="GridManager.loadPage('@Model.GridId', '@Model.AjaxUrl', @(Model.CurrentPage - 1), @Model.PageSize)"
+                                    @(!Model.HasPreviousPage ? "disabled" : "")>
+                                &laquo; Prev
+                            </button>
+                        </li>
+
+                        <!-- Page Numbers with Ellipsis -->
+                        @{
+                            int maxVisiblePages = 5;
+                            int startPage = Math.Max(1, Model.CurrentPage - 2);
+                            int endPage = Math.Min(Model.TotalPages, startPage + maxVisiblePages - 1);
+
+                            if (endPage - startPage + 1 < maxVisiblePages)
+                            {
+                                startPage = Math.Max(1, endPage - maxVisiblePages + 1);
+                            }
+
+                            if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <button class="page-link shadow-none" type="button" onclick="GridManager.loadPage('@Model.GridId', '@Model.AjaxUrl', 1, @Model.PageSize)">1</button>
+                                </li>
+                                if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                            }
+
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                                int pageNum = i;
+                                bool isActive = pageNum == Model.CurrentPage;
+                                <li class="page-item @(isActive ? "active" : "")">
+                                    <button class="page-link shadow-none" 
+                                            type="button" 
+                                            onclick="GridManager.loadPage('@Model.GridId', '@Model.AjaxUrl', @pageNum, @Model.PageSize)">
+                                        @pageNum
+                                    </button>
+                                </li>
+                            }
+
+                            if (endPage < Model.TotalPages)
+                            {
+                                if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                                <li class="page-item">
+                                    <button class="page-link shadow-none" type="button" onclick="GridManager.loadPage('@Model.GridId', '@Model.AjaxUrl', @Model.TotalPages, @Model.PageSize)">@Model.TotalPages</button>
+                                </li>
+                            }
+                        }
+
+                        <!-- Next Button -->
+                        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                            <button class="page-link shadow-none" 
+                                    type="button"
+                                    onclick="GridManager.loadPage('@Model.GridId', '@Model.AjaxUrl', @(Model.CurrentPage + 1), @Model.PageSize)"
+                                    @(!Model.HasNextPage ? "disabled" : "")>
+                                Next &raquo;
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>

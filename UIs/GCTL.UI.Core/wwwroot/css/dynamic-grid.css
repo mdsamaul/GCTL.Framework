@@ -1,0 +1,166 @@
+/* ==========================================================================
+   DYNAMIC GRID GLOBAL PREMIER STYLING SYSTEM
+   Controls the responsive layout, modern typography, hover states, badges, 
+   checkboxes, and pagination across all application tables.
+   ========================================================================== */
+
+.dynamic-grid-card {
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+/* Card Header Responsive Padding Rules */
+.dynamic-grid-header {
+    padding-top: 13px !important;
+    padding-bottom: 13px !important;
+}
+
+@media (min-width: 1300px) and (max-width: 1400px) {
+    .dynamic-grid-header {
+        padding-top: 0.5rem !important;  /* py-2 (8px) */
+        padding-bottom: 0.5rem !important; /* py-2 (8px) */
+    }
+}
+
+/* Responsive Table Scroll Container */
+.dynamic-grid-card .table-responsive {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+/* Modern Gradient Table Header */
+.dynamic-grid-table {
+    margin-bottom: 0 !important;
+}
+
+.dynamic-grid-table thead {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* Table Header - Always Horizontally & Vertically Centered */
+.dynamic-grid-table thead th {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: #475569;
+    padding: 0.5rem 0.85rem;
+    white-space: nowrap;
+    border: none;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+/* Row Hover & Cell Styling - Always Vertically Centered */
+.dynamic-grid-table tbody tr {
+    transition: background-color 0.15s ease-in-out;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.dynamic-grid-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.dynamic-grid-table tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+.dynamic-grid-table tbody td {
+    padding: 0.45rem 0.85rem;
+    vertical-align: middle !important;
+    font-size: 0.875rem;
+    color: #334155;
+}
+
+/* Dynamic Primary Key Link Styling */
+.dynamic-grid-link {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease-in-out, text-decoration 0.15s ease-in-out;
+}
+
+.dynamic-grid-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* Custom Checkbox Styling */
+.dynamic-grid-card .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    cursor: pointer;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 0.3em;
+    transition: all 0.15s ease-in-out;
+}
+
+.dynamic-grid-card .form-check-input:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+}
+
+.dynamic-grid-card .form-check-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+/* Card Footer & Pagination Controls */
+.dynamic-grid-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    padding: 0.9rem 1.25rem;
+}
+
+.dynamic-grid-footer .pagination {
+    gap: 0.25rem;
+}
+
+.dynamic-grid-footer .pagination .page-link {
+    border-radius: 0.375rem !important;
+    color: #475569;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    padding: 0.4rem 0.75rem;
+    transition: all 0.15s ease-in-out;
+    background-color: #ffffff;
+}
+
+.dynamic-grid-footer .pagination .page-item.active .page-link {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.dynamic-grid-footer .pagination .page-link:hover:not(.disabled) {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.dynamic-grid-footer .pagination .page-item.disabled .page-link {
+    background-color: #f8fafc;
+    border-color: #f1f5f9;
+    color: #94a3b8;
+}
+
+/* Clean Empty State */
+.dynamic-grid-empty-state {
+    padding: 3.5rem 1rem;
+    text-align: center;
+}
+
+.dynamic-grid-empty-icon {
+    font-size: 2.75rem;
+    color: #cbd5e1;
+    margin-bottom: 0.75rem;
+}

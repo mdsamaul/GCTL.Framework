@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.Gender.GenderPageViewModel
+@model GCTL.UI.Core.ViewModels.Gender.GenderPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -16,12 +16,12 @@
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
 
-            <div class="col-md-6 pr-0">
-                <div class="card">
+            <div class="col-md-6">
+                <div class="card rounded">
                     <div class="card-header px-2">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
@@ -47,14 +47,15 @@
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-Sex-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.GenderList)
+            <div class="col-md-6">
+              
+                        <div class="js-Sex-grid-container" id="genderGridContainer">
+                            @if (Model.DynamicGrid != null)
+                            {
+                                @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                            }
                         </div>
-                    </div>
-                </div>
+                   
             </div>
 
 
@@ -71,12 +72,14 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
     <script src="~/js/pages/gender.js"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Gender")'
         };
         options.load = () => {
+            loadGridPage('genderGridContainer', '/Gender/GetTableData', 1, 10);
         };
 
         $.gender(options);
