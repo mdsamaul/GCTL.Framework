@@ -1,34 +1,143 @@
 /* ==========================================================================
-   DYNAMIC GRID GLOBAL PREMIER STYLING SYSTEM
-   Controls the responsive layout, modern typography, hover states, badges, 
-   checkboxes, and pagination across all application tables.
+   DYNAMIC GRID GLOBAL RESPONSIVE DESIGN SYSTEM (STANDARDIZED METRICS)
+   Consistent typography, predictable input heights, and uniform padding
+   across all screen resolutions (1300px-1400px laptops, 4K monitors, & mobile).
    ========================================================================== */
 
+:root {
+    /* Standardized Typography Tokens */
+    --ratio-font-header: 0.8125rem; /* 13px */
+    --ratio-font-body: 0.875rem;   /* 14px */
+    --ratio-font-label: 0.8125rem;  /* 13px */
+    --ratio-font-input: 0.875rem;   /* 14px */
+
+    /* Standardized Spacing & Padding Tokens */
+    --ratio-card-padding-x: 1rem;     /* 16px */
+    --ratio-header-padding-y: 0.625rem;/* 10px */
+    --ratio-cell-padding-y: 0.45rem;   /* 7px */
+    --ratio-cell-padding-x: 0.85rem;   /* 13px */
+    --ratio-form-gap: 0.75rem;        /* 12px */
+}
+
+/* Card Container Styling */
 .dynamic-grid-card {
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     background: #ffffff;
     transition: all 0.2s ease-in-out;
+    border-radius: 0.5rem;
     overflow: hidden;
 }
 
-/* Card Header Responsive Padding Rules */
+/* Card Header Uniform Padding Rules */
 .dynamic-grid-header {
-    padding-top: 13px !important;
-    padding-bottom: 13px !important;
+    padding-top: var(--ratio-header-padding-y) !important;
+    padding-bottom: var(--ratio-header-padding-y) !important;
+    padding-left: var(--ratio-card-padding-x) !important;
+    padding-right: var(--ratio-card-padding-x) !important;
 }
 
-@media (min-width: 1300px) and (max-width: 1400px) {
-    .dynamic-grid-header {
-        padding-top: 0.5rem !important;  /* py-2 (8px) */
-        padding-bottom: 0.5rem !important; /* py-2 (8px) */
+/* Form Container & Control Sizing for Universal Resolution Parity */
+.js-Sex-form-container,
+.form-container-responsive {
+    padding: 0.25rem 0;
+}
+
+/* Centered Setup Form Layout with Fluid Percentage Action Slots */
+.setup-form-container-centered {
+    padding-left: clamp(10px, 3.8%, 38px);
+    padding-right: 0;
+    width: 100%;
+}
+
+.js-Sex-form-container .form-control,
+.js-Sex-form-container .form-select,
+.form-container-responsive .form-control,
+.form-container-responsive .form-select {
+    font-size: var(--ratio-font-input);
+    padding: 0.375rem 0.75rem;
+    height: 36px;
+    border-radius: 0.375rem;
+    line-height: 1.5;
+    box-shadow: none;
+}
+
+.js-Sex-form-container label,
+.form-container-responsive label {
+    font-weight: 600;
+    font-size: var(--ratio-font-label);
+    color: #475569;
+    margin-bottom: 0.35rem;
+}
+
+.js-Sex-form-container .form-group,
+.form-container-responsive .form-group {
+    margin-bottom: var(--ratio-form-gap) !important;
+}
+
+/* Toolbar & Action Buttons Responsive Fluid Scaling */
+.toolbar-container {
+    overflow: hidden;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.toolbar-title-wrap {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.toolbar-title {
+    font-size: clamp(0.8rem, 0.85vw, 0.95rem) !important;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toolbar-btn-group {
+    gap: clamp(0.15rem, 0.3vw, 0.35rem) !important;
+    flex-shrink: 0;
+}
+
+.toolbar-btn,
+.js-Sex-save,
+.js-Sex-delete-confirm,
+.js-Sex-clear {
+    font-size: clamp(0.72rem, 0.65vw, 0.8125rem) !important;
+    font-weight: 600;
+    padding: clamp(0.25rem, 0.35vw, 0.375rem) clamp(0.35rem, 0.5vw, 0.75rem) !important;
+    height: 34px !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 0.375rem !important;
+    white-space: nowrap;
+}
+
+@media (max-width: 1400px) {
+    .toolbar-btn,
+    .js-Sex-save,
+    .js-Sex-delete-confirm,
+    .js-Sex-clear {
+        padding: 0.25rem 0.45rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .toolbar-btn i {
+        font-size: 0.75rem;
+    }
+
+    .card-header.dynamic-grid-header {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
     }
 }
 
 /* Responsive Table Scroll Container */
 .dynamic-grid-card .table-responsive {
-    border-top-left-radius: 0.75rem;
-    border-top-right-radius: 0.75rem;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 #f8fafc;
 }
@@ -36,6 +145,7 @@
 /* Modern Gradient Table Header */
 .dynamic-grid-table {
     margin-bottom: 0 !important;
+    width: 100%;
 }
 
 .dynamic-grid-table thead {
@@ -43,21 +153,21 @@
     border-bottom: 2px solid #e2e8f0;
 }
 
-/* Table Header - Always Horizontally & Vertically Centered */
+/* Table Header - Centered & Scaled */
 .dynamic-grid-table thead th {
-    font-size: 0.8125rem;
+    font-size: var(--ratio-font-header);
     font-weight: 700;
     text-transform: none;
     letter-spacing: 0.02em;
     color: #475569;
-    padding: 0.5rem 0.85rem;
+    padding: var(--ratio-cell-padding-y) var(--ratio-cell-padding-x);
     white-space: nowrap;
     border: none;
     text-align: center !important;
     vertical-align: middle !important;
 }
 
-/* Row Hover & Cell Styling - Always Vertically Centered */
+/* Row Hover & Cell Styling - Vertically Centered & Scaled */
 .dynamic-grid-table tbody tr {
     transition: background-color 0.15s ease-in-out;
     border-bottom: 1px solid #f1f5f9;
@@ -72,9 +182,9 @@
 }
 
 .dynamic-grid-table tbody td {
-    padding: 0.45rem 0.85rem;
+    padding: var(--ratio-cell-padding-y) var(--ratio-cell-padding-x);
     vertical-align: middle !important;
-    font-size: 0.875rem;
+    font-size: var(--ratio-font-body);
     color: #334155;
 }
 
@@ -93,8 +203,8 @@
 
 /* Custom Checkbox Styling */
 .dynamic-grid-card .form-check-input {
-    width: 1.2em;
-    height: 1.2em;
+    width: 1.15em;
+    height: 1.15em;
     cursor: pointer;
     border: 1.5px solid #cbd5e1;
     border-radius: 0.3em;
@@ -116,7 +226,7 @@
 .dynamic-grid-footer {
     background-color: #ffffff;
     border-top: 1px solid #e2e8f0;
-    padding: 0.9rem 1.25rem;
+    padding: var(--ratio-header-padding-y) var(--ratio-card-padding-x);
 }
 
 .dynamic-grid-footer .pagination {
@@ -126,10 +236,10 @@
 .dynamic-grid-footer .pagination .page-link {
     border-radius: 0.375rem !important;
     color: #475569;
-    font-size: 0.8125rem;
+    font-size: var(--ratio-font-header);
     font-weight: 600;
     border: 1px solid #e2e8f0;
-    padding: 0.4rem 0.75rem;
+    padding: 0.35rem 0.75rem;
     transition: all 0.15s ease-in-out;
     background-color: #ffffff;
 }
@@ -155,12 +265,12 @@
 
 /* Clean Empty State */
 .dynamic-grid-empty-state {
-    padding: 3.5rem 1rem;
+    padding: 2.5rem 1rem;
     text-align: center;
 }
 
 .dynamic-grid-empty-icon {
-    font-size: 2.75rem;
+    font-size: 2.5rem;
     color: #cbd5e1;
     margin-bottom: 0.75rem;
 }

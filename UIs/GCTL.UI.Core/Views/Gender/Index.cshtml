@@ -16,55 +16,47 @@
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="">
+    <div class="container-fluid px-3 px-xl-4">
         <div class="row g-2">
 
-
+            <!-- Left Setup Form Column -->
             <div class="col-md-6">
-                <div class="card rounded">
-                    <div class="card-header px-2">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Gender Info",
                             SaveBtnClass = "js-Sex-save",
                             DeleteBtnClass = "js-Sex-delete-confirm",
                             ClearBtnClass = "js-Sex-clear"
-                            
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body p-0 py-3 ps-4">
                         <form asp-action="Setup" method="post" id="Sex-form" asp-controller="Gender">
-
                             <div class="js-Sex-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
-
-
                         </form>
                     </div>
                 </div>
             </div>
 
+            <!-- Right Table Dynamic Grid Column -->
             <div class="col-md-6">
-              
-                        <div class="js-Sex-grid-container" id="genderGridContainer">
-                            @if (Model.DynamicGrid != null)
-                            {
-                                @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
-                            }
-                        </div>
-                   
+                <div class="js-Sex-grid-container" id="genderGridContainer">
+                    @if (Model.DynamicGrid != null)
+                    {
+                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                    }
+                </div>
             </div>
 
-
         </div>
-
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
