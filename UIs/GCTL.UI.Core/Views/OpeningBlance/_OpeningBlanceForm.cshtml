@@ -1,194 +1,179 @@
-﻿<style>
-    .form-floating .selectLabel {
-        font-size: 14px !important;
-    }
-
-    .form-floating label {
-        text-transform: none;
-        font-size: 13px;
-    }
-
-    .BlanceSaveBtn:hover {
-        color: darkgreen !important;
-        background-color: lightgray !important;
-    }
-
-    .BlancedeleteBtn:hover {
-        color: red !important;
-        background-color: lightgray !important;
-    }
-
-    .BlanceresetBtn:hover {
-        color: lightgoldenrodyellow !important;
-        background-color: lightgray !important;
-    }
-
-    .printBtn:hover {
-        color: blue !important;
-        background-color: lightgray !important;
-    }
-
-    .BlancefavBtn:hover {
-        color: orangered !important;
-        background-color: lightgray !important;
-    }
-
-    #button-div button {
-        padding: 8px 6px;
-        width: 80px;
-    }
-
-    .select2-container .select2-selection--single {
-        height: calc(2.8rem + 2px) !important;
-        align-items: center !important;
-    }
-</style>
+﻿@using GCTL.UI.Core.ViewModels
 
 <div class="card shadow-sm rounded-2">
 
-    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
-        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
-            <div>
-                <h4 class="mb-0 heading-nowrap" style="font-size:14px">Opening Balance Entry</h4>
-            </div>
-            <div class="d-flex gap-1" id="button-div">
-                <button type="submit" form="BlanceTypeForm" class="btn btn-sm btn-outline-primary BlanceSaveBtn">
-                    <i class="fas fa-save me-1"></i> Save
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-danger BlancedeleteBtn" id="BlancedeleteBtn">
-                    <i class="fas fa-trash me-1"></i> Delete
-                </button>
-                <button type="reset" class="btn btn-sm btn-outline-secondary BlanceresetBtn">
-                    <i class="fas fa-eraser me-1"></i> Clear
-                </button>
-                <div class="dropdown">
-                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fas fa-print me-1"></i> Print
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
-                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
-                    </ul>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-warning BlancefavBtn">
-                    <i class="fas fa-star me-1"></i> Fav
-                </button>
-            </div>
-        </div>
-    </div>
+    @await Html.PartialAsync("_Toolbars", new ToobarModel
+    {
+        Title = "Opening Balance Entry",
+        ShowSave = true,
+        SaveBtnId = "BlanceSaveBtn",
+        SaveBtnClass = "js-Blance-save BlanceSaveBtn",
+        EnableSave = true,
+
+        ShowDelete = true,
+        DeleteBtnId = "BlancedeleteBtn",
+        DeleteBtnClass = "js-Blance-delete-confirm BlancedeleteBtn",
+        EnableDelete = true,
+
+        ShowClear = true,
+        ClearBtnId = "btnClear",
+        ClearBtnClass = "js-Blance-clear BlanceresetBtn",
+        EnableClear = true,
+
+        ShowPrint = true,
+        PrintBtnId = "btnPrint",
+        PrintBtnClass = "printBtn",
+        ExcelBtnClass = "export-excel",
+        PdfBtnClass = "export-pdf",
+        EnablePrint = true,
+
+        ShowFavorite = true,
+        FavtBtnId = "btnFav",
+        FavtBtnClass = "BlancefavBtn",
+        EnableFavorite = true
+    })
 
     <div class="card-body">
         <form id="BlanceTypeForm">
-            <fieldset style="border:1px solid #ccc; padding:5px; border-radius:5px;">
-
+            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="BlanceautoId" name="autoId" />
 
-                <!-- Company & Branch -->
+                <fieldset class="border rounded-3 p-3 mb-3">
+                    <div class="row g-3">
+
+                        @* 1. Company Code *@
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Select,
+                            InputId = "CompanyCode",
+                            InputName = "CompanyCode",
+                            LabelText = "Company",
+                            Placeholder = "-- Select Company --",
+                            IsRequired = true
+                        })
+
+                        @* 2. Branch Code *@
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Select,
+                            InputId = "BranchCode",
+                            InputName = "BranchCode",
+                            LabelText = "Branch",
+                            Placeholder = "-- Select Branch --",
+                            IsRequired = true
+                        })
+
+                    </div>
+
+                    <div class="row g-3 mt-1">
+
+                        @* 3. Account Head (Sub-Sidiary Ledger) *@
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Select,
+                            InputId = "SubSusidiaryLedgerCodeNo",
+                            InputName = "SubSusidiaryLedgerCodeNo",
+                            LabelText = "Account Head",
+                            Placeholder = "-- Select Account Head --",
+                            IsRequired = true
+                        })
+
+                        @* 4. Opening Balance *@
+                        <div class="col-md-3">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Number,
+                                InputId = "OpeningBalance",
+                                InputName = "OpeningBalance",
+                                LabelText = "Opening Balance",
+                                Placeholder = "Opening Balance",
+                                IsRequired = true
+                            })
+                        </div>
+
+                        @* 5. TrType *@
+                        <div class="col-md-3">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Select,
+                                InputId = "TrType",
+                                InputName = "TrType",
+                                LabelText = "Select TrType",
+                                Placeholder = "-- Select --",
+                                IsRequired = true
+                            })
+                        </div>
+
+                    </div>
+                </fieldset>
+
+                <hr class="my-3 mx-1">
+
+                @* --- Entry & Update Date Section --- *@
                 <div class="row g-3">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "BlancedisplayLDate",
+                        LabelText = "Entry Date:",
+                        LabelInline = true,
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
+                    })
 
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <select class="form-select" id="CompanyCode" name="CompanyCode">
-                            </select>
-                            <label for="CompanyCode"></label>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="form-floating">
-                            <select class="form-select" name="BranchCode" id="BranchCode">
-                            </select>
-                            <label for="BranchCode"></label>
-                        </div>
-                    </div>
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "BlancedisplayModifyDate",
+                        LabelText = "Last Update Date:",
+                        LabelInline = true,
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
+                    })
                 </div>
 
-                <!-- Account Head + Opening Balance + TrType -->
-                <div class="row g-3 align-items-end mt-3">
-                    <!-- Left: Account Head -->
-                    <div class="col-md-6">
-                        <div class="form-floating h-100">
-                            <select class="form-select" name="SubSusidiaryLedgerCodeNo" id="SubSusidiaryLedgerCodeNo">
-
-                            </select>
-                            <label for="SubSusidiaryLedgerCodeNo"></label>
-                        </div>
-                    </div>
-
-                    <!-- Right: Opening Balance + TrType -->
-                    <div class="col-md-6">
-                        <div class="d-flex gap-2">
-                            <div class="flex-grow-1">
-                                <div class="form-floating">
-                                    <input type="number" class="form-control" name="OpeningBalance" id="OpeningBalance" step="0.01">
-                                    <label for="OpeningBalance">Opening Balance<span style="color:red">*</span></label>
-                                </div>
-                            </div>
-                            <div style="width:150px;">
-                                <div class="form-floating">
-                                    <select class="form-select" name="TrType" id="TrType">
-                                        <option></option>
-                                        <option value="Dr">Debit</option>
-                                        <option value="Cr">Credit</option>
-                                    </select>
-                                    <label for="TrType">Select TrType<span style="color:red">*</span></label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                @* Bottom Save Button *@
+                <div class="col-12">
+                    @await Html.PartialAsync("_Toolbars", new ToobarModel
+                    {
+                        Title = "",
+                        ShowClear = false,
+                        ShowDelete = false,
+                        ShowPrint = false,
+                        ShowFavorite = false,
+                        IsPlain = true,
+                        ReserveActionSlot = true,
+                        IsMarginRight = true,
+                        SaveBtnType = "submit"
+                    })
                 </div>
 
-                <!-- Creation/Modify Date -->
-                @* <div class="row g-3 mt-3">
-
- 
-                    <div class="col-md-6" id="BlancelDateContainer">
-                        <div class="form-label fw-bold text-muted small" style="text-transform: none;">
-                            Entry Date <span id="BlancedisplayLDate" class="text-dark"></span>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6" id="BlancedmodifyDateContainer">
-                        <div class="form-label fw-bold text-muted small" style="text-transform: none;">
-                            Last Update Date <span id="BlancedisplayModifyDate" class="text-dark"></span>
-                        </div>
-                    </div>
-
-
-                </div> *@
-                <hr class="my-4 mx-2 pb-2">
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-                        <div>
-                            <span>Entry Date : </span>
-                            <span id="BlancedisplayLDate"></span>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div>
-                            <span>Last Update Date :</span>
-                            <span id="BlancedisplayModifyDate"></span>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Save Button -->
-                <div class="row mt-2">
-                    <div class="col-12 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-outline-primary btn-sm BlanceSaveBtn">
-                            <i class="fas fa-save"></i> Save
-                        </button>
-                    </div>
-                </div>
             </fieldset>
         </form>
     </div>
 </div>
-
-
-
-
-

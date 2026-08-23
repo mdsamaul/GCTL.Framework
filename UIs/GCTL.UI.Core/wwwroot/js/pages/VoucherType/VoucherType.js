@@ -20,32 +20,32 @@ $(document).on('input', '.form-control', function () {
 
 //#region Reset Duration Type Dropdown
 function LoadResetDurationDropdown() {
-    $.ajax({
-        url: '/reset-duration-dropdown',
-        method: 'GET',
-        success: function (response) {
-            console.log("Duration Type Loaded", response.data);
+    // $.ajax({
+    //     url: '/reset-duration-dropdown',
+    //     method: 'GET',
+    //     success: function (response) {
+    //         console.log("Duration Type Loaded", response.data);
 
-            var $duration = $('#resetDurationTypeCode');
-            $duration.empty().append('<option value="">Select Duration Type</option>');
+    //         var $duration = $('#resetDurationTypeCode');
+    //         $duration.empty().append('<option value="">Select Duration Type</option>');
 
-            $.each(response.data, function (index, duration) {
-                $duration.append(
-                    '<option value="' + duration.id + '">' + duration.name + '</option>'
-                );
-            });
+    //         $.each(response.data, function (index, duration) {
+    //             $duration.append(
+    //                 '<option value="' + duration.id + '">' + duration.name + '</option>'
+    //             );
+    //         });
 
-            // Initialize Select2 to make it searchable
-            $duration.select2({
-                placeholder: "Duration Type",
-                width: '100%',
-                allowClear: true, 
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error('Failed to load Duration Type:', error);
-        }
-    });
+    //         // Initialize Select2 to make it searchable
+    //         $duration.select2({
+    //             placeholder: "Duration Type",
+    //             width: '100%',
+    //             allowClear: true, 
+    //         });
+    //     },
+    //     error: function (xhr, status, error) {
+    //         console.error('Failed to load Duration Type:', error);
+    //     }
+    // });
 }
 //#endregion
 

@@ -65,13 +65,13 @@ function LoadGeneralLedgerDropdown() {
             });
 
             // Initialize Select2 to make it searchable
-            $general.select2({
-                placeholder: "Account Head",
-                width: '100%',
-                allowClear: true,
-                dropdownPosition: 'below'
-            });
-
+            // $general.select2({
+            //     placeholder: "Account Head",
+            //     width: '100%',
+            //     allowClear: true,
+            //     dropdownPosition: 'below'
+            // });
+            window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
             $general.next('.select2-container').find('.select2-selection__placeholder')
                 .html('Account Head <span style="color:red">*</span>');
         },
@@ -101,12 +101,15 @@ function LoadCompanyDropdown() {
             });
 
             // Initialize Select2 to make it searchable
-            $company.select2({
-                width: '100%',
-                allowClear: true,
-            });
+            // $company.select2({
+            //     width: '100%',
+            //     allowClear: true,
+            // });
+            //$company.trigger('change');
+            window.reinitCustomDropdownById('CompanyCode');
             if (response.data.length === 1) {
                 $company.val(response.data[0].id).trigger('change');
+                window.reinitCustomDropdownById('CompanyCode');
             }
             $company.prop("disabled", true);
         },
@@ -145,11 +148,14 @@ function LoadBranchDropdown(companyCode, callback) {
             });
 
             // Initialize Select2
-            $branch.select2({
-                placeholder:"Select Branch",
-                width: '100%',
-                allowClear: true
-            });
+            // $branch.select2({
+            //     placeholder:"Select Branch",
+            //     width: '100%',
+            //     allowClear: true
+            // });
+
+            // $branch.trigger('change');
+            window.reinitCustomDropdownById('BranchCode');
 
             $branch.next('.select2-container').find('.select2-selection__placeholder')
                 .html('Select Branch <span style="color:red">*</span>');

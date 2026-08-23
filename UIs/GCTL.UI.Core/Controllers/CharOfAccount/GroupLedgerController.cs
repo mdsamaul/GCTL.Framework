@@ -13,7 +13,6 @@ namespace GCTL.Controllers.CharOfAccount
             _service = service;
         }
 
-
         [HttpGet("next-group-ledger-code")]
         public async Task<string> GenerateNewIdAsync()
         {
@@ -33,7 +32,6 @@ namespace GCTL.Controllers.CharOfAccount
             return nextId.ToString(); 
         }
 
-
         [HttpGet]
         [Route("group-ledger/details/{id}")]
         public async Task<IActionResult> GetGroupLedgerDetails(int id)
@@ -48,7 +46,6 @@ namespace GCTL.Controllers.CharOfAccount
 
             return Ok(data);
         }
-
 
         [HttpGet]
         [Route("group-ledger-list")]
@@ -117,10 +114,8 @@ namespace GCTL.Controllers.CharOfAccount
 
                 var result = await _service.SaveAsync(model);
 
-
                 if (!result)
                     return BadRequest(new { message = "Insertion Failed." });
-
 
 
                 return Ok(new { success = true, message = "Data Saved Successfully.",
@@ -158,7 +153,6 @@ namespace GCTL.Controllers.CharOfAccount
             return Ok(new { success = true, message = "Data Updated Successfully." });
         }
 
-
         [HttpDelete]
         [Route("group-ledger-all-delete")]
         public async Task<ActionResult> BulkDelete([FromBody] List<decimal> ids)
@@ -182,10 +176,12 @@ namespace GCTL.Controllers.CharOfAccount
                 return Json(new { isSuccess = false, message = ex.Message });
             }
         }
+
         public async Task<IActionResult> GetAll()
         {
             var data = await _service.GetAllAsync();
             return Ok(new { data = data });
         }
+
     }
 }
