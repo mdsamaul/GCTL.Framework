@@ -113,7 +113,7 @@
                 clearTimeout(gridSearchTimers[containerId]);
             }
 
-            var searchTerm = event.target.value;
+            var searchTerm = (event && event.target) ? event.target.value : '';
             gridSearchTimers[containerId] = setTimeout(function () {
                 GridManager.loadPage(containerId, url, 1, pageSize, searchTerm);
             }, 350); // 350ms debounce

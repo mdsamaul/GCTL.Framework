@@ -1,4 +1,4 @@
-﻿@* @model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel *@
+@* @model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel *@
 @model GCTL.UI.Core.ViewModels.DailyJobUpdateEntry.DailyJobUpdateEntrySetupViewModel
 @{
     // ViewData["Title"] = "Shipment Entry";
@@ -379,51 +379,18 @@
 </style>
 
 
-<!-- Content Header (Page header) -->
-<partial name="_PageHeader" model="Model" />
-
-<div class="">
-    <div class="">
-        <div class="">
-
-            @* <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 rounded shadow-sm border mb-3 sticky-bar">
-                <div class="d-flex align-items-center py-1 ps-2">
-                    <h1 class="fw-bold text-dark m-0" style="font-size: 0.95rem; letter-spacing: 0.5px;">
-                        Daily Job Update
-                    </h1>
-                </div>
-                <div class="d-flex flex-wrap align-items-end pe-1">
-                    <button type="button" class="btn btn-phoenix-primary" id="saveShipmentBtn">
-                        <i class="fas fa-save text-success"></i>
-                        <span>Save</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="deleteShipmentBtn">
-                        <i class="fas fa-trash text-danger"></i>
-                        <span>Delete</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="clearShipmentBtn">
-                        <i class="fas fa-sync text-primary"></i>
-                        <span>Clear</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="printShipmentBtn">
-                        <i class="fas fa-print text-dark"></i>
-                        <span>Print</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="favtShipmentBtn">
-                        <i class="fas fa-star text-warning"></i>
-                        <span>Favt</span>
-                    </button>
-                </div>
-            </div> *@
-
-
-            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-            {
-                Title = "Daily Job Update",
-                SaveBtnClass = "saveBtn"
-            })
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
-                <div class="mb-3">
+<section class="content consistent-look">
+   
+        <div class="card rounded shadow-sm mb-3">
+            <div class="card-header dynamic-grid-header">
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "Daily Job Update",
+                    SaveBtnClass = "saveBtn"
+                })
+            </div>
+            <div class="card-body p-0 py-3 px-4">
+                <div class="">
                     <div id="jobSummary">
 
                         <!-- Small/Mid screen filters (shown below 1350px) -->
@@ -523,7 +490,7 @@
                             <table class="table table-bordered table-sm table-responsive-sm fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobSettingsTable">
                                 <thead>
                                     <tr>
-                                        <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo">Job No</th>
+                                        <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo" style="width: 1%; white-space: nowrap;">Job No</th>
                                         <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="ShipmentMode">Shipment Mode</th>
                                         <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="JobDate">Job Date</th>
                                         <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="CustomerName">Customer Name</th>
@@ -1110,13 +1077,12 @@
                             <button class="page-link pe-0" id="paginationNext"><span class="bi bi-chevron-right"></span></button>
                             <button class="page-link pe-0" id="paginationLast"><span class="bi bi-chevron-bar-right"></span></button>
                         </div>
-                    </div>
                 </div>
             </div>
-
         </div>
+        <partial name="_BottomNavigation" />
     </div>
-</div>
+</section>
 
 @section Scripts {
     <script src="~/js/pages/DailyJobUpdateEntry.js"></script>

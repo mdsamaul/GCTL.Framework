@@ -29,7 +29,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Index
 
-        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 5, string? searchTerm = null)
         {
             var hasPermission = await genderService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -249,7 +249,7 @@ namespace GCTL.UI.Core.Controllers
         #region Table Loading (Dynamic Grid)
 
         [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 5, string? searchTerm = null)
         {
             try
             {

@@ -83,16 +83,16 @@
 }
 
 .toolbar-title-wrap {
-    min-width: 0;
-    flex-shrink: 1;
+    min-width: max-content !important;
+    flex-shrink: 0 !important;
 }
 
 .toolbar-title {
-    font-size: clamp(0.8rem, 0.85vw, 0.95rem) !important;
+    font-size: clamp(0.82rem, 0.85vw, 0.95rem) !important;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
 }
 
 .toolbar-btn-group {
@@ -222,45 +222,71 @@
     box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
 }
 
-/* Card Footer & Pagination Controls */
-.dynamic-grid-footer {
-    background-color: #ffffff;
-    border-top: 1px solid #e2e8f0;
-    padding: var(--ratio-header-padding-y) var(--ratio-card-padding-x);
+/* Universal Application-Wide Modern Pagination System */
+.pagination,
+#paginationNumbers {
+    gap: 0.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-bottom: 0 !important;
 }
 
-.dynamic-grid-footer .pagination {
-    gap: 0.25rem;
-}
-
-.dynamic-grid-footer .pagination .page-link {
+.pagination .page-link,
+#paginationNumbers .page-link,
+button.page-link,
+a.page-link,
+#paginationPrev,
+#paginationNext,
+#paginationFirst,
+#paginationLast {
     border-radius: 0.375rem !important;
-    color: #475569;
-    font-size: var(--ratio-font-header);
-    font-weight: 600;
-    border: 1px solid #e2e8f0;
-    padding: 0.35rem 0.75rem;
-    transition: all 0.15s ease-in-out;
-    background-color: #ffffff;
+    color: #475569 !important;
+    font-size: 0.8125rem !important; /* 13px */
+    font-weight: 600 !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 0.3rem 0.65rem !important;
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.15s ease-in-out !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
 }
 
-.dynamic-grid-footer .pagination .page-item.active .page-link {
-    background-color: #2563eb;
-    border-color: #2563eb;
-    color: #ffffff;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+.pagination .page-item.active .page-link,
+#paginationNumbers .page-item.active .page-link,
+.page-link.active {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3) !important;
 }
 
-.dynamic-grid-footer .pagination .page-link:hover:not(.disabled) {
-    background-color: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #0f172a;
+.pagination .page-link:hover:not(.disabled):not(:disabled),
+#paginationNumbers .page-link:hover:not(.disabled):not(:disabled),
+button.page-link:hover:not(:disabled),
+a.page-link:hover,
+#paginationPrev:hover,
+#paginationNext:hover,
+#paginationFirst:hover,
+#paginationLast:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
 }
 
-.dynamic-grid-footer .pagination .page-item.disabled .page-link {
-    background-color: #f8fafc;
-    border-color: #f1f5f9;
-    color: #94a3b8;
+.pagination .page-item.disabled .page-link,
+.page-link.disabled,
+.page-link:disabled,
+button.page-link:disabled {
+    background-color: #f8fafc !important;
+    border-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.75;
 }
 
 /* Clean Empty State */
@@ -273,4 +299,82 @@
     font-size: 2.5rem;
     color: #cbd5e1;
     margin-bottom: 0.75rem;
+}
+
+/* Universal Application-Wide Modern Table System */
+table,
+.table,
+.table-responsive table,
+#JobSettingsTable,
+.dyn-tableDrag,
+.dynamic-grid-table,
+.table-bordered {
+    border-color: #e2e8f0 !important;
+    border-radius: 0.375rem !important;
+    overflow: hidden;
+}
+
+table thead,
+.table thead,
+.table-responsive table thead,
+#JobSettingsTable thead,
+.dyn-tableDrag thead,
+.table-bordered thead {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+table thead th,
+.table thead th,
+.table-responsive table thead th,
+#JobSettingsTable thead th,
+.dyn-tableDrag thead th,
+.table-bordered thead th {
+    font-size: 0.8125rem !important; /* 13px */
+    font-weight: 700 !important;
+    color: #475569 !important;
+    padding: 0.4rem 0.65rem !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-top: none !important;
+    vertical-align: middle !important;
+    white-space: nowrap;
+}
+
+table tbody td,
+.table tbody td,
+.table-responsive table tbody td,
+#JobSettingsTable tbody td,
+.dyn-tableDrag tbody td,
+.table-bordered tbody td {
+    font-size: 0.8125rem !important; /* 13px */
+    padding: 0.35rem 0.65rem !important;
+    vertical-align: middle !important;
+    color: #334155 !important;
+    border-color: #f1f5f9 !important;
+}
+
+table tbody tr,
+.table tbody tr,
+.table-responsive table tbody tr,
+#JobSettingsTable tbody tr,
+.dyn-tableDrag tbody tr,
+.table-bordered tbody tr {
+    transition: background-color 0.15s ease-in-out;
+}
+
+table tbody tr:hover,
+.table tbody tr:hover,
+.table-responsive table tbody tr:hover,
+#JobSettingsTable tbody tr:hover,
+.dyn-tableDrag tbody tr:hover,
+.table-bordered tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+/* Fit-to-Content Job No Column Width */
+#JobSettingsTable th[data-sort="JobNo"],
+#JobSettingsTable td:first-child,
+.dynamic-grid-table th[data-field="JobNo"],
+.dynamic-grid-table td[data-field="JobNo"] {
+    width: 1% !important;
+    white-space: nowrap !important;
 }
