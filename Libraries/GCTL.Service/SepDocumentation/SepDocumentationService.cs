@@ -202,20 +202,21 @@ namespace GCTL.Service.SepDocumentation
 
                 // shared
                 ETDDate = h.Etddate,
-                //DocsBankSignDate = h.DocsBankSignDate,
+                ETACTGPORT = h.Etactgport,
+                DocsBankSignDate = h.DocsBankSignDate,
                 BENo = h.Beno,
                 BEDate = h.Bedate,
                 ActualDeliveryDate = h.Ata,
 
                 // sea
-                //FinalIgmRecDate = h.FinalIgmRecDate,
+                FinalIgmRecDate = h.FinalIgmRecDate,
                 ShipArrivedDate = h.Shiparriveddate,
                 UnstuffDischargeDate = h.UnStuffingLocationDate,
                 EstimatedDeliveryDate = h.Eta,
 
                 // air
                 FlightArrivalDate = h.Atb,
-                //ArrivalNoticeDate = h.ArrivalNoticeDate,
+                ArrivalNoticeDate = h.ArrivalNoticeDate,
 
                 CreatedAt = h.Ldate,
                 UpdatedAt = h.ModifyDate
@@ -422,9 +423,7 @@ namespace GCTL.Service.SepDocumentation
                 }
                 else
                 {
-                    entity = await _sepDocumentationRepository
-                        .All()
-                        .FirstOrDefaultAsync(x => x.Tc == model.Tc.Value);
+                    entity = await _sepDocumentationRepository.All().AsNoTracking().FirstOrDefaultAsync(x => x.Tc == model.Tc.Value);
 
                     if (entity == null)
                     {
@@ -507,6 +506,7 @@ namespace GCTL.Service.SepDocumentation
                 entity.Remarks = model.Remarks ?? entity.Remarks ?? string.Empty;
 
                 entity.Etddate = model.ETDDate ?? entity.Etddate;
+                entity.Etactgport = model.ETACTGPORT ?? entity.Etactgport;
                 entity.Beno = model.BENo ?? entity.Beno ?? string.Empty;
                 entity.Bedate = model.BEDate ?? entity.Bedate;
                 entity.Ata = model.ActualDeliveryDate ?? entity.Ata;
@@ -515,19 +515,16 @@ namespace GCTL.Service.SepDocumentation
                     .Trim()
                     .ToUpperInvariant();
 
-                if (transportType.Contains("SEA"))
+                if (transportType == "002" || transportType.Contains("SEA"))
                 {
                     entity.Shiparriveddate = model.ShipArrivedDate ?? entity.Shiparriveddate;
                     entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? entity.UnStuffingLocationDate;
                     entity.Eta = model.EstimatedDeliveryDate ?? entity.Eta;
-                    entity.Atb = entity.Atb;
                 }
-                else if (transportType.Contains("AIR"))
+                else if (transportType == "001" || transportType.Contains("AIR"))
                 {
                     entity.Atb = model.FlightArrivalDate ?? entity.Atb;
-                    entity.Shiparriveddate = model.ShipArrivedDate ?? entity.Shiparriveddate;
-                    entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? entity.UnStuffingLocationDate;
-                    entity.Eta = model.ETDDate ?? entity.Eta;
+                    entity.Eta = model.EstimatedDeliveryDate ?? model.ETDDate ?? entity.Eta;
                 }
                 else
                 {

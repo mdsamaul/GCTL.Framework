@@ -62,6 +62,100 @@
     box-shadow: none;
 }
 
+/* Responsive Detached Action Button (.js-quick-add / + button) */
+.detached-action-btn,
+.js-quick-add {
+    height: clamp(30px, 2.3vw, 32px) !important;
+    min-width: clamp(30px, 2.3vw, 32px) !important;
+    width: clamp(30px, 2.3vw, 32px) !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: clamp(0.7rem, 0.75vw, 0.85rem) !important;
+    border-radius: 0.375rem !important;
+    flex-shrink: 0 !important;
+    transition: all 0.15s ease-in-out;
+}
+
+@media (max-width: 1400px) {
+    .detached-action-btn,
+    .js-quick-add {
+        height: 26px !important;
+        min-width: 26px !important;
+        width: 26px !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+/* DualInput 50%-50% Equal Width Balancing & Seamless Border Joining */
+.dual-input-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+}
+
+/* Hide raw select element if Select2 replaced it */
+.dual-input-group > select.select2-hidden-accessible {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    flex: 0 0 0% !important;
+}
+
+/* First control: 50% width, remove right border radius */
+.dual-input-group > input:first-child,
+.dual-input-group > select:first-child,
+.dual-input-group > .form-control:first-child {
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 50% !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Second control (Input 2 / Select 2 / Select2 container): 50% width, remove ALL left border radius */
+.dual-input-group > input:nth-child(2),
+.dual-input-group > input:last-child,
+.dual-input-group > select:nth-child(2),
+.dual-input-group > .select2-container,
+.dual-input-group > select + .select2-container,
+.dual-input-group > .select2 {
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 50% !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    margin-left: -1px !important;
+}
+
+/* Force 0px left border-radius on all Select2 internal elements in 2nd slot */
+.dual-input-group .select2-container,
+.dual-input-group .select2-container *,
+.dual-input-group select + .select2-container,
+.dual-input-group select + .select2-container *,
+.dual-input-group .select2-selection,
+.dual-input-group .select2-selection--single {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+/* Ensure right side of Select2 has rounded corners */
+.dual-input-group .select2-container .select2-selection,
+.dual-input-group select + .select2-container .select2-selection,
+.dual-input-group .select2-container--bootstrap-5 .select2-selection {
+    border-top-right-radius: 0.375rem !important;
+    border-bottom-right-radius: 0.375rem !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    width: 100% !important;
+}
+
 .js-Sex-form-container label,
 .form-container-responsive label {
     font-weight: 600;
@@ -329,7 +423,7 @@ table thead th,
 #JobSettingsTable thead th,
 .dyn-tableDrag thead th,
 .table-bordered thead th {
-    font-size: 0.8125rem !important; /* 13px */
+    font-size: 0.875rem; /* 14px default */
     font-weight: 700 !important;
     color: #475569 !important;
     padding: 0.4rem 0.65rem !important;
@@ -345,11 +439,28 @@ table tbody td,
 #JobSettingsTable tbody td,
 .dyn-tableDrag tbody td,
 .table-bordered tbody td {
-    font-size: 0.8125rem !important; /* 13px */
+    font-size: 0.875rem; /* 14px default */
     padding: 0.35rem 0.65rem !important;
     vertical-align: middle !important;
     color: #334155 !important;
     border-color: #f1f5f9 !important;
+}
+
+@media (max-width: 1400px) {
+    table thead th,
+    .table thead th,
+    .table-responsive table thead th,
+    #JobSettingsTable thead th,
+    .dyn-tableDrag thead th,
+    .table-bordered thead th,
+    table tbody td,
+    .table tbody td,
+    .table-responsive table tbody td,
+    #JobSettingsTable tbody td,
+    .dyn-tableDrag tbody td,
+    .table-bordered tbody td {
+        font-size: 12px !important;
+    }
 }
 
 table tbody tr,

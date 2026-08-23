@@ -1,4 +1,4 @@
-﻿$(document).ready(function () {
+$(document).ready(function () {
     setDate("#jobDate", new Date());
     const entrySections = document.querySelectorAll('.entry-only');
 
@@ -386,8 +386,8 @@
             url: '/SepDocUpdate/GetJobDetail',
             type: 'GET',
             data: { tc: tc },
-            success: function (data) {
-                populateForm(data);
+            success: async function (data) {
+                await populateForm(data);
             },
             error: function () {
                 toastr.error('Error loading job details');
@@ -473,92 +473,104 @@
     //#endregion
     //#region Load detail into form
 
-    $(document).on('click', '.job-detail-link', function (e) {
-        e.preventDefault();
-        const tc = $(this).data('id');
+    async function populateForm(data) {        
+        console.log("Populating form with data:", data);
+        if (!data) return;
 
-        $.ajax({
-            url: '/SepDocUpdate/GetJobDetail',
-            type: 'GET',
-            data: { tc: tc },
-            success: function (data) {
-                populateForm(data);
-            },
-            error: function () {
-                toastr.error('Error loading job details');
-            }
-        });
-    });
-
-    function populateForm(data) {        
-        console.log(data);
         clearForm(false);
         $('#tc').val(data.tc || 0);
-        setSelect('#shipmentModeId', data.shipmentModeId);
-        $('#shipmentModeId').trigger('change');
-        $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false);
-        setField('#jobNo', data.jobNo, true);
-        setField('#beNo', data.beNo, true);
-        setField('#fwdrShippingAgent', data.fwdR_ShippingAgent, true);
-        setField('#RNo', data.rNo, true);
-        setDate('#beDate', data.beDate);
-        setDate('#etactgport', data.etactgport);
+
+        // Custom Job No & Job No
+        const isCustom = data.isCustomJobNo === true || data.isCustomJobNo === "true" || data.isCustomJobNo === "1";
+        $('#isCustomJobNo').prop('checked', isCustom);
+        $('#jobNo').prop('readonly', !isCustom);
+        setField('#jobNo', data.jobNo || '');
+
+        // Dates
+        setDate('#jobDate', data.date);
+        setDate('#docReceivedDate', data.docReceivedDate);
+        setDate('#expDate', data.expDate);
+        setDate('#lcDate', data.lcDate);
+        setDate('#beDate', data.beDate || data.beNoDate);
+        setDate('#beNoDate', data.beNoDate || data.beDate);
+        setDate('#ipDate', data.ipDate);
+        setDate('#invoiceDate', data.invoiceDate);
+        setDate('#blDate', data.blDate);
+        setDate('#etdDate', data.etdDate);
+        setDate('#etactgport', data.etactgport || data.etdDate);
+        setDate('#seaFinalIgmRecDate', data.finalIgmRecDate);
+        setDate('#docsBankSignDate', data.docsBankSignDate);
+        setDate('#actualDeliveryDate', data.actualDeliveryDate);
+        setDate('#seaShipArrivedDate', data.shipArrivedDate);
+        setDate('#unstuffDischargeDate', data.unstuffDischargeDate);
+        setDate('#seaEstimatedDeliveryDate', data.estimatedDeliveryDate);
         setDate('#flightArrivalDate', data.flightArrivalDate);
         setDate('#arrivalNoticeDate', data.arrivalNoticeDate);
-        setDate('#docsBankSignDate', data.docsBankSignDate);
-        setDate('#beNoDate', data.beNoDate);
-        setDate('#jobDate', data.date);
+
+        // Shipment Mode & Transport Group Visibility
+        setSelect('#shipmentModeId', data.shipmentModeId);
+        const transportModeTypeId = data.transportModeTypeId || $('#transportModeTypeId').val();
+        $('#transportModeTypeId').val(transportModeTypeId || '');
+
+        if (transportModeTypeId === '001') {
+            $('.airFieldsGroup').css('display', 'block');
+            $('.seaFieldsGroup').css('display', 'none');
+        } else if (transportModeTypeId === '002') {
+            $('.seaFieldsGroup').css('display', 'block');
+            $('.airFieldsGroup').css('display', 'none');
+        } else {
+            $('.seaFieldsGroup, .airFieldsGroup').hide();
+        }
+
+        // Customer & Delivery Address
         setSelect('#customerId', data.customerId);
         setField('#customerAddress', data.customerAddress);
-        setSelect('#deliveryLocationCode', data.deliveryLocationCode);
-        setSelect('#portId', data.portId);
-        setDate('#docReceivedDate', data.docReceivedDate);
-        setField('#expNo', data.expNo);
-        setDate('#expDate', data.expDate);
-        setField('#lcNo', data.lcNo);
-        setDate('#lcDate', data.lcDate);
-        setField('#lcValue', data.lcValue);
+
+        if (data.customerId) {
+            await customerInfoForPopulate(data.customerId, data.deliveryLocationCode);
+        } else {
+            setSelect('#deliveryLocationCode', data.deliveryLocationCode);
+        }
+
+        // Select Dropdowns
+        setSelect('#portId', data.portId || data.portNameId);
         setSelect('#currencyId', data.currencyId);
+        setSelect('#importerId', data.importerID || data.importerId);
+        setSelect('#invoiceCurrencyId', data.invoiceCurrencyID || data.invoiceCurrencyId);
+        setSelect('#unit1', data.unit1);
+        setSelect('#unit2', data.unit2);
+        setSelect('#placeOfLoadingId', data.placeOfLoadingID || data.placeOfLoadingId);
+        setSelect('#shedYardId', data.shedYardID || data.shedYardId);
+        setSelect('#freightChargeId', data.freightCharge);
+
+        // Text & Number Inputs
+        setField('#expNo', data.expNo);
+        setField('#lcNo', data.lcNo);
+        setField('#lcValue', data.lcValue);
         setField('#bdtRate', data.bdtRate);
         setField('#ipNo', data.ipNo);
-        setDate('#ipDate', data.ipDate);
-        setSelect('#importerId', data.importerID);
         setField('#invoiceNo', data.invoiceNo);
-        setDate('#invoiceDate', data.invoiceDate);
         setField('#invoiceValue', data.invoiceValue);
-        setSelect('#invoiceCurrencyId', data.invoiceCurrencyID);
         setField('#assessableRate', data.assessableRate);
         setField('#assessableValue', data.assessableValue);
         setField('#blNo', data.blNo);
-        setDate('#blDate', data.blDate);
+        setField('#beNo', data.beNo);
         setField('#containerNo', data.containerNo);
         setField('#containerSize', data.containerSize);
         setField('#materialDescription', data.materialDescription);
         setField('#quntity1', data.quntity1);
-        setSelect('#unit1', data.unit1);
         setField('#quntity2', data.quntity2);
-        setSelect('#unit2', data.unit2);
-        setField('#fwdrShippingAgent', data.fwdr_ShippingAgent);
+        setField('#fwdrShippingAgent', data.fwdr_ShippingAgent || data.fwdR_ShippingAgent || data.fwdrShippingAgent || data.FWDR_ShippingAgent || data.nameOfFreightForwarder);
         setField('#vesselRottNo', data.vesselRottNo);
-        setSelect('#placeOfLoadingId', data.placeOfLoadingID);
-        setSelect('#shedYardId', data.shedYardID);
         setField('#hawb', data.hawb);
         setField('#mawb', data.mawb);
         setField('#assessmentNo', data.assessmentNo);
-        setField('#rNo', data.rNo);
-        setSelect('#freightChargeId', data.freightCharge);
+        setField('#RNo', data.rNo || data.RNo);
+        setField('#rNo', data.rNo || data.RNo);
+        setField('#term', data.term);
         setField('#remarks', data.remarks);
 
-        setDate('#etdDate', data.etdDate);
-        setDate('#beNoDate', data.beNo);
-        setDate('#actualDeliveryDate', data.actualDeliveryDate);
-
-        setDate('#seaShipArrivedDate', data.shipArrivedDate);
-        setDate('#unstuffDischargeDate', data.unstuffDischargeDate);
-        setDate('#seaEstimatedDeliveryDate', data.estimatedDeliveryDate);
-
-        setDate('#flightArrivalDate', data.flightArrivalDate);
-
+        // Upload Tab Info Display
         currentJobNo = data.jobNo;
         $('#uploadJobNoDisplay').val(data.jobNo || '');
         $('#uploadJobDateDisplay').val(data.date ? new Date(data.date).toLocaleDateString('en-GB') : '');
@@ -568,6 +580,35 @@
         loadDocuments(currentJobNo);
         calculateLCValueBDT();
         calculateAssessableValue();
+    }
+
+    async function customerInfoForPopulate(customerId, selectedDeliveryLocation) {
+        var response = await ajaxRequest({
+            url: '/SepDocUpdate/CustomerInfo',
+            method: 'GET',
+            data: { customerId: customerId }
+        });
+
+        if (response && response.success) {
+            var customer = response.data;
+            $('#customerAddress').val(customer.customerAddress);
+
+            var deliveryItems = (customer.delivaryAddress || []).map(function (d) {
+                return {
+                    id: d.delivaryId,
+                    text: d.delivaryAddress
+                };
+            });
+
+            setSelect(
+                '#deliveryLocationCode',
+                selectedDeliveryLocation || '',
+                false,
+                deliveryItems,
+                false,
+                'Select Customer Delivery'
+            );
+        }
     }
 
     //#endregion
@@ -662,18 +703,22 @@
             Remarks: $('#remarks').val(),
 
             ETDDate: $('#etdDate').val(),
+            ETACTGPORT: $('#etactgport').val(),
             BENoDate: $('#beNoDate').val(),
             BENo: $('#beNo').val(),
             BEDate: $('#beDate').val(),
             RNo: $('#RNo').val(),
             ActualDeliveryDate: $('#actualDeliveryDate').val(),
 
+            FinalIgmRecDate: $('#seaFinalIgmRecDate').val(),
             ShipArrivedDate: $('#seaShipArrivedDate').val(),
             UnstuffDischargeDate: $('#unstuffDischargeDate').val(),
             EstimatedDeliveryDate: $('#seaEstimatedDeliveryDate').val(),
             Term: $('#term').val(),
 
-            FlightArrivalDate: $('#flightArrivalDate').val()
+            FlightArrivalDate: $('#flightArrivalDate').val(),
+            ArrivalNoticeDate: $('#arrivalNoticeDate').val(),
+            DocsBankSignDate: $('#docsBankSignDate').val()
         };
     }
 
