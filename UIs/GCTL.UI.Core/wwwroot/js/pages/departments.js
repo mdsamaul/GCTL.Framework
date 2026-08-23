@@ -1,13 +1,13 @@
-﻿(function ($) {
+(function ($) {
     $.departments = function (options) {
         // Default options
         var settings = $.extend({
             baseUrl: "/",
             formSelector: "#department-form",
             formContainer: ".js-department-form-container",
-            gridSelector: "#department-grid",
+            gridSelector: "#departmentGridContainer",
             gridContainer: ".js-department-grid-container",
-            editSelector: ".js-department-edit",
+            editSelector: ".js-department-edit, .js-grid-edit, .js-Sex-edit",
             saveSelector: ".js-department-save",
             selectAllSelector: "#department-check-all",
             deleteSelector: ".js-department-delete-confirm",
@@ -37,23 +37,21 @@
             $('[data-toggle="tooltip"]').tooltip();
         });
 
-        $(() =>
-        {
-        
-            loadDepartments(settings.baseUrl, settings.gridSelector);
+        $(() => {
 
-            $("body").on('click', '#exportExcel', function () {
-                
-                window.location.href = '/Departments/ExportToExcel';
-            });
-            initialize();
+            loadTable();
+
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
-                let url = saveUrl + "/" + $(this).data("id") ?? "";
-                loadForm(url);
+                loadForm(url).then((data) => {
+                    console.info("Form Loaded Successfully", data);
+                }).catch((error) => {
+                    console.error("Failed to load form", error);
+                });
 
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
@@ -62,177 +60,96 @@
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-            //
-            
-            //Report Xls , Pdf
+            // Export Excel / Pdf
             $(document).on('click', '.js-export-excel', function () {
-              //  debugger;
-                $("#loadingIndicator").show();
-
-                $.ajax({
-                    url: '/Departments/ExportToExcel',
-                    method: 'GET',
-                    success: function (response) {
-                        window.location.href = '/Departments/ExportToExcel';
-                    },
-                    error: function () {
-                        toastr.error('Error to Export Excel')
-                    },
-                    complete: function () {
-                        $('#loadingIndicator').hide();
-                    }
-                });
+                window.location.href = settings.baseUrl + '/ExportToExcel';
             });
 
             $(document).on('click', '.js-export-pdf', function () {
-                // debugger;
-                $("#loadingIndicator").show();
-                $.ajax({
-                    url: '/Departments/ExportToPdf',
-                    type: 'Get',
-
-                    success: function (response) {
-                        window.location.href = '/Departments/ExportToPdf'
-                    },
-                    error: function () {
-                        toastr.error('An error occurred while exporting the PDF.');
-                    },
-                    complete: function () {
-                        $('#loadingIndicator').hide();
-                    }
-
-                });
+                window.location.href = settings.baseUrl + '/ExportToPdf';
             });
-            //
 
-            //
             // Save
-            // $("body").on("click", settings.saveSelector, function () {
-            //     if (!validation()) return false;
-            //     var $valid = $(settings.formSelector).valid();
-            //     if (!$valid) {
-            //         return false;
-            //     }
-
-            //     var data;
-            //     if (settings.haseFile)
-            //         data = new FormData($(settings.formSelector)[0]);
-            //     else
-            //         data = $(settings.formSelector).serialize();
-
-            //     var url = $(settings.formSelector).attr("action");
-
-            //     var options = {
-            //         url: url,
-            //         method: "POST",
-            //         data: data,
-            //         success: function (response) {
-            //             if (response.isSuccess) {
-            //                 loadForm(saveUrl)
-            //                     .then((data) =>
-            //                     {
-            //                         loadDepartments(settings.baseUrl, settings.gridSelector);
-            //                         $(settings.lastCodeSelector).val(response.lastCode);
-            //                     })
-            //                     .catch((error) =>
-            //                     {
-            //                         console.log(error)
-            //                     })
-
-            //                 toastr.success(response.success, 'Success');
-            //             }
-            //             else {
-            //                 toastr.error(response.message, 'Error');
-            //                 console.log(response);
-            //             }
-            //         }
-            //     }
-            //     if (settings.haseFile) {
-            //         options.processData = false;
-            //         options.contentType = false;
-            //     }
-            //     $.ajax(options);
-            // });
-
-            $('body').on('click', settings.saveSelector, function () {
-
+            $("body").on("click", settings.saveSelector, function () {
                 if (!validation()) return false;
-                var validForm = $(settings.formSelector).valid();
-                if (!validForm) return false;
+                var $valid = $(settings.formSelector).valid();
+                if (!$valid) {
+                    return false;
+                }
 
-                var data = $(settings.formSelector).serialize();
+                var data;
+                if (settings.haseFile)
+                    data = new FormData($(settings.formSelector)[0]);
+                else
+                    data = $(settings.formSelector).serialize();
+
                 var url = $(settings.formSelector).attr("action");
-                var self = this;
 
-                $.ajax({
+                var options = {
                     url: url,
                     method: "POST",
                     data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            toastr.success(response.message);
-
-                            var $modalAncestor = $(self).closest(".modal");
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
                             if ($modalAncestor.length && window.GcModal) {
                                 GcModal.markSuccess($modalAncestor, response.lastCode);
                                 GcModal.close($modalAncestor);
                             } else {
-                                // normal page এ থাকলে আগের মতোই form reload করো
-                                loadForm(saveUrl).then(() => {
-                                    loadCompanies(settings.baseUrl, settings.gridSelector);
-                                });
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
                             }
-                        } else {
+                            toastr.success(response.message);
+                        }
+                        else {
                             toastr.error(response.message);
+                            console.log(response);
                         }
                     }
-                });
+                };
+                if (settings.haseFile) {
+                    options.processData = false;
+                    options.contentType = false;
+                }
+                $.ajax(options);
             });
 
-            $("body").on("click", settings.selectAllSelector, function ()
-            {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+            $("body").on("click", settings.selectAllSelector, function () {
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
-
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
-                    });
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('departmentGridContainer') : [];
                 }
 
-
-                if (selectedItems.length > 0)
-                {
+                if (selectedItems.length > 0) {
                     $(settings.deleteModal).modal("show");
-                } else
-                {
-                    toastr.info("Please select at least one item.", 'Warning');
+                } else {
+                    toastr.info("Please select at least one item.");
                 }
             });
 
+            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event)
-            {
-              
                 var source = $(event.relatedTarget);
-                var id = source.data("id");
+                var id = source.data("ids");
 
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure to delete?";
+                var title = "Are you sure want to delete these items?";
                 var modal = $(this);
                 $(modal).find('.title').html(title);
-               
+
                 $("body").on("click", settings.finalDeleteSelector, function (e) {
                     e.stopPropagation();
                     e.preventDefault();
@@ -240,26 +157,22 @@
 
                     // Delete
                     $.ajax({
-                        url: deleteUrl + "/" + selectedItems,
+                        url: deleteUrl,
                         method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(selectedItems),
                         success: function (response) {
                             console.log(response);
                             $(modal).modal("hide");
                             if (response.success) {
-                                toastr.success(response.message, 'Success');
+                                toastr.success(response.message);
                                 selectedItems = [];
-                                /*settings.load(settings.baseUrl);*/
-                                loadDepartments(settings.baseUrl, settings.gridSelector);
+
+                                loadTable();
                                 loadForm(saveUrl);
                             }
                             else {
-                                if (response.refSuccess) {
-                                    toastr.warning(response.message, 'Warning');
-                                }
-
-                                if (!response.success) {
-                                    toastr.error(response.message, 'Error');
-                                }
+                                toastr.error(response.message);
                                 console.log(response);
                             }
                         }
@@ -280,64 +193,13 @@
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            //$("body").on("keyup", settings.availabilitySelector, function () {
-            //    var self = $(this);
-            //    let code = $(".js-department-code").val();
-            //    let name = self.val();
-
-            //    // check
-            //    $.ajax({
-            //        url: settings.baseUrl + "/CheckAvailability",
-            //        method: "POST",
-            //        data: { code: code, name: name },
-            //        success: function (response) {
-            //            console.log(response);
-            //            if (response.isSuccess) {
-            //                toastr.error(response.message);
-            //            }
-            //        }
-            //    });
-            //});
-
         });
 
-        function loadDepartments(baseUrl, gridSelector) {
-            var dataTable = $(gridSelector).DataTable({
-                ajax:
-                {
-                    url: baseUrl + "/grid",
-                    type: "GET",
-                    datatype: "json"
-                },
-
-                columnDefs: [
-                    { targets: [0], orderable: false },
-                ],
-                columns: [
-                    {
-                        "data": "departmentCode", "className": "text-center", width: "2%",
-                        "render": function (data) {
-                            return `<input type="checkbox" class="checkBox" value="${data}" />`;
-                        }
-                    },
-                    {
-                        "data": "departmentCode", width:"5%", "render": function (data) {
-                            return `<a class='btn js-department-edit' data-id='${data}'><i>${data}</i></a>`;
-                        }
-                    },
-                    { "data": "departmentName", "autowidth": true, "className": "text-center" },
-                    { "data": "departmentShortName", "autowidth": true, "className": "text-center" },
-                    { "data": "banglaDepartment", "autowidth": true, "className": "text-center" }
-                ],
-                lengthChange: true,
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    [10, 25, 50, 'All'],
-                ],
-                order: [[1, "Desc"]],
-                destroy: true
-            });
+        // Dynamic Grid Load Table
+        function loadTable() {
+            if (window.loadGridPage) {
+                window.loadGridPage('departmentGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
 
         function loadForm(url) {
@@ -345,48 +207,30 @@
                 $.ajax({
                     url: url,
                     type: 'GET',
+                    cache: false,
                     success: function (data) {
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        initialize();
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
-                })
-            })
-        }
-
-        function initialize() {
-            $(settings.formSelector + ' .selectpicker').select2({
-                language: {
-                    noResults: function () {
-                      
-                    }
-                },
-                escapeMarkup: function (markup) {
-                    return markup;
-                }
+                });
             });
         }
 
         function validation() {
-                  
-            var dep = $('#DepartmentName').val();
-
-            if (!dep) {
+            var depName = $('#DepartmentName').val();
+            if (!depName) {
                 toastr.info('Enter Department Name');
                 $('#DepartmentName').trigger('focus');
                 return false;
             }
-
             return true;
-
         }
-    }
+    };
 
 }(jQuery));
-

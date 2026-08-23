@@ -63,6 +63,11 @@ namespace GCTL.UI.Core.ViewModels
         public string? LinkColumn { get; set; }
 
         /// <summary>
+        /// CSS class applied to the dynamic link column anchor tag (defaults to "js-grid-edit").
+        /// </summary>
+        public string EditClass { get; set; } = "js-grid-edit";
+
+        /// <summary>
         /// Text message rendered when the grid dataset is empty.
         /// </summary>
         public string EmptyText { get; set; } = "No records found matching your criteria.";

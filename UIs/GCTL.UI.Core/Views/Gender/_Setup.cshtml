@@ -1,7 +1,7 @@
 @model GCTL.Core.ViewModels.Gender.GenderSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
-<div class="setup-form-container-centered">
+<div class="">
     <div style="padding-top: 4px;">
         <div class="row">
             <div class="col-lg-6">
@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <div class="form-group row g-2">
+        <div class="form-group row g-5">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <input type="hidden" id="lastCode" />
@@ -27,7 +27,7 @@
                 LabelText = "Sex Id",
                 FieldType = FieldType.Text,
                 IsReadonly = true,
-                ReserveActionSlot = true,
+                ReserveActionSlot = false,
                 ColumnClass = "col-sm-6",
                 CustomCssClass = "js-SexCode-code",
                 DefaultValue = Model?.SexCode
@@ -41,7 +41,7 @@
                 FieldType = FieldType.Text,
                 Placeholder = "Enter Sex",
                 IsRequired = true,
-                ReserveActionSlot = true,
+                ReserveActionSlot = false,
                 ColumnClass = "col-sm-6",
                 CustomCssClass = "js-Sex-check-availability",
                 DefaultValue = Model.Sex
@@ -90,7 +90,6 @@
                 IsPlain = true,
                 SaveBtnClass = "js-Sex-save",
                 ReserveActionSlot = true,
-                IsMarginRight = true
             })
         </div>
     </div>

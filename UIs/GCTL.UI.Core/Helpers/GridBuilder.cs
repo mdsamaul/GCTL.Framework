@@ -42,7 +42,8 @@ namespace GCTL.UI.Core.Helpers
             string gridId = "dynamicGridContainer",
             Dictionary<string, string>? columnAlignments = null,
             string? searchTerm = null,
-            Dictionary<string, string>? columnWidths = null)
+            Dictionary<string, string>? columnWidths = null,
+            string? editClass = null)
         {
             currentPage = Math.Max(1, currentPage);
             pageSize = Math.Max(1, pageSize);
@@ -67,6 +68,7 @@ namespace GCTL.UI.Core.Helpers
                 HasCheckbox = hasCheckbox,
                 ActionUrlPattern = actionUrlPattern,
                 LinkColumn = linkColumn ?? primaryKey,
+                EditClass = editClass ?? "js-grid-edit",
                 ColumnAlignments = columnAlignments ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
                 ColumnWidths = columnWidths ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             };

@@ -129,7 +129,68 @@ namespace GCTL.UI.Core.Controllers
                 model.SexCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await genderService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new GenderPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
+                indexModel.GenderList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(5).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 5,
+                    headers: new List<string> { "Code", "Sex Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "SexCode", item.SexCode },
+                        { "Sex Name", item.Sex }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Gender") ?? "/Gender/GetTableData",
+                    primaryKey: "SexCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Gender/Setup/{id}",
+                    gridId: "genderGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "SexCode", "center" },
+                        { "Sex Name", "center" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Sex Name", "auto" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.GenderList = new List<GenderSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
 
         #endregion

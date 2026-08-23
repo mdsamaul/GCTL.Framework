@@ -143,7 +143,7 @@
                                     @if (!string.IsNullOrEmpty(Model.ActionUrlPattern) && string.Equals(cellKey, linkCol, StringComparison.OrdinalIgnoreCase))
                                     {
                                         string linkUrl = Model.ActionUrlPattern.Replace("{id}", primaryKeyValue);
-                                        <a href="@linkUrl" class="dynamic-grid-link js-Sex-edit" data-id="@primaryKeyValue">
+                                         <a href="@linkUrl" class="dynamic-grid-link js-grid-edit js-Sex-edit js-department-edit @(Model.EditClass ?? "")" data-id="@primaryKeyValue">
                                             @displayVal
                                         </a>
                                     }
