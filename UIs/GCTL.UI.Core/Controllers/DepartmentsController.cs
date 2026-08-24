@@ -1,17 +1,11 @@
-﻿using AutoMapper;
 using ClosedXML.Excel;
 using GCTL.Core.Helpers;
-using GCTL.Core.ViewModels.Companies;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Departments;
-using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.Departments;
-using GCTL.Service.Designations;
 using GCTL.UI.Core.Helpers;
-using GCTL.UI.Core.ViewModels.Companies;
 using GCTL.UI.Core.ViewModels.Departments;
-using iText.IO.Font;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
 using iText.Kernel.Pdf;
@@ -20,217 +14,384 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
-
-
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.UI.Core.Controllers
 {
     public class DepartmentsController : BaseController
     {
+        #region Ser & Repo
         private readonly IDepartmentService departmentService;
         private readonly ICommonService commonService;
-        private readonly IMapper mapper;
-        string strMaxNO = "";
+
+        string strMaxNO = string.Empty;
         public DepartmentsController(
-            IDepartmentService departmentService,
             ICommonService commonService,
-            IMapper mapper
-            
+            IDepartmentService departmentService
         )
         {
             this.departmentService = departmentService;
             this.commonService = commonService;
-            this.mapper = mapper;
         }
 
-        //public IActionResult Index(bool child = false)
-        //{
-        //    DepartmentPageViewModel model = new DepartmentPageViewModel()
-        //    {
-        //        PageUrl = Url.Action(nameof(Index))
-        //    };
-        //    commonService.FindMaxNo(ref strMaxNO, "DepartmentCode", "HRM_Def_Department", 3);
-        //    model.Setup = new DepartmentSetupViewModel
-        //    {
-        //        DepartmentCode = strMaxNO
-        //    };
+        #endregion
 
-        //    if (child)
-        //        return PartialView(model);
+        #region Index
 
-        //    return View(model);
-        //}
-
-        public IActionResult Index()
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            DepartmentPageViewModel model = new DepartmentPageViewModel()
+            var hasPermission = await departmentService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var model = new DepartmentPageViewModel
             {
                 PageUrl = Url.Action(nameof(Index))
             };
-            commonService.FindMaxNo(ref strMaxNO, "DepartmentCode", "HRM_Def_Department", 3);
-            model.Setup = new DepartmentSetupViewModel
-            {
-                DepartmentCode = strMaxNO,
-            };
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            try
             {
-                return PartialView(model);
+                var list = await departmentService.GetAllAsync() ?? new List<DepartmentSetupViewModel>();
+                model.DepartmentList = list;
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.DepartmentCode != null && x.DepartmentCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DepartmentName != null && x.DepartmentName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DepartmentShortName != null && x.DepartmentShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BanglaDepartment != null && x.BanglaDepartment.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Department Name", "Short Name", "Department (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "DepartmentCode", item.DepartmentCode },
+                        { "Department Name", item.DepartmentName },
+                        { "Short Name", item.DepartmentShortName },
+                        { "Department (বাংলা)", item.BanglaDepartment }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Departments") ?? "/Departments/GetTableData",
+                    primaryKey: "DepartmentCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Departments/Setup/{id}",
+                    gridId: "departmentGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "DepartmentCode", "center" },
+                        { "Department Name", "left" },
+                        { "Short Name", "center" },
+                        { "Department (বাংলা)", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Department Name", "auto" },
+                        { "Short Name", "120px" },
+                        { "Department (বাংলা)", "auto" }
+                    }
+                );
+
+                commonService.FindMaxNo(ref strMaxNO, "DepartmentCode", "HRM_Def_Department", 2);
+                model.Setup = new DepartmentSetupViewModel
+                {
+                    DepartmentCode = strMaxNO
+                };
             }
+            catch (Exception ex)
+            {
+                model.DepartmentList = new List<DepartmentSetupViewModel>();
+                model.Setup = new DepartmentSetupViewModel();
+                Console.WriteLine("Error" + ex.Message);
+            }
+
+            if (child)
+                return PartialView(model);
 
             return View(model);
         }
 
+        #endregion
 
-        public IActionResult Setup(string id)
+        #region Setup
+
+        public async Task<IActionResult> Setup(string id)
         {
             DepartmentSetupViewModel model = new DepartmentSetupViewModel();
-            commonService.FindMaxNo(ref strMaxNO, "DepartmentCode", "HRM_Def_Department", 3);
-            var result = departmentService.GetDepartment(id);
-            if (result != null)
+            commonService.FindMaxNo(ref strMaxNO, "DepartmentCode", "HRM_Def_Department", 2);
+
+            if (!string.IsNullOrEmpty(id))
             {
-                model = mapper.Map<DepartmentSetupViewModel>(result);
-                model.Code = id;
-                model.Id = (int)result.AutoId;
+                model = await departmentService.GetByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
             }
             else
             {
                 model.DepartmentCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await departmentService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new DepartmentPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await departmentService.GetAllAsync() ?? new List<DepartmentSetupViewModel>();
+                indexModel.DepartmentList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(10).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 10,
+                    headers: new List<string> { "Code", "Department Name", "Short Name", "Department (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "DepartmentCode", item.DepartmentCode },
+                        { "Department Name", item.DepartmentName },
+                        { "Short Name", item.DepartmentShortName },
+                        { "Department (বাংলা)", item.BanglaDepartment }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Departments") ?? "/Departments/GetTableData",
+                    primaryKey: "DepartmentCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Departments/Setup/{id}",
+                    gridId: "departmentGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "DepartmentCode", "center" },
+                        { "Department Name", "left" },
+                        { "Short Name", "center" },
+                        { "Department (বাংলা)", "left" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Department Name", "auto" },
+                        { "Short Name", "120px" },
+                        { "Department (বাংলা)", "auto" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.DepartmentList = new List<DepartmentSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
+
+        #endregion
+
+        #region Post Update 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Setup(DepartmentSetupViewModel model)
+        public async Task<IActionResult> Setup(DepartmentSetupViewModel modelVM)
         {
-            if (departmentService.IsDepartmentExist(model.DepartmentName, model.DepartmentCode))
+            try
             {
-                return Json(new { isSuccess = false, message = "Already Exists" });
-            }
-
-            if (ModelState.IsValid)
-            {
-                if (departmentService.IsDepartmentExistByCode(model.DepartmentCode))
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
-                    var hasPermission = departmentService.UpdatePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    if (await departmentService.IsExistAsync(modelVM.DepartmentName, modelVM.DepartmentCode))
                     {
-                        HrmDefDepartment department = departmentService.GetDepartment(model.DepartmentCode) ?? new HrmDefDepartment();
-                        model.ToAudit(LoginInfo, model.Id > 0);
-                        mapper.Map(model, department);
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
+                }
 
-                        departmentService.SaveDepartment(department);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = department.DepartmentCode });
+                if (!ModelState.IsValid)
+                {
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
+                {
+                    var hasSavePermission = await departmentService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (hasSavePermission)
+                    {
+                        await departmentService.SaveAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.DepartmentCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
                     }
-
                 }
                 else
                 {
-                    var hasPermission = departmentService.SavePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    var hasUpdatePermission = await departmentService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (hasUpdatePermission)
                     {
-                        HrmDefDepartment department = departmentService.GetDepartment(model.DepartmentCode) ?? new HrmDefDepartment();
-                        model.ToAudit(LoginInfo, model.Id > 0);
-                        mapper.Map(model, department);
-                        departmentService.SaveDepartment(department);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = department.DepartmentCode });
+                        await departmentService.UpdateAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.DepartmentCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
-
                 }
-
-
             }
-
-            return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error:{ex.Message}");
+                return RedirectToAction("Login", "Accounts");
+            }
         }
 
-        public ActionResult Grid()
-        {
-            var result = departmentService.GetDepartments();
-            return Json(new { data = result });
-        }
+        #endregion
 
-
+        #region CheckAvailability
         [HttpPost]
-
-        public async Task<ActionResult> Delete(string id)
-
+        public async Task<JsonResult> CheckAvailability(string name, string code)
         {
-
-            var hasPermission = departmentService.DeletePermission(LoginInfo.AccessCode);
-
-            if (!hasPermission)
-
+            if (await departmentService.IsExistAsync(name, code))
             {
-
-                return Json(new { success = false, message = "You have no access" });
-
-            }
-
-            if (string.IsNullOrWhiteSpace(id))
-
-            {
-
-                return Json(new { success = false, message = "No IDs provided" });
-
-            }
-
-            var results = new List<(bool success, bool refSuccess, string message)>();
-
-            var ids = id.Split(",", StringSplitOptions.RemoveEmptyEntries)
-
-                 .Select(x => x.Trim())
-
-                 .ToList();
-            DeleteHistoryViewModel model = new DeleteHistoryViewModel();
-            model.ToAudit(LoginInfo);
-            model.CompanyCode = LoginInfo.CompanyCode;
-            var result = await departmentService.DeleteDepartment(ids, model);
-
-            results.Add(result);
-
-
-            // Aggregate outcome
-
-            bool overallSuccess = results.All(r => r.success);
-
-            bool refSuccess = results.All(r => r.refSuccess);
-
-            string combinedMessage = overallSuccess
-
-                ? "Deleted Successfully"
-
-                : string.Join("; ", results.Where(r => !r.success).Select(r => r.message));
-
-            return Json(new { success = overallSuccess, message = combinedMessage, refSuccess = refSuccess });
-
-        }
-
-
-
-        [HttpPost]
-        public JsonResult CheckAvailability(string name, string code)
-        {
-            if (departmentService.IsDepartmentExist(name, code))
-            {
-                return Json(new { isSuccess = true, message = "Already Exists!" });
+                return Json(new { isSuccess = true, message = $"Already Exists!" });
             }
 
             return Json(new { isSuccess = false });
         }
+        #endregion
+
+        #region Delete
+
+        [HttpPost]
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
+        {
+            if (ids == null || ids.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "No IDs provided for delete." });
+            }
+
+            var hasPermission = await departmentService.DeletePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return Json(new { success = false, message = "You have no access." });
+            }
+
+            DeleteHistoryViewModel model = new DeleteHistoryViewModel();
+            model.ToAudit(LoginInfo);
+            model.CompanyCode = LoginInfo.CompanyCode;
+
+            var success = await departmentService.DeleteTab(ids, model);
+            if (success.succses)
+            {
+                return Json(new { success = true, message = "Deleted Successfully." });
+            }
+            else
+            {
+                return Json(new { success = false, message = success.messege });
+            }
+        }
+
+        #endregion
+
+        #region Table Loading (Dynamic Grid)
+
+        [HttpGet]
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        {
+            try
+            {
+                var list = await departmentService.GetAllAsync() ?? new List<DepartmentSetupViewModel>();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.DepartmentCode != null && x.DepartmentCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DepartmentName != null && x.DepartmentName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DepartmentShortName != null && x.DepartmentShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BanglaDepartment != null && x.BanglaDepartment.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                var gridModel = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Department Name", "Short Name", "Department (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "DepartmentCode", item.DepartmentCode },
+                        { "Department Name", item.DepartmentName },
+                        { "Short Name", item.DepartmentShortName },
+                        { "Department (বাংলা)", item.BanglaDepartment }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Departments") ?? "/Departments/GetTableData",
+                    primaryKey: "DepartmentCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Departments/Setup/{id}",
+                    gridId: "departmentGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "DepartmentCode", "center" },
+                        { "Department Name", "left" },
+                        { "Short Name", "center" },
+                        { "Department (বাংলা)", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Department Name", "auto" },
+                        { "Short Name", "120px" },
+                        { "Department (বাংলা)", "auto" }
+                    }
+                );
+
+                return PartialView("_DynamicGrid", gridModel);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        #endregion
 
 
         #region Xls

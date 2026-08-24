@@ -1,14 +1,14 @@
 /* -----------------------------------------------------------------
    Google Fonts Import
    ----------------------------------------------------------------- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 /* -----------------------------------------------------------------
    CSS Variables & Design System Tokens
    ----------------------------------------------------------------- */
 :root {
-    --font-heading: 'Outfit', 'Inter', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Nunito', sans-serif;
+    --font-body: 'Nunito', sans-serif;
 
     /* Light Theme Palette */
     --primary-hsl: 221.2 83.2% 53.3%;
@@ -79,7 +79,9 @@ html,
 body {
     height: 100%;
     margin: 0;
-    font-family: var(--font-body);
+    font-family: 'Nunito', sans-serif !important;
+    font-style: normal;
+    font-size: 16px;
     background-color: var(--bg-app);
     color: var(--text-main);
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -91,9 +93,54 @@ h2,
 h3,
 h4,
 h5,
-h6 {
-    font-family: var(--font-heading);
-    font-weight: 600;
+h6,
+p,
+span,
+div,
+a,
+label,
+table,
+th,
+td,
+button,
+select,
+input,
+textarea {
+    font-family: 'Nunito', sans-serif !important;
+    font-style: normal;
+}
+
+/* Responsive Font Sizing & Sidebar Width: for screen resolutions 1400px and below */
+@media (max-width: 1400px) {
+    :root {
+        --sidebar-width-expanded: 190px;
+        --sidebar-width-collapsed: 60px;
+    }
+
+    html,
+    body,
+    p, span, div, a, label, table, th, td, button, select,
+    input, textarea {
+        font-size: 13px !important;
+    }
+
+    .app-sidebar > .sidebar-menu {
+        padding: 10px 6px;
+    }
+
+    .menu-item a,
+    .menu-item .menu-link {
+        padding: 5px 6px 5px 8px;
+        gap: 8px;
+    }
+
+    .menu-text {
+        font-size: 12.5px;
+    }
+
+    .menu-item-icon {
+        font-size: 0.85rem !important;
+    }
 }
 
 /* -----------------------------------------------------------------
@@ -239,18 +286,18 @@ h6 {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 2px;
 }
 
 .app-sidebar > .sidebar-menu {
     flex: 1 1 0;
-    padding: 20px 10px;
+    padding: 16px 8px;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 .sidebar-menu .sidebar-menu {
-    padding: 0px 0 0 10px;
+    padding: 2px 0;
     flex: none;
 }
 
@@ -259,7 +306,7 @@ h6 {
 }
 
 .sidebar-menu::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.15);
     border-radius: 4px;
 }
 
@@ -267,10 +314,10 @@ h6 {
 .menu-item .menu-link {
     display: flex;
     align-items: center;
-    padding: 7px 0px 7px 10px;
+    padding: 6px 10px;
     text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
     white-space: normal;
     word-break: break-word;
     gap: 10px;
@@ -278,24 +325,25 @@ h6 {
     border: none;
     width: 100%;
     text-align: left;
-}
-
-.menu-item a,
-.menu-item .menu-link {
-    align-items: flex-start;
-    background-color: rgba(0, 0, 0, 0.03);
-    color: #333333;
+    background-color: transparent;
+    color: var(--text-sidebar);
 }
 
     .menu-item a i,
     .menu-item .menu-link i {
-        font-size: .9rem;
-        width: 16px;
-        height: 16px;
-        text-align: center;
+        font-size: 0.9rem;
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
-        margin-top: 2px;
     }
+
+.icon-dot {
+    font-size: 0.35rem !important;
+    opacity: 0.7;
+}
 
 .menu-arrow {
     font-size: .68rem !important;
@@ -318,16 +366,33 @@ h6 {
         display: none;
     }
 
-.menu-item.active a,
 .menu-item a:hover,
 .menu-item .menu-link:hover {
-    background-color: rgba(0, 0, 0, 0.08) !important;
-    color: #1a1a1a !important;
+    background-color: var(--primary-soft) !important;
+    color: var(--primary) !important;
 }
 
-.menu-item.active a {
-    background-color: var(--primary);
-    color: darkblue !important;
+/* Parent active menu item */
+.menu-item.active > .menu-link {
+    background-color: rgba(var(--primary-hsl), 0.08);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Direct active leaf link */
+.menu-item .menu-link.active,
+.menu-item.direct-active > .menu-link {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.menu-item .menu-link.active i,
+.menu-item.direct-active > .menu-link i,
+.menu-item .menu-link.active .menu-arrow,
+.menu-item.direct-active > .menu-link .menu-arrow {
+    color: #ffffff !important;
 }
 
 .menu-text {
@@ -342,25 +407,22 @@ h6 {
     transform: translateX(-15px);
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-    .menu-item a,
-    .menu-item .menu-link {
-        background-color: rgba(255, 255, 255, 0.05);
-        color: var(--text-sidebar);
-    }
+/* Dark mode overrides */
+:root[data-theme="dark"] .menu-item a,
+:root[data-theme="dark"] .menu-item .menu-link {
+    color: var(--text-sidebar);
+}
 
-        .menu-item.active a,
-        .menu-item a:hover,
-        .menu-item .menu-link:hover {
-            background-color: rgba(255, 255, 255, 0.12);
-            color: var(--text-sidebar-active);
-        }
+:root[data-theme="dark"] .menu-item a:hover,
+:root[data-theme="dark"] .menu-item .menu-link:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--text-sidebar-active) !important;
+}
 
-    .menu-item.active a {
-        background-color: var(--primary);
-        color: white;
-    }
+:root[data-theme="dark"] .menu-item .menu-link.active,
+:root[data-theme="dark"] .menu-item.direct-active > .menu-link {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
 }
 /* -----------------------------------------------------------------
    Content Wrapper

@@ -19,7 +19,16 @@ namespace GCTL.Service.OpeningBalance
         private readonly IRepository<AccSubsidiaryLedger> _subsidiary;
         private readonly IRepository<AccGeneralLedger> _subcontrol;
         private readonly IRepository<SalesCustomer> _salesCustomer;
-        public OpeningBalanceService(IRepository<AccCompanyOpeningBalance> genericRepository, IRepository<CoreCompany> company, IRepository<CoreBranch> branch, IRepository<AccSubSubsidiaryLedger> generalLedger, IRepository<SalesCustomer> salesCustomer, IRepository<AccSubsidiaryLedger> subsidiary, IRepository<AccGeneralLedger> subcontrol) : base(genericRepository)
+        public OpeningBalanceService(
+            IRepository<AccCompanyOpeningBalance> genericRepository, 
+            IRepository<CoreCompany> company, 
+            IRepository<CoreBranch> branch,
+            IRepository<AccSubSubsidiaryLedger> generalLedger,
+            IRepository<SalesCustomer> salesCustomer,
+            IRepository<AccSubsidiaryLedger> subsidiary,
+            IRepository<AccGeneralLedger> subcontrol
+            )
+    : base(genericRepository)
         {
             _repository = genericRepository;
             _company = company;

@@ -1,41 +1,36 @@
-﻿(function ($) {
+(function ($) {
     $.bankBranchInformations = function (options) {
         // Default options
         var settings = $.extend({
-
             baseUrl: "/",
-            formSelector: "#BankBranchInformations-form",
-            formContainer: ".js-BankBranchInformations-form-container",
-            gridSelector: "#BankBranchInformations-grid",
-            gridContainer: ".js-BankBranchInformations-grid-container",
-            editSelector: ".js-BankBranchInformations-edit",
-            saveSelector: ".js-BankBranchInformations-save",
-            selectAllSelector: "#BankBranchInformations-check-all",
-            deleteSelector: ".js-BankBranchInformations-delete-confirm",
-            deleteModal: "#BankBranchInformations-delete-modal",
-            finalDeleteSelector: ".js-BankBranchInformations-delete",
-            clearSelector: ".js-BankBranchInformations-clear",
+            formSelector: "#bankbranchinformation-form",
+            formContainer: ".js-bankbranchinformation-form-container",
+            gridSelector: "#bankBranchInformationGridContainer",
+            gridContainer: ".js-bankbranchinformation-grid-container",
+            editSelector: ".js-bankbranchinformation-edit, .js-grid-edit",
+            saveSelector: ".js-bankbranchinformation-save",
+            selectAllSelector: "#bankbranchinformation-check-all",
+            deleteSelector: ".js-bankbranchinformation-delete-confirm",
+            deleteModal: "#bankbranchinformation-delete-modal",
+            finalDeleteSelector: ".js-bankbranchinformation-delete",
+            clearSelector: ".js-bankbranchinformation-clear",
             topSelector: ".js-go",
-            decimalSelector: ".js-BankBranchInformations-decimalplaces",
+            decimalSelector: ".js-bankbranchinformation-decimalplaces",
             maxDecimalPlace: 5,
             showNagativeFormat: false,
-            availabilitySelector: "#BankBranchName",
+            availabilitySelector: ".js-bankbranchinformation-check-availability",
             haseFile: false,
             quickAddSelector: ".js-quick-add",
             quickAddModal: "#quickAddModal",
-            lastCodeSelector: '#lastCode',
-            load: function () { }
+            lastCodeSelector: "#lastCode",
+            load: function () {
+
+            }
         }, options);
 
-
-        var baseControllerNameUrl = "/BankBranchInformations";
-        var testSave = baseControllerNameUrl + "/Setup";
-        var nextCodeULR = baseControllerNameUrl + "/GenerateNextCode";
-        var loadTableURL = baseControllerNameUrl + "/GetTableData";
-        var deleteURL = baseControllerNameUrl + "/Delete";
-        var getById = baseControllerNameUrl + "/Index";
-        var duplicateCheckURL = baseControllerNameUrl + "/CheckAvailability";
-
+        var gridUrl = settings.baseUrl + "/grid";
+        var saveUrl = settings.baseUrl + "/setup";
+        var deleteUrl = settings.baseUrl + "/Delete";
         var selectedItems = [];
 
         $(document).ready(function () {
@@ -43,262 +38,189 @@
         });
 
         $(() => {
+            loadTable();
 
-            initialize();
-
-            // Save button click event
-            $("body").on('click', settings.saveSelector, function () {
-                validation();
-                $(settings.formSelector).submit();
-            });
-
-            // Form submission event
-            $("body").on('submit', settings.formSelector, function (e) {
+            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+                e.stopPropagation();
                 e.preventDefault();
-                var form = $(this)[0];
-                var formData = new FormData(form);
-                var actionUrl = $(this).attr('action');
+                e.stopImmediatePropagation();
+                let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
-                $.ajax({
-                    type: 'POST',
-                    url: actionUrl,
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    success: function (result) {
-                        if (result.noSavePermission || result.noUpdatePermission || result.isDuplicate) {
-
-                            toastr.error(result.message);
-                        }
-
-                        else if (result.isSuccess) {
-                            $(settings.gridContainer).html(result.html);
-                            initialize();
-                            $(settings.lastCodeSelector).val(result.lastCode);
-                            // alert(`LastCode: ${result.lastCode}`);
-                            toastr.success(result.message);
-                        } else {
-
-                            toastr.success(result.message);
-                            $(settings.formSelector).html(result);
-                            initialize();
-                        }
-                    },
-                    error: function () {
-                        toastr.error('Failed Insert.');
-                    }
+                loadForm(url).then((data) => {
+                    console.info("Form Loaded Successfully", data);
+                }).catch((error) => {
+                    console.error("Failed to load form", error);
                 });
+
+                // Setting id on the delete selector for delete
+                var id = $(this).data('id');
+                $(settings.deleteSelector).data('id', id);
+
+                $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-            // Availability check
-            $("body").on("keyup change", "#BankId,#BankBranchName", function () {
-                //var self = $(this);
-                let name = $("#BankBranchName").val();
-                let typeCode = $(".js-BankBranchId-code").val();
-                // let name = self.val();
-                let bankId = $('#BankId').val();
-                $.ajax({
-                    url: duplicateCheckURL,
+            // Save
+            $("body").on("click", settings.saveSelector, function () {
+                if (!validation()) return false;
+                var $valid = $(settings.formSelector).valid();
+                if (!$valid) {
+                    return false;
+                }
+
+                var data;
+                if (settings.haseFile)
+                    data = new FormData($(settings.formSelector)[0]);
+                else
+                    data = $(settings.formSelector).serialize();
+
+                var url = $(settings.formSelector).attr("action");
+
+                var options = {
+                    url: url,
                     method: "POST",
-                    data: { typeCode: typeCode, bankId: bankId, name: name },
+                    data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            toastr.warning(response.message);
-
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
+                            if ($modalAncestor.length && window.GcModal) {
+                                GcModal.markSuccess($modalAncestor, response.lastCode);
+                                GcModal.close($modalAncestor);
+                            } else {
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
+                            }
+                            toastr.success(response.message);
+                        }
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
                         }
                     }
-                });
+                };
+                if (settings.haseFile) {
+                    options.processData = false;
+                    options.contentType = false;
+                }
+                $.ajax(options);
             });
 
-            //
-
-
-            //
-
-
-            // Edit leave type
-            $("body").on('click', settings.editSelector, function () {
-                var id = $(this).data('id');
-                $.get(getById, { id: id }, function (result) {
-
-                    $(settings.formSelector).html($(result).find(settings.formSelector).html());
-                    select2DD();
-                    $(settings.saveSelector).html('<i class="fas fa-edit"></i> Update');
-                    $(settings.formSelector).attr('action', testSave);
-                }).fail(function () {
-                    toastr.error('Error Get Data.');
-                });
+            $("body").on("click", settings.selectAllSelector, function () {
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
 
-            //
-            // Select all checkboxes
-            $("body").on('click', settings.selectAllSelector, function () {
-                $('.checkBox').prop('checked', $(this).prop('checked'));
-            });
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
 
-            // Delete confirmation
-            $("body").on('click', settings.deleteSelector, function (e) {
+            $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
-                var selectedIds = [];
-
-                $('.checkBox:checked').each(function () {
-                    selectedIds.push($(this).val());
-                });
-
-                if (selectedIds.length === 0) {
-                    toastr.error('Please select Bank Branch to delete.');
-                    return;
+                selectedItems = [];
+                if ($(this).data('id')) {
+                    selectedItems.push($(this).data('id'));
+                } else {
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('bankBranchInformationGridContainer') : [];
                 }
 
-                $(settings.deleteModal + ' ' + settings.finalDeleteSelector).data('ids', selectedIds);
-                $(settings.deleteModal).modal('show');
+                if (selectedItems.length > 0) {
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
+                } else {
+                    toastr.info("Please select at least one item.");
+                }
             });
 
-            // Final delete action
-            $("body").on('click', settings.finalDeleteSelector, function (e) {
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-bankbranchinformation-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
                 e.preventDefault();
-                var selectedIds = $(this).data('ids');
+                e.stopImmediatePropagation();
 
+                var $modal = getDeleteModal();
                 $.ajax({
-                    type: 'POST',
-                    url: deleteURL,
-                    contentType: 'application/json',
-                    data: JSON.stringify(selectedIds),
-                    success: function (result) {
-                        if (result.isSuccess) {
-
-                            initialize();
-                            toastr.success(result.message);
-
-                        } else {
-
-                            toastr.error(result.message);
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                        $(settings.deleteModal).modal('hide');
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
                     },
                     error: function (xhr) {
-                        toastr.error('Failed Delete.');
-                        $(settings.deleteModal).modal('hide');
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
                     }
                 });
             });
 
-            //
-
-
+            $("body").on("click", settings.topSelector, function (e) {
+                e.preventDefault();
+                $("html, body").animate({ scrollTop: 0 }, 500);
+            });
 
         });
 
-        // Initialization function
-        function initialize() {
-
-
-            select2DD();
-            GenerateNextCode();
-            loadTableData();
-            ResetForm();
-
+        function loadTable() {
+            if (window.loadGridPage) {
+                window.loadGridPage('bankBranchInformationGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
 
-        // function select2DD() {
-        //     $('.selectpickerBankDD').select2({
-        //         width: '100%',
-        //         language: {
-        //             noResults: function () {
+        function loadForm(url) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    cache: false,
+                    success: function (data) {
+                        $(settings.formContainer).empty();
+                        $(settings.formContainer).html(data);
+                        $.validator.unobtrusive.parse($(settings.formSelector));
 
-        //             }
-        //         },
-        //         escapeMarkup: function (markup) {
-        //             return markup;
-        //         }
-        //     });
-        // }
-
-
-        function loadTableData() {
-            $.ajax({
-                type: 'GET',
-                url: loadTableURL,
-                success: function (data) {
-                    $(settings.gridContainer).html(data);
-                    dataTable();
-                },
-                error: function () {
-                    toastr.error('Failed Load Data');
-                }
-            })
-        }
-
-        // Data table initialization function
-        function dataTable() {
-            $(settings.gridSelector).DataTable({
-                responsive: true,
-                pageLength: 10,
-                destroy: true,
-                lengthMenu: [10, 25, 50, 100],
+                        resolve(data);
+                    },
+                    error: function (error) {
+                        reject(error);
+                    },
+                });
             });
         }
 
-        function GenerateNextCode() {
-            $("#BankBranchMasterId").val('');
-            $.ajax({
-                type: 'GET',
-                url: nextCodeULR,
-                success: function (result) {
-
-                    $('#BankBranchMasterId').val(result);
-                },
-                error: function () {
-                    toastr.error('Failed Next Code.',);
-                    //  /location.assign('/Accounts / Login');
-                    // window.location.href = '/Departments/Index';
-                    //window.location.href = '/Accounts/Login';
-                }
-            });
-        }
-
-        function ResetForm() {
-
-            $(settings.formSelector)[0].reset();
-            $('#BankBranchAutoId').val('');
-           // $('.selectpickerBankDD').val(null).trigger('change');
-            $('#BankBranchMasterId').val('');
-            $('#BankBranchName').val('');
-            $('#Address').val('');
-            $('#ShortName').val('');
-            $('#Phone').val('');
-            $('#Swiftcode').val('');
-            $('#LdateModifyHide').hide();
-            $(settings.saveSelector).html('<i class="fas fa-save"></i> Save');
-            $('.text-danger').text('');
-            $(settings.formSelector).attr('action', testSave);
-            GenerateNextCode();
-
-        }
-
-        // Clear form on click
-        $(document).on('click', settings.clearSelector, function () {
-            ResetForm();
-        });
-
-        // Validation function
         function validation() {
-
-            var bankName = $('#BankIdDropDown').val();
-            var branchName = $('#BankBranchMasterId').val();
-            if (!bankName)
-            {
-                toastr.warning('Select Bank.');
-                $('#BankIdDropDown').select2('open');
+            var bankId = $('#BankId').val();
+            var branchName = $('#BankBranchName').val();
+            if (!bankId) {
+                toastr.info('Select Bank');
+                $('#BankId').trigger('focus');
                 return false;
             }
             if (!branchName) {
-                toastr.warning('Enter Branch Name');
-                $('#BankBranchMasterId').trigger('focus');
+                toastr.info('Enter Branch Name');
+                $('#BankBranchName').trigger('focus');
                 return false;
             }
             return true;
         }
-    }
-}(jQuery));
+    };
 
+}(jQuery));

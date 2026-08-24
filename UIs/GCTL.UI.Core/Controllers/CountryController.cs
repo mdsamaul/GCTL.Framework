@@ -1,10 +1,15 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.Country;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Service.Common;
 using GCTL.Service.Country;
+using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.Country;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.UI.Core.Controllers
 {
@@ -18,8 +23,7 @@ namespace GCTL.UI.Core.Controllers
         public CountryController(
             ICountryService countryService,
             ICommonService commonService
-            
-            )
+        )
         {
             this.countryService = countryService;
             this.commonService = commonService;
@@ -28,7 +32,8 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Index
-        public async Task<IActionResult> Index()
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
             var hasPermission = await countryService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -43,33 +48,69 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
+                var list = await countryService.GetAllAsync() ?? new List<CountrySetuoViewModel>();
+                model.CountryList = list;
 
-                var list = await countryService.GetAllAsync();
-                model.CountryList = list ?? new List<CountrySetuoViewModel>();
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.CountryId != null && x.CountryId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.CountryName != null && x.CountryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Country Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "CountryId", item.CountryId },
+                        { "Country Name", item.CountryName }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Country") ?? "/Country/GetTableData",
+                    primaryKey: "CountryId",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Country/Setup/{id}",
+                    gridId: "countryGridContainer",
+                    editClass: "js-country-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "CountryId", "center" },
+                        { "Country Name", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Country Name", "auto" }
+                    }
+                );
 
                 commonService.FindMaxNo(ref strMaxNO, "CountryId", "CA_Def_Country", 3);
-
                 model.Setup = new CountrySetuoViewModel
                 {
                     CountryId = strMaxNO
                 };
-
             }
             catch (Exception ex)
             {
-
                 model.CountryList = new List<CountrySetuoViewModel>();
                 model.Setup = new CountrySetuoViewModel();
                 Console.WriteLine("Error" + ex.Message);
             }
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
+            if (child)
                 return PartialView(model);
-            }
 
             return View(model);
         }
+
         #endregion
 
         #region Setup
@@ -81,21 +122,80 @@ namespace GCTL.UI.Core.Controllers
 
             if (!string.IsNullOrEmpty(id))
             {
-
                 model = await countryService.GetByIdAsync(id);
                 if (model == null)
                 {
-
                     return NotFound();
                 }
             }
             else
             {
-
                 model.CountryId = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await countryService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new CountryPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await countryService.GetAllAsync() ?? new List<CountrySetuoViewModel>();
+                indexModel.CountryList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(10).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 10,
+                    headers: new List<string> { "Code", "Country Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "CountryId", item.CountryId },
+                        { "Country Name", item.CountryName }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Country") ?? "/Country/GetTableData",
+                    primaryKey: "CountryId",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Country/Setup/{id}",
+                    gridId: "countryGridContainer",
+                    editClass: "js-country-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "CountryId", "center" },
+                        { "Country Name", "left" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Country Name", "auto" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.CountryList = new List<CountrySetuoViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
 
         #endregion
@@ -104,21 +204,20 @@ namespace GCTL.UI.Core.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Setup(CountrySetuoViewModel modelVM)
         {
             try
             {
-
-                if (await countryService.IsExistAsync(modelVM.CountryName, modelVM.CountryId))
+                if (modelVM.Tc == 0 || modelVM.Tc == null)
                 {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    if (await countryService.IsExistAsync(modelVM.CountryName, modelVM.CountryId))
+                    {
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
                 }
-
 
                 if (!ModelState.IsValid)
                 {
-
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }
@@ -131,7 +230,6 @@ namespace GCTL.UI.Core.Controllers
                     {
                         await countryService.SaveAsync(modelVM);
                         return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.CountryId });
-
                     }
                     else
                     {
@@ -140,7 +238,6 @@ namespace GCTL.UI.Core.Controllers
                 }
                 else
                 {
-
                     var hasUpdatePermission = await countryService.UpdatePermissionAsync(LoginInfo.AccessCode);
                     if (hasUpdatePermission)
                     {
@@ -157,10 +254,22 @@ namespace GCTL.UI.Core.Controllers
             {
                 Console.WriteLine($"Error:{ex.Message}");
                 return RedirectToAction("Login", "Accounts");
-
             }
         }
 
+        #endregion
+
+        #region CheckAvailability
+        [HttpPost]
+        public async Task<JsonResult> CheckAvailability(string name, string code)
+        {
+            if (await countryService.IsExistAsync(name, code))
+            {
+                return Json(new { isSuccess = true, message = $"Already Exists!" });
+            }
+
+            return Json(new { isSuccess = false });
+        }
         #endregion
 
         #region Delete
@@ -182,6 +291,7 @@ namespace GCTL.UI.Core.Controllers
             DeleteHistoryViewModel model = new DeleteHistoryViewModel();
             model.ToAudit(LoginInfo);
             model.CompanyCode = LoginInfo.CompanyCode;
+
             var success = await countryService.DeleteTab(ids, model);
             if (success.succses)
             {
@@ -195,15 +305,57 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region TabeleLodaing
+        #region Table Loading (Dynamic Grid)
 
         [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
         {
             try
             {
-                var list = await countryService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await countryService.GetAllAsync() ?? new List<CountrySetuoViewModel>();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.CountryId != null && x.CountryId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.CountryName != null && x.CountryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                var gridModel = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Country Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "CountryId", item.CountryId },
+                        { "Country Name", item.CountryName }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Country") ?? "/Country/GetTableData",
+                    primaryKey: "CountryId",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Country/Setup/{id}",
+                    gridId: "countryGridContainer",
+                    editClass: "js-country-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "CountryId", "center" },
+                        { "Country Name", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Country Name", "auto" }
+                    }
+                );
+
+                return PartialView("_DynamicGrid", gridModel);
             }
             catch (Exception ex)
             {
@@ -212,6 +364,5 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
-
     }
 }

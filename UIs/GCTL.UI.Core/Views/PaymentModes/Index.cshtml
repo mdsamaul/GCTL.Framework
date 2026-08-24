@@ -1,66 +1,66 @@
-﻿@model GCTL.UI.Core.ViewModels.PaymentModes.PaymentModePageViewModel
+@model GCTL.UI.Core.ViewModels.PaymentModes.PaymentModePageViewModel
+
 @{
-    ViewBag.Title = "Payment Modes";
-    Model.Breadcrumb = "Payment Mode";
     Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Payment Modes";
+    Model.Breadcrumb = "Payment Modes";
 }
 
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
-<section class="content">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-7 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+<section class="content consistent-look">
+    <div class="container-fluid px-3 px-xl-4">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Payment Mode",
-                            SaveBtnClass = "js-paymentmode-save",
-                            DeleteBtnClass = "js-paymentmode-delete-confirm",
-                            ClearBtnClass = "js-paymentmode-clear"
+                            Title = "Payment Modes",
+                            SaveBtnClass = "js-paymentmodes-save",
+                            DeleteBtnClass = "js-paymentmodes-delete-confirm",
+                            ClearBtnClass = "js-paymentmodes-clear"
                         })
                     </div>
-                    <div class="card-body px-2">
-                        <form asp-action="Setup" id="paymentmode-form">
-                            <div class="js-paymentmode-form-container">
+                    <div class="card-body px-4 py-3">
+                        <form asp-action="Setup" method="post" id="paymentmodes-form" asp-controller="PaymentModes">
+                            <div class="js-paymentmodes-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="col-md-5">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-paymentmode-grid-container">
-                            <partial name="_Grid" />
-                        </div>
-                    </div>
+
+            <!-- Right Table Dynamic Grid Column -->
+            <div class="col-md-6">
+                <div class="js-paymentmodes-grid-container" id="paymentModesGridContainer">
+                    @if (Model.DynamicGrid != null)
+                    {
+                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                    }
                 </div>
             </div>
+
         </div>
+
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/paymentModes.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "PaymentModes")',
-        };
-        options.load = () => {
-        };
-
-        $.paymentModes(options);
+    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/pages/paymentModes.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.paymentModes({
+                baseUrl: '/PaymentModes'
+            });
+        });
     </script>
 }
-
-
-

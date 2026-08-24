@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -6,13 +6,18 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
 using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
+using GCTL.Service.DeleteHistories;
 using GCTL.Service.Pagination;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
 using System.Data;
-
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
 {
@@ -22,24 +27,36 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
         private readonly IRepository<SalesDeliveryLocation> _salesDeliveryLocation;
         private readonly IRepository<SalesContactPerson> _contactPerson;
         private readonly IRepository<CoreCountry> coreCountry;
+        private readonly IRepository<CoreAccessCode> _accessCodeRepository;
+        private readonly IDeleteHistoryService _deleteHistoryService;
         private readonly IConfiguration _configuration;
-        public SalesCustomerService(IRepository<SalesCustomer> salesCustomer, IRepository<SalesDeliveryLocation> salesDeliveryLocation, IRepository<SalesContactPerson> contactPerson, IRepository<CoreCountry> coreCountry, IConfiguration configuration) : base(salesCustomer)
+
+        private const string TableName = "Sales_Customer";
+        private const string ColumnName = "CustomerID";
+
+        public SalesCustomerService(
+            IRepository<SalesCustomer> salesCustomer,
+            IRepository<SalesDeliveryLocation> salesDeliveryLocation,
+            IRepository<SalesContactPerson> contactPerson,
+            IRepository<CoreCountry> coreCountry,
+            IRepository<CoreAccessCode> accessCodeRepository,
+            IDeleteHistoryService deleteHistoryService,
+            IConfiguration configuration)
+            : base(salesCustomer)
         {
             _salesCustomer = salesCustomer;
             _salesDeliveryLocation = salesDeliveryLocation;
             _contactPerson = contactPerson;
             this.coreCountry = coreCountry;
+            _accessCodeRepository = accessCodeRepository;
+            _deleteHistoryService = deleteHistoryService;
             _configuration = configuration;
         }
 
         public async Task<List<CoreCountry>> GetCountryDropdownAsync()
         {
-            var country = await coreCountry.All().Select(e => new CoreCountry { CountryId = e.CountryId, CountryName = e.CountryName }).ToListAsync();
-            Console.WriteLine(country);
-
             return await coreCountry.All().Select(e => new CoreCountry { CountryId = e.CountryId, CountryName = e.CountryName }).ToListAsync();
         }
-
 
         public async Task<bool> DeleteAsyncSalesCustomer(string customerId)
         {
@@ -52,14 +69,12 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     await _salesCustomer.RollbackTransactionAsync();
                     return false;
                 }
-                // Find and delete associated delivery locations first
                 var deliveryLocations = await _salesDeliveryLocation.All().Where(x => x.CustomerId == customerId).ToListAsync();
-                if (deliveryLocations.Any()) // Check if there are delivery locations
+                if (deliveryLocations.Any())
                 {
                     await _salesDeliveryLocation.DeleteRangeAsync(deliveryLocations);
                 }
 
-                // Now delete the customer
                 await _salesCustomer.DeleteAsync(customerId);
 
                 await _salesCustomer.CommitTransactionAsync();
@@ -73,29 +88,51 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             }
         }
 
+        public async Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model)
+        {
+            if (ids == null || !ids.Any())
+                return (false, "No Data found to delete");
+
+            var alternateColumn = new List<string> { "CustomerId", "CustomerName", "Customer" };
+            var dependencyCheck = await _deleteHistoryService.CheckDependenciesAsync(
+                _salesCustomer.GetTableName(),
+                ColumnName,
+                ids,
+                alternateColumn
+            );
+
+            if (!dependencyCheck.CanDelete)
+                return (false, dependencyCheck.Message);
+
+            await _salesCustomer.BeginTransactionAsync();
+
+            try
+            {
+                var deliveryLocations = await _salesDeliveryLocation.All().Where(x => ids.Contains(x.CustomerId)).ToListAsync();
+                if (deliveryLocations.Any())
+                {
+                    await _salesDeliveryLocation.DeleteRangeAsync(deliveryLocations);
+                }
+
+                var customers = await _salesCustomer.All().Where(c => ids.Contains(c.CustomerId)).ToListAsync();
+                _salesCustomer.Delete(customers);
+
+                model.tableName = TableName;
+                await _deleteHistoryService.LogDeletedRecordsAsync(customers, model);
+
+                await _salesCustomer.CommitTransactionAsync();
+                return (true, "Deleted Successfully.");
+            }
+            catch (Exception ex)
+            {
+                await _salesCustomer.RollbackTransactionAsync();
+                Console.WriteLine(ex.ToString());
+                return (false, "Delete Failed");
+            }
+        }
+
         public async Task<SalesCustomerViewModel> GetByIdAsync(string id)
         {
-            var customer = _salesCustomer.All();
-
-            //var deliveryAddress = salesDeliveryLocation.All();
-
-            //var deliveryLocations = await salesDeliveryLocation.All()
-            //    .Where(dl => dl.CustomerId == id)
-            //    .Select(dl => new SalesDeliveryLocationViewModel
-            //    {
-            //        CustomerId = dl.CustomerId,
-            //        DeliveryLocationCode = dl.DeliveryLocationCode,
-            //        LocationAddress = dl.LocationAddress,
-            //        ContactPerson = dl.ContactPerson,
-            //        Phone = dl.Phone,
-            //        Email = dl.Email,
-            //        CountryId = dl.CountryId,
-            //        City = dl.City,
-            //        StateOrProvince = dl.StateOrProvince,
-            //        ZipCode = dl.ZipCode,
-            //        Remarks = dl.Remarks
-            //    }).ToListAsync();
-
             var data = await _salesCustomer.All()
                 .Where(sc => sc.CustomerId == id)
                 .Select(sc => new SalesCustomerViewModel
@@ -127,12 +164,9 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     ModifyDate = sc.ModifyDate
                 }).FirstOrDefaultAsync();
             return data;
-
         }
 
-    
-
-        public async Task<PaginationService<SalesCustomer, SalesCustomerViewModel>.PaginationResult<SalesCustomerViewModel>> GetPaginatedSalesCustomer(int pageNumber = 1,int pageSize = 10, string searchTerm = "", string sortColumn = "CustomerID", string sortOrder = "desc")
+        public async Task<PaginationService<SalesCustomer, SalesCustomerViewModel>.PaginationResult<SalesCustomerViewModel>> GetPaginatedSalesCustomer(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "CustomerID", string sortOrder = "desc")
         {
             try
             {
@@ -169,7 +203,6 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in GetPaginatedSalesCustomers: {ex.Message}");
-
                 return new PaginationService<SalesCustomer, SalesCustomerViewModel>.PaginationResult<SalesCustomerViewModel>
                 {
                     Data = new List<SalesCustomerViewModel>(),
@@ -215,8 +248,6 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     CompanyCode = " ",
                     EmployeeId = " ",
                     Ldate = DateTime.Now,
-                    //Others Property For Saving Empty
-
                     ContatPerson1 = "",
                     ContatPerson2 = "",
                     ContatPerson3 = "",
@@ -232,23 +263,10 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     Lip = "",
                     Lmac = "",
                     DevitOrCredit = "",
-                    CustomerCompany =""
-
+                    CustomerCompany = ""
                 };
 
                 await _salesCustomer.AddAsync(entity);
-
-                //var deliveryEntities = model.DeliveryLocations.Select(loc => new SalesDeliveryLocation
-                //{
-                //    DeliveryLocationCode = loc.DeliveryLocationCode,
-                //    CustomerId = model.CustomerId,
-                //    LocationAddress = loc.LocationAddress,
-                //    ContactPerson = loc.ContactPerson,
-
-                //});
-
-                //await salesDeliveryLocation.AddRangeAsync(deliveryEntities);
-
                 return true;
             }
             catch (Exception ex)
@@ -306,24 +324,17 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             }
         }
 
-
         public async Task<List<SalesCustomerViewModel>> GetAllAsync()
         {
-
             try
             {
                 var customers = await _salesCustomer.All().ToListAsync();
-
-                // Get delivery locations grouped by CustomerId
-                var deliveryLocations = await _salesDeliveryLocation.All()
-                    .ToListAsync();
-
-                // Optional: Get all contact persons if needed
+                var deliveryLocations = await _salesDeliveryLocation.All().ToListAsync();
                 var allContactPersons = await _contactPerson.All().ToListAsync();
                 bool isCPNull = allContactPersons == null;
+
                 var result = customers.Select(customer =>
                 {
-
                     var resolvedContacts = new List<SalesContactPersonViewModel>();
                     if (isCPNull)
                     {
@@ -344,7 +355,6 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                                     ContactPersonMobile = cp.ContactPersonMobile
                                 }).ToList()
                             : new List<SalesContactPersonViewModel>();
-
                     }
                     else
                     {
@@ -389,24 +399,17 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             }
             catch (Exception ex)
             {
-
                 throw;
             }
-            
         }
-
 
         public async Task<string> GenerateCustomerIdAsync()
         {
             var lastCustomer = await _salesCustomer.All()
-            .OrderByDescending(c => c.CustomerId)
-            .FirstOrDefaultAsync();
+                .OrderByDescending(c => c.CustomerId)
+                .FirstOrDefaultAsync();
 
-            // Handle the case where no customers exist
-            string newCustomerId = lastCustomer.CustomerId;
-
-
-            return newCustomerId;
+            return lastCustomer?.CustomerId ?? string.Empty;
         }
 
         public async Task<bool> BulkDeleteAsync(List<string> customerIds)
@@ -415,7 +418,6 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
 
             try
             {
-                // Step 1: Get all matching customers
                 var customers = await _salesCustomer.All()
                     .Where(c => customerIds.Contains(c.CustomerId))
                     .ToListAsync();
@@ -423,7 +425,7 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 if (customers == null || customers.Count == 0)
                 {
                     await _salesCustomer.RollbackTransactionAsync();
-                    return (false);
+                    return false;
                 }
 
                 var relatedLocations = await _salesDeliveryLocation.All()
@@ -436,16 +438,14 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 }
 
                 await _salesCustomer.DeleteRangeAsync(customers);
-
                 await _salesCustomer.CommitTransactionAsync();
-
-                return (true);
+                return true;
             }
             catch (Exception ex)
             {
                 await _salesCustomer.RollbackTransactionAsync();
                 Console.WriteLine($"Bulk delete error: {ex}");
-                return (false);
+                return false;
             }
         }
 
@@ -458,14 +458,12 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 using var connection = new SqlConnection(_configuration.GetConnectionString("connection"));
                 await connection.OpenAsync();
 
-                var result = await connection.QueryAsync<CustomerReportVM>("sp_GetCustomerReportsInfo", commandType: System.Data.CommandType.StoredProcedure);
-
+                var result = await connection.QueryAsync<CustomerReportVM>("sp_GetCustomerReportsInfo", commandType: CommandType.StoredProcedure);
                 return result.ToList();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-
                 return new List<CustomerReportVM>();
             }
         }
@@ -505,9 +503,6 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                                 DeliveryAddress = d.DeliveryAddress,
                                 DeliveryPhone = d.DeliveryPhone,
                                 DeliveryEmail = d.DeliveryEmail,
-                                //ContactPersons = string.IsNullOrEmpty(d.ContactPersonsJson)
-                                //    ? new List<ContactPersonVM>()
-                                //    : JsonConvert.DeserializeObject<List<ContactPersonVM>>(d.ContactPersonsJson)
                             }).ToList()
                     };
                     return customer;
@@ -516,26 +511,67 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
             return customers;
         }
 
-        Task<List<CoreCompany>> ISalesCustomerService.GetCountryDropdownAsync()
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
 
         #region SelectionAsync
 
         public async Task<IEnumerable<CommonSelectModel>> SelectionCustomerAsync()
         {
-
-            var data = await _salesCustomer.All()
+            return await _salesCustomer.All()
                        .Select(x => new CommonSelectModel
                        {
                            Code = x.CustomerId,
                            Name = x.CustomerName,
                        }).ToListAsync();
-            return data;
         }
 
         #endregion
+
+        #region Permissions
+
+        public async Task<bool> PagePermissionAsync(string accessCode)
+        {
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await _accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Sales Customer" || x.Title == "SalesCustomer" || x.Title == "Customer Information" || x.Title == "Customer"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.TitleCheck);
+        }
+
+        public async Task<bool> SavePermissionAsync(string accessCode)
+        {
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await _accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Sales Customer" || x.Title == "SalesCustomer" || x.Title == "Customer Information" || x.Title == "Customer"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckAdd);
+        }
+
+        public async Task<bool> UpdatePermissionAsync(string accessCode)
+        {
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await _accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Sales Customer" || x.Title == "SalesCustomer" || x.Title == "Customer Information" || x.Title == "Customer"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckEdit);
+        }
+
+        public async Task<bool> DeletePermissionAsync(string accessCode)
+        {
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await _accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Sales Customer" || x.Title == "SalesCustomer" || x.Title == "Customer Information" || x.Title == "Customer"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckDelete);
+        }
 
         #endregion
     }

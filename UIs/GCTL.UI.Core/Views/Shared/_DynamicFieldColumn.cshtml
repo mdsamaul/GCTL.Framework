@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.DynamicFieldColumnModel
+@model GCTL.UI.Core.ViewModels.DynamicFieldColumnModel
 
 @*
     ============================================================
@@ -95,6 +95,293 @@
                             }
                         </label>
                         <partial name="_DynamicField_InputWithGroup" model="Model" />
+                    }
+                }
+
+                @* ============ DUAL INPUT ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.DualInput)
+                {
+                    var secondModel = Model.SecondField;
+                    bool dualNeedsAction = needsActionColumn || (secondModel != null && (secondModel.ShowQuickAdd || secondModel.ShowCopyIcon || secondModel.ReserveActionSlot));
+                    var quickAddSource = (secondModel != null && secondModel.ShowQuickAdd) ? secondModel : Model;
+                    var copySource = (secondModel != null && secondModel.ShowCopyIcon) ? secondModel : Model;
+
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                                    {
+                                        <i class="@Model.IconClass me-1"></i>
+                                    }
+                                    @Model.LabelText
+                                    @if (Model.IsRequired || (secondModel != null && secondModel.IsRequired))
+                                    {
+                                        <sup class="text-danger required-star">*</sup>
+                                    }
+                                </label>
+                            </div>
+                            <div class="col-@fieldCol">
+                                @if (dualNeedsAction)
+                                {
+                                    <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                        <div class="input-group input-group-sm flex-grow-1 dual-input-group">
+                                            @if (!string.IsNullOrEmpty(Model.PrependText))
+                                            {
+                                                <span class="input-group-text">@Model.PrependText</span>
+                                            }
+                                            <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                   class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                                   id="@Model.InputId" name="@Model.ResolvedInputName"
+                                                   placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                                   readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                                   style="@Model.InputStyle" />
+
+                                            @if (secondModel != null)
+                                            {
+                                                if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                                {
+                                                    <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                            id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                            data-placeholder="@secondModel.Placeholder"
+                                                            data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                            data-depends-on="@secondModel.DependsOnFieldId"
+                                                            disabled="@secondModel.IsDisabled"
+                                                            style="@secondModel.InputStyle"
+                                                            asp-items="secondModel.SelectItems">
+                                                        <option value="">@secondModel.Placeholder</option>
+                                                    </select>
+                                                }
+                                                else
+                                                {
+                                                    <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                           class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                           id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                           placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                                           readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                                           style="@secondModel.InputStyle" />
+                                                }
+                                            }
+                                            @if (!string.IsNullOrEmpty(Model.AppendText))
+                                            {
+                                                <span class="input-group-text">@Model.AppendText</span>
+                                            }
+                                        </div>
+
+                                        @if (quickAddSource.ShowQuickAdd)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                                    data-url="@quickAddSource.QuickAddUrl" data-target="@quickAddSource.QuickAddTarget"
+                                                    data-reload-url="@quickAddSource.QuickAddReloadUrl" data-title="@quickAddSource.QuickAddTitle"
+                                                    disabled="@(quickAddSource.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                        else if (copySource.ShowCopyIcon)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                                    data-target="#@copySource.InputId" title="Copy" disabled="@(copySource.IsActionDisabled)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                                    tabindex="-1" aria-hidden="true" disabled="disabled">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="input-group input-group-sm w-100 dual-input-group">
+                                        @if (!string.IsNullOrEmpty(Model.PrependText))
+                                        {
+                                            <span class="input-group-text">@Model.PrependText</span>
+                                        }
+                                        <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                               class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                               id="@Model.InputId" name="@Model.ResolvedInputName"
+                                               placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                               readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                               style="@Model.InputStyle" />
+
+                                        @if (secondModel != null)
+                                        {
+                                            if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                            {
+                                                <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                        id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                        data-placeholder="@secondModel.Placeholder"
+                                                        data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                        data-depends-on="@secondModel.DependsOnFieldId"
+                                                        disabled="@secondModel.IsDisabled"
+                                                        style="@secondModel.InputStyle"
+                                                        asp-items="secondModel.SelectItems">
+                                                    <option value="">@secondModel.Placeholder</option>
+                                                </select>
+                                            }
+                                            else
+                                            {
+                                                <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                       class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                       id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                       placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                                       readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                                       style="@secondModel.InputStyle" />
+                                            }
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.AppendText))
+                                        {
+                                            <span class="input-group-text">@Model.AppendText</span>
+                                        }
+                                    </div>
+                                }
+                                <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                                @if (secondModel != null)
+                                {
+                                    <span class="text-danger field-validation" id="@(secondModel.ValidationMessageId ?? (secondModel.InputId + "-error"))"></span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-1"></i>
+                            }
+                            @Model.LabelText
+                            @if (Model.IsRequired || (secondModel != null && secondModel.IsRequired))
+                            {
+                                <span class="text-danger fs-6 fw-medium">*</span>
+                            }
+                        </label>
+
+                        @if (dualNeedsAction)
+                        {
+                            <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                <div class="input-group input-group-sm flex-grow-1 dual-input-group">
+                                    @if (!string.IsNullOrEmpty(Model.PrependText))
+                                    {
+                                        <span class="input-group-text">@Model.PrependText</span>
+                                    }
+                                    <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                           class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                           id="@Model.InputId" name="@Model.ResolvedInputName"
+                                           placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                           readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                           style="@Model.InputStyle" />
+
+                                    @if (secondModel != null)
+                                    {
+                                        if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                        {
+                                            <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                    id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                    data-placeholder="@secondModel.Placeholder"
+                                                    data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                    data-depends-on="@secondModel.DependsOnFieldId"
+                                                    disabled="@secondModel.IsDisabled"
+                                                    style="@secondModel.InputStyle"
+                                                    asp-items="secondModel.SelectItems">
+                                                <option value="">@secondModel.Placeholder</option>
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                   class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                   id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                   placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                                   readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                                   style="@secondModel.InputStyle" />
+                                        }
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.AppendText))
+                                    {
+                                        <span class="input-group-text">@Model.AppendText</span>
+                                    }
+                                </div>
+
+                                @if (quickAddSource.ShowQuickAdd)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                            data-url="@quickAddSource.QuickAddUrl" data-target="@quickAddSource.QuickAddTarget"
+                                            data-reload-url="@quickAddSource.QuickAddReloadUrl" data-title="@quickAddSource.QuickAddTitle"
+                                            disabled="@(quickAddSource.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                                else if (copySource.ShowCopyIcon)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                            data-target="#@copySource.InputId" title="Copy" disabled="@(copySource.IsActionDisabled)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                            tabindex="-1" aria-hidden="true" disabled="disabled">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="input-group input-group-sm w-100 dual-input-group">
+                                @if (!string.IsNullOrEmpty(Model.PrependText))
+                                {
+                                    <span class="input-group-text">@Model.PrependText</span>
+                                }
+                                <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                       class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                       id="@Model.InputId" name="@Model.ResolvedInputName"
+                                       placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                       readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                       style="@Model.InputStyle" />
+
+                                @if (secondModel != null)
+                                {
+                                    if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                    {
+                                        <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                data-placeholder="@secondModel.Placeholder"
+                                                data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                data-depends-on="@secondModel.DependsOnFieldId"
+                                                disabled="@secondModel.IsDisabled"
+                                                style="@secondModel.InputStyle"
+                                                asp-items="secondModel.SelectItems">
+                                            <option value="">@secondModel.Placeholder</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                               class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                               id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                               placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                               readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                               style="@secondModel.InputStyle" />
+                                    }
+                                }
+                                @if (!string.IsNullOrEmpty(Model.AppendText))
+                                {
+                                    <span class="input-group-text">@Model.AppendText</span>
+                                }
+                            </div>
+                        }
+                        <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                        @if (secondModel != null)
+                        {
+                            <span class="text-danger field-validation" id="@(secondModel.ValidationMessageId ?? (secondModel.InputId + "-error"))"></span>
+                        }
                     }
                 }
 

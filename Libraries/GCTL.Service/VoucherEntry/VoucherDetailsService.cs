@@ -16,7 +16,16 @@ namespace GCTL.Service.VoucherEntry
         private readonly IRepository<AccGeneralLedger> _subcontrolLedger;
         private readonly IRepository<AccSubsidiaryLedger> _subsidiledger;
         private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
-        public VoucherDetailsService(IRepository<AccVoucherEntryDetailsTemp> genericRepository, IRepository<AccVoucherEntryDetailsTemp> repository, IRepository<AccControlLedger> groupLedger, IRepository<AccSubControlLedger> controlledger, IRepository<AccGeneralLedger> subcontrolLedger, IRepository<AccSubsidiaryLedger> subsidiledger, IRepository<AccSubSubsidiaryLedger> generalLedger) : base(genericRepository)
+        public VoucherDetailsService(
+            IRepository<AccVoucherEntryDetailsTemp> genericRepository,
+            IRepository<AccVoucherEntryDetailsTemp> repository,
+            IRepository<AccControlLedger> groupLedger,
+            IRepository<AccSubControlLedger> controlledger,
+            IRepository<AccGeneralLedger> subcontrolLedger, 
+            IRepository<AccSubsidiaryLedger> subsidiledger, 
+            IRepository<AccSubSubsidiaryLedger> generalLedger
+            ) 
+    : base(genericRepository)
         {
             _groupLedger = groupLedger;
             _controlledger = controlledger;
@@ -27,7 +36,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Account Head Dropdown on Event Change Backend
         public async Task<LedgerDetailsVM> GetAllLedgerByIdAsync(string id)
@@ -65,7 +73,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Delete Voucher Details
 
@@ -127,7 +134,6 @@ namespace GCTL.Service.VoucherEntry
 
         #endregion
 
-
         #region Get All Tmp Voucher Details
         public async Task<List<VoucherEntryDetailsTempVM>> GetAllAsync(int? currentUser)
         {
@@ -156,7 +162,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Get Details Voucher Information with specific ID
         public async Task<VoucherEntryDetailsTempVM> GetByIdAsync(decimal id)
@@ -205,7 +210,6 @@ namespace GCTL.Service.VoucherEntry
 
         #endregion
 
-
         #region Generate Last Voucher Details Code
         public async Task<string> GetLastVoucherDetailsCodeAsync()
         {
@@ -233,7 +237,6 @@ namespace GCTL.Service.VoucherEntry
 
         #endregion
 
-
         #region Get Exist ID
         public async Task<bool> IsExistAsync(int id)
         {
@@ -241,7 +244,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Tmp Details Voucher Entry Save and Update
         public async Task<bool> SaveAsync(VoucherEntryDetailsTempVM model)

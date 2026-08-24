@@ -126,10 +126,8 @@ namespace GCTL.UI.Core.Controllers
                     return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                 }
 
-
                 if (!ModelState.IsValid)
                 {
-
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }

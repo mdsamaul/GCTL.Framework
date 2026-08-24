@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace GCTL.Core.ViewModels.BloodGroups
 {
     public class BloodGroupSetupViewModel : BaseViewModel
     {
         public int Tc { get; set; }
-       // public decimal AutoId { get; set; }
+        public decimal? AutoId { get; set; }
         public string BloodGroupCode { get; set; }
 
         [Required(ErrorMessage = "{0} is required.")]

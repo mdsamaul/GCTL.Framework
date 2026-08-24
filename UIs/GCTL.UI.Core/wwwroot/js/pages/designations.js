@@ -1,14 +1,14 @@
-﻿(function ($) {
+(function ($) {
     $.designations = function (options) {
         // Default options
         var settings = $.extend({
             baseUrl: "/",
             formSelector: "#designation-form",
             formContainer: ".js-designation-form-container",
-            gridSelector: "#designation-grid",
+            gridSelector: "#designationGridContainer",
             gridContainer: ".js-designation-grid-container",
-            editSelector: ".js-designation-edit",
-            saveSelector: "#saveBtn",
+            editSelector: ".js-designation-edit, .js-grid-edit",
+            saveSelector: ".js-designation-save",
             selectAllSelector: "#designation-check-all",
             deleteSelector: ".js-designation-delete-confirm",
             deleteModal: "#designation-delete-modal",
@@ -38,17 +38,20 @@
         });
 
         $(() => {
-            //settings.load(settings.baseUrl, settings.gridSelector);
-            loadDesignationss(settings.baseUrl, settings.gridSelector);
-            initialize();
-            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e)
-            {
+
+            loadTable();
+
+            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
-                let url = saveUrl + "/" + $(this).data("id") ?? "";
-                loadForm(url);
+                loadForm(url).then((data) => {
+                    console.info("Form Loaded Successfully", data);
+                }).catch((error) => {
+                    console.error("Failed to load form", error);
+                });
 
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
@@ -57,209 +60,127 @@
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-
+            // Export Excel / Pdf
             $(document).on('click', '.js-export-excel', function () {
-                //  debugger;
-                $("#loadingIndicator").show();
-
-                $.ajax({
-                    url: '/Designations/ExportToExcel',
-                    method: 'GET',
-                    success: function (response) {
-                        window.location.href = '/Designations/ExportToExcel';
-                    },
-                    error: function () {
-                        toastr.error('Error to Export Excel')
-                    },
-                    complete: function () {
-                        $('#loadingIndicator').hide();
-                    }
-                });
+                window.location.href = settings.baseUrl + '/ExportToExcel';
             });
 
             $(document).on('click', '.js-export-pdf', function () {
-                // debugger;
-                $("#loadingIndicator").show();
-                $.ajax({
-                    url: '/Designations/ExportToPdf',
-                    type: 'Get',
-
-                    success: function (response) {
-                        window.location.href = '/Designations/ExportToPdf'
-                    },
-                    error: function () {
-                        toastr.error('An error occurred while exporting the PDF.');
-                    },
-                    complete: function () {
-                        $('#loadingIndicator').hide();
-                    }
-
-                });
+                window.location.href = settings.baseUrl + '/ExportToPdf';
             });
 
-            //
             // Save
-            // $("body").on("click", settings.saveSelector, function () {
-            //     debugger
-            //     if (!validation()) return false;
-            //     var $valid = $(settings.formSelector).valid();
-            //     if (!$valid) {
-            //         return false;
-            //     }
-
-            //     var data;
-            //     if (settings.haseFile)
-            //         data = new FormData($(settings.formSelector)[0]);
-            //     else
-            //         data = $(settings.formSelector).serialize();
-
-            //     var url = $(settings.formSelector).attr("action");
-
-            //     var options = {
-            //         url: url,
-            //         method: "POST",
-            //         data: data,
-            //         success: function (response) {
-            //             if (response.isSuccess) {
-            //                 loadForm(saveUrl)
-            //                     .then((data) => {
-            //                         loadDesignationss(settings.baseUrl, settings.gridSelector);
-            //                         $(settings.lastCodeSelector).val(response.lastCode);
-
-
-            //                     })
-            //                     .catch((error) => {
-            //                         console.log(error)
-            //                     })
-
-            //                 toastr.success(response.message);
-            //             }
-            //             else {
-            //                 toastr.error(response.message);
-            //                 console.log(response);
-            //             }
-            //         }
-            //     }
-            //     if (settings.haseFile) {
-            //         options.processData = false;
-            //         options.contentType = false;
-            //     }
-            //     $.ajax(options);
-            // });
-
-            $('body').on('click', settings.saveSelector, function () {
-
+            $("body").on("click", settings.saveSelector, function () {
                 if (!validation()) return false;
-                var validForm = $(settings.formSelector).valid();
-                if (!validForm) return false;
+                var $valid = $(settings.formSelector).valid();
+                if (!$valid) {
+                    return false;
+                }
 
-                var data = $(settings.formSelector).serialize();
+                var data;
+                if (settings.haseFile)
+                    data = new FormData($(settings.formSelector)[0]);
+                else
+                    data = $(settings.formSelector).serialize();
+
                 var url = $(settings.formSelector).attr("action");
-                var self = this;
 
-                $.ajax({
+                var options = {
                     url: url,
                     method: "POST",
                     data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            toastr.success(response.message);
-
-                            var $modalAncestor = $(self).closest(".modal");
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
                             if ($modalAncestor.length && window.GcModal) {
                                 GcModal.markSuccess($modalAncestor, response.lastCode);
                                 GcModal.close($modalAncestor);
                             } else {
-                                // normal page এ থাকলে আগের মতোই form reload করো
-                                loadForm(saveUrl).then(() => {
-                                    loadCompanies(settings.baseUrl, settings.gridSelector);
-                                });
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
                             }
-                        } else {
+                            toastr.success(response.message);
+                        }
+                        else {
                             toastr.error(response.message);
+                            console.log(response);
                         }
                     }
-                });
+                };
+                if (settings.haseFile) {
+                    options.processData = false;
+                    options.contentType = false;
+                }
+                $.ajax(options);
             });
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
 
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
-                    });
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('designationGridContainer') : [];
                 }
 
-                if (selectedItems.length > 0)
-                {
-                    $(settings.deleteModal).modal("show");
-                } else
-                {
+                if (selectedItems.length > 0) {
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
+                } else {
                     toastr.info("Please select at least one item.");
                 }
             });
 
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-designation-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-                //event.preventDefault();
-                // Get button that triggered the modal
-                var source = $(event.relatedTarget);
-                var id = source.data("id");
-
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure to delete?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl + "/" + selectedItems,
-                        method: "POST",
-                        success: function (response) {
-                           // console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-                                /*settings.load(settings.baseUrl);*/
-                                loadDesignationss(settings.baseUrl, settings.gridSelector);
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                if (response.refSuccess) {
-                                    toastr.warning(response.message, 'Warning');
-                                }
-
-                                if (!response.success) {
-                                    toastr.error(response.message, 'Error');
-                                }
-                                console.log(response);
-                            }
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                    });
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             $("body").on("click", settings.topSelector, function (e) {
@@ -267,121 +188,49 @@
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-
             $("body").on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            //$("body").on("keyup", settings.availabilitySelector, function () {
-            //    var self = $(this);
-            //    let code = $(".js-designation-code").val();
-            //    let name = self.val();
-
-            //    // check
-            //    $.ajax({
-            //        url: settings.baseUrl + "/CheckAvailability",
-            //        method: "POST",
-            //        data: { code: code, name: name },
-            //        success: function (response) {
-            //            console.log(response);
-            //            if (response.isSuccess) {
-            //                toastr.error(response.message);
-            //            }
-            //        }
-            //    });
-            //});
         });
 
-        function loadDesignationss(baseUrl, gridSelector) {
-            var dataTable = $(gridSelector).DataTable({
-                ajax: {
-                    url: baseUrl + "/grid",
-                    type: "GET",
-                    datatype: "json"
-                },
-
-                columnDefs: [
-                    { targets: [0], orderable: false },
-                ],
-                columns: [
-                    {
-                        "data": "designationCode", "className": "text-center", width: "2%", "render": function (data)
-                        {
-                            return `<input type="checkbox" class="checkBox" value="${data}" />`;
-                        }
-
-                    },
-                    {
-                        "data": "designationCode", width: "5%", "render": function (data) {
-                           
-                            return `<a class='btn js-designation-edit' data-id='${data}'><i>${data}</i></a>`;
-                        }
-                    },
-                    { "data": "designationName", "autoWidth": true, "className": "text-left" },
-                    { "data": "designationShortName", "autoWidth": true, "className": "text-center" },
-                    { "data": "banglaDesignation", "autoWidth": true, "className": "text-left" },
-                ],
-                lengthChange: true,
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    [10, 25, 50, 'All'],
-                ],
-                order: [[1, "desc"]],
-                destroy: true
-            });
+        // Dynamic Grid Load Table
+        function loadTable() {
+            if (window.loadGridPage) {
+                window.loadGridPage('designationGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
 
-        function loadForm(url)
-        {
+        function loadForm(url) {
             return new Promise((resolve, reject) => {
                 $.ajax({
                     url: url,
                     type: 'GET',
+                    cache: false,
                     success: function (data) {
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        initialize();
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
-                })
-            })
-        }
-
-        function initialize()
-        {
-            $(settings.formSelector + ' .selectpicker').select2({
-                language: {
-                    noResults: function () {
-                        //return 'Not found <a class="add_new_item" href="javascript:void(0)">Add New</a>';
-                    }
-                },
-                escapeMarkup: function (markup) {
-                    return markup;
-                }
+                });
             });
         }
 
         function validation() {
-
-            var dep = $('#DesignationName').val();
-
-            if (!dep) {
+            var desName = $('#DesignationName').val();
+            if (!desName) {
                 toastr.info('Enter Designation Name');
                 $('#DesignationName').trigger('focus');
                 return false;
             }
-
             return true;
-
         }
-    }
+    };
 
 }(jQuery));
-

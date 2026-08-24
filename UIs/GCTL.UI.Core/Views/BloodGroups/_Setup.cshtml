@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.BloodGroups.BloodGroupSetupViewModel
+@model GCTL.Core.ViewModels.BloodGroups.BloodGroupSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
@@ -15,6 +15,7 @@
 
         <input type="hidden" id="lastCode" />
         <input type="hidden" asp-for="Tc" />
+        <input type="hidden" asp-for="AutoId" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
 
@@ -25,7 +26,7 @@
             LabelText = "Blood Group Id",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-bloodgroup-code",
             DefaultValue = Model?.BloodGroupCode
@@ -43,6 +44,7 @@
             Placeholder = "Enter Blood Group",
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             CustomCssClass = "js-bloodgroup-check-availability",
             DefaultValue = Model.BloodGroup,
             AutoFocus = true
@@ -56,11 +58,12 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Blood Group (বাংলা)",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.BanglaBloodGroup
         })
     </div>
 
-    @if (Model.Tc > 0)
+    @if (Model.AutoId > 0 || Model.Tc > 0)
     {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
@@ -101,7 +104,6 @@
             IsPlain = true,
             SaveBtnClass = "js-bloodgroup-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
         })
     </div>
 </div>

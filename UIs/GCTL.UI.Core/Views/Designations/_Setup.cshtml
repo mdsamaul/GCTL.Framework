@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.Designations.DesignationSetupViewModel
+@model GCTL.Core.ViewModels.Designations.DesignationSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 <div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-80%, -80%); z-index: 9999;">
@@ -31,7 +31,7 @@
             LabelText = "Designation Id",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-designation-code",
             DefaultValue = Model?.DesignationCode
@@ -48,6 +48,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Designation",
             IsRequired = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-designation-check-availability",
             DefaultValue = Model.DesignationName,
@@ -59,6 +60,7 @@
         {
             InputId = "DesignationShortName",
             LabelText = "Short Name",
+            ReserveActionSlot = false,
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
             ColumnClass = "col-lg-6",
@@ -74,13 +76,14 @@
             InputId = "BanglaDesignation",
             LabelText = "Designaiton (বাংলা)",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Designaiton (বাংলা)",
             ColumnClass = "col-lg-6",
             DefaultValue = Model.BanglaDesignation
         })
     </div>
 
-    @if (Model.Id > 0)
+    @if (Model.AutoId > 0)
     {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
@@ -119,11 +122,8 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnId = "js-designation-save",
-            ClearBtnId = "designation",
-            DeleteBtnId = "designation",
+            SaveBtnClass = "js-designation-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
         })
     </div>
 </div>

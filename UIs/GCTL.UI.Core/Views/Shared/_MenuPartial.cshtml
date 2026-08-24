@@ -6,9 +6,10 @@
 
     bool IsItemActive(GCTL.Core.ViewModels.Menu.MenuDto item)
     {
+        if (item == null) return false;
+
         if (!string.IsNullOrWhiteSpace(item.ControllerName) &&
-            string.Equals(item.ControllerName, currentController, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(item.ViewName, currentAction, StringComparison.OrdinalIgnoreCase))
+            string.Equals(item.ControllerName, currentController, StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -26,28 +27,81 @@
 
         return false;
     }
+
+    bool IsDirectActive(GCTL.Core.ViewModels.Menu.MenuDto item)
+    {
+        if (item == null) return false;
+
+        if (!string.IsNullOrWhiteSpace(item.ControllerName) &&
+            string.Equals(item.ControllerName, currentController, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    string GetItemIcon(GCTL.Core.ViewModels.Menu.MenuDto item)
+    {
+        if (item != null && !string.IsNullOrWhiteSpace(item.Icon))
+        {
+            var raw = item.Icon.Trim();
+            if (raw.StartsWith("bi ") || raw.StartsWith("fa ") || raw.StartsWith("fas ") || raw.StartsWith("far ") || raw.StartsWith("fab "))
+            {
+                return raw;
+            }
+            if (raw.StartsWith("bi-"))
+            {
+                return "bi " + raw;
+            }
+            if (raw.StartsWith("fa-"))
+            {
+                return "fa " + raw;
+            }
+            return "fa fa-" + raw;
+        }
+
+        var key = $"{item?.Title} {item?.ControllerName} {item?.MenuId}".ToLowerInvariant();
+
+        if (key.Contains("dashboard") || key.Contains("home")) return "bi bi-speedometer2";
+        if (key.Contains("master") || key.Contains("setup") || key.Contains("setting") || key.Contains("config")) return "bi bi-gear-wide-connected";
+        if (key.Contains("operation") || key.Contains("daily") || key.Contains("job") || key.Contains("task") || key.Contains("entry")) return "bi bi-briefcase-fill";
+        if (key.Contains("report") || key.Contains("chart") || key.Contains("invoice") || key.Contains("analytic")) return "bi bi-bar-chart-line-fill";
+        if (key.Contains("hrm") || key.Contains("employee") || key.Contains("staff") || key.Contains("user") || key.Contains("people")) return "bi bi-people-fill";
+        if (key.Contains("doc") || key.Contains("file") || key.Contains("note") || key.Contains("sepdoc")) return "bi bi-file-earmark-text-fill";
+        if (key.Contains("cross") || key.Contains("app") || key.Contains("module")) return "bi bi-grid-3x3-gap-fill";
+        if (key.Contains("security") || key.Contains("role") || key.Contains("permission") || key.Contains("lock")) return "bi bi-shield-lock-fill";
+        if (key.Contains("bank") || key.Contains("account") || key.Contains("pay") || key.Contains("finance")) return "bi bi-bank";
+        if (key.Contains("transport") || key.Contains("port") || key.Contains("place") || key.Contains("ship")) return "bi bi-truck";
+        if (key.Contains("table") || key.Contains("grid") || key.Contains("list")) return "bi bi-table";
+
+        if (item?.Children != null && item.Children.Any())
+        {
+            return "bi bi-folder2-open";
+        }
+
+        return "bi bi-circle-fill icon-dot";
+    }
 }
 <ul class="sidebar-menu">
 @foreach (var item in Model)
 {
     var hasChildren = item.Children != null && item.Children.Any();
     var itemActive = IsItemActive(item);
+    var directActive = IsDirectActive(item);
     var arrowIcon = hasChildren && item.Children.Any(c => c.Children != null && c.Children.Any())
         ? "bi bi-chevron-double-right"
         : "bi bi-chevron-right";
 
-    <li class="menu-item @(itemActive ? "active" : "")">
+    <li class="menu-item @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")">
         @if (hasChildren)
         {
-            <button class="menu-link d-flex align-items-center w-100" type="button"
+            <button class="menu-link d-flex align-items-center w-100 @(directActive ? "active" : "")" type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#children-@item.AutoId"
                     aria-expanded="@(itemActive ? "true" : "false")"
                     aria-controls="children-@item.AutoId">
-                @if (!string.IsNullOrWhiteSpace(item.Icon))
-                {
-                    <i class="@item.Icon"></i>
-                }
+                <i class="@GetItemIcon(item) menu-item-icon"></i>
                 <span class="menu-text">@item.Title</span>
                 <i class="@arrowIcon ms-auto menu-arrow"></i>
             </button>
@@ -57,14 +111,12 @@
         }
         else
         {
-            <a class="menu-link d-flex align-items-center w-100" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
-                @if (!string.IsNullOrWhiteSpace(item.Icon))
-                {
-                    <i class="@item.Icon"></i>
-                }
+            <a class="menu-link d-flex align-items-center w-100 @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
+                <i class="@GetItemIcon(item) menu-item-icon"></i>
                 <span class="menu-text">@item.Title</span>
             </a>
         }
     </li>
 }
 </ul>
+

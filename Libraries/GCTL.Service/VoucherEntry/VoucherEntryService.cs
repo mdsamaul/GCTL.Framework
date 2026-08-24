@@ -23,7 +23,16 @@ namespace GCTL.Service.VoucherEntry
         private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
         private readonly IRepository<CoreBranch> _branch;
 
-        public VoucherEntryService(IRepository<AccVoucherEntry> genericRepository, IRepository<AccVoucherType> voucherType, IRepository<AccVoucherEntryDetailsTemp> tmpDetails, IRepository<AccVoucherEntryDetail> voucherDetails, IRepository<AccSubSubsidiaryLedger> generalLedger, IRepository<CoreBranch> branch) : base(genericRepository)
+        public VoucherEntryService(
+            IRepository<AccVoucherEntry> genericRepository,
+            IRepository<AccVoucherType> voucherType,
+            IRepository<AccVoucherEntryDetailsTemp> tmpDetails,
+            IRepository<AccVoucherEntryDetail> voucherDetails,
+            IRepository<AccSubSubsidiaryLedger> generalLedger,
+            IRepository<CoreBranch> branch
+            ) 
+            
+            : base(genericRepository)
         {
             _repository = genericRepository;
             _voucherType = voucherType;
@@ -34,7 +43,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Generate Voucher Entry Code No
         private async Task<string> GetLastVoucherEntryCodeNoAsync()
@@ -61,7 +69,6 @@ namespace GCTL.Service.VoucherEntry
         }
         #endregion
 
-
         #region Checking Debit & Credit Amount Is Equal or Not
         public async Task<bool> IsDebitCreditEqualAsync(string userId)
         {
@@ -79,8 +86,8 @@ namespace GCTL.Service.VoucherEntry
 
         #endregion
 
-
         #region Voucher Entry Save and Update
+
         public async Task<bool> SaveAsync(VoucherEntryVM model)
         {
             await _repository.BeginTransactionAsync();
@@ -233,7 +240,6 @@ namespace GCTL.Service.VoucherEntry
 
         #endregion
 
-
         #region  Voucher Delete Single Or More
         public async Task<bool> BulkDeleteAsync(List<decimal> ids)
         {
@@ -277,7 +283,6 @@ namespace GCTL.Service.VoucherEntry
 
         #endregion
 
-
         #region Delete tmp data With User ID
         public async Task<bool> DeleteAsync(int? ids)
         {
@@ -299,7 +304,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Generate Voucher Entry Detail Code
 
@@ -329,7 +333,6 @@ namespace GCTL.Service.VoucherEntry
 
 
         #endregion
-
 
         #region Generate VoucherNo Code
         public async Task<string> GetLastVoucherNoAsync(string voucherTypeCode)
@@ -365,7 +368,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Get All Voucher Entry
         public async Task<PaginationService<VoucherEntryVM, VoucherEntryVM>.PaginationResult<VoucherEntryVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherDate", string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null)
@@ -426,8 +428,7 @@ namespace GCTL.Service.VoucherEntry
             }
 
             // PaginationService
-            var paginatedResult = await PaginationService<VoucherEntryVM, VoucherEntryVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
+            var paginatedResult = await PaginationService<VoucherEntryVM, VoucherEntryVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder, term => sc =>
                         EF.Functions.Like(sc.VoucherNo ?? "", $"%{term}%") ||
                         EF.Functions.Like(sc.BranchName ?? "", $"%{term}%") ||
                         EF.Functions.Like(sc.Narration ?? "", $"%{term}%"),
@@ -437,11 +438,10 @@ namespace GCTL.Service.VoucherEntry
             return paginatedResult;
         }
 
-
         #endregion
 
-
         #region Get Master Voucher Information with specific Master ID
+
         public async Task<VoucherEntryVM> GetByMasterIdAsync(decimal autoId)
         {
             var data = await (from main in _repository.All()
@@ -462,7 +462,6 @@ namespace GCTL.Service.VoucherEntry
             return data;
         }
         #endregion
-
 
         #region Get Details Voucher Information with specific VoucherEntryAutoId
         public async Task<List<VoucherDetailsVM>> GetDetailsByVoucherIdAsync(decimal? voucherEntryAutoId)
@@ -488,8 +487,8 @@ namespace GCTL.Service.VoucherEntry
         }
         #endregion
 
-
         #region When Edit Button Clicked then Details table data Copied to Tmp Table
+
         public async Task<bool> DetailsCopiedToTmp(decimal id, int? currenUserID)
         {
             var orginaDetailsData = await GetDetailsByVoucherIdAsync(id);
@@ -518,7 +517,6 @@ namespace GCTL.Service.VoucherEntry
 
         #endregion
 
-
         #region Get Exist ID
         public async Task<bool> IsExistAsync(int id)
         {
@@ -526,7 +524,6 @@ namespace GCTL.Service.VoucherEntry
         }
 
         #endregion
-
 
         #region Voucher Type Dropdown
         public async Task<List<CommonChoiceVM>> GetVoucherTypeDropdownInfo()
@@ -540,7 +537,6 @@ namespace GCTL.Service.VoucherEntry
             return dropdowndata;
         }
         #endregion
-
 
         #region Ip & Mac
         public string GetLocalIP()
