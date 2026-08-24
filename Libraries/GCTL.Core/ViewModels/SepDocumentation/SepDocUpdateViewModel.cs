@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace GCTL.Core.ViewModels.SepDocumentation
@@ -78,6 +78,7 @@ namespace GCTL.Core.ViewModels.SepDocumentation
 
         // ---------- Shared Sea + Air delivery-tracking fields ----------
         public DateTime? ETDDate { get; set; }
+        public DateTime? ETACTGPORT { get; set; }
         public DateTime? DocsBankSignDate { get; set; }
         public string? BENo { get; set; }
         public DateTime? BEDate { get; set; }

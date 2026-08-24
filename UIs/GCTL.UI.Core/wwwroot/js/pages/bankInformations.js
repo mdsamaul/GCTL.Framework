@@ -1,39 +1,36 @@
-﻿(function ($) {
+(function ($) {
     $.bankInformations = function (options) {
         // Default options
         var settings = $.extend({
             baseUrl: "/",
-            formSelector: "#BankInformations-form",
-            formContainer: ".js-BankInformations-form-container",
-            gridSelector: "#BankInformations-grid",
-            gridContainer: ".js-BankInformations-grid-container",
-            editSelector: ".js-BankInformations-edit",
-            saveSelector: ".js-BankInformations-save",
-            selectAllSelector: "#BankInformations-check-all",
-            deleteSelector: ".js-BankInformations-delete-confirm",
-            deleteModal: "#BankInformations-delete-modal",
-            finalDeleteSelector: ".js-BankInformations-delete",
-            clearSelector: ".js-BankInformations-clear",
+            formSelector: "#bankinformation-form",
+            formContainer: ".js-bankinformation-form-container",
+            gridSelector: "#bankInformationGridContainer",
+            gridContainer: ".js-bankinformation-grid-container",
+            editSelector: ".js-bankinformation-edit, .js-grid-edit",
+            saveSelector: ".js-bankinformation-save",
+            selectAllSelector: "#bankinformation-check-all",
+            deleteSelector: ".js-bankinformation-delete-confirm",
+            deleteModal: "#bankinformation-delete-modal",
+            finalDeleteSelector: ".js-bankinformation-delete",
+            clearSelector: ".js-bankinformation-clear",
             topSelector: ".js-go",
-            decimalSelector: ".js-BankInformations-decimalplaces",
+            decimalSelector: ".js-bankinformation-decimalplaces",
             maxDecimalPlace: 5,
             showNagativeFormat: false,
-            availabilitySelector: "#BankName",
+            availabilitySelector: ".js-bankinformation-check-availability",
             haseFile: false,
             quickAddSelector: ".js-quick-add",
             quickAddModal: "#quickAddModal",
-            lastCodeSelector: '#lastCode',
-            load: function () { }
+            lastCodeSelector: "#lastCode",
+            load: function () {
+
+            }
         }, options);
 
-        var baseControllerNameUrl = "/BankInformations";
-        var testSave = baseControllerNameUrl + "/Setup";
-        var nextCodeULR = baseControllerNameUrl + "/GenerateNextCode";
-        var loadTableURL = baseControllerNameUrl + "/GetTableData";
-        var deleteURL = baseControllerNameUrl + "/Delete";
-        var getById = baseControllerNameUrl + "/Index";
-        var duplicateCheckURL = baseControllerNameUrl + "/CheckAvailability";
-
+        var gridUrl = settings.baseUrl + "/grid";
+        var saveUrl = settings.baseUrl + "/setup";
+        var deleteUrl = settings.baseUrl + "/Delete";
         var selectedItems = [];
 
         $(document).ready(function () {
@@ -41,289 +38,188 @@
         });
 
         $(() => {
+            loadTable();
 
-
-
-
-            initialize();
-
-
-
-            // Save button click event
-            $("body").on('click', settings.saveSelector, function () {
-                validation();
-                $(settings.formSelector).submit();
-            });
-
-            // Form submission event
-            $("body").on('submit', settings.formSelector, function (e) {
+            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+                e.stopPropagation();
                 e.preventDefault();
-                var form = $(this)[0];
-                var formData = new FormData(form);
-                var actionUrl = $(this).attr('action');
+                e.stopImmediatePropagation();
+                let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
-                $.ajax({
-                    type: 'POST',
-                    url: actionUrl,
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    success: function (result)
-                    {
-                        if (result.noSavePermission || result.noUpdatePermission || result.isDuplicate)
-                        {
-
-                            toastr.error(result.message);
-                        }
-                        
-                        else if (result.isSuccess)
-                        {
-                            $(settings.gridContainer).html(result.html);
-                            initialize();
-                           // $(settings.formSelector).html(result);
-                            $(settings.lastCodeSelector).val(result.lastCode);
-                            toastr.success(result.message);
-                           
-                           // alert(`LastCode: ${result.lastCode}`);
-                        } else
-                        {
-
-                            toastr.success(result.message);
-                            $(settings.formSelector).html(result);
-                            initialize();
-                        }
-                    },
-                    error: function ()
-                    {
-                        toastr.error('Failed Insert.');
-                    }
+                loadForm(url).then((data) => {
+                    console.info("Form Loaded Successfully", data);
+                }).catch((error) => {
+                    console.error("Failed to load form", error);
                 });
-            });
 
-            // Availability check
-            $("body").on("keyup", settings.availabilitySelector, function ()
-            {
-                var self = $(this);
-                let typeCode = $(".js-BankId-code").val();
-                let name = self.val();
-
-                $.ajax({
-                    url: duplicateCheckURL,
-                    method: "POST",
-                    data: { typeCode: typeCode, name: name },
-                    success: function (response)
-                    {
-                        console.log(response);
-                        if (response.isSuccess)
-                        {
-                            toastr.warning(response.message);
-
-                        }
-                    }
-                });
-            });
-
-
-
-            
-
-
-            // Edit leave type
-            $("body").on('click', settings.editSelector, function ()
-            {
+                // Setting id on the delete selector for delete
                 var id = $(this).data('id');
-                $.get(getById, { id: id }, function (result) {
+                $(settings.deleteSelector).data('id', id);
 
-                    $(settings.formSelector).html($(result).find(settings.formSelector).html());
-                    $(settings.saveSelector).html('<i class="fas fa-edit"></i> Update');
-                    $(settings.formSelector).attr('action', testSave);
-                    $(settings.deleteSelector).data('id', id);
-                }).fail(function () {
-                    toastr.error('Error Get Data.');
-                });
+                $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-
-
-
-            
-            // Select all checkboxes
-            $("body").on('click', settings.selectAllSelector, function ()
-            {
-                $('.checkBox').prop('checked', $(this).prop('checked'));
-            });
-
-            $("body").on('click', settings.deleteSelector, function (e) {
-                e.preventDefault();
-
-                var selectedIds = [];
-
-                // Check if was clicked from the edit button
-                if ($(this).data('id')) {
-                    // If the delete button has a 'data-id' from edit,
-                    var editCode = $(this).data('id');
-                    selectedIds.push(editCode); // Add the single ID to the array
-                } else {
-                    // Otherwise, collect all selected checkboxes' IDs for bulk deletion
-                    $('.checkBox:checked').each(function () {
-                        selectedIds.push($(this).val());
-                    });
+            // Save
+            $("body").on("click", settings.saveSelector, function () {
+                if (!validation()) return false;
+                var $valid = $(settings.formSelector).valid();
+                if (!$valid) {
+                    return false;
                 }
 
-                if (selectedIds.length === 0) {
-                    toastr.error('Please select Bank to delete.');
-                    return;
-                }
+                var data;
+                if (settings.haseFile)
+                    data = new FormData($(settings.formSelector)[0]);
+                else
+                    data = $(settings.formSelector).serialize();
 
-                $(settings.deleteModal + ' ' + settings.finalDeleteSelector).data('ids', selectedIds);
-                $(settings.deleteModal).modal('show');
-            });
+                var url = $(settings.formSelector).attr("action");
 
-            $("body").on('click', settings.finalDeleteSelector, function (e) {
-                e.preventDefault();
-                var selectedIds = $(this).data('ids');
-
-                $.ajax({
-                    type: 'POST',
-                    url: deleteURL,
-                    /*contentType: 'application/json',*/
-                    /*data: JSON.stringify(selectedIds),*/
-                    data: { ids: selectedIds },
-                    success: function (result) {
-                        if (result.isSuccess) {
-                            initialize();
-                            toastr.success(result.message);
-                        } else {
-                            toastr.error(result.message);
+                var options = {
+                    url: url,
+                    method: "POST",
+                    data: data,
+                    success: function (response) {
+                        if (response.isSuccess) {
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
+                            if ($modalAncestor.length && window.GcModal) {
+                                GcModal.markSuccess($modalAncestor, response.lastCode);
+                                GcModal.close($modalAncestor);
+                            } else {
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
+                            }
+                            toastr.success(response.message);
                         }
-                        $(settings.deleteModal).modal('hide');
-                    },
-                    error: function (xhr) {
-                        toastr.error('Failed Delete.');
-                        $(settings.deleteModal).modal('hide');
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
                     }
-                });
-            });            
-        });
-       
-
-
-
-        // Initialization function
-        function initialize() {
-
-            GenerateNextCode();
-            loadTableData();
-            ResetForm();
-
-        }
-
-
-
-
-
-        // Load leave types list
-        function loadTableData() {
-            $.ajax({
-                type: 'GET',
-                url: loadTableURL,
-                success: function (data) {
-                    $(settings.gridContainer).html(data);
-                    dataTable();
-
-                },
-                error: function ()
-                {
-                    toastr.error('Failed Load Data.');
+                };
+                if (settings.haseFile) {
+                    options.processData = false;
+                    options.contentType = false;
                 }
+                $.ajax(options);
             });
-        }
 
-        // Data table initialization function
-        function dataTable()
-        {
-            $(settings.gridSelector).DataTable({
-                responsive: true,
-                pageLength: 10,
-                destroy: true,
-                lengthMenu: [10, 25, 50, 100],
+            $("body").on("click", settings.selectAllSelector, function () {
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
-        }
 
-
-
-
-        function GenerateNextCode()
-        {
-            $("#BankId").val('');
-            $.ajax({
-                type: 'GET',
-                url: nextCodeULR,
-                success: function (result)
-                {
-
-                    $('#BankId').val(result);
-                },
-                error: function ()
-                {
-                    toastr.error('Failed Next Code.');
-                }
-            });
-        }
-        //
-
-
-        //
-
-
-        function ResetForm()
-        {
-
-            $(settings.formSelector)[0].reset();
-            $('#Id').val('');
-            $('#BankAutoId').val('');
-            //$('#BankId').val('');
-            $('#BankName').val('').trigger('focus');
-            $('#ShortName').val('');
-            $('#LdateModifyHide').hide();
-            $(settings.saveSelector).html('<i class="fas fa-save"></i> Save');
-            $('.text-danger').text('');
-            $(settings.formSelector).attr('action', testSave);
-            GenerateNextCode();
-
-        }
-
-
-        // Clear form on click
-        $(document).on('click', settings.clearSelector, function () {
-            ResetForm();
-        });
-
-
-
-        // Validation function
-        function validation()
-        {
-
-            var attendanceType = $('#BankName').val();
-
-            if (!attendanceType) {
-                toastr.warning('Enter Bank Name.');
-                $('#EmpTypeName').trigger('focus')
-                return false;
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
             }
 
-            return true;
+            $("body").on("click", settings.deleteSelector, function (e) {
+                e.preventDefault();
+                selectedItems = [];
+                if ($(this).data('id')) {
+                    selectedItems.push($(this).data('id'));
+                } else {
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('bankInformationGridContainer') : [];
+                }
+
+                if (selectedItems.length > 0) {
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
+                } else {
+                    toastr.info("Please select at least one item.");
+                }
+            });
+
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-bankinformation-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
+                        }
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
+                });
+            });
+
+            $("body").on("click", settings.topSelector, function (e) {
+                e.preventDefault();
+                $("html, body").animate({ scrollTop: 0 }, 500);
+            });
+
+            $("body").on("keyup", settings.decimalSelector, function () {
+                var self = $(this);
+                showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
+            });
+
+        });
+
+        function loadTable() {
+            if (window.loadGridPage) {
+                window.loadGridPage('bankInformationGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
 
+        function loadForm(url) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    cache: false,
+                    success: function (data) {
+                        $(settings.formContainer).empty();
+                        $(settings.formContainer).html(data);
+                        $.validator.unobtrusive.parse($(settings.formSelector));
 
+                        resolve(data);
+                    },
+                    error: function (error) {
+                        reject(error);
+                    },
+                });
+            });
+        }
 
-    }
+        function validation() {
+            var dep = $('#BankName').val();
+            if (!dep) {
+                toastr.info('Enter Bank Name');
+                $('#BankName').trigger('focus');
+                return false;
+            }
+            return true;
+        }
+    };
+
 }(jQuery));
-
-
-
-
-
-
-

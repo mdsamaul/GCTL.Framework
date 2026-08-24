@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.Gender.GenderPageViewModel
+@model GCTL.UI.Core.ViewModels.Gender.GenderPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -16,54 +16,47 @@
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Gender Info",
                             SaveBtnClass = "js-Sex-save",
                             DeleteBtnClass = "js-Sex-delete-confirm",
                             ClearBtnClass = "js-Sex-clear"
-                            
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body px-4 py-3">
                         <form asp-action="Setup" method="post" id="Sex-form" asp-controller="Gender">
-
                             <div class="js-Sex-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
-
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-Sex-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.GenderList)
-                        </div>
-                    </div>
+            <!-- Right Table Dynamic Grid Column -->
+            <div class="col-md-6">
+                <div class="js-Sex-grid-container" id="genderGridContainer">
+                    @if (Model.DynamicGrid != null)
+                    {
+                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                    }
                 </div>
             </div>
 
-
         </div>
-
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
@@ -71,12 +64,14 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
     <script src="~/js/pages/gender.js"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Gender")'
         };
         options.load = () => {
+            loadGridPage('genderGridContainer', '/Gender/GetTableData', 1, 10);
         };
 
         $.gender(options);

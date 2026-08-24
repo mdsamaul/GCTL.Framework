@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels;
+using System.Collections.Generic;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.PaymentType;
 
 namespace GCTL.UI.Core.ViewModels.PaymentType
@@ -7,5 +8,6 @@ namespace GCTL.UI.Core.ViewModels.PaymentType
     {
         public PaymentTypeSetupViewModel Setup { get; set; } = new PaymentTypeSetupViewModel();
         public List<PaymentTypeSetupViewModel> PaymentList { get; set; } = new List<PaymentTypeSetupViewModel>();
+        public DynamicGridModel? DynamicGrid { get; set; }
     }
 }

@@ -687,10 +687,27 @@
 
                                 <div class="form-group row">
                                     <div class="col-12">
-                                        <div style="height: 20px;"></div>
-                                        <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle">
-                                            <i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List
-                                        </a>
+                                        <div class="col-6">
+                                            <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle">
+                                                <i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List
+                                            </a>
+                                        </div>
+
+
+                                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                                        {
+                                            Title = "",
+                                            SaveBtnClass = "js-EmployeeContactInfos-save",
+                                            ShowClear = false,
+                                            ShowDelete = false,
+                                            ShowFavorite = false,
+                                            ShowPrint = false,
+                                            IsPlain = true,
+                                            ReserveActionSlot = true,
+                                            IsMarginRight = true
+                                        })
+                                        @* <div style="height: 20px;"></div>
+                                       
                                         <button type="button" class="btn btn-default btn-common js-EmployeeContactInfos-save btn-circle float-right">
                                             <i class="fas fa-save"></i>
                                             @if (ViewBag.IsEditMode != null && (bool)ViewBag.IsEditMode)
@@ -701,7 +718,7 @@
                                             {
                                                 <text>Save</text>
                                             }
-                                        </button>
+                                        </button> *@
                                     </div>
                                 </div>
 

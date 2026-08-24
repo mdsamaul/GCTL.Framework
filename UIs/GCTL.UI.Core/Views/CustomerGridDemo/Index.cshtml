@@ -1,0 +1,56 @@
+@model GCTL.UI.Core.ViewModels.DynamicGridModel
+@{
+    ViewData["Title"] = "Customer Management - Dynamic Grid";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Customer Management</h2>
+            <p class="text-secondary small mb-0">Server-Side Paginated Grid Component with Checkbox Selection and Dynamic Action Links</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary shadow-sm" onclick="getSelectedCustomers()">
+                <i class="bi bi-check2-square me-1"></i> Get Selected IDs
+            </button>
+            <a href="@Url.Action("Index", "ProductGridDemo")" class="btn btn-secondary shadow-sm">
+                View Product Grid (No Checkboxes)
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Output for Selected IDs -->
+    <div id="selectionAlert" class="alert alert-info alert-dismissible fade show d-none" role="alert">
+        <strong id="selectionAlertText"></strong>
+        <button type="button" class="btn-close" onclick="document.getElementById('selectionAlert').classList.add('d-none')"></button>
+    </div>
+
+    <!-- Dynamic Grid Host Container -->
+    @await Html.PartialAsync("_DynamicGrid", Model)
+</div>
+
+@section Scripts {
+    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script>
+        function getSelectedCustomers() {
+            var selectedIds = getSelectedGridIds('customerGridContainer');
+            var alertDiv = document.getElementById('selectionAlert');
+            var alertText = document.getElementById('selectionAlertText');
+
+            if (selectedIds.length === 0) {
+                alertText.innerText = "No rows selected. Please check one or more customer checkboxes.";
+            } else {
+                alertText.innerText = "Selected Customer IDs (" + selectedIds.length + "): " + selectedIds.join(', ');
+            }
+
+            alertDiv.classList.remove('d-none');
+        }
+
+        // Optional custom event listener after grid page AJAX loads
+        document.addEventListener('grid:loaded', function (e) {
+            console.log('Grid reloaded successfully:', e.detail);
+        });
+    </script>
+}

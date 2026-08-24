@@ -97,9 +97,9 @@
                                             LabelText = "Employee Name:",
                                             FieldType = FieldType.ReadonlyDisplay,
                                             ColumnClass = "col-lg-6",
-                                            LabelInline = true,                 // ← এটা
+                                            LabelInline = true,                 
                                             LabelColWidth = 4,
-                                            LabelColumnClass = "text-end",      // ← এটা
+                                            LabelColumnClass = "text-end",      
                                             LabelCssClass = "form-label mb-0 fw-semibold",
                                             DefaultValue = Model.EmployeeName
                                         })
@@ -114,7 +114,7 @@
                                             LabelText = "Designation:",
                                             FieldType = FieldType.ReadonlyDisplay,
                                             ColumnClass = "col-lg-6",
-                                            LabelInline = true,                 // ← এটা
+                                            LabelInline = true,              
                                             LabelColWidth = 4,
                                             LabelColumnClass = "text-end",
                                             LabelCssClass = "form-label mb-0 fw-semibold",
@@ -127,7 +127,7 @@
                                             LabelText = "Department:",
                                             FieldType = FieldType.ReadonlyDisplay,
                                             ColumnClass = "col-lg-6",
-                                            LabelInline = true,                 // ← এটা
+                                            LabelInline = true,               
                                             LabelColWidth = 4,
                                             LabelColumnClass = "text-end",
                                             LabelCssClass = "form-label mb-0 fw-semibold",
@@ -632,11 +632,27 @@
                                 }
 
                                 <div class="form-group row mt-2">
-                                    <div class="col-12">
-                                        <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle">
-                                            <i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List
-                                        </a>
-                                        <button type="button" class="btn btn-default btn-common js-officialInfo-save btn-circle float-right">
+                                    <div class="col-12 d-flex">
+                                       <div class="col-6">
+                                            <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle">
+                                                <i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List
+                                            </a>
+                                       </div>
+                                      
+
+                                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                                        {
+                                            Title = "",
+                                            SaveBtnClass = "js-officialInfo-save",
+                                            ShowClear = false,
+                                            ShowDelete = false,
+                                            ShowFavorite = false,
+                                            ShowPrint = false,
+                                            IsPlain = true,
+                                            ReserveActionSlot = true,
+                                            IsMarginRight=true
+                                        })
+                                        @* <button type="button" class="btn btn-default btn-common js-officialInfo-save btn-circle float-right">
                                             <i class="fas fa-save"></i>
                                             @if (ViewBag.IsEditMode != null && (bool)ViewBag.IsEditMode)
                                             {
@@ -646,7 +662,7 @@
                                             {
                                                 <text>Save</text>
                                             }
-                                        </button>
+                                        </button> *@
                                     </div>
                                 </div>
 

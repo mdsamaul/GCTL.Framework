@@ -1,14 +1,10 @@
-﻿using AutoMapper;
 using ClosedXML.Excel;
 using GCTL.Core.Helpers;
-using GCTL.Core.ViewModels.Companies;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Designations;
-using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.Designations;
 using GCTL.UI.Core.Helpers;
-using GCTL.UI.Core.ViewModels.Companies;
 using GCTL.UI.Core.ViewModels.Designations;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
@@ -18,199 +14,387 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.UI.Core.Controllers
 {
     public class DesignationsController : BaseController
     {
+        #region Ser & Repo
         private readonly IDesignationService designationService;
         private readonly ICommonService commonService;
-        private readonly IMapper mapper;
-        string strMaxNO = "";
+
+        string strMaxNO = string.Empty;
         public DesignationsController(
-            IDesignationService designationService,
             ICommonService commonService,
-            IMapper mapper
+            IDesignationService designationService
         )
         {
             this.designationService = designationService;
             this.commonService = commonService;
-            this.mapper = mapper;
         }
 
-        //public IActionResult Index(bool child = false)
-        //{
-        //    DesignationPageViewModel model = new DesignationPageViewModel()
-        //    {
-        //        PageUrl = Url.Action(nameof(Index))
-        //    };
-        //    commonService.FindMaxNo(ref strMaxNO, "DesignationCode", "HRM_Def_Designation", 3);
-        //    model.Setup = new DesignationSetupViewModel
-        //    {
-        //        DesignationCode = strMaxNO
-        //    };
+        #endregion
 
-        //    if (child)
-        //        return PartialView(model);
+        #region Index
 
-        //    return View(model);
-        //}
-
-        public IActionResult Index()
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            DesignationPageViewModel model = new DesignationPageViewModel()
+            var hasPermission = await designationService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var model = new DesignationPageViewModel
             {
                 PageUrl = Url.Action(nameof(Index))
             };
-            commonService.FindMaxNo(ref strMaxNO, "DesignationCode", "HRM_Def_Designation", 3);
-            model.Setup = new DesignationSetupViewModel
-            {
-                DesignationCode = strMaxNO,
-            };
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            try
             {
-                return PartialView(model);
+                var list = await designationService.GetAllAsync() ?? new List<DesignationSetupViewModel>();
+                model.DesignationList = list;
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.DesignationCode != null && x.DesignationCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DesignationName != null && x.DesignationName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DesignationShortName != null && x.DesignationShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BanglaDesignation != null && x.BanglaDesignation.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Designation Name", "Short Name", "Designation (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "DesignationCode", item.DesignationCode },
+                        { "Designation Name", item.DesignationName },
+                        { "Short Name", item.DesignationShortName },
+                        { "Designation (বাংলা)", item.BanglaDesignation }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Designations") ?? "/Designations/GetTableData",
+                    primaryKey: "DesignationCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Designations/Setup/{id}",
+                    gridId: "designationGridContainer",
+                    editClass: "js-designation-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "DesignationCode", "center" },
+                        { "Designation Name", "left" },
+                        { "Short Name", "center" },
+                        { "Designation (বাংলা)", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Designation Name", "auto" },
+                        { "Short Name", "120px" },
+                        { "Designation (বাংলা)", "auto" }
+                    }
+                );
+
+                commonService.FindMaxNo(ref strMaxNO, "DesignationCode", "HRM_Def_Designation", 3);
+                model.Setup = new DesignationSetupViewModel
+                {
+                    DesignationCode = strMaxNO
+                };
             }
+            catch (Exception ex)
+            {
+                model.DesignationList = new List<DesignationSetupViewModel>();
+                model.Setup = new DesignationSetupViewModel();
+                Console.WriteLine("Error" + ex.Message);
+            }
+
+            if (child)
+                return PartialView(model);
 
             return View(model);
         }
 
-        public IActionResult Setup(string id)
+        #endregion
+
+        #region Setup
+
+        public async Task<IActionResult> Setup(string id)
         {
             DesignationSetupViewModel model = new DesignationSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "DesignationCode", "HRM_Def_Designation", 3);
-            var result = designationService.GetDesignation(id);
-            if (result != null)
+
+            if (!string.IsNullOrEmpty(id))
             {
-                model = mapper.Map<DesignationSetupViewModel>(result);
-                model.Code = id;
-                model.Id = (int)result.AutoId;
+                model = await designationService.GetByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
             }
             else
             {
                 model.DesignationCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await designationService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new DesignationPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await designationService.GetAllAsync() ?? new List<DesignationSetupViewModel>();
+                indexModel.DesignationList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(10).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 10,
+                    headers: new List<string> { "Code", "Designation Name", "Short Name", "Designation (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "DesignationCode", item.DesignationCode },
+                        { "Designation Name", item.DesignationName },
+                        { "Short Name", item.DesignationShortName },
+                        { "Designation (বাংলা)", item.BanglaDesignation }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Designations") ?? "/Designations/GetTableData",
+                    primaryKey: "DesignationCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Designations/Setup/{id}",
+                    gridId: "designationGridContainer",
+                    editClass: "js-designation-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "DesignationCode", "center" },
+                        { "Designation Name", "left" },
+                        { "Short Name", "center" },
+                        { "Designation (বাংলা)", "left" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Designation Name", "auto" },
+                        { "Short Name", "120px" },
+                        { "Designation (বাংলা)", "auto" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.DesignationList = new List<DesignationSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
+
+        #endregion
+
+        #region Post Update 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Setup(DesignationSetupViewModel model)
+        public async Task<IActionResult> Setup(DesignationSetupViewModel modelVM)
         {
-            if (designationService.IsDesignationExist(model.DesignationName, model.DesignationCode))
+            try
             {
-                return Json(new { isSuccess = false, message = "Already Exists" });
-            }
-
-            if (ModelState.IsValid)
-            {
-                if (designationService.IsDesignationExistByCode(model.DesignationCode))
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
-                    var hasPermission = designationService.UpdatePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    if (await designationService.IsExistAsync(modelVM.DesignationName, modelVM.DesignationCode))
                     {
-                        HrmDefDesignation designation = designationService.GetDesignation(model.DesignationCode) ?? new HrmDefDesignation();
-                        model.ToAudit(LoginInfo, model.AutoId > 0);
-                        mapper.Map(model, designation);
-                        model.BanglaShortName = string.Empty;
-                        model.BanglaDesignation = string.Empty;
-                        model.CompanyCode = string.Empty;
-                        model.EmployeeId = string.Empty;
-                        model.MobileAllowanceId = string.Empty;
-                        designationService.SaveDesignation(designation);
-                        return Json(new { isSuccess = true, message = "Update Successfully", lastCode = designation.DesignationCode });
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
+                {
+                    var hasSavePermission = await designationService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (hasSavePermission)
+                    {
+                        await designationService.SaveAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.DesignationCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
                     }
-
                 }
                 else
                 {
-                    var hasPermission = designationService.SavePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    var hasUpdatePermission = await designationService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (hasUpdatePermission)
                     {
-                        HrmDefDesignation designation = designationService.GetDesignation(model.DesignationCode) ?? new HrmDefDesignation();
-                        model.ToAudit(LoginInfo, model.Id > 0);
-                        mapper.Map(model, designation);
-                        model.BanglaShortName = string.Empty;
-                        model.BanglaDesignation = string.Empty;
-                        model.CompanyCode = string.Empty;
-                        model.EmployeeId = string.Empty;
-                        model.MobileAllowanceId = string.Empty;
-                        designationService.SaveDesignation(designation);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = designation.DesignationCode });
+                        await designationService.UpdateAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.DesignationCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error:{ex.Message}");
+                return RedirectToAction("Login", "Accounts");
+            }
+        }
 
+        #endregion
 
+        #region CheckAvailability
+        [HttpPost]
+        public async Task<JsonResult> CheckAvailability(string name, string code)
+        {
+            if (await designationService.IsExistAsync(name, code))
+            {
+                return Json(new { isSuccess = true, message = $"Already Exists!" });
             }
 
-            return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
+            return Json(new { isSuccess = false });
         }
+        #endregion
 
-        public ActionResult Grid()
-        {
-            var resutl = designationService.GetDesignations();
-            return Json(new { data = resutl });
-        }
+        #region Delete
 
         [HttpPost]
-        public async Task<ActionResult> Delete(string id)
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
         {
-            var hasPermission = designationService.DeletePermission(LoginInfo.AccessCode);
+            if (ids == null || ids.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "No IDs provided for delete." });
+            }
+
+            var hasPermission = await designationService.DeletePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
             {
-                return Json(new { success = false, message = "You have no access" });
+                return Json(new { success = false, message = "You have no access." });
             }
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return Json(new { success = false, message = "No IDs provided" });
-            }
-
-            var results = new List<(bool success, bool refSuccess, string message)>();
-            var ids = id.Split(",", StringSplitOptions.RemoveEmptyEntries)
-                 .Select(x => x.Trim())
-                 .ToList();
 
             DeleteHistoryViewModel model = new DeleteHistoryViewModel();
             model.ToAudit(LoginInfo);
             model.CompanyCode = LoginInfo.CompanyCode;
 
-            var result = await designationService.DeleteDesignationAsync(ids, model);
-
-            results.Add(result);
-
-            // Aggregate outcome
-            bool overallSuccess = results.All(r => r.success);
-            bool refSuccess = results.All(r => r.refSuccess);
-            string combinedMessage = overallSuccess
-                ? "Deleted Successfully"
-                : string.Join("; ", results.Where(r => !r.success).Select(r => r.message));
-
-            return Json(new { success = overallSuccess, message = combinedMessage, refSuccess = refSuccess });
-        }
-
-        [HttpPost]
-        public JsonResult CheckAvailability(string name, string code)
-        {
-            if (designationService.IsDesignationExist(name, code))
+            var success = await designationService.DeleteTab(ids, model);
+            if (success.succses)
             {
-                return Json(new { isSuccess = true, message = "Already Exists" });
+                return Json(new { success = true, message = "Deleted Successfully." });
             }
-
-            return Json(new { isSuccess = false });
+            else
+            {
+                return Json(new { success = false, message = success.messege });
+            }
         }
+
+        #endregion
+
+        #region Table Loading (Dynamic Grid)
+
+        [HttpGet]
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        {
+            try
+            {
+                var list = await designationService.GetAllAsync() ?? new List<DesignationSetupViewModel>();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.DesignationCode != null && x.DesignationCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DesignationName != null && x.DesignationName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.DesignationShortName != null && x.DesignationShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BanglaDesignation != null && x.BanglaDesignation.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                var gridModel = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Designation Name", "Short Name", "Designation (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "DesignationCode", item.DesignationCode },
+                        { "Designation Name", item.DesignationName },
+                        { "Short Name", item.DesignationShortName },
+                        { "Designation (বাংলা)", item.BanglaDesignation }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Designations") ?? "/Designations/GetTableData",
+                    primaryKey: "DesignationCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Designations/Setup/{id}",
+                    gridId: "designationGridContainer",
+                    editClass: "js-designation-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "DesignationCode", "center" },
+                        { "Designation Name", "left" },
+                        { "Short Name", "center" },
+                        { "Designation (বাংলা)", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Designation Name", "auto" },
+                        { "Short Name", "120px" },
+                        { "Designation (বাংলা)", "auto" }
+                    }
+                );
+
+                return PartialView("_DynamicGrid", gridModel);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        #endregion
 
         #region Xls
         public async Task<IActionResult> ExportToExcel()

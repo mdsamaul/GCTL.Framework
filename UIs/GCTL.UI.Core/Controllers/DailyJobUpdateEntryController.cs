@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Update;
 using GCTL.Data.Models;
 using GCTL.Service.DailyJobUpdateEntry;
@@ -56,7 +56,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Index
         [ModulePermission]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
 
             DailyJobUpdateEntrySetupViewModel model = new DailyJobUpdateEntrySetupViewModel()
@@ -83,10 +83,105 @@ namespace GCTL.UI.Core.Controllers
             ViewBag.ContactP = new SelectList(_contactPersionRepository.All().Select(e => new { id = e.Cpid, name = e.ContactPersonName }), "id", "name");
             ViewBag.shipStatus = new SelectList(shipmentStatusRepo.All().Select(e => new { id = e.ShipmentStatusId, name = e.ShipmentStatus }), "id", "name");
 
+            // Server-side initial grid render
+            var jobResult = await _jobService.GetJobsPagedAsync(1, 5, null, null, null, null, null);
+
+            var columnAlignments = new Dictionary<string, string>
+            {
+                { "JobNo", "center" },
+                { "Shipment Mode", "center" },
+                { "Job Date", "center" },
+                { "Customer Name", "left" },
+                { "Doc Received Date", "center" }
+            };
+
+            var columnWidths = new Dictionary<string, string>
+            {
+                { "SelectAll", "50px" },
+                { "JobNo", "1%" },
+                { "Shipment Mode", "140px" },
+                { "Job Date", "110px" },
+                { "Customer Name", "auto" },
+                { "Doc Received Date", "140px" }
+            };
+
+            model.DynamicGrid = GridBuilder.BuildGrid(
+                data: jobResult.Data,
+                totalRecords: jobResult.TotalRecords,
+                currentPage: 1,
+                pageSize: 5,
+                headers: new List<string> { "JobNo", "Shipment Mode", "Job Date", "Customer Name", "Doc Received Date" },
+                rowMapper: item => new Dictionary<string, object?>
+                {
+                    { "JobNo", item.JobNo },
+                    { "Shipment Mode", item.ShipmentMode },
+                    { "Job Date", item.JobDateFormatted ?? item.JobDateText },
+                    { "Customer Name", item.CustomerName },
+                    { "Doc Received Date", item.DocReceivedDateFormatted ?? item.DocReceivedDateText }
+                },
+                ajaxUrl: Url.Action("GetJobsGrid", "DailyJobUpdateEntry") ?? "/DailyJobUpdateEntry/GetJobsGrid",
+                primaryKey: "JobNo",
+                hasCheckbox: true,
+                actionUrlPattern: "/DailyJobUpdateEntry/GetJobDetail/{id}",
+                gridId: "dailyJobGridContainer",
+                columnAlignments: columnAlignments,
+                columnWidths: columnWidths
+            );
+
             return View(model);
         }
 
         #endregion
+
+        [HttpGet]
+        public async Task<IActionResult> GetJobsGrid(int page = 1, int pageSize = 5, string? searchTerm = null, string? customerId = null, string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null)
+        {
+            var result = await _jobService.GetJobsPagedAsync(page, pageSize, customerId, shipmentMode, dateFrom, dateTo, searchTerm);
+
+            var columnAlignments = new Dictionary<string, string>
+            {
+                { "JobNo", "center" },
+                { "Shipment Mode", "center" },
+                { "Job Date", "center" },
+                { "Customer Name", "left" },
+                { "Doc Received Date", "center" }
+            };
+
+            var columnWidths = new Dictionary<string, string>
+            {
+                { "SelectAll", "50px" },
+                { "JobNo", "1%" },
+                { "Shipment Mode", "140px" },
+                { "Job Date", "110px" },
+                { "Customer Name", "auto" },
+                { "Doc Received Date", "140px" }
+            };
+
+            var gridModel = GridBuilder.BuildGrid(
+                data: result.Data,
+                totalRecords: result.TotalRecords,
+                currentPage: page,
+                pageSize: pageSize,
+                headers: new List<string> { "JobNo", "Shipment Mode", "Job Date", "Customer Name", "Doc Received Date" },
+                rowMapper: item => new Dictionary<string, object?>
+                {
+                    { "JobNo", item.JobNo },
+                    { "Shipment Mode", item.ShipmentMode },
+                    { "Job Date", item.JobDateFormatted ?? item.JobDateText },
+                    { "Customer Name", item.CustomerName },
+                    { "Doc Received Date", item.DocReceivedDateFormatted ?? item.DocReceivedDateText }
+                },
+                ajaxUrl: Url.Action("GetJobsGrid", "DailyJobUpdateEntry") ?? "/DailyJobUpdateEntry/GetJobsGrid",
+                primaryKey: "JobNo",
+                hasCheckbox: true,
+                actionUrlPattern: "/DailyJobUpdateEntry/GetJobDetail/{id}",
+                gridId: "dailyJobGridContainer",
+                columnAlignments: columnAlignments,
+                columnWidths: columnWidths
+            );
+
+            return PartialView("_DynamicGrid", gridModel);
+        }
 
         [HttpGet]
         [ModulePermission]

@@ -1,11 +1,9 @@
-﻿using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
@@ -17,23 +15,26 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
         Task<bool> SaveAsyncSalesCustomer(SalesCustomerViewModel model);
         Task<bool> UpdateAsyncSalesCustomer(SalesCustomerViewModel model);
         Task<bool> DeleteAsyncSalesCustomer(string customerId);
+        Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model);
         Task<bool> IsExistAsync(string customerId);
         Task<PaginationService<SalesCustomer, SalesCustomerViewModel>.PaginationResult<SalesCustomerViewModel>> GetPaginatedSalesCustomer(int pageNumber = 1, int pageSize = 5, string searchTerm = "",
         string sortColumn = "FullName", string sortOrder = "asc");
         Task<string> GenerateCustomerIdAsync();
         Task<bool> BulkDeleteAsync(List<string> customerIds);
-        Task<List<CoreCompany>> GetCountryDropdownAsync();
+        Task<List<CoreCountry>> GetCountryDropdownAsync();
 
         Task<IEnumerable<CommonSelectModel>> SelectionCustomerAsync();
+
+        Task<bool> PagePermissionAsync(string accessCode);
+        Task<bool> SavePermissionAsync(string accessCode);
+        Task<bool> UpdatePermissionAsync(string accessCode);
+        Task<bool> DeletePermissionAsync(string accessCode);
 
         #region CustomerReport
 
         Task<List<CustomerReportVM>> GetCustomerReportAsync();
 
         Task<List<CustomerDeliveryReportVM>> GetCustomerDeliveryReportAsync();
-
-        //Task<byte[]> GenerateCustomerExcelReportAsync();
-        //Task<byte[]> GenerateCustomerPdfReportAsync();
 
         #endregion
     }
