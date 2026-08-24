@@ -1,12 +1,15 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Nationalitys;
 using GCTL.Service.Common;
 using GCTL.Service.Nationalitys;
-using GCTL.Service.SupplierType;
 using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.Nationalitys;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.UI.Core.Controllers
 {
@@ -18,8 +21,9 @@ namespace GCTL.UI.Core.Controllers
         string strMaxNO = string.Empty;
 
         public NationalitysController(
-            INationalitysService nationalitysService, ICommonService commonService
-            )
+            INationalitysService nationalitysService,
+            ICommonService commonService
+        )
         {
             this.nationalitysService = nationalitysService;
             this.commonService = commonService;
@@ -29,7 +33,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Index
 
-        public async Task<IActionResult> Index(bool child = false)
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
             var hasPermission = await nationalitysService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -44,25 +48,62 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
+                var list = await nationalitysService.GetAllAsync() ?? new List<NationalitysSetupViewModel>();
+                model.NationalitysList = list;
 
-                var list = await nationalitysService.GetAllAsync();
-                model.NationalitysList = list ?? new List<NationalitysSetupViewModel>();
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.NationalityCode != null && x.NationalityCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.Nationality != null && x.Nationality.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Nationality" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "NationalityCode", item.NationalityCode },
+                        { "Nationality", item.Nationality }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Nationalitys") ?? "/Nationalitys/GetTableData",
+                    primaryKey: "NationalityCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Nationalitys/Setup/{id}",
+                    gridId: "nationalityGridContainer",
+                    editClass: "js-nationality-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "NationalityCode", "center" },
+                        { "Nationality", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Nationality", "auto" }
+                    }
+                );
 
                 commonService.FindMaxNo(ref strMaxNO, "NationalityCode", "HRM_Def_Nationality", 2);
                 model.Setup = new NationalitysSetupViewModel
                 {
                     NationalityCode = strMaxNO
                 };
-
             }
             catch (Exception ex)
             {
-
                 model.NationalitysList = new List<NationalitysSetupViewModel>();
                 model.Setup = new NationalitysSetupViewModel();
                 Console.WriteLine("Error" + ex.Message);
             }
-
 
             if (child)
                 return PartialView(model);
@@ -81,21 +122,80 @@ namespace GCTL.UI.Core.Controllers
 
             if (!string.IsNullOrEmpty(id))
             {
-
                 model = await nationalitysService.GetByIdAsync(id);
                 if (model == null)
                 {
-
                     return NotFound();
                 }
             }
             else
             {
-
                 model.NationalityCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await nationalitysService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new NationalitysPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await nationalitysService.GetAllAsync() ?? new List<NationalitysSetupViewModel>();
+                indexModel.NationalitysList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(10).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 10,
+                    headers: new List<string> { "Code", "Nationality" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "NationalityCode", item.NationalityCode },
+                        { "Nationality", item.Nationality }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Nationalitys") ?? "/Nationalitys/GetTableData",
+                    primaryKey: "NationalityCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Nationalitys/Setup/{id}",
+                    gridId: "nationalityGridContainer",
+                    editClass: "js-nationality-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "NationalityCode", "center" },
+                        { "Nationality", "left" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Nationality", "auto" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.NationalitysList = new List<NationalitysSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
 
         #endregion
@@ -104,26 +204,25 @@ namespace GCTL.UI.Core.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Setup(NationalitysSetupViewModel modelVM)
         {
             try
             {
-
-                if (await nationalitysService.IsExistAsync(modelVM.Nationality, modelVM.NationalityCode))
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    if (await nationalitysService.IsExistAsync(modelVM.Nationality, modelVM.NationalityCode))
+                    {
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
                 }
-
 
                 if (!ModelState.IsValid)
                 {
-
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }
 
-                modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
+                modelVM.ToAudit(LoginInfo, (modelVM.AutoId > 0 || modelVM.Tc > 0));
                 if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
                     var hasSavePermission = await nationalitysService.SavePermissionAsync(LoginInfo.AccessCode);
@@ -131,7 +230,6 @@ namespace GCTL.UI.Core.Controllers
                     {
                         await nationalitysService.SaveAsync(modelVM);
                         return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.NationalityCode });
-
                     }
                     else
                     {
@@ -140,7 +238,6 @@ namespace GCTL.UI.Core.Controllers
                 }
                 else
                 {
-
                     var hasUpdatePermission = await nationalitysService.UpdatePermissionAsync(LoginInfo.AccessCode);
                     if (hasUpdatePermission)
                     {
@@ -157,7 +254,6 @@ namespace GCTL.UI.Core.Controllers
             {
                 Console.WriteLine($"Error:{ex.Message}");
                 return RedirectToAction("Login", "Accounts");
-
             }
         }
 
@@ -169,9 +265,7 @@ namespace GCTL.UI.Core.Controllers
         {
             if (await nationalitysService.IsExistAsync(name, code))
             {
-
                 return Json(new { isSuccess = true, message = $"Already Exists!" });
-
             }
 
             return Json(new { isSuccess = false });
@@ -211,15 +305,57 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region TabeleLodaing
+        #region Table Loading (Dynamic Grid)
 
         [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
         {
             try
             {
-                var list = await nationalitysService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await nationalitysService.GetAllAsync() ?? new List<NationalitysSetupViewModel>();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.NationalityCode != null && x.NationalityCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.Nationality != null && x.Nationality.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                var gridModel = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Nationality" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "NationalityCode", item.NationalityCode },
+                        { "Nationality", item.Nationality }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Nationalitys") ?? "/Nationalitys/GetTableData",
+                    primaryKey: "NationalityCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Nationalitys/Setup/{id}",
+                    gridId: "nationalityGridContainer",
+                    editClass: "js-nationality-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "NationalityCode", "center" },
+                        { "Nationality", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Nationality", "auto" }
+                    }
+                );
+
+                return PartialView("_DynamicGrid", gridModel);
             }
             catch (Exception ex)
             {
@@ -228,6 +364,5 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
-
     }
 }

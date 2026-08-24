@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Gender;
 using GCTL.Service.Common;
@@ -29,7 +29,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Index
 
-        public async Task<IActionResult> Index(bool child = false)
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 5, string? searchTerm = null)
         {
             var hasPermission = await genderService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -44,8 +44,48 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
-                var list = await genderService.GetAllAsync();
-                model.GenderList = list ?? new List<GenderSetupViewModel>();
+                var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
+                model.GenderList = list;
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.SexCode != null && x.SexCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.Sex != null && x.Sex.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Sex Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "SexCode", item.SexCode },
+                        { "Sex Name", item.Sex }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Gender") ?? "/Gender/GetTableData",
+                    primaryKey: "SexCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Gender/Setup/{id}",
+                    gridId: "genderGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "SexCode", "center" },
+                        { "Sex Name", "center" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Sex Name", "auto" }
+                    }
+                );
 
                 commonService.FindMaxNo(ref strMaxNO, "SexCode", "HRM_Def_Sex", 1);
                 model.Setup = new GenderSetupViewModel
@@ -55,7 +95,6 @@ namespace GCTL.UI.Core.Controllers
             }
             catch (Exception ex)
             {
-
                 model.GenderList = new List<GenderSetupViewModel>();
                 model.Setup = new GenderSetupViewModel();
                 Console.WriteLine("Error" + ex.Message);
@@ -90,7 +129,68 @@ namespace GCTL.UI.Core.Controllers
                 model.SexCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await genderService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new GenderPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
+                indexModel.GenderList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(5).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 5,
+                    headers: new List<string> { "Code", "Sex Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "SexCode", item.SexCode },
+                        { "Sex Name", item.Sex }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Gender") ?? "/Gender/GetTableData",
+                    primaryKey: "SexCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Gender/Setup/{id}",
+                    gridId: "genderGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "SexCode", "center" },
+                        { "Sex Name", "center" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Sex Name", "auto" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.GenderList = new List<GenderSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
 
         #endregion
@@ -104,9 +204,12 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (await genderService.IsExistAsync(modelVM.Sex, modelVM.SexCode))
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    if (await genderService.IsExistAsync(modelVM.Sex, modelVM.SexCode))
+                    {
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
                 }
 
                 if (!ModelState.IsValid)
@@ -204,15 +307,56 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region TabeleLodaing
+        #region Table Loading (Dynamic Grid)
 
         [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 5, string? searchTerm = null)
         {
             try
             {
-                var list = await genderService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.SexCode != null && x.SexCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.Sex != null && x.Sex.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                var gridModel = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Sex Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "SexCode", item.SexCode },
+                        { "Sex Name", item.Sex }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Gender") ?? "/Gender/GetTableData",
+                    primaryKey: "SexCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Gender/Setup/{id}",
+                    gridId: "genderGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "SexCode", "center" },
+                        { "Sex Name", "center" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Sex Name", "auto" }
+                    }
+                );
+
+                return PartialView("_DynamicGrid", gridModel);
             }
             catch (Exception ex)
             {

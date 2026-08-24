@@ -1,7 +1,7 @@
-﻿@model GCTL.Core.ViewModels.SalesDefBankBranchInfos.SalesDefBankBranchInfoSetupViewModel
+@model GCTL.Core.ViewModels.SalesDefBankBranchInfos.SalesDefBankBranchInfoSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
-<div style="padding-top: 10px;padding-left:15px;">
+<div style="padding-top: 10px;">
     <div class="row">
         <div class="col-lg-6">
             <span id="message"></span>
@@ -14,41 +14,40 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Tc" />
+        <input type="hidden" asp-for="AutoId" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <input type="hidden" id="BankBranchAutoId" asp-for="AutoId" />
 
         @* ---------- Branch ID (readonly) ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "BankBranchId",
-            LabelText = "Branch ID",
+            LabelText = "Branch Id",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
-            CustomCssClass = "js-BankBranchId-code",
+            CustomCssClass = "js-bankbranchinformation-code",
             DefaultValue = Model?.BankBranchId
         })
 
         @* ---------- Bank Name (Select) ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
-
-             InputId = "BankId",
+            InputId = "BankId",
             LabelText = "Bank Name",
             FieldType = FieldType.Select,
             Placeholder = "-- Select Bank --",
             SelectItems = ViewBag.BankDD as SelectList,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             IsRequired = true,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-lg-6",
+            DefaultValue = Model?.BankId
         })
     </div>
 
     <div class="form-group row">
-
         @* ---------- Branch Name ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -58,7 +57,9 @@
             Placeholder = "Enter Branch Name",
             IsRequired = true,
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.BankBranchName,
+            ReserveActionSlot = false,
+            CustomCssClass = "js-bankbranchinformation-check-availability",
+            DefaultValue = Model?.BankBranchName,
             AutoFocus = true
         })
 
@@ -68,14 +69,14 @@
             InputId = "ShortName",
             LabelText = "Short Name",
             FieldType = FieldType.Text,
-            Placeholder = "Enter  Short Name",
+            Placeholder = "Enter Short Name",
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.ShortName
+            ReserveActionSlot = false,
+            DefaultValue = Model?.ShortName
         })
     </div>
 
     <div class="form-group row">
-
         @* ---------- Branch Address ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -84,7 +85,8 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Branch Address",
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.Address
+            ReserveActionSlot = false,
+            DefaultValue = Model?.Address
         })
 
         @* ---------- Swift Code ---------- *@
@@ -93,14 +95,14 @@
             InputId = "Swiftcode",
             LabelText = "Swift Code",
             FieldType = FieldType.Text,
-            Placeholder = "Enter  SWIFT Code",
+            Placeholder = "Enter Swift Code",
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.Swiftcode
+            ReserveActionSlot = false,
+            DefaultValue = Model?.Swiftcode
         })
     </div>
 
     <div class="form-group row">
-
         @* ---------- Phone ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -109,11 +111,12 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone Number",
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.Phone
+            ReserveActionSlot = false,
+            DefaultValue = Model?.Phone
         })
     </div>
 
-    @if (Model.AutoId > 0)
+    @if (Model != null && (Model.AutoId > 0 || Model.Tc > 0))
     {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
@@ -140,7 +143,6 @@
 
         </div>
     }
-
 </div>
 
 <div class="row no-print" style="margin-top: 9px;">
@@ -153,9 +155,8 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "js-BankBranchInformations-save",
+            SaveBtnClass = "js-bankbranchinformation-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
         })
     </div>
 </div>

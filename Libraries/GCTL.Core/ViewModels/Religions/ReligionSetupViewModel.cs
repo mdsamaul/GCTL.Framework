@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace GCTL.Core.ViewModels.Religions
 {
     public class ReligionSetupViewModel : BaseViewModel
     {
+        public decimal? AutoId { get; set; }
         public string? ReligionCode { get; set; }
 
         [Required(ErrorMessage = "{0} is required.")]

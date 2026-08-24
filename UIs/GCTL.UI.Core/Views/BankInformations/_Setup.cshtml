@@ -1,7 +1,7 @@
-﻿@model GCTL.Core.ViewModels.BankInformations.BankInformationsSetupViewModel
+@model GCTL.Core.ViewModels.BankInformations.BankInformationsSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
-<div style="padding-top: 10px;padding-left:15px;">
+<div style="padding-top: 10px;">
     <div class="row">
         <div class="col-lg-6">
             <span id="message"></span>
@@ -14,21 +14,21 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Tc" />
+        <input type="hidden" asp-for="AutoId" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <input type="hidden" id="BankAutoId" asp-for="AutoId" />
 
         @* ---------- Bank ID (readonly) ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "BankId",
-            LabelText = "ID",
+            LabelText = "Bank Id",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
-            CustomCssClass = "js-BankId-code",
+            CustomCssClass = "js-bankinformation-code",
             DefaultValue = Model?.BankId
         })
 
@@ -41,26 +41,28 @@
             Placeholder = "Enter Bank Name",
             IsRequired = true,
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.BankName,
+            ReserveActionSlot = false,
+            CustomCssClass = "js-bankinformation-check-availability",
+            DefaultValue = Model?.BankName,
             AutoFocus = true
         })
     </div>
 
     <div class="form-group row">
-
         @* ---------- Short Name ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ShortName",
             LabelText = "Short Name",
             FieldType = FieldType.Text,
-            Placeholder = "Enter  Short Name",
+            Placeholder = "Enter Short Name",
             ColumnClass = "col-lg-6",
-            DefaultValue = Model.ShortName
+            ReserveActionSlot = false,
+            DefaultValue = Model?.ShortName
         })
     </div>
 
-    @if (Model.AutoId > 0)
+    @if (Model != null && (Model.AutoId > 0 || Model.Tc > 0))
     {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
@@ -87,7 +89,6 @@
 
         </div>
     }
-
 </div>
 
 <div class="row no-print" style="margin-top: 9px;">
@@ -100,9 +101,8 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "js-BankInformations-save",
+            SaveBtnClass = "js-bankinformation-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
         })
     </div>
 </div>

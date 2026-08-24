@@ -1,18 +1,19 @@
-﻿<div class="modal fade" id="District-delete-modal" tabindex="-1" aria-labelledby="District-delete-modalLabel" aria-hidden="true" style="z-index:99999!important">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">District Confirmation</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+<div class="modal fade" id="District-delete-modal" tabindex="-1" aria-labelledby="districtDeleteModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index:99999!important">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4 position-relative">
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 20px; top: 20px;"></button>
             </div>
-            <div class="modal-body">
-                <p class="title">Are you sure you want to delete these items? </p>
+            <div class="modal-body text-center px-4 pt-1 pb-4">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background-color: #fee2e2; color: #dc2626;">
+                    <i class="fas fa-trash-alt fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Delete Confirmation</h5>
+                <p class="title text-secondary mb-0" style="font-size: 0.95rem;">Are you sure you want to delete these item(s)? This process cannot be undone.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-circle" data-dismiss="modal">No</button>
-                <button type="button" class="btn btn-danger btn-circle js-District-delete">Yes</button>
+            <div class="modal-footer border-0 justify-content-center pt-0 pb-4 px-4">
+                <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold me-2" data-bs-dismiss="modal" data-dismiss="modal" style="border-radius: 10px; min-width: 100px;">No, Cancel</button>
+                <button type="button" class="btn btn-danger px-4 py-2 fw-semibold js-District-delete js-delete js-gc-delete-confirm" style="border-radius: 10px; min-width: 100px; background-color: #dc2626; border: none;">Yes, Delete</button>
             </div>
         </div>
     </div>

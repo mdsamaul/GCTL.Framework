@@ -1,0 +1,491 @@
+/* ==========================================================================
+   DYNAMIC GRID GLOBAL RESPONSIVE DESIGN SYSTEM (STANDARDIZED METRICS)
+   Consistent typography, predictable input heights, and uniform padding
+   across all screen resolutions (1300px-1400px laptops, 4K monitors, & mobile).
+   ========================================================================== */
+
+:root {
+    /* Standardized Typography Tokens */
+    --ratio-font-header: 0.8125rem; /* 13px */
+    --ratio-font-body: 0.875rem;   /* 14px */
+    --ratio-font-label: 0.8125rem;  /* 13px */
+    --ratio-font-input: 0.875rem;   /* 14px */
+
+    /* Standardized Spacing & Padding Tokens */
+    --ratio-card-padding-x: 1rem;     /* 16px */
+    --ratio-header-padding-y: 0.625rem;/* 10px */
+    --ratio-cell-padding-y: 0.45rem;   /* 7px */
+    --ratio-cell-padding-x: 0.85rem;   /* 13px */
+    --ratio-form-gap: 0.75rem;        /* 12px */
+}
+
+/* Card Container Styling */
+.dynamic-grid-card {
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Card Header Uniform Padding Rules */
+.dynamic-grid-header {
+    padding-top: var(--ratio-header-padding-y) !important;
+    padding-bottom: var(--ratio-header-padding-y) !important;
+    padding-left: var(--ratio-card-padding-x) !important;
+    padding-right: var(--ratio-card-padding-x) !important;
+}
+
+/* Form Container & Control Sizing for Universal Resolution Parity */
+.js-Sex-form-container,
+.form-container-responsive {
+    padding: 0.25rem 0;
+}
+
+/* Centered Setup Form Layout with Fluid Percentage Action Slots */
+.setup-form-container-centered {
+    padding-left: clamp(10px, 3.8%, 38px);
+    padding-right: 0;
+    width: 100%;
+}
+
+.js-Sex-form-container .form-control,
+.js-Sex-form-container .form-select,
+.form-container-responsive .form-control,
+.form-container-responsive .form-select {
+    font-size: var(--ratio-font-input);
+    padding: 0.375rem 0.75rem;
+    height: 36px;
+    border-radius: 0.375rem;
+    line-height: 1.5;
+    box-shadow: none;
+}
+
+/* Responsive Detached Action Button (.js-quick-add / + button) */
+.detached-action-btn,
+.js-quick-add {
+    height: clamp(30px, 2.3vw, 32px) !important;
+    min-width: clamp(30px, 2.3vw, 32px) !important;
+    width: clamp(30px, 2.3vw, 32px) !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: clamp(0.7rem, 0.75vw, 0.85rem) !important;
+    border-radius: 0.375rem !important;
+    flex-shrink: 0 !important;
+    transition: all 0.15s ease-in-out;
+}
+
+@media (max-width: 1400px) {
+    .detached-action-btn,
+    .js-quick-add {
+        height: 26px !important;
+        min-width: 26px !important;
+        width: 26px !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+/* DualInput 50%-50% Equal Width Balancing & Seamless Border Joining */
+.dual-input-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+}
+
+/* Hide raw select element if Select2 replaced it */
+.dual-input-group > select.select2-hidden-accessible {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    flex: 0 0 0% !important;
+}
+
+/* First control: 50% width, remove right border radius */
+.dual-input-group > input:first-child,
+.dual-input-group > select:first-child,
+.dual-input-group > .form-control:first-child {
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 50% !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Second control (Input 2 / Select 2 / Select2 container): 50% width, remove ALL left border radius */
+.dual-input-group > input:nth-child(2),
+.dual-input-group > input:last-child,
+.dual-input-group > select:nth-child(2),
+.dual-input-group > .select2-container,
+.dual-input-group > select + .select2-container,
+.dual-input-group > .select2 {
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 50% !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    margin-left: -1px !important;
+}
+
+/* Force 0px left border-radius on all Select2 internal elements in 2nd slot */
+.dual-input-group .select2-container,
+.dual-input-group .select2-container *,
+.dual-input-group select + .select2-container,
+.dual-input-group select + .select2-container *,
+.dual-input-group .select2-selection,
+.dual-input-group .select2-selection--single {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+/* Ensure right side of Select2 has rounded corners */
+.dual-input-group .select2-container .select2-selection,
+.dual-input-group select + .select2-container .select2-selection,
+.dual-input-group .select2-container--bootstrap-5 .select2-selection {
+    border-top-right-radius: 0.375rem !important;
+    border-bottom-right-radius: 0.375rem !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    width: 100% !important;
+}
+
+.js-Sex-form-container label,
+.form-container-responsive label {
+    font-weight: 600;
+    font-size: var(--ratio-font-label);
+    color: #475569;
+    margin-bottom: 0.35rem;
+}
+
+.js-Sex-form-container .form-group,
+.form-container-responsive .form-group {
+    margin-bottom: var(--ratio-form-gap) !important;
+}
+
+/* Toolbar & Action Buttons Responsive Fluid Scaling */
+.toolbar-container {
+    overflow: hidden;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.toolbar-title-wrap {
+    min-width: max-content !important;
+    flex-shrink: 0 !important;
+}
+
+.toolbar-title {
+    font-size: clamp(0.82rem, 0.85vw, 0.95rem) !important;
+    font-weight: 600;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+.toolbar-btn-group {
+    gap: clamp(0.15rem, 0.3vw, 0.35rem) !important;
+    flex-shrink: 0;
+}
+
+.toolbar-btn,
+.js-Sex-save,
+.js-Sex-delete-confirm,
+.js-Sex-clear {
+    font-size: clamp(0.72rem, 0.65vw, 0.8125rem) !important;
+    font-weight: 600;
+    padding: clamp(0.25rem, 0.35vw, 0.375rem) clamp(0.35rem, 0.5vw, 0.75rem) !important;
+    height: 34px !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 0.375rem !important;
+    white-space: nowrap;
+}
+
+@media (max-width: 1400px) {
+    .toolbar-btn,
+    .js-Sex-save,
+    .js-Sex-delete-confirm,
+    .js-Sex-clear {
+        padding: 0.25rem 0.45rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .toolbar-btn i {
+        font-size: 0.75rem;
+    }
+
+    .card-header.dynamic-grid-header {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+}
+
+/* Responsive Table Scroll Container */
+.dynamic-grid-card .table-responsive {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+/* Modern Gradient Table Header */
+.dynamic-grid-table {
+    margin-bottom: 0 !important;
+    width: 100%;
+}
+
+.dynamic-grid-table thead {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/* Table Header - Centered & Scaled */
+.dynamic-grid-table thead th {
+    font-size: var(--ratio-font-header);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: #475569;
+    padding: var(--ratio-cell-padding-y) var(--ratio-cell-padding-x);
+    white-space: nowrap;
+    border: none;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+/* Row Hover & Cell Styling - Vertically Centered & Scaled */
+.dynamic-grid-table tbody tr {
+    transition: background-color 0.15s ease-in-out;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.dynamic-grid-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.dynamic-grid-table tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+.dynamic-grid-table tbody td {
+    padding: var(--ratio-cell-padding-y) var(--ratio-cell-padding-x);
+    vertical-align: middle !important;
+    font-size: var(--ratio-font-body);
+    color: #334155;
+}
+
+/* Dynamic Primary Key Link Styling */
+.dynamic-grid-link {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s ease-in-out, text-decoration 0.15s ease-in-out;
+}
+
+.dynamic-grid-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* Custom Checkbox Styling */
+.dynamic-grid-card .form-check-input {
+    width: 1.15em;
+    height: 1.15em;
+    cursor: pointer;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 0.3em;
+    transition: all 0.15s ease-in-out;
+}
+
+.dynamic-grid-card .form-check-input:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+}
+
+.dynamic-grid-card .form-check-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+/* Universal Application-Wide Modern Pagination System */
+.pagination,
+#paginationNumbers {
+    gap: 0.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-bottom: 0 !important;
+}
+
+.pagination .page-link,
+#paginationNumbers .page-link,
+button.page-link,
+a.page-link,
+#paginationPrev,
+#paginationNext,
+#paginationFirst,
+#paginationLast {
+    border-radius: 0.375rem !important;
+    color: #475569 !important;
+    font-size: 0.8125rem !important; /* 13px */
+    font-weight: 600 !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 0.3rem 0.65rem !important;
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.15s ease-in-out !important;
+    background-color: #ffffff !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+
+.pagination .page-item.active .page-link,
+#paginationNumbers .page-item.active .page-link,
+.page-link.active {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3) !important;
+}
+
+.pagination .page-link:hover:not(.disabled):not(:disabled),
+#paginationNumbers .page-link:hover:not(.disabled):not(:disabled),
+button.page-link:hover:not(:disabled),
+a.page-link:hover,
+#paginationPrev:hover,
+#paginationNext:hover,
+#paginationFirst:hover,
+#paginationLast:hover {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+.pagination .page-item.disabled .page-link,
+.page-link.disabled,
+.page-link:disabled,
+button.page-link:disabled {
+    background-color: #f8fafc !important;
+    border-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.75;
+}
+
+/* Clean Empty State */
+.dynamic-grid-empty-state {
+    padding: 2.5rem 1rem;
+    text-align: center;
+}
+
+.dynamic-grid-empty-icon {
+    font-size: 2.5rem;
+    color: #cbd5e1;
+    margin-bottom: 0.75rem;
+}
+
+/* Universal Application-Wide Modern Table System */
+table,
+.table,
+.table-responsive table,
+#JobSettingsTable,
+.dyn-tableDrag,
+.dynamic-grid-table,
+.table-bordered {
+    border-color: #e2e8f0 !important;
+    border-radius: 0.375rem !important;
+    overflow: hidden;
+}
+
+table thead,
+.table thead,
+.table-responsive table thead,
+#JobSettingsTable thead,
+.dyn-tableDrag thead,
+.table-bordered thead {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+table thead th,
+.table thead th,
+.table-responsive table thead th,
+#JobSettingsTable thead th,
+.dyn-tableDrag thead th,
+.table-bordered thead th {
+    font-size: 0.875rem; /* 14px default */
+    font-weight: 700 !important;
+    color: #475569 !important;
+    padding: 0.4rem 0.65rem !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    border-top: none !important;
+    vertical-align: middle !important;
+    white-space: nowrap;
+}
+
+table tbody td,
+.table tbody td,
+.table-responsive table tbody td,
+#JobSettingsTable tbody td,
+.dyn-tableDrag tbody td,
+.table-bordered tbody td {
+    font-size: 0.875rem; /* 14px default */
+    padding: 0.35rem 0.65rem !important;
+    vertical-align: middle !important;
+    color: #334155 !important;
+    border-color: #f1f5f9 !important;
+}
+
+@media (max-width: 1400px) {
+    table thead th,
+    .table thead th,
+    .table-responsive table thead th,
+    #JobSettingsTable thead th,
+    .dyn-tableDrag thead th,
+    .table-bordered thead th,
+    table tbody td,
+    .table tbody td,
+    .table-responsive table tbody td,
+    #JobSettingsTable tbody td,
+    .dyn-tableDrag tbody td,
+    .table-bordered tbody td {
+        font-size: 12px !important;
+    }
+}
+
+table tbody tr,
+.table tbody tr,
+.table-responsive table tbody tr,
+#JobSettingsTable tbody tr,
+.dyn-tableDrag tbody tr,
+.table-bordered tbody tr {
+    transition: background-color 0.15s ease-in-out;
+}
+
+table tbody tr:hover,
+.table tbody tr:hover,
+.table-responsive table tbody tr:hover,
+#JobSettingsTable tbody tr:hover,
+.dyn-tableDrag tbody tr:hover,
+.table-bordered tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
+/* Fit-to-Content Job No Column Width */
+#JobSettingsTable th[data-sort="JobNo"],
+#JobSettingsTable td:first-child,
+.dynamic-grid-table th[data-field="JobNo"],
+.dynamic-grid-table td[data-field="JobNo"] {
+    width: 1% !important;
+    white-space: nowrap !important;
+}

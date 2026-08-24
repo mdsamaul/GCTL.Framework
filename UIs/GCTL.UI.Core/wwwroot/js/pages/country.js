@@ -1,30 +1,28 @@
-﻿(function ($) {
+(function ($) {
     $.country = function (options) {
-
-        //#region Default options
-
+        // Default options
         var settings = $.extend({
             baseUrl: "/",
-            formSelector: "#Country-form",
-            formContainer: ".js-Country-form-container",
-            gridSelector: "#Country-grid",
-            gridContainer: ".js-Country-grid-container",
-            editSelector: ".js-Country-edit",
-            saveSelector: ".js-Country-save",
-            selectAllSelector: "#Country-check-all",
-            deleteSelector: ".js-Country-delete-confirm",
-            deleteModal: "#Country-delete-modal",
-            finalDeleteSelector: ".js-Country-delete",
-            clearSelector: ".js-Country-clear",
+            formSelector: "#country-form",
+            formContainer: ".js-country-form-container",
+            gridSelector: "#countryGridContainer",
+            gridContainer: ".js-country-grid-container",
+            editSelector: ".js-country-edit, .js-grid-edit",
+            saveSelector: ".js-country-save",
+            selectAllSelector: "#country-check-all",
+            deleteSelector: ".js-country-delete-confirm",
+            deleteModal: "#country-delete-modal",
+            finalDeleteSelector: ".js-country-delete",
+            clearSelector: ".js-country-clear",
             topSelector: ".js-go",
-            decimalSelector: ".js-Country-decimalplaces",
+            decimalSelector: ".js-country-decimalplaces",
             maxDecimalPlace: 5,
             showNagativeFormat: false,
-            availabilitySelector: ".js-Country-check-availability",
+            availabilitySelector: ".js-country-check-availability",
             haseFile: false,
             quickAddSelector: ".js-quick-add",
             quickAddModal: "#quickAddModal",
-            lastCodeSelector: '#lastCode',
+            lastCodeSelector: "#lastCode",
             load: function () {
 
             }
@@ -39,19 +37,13 @@
             $('[data-toggle="tooltip"]').tooltip();
         });
 
-        //#endregion
-
         $(() => {
-
             loadTable();
-
-            //#region editSelector & clearSelector
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
-
                 let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
                 loadForm(url).then((data) => {
@@ -63,18 +55,13 @@
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
                 $(settings.deleteSelector).data('id', id);
-                $("html, body").animate({ scrollTop: 0 }, 500);
 
+                $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-            //#endregion
-
-            //#region Save
-
+            // Save
             $("body").on("click", settings.saveSelector, function () {
-
-                var self = this;
-                validation();
+                if (!validation()) return false;
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
                     return false;
@@ -93,45 +80,30 @@
                     method: "POST",
                     data: data,
                     success: function (response) {
-
                         if (response.isSuccess) {
-                            toastr.success(response.message);
-
-
-                            var $modalAncestor = $(self).closest(".modal");
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
                             if ($modalAncestor.length && window.GcModal) {
                                 GcModal.markSuccess($modalAncestor, response.lastCode);
                                 GcModal.close($modalAncestor);
                             } else {
-                                // normal page এ থাকলে আগের মতোই form reload করো
-                                loadForm(saveUrl).then(() => {
-                                    loadTable();
-                                });
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
                             }
-                        } else {
-                            toastr.error(response.message);
+                            toastr.success(response.message);
                         }
-
-                        // if (response.isSuccess) {
-                        //     loadForm(saveUrl)
-
-                        //         .then((data) => {
-                        //             loadTable();
-                        //             $(settings.lastCodeSelector).val(response.lastCode);
-                        //             // alert("The last code has been updated to: " + response.lastCode);
-                        //         })
-                        //         .catch((error) => {
-                        //             console.log(error)
-                        //         })
-
-                        //     toastr.success(response.message);
-                        // }
-                        // else {
-                        //     toastr.error(response.message);
-                        //     console.log(response);
-                       // }
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
                     }
-                }
+                };
                 if (settings.haseFile) {
                     options.processData = false;
                     options.contentType = false;
@@ -139,156 +111,85 @@
                 $.ajax(options);
             });
 
-            //#endregion
-
-            //#region selectAllSelector & deleteSelector
-
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
+
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
-                    });
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('countryGridContainer') : [];
                 }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
                 } else {
                     toastr.info("Please select at least one item.");
                 }
             });
 
-            //#endregion
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-country-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-            //#region Delete & deleteModal
-
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-
-                var source = $(event.relatedTarget);
-                var id = source.data("ids");
-
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure to delete?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(selectedItems),
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-
-                                loadTable();
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                toastr.error(response.message);
-                                console.log(response);
-                            }
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                    });
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
-
-            //#endregion
-
-            //#region topSelector & decimalSelector
 
             $("body").on("click", settings.topSelector, function (e) {
                 e.preventDefault();
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-
             $("body").on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            //#endregion
-
-            //#region availabilitySelector
-
-            $("body").on("keyup", settings.availabilitySelector, function () {
-                var self = $(this);
-                let code = $(".js-CountryId-code").val();
-                let name = self.val();
-                // check
-                $.ajax({
-                    url: settings.baseUrl + "/CheckAvailability",
-                    method: "POST",
-                    data: { code: code, name: name },
-                    success: function (response) {
-                        console.log(response);
-                        if (response.isSuccess) {
-                            toastr.error(response.message);
-                        }
-                    }
-                });
-            });
-
-            //#endregion
-
         });
 
-        //#region loadTable
         function loadTable() {
-            $.get(settings.baseUrl + "/GetTableData")
-                .done(html => {
-                    $(settings.gridContainer).html(html);
-
-                    if ($.fn.DataTable.isDataTable(settings.gridSelector)) {
-                        $(settings.gridSelector).DataTable().destroy();
-                    }
-
-                    $(settings.gridSelector).DataTable({
-                        lengthChange: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, -1],
-                            [10, 25, 50, 'All'],
-                        ],
-                        order: [[1, "desc"]],
-                        destroy: true,
-                        paging: true,
-                        searching: true,
-                        responsive: true,
-                    });
-
-                })
-                .fail(() => toastr.error("Failed to load table data."));
+            if (window.loadGridPage) {
+                window.loadGridPage('countryGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
-
-        //#endregion
-
-        //#region loadForm
 
         function loadForm(url) {
             return new Promise((resolve, reject) => {
@@ -301,33 +202,24 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
-                })
-            })
+                });
+            });
         }
 
-        //#endregion
-
-        //#region validation
-
         function validation() {
-
-            var col = $('#CountryName').val();
-
-            if (!col) {
+            var dep = $('#CountryName').val();
+            if (!dep) {
                 toastr.info('Enter Country Name');
                 $('#CountryName').trigger('focus');
                 return false;
             }
             return true;
         }
-
-        //#endregion
-
-    }
+    };
 
 }(jQuery));

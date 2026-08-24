@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.EmployeeContactInfos;
 using GCTL.Data.Models;
@@ -61,58 +61,57 @@ namespace GCTL.Service.EmployeeContactInfos
 
         public async Task<List<EmployeeContactInfosSetupViewModel>> GetAllAsync()
         {
-            var data = (from emp in employeeContactInfoRepository.All().AsNoTracking()
+            var data = await (from emp in employeeContactInfoRepository.All().AsNoTracking()
 
-                        join Hrmemp in coreBranchRepository.All().AsNoTracking()
-                        on emp.BranchCode equals Hrmemp.BranchCode into empBranchNameJoin
-                        from Hrmemp in empBranchNameJoin.DefaultIfEmpty()
+                              join Hrmemp in coreBranchRepository.All().AsNoTracking()
+                              on emp.BranchCode equals Hrmemp.BranchCode into empBranchNameJoin
+                              from Hrmemp in empBranchNameJoin.DefaultIfEmpty()
 
-                        join hrmEmp in hrmEmployee.All().AsNoTracking()
-                        on emp.EmployeeId equals hrmEmp.EmployeeId into empEmployeeJoin
-                        from hrmEmp in empEmployeeJoin.DefaultIfEmpty()
+                              join hrmEmp in hrmEmployee.All().AsNoTracking()
+                              on emp.EmployeeId equals hrmEmp.EmployeeId into empEmployeeJoin
+                              from hrmEmp in empEmployeeJoin.DefaultIfEmpty()
 
-                        join hrmDef in reletionshipRepository.All().AsNoTracking()
-                        on emp.EmContactRelation1 equals hrmDef.RelationshipCode into empEmContactRelation1Join
-                        from hrmDef in empEmContactRelation1Join.DefaultIfEmpty()
+                              join hrmDef in reletionshipRepository.All().AsNoTracking()
+                              on emp.EmContactRelation1 equals hrmDef.RelationshipCode into empEmContactRelation1Join
+                              from hrmDef in empEmContactRelation1Join.DefaultIfEmpty()
 
-                        join hrmdef in reletionshipRepository.All().AsNoTracking()
-                        on emp.EmContactRelation2 equals hrmdef.RelationshipCode into empEmContactRelation2Join
-                        from hrmdef in empEmContactRelation2Join.DefaultIfEmpty()
+                              join hrmdef in reletionshipRepository.All().AsNoTracking()
+                              on emp.EmContactRelation2 equals hrmdef.RelationshipCode into empEmContactRelation2Join
+                              from hrmdef in empEmContactRelation2Join.DefaultIfEmpty()
 
-                        join HrmDef in districtRepository.All().AsNoTracking()
-                        on emp.ParmanentDistrict equals HrmDef.DistrictId into empParmanentDistrictJoin
-                        from HrmDef in empParmanentDistrictJoin.DefaultIfEmpty()
+                              join HrmDef in districtRepository.All().AsNoTracking()
+                              on emp.ParmanentDistrict equals HrmDef.DistrictId into empParmanentDistrictJoin
+                              from HrmDef in empParmanentDistrictJoin.DefaultIfEmpty()
 
-                        join hrmdep in districtRepository.All().AsNoTracking()
-                        on emp.PresentDistrict equals hrmdep.DistrictId into empPresentDistrictJoin
-                        from hrmdep in empPresentDistrictJoin.DefaultIfEmpty()
+                              join hrmdep in districtRepository.All().AsNoTracking()
+                              on emp.PresentDistrict equals hrmdep.DistrictId into empPresentDistrictJoin
+                              from hrmdep in empPresentDistrictJoin.DefaultIfEmpty()
 
-                        join ofEmp in hrmEmpOffialInfo.All().AsNoTracking()
-                        on emp.EmployeeId equals ofEmp.EmployeeId into eduOffJoin
-                        from ofEmp in eduOffJoin.DefaultIfEmpty()
+                              join ofEmp in hrmEmpOffialInfo.All().AsNoTracking()
+                              on emp.EmployeeId equals ofEmp.EmployeeId into eduOffJoin
+                              from ofEmp in eduOffJoin.DefaultIfEmpty()
 
-                        join desi in designationRepository.All().AsNoTracking()
-                        on ofEmp.DesignationCode equals desi.DesignationCode into edudesiJoin
-                        from desi in edudesiJoin.DefaultIfEmpty()
+                              join desi in designationRepository.All().AsNoTracking()
+                              on ofEmp.DesignationCode equals desi.DesignationCode into edudesiJoin
+                              from desi in edudesiJoin.DefaultIfEmpty()
 
-                        join dept in departmentRepository.All().AsNoTracking()
-                        on ofEmp.DepartmentCode equals dept.DepartmentCode into eduDeptJoin
-                        from dept in eduDeptJoin.DefaultIfEmpty()
+                              join dept in departmentRepository.All().AsNoTracking()
+                              on ofEmp.DepartmentCode equals dept.DepartmentCode into eduDeptJoin
+                              from dept in eduDeptJoin.DefaultIfEmpty()
 
-                        select new EmployeeContactInfosSetupViewModel
-                        {
-                            EmployeeId = emp.EmployeeId,
-                            EmployeeName = $"{hrmEmp.FirstName} {hrmEmp.LastName}",
-                            DistrictName = HrmDef.District,
-                            EmpContactId = emp.EmpContactId,
-                            ParmanentAddress = emp.ParmanentAddress,
-                            ParmanentPostOffice = emp.ParmanentPostOffice,
-                            ParmanentThana = emp.ParmanentThana
+                              select new EmployeeContactInfosSetupViewModel
+                              {
+                                  EmployeeId = emp.EmployeeId,
+                                  EmployeeName = hrmEmp != null ? $"{hrmEmp.FirstName} {hrmEmp.LastName}" : "",
+                                  DistrictName = HrmDef != null ? HrmDef.District : "",
+                                  EmpContactId = emp.EmpContactId,
+                                  ParmanentAddress = emp.ParmanentAddress,
+                                  ParmanentPostOffice = emp.ParmanentPostOffice,
+                                  ParmanentThana = emp.ParmanentThana
 
-                        }).ToList();
+                              }).ToListAsync();
 
-            //  return data;
-            return await Task.FromResult(data);
+            return data;
         }
 
         public async Task<List<EmployeeContactInfosSetupViewModel>> GetByEmployeeAsync(string employeeId)
@@ -159,8 +158,8 @@ namespace GCTL.Service.EmployeeContactInfos
                               select new EmployeeContactInfosSetupViewModel
                               {
                                   EmployeeId = emp.EmployeeId,
-                                  EmployeeName = $"{hrmEmp.FirstName} {hrmEmp.LastName}",
-                                  DistrictName = HrmDef != null ? HrmDef.District : " ",
+                                  EmployeeName = hrmEmp != null ? $"{hrmEmp.FirstName} {hrmEmp.LastName}" : "",
+                                  DistrictName = HrmDef != null ? HrmDef.District : "",
                                   EmpContactId = emp.EmpContactId,
                                   ParmanentAddress = emp.ParmanentAddress,
                                   ParmanentPostOffice = emp.ParmanentPostOffice,
@@ -227,14 +226,13 @@ namespace GCTL.Service.EmployeeContactInfos
                                   AutoId = emp.AutoId,
                                   EmpContactId = emp.EmpContactId,
                                   EmployeeId = emp.EmployeeId,
-                                  EmployeeName = $"{hrmEmp.FirstName}{hrmEmp.LastName}",
-                                  DepartmentName = dept.DepartmentName ?? "",
-                                  DesignationName = desi.DesignationName ?? "",
-                                //  Relation = hrmDef.Relationship,
+                                  EmployeeName = hrmEmp != null ? $"{hrmEmp.FirstName} {hrmEmp.LastName}" : "",
+                                  DepartmentName = dept != null ? dept.DepartmentName : "",
+                                  DesignationName = desi != null ? desi.DesignationName : "",
                                   BranchCode = emp.BranchCode,
-                                  BranchName = Hrmemp.BranchName,
+                                  BranchName = Hrmemp != null ? Hrmemp.BranchName : "",
                                   CompanyCode = emp.CompanyCode,
-                                  CompanyName = empComp.CompanyName,
+                                  CompanyName = empComp != null ? empComp.CompanyName : "",
                                   ParmanentAddress = emp.ParmanentAddress,
                                   ParmanentAddressBangla = emp.ParmanentAddressBangla,
                                   ParmanentPostOffice = emp.ParmanentPostOffice,

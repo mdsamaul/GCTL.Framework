@@ -1,43 +1,113 @@
-﻿using AutoMapper;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.BloodGroups;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Data.Models;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.Common;
-using GCTL.Service.Designations;
 using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.BloodGroups;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.UI.Core.Controllers
 {
     public class BloodGroupsController : BaseController
     {
+        #region Ser & Repo
         private readonly IBloodGroupService bloodGroupService;
         private readonly ICommonService commonService;
-        private readonly IMapper mapper;
-        string strMaxNO = "";
-        public BloodGroupsController(IBloodGroupService bloodGroupService,
-                                     ICommonService commonService,
-                                     IMapper mapper)
+
+        string strMaxNO = string.Empty;
+        public BloodGroupsController(
+            ICommonService commonService,
+            IBloodGroupService bloodGroupService
+        )
         {
             this.bloodGroupService = bloodGroupService;
             this.commonService = commonService;
-            this.mapper = mapper;
         }
 
-        public IActionResult Index(bool child = false)
+        #endregion
+
+        #region Index
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            BloodGroupPageViewModel model = new BloodGroupPageViewModel()
+            var hasPermission = await bloodGroupService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var model = new BloodGroupPageViewModel
             {
                 PageUrl = Url.Action(nameof(Index))
             };
-            commonService.FindMaxNo(ref strMaxNO, "BloodGroupCode", "HRM_Def_BloodGroup", 2);
-            model.Setup = new BloodGroupSetupViewModel
+
+            try
             {
-                BloodGroupCode = strMaxNO
-            };
+                var list = await bloodGroupService.GetAllAsync() ?? new List<BloodGroupSetupViewModel>();
+                model.BloodGroupList = list;
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.BloodGroupCode != null && x.BloodGroupCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BloodGroup != null && x.BloodGroup.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BanglaBloodGroup != null && x.BanglaBloodGroup.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Blood Group", "Blood Group (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "BloodGroupCode", item.BloodGroupCode },
+                        { "Blood Group", item.BloodGroup },
+                        { "Blood Group (বাংলা)", item.BanglaBloodGroup }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "BloodGroups") ?? "/BloodGroups/GetTableData",
+                    primaryKey: "BloodGroupCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/BloodGroups/Setup/{id}",
+                    gridId: "bloodGroupGridContainer",
+                    editClass: "js-bloodgroup-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "BloodGroupCode", "center" },
+                        { "Blood Group", "left" },
+                        { "Blood Group (বাংলা)", "center" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Blood Group", "auto" },
+                        { "Blood Group (বাংলা)", "180px" }
+                    }
+                );
+
+                commonService.FindMaxNo(ref strMaxNO, "BloodGroupCode", "HRM_Def_BloodGroup", 2);
+                model.Setup = new BloodGroupSetupViewModel
+                {
+                    BloodGroupCode = strMaxNO
+                };
+            }
+            catch (Exception ex)
+            {
+                model.BloodGroupList = new List<BloodGroupSetupViewModel>();
+                model.Setup = new BloodGroupSetupViewModel();
+                Console.WriteLine("Error" + ex.Message);
+            }
 
             if (child)
                 return PartialView(model);
@@ -45,158 +115,265 @@ namespace GCTL.UI.Core.Controllers
             return View(model);
         }
 
+        #endregion
 
-        public IActionResult Setup(string id)
+        #region Setup
+
+        public async Task<IActionResult> Setup(string id)
         {
             BloodGroupSetupViewModel model = new BloodGroupSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "BloodGroupCode", "HRM_Def_BloodGroup", 2);
-            var result = bloodGroupService.GetBloodGroup(id);
-            if (result != null)
+
+            if (!string.IsNullOrEmpty(id))
             {
-                model = mapper.Map<BloodGroupSetupViewModel>(result);
-                model.Code = id;
-                model.Tc = (int)result.AutoId;
+                model = await bloodGroupService.GetByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
             }
             else
             {
                 model.BloodGroupCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await bloodGroupService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new BloodGroupPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await bloodGroupService.GetAllAsync() ?? new List<BloodGroupSetupViewModel>();
+                indexModel.BloodGroupList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(10).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 10,
+                    headers: new List<string> { "Code", "Blood Group", "Blood Group (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "BloodGroupCode", item.BloodGroupCode },
+                        { "Blood Group", item.BloodGroup },
+                        { "Blood Group (বাংলা)", item.BanglaBloodGroup }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "BloodGroups") ?? "/BloodGroups/GetTableData",
+                    primaryKey: "BloodGroupCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/BloodGroups/Setup/{id}",
+                    gridId: "bloodGroupGridContainer",
+                    editClass: "js-bloodgroup-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "BloodGroupCode", "center" },
+                        { "Blood Group", "left" },
+                        { "Blood Group (বাংলা)", "center" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Blood Group", "auto" },
+                        { "Blood Group (বাংলা)", "180px" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.BloodGroupList = new List<BloodGroupSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
+
+        #endregion
+
+        #region Post Update 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Setup(BloodGroupSetupViewModel model)
+        public async Task<IActionResult> Setup(BloodGroupSetupViewModel modelVM)
         {
-            if (bloodGroupService.IsBloodGroupExist(model.BloodGroup, model.Tc))
+            try
             {
-                return Json(new { isSuccess = false, message = "Already Exists" });
-            }
-
-            if (ModelState.IsValid)
-            {
-                if (bloodGroupService.IsBloodGroupExistByCode(model.BloodGroupCode))
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
-                    var hasPermission = bloodGroupService.UpdatePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    if (await bloodGroupService.IsExistAsync(modelVM.BloodGroup, modelVM.BloodGroupCode))
                     {
-                        HrmDefBloodGroup bloodGroup = bloodGroupService.GetBloodGroup(model.Tc) ?? new HrmDefBloodGroup();
-                        model.ToAudit(LoginInfo, model.Tc > 0);
-                        mapper.Map(model, bloodGroup);
-                        commonService.FindMaxNo(ref strMaxNO, "BloodGroupCode", "HRM_Def_BloodGroup", 2);
-                        //bloodGroup.BloodGroupCode = strMaxNO;
-                        bloodGroupService.SaveBloodGroup(bloodGroup);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = bloodGroup.BloodGroupCode });
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                modelVM.ToAudit(LoginInfo, (modelVM.AutoId > 0 || modelVM.Tc > 0));
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
+                {
+                    var hasSavePermission = await bloodGroupService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (hasSavePermission)
+                    {
+                        await bloodGroupService.SaveAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.BloodGroupCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
                     }
-
                 }
                 else
                 {
-                    var hasPermission = bloodGroupService.SavePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    var hasUpdatePermission = await bloodGroupService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (hasUpdatePermission)
                     {
-                        HrmDefBloodGroup bloodGroup = bloodGroupService.GetBloodGroup(model.Tc) ?? new HrmDefBloodGroup();
-                        model.ToAudit(LoginInfo, model.Tc > 0);
-                        mapper.Map(model, bloodGroup);
-                        commonService.FindMaxNo(ref strMaxNO, "BloodGroupCode", "HRM_Def_BloodGroup", 2);
-                        bloodGroup.BloodGroupCode = strMaxNO;
-                        bloodGroupService.SaveBloodGroup(bloodGroup);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = bloodGroup.BloodGroupCode });
+                        await bloodGroupService.UpdateAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.BloodGroupCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
                 }
-                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error:{ex.Message}");
+                return RedirectToAction("Login", "Accounts");
+            }
+        }
+
+        #endregion
+
+        #region CheckAvailability
+        [HttpPost]
+        public async Task<JsonResult> CheckAvailability(string name, string code)
+        {
+            if (await bloodGroupService.IsExistAsync(name, code))
+            {
+                return Json(new { isSuccess = true, message = $"Already Exists!" });
             }
 
-            return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
+            return Json(new { isSuccess = false });
         }
+        #endregion
 
-        public ActionResult Grid()
-        {
-            var result = bloodGroupService.GetBloodGroups();
-            return Json(new { data = result });
-        }
+        #region Delete
 
         [HttpPost]
-        public async Task<ActionResult> Delete(string id)
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
         {
-            var hasPermission = bloodGroupService.DeletePermission(LoginInfo.AccessCode);
+            if (ids == null || ids.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "No IDs provided for delete." });
+            }
+
+            var hasPermission = await bloodGroupService.DeletePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
             {
-                return Json(new { success = false, message = "You have no access" });
+                return Json(new { success = false, message = "You have no access." });
             }
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return Json(new { success = false, message = "No IDs provided" });
-            }
-
-            var results = new List<(bool success, bool refSuccess, string message)>();
-            var ids = id.Split(",", StringSplitOptions.RemoveEmptyEntries)
-                 .Select(x => x.Trim())
-                 .ToList();
 
             DeleteHistoryViewModel model = new DeleteHistoryViewModel();
             model.ToAudit(LoginInfo);
             model.CompanyCode = LoginInfo.CompanyCode;
 
-            var result = await bloodGroupService.DeleteBloodGroup(ids, model);
-
-            results.Add(result);
-
-
-            // Aggregate outcome
-            bool overallSuccess = results.All(r => r.success);
-            bool refSuccess = results.All(r => r.refSuccess);
-            string combinedMessage = overallSuccess
-                ? "Deleted Successfully"
-                : string.Join("; ", results.Where(r => !r.success).Select(r => r.message));
-
-            return Json(new { success = overallSuccess, message = combinedMessage, refSuccess = refSuccess });
-        }
-
-
-        //[HttpPost]
-        //public ActionResult Delete(string id)
-        //{
-        //    var hasPermission = bloodGroupService.DeletePermission(LoginInfo.AccessCode);
-        //    if (hasPermission)
-        //    {
-        //        bool success = false;
-        //        foreach (var item in id.Split(",", StringSplitOptions.RemoveEmptyEntries))
-        //        {
-        //            success = bloodGroupService.DeleteBloodGroup(item);
-        //        }
-
-        //        return Json(new { success = success, message = "Deleted Successfully" });
-        //    }
-        //    else
-        //    {
-        //        return Json(new { isSuccess = false, message = "You have no access" });
-        //    }
-
-        //}
-
-
-        [HttpPost]
-        public JsonResult CheckAvailability(string name, string code)
-        {
-            if (bloodGroupService.IsBloodGroupExist(name, code))
+            var success = await bloodGroupService.DeleteTab(ids, model);
+            if (success.succses)
             {
-                return Json(new { isSuccess = true, message = "Already Exists" });
+                return Json(new { success = true, message = "Deleted Successfully." });
             }
-
-            return Json(new { isSuccess = false });
+            else
+            {
+                return Json(new { success = false, message = success.messege });
+            }
         }
+
+        #endregion
+
+        #region Table Loading (Dynamic Grid)
+
+        [HttpGet]
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        {
+            try
+            {
+                var list = await bloodGroupService.GetAllAsync() ?? new List<BloodGroupSetupViewModel>();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.BloodGroupCode != null && x.BloodGroupCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BloodGroup != null && x.BloodGroup.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.BanglaBloodGroup != null && x.BanglaBloodGroup.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                var gridModel = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Blood Group", "Blood Group (বাংলা)" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "BloodGroupCode", item.BloodGroupCode },
+                        { "Blood Group", item.BloodGroup },
+                        { "Blood Group (বাংলা)", item.BanglaBloodGroup }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "BloodGroups") ?? "/BloodGroups/GetTableData",
+                    primaryKey: "BloodGroupCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/BloodGroups/Setup/{id}",
+                    gridId: "bloodGroupGridContainer",
+                    editClass: "js-bloodgroup-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "BloodGroupCode", "center" },
+                        { "Blood Group", "left" },
+                        { "Blood Group (বাংলা)", "center" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Blood Group", "auto" },
+                        { "Blood Group (বাংলা)", "180px" }
+                    }
+                );
+
+                return PartialView("_DynamicGrid", gridModel);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        #endregion
     }
 }

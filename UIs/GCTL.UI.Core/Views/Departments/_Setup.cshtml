@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.Departments.DepartmentSetupViewModel
+@model GCTL.Core.ViewModels.Departments.DepartmentSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
@@ -15,6 +15,7 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <input type="hidden" id="lastCode" />
+        <input type="hidden" id="AutoId" asp-for="AutoId" />
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
@@ -26,7 +27,7 @@
             LabelText = "Department Id",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-department-code",
             DefaultValue = Model?.DepartmentCode
@@ -42,6 +43,7 @@
             LabelText = "Department",
             FieldType = FieldType.Text,
             Placeholder = "Enter Department",
+            ReserveActionSlot = false,
             IsRequired = true,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-department-check-availability",
@@ -56,6 +58,7 @@
             LabelText = "Short Name",
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             DefaultValue = Model.DepartmentShortName
         })
@@ -68,6 +71,7 @@
         {
             InputId = "BanglaDepartment",
             LabelText = "Department (বাংলা)",
+            ReserveActionSlot = false,
             FieldType = FieldType.Text,
             Placeholder = "Enter Department (বাংলা)",
             ColumnClass = "col-lg-6",
@@ -75,7 +79,7 @@
         })
     </div>
 
-    @if (Model.Id > 0)
+    @if (Model.AutoId > 0)
     {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
@@ -115,7 +119,7 @@
             ShowFavorite = false,
             IsPlain = true,
             SaveBtnClass = "js-department-save",
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             IsMarginRight = true
         })
     </div>

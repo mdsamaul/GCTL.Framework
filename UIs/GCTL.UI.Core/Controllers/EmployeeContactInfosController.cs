@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -61,16 +61,8 @@ namespace GCTL.UI.Core.Controllers
 
             model.AddUrl = Url.Action(nameof(Setup));
             model.PageUrl = Url.Action(nameof(Index));
+            model.ListTableData = await employeeContactInfoService.GetAllAsync();
 
-            //model.BreadcrumbTrail = new List<BreadcrumbItem>
-            //{
-            //    new BreadcrumbItem{Title= "Home", Url="/Dashboard", IsActive= false},
-            //    new BreadcrumbItem{Title= "Human Resource Management", Url=null, IsActive= false},
-            //    new BreadcrumbItem{Title= "Employee Information System", Url=null, IsActive= false},
-            //    new BreadcrumbItem{Title= "Employee Information", Url=Url.Action("Setup", ""), IsActive= false},
-                
-            //    new BreadcrumbItem{Title= "Employee Contact Info", Url=Url.Action("EmployeeContactInfos", ""), IsActive= true},
-            //};
             return View(model);
         }
 
@@ -96,7 +88,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 model.CompanyCode = null;
             }
-            // Setup GET action এ
+            // Setup GET action 에
             ViewBag.SelectedBranchCode = model.BranchCode;
             ViewBag.SelectedBranchName = coreBranchRepository.All()
                 .Where(x => x.BranchCode == model.BranchCode)
@@ -111,22 +103,13 @@ namespace GCTL.UI.Core.Controllers
             model.AddUrl = Url.Action(nameof(Setup));
             if (model.EmpContactId == null)
             {
-                model.EmployeeId = commonService.NextCode("EmpContactID", "HRM_EmployeeContactInfo", 4);
+                model.EmpContactId = commonService.NextCode("EmpContactID", "HRM_EmployeeContactInfo", 4);
                 ViewBag.IsEditMode = false;
             }
             else
             {
                 ViewBag.IsEditMode = true;
             }
-
-            //model.BreadcrumbTrail = new List<BreadcrumbItem>
-            //{
-            //    new BreadcrumbItem{Title= "Home", Url="/Dashboard", IsActive= false},
-            //    new BreadcrumbItem{Title= "Human Resource Management", Url=null, IsActive= false},
-            //    new BreadcrumbItem{Title= "Employee Information System", Url=null, IsActive= false},
-            //    new BreadcrumbItem{Title= "Employee Information", Url=Url.Action("Setup", ""), IsActive= false},
-            //    new BreadcrumbItem{Title= "Employee Contact Info", Url=Url.Action("EmployeeContactInfos", ""), IsActive= false},
-            //};
 
             return View(model);
         }
@@ -183,13 +166,7 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                //if (!ModelState.IsValid)
-                //{
-                //    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                //    return Json(new { isSuccess = false, message = "Validation failed", errors });
-                //}
-
-                if (await employeeContactInfoService.IsExistByAsync(modelVM.EmployeeId, modelVM.EmpContactId))
+                if (await employeeContactInfoService.IsExistByAsync(modelVM.EmpContactId, modelVM.EmployeeId))
                 {
                     return Json(new { isSuccess = false, message = $"Already  Exists!", isDuplicate = true });
                 }

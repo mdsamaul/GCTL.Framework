@@ -59,7 +59,7 @@
                                 <input type="hidden" asp-for="AutoId" />
 
                                 <!-- ========== Row 1 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -70,12 +70,12 @@
                                         Placeholder = "--Select Company--",
                                         SelectItems = ViewBag.CoreCompanyDD as SelectList,
                                         DefaultValue = Model.CompanyCode,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 2 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -87,7 +87,7 @@
                                         DefaultValue = Model.EmployeeId,
                                         JsEventClass = "js-code",
                                         AutoFocus = true,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -100,7 +100,7 @@
                                         Placeholder = "Enter Employee First Name",
                                         DefaultValue = Model.FirstName,
                                         JsEventClass = "js-check-availability",
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -111,12 +111,12 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Employee Last Name",
                                         DefaultValue = Model.LastName,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 3 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -125,7 +125,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter First Name (বাংলা)",
                                         DefaultValue = Model.FirstNameBangla,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -136,12 +136,12 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Last Name (বাংলা)",
                                         DefaultValue = Model.LastNameBangla,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 4 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -150,7 +150,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Father's Name",
                                         DefaultValue = Model.FatherName,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -161,12 +161,12 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Mother's Name",
                                         DefaultValue = Model.MotherName,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 5 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -175,7 +175,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Father's Occupation",
                                         DefaultValue = Model.FatherOccupation,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -186,7 +186,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Mother's Occupation",
                                         DefaultValue = Model.MotherOccupation,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -197,12 +197,12 @@
                                         FieldType = FieldType.Date,
                                         DefaultValue = Model.DateOfBirthOrginal?.ToString("dd/MM/yyyy"),
                                         Placeholder = "dd/mm/yyyy",
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 6 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -211,7 +211,7 @@
                                         FieldType = FieldType.Date,
                                         DefaultValue = Model.DateOfBirthCertificate?.ToString("dd/MM/yyyy"),
                                         Placeholder = "dd/mm/yyyy",
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -222,7 +222,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Birth Certificate No.",
                                         DefaultValue = Model.BirthCertificateNo,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -233,12 +233,12 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Place Of Birth",
                                         DefaultValue = Model.PlaceOfBirth,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 7 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -249,7 +249,7 @@
                                         Placeholder = "--Select Gender--",
                                         SelectItems = ViewBag.SexesDD as SelectList,
                                         DefaultValue = Model.SexCode,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -261,7 +261,7 @@
                                         Placeholder = "--Select Blood Group--",
                                         SelectItems = ViewBag.BloodGroupDD as SelectList,
                                         DefaultValue = Model.BloodGroupCode,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -273,12 +273,12 @@
                                         Placeholder = "--Select Nationality--",
                                         SelectItems = ViewBag.NationalityDD as SelectList,
                                         DefaultValue = Model.NationalityCode,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 8 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -287,7 +287,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter National Id No.",
                                         DefaultValue = Model.NationalIdno,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -299,7 +299,7 @@
                                         Placeholder = "--Select Religion--",
                                         SelectItems = ViewBag.ReligionDD as SelectList,
                                         DefaultValue = Model.ReligionCode,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -310,12 +310,12 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Extra Curriculum Activities",
                                         DefaultValue = Model.ExtraCurriActivities,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 9 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -325,7 +325,7 @@
                                         Placeholder = "--Select Marital Status--",
                                         SelectItems = ViewBag.MaritalyDD as SelectList,
                                         DefaultValue = Model.MaritalStatusCode,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -336,7 +336,7 @@
                                         FieldType = FieldType.Date,
                                         DefaultValue = Model.MarriageDate?.ToString("dd/MM/yyyy"),
                                         Placeholder = "dd/mm/yyyy",
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -347,12 +347,12 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Spouse's Name",
                                         DefaultValue = Model.Spouse,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 10 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -361,7 +361,7 @@
                                         FieldType = FieldType.Number,
                                         Placeholder = "Enter No of Son",
                                         DefaultValue = Model.NoOfSon?.ToString(),
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -372,7 +372,7 @@
                                         FieldType = FieldType.Number,
                                         Placeholder = "Enter No of Daughter",
                                         DefaultValue = Model.NoOfDaughters?.ToString(),
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -383,12 +383,12 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Personal Mobile No",
                                         DefaultValue = Model.Telephone,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
                                 <!-- ========== Row 11 ========== -->
-                                <div class="row g-2 mb-2">
+                                <div class="row g-5 mb-2">
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                     {
                                         ColumnClass = "col-lg-4",
@@ -397,7 +397,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Personal Email",
                                         DefaultValue = Model.PersonalEmail,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -408,7 +408,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Card No.",
                                         DefaultValue = Model.CardNo,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
 
                                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -419,7 +419,7 @@
                                         FieldType = FieldType.Text,
                                         Placeholder = "Enter Tin No.",
                                         DefaultValue = Model.TinNo,
-                                        ReserveActionSlot = true
+                                        ReserveActionSlot = false
                                     })
                                 </div>
 
@@ -430,7 +430,7 @@
                                             <h6 class="mb-0">Excel File Upload</h6>
                                         </div>
                                         <div class="p-3">
-                                            <div class="row g-2 align-items-center">
+                                            <div class="row g-5 align-items-center">
                                                 <div class="col-md-6 d-flex align-items-center">
                                                     <label class="form-label mb-0 me-2">Excel File Format</label>
                                                     <a href="@Url.Action("DownloadExcel", "HrmEmployee2")"
@@ -492,12 +492,29 @@
                                 <!-- ========== Buttons ========== -->
                                 <div class="form-group row mt-3">
                                     <div class="col-12">
-                                        <a href="@Url.Action("Index")" class="btn btn-default btn-common btn-circle">
-                                            <i class="fas fa-arrow-alt-circle-left"></i> Back To List
-                                        </a>
-                                        <button type="button" class="btn btn-default btn-common js-HrmEmployee2-save btn-circle float-end">
+                                        
+                                        @* <button type="button" class="btn btn-default btn-common js-HrmEmployee2-save btn-circle float-end">
                                             <i class="fas fa-save"></i> Save
-                                        </button>
+                                        </button> *@
+
+                                        <div class="col-6">
+                                            <a href="@Url.Action("Index")" class="btn btn-default btn-common btn-circle">
+                                                <i class="fas fa-arrow-alt-circle-left"></i> Back To List
+                                            </a>
+                                        </div>
+
+
+                                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                                        {
+                                            Title = "",
+                                            SaveBtnClass = "js-HrmEmployee2-save",
+                                            ShowClear = false,
+                                            ShowDelete = false,
+                                            ShowFavorite = false,
+                                            ShowPrint = false,
+                                            IsPlain = true,
+                                            ReserveActionSlot = false,
+                                        })
                                     </div>
                                 </div>
 

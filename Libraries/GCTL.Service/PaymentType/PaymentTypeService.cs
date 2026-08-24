@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PaymentType;
@@ -6,11 +6,9 @@ using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GCTL.Service.PaymentType
@@ -23,19 +21,16 @@ namespace GCTL.Service.PaymentType
         private readonly ICommonService commonService;
         private readonly IDeleteHistoryService deleteHistoryService;
 
-        string strMaxNO = string.Empty;
+        private string strMaxNO = string.Empty;
         private const string TableName = "Sales_Def_PaymentType";
         private const string ColumnName = "PaymentTypeID";
 
         public PaymentTypeService(
             IRepository<SalesDefPaymentType> paymentTyperepository,
-             IRepository<CoreAccessCode> accessCodeRepository,
+            IRepository<CoreAccessCode> accessCodeRepository,
             ICommonService commonService,
-            IDeleteHistoryService deleteHistoryService
-
-            ) 
-            
-    : base(paymentTyperepository)
+            IDeleteHistoryService deleteHistoryService)
+            : base(paymentTyperepository)
         {
             this.paymentTyperepository = paymentTyperepository;
             this.accessCodeRepository = accessCodeRepository;
@@ -53,6 +48,7 @@ namespace GCTL.Service.PaymentType
             return entity.Select(entityVM => new PaymentTypeSetupViewModel
             {
                 Tc = entityVM.Tc,
+                AutoId = entityVM.Tc,
                 PaymentTypeId = entityVM.PaymentTypeId,
                 PaymentType = entityVM.PaymentType,
                 ShortName = entityVM.ShortName,
@@ -61,7 +57,6 @@ namespace GCTL.Service.PaymentType
                 Luser = entityVM.Luser,
                 Lip = entityVM.Lip,
                 Lmac = entityVM.Lmac,
-
             }).ToList();
         }
 
@@ -71,21 +66,22 @@ namespace GCTL.Service.PaymentType
 
         public async Task<PaymentTypeSetupViewModel> GetByIdAsync(string code)
         {
-            var entity = await paymentTyperepository.GetByIdAsync(code);
+            var entity = await paymentTyperepository.All().FirstOrDefaultAsync(x => x.PaymentTypeId == code || x.Tc.ToString() == code);
             if (entity == null) return null;
 
-            PaymentTypeSetupViewModel entityVM = new PaymentTypeSetupViewModel();
-            entityVM.Tc = entity.Tc;
-            entityVM.PaymentTypeId = entity.PaymentTypeId;
-            entityVM.PaymentType = entity.PaymentType;
-            entityVM.ShortName = entity.ShortName;
-            entityVM.Luser = entity.Luser;
-            entityVM.Ldate = entity.Ldate;
-            entityVM.ModifyDate = entity.ModifyDate;
-            entityVM.Lip = entity.Lip;
-            entityVM.Lmac = entity.Lmac;
-
-            return entityVM;
+            return new PaymentTypeSetupViewModel
+            {
+                Tc = entity.Tc,
+                AutoId = entity.Tc,
+                PaymentTypeId = entity.PaymentTypeId,
+                PaymentType = entity.PaymentType,
+                ShortName = entity.ShortName,
+                Luser = entity.Luser,
+                Ldate = entity.Ldate,
+                ModifyDate = entity.ModifyDate,
+                Lip = entity.Lip,
+                Lmac = entity.Lmac
+            };
         }
 
         #endregion
@@ -98,21 +94,23 @@ namespace GCTL.Service.PaymentType
             await paymentTyperepository.BeginTransactionAsync();
             try
             {
-                SalesDefPaymentType entity = new SalesDefPaymentType();
-                entity.PaymentTypeId = strMaxNO;
-                entity.PaymentType = entityVM.PaymentType;
-                entity.ShortName = entityVM.ShortName;
-                entity.Luser = entityVM.Luser;
-                entity.Lip = entityVM.Lip;
-                entity.Lmac = entityVM.Lmac ?? string.Empty;
-                entity.Ldate = DateTime.Now;
+                SalesDefPaymentType entity = new SalesDefPaymentType
+                {
+                    PaymentTypeId = string.IsNullOrWhiteSpace(entityVM.PaymentTypeId) ? strMaxNO : entityVM.PaymentTypeId,
+                    PaymentType = entityVM.PaymentType,
+                    ShortName = entityVM.ShortName,
+                    Luser = entityVM.Luser,
+                    Lip = entityVM.Lip,
+                    Lmac = entityVM.Lmac ?? string.Empty,
+                    Ldate = DateTime.Now
+                };
                 await paymentTyperepository.AddAsync(entity);
                 await paymentTyperepository.CommitTransactionAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"error message {ex.Message}");
+                Console.WriteLine($"Error message {ex.Message}");
                 await paymentTyperepository.RollbackTransactionAsync();
                 return false;
             }
@@ -121,12 +119,13 @@ namespace GCTL.Service.PaymentType
         #endregion
 
         #region UpdateAsync
+
         public async Task<bool> UpdateAsync(PaymentTypeSetupViewModel entityVM)
         {
             await paymentTyperepository.BeginTransactionAsync();
             try
             {
-                var entity = await paymentTyperepository.GetByIdAsync(entityVM.PaymentTypeId);
+                var entity = await paymentTyperepository.All().FirstOrDefaultAsync(x => x.Tc == entityVM.Tc || x.PaymentTypeId == entityVM.PaymentTypeId);
                 if (entity == null)
                 {
                     await paymentTyperepository.RollbackTransactionAsync();
@@ -135,7 +134,7 @@ namespace GCTL.Service.PaymentType
                 entity.PaymentTypeId = entityVM.PaymentTypeId;
                 entity.PaymentType = entityVM.PaymentType;
                 entity.ShortName = entityVM.ShortName;
-                entity.Luser = entityVM.Luser;
+                entity.Luser = entityVM.Luser ?? entity.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac;
                 entity.ModifyDate = DateTime.Now;
@@ -154,16 +153,15 @@ namespace GCTL.Service.PaymentType
         #endregion
 
         #region SelectionAsync
+
         public async Task<IEnumerable<CommonSelectModel>> SelectionPaymentTypeAsync()
         {
-
-            var data = await paymentTyperepository.All()
+            return await paymentTyperepository.All()
                        .Select(x => new CommonSelectModel
                        {
                            Code = x.PaymentTypeId,
                            Name = x.PaymentType,
                        }).ToListAsync();
-            return data;
         }
 
         #endregion
@@ -172,13 +170,15 @@ namespace GCTL.Service.PaymentType
 
         public async Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model)
         {
-            if (!ids.Any())
+            if (ids == null || !ids.Any())
                 return (false, "No Data found to delete");
 
+            var alternateColumn = new List<string> { "PaymentTypeId", "PaymentType", "Payment" };
             var dependencyCheck = await deleteHistoryService.CheckDependenciesAsync(
                 paymentTyperepository.GetTableName(),
                 ColumnName,
-                ids.Cast<string>().ToList()
+                ids,
+                alternateColumn
             );
 
             if (!dependencyCheck.CanDelete)
@@ -188,8 +188,7 @@ namespace GCTL.Service.PaymentType
 
             try
             {
-                var entity = await paymentTyperepository.All().Where(x => ids.Contains(x.PaymentTypeId)).ToListAsync();
-
+                var entity = await paymentTyperepository.All().Where(x => ids.Contains(x.PaymentTypeId) || ids.Contains(x.Tc.ToString())).ToListAsync();
 
                 paymentTyperepository.Delete(entity);
                 model.tableName = TableName;
@@ -198,22 +197,20 @@ namespace GCTL.Service.PaymentType
                 );
 
                 await paymentTyperepository.CommitTransactionAsync();
-                return (true, "Delete Successfully");
+                return (true, "Deleted Successfully.");
             }
             catch (Exception ex)
             {
                 await paymentTyperepository.RollbackTransactionAsync();
                 Console.WriteLine(ex.ToString());
                 return (false, "Delete Failed");
-
             }
-
         }
-
 
         #endregion
 
         #region Duplicate Check 
+
         public async Task<bool> IsExistByCodeAsync(string code)
         {
             return await paymentTyperepository.All().AnyAsync(x => x.PaymentTypeId == code);
@@ -232,26 +229,51 @@ namespace GCTL.Service.PaymentType
         #endregion
 
         #region Permission all type
+
         public async Task<bool> PagePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Type" && x.TitleCheck);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Type" || x.Title == "PaymentType" || x.Title == "Payment" || x.Title == "Payment Type Setup"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.TitleCheck);
         }
 
         public async Task<bool> SavePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Type" && x.CheckAdd);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Type" || x.Title == "PaymentType" || x.Title == "Payment" || x.Title == "Payment Type Setup"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckAdd);
         }
 
         public async Task<bool> UpdatePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Type" && x.CheckEdit);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Type" || x.Title == "PaymentType" || x.Title == "Payment" || x.Title == "Payment Type Setup"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckEdit);
         }
 
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Type" && x.CheckDelete);
-        }
-        #endregion
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Type" || x.Title == "PaymentType" || x.Title == "Payment" || x.Title == "Payment Type Setup"))
+                .ToListAsync();
 
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckDelete);
+        }
+
+        #endregion
     }
 }
