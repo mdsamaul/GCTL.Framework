@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Custom DataTables Styling (Consistent across Desktop & Laptop resolutions)
+   ========================================================================== */
+
+/* Layout alignment & spacing */
+div.dt-container .dt-layout-full {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+}
+
+div.dt-container .dt-layout-start {
+    padding-left: 0 !important;
+}
+
+div.dt-container .dt-layout-end {
+    padding-right: 0 !important;
+}
+
+div.dt-container .dt-layout-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Ensure table container fits full width consistently */
+div.dt-container {
+    width: 100% !important;
+}
+
+/* Consistent table cell typography & compactness across screens */
+div.dt-container table.dataTable {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    font-size: 0.8125rem;
+}
+
+div.dt-container table.dataTable thead th {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: nowrap;
+    padding: 0.1rem 0.1rem !important;
+}
+
+div.dt-container table.dataTable tbody td {
+    vertical-align: middle !important;
+    padding: 0.1rem 0.1rem !important;
+}
+
+/* Search and Length Select Controls */
+div.dt-container .dt-search input {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0.5rem;
+    height: calc(1.5em + 0.5rem + 2px);
+    border-radius: 4px;
+}
+
+div.dt-container .dt-length select {
+    font-size: 0.8125rem;
+    padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+    height: calc(1.5em + 0.5rem + 2px);
+    border-radius: 4px;
+}
+
+/* Pagination & Info */
+div.dt-container .dt-info,
+div.dt-container .dt-paging {
+    font-size: 0.8rem;
+}
+
+div.dt-container .pagination {
+    margin-bottom: 0 !important;
+}
+
+div.dt-container .pagination .page-link {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Action / Edit buttons inside grid */
+div.dt-container table.dataTable tbody td a.btn {
+    font-size: 0.8125rem;
+    padding: 0 0.25rem;
+    line-height: inherit;
+    text-decoration: none;
+}
+
+/* Responsive wrapper */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}

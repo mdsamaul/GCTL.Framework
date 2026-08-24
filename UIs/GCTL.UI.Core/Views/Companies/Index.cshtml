@@ -1,4 +1,4 @@
-﻿@* @model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
+@* @model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
 @{
     ViewBag.Title = "Companies";
     Model.Breadcrumb = "Company";
@@ -59,7 +59,7 @@
                             SaveBtnClass = "js-company-save",
                             DeleteBtnClass = "js-company-delete-confirm",
                             ClearBtnClass = "js-company-clear"
-                   
+
                     })
                     </div>
                     <div class="card-body px-2">
@@ -84,7 +84,7 @@
         <partial name="_BottomNavigation" />
     </div>
 </section>
-<partial name="DeleteModal" /> 
+<partial name="DeleteModal" />
 
 @section Scripts {
     @{
@@ -160,18 +160,19 @@
 <section class="content consistent-look">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-6 pr-0">
+            <div class="col-md-6 pe-1 ps-0">
                 <div class="card">
-                    <div class="card-header px-2">
+                    <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Companies",
-                            SaveBtnClass = "js-ClientInformationEntry-save",
-                            DeleteBtnClass = "js-ClientInformationEntry-delete-confirm",
-                            ClearBtnClass = "js-ClientInformationEntry-clear"
+                            SaveBtnClass = "js-company-save",
+                            DeleteBtnClass = "js-company-delete-confirm",
+                            ClearBtnClass = "js-company-clear",
+                            FavtBtnClass = "pe-1",
                         })
                     </div>
-                    <div class="card-body px-2">
+                    <div class="card-body p-2">
                         <form asp-action="Setup" id="company-form">
                             <div class="js-company-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -180,18 +181,34 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 ps-1 pe-0">
                 <div class="card">
                     <div class="card-body p-2 pt-3">
                         <div class="js-company-grid-container">
-                            <partial name="_Grid" />
+                            @await Html.PartialAsync("_CustomGrid", new GridModel
+                            {
+                                GridId = "company-grid",
+                                CheckAllId = "company-check-all",
+                                Columns = new List<GridColumn>
+                                {
+                                    new() { Header = "ID", Width = "10%" },
+                                    new() { Header = "Company Name", Width = "25%" },
+                                    new() { Header = "Address", Width = "30%" },
+                                    new() { Header = "Phone", Width = "15%" },
+                                    new() { Header = "Email", Width = "17%" }
+                                },
+                                ShowCheckbox = true,
+                                Bordered = true,
+                                Striped = true
+                            })
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <partial name="_BottomNavigation" />
+
     </div>
+    <partial name="_BottomNavigation" />
 </section>
 @* <partial name="DeleteModal" />  *@
 @* <script src="~/js/app.input.validation.js"></script>

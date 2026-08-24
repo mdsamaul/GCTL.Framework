@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.companies = function (options) {
         // Default options
         var settings = $.extend({
@@ -340,70 +340,21 @@
         });
 
         function loadCompanies(baseUrl, gridSelector) {
-            var dataTable = $(gridSelector).DataTable({
-                ajax: {
-                    url: baseUrl + "/grid",
-                    type: "GET",
-                    datatype: "json"
-                },
-                columnDefs: [
-                    { targets: [0], orderable: false },
-                ],
-                columns: [
-                    {
-                        "data": "companyCode",
-                        "className": "text-center",
-                        "render": function (data) {
-                            return `<input type="checkbox" class="checkBox" value="${data}" />`;
-                        },
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:8%');
-                        }
-                    },
-                    {
-                        "data": "companyCode",
-                        "render": function (data) {
-                            return `<a class='btn js-company-edit' data-id='${data}'><i>${data}</i></a>`;
-                        },
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:15%');
-                        }
-                    },
-                    {
-                        "data": "companyName",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:20%');
-                        }
-                    },
-                    {
-                        "data": "address1",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:26%');
-                        }
-                    },
-                    {
-                        "data": "phone1",
-                        "className": "text-center",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:15%');
-                        }
-                    },
-                    {
-                        "data": "email",
-                        "className": "text-center",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:16%');
-                        }
-                    }
-                ],
-                lengthChange: true,
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    [10, 25, 50, 'All'],
-                ],
+            $(gridSelector + " tbody").empty();
+            return $.gctlGrid.init({
+                gridSelector: gridSelector,
+                ajaxUrl: baseUrl + "/grid",
+                checkAllSelector: settings.selectAllSelector,
+                checkBoxClass: "checkBox",
                 order: [[1, "asc"]],
-                destroy: true
+                columns: [
+                    $.gctlGrid.checkboxColumn("companyCode", "checkBox"),
+                    $.gctlGrid.editLinkColumn("companyCode", "js-company-edit"),
+                    { data: "companyName", className: "text-middle" },
+                    { data: "address1", className: "text-middle" },
+                    { data: "phone1", className: "text-center text-middle" },
+                    { data: "email", className: "text-center text-middle" }
+                ]
             });
         }
 
