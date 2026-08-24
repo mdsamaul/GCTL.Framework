@@ -91,20 +91,16 @@ namespace GCTL.UI.Core.Controllers
             ViewBag.ExpenseDD = new SelectList(await _service.SelectExpenseLedger(), "Code", "Name");
             ViewBag.ShipmentDD = new SelectList(await _service.SelectShipmentMode(), "Code", "Name");
 
-
             if (!string.IsNullOrEmpty(id))
             {
-
                 model = await _service.GetByIdAsync(id);
                 if (model == null)
                 {
-
                     return NotFound();
                 }
             }
             else
             {
-
                 model.ExpenseTypeId = strMaxNO;
             }
 
