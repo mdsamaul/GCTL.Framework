@@ -40,7 +40,7 @@ namespace GCTL.UI.Core.Controllers
             IRepository<CoreAccessCode> accessCodeRepository,
             ICommonService commonService,
             IRepository<InvDefSupplierOrigin> supplierInformationOriginRepository,
-            IRepository<InvDefSupplierType> supplierInformationTypeRepository,
+            IRepository<InvDefSupplierType> supplierInformationTypeRepository, 
             IRepository<InvDefSupplierCategory> supplierInformationCategoryRepository,
             IRepository<InvDefCompanyInfo> supplierInformationCoreCompanyRepository,
             IRepository<CaDefCountry> caDefCountryRepository,
@@ -52,7 +52,7 @@ namespace GCTL.UI.Core.Controllers
             IRepository<RmgDefSupplier> supplierInformationRepository,
             IRepository<InvDefSalesPerson> invDefSalesPersonRepository,
             IRepository<HrmDefDesignation> hrmDesignationRepository
-
+            
             )
         {
             this.supplierInformationService = supplierInformationService;
@@ -67,8 +67,8 @@ namespace GCTL.UI.Core.Controllers
             this.salesDefBankInfoRepository = salesDefBankInfoRepository;
             this.salesDefBankBranchInfoRepository = salesDefBankBranchInfoRepository;
             this.salesDefBankAccountInformationRepository = salesDefBankAccountInformationRepository;
-            this.supplierInformationRepository = supplierInformationRepository;
             this.salesSupplierBankAccountTempRepository = salesSupplierBankAccountTempRepository;
+            this.supplierInformationRepository = supplierInformationRepository;
             this.invDefSalesPersonRepository = invDefSalesPersonRepository;
             this.hrmDesignationRepository = hrmDesignationRepository;
         }
@@ -90,7 +90,9 @@ namespace GCTL.UI.Core.Controllers
             model.SupplierInformationList = list ?? new List<SupplierInformationSetupViewModel>();
 
             ViewBag.SupplierCatDD = new SelectList(supplierInformationCategoryRepository.All(), "SupplierCategoryId", "SupplierCategory");
-            ViewBag.SupplierTypeDD = new SelectList(supplierInformationOriginRepository.All(), "SupplierOriginId", "SupplierOrigin");
+            ViewBag.SupplierOrgDD = new SelectList(supplierInformationOriginRepository.All(), "SupplierOriginId", "SupplierOrigin");
+            ViewBag.SupplierTypeDD = new SelectList(supplierInformationTypeRepository.All(), "SupplierTypeId", "SupplierTypeName");
+            ViewBag.SupplierDepDD = new SelectList(hrmDesignationRepository.All(), "DesignationCode", "DesignationName");
             ViewBag.SupplierComDD = new SelectList(supplierInformationCoreCompanyRepository.All().Where(x=>x.CompanyForId=="03"), "CompanyId", "CompanyName");
             ViewBag.SCountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
             ViewBag.ContatPersonDD = new SelectList(salesContactPersonRepository.All(), "Cpid", "ContactPersonName");
@@ -150,7 +152,9 @@ namespace GCTL.UI.Core.Controllers
             }
 
             ViewBag.SupplierCatDD = new SelectList(supplierInformationCategoryRepository.All(), "SupplierCategoryId", "SupplierCategory");
-            ViewBag.SupplierTypeDD = new SelectList(supplierInformationOriginRepository.All(), "SupplierOriginId", "SupplierOrigin");
+            ViewBag.SupplierOrgDD = new SelectList(supplierInformationOriginRepository.All(), "SupplierOriginId", "SupplierOrigin");
+            ViewBag.SupplierTypeDD = new SelectList(supplierInformationTypeRepository.All(), "SupplierTypeId", "SupplierTypeName");
+            ViewBag.SupplierDepDD = new SelectList(hrmDesignationRepository.All(), "DesignationCode", "DesignationName");
             ViewBag.SupplierComDD = new SelectList(supplierInformationCoreCompanyRepository.All(), "CompanyCode", "CompanyName");
             ViewBag.SCountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
             ViewBag.ContatPersonDD = new SelectList(salesContactPersonRepository.All(), "Cpid", "ContactPersonName");

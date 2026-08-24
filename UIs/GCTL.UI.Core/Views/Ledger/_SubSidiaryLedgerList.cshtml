@@ -1,14 +1,10 @@
-﻿<!-- Add FontAwesome for sort icons if not already included -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-<style>
+﻿<style>
     .custom-table td {
         padding: 0 !important;
         text-align: center !important;
         vertical-align: middle !important;
         font-size: 0.9rem;
     }
-
 
     /* Styling for sortable columns */
     .SubSidiarysortable {
@@ -18,7 +14,7 @@
     }
 
         .SubSidiarysortable:hover {
-            background-color: #f8f9fa;
+            background-color: #f1f3f5;
         }
 
     .sort-icon {
@@ -41,15 +37,13 @@
     }
 
     .sort-desc .sort-icon:before {
-        content: "\f0dd"; /* fa-sort-down */
+        content: "\f0dd";
     }
 
-    /* Checkbox styling */
     .form-check-input {
         cursor: pointer;
     }
 
-    /* Improve table appearance */
     .table {
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         border-radius: 5px;
@@ -61,7 +55,6 @@
             font-weight: 600;
         }
 
-    /* Button styling */
     .btn-transfer {
         padding: 0.25rem 0.5rem;
         border: none;
@@ -77,16 +70,15 @@
         }
 </style>
 
-<div class=" d-flex flex-column">
-    <!-- Card Start -->
+<div class="d-flex flex-column h-100">
     <div class="card shadow rounded-2 flex-grow-1 d-flex flex-column">
         <!-- Card Header -->
-        <div class="card-header bg-light  rounded-top-2">
+        <div class="card-header bg-light rounded-top-2">
             <div class="row align-items-center">
                 <!-- Page Size Dropdown -->
                 <div class="col-md-6 d-flex align-items-center mb-2 mb-md-0">
                     <label class="me-2 mb-0">Show</label>
-                    <select id="SubSidiarypageSize" class="form-select form-select-sm me-2 SubSidiarypageSize" style="max-width: 100px;">
+                    <select id="SubSidiarypageSize" class="form-select form-select-sm me-2 SubSidiarypageSize" data-placeholder="10" style="max-width: 90px;">
                         <option value="10">10</option>
                         <option value="25">25</option>
                         <option value="50">50</option>
@@ -103,33 +95,41 @@
             </div>
         </div>
 
-        <!-- Card Body with Table -->
+        <!-- Card Body with Responsive Table -->
         <div class="card-body p-2 flex-grow-1 d-flex flex-column">
             <div class="table-responsive flex-grow-1" style="table-layout:fixed; width:100%">
                 <table class="table table-hover table-sm table-bordered mb-0">
                     <thead class="table-light text-nowrap sticky-top" style="font-size: 0.8rem;">
                         <tr>
-                            <th class="text-center"><input type="checkbox" id="SubSidiaryselectAll" class="form-check-input"></th>
-                            <th class="SubSidiarysortable" data-column="SusidiaryLedgerCodeNo">ID <i class="sort-icon fas fa-sort"></i></th>
-                            <th class="SubSidiarysortable" data-column="SubsidiaryLedgerName">Sub-Sidiary Ledger Name <i class="sort-icon fas fa-sort"></i></th>
-                            <th class="SubSidiarysortable" data-column="ShortName">Short Name <i class="sort-icon fas fa-sort"></i></th>
+                            <th class="text-center" style="width: 40px;">
+                                <input type="checkbox" id="SubSidiaryselectAll" class="form-check-input">
+                            </th>
+                            <th class="SubSidiarysortable" data-column="SusidiaryLedgerCodeNo" style="width: 140px;">
+                                ID <i class="sort-icon fas fa-sort"></i>
+                            </th>
+                            <th class="SubSidiarysortable" data-column="SubsidiaryLedgerName">
+                                Sub-Sidiary Ledger Name <i class="sort-icon fas fa-sort"></i>
+                            </th>
+                            <th class="SubSidiarysortable" data-column="ShortName" style="width: 180px;">
+                                Short Name <i class="sort-icon fas fa-sort"></i>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody id="SubSidiarytblBody">
-                        <!-- Data will be dynamically inserted here -->
+                    <tbody id="SubSidiarytblBody" class="align-middle">
+                        <!-- AJAX Data Render Target -->
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Card Footer with Pagination -->
-        <div class="card-footer bg-light sticky-bottom">
+        <!-- Card Footer with Pagination Controls -->
+        <div class="card-footer bg-light sticky-bottom py-2">
             <div class="row align-items-center mb-2">
                 <div class="col-4">
                     <span id="SubSidiarypaginationInfo" class="text-muted" style="font-size: 0.8rem;"></span>
                 </div>
                 <div class="col-4 text-center">
-                    <span id="SubSidiarypaginationSummary" class="text-primary" style="font-size: 0.8rem;"></span>
+                    <span id="SubSidiarypaginationSummary" class="text-primary fw-semibold" style="font-size: 0.8rem;"></span>
                 </div>
                 <div class="col-4 text-end">
                     <span id="SubSidiarytotalRecordsInfo" class="text-muted" style="font-size: 0.8rem;"></span>
@@ -137,26 +137,22 @@
             </div>
 
             <div class="row">
-                <div class="col-12 text-center">
+                <div class="col-12 d-flex justify-content-center align-items-center">
                     <div class="btn-group">
-                        <button id="SubSidiaryfirstPage" class="btn btn-outline-primary btn-sm">First</button>
-                        <button id="SubSidiaryprevPage" class="btn btn-outline-primary btn-sm">Previous</button>
+                        <button type="button" id="SubSidiaryfirstPage" class="btn btn-outline-primary btn-sm">First</button>
+                        <button type="button" id="SubSidiaryprevPage" class="btn btn-outline-primary btn-sm">Previous</button>
                     </div>
 
                     <div id="SubSidiarypageNavigation" class="btn-group mx-2">
-                        <!-- Page buttons dynamically inserted here -->
+                        <!-- Page numbers inserted dynamically -->
                     </div>
 
                     <div class="btn-group">
-                        <button id="SubSidiarynextPage" class="btn btn-outline-primary btn-sm">Next</button>
-                        <button id="SubSidiarylastPage" class="btn btn-outline-primary btn-sm">Last</button>
+                        <button type="button" id="SubSidiarynextPage" class="btn btn-outline-primary btn-sm">Next</button>
+                        <button type="button" id="SubSidiarylastPage" class="btn btn-outline-primary btn-sm">Last</button>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
-
-
-

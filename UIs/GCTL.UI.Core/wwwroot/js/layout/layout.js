@@ -1,4 +1,4 @@
-﻿console.log("layout.js loaded, handleApiResponse type:", typeof handleApiResponse);
+console.log("layout.js loaded, handleApiResponse type:", typeof handleApiResponse);
 function showDeleteModal(deleteCallback) {
     // Show the modal
     $('#confirmDeleteModal').modal('show');

@@ -1,6 +1,7 @@
 ﻿using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Service.ChartOfAccounts;
 using GCTL.UI.Core.Controllers;
+using iText.Commons.Actions;
 using iText.IO.Font.Constants;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
@@ -21,7 +22,7 @@ namespace GCTL.Controllers.CharOfAccount
         #region
 
         private readonly LedgerReportService _service;
-        public LedgerReportController( LedgerReportService service) : base()
+        public LedgerReportController(LedgerReportService service) : base()
         {
             _service = service;
         }
@@ -30,7 +31,7 @@ namespace GCTL.Controllers.CharOfAccount
 
 
         #region View Ledger
-        public IActionResult ReportView()
+        public IActionResult Index()
         {
             var treeData = _service.GetLedgerTreeDataAsync();
 
@@ -88,8 +89,8 @@ namespace GCTL.Controllers.CharOfAccount
 
             if (format == "PDF")
             {
-               // byte[] pdfBytes = GeneratePdf(filteredTree, companyName);
-              //  return File(pdfBytes, "application/pdf", "Chart of Accounts Listview Report.pdf");
+                byte[] pdfBytes = GeneratePdf(filteredTree, companyName);
+                return File(pdfBytes, "application/pdf", "Chart of Accounts Listview Report.pdf");
             }
             else if (format == "Excel")
             {
@@ -100,7 +101,7 @@ namespace GCTL.Controllers.CharOfAccount
             //return RedirectToAction("ReportView");
             return Ok("Invalid formate");
         }
-
+         
         private List<TreeLedgerReportVM> FilterTree(List<TreeLedgerReportVM> nodes, IEnumerable<string> expandedCodes)
         {
             List<TreeLedgerReportVM> result = new();
@@ -128,131 +129,147 @@ namespace GCTL.Controllers.CharOfAccount
 
             return result;
         }
+        #endregion
 
+        #region Generate PDF
+        public static byte[] GeneratePdf(List<TreeLedgerReportVM> treeData, string companyName)
+        {
+            var rows = FlattenTree(treeData);
 
-        //public static byte[] GeneratePdf(List<TreeLedgerReportVM> treeData, string companyName)
-        //{
-        //    var rows = FlattenTree(treeData);
+            using (var ms = new MemoryStream())
+            {
+                var writer = new PdfWriter(ms);
+                var pdf = new PdfDocument(writer);
+                var document = new Document(pdf, iText.Kernel.Geom.PageSize.A4.Rotate());
+                document.SetMargins(30, 30, 30, 30);
 
-        //    using (var ms = new MemoryStream())
-        //    {
-        //        var writer = new PdfWriter(ms);
-        //        var pdf = new PdfDocument(writer);
-        //        var document = new Document(pdf, iText.Kernel.Geom.PageSize.A4.Rotate());
-        //        document.SetMargins(30, 30, 30, 30);
+                PdfFont timesNewRoman = PdfFontFactory.CreateFont(StandardFonts.TIMES_ROMAN);
 
-        //        PdfFont timesNewRoman = PdfFontFactory.CreateFont(StandardFonts.TIMES_ROMAN);
+                PdfFont timesNewRomanBold = PdfFontFactory.CreateFont(StandardFonts.TIMES_BOLD);
 
-        //        // Footer
-        //        PdfFormXObject totalPagesPlaceholder = new PdfFormXObject(new Rectangle(0, 0, 50, 10));
-        //        var footerHandler = new PdfFooterHandler(timesNewRoman, totalPagesPlaceholder);
-        //        pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
+                // Footer
+                PdfFormXObject totalPagesPlaceholder = new PdfFormXObject(new Rectangle(0, 0, 50, 10));
+                var footerHandler = new PdfFooterHandler(timesNewRoman, totalPagesPlaceholder);
+                pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
 
-        //        // Header
-        //        document.Add(new Paragraph(companyName).SetFont(timesNewRoman)
-        //            .SetTextAlignment(TextAlignment.CENTER).SetFontSize(16).SetBold());
-        //        document.Add(new Paragraph("Chart of Accounts Report").SetFont(timesNewRoman)
-        //            .SetTextAlignment(TextAlignment.CENTER).SetFontSize(14).SetBold().SetUnderline().SetMarginBottom(12));
+                // Header
+                //document.Add(new Paragraph(companyName).SetFont(timesNewRoman).SetTextAlignment(TextAlignment.CENTER).SetFontSize(16).SetBold());
 
-        //        float[] columnWidths = { 10, 15, 15, 15, 20, 25 };
-        //        Table table = new Table(UnitValue.CreatePercentArray(columnWidths)).UseAllAvailableWidth();
+                //document.Add(new Paragraph("Chart of Accounts Report").SetFont(timesNewRoman).SetTextAlignment(TextAlignment.CENTER).SetFontSize(14).SetBold().SetUnderline().SetMarginBottom(12));
 
-        //        string[] headers = { "Group Ledger", "Control Ledger", "Sub-Control Ledger", "Sub-Sidiary Ledger", "Account Code", "Account Head" };
-        //        foreach (var header in headers)
-        //        {
-        //            table.AddHeaderCell(new Cell()
-        //                .Add(new Paragraph(header).SetFont(timesNewRoman).SetFontSize(10).SetBold())
-        //                .SetBackgroundColor(ColorConstants.WHITE)
-        //                .SetTextAlignment(TextAlignment.CENTER)
-        //                .SetPadding(5));
-        //        }
+                document.Add( new Paragraph(companyName)
+                        .SetFont(timesNewRomanBold)
+                        .SetTextAlignment(TextAlignment.CENTER)
+                        .SetFontSize(16));
 
-        //        int i = 0;
-        //        while (i < rows.Count)
-        //        {
-        //            var groupRow = rows[i];
-        //            int groupSpan = rows.Skip(i).TakeWhile(r => r.GroupLedger == groupRow.GroupLedger).Count();
+                document.Add( new Paragraph("Chart of Accounts Report")
+                        .SetFont(timesNewRomanBold)
+                        .SetTextAlignment(TextAlignment.CENTER)
+                        .SetFontSize(14)
+                        .SetUnderline()
+                        .SetMarginBottom(12));
 
-        //            // Group Ledger
-        //            table.AddCell(new Cell(groupSpan, 1)
-        //                .Add(new Paragraph(groupRow.GroupLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
-        //                .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
+                float[] columnWidths = { 10, 15, 15, 15, 20, 25 };
+                Table table = new Table(UnitValue.CreatePercentArray(columnWidths)).UseAllAvailableWidth();
 
-        //            int groupEnd = i + groupSpan;
-        //            int rowPtr = i;
+                string[] headers = { "Group Ledger", "Control Ledger", "Sub-Control Ledger", "Sub-Sidiary Ledger", "Account Code", "Account Head" };
+                foreach (var header in headers)
+                {
+                    table.AddHeaderCell(new Cell()
+                        .Add(new Paragraph(header).SetFont(timesNewRomanBold)
+                        .SetBackgroundColor(ColorConstants.WHITE)
+                        .SetTextAlignment(TextAlignment.CENTER)
+                        .SetPadding(5)));
+                }
 
-        //            while (rowPtr < groupEnd)
-        //            {
-        //                var controlRow = rows[rowPtr];
-        //                int controlSpan = rows.Skip(rowPtr).TakeWhile(r => r.GroupLedger == groupRow.GroupLedger && r.ControlLedger == controlRow.ControlLedger).Count();
+                int i = 0;
+                while (i < rows.Count)
+                {
+                    var groupRow = rows[i];
+                    int groupSpan = rows.Skip(i).TakeWhile(r => r.GroupLedger == groupRow.GroupLedger).Count();
 
-        //                // Control Ledger
-        //                table.AddCell(new Cell(controlSpan, 1)
-        //                    .Add(new Paragraph(controlRow.ControlLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
-        //                    .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
+                    // Group Ledger
+                    table.AddCell(new Cell(groupSpan, 1)
+                        .Add(new Paragraph(groupRow.GroupLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
+                        .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
 
-        //                int controlEnd = rowPtr + controlSpan;
-        //                int subPtr = rowPtr;
+                    int groupEnd = i + groupSpan;
+                    int rowPtr = i;
 
-        //                while (subPtr < controlEnd)
-        //                {
-        //                    var subControlRow = rows[subPtr];
-        //                    int subControlSpan = rows.Skip(subPtr).TakeWhile(r =>
-        //                        r.GroupLedger == groupRow.GroupLedger &&
-        //                        r.ControlLedger == controlRow.ControlLedger &&
-        //                        r.SubControlLedger == subControlRow.SubControlLedger).Count();
+                    while (rowPtr < groupEnd)
+                    {
+                        var controlRow = rows[rowPtr];
+                        int controlSpan = rows.Skip(rowPtr).TakeWhile(r => r.GroupLedger == groupRow.GroupLedger && r.ControlLedger == controlRow.ControlLedger).Count();
 
-        //                    // Sub-Control Ledger
-        //                    table.AddCell(new Cell(subControlSpan, 1)
-        //                        .Add(new Paragraph(subControlRow.SubControlLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
-        //                        .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
+                        // Control Ledger
+                        table.AddCell(new Cell(controlSpan, 1)
+                            .Add(new Paragraph(controlRow.ControlLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
+                            .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
 
-        //                    int subControlEnd = subPtr + subControlSpan;
-        //                    int subSubPtr = subPtr;
+                        int controlEnd = rowPtr + controlSpan;
+                        int subPtr = rowPtr;
 
-        //                    while (subSubPtr < subControlEnd)
-        //                    {
-        //                        var subSubRow = rows[subSubPtr];
-        //                        int subSubSpan = rows.Skip(subSubPtr).TakeWhile(r =>
-        //                            r.GroupLedger == groupRow.GroupLedger &&
-        //                            r.ControlLedger == controlRow.ControlLedger &&
-        //                            r.SubControlLedger == subControlRow.SubControlLedger &&
-        //                            r.SubSidiaryLedger == subSubRow.SubSidiaryLedger).Count();
+                        while (subPtr < controlEnd)
+                        {
+                            var subControlRow = rows[subPtr];
+                            int subControlSpan = rows.Skip(subPtr).TakeWhile(r =>
+                                r.GroupLedger == groupRow.GroupLedger &&
+                                r.ControlLedger == controlRow.ControlLedger &&
+                                r.SubControlLedger == subControlRow.SubControlLedger).Count();
 
-        //                        // Sub-Sidiary Ledger
-        //                        table.AddCell(new Cell(subSubSpan, 1)
-        //                            .Add(new Paragraph(subSubRow.SubSidiaryLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
-        //                            .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
+                            // Sub-Control Ledger
+                            table.AddCell(new Cell(subControlSpan, 1)
+                                .Add(new Paragraph(subControlRow.SubControlLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
+                                .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
 
-        //                        // AccountCode & AccountHead row-wise
-        //                        for (int k = 0; k < subSubSpan; k++)
-        //                        {
-        //                            var rowData = rows[subSubPtr + k];
-        //                            table.AddCell(new Cell().Add(new Paragraph(rowData.AccountCode).SetFont(timesNewRoman).SetFontSize(10)).SetTextAlignment(TextAlignment.CENTER).SetVerticalAlignment(VerticalAlignment.MIDDLE));
-        //                            table.AddCell(new Cell().Add(new Paragraph(rowData.GeneralLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2)).SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
-        //                        }
+                            int subControlEnd = subPtr + subControlSpan;
+                            int subSubPtr = subPtr;
 
-        //                        subSubPtr += subSubSpan;
-        //                    }
+                            while (subSubPtr < subControlEnd)
+                            {
+                                var subSubRow = rows[subSubPtr];
+                                int subSubSpan = rows.Skip(subSubPtr).TakeWhile(r =>
+                                    r.GroupLedger == groupRow.GroupLedger &&
+                                    r.ControlLedger == controlRow.ControlLedger &&
+                                    r.SubControlLedger == subControlRow.SubControlLedger &&
+                                    r.SubSidiaryLedger == subSubRow.SubSidiaryLedger).Count();
 
-        //                    subPtr += subControlSpan;
-        //                }
+                                // Sub-Sidiary Ledger
+                                table.AddCell(new Cell(subSubSpan, 1)
+                                    .Add(new Paragraph(subSubRow.SubSidiaryLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2))
+                                    .SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
 
-        //                rowPtr += controlSpan;
-        //            }
+                                // AccountCode & AccountHead row-wise
+                                for (int k = 0; k < subSubSpan; k++)
+                                {
+                                    var rowData = rows[subSubPtr + k];
+                                    table.AddCell(new Cell().Add(new Paragraph(rowData.AccountCode).SetFont(timesNewRoman).SetFontSize(10)).SetTextAlignment(TextAlignment.CENTER).SetVerticalAlignment(VerticalAlignment.MIDDLE));
+                                    table.AddCell(new Cell().Add(new Paragraph(rowData.GeneralLedger).SetFont(timesNewRoman).SetFontSize(10).SetMarginLeft(2)).SetTextAlignment(TextAlignment.LEFT).SetKeepTogether(true));
+                                }
 
-        //            i += groupSpan;
-        //        }
+                                subSubPtr += subSubSpan;
+                            }
 
-        //        document.Add(table);
+                            subPtr += subControlSpan;
+                        }
 
-        //        footerHandler.WriteTotalPages(pdf);
-        //        document.Close();
+                        rowPtr += controlSpan;
+                    }
 
-        //        return ms.ToArray();
-        //    }
-        //}
+                    i += groupSpan;
+                }
 
+                document.Add(table);
+
+                footerHandler.WriteTotalPages(pdf);
+                document.Close();
+
+                return ms.ToArray();
+            }
+        }
+        #endregion
+
+        #region Generate Excel
         public static byte[] GenerateExcelTree(List<TreeLedgerReportVM> treeData, string companyName)
         {
             var rows = FlattenTree(treeData);
@@ -430,62 +447,91 @@ namespace GCTL.Controllers.CharOfAccount
             workbook.SaveAs(ms);
             return ms.ToArray();
         }
-
-        //public class PdfFooterHandler : IEventHandler
-        //{
-        //    private readonly PdfFont _font;
-        //    private readonly PdfFormXObject _totalPagesPlaceholder;
-
-        //    public PdfFooterHandler(PdfFont font, PdfFormXObject totalPagesPlaceholder)
-        //    {
-        //        _font = font;
-        //        _totalPagesPlaceholder = totalPagesPlaceholder;
-        //    }
-
-        //    public void HandleEvent(Event @event)
-        //    {
-        //        var pdfEvent = (PdfDocumentEvent)@event;
-        //        var pdf = pdfEvent.GetDocument();
-        //        var page = pdfEvent.GetPage();
-        //        var pageSize = page.GetPageSize();
-
-        //        var canvas = new Canvas(new PdfCanvas(page.NewContentStreamBefore(), page.GetResources(), pdf), pageSize);
-
-        //        float bottomY = 12;
-        //        float leftX = 30;
-        //        float rightX = pageSize.GetWidth() - 30;
-
-        //        int pageNumber = pdf.GetPageNumber(page);
-        //        string dateTime = DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt");
-        //        string leftText = $"Print Datetime: {dateTime}";
-        //        string rightText = $"Page {pageNumber} of ";
-
-        //        canvas.ShowTextAligned(new Paragraph(leftText).SetFont(_font).SetFontSize(8).SetFontColor(ColorConstants.GRAY), leftX, bottomY, TextAlignment.LEFT);
-        //        canvas.ShowTextAligned(new Paragraph(rightText).SetFont(_font).SetFontSize(8).SetFontColor(ColorConstants.GRAY), rightX - 4, bottomY, TextAlignment.RIGHT);
-
-        //        // Add placeholder for total pages
-        //        canvas.Add(new Image(_totalPagesPlaceholder).SetFixedPosition(rightX, bottomY + 2, 50));
-
-        //        canvas.Close();
-        //    }
+        #endregion
 
 
-        //    public void WriteTotalPages(PdfDocument pdfDoc)
-        //    {
-        //        int totalPages = pdfDoc.GetNumberOfPages();
-        //        PdfCanvas canvas = new PdfCanvas(_totalPagesPlaceholder, pdfDoc);
-        //        canvas.BeginText();
-        //        canvas.SetFontAndSize(_font, 8);
-        //        canvas.SetFillColor(ColorConstants.GRAY);
-        //        canvas.MoveText(0, 0);
-        //        canvas.ShowText(totalPages.ToString());
-        //        canvas.EndText();
-        //    }
+        #region Footer Handler
 
-        //}
+        public class PdfFooterHandler : AbstractPdfDocumentEventHandler
+        {
+            private readonly PdfFont _font;
+            private readonly PdfFormXObject _totalPagesPlaceholder;
 
+            public PdfFooterHandler(
+                PdfFont font,
+                PdfFormXObject totalPagesPlaceholder)
+            {
+                _font = font;
+                _totalPagesPlaceholder = totalPagesPlaceholder;
+            }
 
+            protected override void OnAcceptedEvent(AbstractPdfDocumentEvent @event)
+            {
+                var pdfEvent = (PdfDocumentEvent)@event;
 
+                var pdf = pdfEvent.GetDocument();
+                var page = pdfEvent.GetPage();
+                var pageSize = page.GetPageSize();
+
+                var canvas = new Canvas(
+                    new PdfCanvas(
+                        page.NewContentStreamBefore(),
+                        page.GetResources(),
+                        pdf),
+                    pageSize);
+
+                float bottomY = 12;
+                float leftX = 30;
+                float rightX = pageSize.GetWidth() - 30;
+
+                int pageNumber = pdf.GetPageNumber(page);
+
+                string dateTime =
+                    DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt");
+
+                string leftText = $"Print Datetime: {dateTime}";
+                string rightText = $"Page {pageNumber} of ";
+
+                canvas.ShowTextAligned(
+                    new Paragraph(leftText)
+                        .SetFont(_font)
+                        .SetFontSize(8)
+                        .SetFontColor(ColorConstants.GRAY),
+                    leftX,
+                    bottomY,
+                    TextAlignment.LEFT);
+
+                canvas.ShowTextAligned(
+                    new Paragraph(rightText)
+                        .SetFont(_font)
+                        .SetFontSize(8)
+                        .SetFontColor(ColorConstants.GRAY),
+                    rightX - 4,
+                    bottomY,
+                    TextAlignment.RIGHT);
+
+                canvas.Add(
+                    new Image(_totalPagesPlaceholder)
+                        .SetFixedPosition(rightX, bottomY + 2, 50));
+
+                canvas.Close();
+            }
+
+            public void WriteTotalPages(PdfDocument pdfDoc)
+            {
+                int totalPages = pdfDoc.GetNumberOfPages();
+
+                PdfCanvas canvas =
+                    new PdfCanvas(_totalPagesPlaceholder, pdfDoc);
+
+                canvas.BeginText();
+                canvas.SetFontAndSize(_font, 8);
+                canvas.SetFillColor(ColorConstants.GRAY);
+                canvas.MoveText(0, 0);
+                canvas.ShowText(totalPages.ToString());
+                canvas.EndText();
+            }
+        }
         #endregion
     }
 }

@@ -15,6 +15,8 @@ namespace GCTL.Core.ViewModels.Common
         public string IconClass { get; set; }         // optional, e.g. "fa fa-truck"
         public bool IsActive { get; set; } = false;
         public object RouteValues { get; set; }        // optional extra params
+        public string BtnClass { get; set; }           // optional extra class(es) for the button
+        public string BtnId { get; set; }              // optional custom id for the button
     }
 
     public class TabGroupModel

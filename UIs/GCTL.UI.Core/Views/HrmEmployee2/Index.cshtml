@@ -62,33 +62,27 @@
     }
 
     }
+    
 </style>
-<partial name="_PageHeader" model="Model" />
 
-<!-- Content Header (Page header) -->
-@* <section class="content-header" style="padding-bottom: 0;">
-    <div class="container-fluid">
-        <div class="calloutx callout-info" style="height: 35px;">
-            <div class="row mb-2">
-                <div class="col-md-8 row">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class=""><a href="@Url.Action("Setup", "HrmEmployee2")" class="linkbutton1 btn btn-sm btn-success" style="font-size:13px; text-decoration: none;"> <i class="fa fa-plus"></i> Add Employee </a></li>
-                    </ol>
-                </div>
-               
-            </div>
-        </div>
-    </div><!-- /.container-fluid -->
-</section> *@
+<partial name="_PageHeader" model="Model" />
 
 <section class="content">
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
-                   @*  <div class="card-header px-2">
-                        @await Html.PartialAsync("_TabButton")
-                    </div> *@
+                    <div>
+                        @await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
+                        {
+                            Id = "add_employee",
+                            Text = "Add Employee",
+                            Icon = "fa-solid fa-plus",
+                            CssClass = "btn-dark px-3 text-dark",
+                            IsLink = true,
+                            Href = "/HrmEmployee2/Setup"
+                        })
+                    </div>
                     <div class="card-header border-transparent">
                         <h3 class="card-title">@ViewBag.Title</h3>
                     </div>

@@ -10,16 +10,19 @@ namespace GCTL.Controllers
 {
     public class ExpenseHeadController : BaseController
     {
+        #region 
         private readonly IExpenseHead _service;
         private readonly IShipmentMode _shipmentMode;
         private readonly IServiceType _serviceType;
-        public ExpenseHeadController( IExpenseHead service, IShipmentMode shipmentMode, IServiceType serviceType) : base()
+        public ExpenseHeadController(IExpenseHead service, IShipmentMode shipmentMode, IServiceType serviceType) : base()
         {
             _service = service;
             _shipmentMode = shipmentMode;
             _serviceType = serviceType;
         }
+        #endregion
 
+        #region
         public IActionResult Index()
         {
             return View();
@@ -32,7 +35,9 @@ namespace GCTL.Controllers
         {
             return PartialView();
         }
+        #endregion
 
+        #region
         [HttpDelete]
         [Route("expense-head-bulk")]
         public async Task<IActionResult> BulkDeleteExpenseHead([FromBody] List<int> ids)
@@ -235,39 +240,9 @@ namespace GCTL.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
+        #endregion
 
         #region Report
-
-        //[HttpGet("expense-head/excel-report")]
-        //public async Task<IActionResult> GetExcelReport([FromQuery] string expenseTypeId)
-        //{
-        //    try
-        //    {
-        //        var content = await _service.GenerateExcelReportAsync(expenseTypeId);
-        //        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ExpenseHeadReport.xlsx");
-        //    }
-        //    catch (Exception)
-        //    {
-
-        //        throw;
-        //    }
-
-        //}
-
-        //[HttpGet("expense-head/generate-pdf-report")]
-        //public async Task<IActionResult> GetPdfReport([FromQuery] string expenseTypeId)
-        //{
-        //    try
-        //    {
-        //        var content = await _service.GeneratePdfReportAsync(expenseTypeId);
-        //        return File(content, "application/pdf", "ExpenseHeadReport.pdf");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
 
         [HttpGet("/expense-head/report")]
         public async Task<IActionResult> GetExpenseHeadReport([FromQuery] string expenseTypeId, [FromQuery] string format)
@@ -292,8 +267,6 @@ namespace GCTL.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-
         #endregion
 
     }

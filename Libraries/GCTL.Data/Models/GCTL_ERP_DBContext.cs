@@ -193,6 +193,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<HrmSeparation> HrmSeparations { get; set; }
 
+    public virtual DbSet<InvDefCompanyFor> InvDefCompanyFors { get; set; }
+
     public virtual DbSet<InvDefCompanyInfo> InvDefCompanyInfos { get; set; }
 
     public virtual DbSet<InvDefSalesPerson> InvDefSalesPeople { get; set; }
@@ -3872,6 +3874,36 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.SeparationTypeId)
                 .IsRequired()
                 .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<InvDefCompanyFor>(entity =>
+        {
+            entity.HasKey(e => e.CompanyForId).HasName("PK__Inv_Def___13A7B23ADE4777E6");
+
+            entity.ToTable("Inv_Def_CompanyFor");
+
+            entity.Property(e => e.CompanyForId)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.CompanyForName)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(100)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<InvDefCompanyInfo>(entity =>

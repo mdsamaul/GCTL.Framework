@@ -288,44 +288,44 @@ namespace GCTL.Service.EmployeeContactInfos
                 entity.EmpContactId = await GenerateNextCode();
                 entity.EmployeeId = entityVM.EmployeeId;
                 entity.CompanyCode = entityVM.CompanyCode ?? string.Empty;
-                entity.BranchCode = entityVM.BranchCode;
-                entity.ParmanentAddress = entityVM.ParmanentAddress;
-                entity.ParmanentAddressBangla = entityVM.ParmanentAddressBangla;
-                entity.ParmanentPostOffice = entityVM.ParmanentPostOffice;
-                entity.ParmanentThana = entityVM.ParmanentThana;
-                entity.ParmanentPostCode = entityVM.ParmanentPostCode;
-                entity.ParmanentDistrict = entityVM.ParmanentDistrict;
-                entity.ParmanentPhone = entityVM.ParmanentPhone;
-                entity.PresentAddress = entityVM.PresentAddress;
-                entity.PresentAddressBangla = entityVM.PresentAddressBangla;
-                entity.PresentPostOffice = entityVM.PresentPostOffice;
-                entity.PresentThana = entityVM.PresentThana;
-                entity.PresentPostCode = entityVM.PresentPostCode;
-                entity.PresentDistrict = entityVM.PresentDistrict;
-                entity.PresentMobile = entityVM.PresentMobile;
-                entity.PresentPhone = entityVM.PresentPhone;
-                entity.PresentFax = entityVM.PresentFax;
-                entity.PresentEmail = entityVM.PresentEmail;
-                entity.PresentEmail = entityVM.PresentEmail;
-                entity.EmContactName1 = entityVM.EmContactName1;
-                entity.EmContactRelation1 = entityVM.EmContactRelation1;
-                entity.EmContactAddress1 = entityVM.EmContactAddress1;
-                entity.EmContactPhone1 = entityVM.EmContactPhone1;
-                entity.EmContactMobile1 = entityVM.EmContactMobile1;
-                entity.EmContactFax1 = entityVM.EmContactFax1;
-                entity.EmContactEmail = entityVM.EmContactEmail;
-                entity.EmContactName2 = entityVM.EmContactName2;
-                entity.EmContactRelation2 = entityVM.EmContactRelation2;
-                entity.EmContactAddress2 = entityVM.EmContactAddress2;
-                entity.EmContactPhone2 = entityVM.EmContactPhone2;
-                entity.EmContactMobile2 = entityVM.EmContactMobile2;
-                entity.EmContactFax2 = entityVM.EmContactFax2;
-                entity.EmContactEmai2 = entityVM.EmContactEmai2;
+                entity.BranchCode = entityVM.BranchCode  ?? string.Empty;
+                entity.ParmanentAddress = entityVM.ParmanentAddress ?? string.Empty;
+                entity.ParmanentAddressBangla = entityVM.ParmanentAddressBangla ?? string.Empty ?? string.Empty;
+                entity.ParmanentPostOffice = entityVM.ParmanentPostOffice ?? string.Empty;
+                entity.ParmanentThana = entityVM.ParmanentThana ?? string.Empty;
+                entity.ParmanentPostCode = entityVM.ParmanentPostCode ?? string.Empty;
+                entity.ParmanentDistrict = entityVM.ParmanentDistrict ?? string.Empty;
+                entity.ParmanentPhone = entityVM.ParmanentPhone ?? string.Empty;
+                entity.PresentAddress = entityVM.PresentAddress ?? string.Empty;
+                entity.PresentAddressBangla = entityVM.PresentAddressBangla ?? string.Empty;
+                entity.PresentPostOffice = entityVM.PresentPostOffice ?? string.Empty;
+                entity.PresentThana = entityVM.PresentThana ?? string.Empty;
+                entity.PresentPostCode = entityVM.PresentPostCode ?? string.Empty;
+                entity.PresentDistrict = entityVM.PresentDistrict ?? string.Empty;
+                entity.PresentMobile = entityVM.PresentMobile ?? string.Empty;
+                entity.PresentPhone = entityVM.PresentPhone ?? string.Empty;
+                entity.PresentFax = entityVM.PresentFax ?? string.Empty;
+                entity.PresentEmail = entityVM.PresentEmail ?? string.Empty;
+                entity.PresentEmail = entityVM.PresentEmail ?? string.Empty;
+                entity.EmContactName1 = entityVM.EmContactName1 ?? string.Empty;
+                entity.EmContactRelation1 = entityVM.EmContactRelation1 ?? string.Empty;
+                entity.EmContactAddress1 = entityVM.EmContactAddress1 ?? string.Empty;
+                entity.EmContactPhone1 = entityVM.EmContactPhone1 ?? string.Empty;
+                entity.EmContactMobile1 = entityVM.EmContactMobile1 ?? string.Empty;
+                entity.EmContactFax1 = entityVM.EmContactFax1 ?? string.Empty;
+                entity.EmContactEmail = entityVM.EmContactEmail ?? string.Empty;
+                entity.EmContactName2 = entityVM.EmContactName2 ?? string.Empty;
+                entity.EmContactRelation2 = entityVM.EmContactRelation2 ?? string.Empty;
+                entity.EmContactAddress2 = entityVM.EmContactAddress2 ?? string.Empty;
+                entity.EmContactPhone2 = entityVM.EmContactPhone2 ?? string.Empty;
+                entity.EmContactMobile2 = entityVM.EmContactMobile2 ?? string.Empty;
+                entity.EmContactFax2 = entityVM.EmContactFax2 ?? string.Empty;
+                entity.EmContactEmai2 = entityVM.EmContactEmai2 ?? string.Empty;
                 entity.CompanyCode = CompanyCode;
                 entity.UserInfoEmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty;
-                entity.Luser = entityVM.Luser;
-                entity.Lip = entityVM.Lip;
-                entity.Lmac = entityVM.Lmac;
+                entity.Luser = entityVM.Luser ?? string.Empty;
+                entity.Lip = entityVM.Lip ?? string.Empty;
+                entity.Lmac = entityVM.Lmac ?? string.Empty;
                 entity.Ldate = DateTime.Now;
 
                 await employeeContactInfoRepository.AddAsync(entity);
@@ -360,47 +360,47 @@ namespace GCTL.Service.EmployeeContactInfos
                     return false;
                 }
                 entity.AutoId = (decimal)entityVM.AutoId;
-                entity.EmpContactId = entityVM.EmpContactId;
-                entity.EmployeeId = entityVM.EmployeeId;
+                entity.EmpContactId = entityVM.EmpContactId ?? string.Empty;
+                entity.EmployeeId = entityVM.EmployeeId ?? string.Empty;
                 entity.CompanyCode = entityVM.CompanyCode ?? string.Empty;
-                entity.BranchCode = entityVM.BranchCode;
-                entity.ParmanentAddress = entityVM.ParmanentAddress;
-                entity.ParmanentAddressBangla = entityVM.ParmanentAddressBangla;
-                entity.ParmanentPostOffice = entityVM.ParmanentPostOffice;
-                entity.ParmanentThana = entityVM.ParmanentThana;
-                entity.ParmanentPostCode = entityVM.ParmanentPostCode;
-                entity.ParmanentDistrict = entityVM.ParmanentDistrict;
-                entity.ParmanentPhone = entityVM.ParmanentPhone;
-                entity.PresentAddress = entityVM.PresentAddress;
-                entity.PresentAddressBangla = entityVM.PresentAddressBangla;
-                entity.PresentPostOffice = entityVM.PresentPostOffice;
-                entity.PresentThana = entityVM.PresentThana;
-                entity.PresentPostCode = entityVM.PresentPostCode;
-                entity.PresentDistrict = entityVM.PresentDistrict;
-                entity.PresentMobile = entityVM.PresentMobile;
-                entity.PresentPhone = entityVM.PresentPhone;
-                entity.PresentFax = entityVM.PresentFax;
-                entity.PresentEmail = entityVM.PresentEmail;
-                entity.PresentEmail = entityVM.PresentEmail;
-                entity.EmContactName1 = entityVM.EmContactName1;
-                entity.EmContactRelation1 = entityVM.EmContactRelation1;
-                entity.EmContactAddress1 = entityVM.EmContactAddress1;
-                entity.EmContactPhone1 = entityVM.EmContactPhone1;
-                entity.EmContactMobile1 = entityVM.EmContactMobile1;
-                entity.EmContactFax1 = entityVM.EmContactFax1;
-                entity.EmContactEmail = entityVM.EmContactEmail;
-                entity.EmContactName2 = entityVM.EmContactName2;
-                entity.EmContactRelation2 = entityVM.EmContactRelation2;
-                entity.EmContactAddress2 = entityVM.EmContactAddress2;
-                entity.EmContactPhone2 = entityVM.EmContactPhone2;
-                entity.EmContactMobile2 = entityVM.EmContactMobile2;
-                entity.EmContactFax2 = entityVM.EmContactFax2;
-                entity.EmContactEmai2 = entityVM.EmContactEmai2;
+                entity.BranchCode = entityVM.BranchCode ?? string.Empty;
+                entity.ParmanentAddress = entityVM.ParmanentAddress ?? string.Empty;
+                entity.ParmanentAddressBangla = entityVM.ParmanentAddressBangla ?? string.Empty;
+                entity.ParmanentPostOffice = entityVM.ParmanentPostOffice ?? string.Empty;
+                entity.ParmanentThana = entityVM.ParmanentThana ?? string.Empty;
+                entity.ParmanentPostCode = entityVM.ParmanentPostCode ?? string.Empty;
+                entity.ParmanentDistrict = entityVM.ParmanentDistrict ?? string.Empty;
+                entity.ParmanentPhone = entityVM.ParmanentPhone ?? string.Empty;
+                entity.PresentAddress = entityVM.PresentAddress ?? string.Empty;
+                entity.PresentAddressBangla = entityVM.PresentAddressBangla ?? string.Empty;
+                entity.PresentPostOffice = entityVM.PresentPostOffice ?? string.Empty;
+                entity.PresentThana = entityVM.PresentThana ?? string.Empty;
+                entity.PresentPostCode = entityVM.PresentPostCode ?? string.Empty;
+                entity.PresentDistrict = entityVM.PresentDistrict ?? string.Empty;
+                entity.PresentMobile = entityVM.PresentMobile ?? string.Empty;
+                entity.PresentPhone = entityVM.PresentPhone ?? string.Empty;
+                entity.PresentFax = entityVM.PresentFax ?? string.Empty;
+                entity.PresentEmail = entityVM.PresentEmail ?? string.Empty;
+                entity.PresentEmail = entityVM.PresentEmail ?? string.Empty;
+                entity.EmContactName1 = entityVM.EmContactName1 ?? string.Empty;
+                entity.EmContactRelation1 = entityVM.EmContactRelation1 ?? string.Empty;
+                entity.EmContactAddress1 = entityVM.EmContactAddress1 ?? string.Empty;
+                entity.EmContactPhone1 = entityVM.EmContactPhone1 ?? string.Empty;
+                entity.EmContactMobile1 = entityVM.EmContactMobile1 ?? string.Empty;
+                entity.EmContactFax1 = entityVM.EmContactFax1 ?? string.Empty;
+                entity.EmContactEmail = entityVM.EmContactEmail ?? string.Empty;
+                entity.EmContactName2 = entityVM.EmContactName2 ?? string.Empty;
+                entity.EmContactRelation2 = entityVM.EmContactRelation2 ?? string.Empty;
+                entity.EmContactAddress2 = entityVM.EmContactAddress2 ?? string.Empty;
+                entity.EmContactPhone2 = entityVM.EmContactPhone2 ?? string.Empty;
+                entity.EmContactMobile2 = entityVM.EmContactMobile2 ?? string.Empty;
+                entity.EmContactFax2 = entityVM.EmContactFax2 ?? string.Empty;
+                entity.EmContactEmai2 = entityVM.EmContactEmai2 ?? string.Empty;
 
                 entity.ModifyDate = DateTime.Now;
-                entity.Luser = entityVM.Luser;
-                entity.Lip = entityVM.Lip;
-                entity.Lmac = entityVM.Lmac;
+                entity.Luser = entityVM.Luser ?? string.Empty;
+                entity.Lip = entityVM.Lip ?? string.Empty;
+                entity.Lmac = entityVM.Lmac ?? string.Empty;
 
                 await employeeContactInfoRepository.UpdateAsync(entity);
                 await employeeContactInfoRepository.CommitTransactionAsync();
@@ -484,7 +484,7 @@ namespace GCTL.Service.EmployeeContactInfos
         }
         #endregion
 
-        #region Get Company, Branch, Department
+        #region GetContactInfoByEmployeeId
 
         public async Task<EmployeeContactInfosSetupViewModel> GetContactInfoByEmployeeId(string employeeId)
         {
@@ -574,6 +574,7 @@ namespace GCTL.Service.EmployeeContactInfos
                         EmContactPhone2 = ec != null ? ec.EmContactPhone2 ?? "" : "",
                         EmContactFax2 = ec != null ? ec.EmContactFax2 ?? "" : "",
                         EmContactEmai2 = ec != null ? ec.EmContactEmai2 ?? "" : "",
+
                     }).FirstOrDefaultAsync();
             }
             catch (Exception ex)
@@ -582,7 +583,6 @@ namespace GCTL.Service.EmployeeContactInfos
                 throw;
             }
         }
-
 
         public async Task<List<EmployeeContactInfosSetupViewModel>> GetComapnyByCode(string companyCode)
         {

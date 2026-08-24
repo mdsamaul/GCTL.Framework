@@ -1,71 +1,36 @@
 ﻿@model GCTL.Core.ViewModels.HrmEmployees2.HrmEmployee2SetUpViewModel
+@using GCTL.UI.Core.ViewModels
 
 @{
     ViewBag.Title = "Employee Information List";
     Model.PageTitle = "Employee Information System";
-    Model.Breadcrumb = "Employee Information System";  
+    Model.Breadcrumb = "Employee Information System";
 }
 
-<div id="customLoadingOverlay" style="
-     display: flex;
-     position: fixed;
-     top: 0;
-     left: 0;
-     width: 100%;
-     height: 100%;
-     background-color: rgba(0, 0, 0, 0.5);
-     z-index: 9999;
-     justify-content: center;
-     align-items: center;">
-    <div style="
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            text-align: center;">
+<div id="customLoadingOverlay" style="display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
+    <div style="background-color:white;padding:20px;border-radius:5px;box-shadow:0 0 10px rgba(0,0,0,0.3);text-align:center;">
         <div class="spinner-border text-primary" role="status">
             <span class="sr-only">Loading...</span>
         </div>
-        <p style="margin-top: 10px; margin-bottom: 0;">Loading data...</p>
+        <p style="margin-top:10px;margin-bottom:0;">Loading data...</p>
     </div>
 </div>
 
 <partial name="_PageHeader" model="Model" />
 
-@* <!-- Content Header (Page header) -->
-<section class="content-header" style="padding-bottom: 0;">
-    <div class="container-fluid">
-        <div class="calloutx callout-info" style="height: 30px;">
-            <div class="row">
-                <div class="col-md-8 row">
-                    <ol class="breadcrumb float-sm-right">
-                    </ol>
-                </div>
-                <div class="col-md-4">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="/Dashboard">Home</a></li>
-                        <li class="breadcrumb-item"><a href="/HrmEmployee2">Employee Informtion</a></li>
-                        <li class="breadcrumb-item active">Employee Setup</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div><!-- /.container-fluid -->
-</section> *@
-
 <section class="content">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-12 ">
+            <div class="col-md-12">
                 <div class="card mb-0">
                     <div class="card-header border-transparent py-1">
-                            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-{
-        Title = "Employee Information System",
-        SaveBtnClass = "js-HrmEmployee2-save",
-        DeleteBtnClass = "js-HrmEmployee2-delete-confirm",
-        ClearBtnClass = "js-HrmEmployee2-clear"
-})
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
+                        {
+                            Title = "Employee Information System",
+                            SaveBtnClass = "js-HrmEmployee2-save",
+                            DeleteBtnClass = "js-HrmEmployee2-delete-confirm",
+                            ClearBtnClass = "js-HrmEmployee2-clear"
+                        })
                     </div>
                 </div>
             </div>
@@ -77,509 +42,576 @@
     <form asp-action="Setup" id="HrmEmployee2-form" method="post" enctype="multipart/form-data" asp-controller="HrmEmployee2">
         <div class="container-fluid">
             <div class="form-group row pt-2">
-              
+
+                <!-- ================= LEFT SIDE ================= -->
                 <div class="col-md-9 gc-inline-select2">
                     <div class="card">
                         <div class="card-header py-0">
                             @await Html.PartialAsync("_TabButton")
                         </div>
                         <div class="card-body pt-1">
-                            <div style="padding-top: 10px;">
-                                <div class="form-group row">
+                            <div class="pt-2">
 
-                                    <input type="hidden" id="lastCode" />
-                                    <input type="hidden" asp-for="Id" />
-                                    <input type="hidden" asp-for="Ldate" />
-                                    <input type="hidden" asp-for="ModifyDate" />
-                                    <input type="hidden" asp-for="AutoId" />
+                                <input type="hidden" id="lastCode" />
+                                <input type="hidden" asp-for="Id" />
+                                <input type="hidden" asp-for="Ldate" />
+                                <input type="hidden" asp-for="ModifyDate" />
+                                <input type="hidden" asp-for="AutoId" />
 
-                                    <div class="col-lg-4">
-                                        <label asp-for="CompanyCode">Company<span style="color:red">*</span></label>
-
-                                        <div class="input-group">
-                                            <select asp-for="CompanyCode" tabindex="1" required class="form-control form-control-sm  gc-select2 gc-select2" asp-items="ViewBag.CoreCompanyDD" tabindex="1" data-placeholder="--Select Company--">
-                                                <option></option>
-                                            </select>
-                                        </div>                              
-                                    </div>
-
-                                    @* <div class="col-lg-4">
-                                        <label asp-for="BranchCode">Branch<span style="color:red">*</span></label>
-                                        <select asp-for="BranchCode" class="form-control form-control-sm  gc-select2 gc-select2" required tabindex="2" asp-items="@ViewBag.CoreBranchDD as SelectList"
-                                                data-placeholder="--Select Branch--">
-                                            <option></option>
-                                        </select>                                     
-                                    </div> *@
-
+                                <!-- ========== Row 1 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Company",
+                                        InputId = "CompanyCode",
+                                        FieldType = FieldType.Select,
+                                        IsRequired = true,
+                                        Placeholder = "--Select Company--",
+                                        SelectItems = ViewBag.CoreCompanyDD as SelectList,
+                                        DefaultValue = Model.CompanyCode,
+                                        ReserveActionSlot = true
+                                    })
                                 </div>
 
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="EmployeeId">Employee ID<span style="color:red">*</span></label>
-                                        
-                                        <input asp-for="EmployeeId" type="text" class="form-control form-control-sm js-code" tabindex="2" placeholder="Enter Employee Id" autofocus />
-                                        
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="FirstName">First Name<span style="color:red">*</span></label>
-                                       
-                                        <input asp-for="FirstName" type="text" required class="form-control form-control-sm js-check-availability" tabindex="3" placeholder="Enter Employee First Name" />
-                                       
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="LastName">Last Name</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="LastName" class="form-control form-control-sm" placeholder="Enter Employee Last Name" tabindex="4" />
-                                    </div>
+                                <!-- ========== Row 2 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Employee ID",
+                                        InputId = "EmployeeId",
+                                        FieldType = FieldType.Text,
+                                        IsRequired = true,
+                                        Placeholder = "Enter Employee Id",
+                                        DefaultValue = Model.EmployeeId,
+                                        JsEventClass = "js-code",
+                                        AutoFocus = true,
+                                        ReserveActionSlot = true
+                                    })
 
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="FirstNameBangla">First Name(বাংলা)</label>
-                                        <input asp-for="FirstNameBangla" type="text" tabindex="5" onpaste="validatePasteBangla(event)" oninput="validateBanglaInput(this)" placeholder="Enter Employee First Name (বাংলা)" class="form-control form-control-sm " />
-                                        <span asp-validation-for="FirstNameBangla" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="LastNameBangla">Last Name(বাংলা)</label>
-                                       
-                                        <input asp-for="LastNameBangla" type="text" tabindex="6" onpaste="validatePasteBangla(event)" oninput="validateBanglaInput(this)" class="form-control form-control-sm" placeholder="Enter Employee Last Name (বাংলা)" />
-                                        <span asp-validation-for="LastNameBangla" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-lg-4">
-                                       
-                                    </div>
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "First Name",
+                                        InputId = "FirstName",
+                                        FieldType = FieldType.Text,
+                                        IsRequired = true,
+                                        Placeholder = "Enter Employee First Name",
+                                        DefaultValue = Model.FirstName,
+                                        JsEventClass = "js-check-availability",
+                                        ReserveActionSlot = true
+                                    })
 
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="FatherName">Father's Name</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="FatherName" class="form-control form-control-sm datepicker" tabindex="7" placeholder="Enter Father's Name" />
-                                        <span asp-validation-for="FatherName" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="MotherName">Mother's Name</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="MotherName" class="form-control form-control-sm datepicker" tabindex="8" placeholder="Enter Mother's Name" />
-                                        <span asp-validation-for="MotherName" class="text-danger"></span>
-                                    </div>
-
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="FatherOccupation">Father's Occupation</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="FatherOccupation" class="form-control form-control-sm" tabindex="9" placeholder="Enter Father's Occupation" />
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="MotherOccupation"> Mother's Occupation</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="MotherOccupation" class="form-control form-control-sm" tabindex="10" placeholder="Enter  Mother's Occupation" />
-                                        <span asp-validation-for="MotherOccupation" class="text-danger" />
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="DateOfBirthOrginal">Date of Birth</label>
-                                        <input type="hidden" id="DateOfBirthOrginalHidden" />
-
-                                        <input asp-for="DateOfBirthOrginal"
-                                               id="DateOfBirthOrginal" tabindex="11" class="form-control form-control-sm datepicker" />                                      
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-
-                                    <div class="col-lg-4">
-                                        <label asp-for="DateOfBirthCertificate">Date of Birth(Certificate)</label>
-                                        <input type="hidden" id="DateOfBirthCertificateHidden" />
-
-                                        <input asp-for="DateOfBirthCertificate"
-                                               id="DateOfBirthCertificate" tabindex="12" class="form-control form-control-sm datepicker" />
-                                    </div>
-
-                                    <div class="col-lg-4">
-                                        <label asp-for="BirthCertificateNo">Birth Certificate No</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="BirthCertificateNo" class="form-control form-control-sm" tabindex="13" placeholder="Enter Birth Certificate No." />
-                                    </div>
-
-                                    <div class="col-lg-4">
-                                        <label asp-for="PlaceOfBirth">Place Of Birth</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="PlaceOfBirth" class="form-control form-control-sm" tabindex="14" placeholder="Enter Place Of Birth" />
-                                    </div>
-
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="SexCode">Gender<span style="color:red">*</span></label>
-                                        <span class="text-danger"></span>
-                                        <div class="input-group">
-                                            <select asp-for="SexCode" class="form-control form-control-sm  gc-select2 gc-select2" required tabindex="15"
-                                                    asp-items="@ViewBag.SexesDD as SelectList"
-                                                    data-placeholder="--Select Gender--">
-                                                <option></option>
-                                            </select>
-
-                                        </div>
-                                       
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="form-group">
-                                            <label asp-for="BloodGroupCode">Blood Group</label>
-                                            <span class="text-danger"></span>
-                                            <div class="input-group">
-                                                 <select asp-for="BloodGroupCode" class="form-control form-control-sm  gc-select2" tabindex="16"
-                                                        asp-items="@ViewBag.BloodGroupDD as SelectList"
-                                                        data-placeholder="--Select Blood Group--">
-                                                    <option></option>
-                                                </select> 
-
-                                            
-                                            </div>
-                                            <span asp-validation-for="BloodGroupCode" class="text-danger" />
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="NationalityCode">NationalityCode</label>
-                                        <span class="text-danger"></span>
-                                        <div class="input-group">
-                                            <select asp-for="NationalityCode" class="form-control form-control-sm  gc-select2 gc-select2" tabindex="17"
-                                                    asp-items="@ViewBag.NationalityDD as SelectList"
-                                                    data-placeholder="--Select Nationality--">
-                                                <option></option>
-                                            </select>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="NationalIdno">National ID</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="NationalIdno" class="form-control form-control-sm" placeholder="Enter National Id No." tabindex="18" />
-
-                                    </div>
-                            
-                                    <div class="col-lg-4">
-                                        <div class="form-group">
-                                            <label asp-for="ReligionCode">Religion</label>
-                                            <span class="text-danger"></span>
-                                            <div class="input-group">
-                                                <select asp-for="ReligionCode" class="form-control form-control-sm  gc-select2 gc-select2" tabindex="19"
-                                                        asp-items="@ViewBag.ReligionDD as SelectList"
-                                                        data-placeholder="--Select Religion--">
-                                                    <option></option>
-                                                </select>
-
-
-                                            </div>
-                                            <span asp-validation-for="ReligionCode" class="text-danger" />
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="ExtraCurriActivities">Other Activities/Hobbies</label>
-                                        <input asp-for="ExtraCurriActivities" class="form-control form-control-sm" placeholder="Enter Extra Curriculum Activities"  tabindex="20"/>
-
-
-                                    </div>
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Last Name",
+                                        InputId = "LastName",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Employee Last Name",
+                                        DefaultValue = Model.LastName,
+                                        ReserveActionSlot = true
+                                    })
                                 </div>
 
-                               
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="MaritalStatusCode">Marital Status</label>
-                                        <span class="text-danger"></span>
-                                        <select asp-for="MaritalStatusCode" class="form-control form-control-sm  gc-select2 gc-select2" tabindex="21"
-                                                asp-items="@ViewBag.MaritalyDD as SelectList"
-                                                data-placeholder="--Select Marital Status--">
-                                            <option></option>
-                                        </select>
-                                        <span asp-validation-for="MaritalStatusCode" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="MarriageDate">Marriage Date</label>
-                                        <span class="text-danger"></span>
-                                        <input type="hidden" id="MarriageDateHidden" />
+                                <!-- ========== Row 3 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "First Name (বাংলা)",
+                                        InputId = "FirstNameBangla",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter First Name (বাংলা)",
+                                        DefaultValue = Model.FirstNameBangla,
+                                        ReserveActionSlot = true
+                                    })
 
-                                        <input asp-for="MarriageDate"
-                                               id="MarriageDate" tabindex="22" class="form-control form-control-sm datepicker" />                                   
-                                    </div>
-
-                                    <div class="col-lg-4">
-                                        <label asp-for="Spouse">Spouse's Name</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="Spouse" class="form-control form-control-sm" tabindex="23" placeholder="Enter Spoue's Name" />
-                                        <span asp-validation-for="Spouse" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="NoOfSon">No of Son(s)</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="NoOfSon" class="form-control form-control-sm" placeholder="Enter No of Son" tabindex="24"/>
-                                        <span asp-validation-for="NoOfSon" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="NoOfDaughters">No Of Daughter(s)</label>
-                                        <input asp-for="NoOfDaughters" class="form-control form-control-sm" placeholder="Enter No of Daughter" tabindex="25"/>
-                                        <span asp-validation-for="NoOfDaughters" class="text-danger"></span>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <label asp-for="Telephone">Personal Mobile No.</label>
-                                        <span class="text-danger"></span>
-                                        <input asp-for="Telephone" class="form-control form-control-sm" placeholder="Enter Personal Mobile No" tabindex="26"/>
-
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-lg-4">
-                                        <label asp-for="PersonalEmail">Personal Email</label>
-                                        <input asp-for="PersonalEmail" type="text" class="form-control form-control-sm" placeholder="Enter Personal Email" tabindex="27" />
-                                        <span asp-validation-for="PersonalEmail" class="text-danger"></span>
-                                    </div>
-
-                                    <div class="col-lg-4">
-                                        <label asp-for="CardNo">Card No</label>
-                                        <input asp-for="CardNo" type="text" class="form-control form-control-sm" placeholder="Enter Card No." tabindex="28" />
-                                    </div>
-
-                                    <div class="col-lg-4">
-                                        <label asp-for="TinNo">TIN No</label>
-                                        <input asp-for="TinNo" type="text" class="form-control form-control-sm" placeholder="Enter Tin No." tabindex="29"/>
-                                    </div>
-
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Last Name (বাংলা)",
+                                        InputId = "LastNameBangla",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Last Name (বাংলা)",
+                                        DefaultValue = Model.LastNameBangla,
+                                        ReserveActionSlot = true
+                                    })
                                 </div>
 
+                                <!-- ========== Row 4 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Father's Name",
+                                        InputId = "FatherName",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Father's Name",
+                                        DefaultValue = Model.FatherName,
+                                        ReserveActionSlot = true
+                                    })
 
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Mother's Name",
+                                        InputId = "MotherName",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Mother's Name",
+                                        DefaultValue = Model.MotherName,
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
 
+                                <!-- ========== Row 5 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Father's Occupation",
+                                        InputId = "FatherOccupation",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Father's Occupation",
+                                        DefaultValue = Model.FatherOccupation,
+                                        ReserveActionSlot = true
+                                    })
 
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Mother's Occupation",
+                                        InputId = "MotherOccupation",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Mother's Occupation",
+                                        DefaultValue = Model.MotherOccupation,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Date of Birth",
+                                        InputId = "DateOfBirthOrginal",
+                                        FieldType = FieldType.Date,
+                                        DefaultValue = Model.DateOfBirthOrginal?.ToString("dd/MM/yyyy"),
+                                        Placeholder = "dd/mm/yyyy",
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
+
+                                <!-- ========== Row 6 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Date of Birth (Certificate)",
+                                        InputId = "DateOfBirthCertificate",
+                                        FieldType = FieldType.Date,
+                                        DefaultValue = Model.DateOfBirthCertificate?.ToString("dd/MM/yyyy"),
+                                        Placeholder = "dd/mm/yyyy",
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Birth Certificate No",
+                                        InputId = "BirthCertificateNo",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Birth Certificate No.",
+                                        DefaultValue = Model.BirthCertificateNo,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Place Of Birth",
+                                        InputId = "PlaceOfBirth",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Place Of Birth",
+                                        DefaultValue = Model.PlaceOfBirth,
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
+
+                                <!-- ========== Row 7 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Gender",
+                                        InputId = "SexCode",
+                                        FieldType = FieldType.Select,
+                                        IsRequired = true,
+                                        Placeholder = "--Select Gender--",
+                                        SelectItems = ViewBag.SexesDD as SelectList,
+                                        DefaultValue = Model.SexCode,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Blood Group",
+                                        InputId = "BloodGroupCode",
+                                        FieldType = FieldType.Select,
+                                        Placeholder = "--Select Blood Group--",
+                                        SelectItems = ViewBag.BloodGroupDD as SelectList,
+                                        DefaultValue = Model.BloodGroupCode,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Nationality",
+                                        InputId = "NationalityCode",
+                                        FieldType = FieldType.Select,
+                                        Placeholder = "--Select Nationality--",
+                                        SelectItems = ViewBag.NationalityDD as SelectList,
+                                        DefaultValue = Model.NationalityCode,
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
+
+                                <!-- ========== Row 8 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "National ID",
+                                        InputId = "NationalIdno",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter National Id No.",
+                                        DefaultValue = Model.NationalIdno,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Religion",
+                                        InputId = "ReligionCode",
+                                        FieldType = FieldType.Select,
+                                        Placeholder = "--Select Religion--",
+                                        SelectItems = ViewBag.ReligionDD as SelectList,
+                                        DefaultValue = Model.ReligionCode,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Other Activities/Hobbies",
+                                        InputId = "ExtraCurriActivities",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Extra Curriculum Activities",
+                                        DefaultValue = Model.ExtraCurriActivities,
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
+
+                                <!-- ========== Row 9 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Marital Status",
+                                        InputId = "MaritalStatusCode",
+                                        FieldType = FieldType.Select,
+                                        Placeholder = "--Select Marital Status--",
+                                        SelectItems = ViewBag.MaritalyDD as SelectList,
+                                        DefaultValue = Model.MaritalStatusCode,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Marriage Date",
+                                        InputId = "MarriageDate",
+                                        FieldType = FieldType.Date,
+                                        DefaultValue = Model.MarriageDate?.ToString("dd/MM/yyyy"),
+                                        Placeholder = "dd/mm/yyyy",
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Spouse's Name",
+                                        InputId = "Spouse",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Spouse's Name",
+                                        DefaultValue = Model.Spouse,
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
+
+                                <!-- ========== Row 10 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "No of Son(s)",
+                                        InputId = "NoOfSon",
+                                        FieldType = FieldType.Number,
+                                        Placeholder = "Enter No of Son",
+                                        DefaultValue = Model.NoOfSon?.ToString(),
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "No Of Daughter(s)",
+                                        InputId = "NoOfDaughters",
+                                        FieldType = FieldType.Number,
+                                        Placeholder = "Enter No of Daughter",
+                                        DefaultValue = Model.NoOfDaughters?.ToString(),
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Personal Mobile No.",
+                                        InputId = "Telephone",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Personal Mobile No",
+                                        DefaultValue = Model.Telephone,
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
+
+                                <!-- ========== Row 11 ========== -->
+                                <div class="row g-2 mb-2">
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Personal Email",
+                                        InputId = "PersonalEmail",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Personal Email",
+                                        DefaultValue = Model.PersonalEmail,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "Card No",
+                                        InputId = "CardNo",                                        
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Card No.",
+                                        DefaultValue = Model.CardNo,
+                                        ReserveActionSlot = true
+                                    })
+
+                                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                    {
+                                        ColumnClass = "col-lg-4",
+                                        LabelText = "TIN No",
+                                        InputId = "TinNo",
+                                        FieldType = FieldType.Text,
+                                        Placeholder = "Enter Tin No.",
+                                        DefaultValue = Model.TinNo,
+                                        ReserveActionSlot = true
+                                    })
+                                </div>
+
+                                <!-- ========== Excel Upload Section ========== -->
                                 <div class="container-fluid px-0 my-3">
-                                    <div class="rounded-3 shadow-sm">
+                                    <div class="rounded-3 shadow-sm border">
                                         <div class="card-header py-2">
-                                            <h6 class="mb-0 p-0">Excel File Upload:</h6>
+                                            <h6 class="mb-0">Excel File Upload</h6>
                                         </div>
-                                        <div class="p-3 col-12 custom-lg-9">
+                                        <div class="p-3">
                                             <div class="row g-2 align-items-center">
-
-                                                @* {{!-- ── Download Template Button ── --}} *@
-                                                <div class="col-md-6 pl-4 pr-0 d-flex align-items-center">
-                                                    <label class="form-label text-right mb-0">Excel File Format</label>
+                                                <div class="col-md-6 d-flex align-items-center">
+                                                    <label class="form-label mb-0 me-2">Excel File Format</label>
                                                     <a href="@Url.Action("DownloadExcel", "HrmEmployee2")"
-                                                       class="btn btn-light border shadow-sm ml-2">
-                                                        <i class="fa fa-download fa-bold"></i>
-                                                        <span style="padding-left:10px;">Download Excel</span>
+                                                       class="btn btn-light border shadow-sm">
+                                                        <i class="fa fa-download"></i>
+                                                        <span class="ms-2">Download Excel</span>
                                                     </a>
                                                 </div>
-
-                                                @* {{!-- ── Upload File ── --}} *@
                                                 <div class="col-md-6">
-                                                    @* NOTE: No action/method needed; AJAX handles submission *@
                                                     <div id="excelUploadForm">
                                                         @Html.AntiForgeryToken()
-                                                        <div class="d-flex justify-content-start align-items-center gap-2">
-
-                                                            <label for="excelFile" class="form-label text-center mb-0">
-                                                                📂 Upload Excel File
-                                                            </label>
-
-                                                            <div class="mx-2">
-                                                                <div class="custom-file-upload btn btn-outline-light border shadow-sm w-100 text-center position-relative overflow-hidden"
-                                                                     style="color:#000">
-                                                                    <i class="fa fa-folder-open"></i>
-                                                                    <span id="choosefileText" style="color:#000">Choose File</span>
-                                                                    <input type="file" id="excelFileInput" name="excelFile"
-                                                                           accept=".xlsx,.xls"
-                                                                           style="position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer;">
-                                                                </div>
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                            <label for="excelFile" class="form-label mb-0">📂 Upload Excel File</label>
+                                                            <div class="custom-file-upload btn btn-outline-light border shadow-sm position-relative overflow-hidden" style="color:#000">
+                                                                <i class="fa fa-folder-open"></i>
+                                                                <span id="choosefileText">Choose File</span>
+                                                                <input type="file" id="excelFileInput" name="excelFile"
+                                                                       accept=".xlsx,.xls"
+                                                                       style="position:absolute;left:0;top:0;opacity:0;width:100%;height:100%;cursor:pointer;">
                                                             </div>
-
-                                                            <div>
-                                                                <button type="submit" class="btn btn-light border shadow-sm" style="height:35px;">
-                                                                    <i class="fa fa-upload me-1"></i> Upload
-                                                                </button>
-                                                            </div>
+                                                            <button type="button" class="btn btn-light border shadow-sm">
+                                                                <i class="fa fa-upload me-1"></i> Upload
+                                                            </button>
                                                         </div>
                                                     </div>
-
-                                                    @* {{!-- ── Validation warning ── --}} *@
                                                     <div id="checkExcelFileFormate"
-                                                         style="display:none; color:red; font-weight:bold;"
-                                                         class="form-text text-center w-75 fs-6 mt-1">
+                                                         style="display:none;color:red;font-weight:bold;"
+                                                         class="form-text mt-1">
                                                         ⚠️ Only .xlsx or .xls files are allowed!
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                             
-
-
-
-
-
-
-
-
-
-
-                               
-                                    @if (Model.AutoId > 0)
-                                    {
-                                        <hr />
-                                        <div class="form-group row" id="LdateModifyHide">
-                                            <div class="col-lg-4">
-                                                @if (Model.Ldate.HasValue)
-                                                {
-                                                    <label>Creation Date: </label>
-
-                                                    <label>@Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt")</label>
-                                                }
-                                            </div>
-                                            <div class="col-lg-4">
-                                                @if (Model.ModifyDate.HasValue)
-                                                {
-                                                    <label>Last Update Date: </label>
-
-                                                    <label>@Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")</label>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                               
-
-                                <div class="form-group row">
-                                   @*  value="Save" type="submit" *@
-                                    <div class="col-12">
-                                        <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle"><i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List</a>
-                                        <button type="button" class="btn btn-default btn-common js-HrmEmployee2-save btn-circle float-right">
-                                            <i class="fas fa-save"></i>
-                                           @*  @if (ViewBag.IsEditMode != null && (bool)ViewBag.IsEditMode)
+                                <!-- ========== Creation / Modify Date ========== -->
+                                @if (Model.AutoId > 0)
+                                {
+                                    <hr />
+                                    <div class="form-group row" id="LdateModifyHide">
+                                        <div class="col-lg-4">
+                                            @if (Model.Ldate.HasValue)
                                             {
-                                                <text>Update</text>
+                                                <label>Creation Date: </label>
+                                                <label>@Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt")</label>
                                             }
-                                            else
+                                        </div>
+                                        <div class="col-lg-4">
+                                            @if (Model.ModifyDate.HasValue)
                                             {
-                                                <text>Save</text>
-                                            } *@
-                                            Save
+                                                <label>Last Update Date: </label>
+                                                <label>@Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")</label>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- ========== Buttons ========== -->
+                                <div class="form-group row mt-3">
+                                    <div class="col-12">
+                                        <a href="@Url.Action("Index")" class="btn btn-default btn-common btn-circle">
+                                            <i class="fas fa-arrow-alt-circle-left"></i> Back To List
+                                        </a>
+                                        <button type="button" class="btn btn-default btn-common js-HrmEmployee2-save btn-circle float-end">
+                                            <i class="fas fa-save"></i> Save
                                         </button>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- ================= RIGHT SIDE (Photo + Signature) ================= -->
                 <div class="col-md-3">
-                    <div class="card">
+                    <div class="card sticky-top" style="top: 80px; z-index: 100;">
                         <div class="card-body">
-                            <div class="form-group row">
-                                <div class="col-md-12">
-                                    <div class="img-preview">
-                                        <h6>Employee Picture</h6>
-                                        
-                                        <img  id="photoPreview" class="img-fluid img-thumbnail img-rounded js-file-chooser" data-target="#Photo"
-                                             src="@(!string.IsNullOrEmpty(Model.PhotoUrl) ? Model.PhotoUrl : "/images/noImage.png")" />
 
-                                        <input type="hidden" asp-for="IsClearPhoto" />
-                                        <div class="form-group row">
-                                            <button type="button" class="btn btn-secondary btn-circle js-file-chooser" data-target="#Photo">Browse Photo</button>
-                                            <button type="button" class="btn btn-danger btn-circle js-clear-file" data-file="#photoPreview" data-tag="#IsClearPhoto">Clear</button>
-                                        </div>
-
-                                        <div class="custom-file d-none">
-                                            <input type="hidden" asp-for="PhotoUrl"   value="@Model.PhotoUrl"/>
-                                            <input type="file" name="Photo" class="custom-file-input form-control form-control-sm js-file" data-target="#photoPreview" id="Photo">
-                                            <label class="custom-file-label" for="Photo">Choose file</label>
-                                        </div>
-                                    </div>
+                            <!-- Employee Picture -->
+                            <div class="img-preview text-center mb-4">
+                                <h6 class="mb-2">Employee Picture</h6>
+                                <div class="photo-box border rounded bg-light d-flex align-items-center justify-content-center mx-auto mb-3"
+                                     style="width:180px;height:180px;overflow:hidden;">
+                                    <img id="photoPreview"
+                                         class="img-fluid js-file-chooser"
+                                         data-target="#Photo"
+                                         data-default="/images/noImage.jpg"
+                                         src="@(string.IsNullOrEmpty(Model.PhotoUrl) ? "/images/noImage.jpg" : Model.PhotoUrl)"
+                                         alt="Employee Picture"
+                                         style="max-width:100%;max-height:100%;object-fit:cover;" />
+                                </div>
+                                <input type="hidden" asp-for="IsClearPhoto" />
+                                <div class="d-flex justify-content-center gap-2 mb-2">
+                                    <button type="button" class="btn btn-secondary btn-sm js-file-chooser" data-target="#Photo">
+                                        <i class="fas fa-upload me-1"></i> Browse Photo
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm js-clear-file"
+                                            data-file="#photoPreview" data-tag="#IsClearPhoto">
+                                        <i class="fas fa-trash-alt me-1"></i> Clear
+                                    </button>
+                                </div>
+                                <div class="custom-file d-none">
+                                    <input type="hidden" asp-for="PhotoUrl" value="@Model.PhotoUrl" />
+                                    <input type="file" name="Photo" class="custom-file-input form-control form-control-sm js-file"
+                                           data-target="#photoPreview" id="Photo" accept="image/*" />
                                 </div>
                             </div>
-                            <div class="form-group row mt-2">
-                                <div class="col-md-12">
-                                    <div class="img-preview">
-                                        <h6>Digital Signature</h6>
-                                        <img id="signaturePreview" class="img-fluid img-thumbnail img-rounded js-file-chooser" data-target="#Signature"
-                                             src="@(!string.IsNullOrEmpty(Model.DigitalSignatureUrl) ? Model.DigitalSignatureUrl :"/images/signature.jpg")" /> 
-                                        <input type="hidden" asp-for="IsClearSignature" />
-                                        <div class="form-group row">
-                                            <button type="button" class="btn btn-secondary btn-circle js-file-chooser" data-target="#Signature">Browse Signature</button>
-                                            <button type="button" class="btn btn-danger btn-circle js-clear-file" data-file="#signaturePreview" data-tag="#IsClearSignature">Clear</button>
-                                        </div>
 
-                                        <div class="custom-file d-none">
-                                            <input type="hidden" asp-for="DigitalSignatureUrl" value="@Model.DigitalSignatureUrl"/>
-                                            <input type="file" name="Signature" class="custom-file-input form-control form-control-sm js-file" data-target="#signaturePreview" id="Signature">
-                                            <label class="custom-file-label" for="Signature">Choose Signature</label>
-                                        </div>
-                                    </div>
+                            <!-- Digital Signature -->
+                            <div class="img-preview text-center">
+                                <h6 class="mb-2">Digital Signature</h6>
+                                <div class="signature-box border rounded bg-light d-flex align-items-center justify-content-center mx-auto mb-3"
+                                     style="width:180px;height:120px;overflow:hidden;">
+                                    <img id="signaturePreview"
+                                         class="img-fluid js-file-chooser"
+                                         data-target="#Signature"
+                                         data-default="/images/signature.jpg"
+                                         src="@(string.IsNullOrEmpty(Model.DigitalSignatureUrl) ? "/images/signature.jpg" : Model.DigitalSignatureUrl)"
+                                         alt="Digital Signature"
+                                         style="max-width:100%;max-height:100%;object-fit:contain;" />
+                                </div>
+                                <input type="hidden" asp-for="IsClearSignature" />
+                                <div class="d-flex justify-content-center gap-2 mb-2">
+                                    <button type="button" class="btn btn-secondary btn-sm js-file-chooser" data-target="#Signature">
+                                        <i class="fas fa-upload me-1"></i> Browse Signature
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm js-clear-file"
+                                            data-file="#signaturePreview" data-tag="#IsClearSignature">
+                                        <i class="fas fa-trash-alt me-1"></i> Clear
+                                    </button>
+                                </div>
+                                <div class="custom-file d-none">
+                                    <input type="hidden" asp-for="DigitalSignatureUrl" value="@Model.DigitalSignatureUrl" />
+                                    <input type="file" name="Signature" class="custom-file-input form-control form-control-sm js-file"
+                                           data-target="#signaturePreview" id="Signature" accept="image/*" />
                                 </div>
                             </div>
+
                         </div>
-                        <!-- /.card-body -->
                     </div>
-                    <!-- /.card -->
                 </div>
+
             </div>
             <partial name="_BottomNavigation" />
         </div>
     </form>
 </section>
+
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    
+
     <script src="~/js/pages/hrmEmployee2.js"></script>
     <script type="text/javascript">
-        var options = 
-        {
-            baseUrl: '@Url.Action("", "HrmEmployee2")'
+        var options = {
+        baseUrl: '@Url.Action("", "HrmEmployee2")'
         };
-        options.load = () => {
-        };
-
+        options.load = () => { };
         $.hrmEmployee2(options);
 
-
-            
         function validateBanglaInput(input) {
-
-            const banglaRegex = /^[\u0980-\u09FF\s]*$/;
-
-            if (!banglaRegex.test(input.value))
-            {
-
-                input.value = input.value.slice(0, -1);
-            }
+        const banglaRegex = /^[\u0980-\u09FF\s]*$/;
+        if (!banglaRegex.test(input.value)) {
+        input.value = input.value.slice(0, -1);
+        }
         }
 
-        function validatePasteBangla(event)
-        {
-
-            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
-
-
-            const banglaRegex = /^[\u0980-\u09FF\s]*$/;
-
-            // If the pasted text contains non-Bangla characters, prevent the paste
-            if (!banglaRegex.test(pastedText))
-            {
-                event.preventDefault();
-                //("Please paste only Bangla text.");
-            }
+        function validatePasteBangla(event) {
+        const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+        const banglaRegex = /^[\u0980-\u09FF\s]*$/;
+        if (!banglaRegex.test(pastedText)) {
+        event.preventDefault();
         }
-    
-
-    </script>    
+        }
+    </script>
 }
-
-

@@ -111,10 +111,32 @@
                   
 
                    <div>
-                        @if (Model.TabModel != null)
+                        @* @if (Model.TabModel != null)
                         {
                             @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
-                        }
+                        } *@
+                        @await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel
+                        {
+                            GroupId = "vendorTabGroup",
+                            Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
+                            {
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "vendorInfo",
+                                    TabTitle = "Vendor Info",
+                                    ControllerName = "VendorInfo",
+                                    ActionName = "Index",
+                                    IsActive = true
+                                },
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "branchAddress",
+                                    TabTitle = "Branch Address",
+                                    ControllerName = "BranchAddress",
+                                    ActionName = "Index"
+                                }
+                            }
+                        })
                     </div>
                     <div class="card-body px-2">
 

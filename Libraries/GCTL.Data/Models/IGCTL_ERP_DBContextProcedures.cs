@@ -14,6 +14,12 @@ namespace GCTL.Data.Models
     public partial interface IGCTL_ERP_DBContextProcedures
     {
         Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<GetExpenseHeadReportResult>> GetExpenseHeadReportAsync(string expenseTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<GetLedgerTreeResult>> GetLedgerTreeAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<sp_GetAllCustomerDeliveryInfoResult>> sp_GetAllCustomerDeliveryInfoAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<sp_GetCustomerReportsInfoResult>> sp_GetCustomerReportsInfoAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<sp_GetVoucherPreviewDataResult>> sp_GetVoucherPreviewDataAsync(string ids, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<SP_HrmEmployee2_GetPagedListResult>> SP_HrmEmployee2_GetPagedListAsync(int? pageNumber, int? pageSize, string sortColumn, string sortDirection, string searchValue, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<usp_GetHolidayListResult>> usp_GetHolidayListAsync(int? year, int? month, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
     }
 }

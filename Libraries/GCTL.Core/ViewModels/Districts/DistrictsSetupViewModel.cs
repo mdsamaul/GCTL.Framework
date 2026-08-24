@@ -10,9 +10,9 @@ namespace GCTL.Core.ViewModels.Districts
     public class DistrictsSetupViewModel : BaseViewModel
     {
         public decimal AutoId { get; set; }
-        public string DistrictId { get; set; }
+        public string? DistrictId { get; set; }
         [Required(ErrorMessage = "District is required")]
         public string District { get; set; }
-        public string CompanyCode { get; set; }
+        public string? CompanyCode { get; set; }
     }
 }

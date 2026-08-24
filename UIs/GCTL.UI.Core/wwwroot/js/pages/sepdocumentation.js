@@ -286,7 +286,7 @@
                     <td>${j.customerAddress ?? ''}</td>
                     <td>${j.shipmentMode ?? ''}</td>
                     <td class="text-center">${j.docReceivedDateFormatted ?? '-'}</td>
-                    <td class="text-end">${j.lcValue ?? ''}</td>
+                    <td class="text-center">${j.lcValue ?? ''}</td>
                     <td class="text-center">${j.jobStatus ?? ''}</td>
                    
                 </tr>`;
@@ -375,14 +375,10 @@
         $('#selectedCountBottom').text(selectedBottomIds.length);
     }
 
-    // Job detail link এ click করলে - কোন deleted ID থাকলে তা সরিয়ে দাও এবং নতুন ID add করো
     $(document).on('click', '.job-detail-link', function (e) {
         e.preventDefault();
         const tc = $(this).data('id');
-
-        // পুরনো ID গুলো clear করো
         selectedBottomIds = [];
-        // নতুন ID add করো
         selectedBottomIds.push(String(tc));
         updateDeleteSelectedButton();
 
@@ -399,7 +395,6 @@
         });
     });
 
-    // Delete button - single click থেকে
     $(document).on('click', '.doc-delete-entry-btn', function (e) {
         e.preventDefault();
 
@@ -495,15 +490,23 @@
         });
     });
 
-    function populateForm(data) {
+    function populateForm(data) {        
+        console.log(data);
         clearForm(false);
-
         $('#tc').val(data.tc || 0);
         setSelect('#shipmentModeId', data.shipmentModeId);
         $('#shipmentModeId').trigger('change');
-
         $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false);
         setField('#jobNo', data.jobNo, true);
+        setField('#beNo', data.beNo, true);
+        setField('#fwdrShippingAgent', data.fwdR_ShippingAgent, true);
+        setField('#RNo', data.rNo, true);
+        setDate('#beDate', data.beDate);
+        setDate('#etactgport', data.etactgport);
+        setDate('#flightArrivalDate', data.flightArrivalDate);
+        setDate('#arrivalNoticeDate', data.arrivalNoticeDate);
+        setDate('#docsBankSignDate', data.docsBankSignDate);
+        setDate('#beNoDate', data.beNoDate);
         setDate('#jobDate', data.date);
         setSelect('#customerId', data.customerId);
         setField('#customerAddress', data.customerAddress);
@@ -563,6 +566,8 @@
         $('#uploadAddressDisplay').val(data.customerAddress || '');
 
         loadDocuments(currentJobNo);
+        calculateLCValueBDT();
+        calculateAssessableValue();
     }
 
     //#endregion
@@ -657,12 +662,16 @@
             Remarks: $('#remarks').val(),
 
             ETDDate: $('#etdDate').val(),
-            BENo: $('#beNoDate').val(),
+            BENoDate: $('#beNoDate').val(),
+            BENo: $('#beNo').val(),
+            BEDate: $('#beDate').val(),
+            RNo: $('#RNo').val(),
             ActualDeliveryDate: $('#actualDeliveryDate').val(),
 
             ShipArrivedDate: $('#seaShipArrivedDate').val(),
             UnstuffDischargeDate: $('#unstuffDischargeDate').val(),
             EstimatedDeliveryDate: $('#seaEstimatedDeliveryDate').val(),
+            Term: $('#term').val(),
 
             FlightArrivalDate: $('#flightArrivalDate').val()
         };
@@ -921,4 +930,32 @@
     }
 
     generateJobNo();
+
+    function calculateLCValueBDT() {        
+        var lcValue = parseFloat($('#lcValue').val()) || 0;
+        var bdtRate = parseFloat($('#bdtRate').val()) || 0;
+
+        var lcValueBDT = lcValue * bdtRate;
+
+        $('#LCValueBDTAmount')
+            .val(lcValueBDT ? lcValueBDT.toFixed(2) : '')
+            .prop('readonly', true);
+    }
+
+    $('#lcValue, #bdtRate').on('input', calculateLCValueBDT);
+    calculateLCValueBDT();
+
+    function calculateAssessableValue() {
+        var invoiceValue = parseFloat($('#invoiceValue').val()) || 0;
+        var assessableRate = parseFloat($('#assessableRate').val()) || 0;
+
+        var assessableValue = invoiceValue * assessableRate;
+
+        $('#assessableValue')
+            .val(assessableValue ? assessableValue.toFixed(2) : '')
+            .prop('readonly', true);
+    }
+
+    $('#invoiceValue, #assessableRate').on('input', calculateAssessableValue);
+    calculateAssessableValue();
 });

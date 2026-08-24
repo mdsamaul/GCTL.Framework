@@ -86,7 +86,7 @@
         padding-bottom: 0.1rem;
     }
 </style>
-@* <div class="table-responsive-sm overflow-hidden">
+<div class="table-responsive-sm overflow-hidden">
     <table id="designation-grid" class="table table-hover table- table-striped table-bordered align-middle table-sm table-common mb-0">
         <thead>
             <tr class="text-center align-middle">
@@ -102,9 +102,9 @@
         </thead>
         <tbody></tbody>
     </table>
-</div> *@
+</div>
 
-@await Html.PartialAsync("_CustomGrid", new GridModel
+@* @await Html.PartialAsync("_CustomGrid", new GridModel
 {
     GridId = "designation-grid",
     CheckAllId = "designation-check-all",
@@ -117,4 +117,4 @@
     },
     Bordered = true,
     Striped =true
-})
+}) *@

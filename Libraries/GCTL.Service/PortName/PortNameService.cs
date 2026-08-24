@@ -2,7 +2,6 @@
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PortName;
-using GCTL.Core.ViewModels.PortType;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;

@@ -1,4 +1,5 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.SepDocumentation;
 using GCTL.Data.Models;
 using GCTL.Service.SepDocumentation;
@@ -151,8 +152,9 @@ namespace GCTL_App.Controllers
                     return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
                 }
 
-                string company = "001";
-                var result = await _service.SaveDocumentationAsync(model, company, LoginInfo?.EmployeeId);
+
+                model.ToAudit(LoginInfo);
+                var result = await _service.SaveDocumentationAsync(model, LoginInfo.CompanyCode, LoginInfo?.EmployeeId);
 
                 return Json(new { success = result.Success, message = result.Message, data = result.Data });
             }
