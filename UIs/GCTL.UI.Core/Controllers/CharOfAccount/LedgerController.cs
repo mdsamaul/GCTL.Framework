@@ -13,6 +13,11 @@ namespace GCTL.Controllers.CharOfAccount
 
         public IActionResult Index()
         {
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView();
+            }
             return View();
         }
 

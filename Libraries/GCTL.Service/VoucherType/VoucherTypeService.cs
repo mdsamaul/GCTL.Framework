@@ -14,7 +14,11 @@ namespace GCTL.Service.VoucherType
     {
         private readonly IRepository<AccVoucherType> _repository;
         private readonly IRepository<AccDurationType> _durationType;
-        public VoucherTypeService(IRepository<AccVoucherType> genericRepository, IRepository<AccDurationType> durationType) : base(genericRepository)
+        public VoucherTypeService(
+            IRepository<AccVoucherType> genericRepository,
+            IRepository<AccDurationType> durationType
+            ) 
+    : base(genericRepository)
         {
             _repository = genericRepository;
             _durationType = durationType;
@@ -118,7 +122,6 @@ namespace GCTL.Service.VoucherType
                         }).FirstOrDefaultAsync();
             return data;
         }
-
 
         public async Task<string> GetLastVoucherTypeCodeAsync()
         {
@@ -411,7 +414,6 @@ namespace GCTL.Service.VoucherType
             }
         }
 
-
         #region Reset Duration Type Dropdown
 
         public async Task<List<CommonChoiceVM>> DurationTypeDropdown()
@@ -426,7 +428,6 @@ namespace GCTL.Service.VoucherType
         }
 
         #endregion
-
 
         #region Ip & Mac
         public string GetLocalIP()
