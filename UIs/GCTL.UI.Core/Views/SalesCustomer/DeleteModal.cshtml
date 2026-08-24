@@ -1,0 +1,20 @@
+@* Views/SalesCustomer/DeleteModal.cshtml *@
+<div class="modal fade" id="salescustomer-delete-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+                <h5 class="modal-title fw-bold text-dark mb-2">Are you sure?</h5>
+                <p class="text-muted small mb-4">Are you sure you want to delete selected Customer(s)? This action cannot be undone.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light px-4 py-2 fw-semibold rounded-pill" data-bs-dismiss="modal" style="min-width: 100px;">Cancel</button>
+                    <button type="button" class="btn btn-danger px-4 py-2 fw-semibold rounded-pill js-salescustomer-delete" style="min-width: 100px;">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

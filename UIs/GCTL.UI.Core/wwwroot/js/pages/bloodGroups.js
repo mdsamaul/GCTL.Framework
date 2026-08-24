@@ -1,13 +1,13 @@
-﻿(function ($) {
+(function ($) {
     $.bloodGroups = function (options) {
         // Default options
         var settings = $.extend({
             baseUrl: "/",
             formSelector: "#bloodgroup-form",
             formContainer: ".js-bloodgroup-form-container",
-            gridSelector: "#bloodgroup-grid",
+            gridSelector: "#bloodGroupGridContainer",
             gridContainer: ".js-bloodgroup-grid-container",
-            editSelector: ".js-bloodgroup-edit",
+            editSelector: ".js-bloodgroup-edit, .js-grid-edit",
             saveSelector: ".js-bloodgroup-save",
             selectAllSelector: "#bloodgroup-check-all",
             deleteSelector: ".js-bloodgroup-delete-confirm",
@@ -38,23 +38,29 @@
         });
 
         $(() => {
-            //settings.load(settings.baseUrl, settings.gridSelector);
-            loadBloodGroups(settings.baseUrl, settings.gridSelector);
-            initialize();
+            loadTable();
+
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
-                let url = saveUrl + "/" + $(this).data("id") ?? "";
-                loadForm(url);
+                loadForm(url).then((data) => {
+                    console.info("Form Loaded Successfully", data);
+                }).catch((error) => {
+                    console.error("Failed to load form", error);
+                });
+
+                // Setting id on the delete selector for delete
+                var id = $(this).data('id');
+                $(settings.deleteSelector).data('id', id);
 
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
             // Save
             $("body").on("click", settings.saveSelector, function () {
-                //debugger
                 if (!validation()) return false;
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
@@ -75,23 +81,29 @@
                     data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            loadForm(saveUrl)
-                                .then((data) => {
-                                    loadBloodGroups(settings.baseUrl, settings.gridSelector);
-                                    $(settings.lastCodeSelector).val(response.lastCode);
-                                })
-                                .catch((error) => {
-                                    console.log(error)
-                                })
-
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
+                            if ($modalAncestor.length && window.GcModal) {
+                                GcModal.markSuccess($modalAncestor, response.lastCode);
+                                GcModal.close($modalAncestor);
+                            } else {
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
+                            }
                             toastr.success(response.message);
                         }
                         else {
-                            toastr.warning(response.message);
+                            toastr.error(response.message);
                             console.log(response);
                         }
                     }
-                }
+                };
                 if (settings.haseFile) {
                     options.processData = false;
                     options.contentType = false;
@@ -100,77 +112,65 @@
             });
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
 
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
-                $('input:checkbox.checkBox').each(function () {
-                    if ($(this).prop('checked')) {
-                        if (!selectedItems.includes($(this).val())) {
-                            selectedItems.push($(this).val());
-                        }
-                    }
-                });
+                selectedItems = [];
+                if ($(this).data('id')) {
+                    selectedItems.push($(this).data('id'));
+                } else {
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('bloodGroupGridContainer') : [];
+                }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
                 } else {
-                    toastr.info("Please select at least one item.", 'Warning');
+                    toastr.info("Please select at least one item.");
                 }
             });
 
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-bloodgroup-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-                //event.preventDefault();
-                // Get button that triggered the modal
-                var source = $(event.relatedTarget);
-                var id = source.data("id");
-
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl + "/" + selectedItems,
-                        method: "POST",
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-                                /*settings.load(settings.baseUrl);*/
-                                loadBloodGroups(settings.baseUrl, settings.gridSelector);
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                if (response.refSuccess) {
-                                    toastr.warning(response.message, 'Warning');
-                                }
-
-                                if (!response.success) {
-                                    toastr.error(response.message, 'Error');
-                                }
-                                console.log(response);
-                            }
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                    });
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             $("body").on("click", settings.topSelector, function (e) {
@@ -178,74 +178,17 @@
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-
             $("body").on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            //$("body").on("keyup", settings.availabilitySelector, function () {
-            //    var self = $(this);
-            //    let code = $(".js-bloodgroup-code").val();
-            //    let name = self.val();
-
-            //    // check
-            //    $.ajax({
-            //        url: settings.baseUrl + "/CheckAvailability",
-            //        method: "POST",
-            //        data: { code: code, name: name },
-            //        success: function (response) {
-            //            console.log(response);
-            //            if (response.isSuccess) {
-            //                toastr.error(response.message);
-            //            }
-            //        }
-            //    });
-            //});
         });
 
-        function loadBloodGroups(baseUrl, gridSelector) {
-            var dataTable = $(gridSelector).DataTable({
-                ajax: {
-                    url: baseUrl + "/grid",
-                    type: "GET",
-                    datatype: "json"
-                },
-                //pagingType: 'full_numbers',
-                //language: {
-                //    paginate: {
-                //        next: '<i class="fas fa-forward"></i>',
-                //        previous: '<i class="fas fa-backward"></i>',
-                //        first: '<i class="fas fa-step-backward"></i>',
-                //        last: '<i class="fas fa-step-forward"></i>'
-                //    }
-                //},
-                columnDefs: [
-                    { targets: [0], orderable: false },
-                ],
-                columns: [
-                    {
-                        "data": "bloodGroupCode", "className": "text-center", width: "5%", "render": function (data) {
-                            return ` <input type="checkbox" class="checkBox" value="${data}" />`;
-                        }
-                    },
-                    {
-                        "data": "bloodGroupCode", "className": "text-center", width: "5%", "render": function (data) {
-                            return `<a class='btn js-bloodgroup-edit' data-id='${data}'>${data}</a>`;
-                        }
-                    },
-                    { "data": "bloodGroup", "autowidth": true, "className": "text-center" },
-                    { "data": "banglaBloodGroup", "autowidth": true, "className": "text-center" }
-                ],
-                lengthChange: true,
-                pageLength: 5,
-                lengthMenu: [
-                    [5, 10, 25, 50, -1],
-                    [5, 10, 25, 50, 'All'],
-                ],
-                order: [[1, "Desc"]],
-                destroy: true
-            });
+        function loadTable() {
+            if (window.loadGridPage) {
+                window.loadGridPage('bloodGroupGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
 
         function loadForm(url) {
@@ -253,48 +196,30 @@
                 $.ajax({
                     url: url,
                     type: 'GET',
+                    cache: false,
                     success: function (data) {
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        initialize();
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
-                })
-            })
-        }
-
-        function initialize() {
-            $(settings.formSelector + ' .selectpicker').select2({
-                language: {
-                    noResults: function () {
-                        //return 'Not found <a class="add_new_item" href="javascript:void(0)">Add New</a>';
-                    }
-                },
-                escapeMarkup: function (markup) {
-                    return markup;
-                }
+                });
             });
         }
 
         function validation() {
-
             var dep = $('#BloodGroup').val();
-
             if (!dep) {
                 toastr.info('Enter Blood Group');
                 $('#BloodGroup').trigger('focus');
                 return false;
             }
-
             return true;
-
         }
-    }
+    };
 
 }(jQuery));
-

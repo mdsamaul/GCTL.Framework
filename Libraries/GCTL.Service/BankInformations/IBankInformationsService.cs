@@ -1,6 +1,7 @@
-﻿using DocumentFormat.OpenXml.Office2013.Word;
+using DocumentFormat.OpenXml.Office2013.Word;
 using GCTL.Core.ViewModels.BankInformations;
 using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,7 @@ namespace GCTL.Service.BankInformations
 
         SalesDefBankInfo GetBankById(string code);
         bool DeleteBank(string id);
-       // Task<bool> DeleteAsync(string id);
+        Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model);
         Task<string> GenerateNextCode();
 
         IEnumerable<CommonSelectModel> BankDropSelectionAsync();

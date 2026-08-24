@@ -1,43 +1,113 @@
-﻿using AutoMapper;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Religions;
-using GCTL.Data.Models;
 using GCTL.Service.Common;
-using GCTL.Service.Designations;
 using GCTL.Service.Religions;
 using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.Religions;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.UI.Core.Controllers
 {
     public class ReligionsController : BaseController
     {
+        #region Ser & Repo
         private readonly IReligionService religionService;
         private readonly ICommonService commonService;
-        private readonly IMapper mapper;
-        string strMaxNO = "";
-        public ReligionsController(IReligionService religionService,
-                                   ICommonService commonService,
-                                   IMapper mapper)
+
+        string strMaxNO = string.Empty;
+        public ReligionsController(
+            ICommonService commonService,
+            IReligionService religionService
+        )
         {
             this.religionService = religionService;
             this.commonService = commonService;
-            this.mapper = mapper;
         }
 
-        public IActionResult Index(bool child = false)
+        #endregion
+
+        #region Index
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            ReligionPageViewModel model = new ReligionPageViewModel()
+            var hasPermission = await religionService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var model = new ReligionPageViewModel
             {
                 PageUrl = Url.Action(nameof(Index))
             };
-            commonService.FindMaxNo(ref strMaxNO, "ReligionCode", "HRM_Def_Religion", 1);
-            model.Setup = new ReligionSetupViewModel
+
+            try
             {
-                ReligionCode = strMaxNO
-            };
+                var list = await religionService.GetAllAsync() ?? new List<ReligionSetupViewModel>();
+                model.ReligionList = list;
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.ReligionCode != null && x.ReligionCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.Religion != null && x.Religion.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Religion Name", "Short Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "ReligionCode", item.ReligionCode },
+                        { "Religion Name", item.Religion },
+                        { "Short Name", item.ShortName }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Religions") ?? "/Religions/GetTableData",
+                    primaryKey: "ReligionCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Religions/Setup/{id}",
+                    gridId: "religionGridContainer",
+                    editClass: "js-religion-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "ReligionCode", "center" },
+                        { "Religion Name", "left" },
+                        { "Short Name", "center" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Religion Name", "auto" },
+                        { "Short Name", "140px" }
+                    }
+                );
+
+                commonService.FindMaxNo(ref strMaxNO, "ReligionCode", "HRM_Def_Religion", 1);
+                model.Setup = new ReligionSetupViewModel
+                {
+                    ReligionCode = strMaxNO
+                };
+            }
+            catch (Exception ex)
+            {
+                model.ReligionList = new List<ReligionSetupViewModel>();
+                model.Setup = new ReligionSetupViewModel();
+                Console.WriteLine("Error" + ex.Message);
+            }
 
             if (child)
                 return PartialView(model);
@@ -45,158 +115,265 @@ namespace GCTL.UI.Core.Controllers
             return View(model);
         }
 
+        #endregion
 
-        public IActionResult Setup(string id)
+        #region Setup
+
+        public async Task<IActionResult> Setup(string id)
         {
             ReligionSetupViewModel model = new ReligionSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "ReligionCode", "HRM_Def_Religion", 1);
-            var result = religionService.GetReligion(id);
-            if (result != null)
+
+            if (!string.IsNullOrEmpty(id))
             {
-                model = mapper.Map<ReligionSetupViewModel>(result);
-                model.Code = id;
-                model.Id = (int)result.AutoId;
+                model = await religionService.GetByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
             }
             else
             {
                 model.ReligionCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await religionService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new ReligionPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await religionService.GetAllAsync() ?? new List<ReligionSetupViewModel>();
+                indexModel.ReligionList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(10).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 10,
+                    headers: new List<string> { "Code", "Religion Name", "Short Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "ReligionCode", item.ReligionCode },
+                        { "Religion Name", item.Religion },
+                        { "Short Name", item.ShortName }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Religions") ?? "/Religions/GetTableData",
+                    primaryKey: "ReligionCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Religions/Setup/{id}",
+                    gridId: "religionGridContainer",
+                    editClass: "js-religion-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "ReligionCode", "center" },
+                        { "Religion Name", "left" },
+                        { "Short Name", "center" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Religion Name", "auto" },
+                        { "Short Name", "140px" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.ReligionList = new List<ReligionSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
+
+        #endregion
+
+        #region Post Update 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Setup(ReligionSetupViewModel model)
+        public async Task<IActionResult> Setup(ReligionSetupViewModel modelVM)
         {
-            if (religionService.IsReligionExist(model.Religion, model.ReligionCode))
+            try
             {
-                return Json(new { isSuccess = false, message = "Already Exists" });
-            }
-
-            if (ModelState.IsValid)
-            {
-                if (religionService.IsReligionExistByCode(model.ReligionCode))
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
                 {
-                    var hasPermission = religionService.UpdatePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    if (await religionService.IsExistAsync(modelVM.Religion, modelVM.ReligionCode))
                     {
-                        HrmDefReligion religion = religionService.GetReligion(model.ReligionCode) ?? new HrmDefReligion();
-                      
-                        model.ToAudit(LoginInfo, model.Id > 0);
-                        mapper.Map(model, religion);
-                        religion.ShortName = model.ShortName ?? string.Empty;
-                        religionService.SaveReligion(religion);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = religion.ReligionCode });
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
+                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
+                {
+                    var hasSavePermission = await religionService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (hasSavePermission)
+                    {
+                        await religionService.SaveAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.ReligionCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
                     }
-
                 }
                 else
                 {
-                    var hasPermission = religionService.SavePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    var hasUpdatePermission = await religionService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (hasUpdatePermission)
                     {
-                        HrmDefReligion religion = religionService.GetReligion(model.ReligionCode) ?? new HrmDefReligion();
-                      
-                        model.ToAudit(LoginInfo, model.Id > 0);
-                        mapper.Map(model, religion);
-                        religion.ShortName = model.ShortName ?? string.Empty;
-                        religionService.SaveReligion(religion);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = religion.ReligionCode });
+                        await religionService.UpdateAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.ReligionCode });
                     }
                     else
                     {
-
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
                 }
-              
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error:{ex.Message}");
+                return RedirectToAction("Login", "Accounts");
+            }
+        }
+
+        #endregion
+
+        #region CheckAvailability
+        [HttpPost]
+        public async Task<JsonResult> CheckAvailability(string name, string code)
+        {
+            if (await religionService.IsExistAsync(name, code))
+            {
+                return Json(new { isSuccess = true, message = $"Already Exists!" });
             }
 
-            return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
+            return Json(new { isSuccess = false });
         }
+        #endregion
 
-        public ActionResult Grid()
-        {
-            var resutl = religionService.GetReligions();
-            return Json(new { data = resutl });
-        }
+        #region Delete
 
         [HttpPost]
-        public async Task<ActionResult> Delete(string id)
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
         {
-            var hasPermission = religionService.DeletePermission(LoginInfo.AccessCode);
+            if (ids == null || ids.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "No IDs provided for delete." });
+            }
+
+            var hasPermission = await religionService.DeletePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
             {
-                return Json(new { success = false, message = "You have no access" });
+                return Json(new { success = false, message = "You have no access." });
             }
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return Json(new { success = false, message = "No IDs provided" });
-            }
-
-            var results = new List<(bool success, bool refSuccess, string message)>();
-            var ids = id.Split(",", StringSplitOptions.RemoveEmptyEntries)
-                 .Select(x => x.Trim())
-                 .ToList();
 
             DeleteHistoryViewModel model = new DeleteHistoryViewModel();
             model.ToAudit(LoginInfo);
             model.CompanyCode = LoginInfo.CompanyCode;
 
-            var result = await religionService.DeleteReligion(ids, model);
-
-            results.Add(result);
-
-
-            // Aggregate outcome
-            bool overallSuccess = results.All(r => r.success);
-            bool refSuccess = results.All(r => r.refSuccess);
-            string combinedMessage = overallSuccess
-                ? "Deleted Successfully"
-                : string.Join("; ", results.Where(r => !r.success).Select(r => r.message));
-
-            return Json(new { success = overallSuccess, message = combinedMessage, refSuccess = refSuccess });
-        }
-
-
-        //[HttpPost]
-        //public ActionResult Delete(string id)
-        //{
-        //    var hasPermission = religionService.DeletePermission(LoginInfo.AccessCode);
-        //    if (hasPermission)
-        //    {
-        //        bool success = false;
-        //        foreach (var item in id.Split(",", StringSplitOptions.RemoveEmptyEntries))
-        //        {
-        //            success = religionService.DeleteReligion(item);
-        //        }
-
-        //        return Json(new { success = success, message = "Deleted Successfully" });
-        //    }
-        //    else
-        //    {
-        //        return Json(new { isSuccess = false, message = "You have no access" });
-        //    }
-
-        //}
-
-
-        [HttpPost]
-        public JsonResult CheckAvailability(string name, string code)
-        {
-            if (religionService.IsReligionExist(name, code))
+            var success = await religionService.DeleteTab(ids, model);
+            if (success.succses)
             {
-                return Json(new { isSuccess = true, message = "Already Exists" });
+                return Json(new { success = true, message = "Deleted Successfully." });
             }
-
-            return Json(new { isSuccess = false });
+            else
+            {
+                return Json(new { success = false, message = success.messege });
+            }
         }
+
+        #endregion
+
+        #region Table Loading (Dynamic Grid)
+
+        [HttpGet]
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        {
+            try
+            {
+                var list = await religionService.GetAllAsync() ?? new List<ReligionSetupViewModel>();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.ReligionCode != null && x.ReligionCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.Religion != null && x.Religion.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                var gridModel = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Religion Name", "Short Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "ReligionCode", item.ReligionCode },
+                        { "Religion Name", item.Religion },
+                        { "Short Name", item.ShortName }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Religions") ?? "/Religions/GetTableData",
+                    primaryKey: "ReligionCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Religions/Setup/{id}",
+                    gridId: "religionGridContainer",
+                    editClass: "js-religion-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "ReligionCode", "center" },
+                        { "Religion Name", "left" },
+                        { "Short Name", "center" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Religion Name", "auto" },
+                        { "Short Name", "140px" }
+                    }
+                );
+
+                return PartialView("_DynamicGrid", gridModel);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        #endregion
     }
 }

@@ -1,29 +1,28 @@
-﻿
 (function ($) {
     $.nationalitys = function (options) {
         // Default options
         var settings = $.extend({
             baseUrl: "/",
-            formSelector: "#Nationalitys-form",
-            formContainer: ".js-Nationalitys-form-container",
-            gridSelector: "#Nationalitys-grid",
-            gridContainer: ".js-Nationalitys-grid-container",
-            editSelector: ".js-Nationalitys-edit",
-            saveSelector: ".js-Nationalitys-save",
-            selectAllSelector: "#Nationalitys-check-all",
-            deleteSelector: ".js-Nationalitys-delete-confirm",
-            deleteModal: "#Nationalitys-delete-modal",
-            finalDeleteSelector: ".js-Nationalitys-delete",
-            clearSelector: ".js-Nationalitys-clear",
+            formSelector: "#nationality-form",
+            formContainer: ".js-nationality-form-container",
+            gridSelector: "#nationalityGridContainer",
+            gridContainer: ".js-nationality-grid-container",
+            editSelector: ".js-nationality-edit, .js-grid-edit",
+            saveSelector: ".js-nationality-save",
+            selectAllSelector: "#nationality-check-all",
+            deleteSelector: ".js-nationality-delete-confirm",
+            deleteModal: "#nationality-delete-modal",
+            finalDeleteSelector: ".js-nationality-delete",
+            clearSelector: ".js-nationality-clear",
             topSelector: ".js-go",
-            decimalSelector: ".js-Nationalitys-decimalplaces",
+            decimalSelector: ".js-nationality-decimalplaces",
             maxDecimalPlace: 5,
             showNagativeFormat: false,
-            availabilitySelector: ".js-Nationalitys-check-availability",
+            availabilitySelector: ".js-nationality-check-availability",
             haseFile: false,
             quickAddSelector: ".js-quick-add",
             quickAddModal: "#quickAddModal",
-            lastCodeSelector: '#lastCode',
+            lastCodeSelector: "#lastCode",
             load: function () {
 
             }
@@ -39,9 +38,7 @@
         });
 
         $(() => {
-
             loadTable();
-
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -64,7 +61,7 @@
 
             // Save
             $("body").on("click", settings.saveSelector, function () {
-                validation();
+                if (!validation()) return false;
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
                     return false;
@@ -84,17 +81,21 @@
                     data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            loadForm(saveUrl)
-                                .then((data) => {
-
-                                    loadTable();
-                                    $(settings.lastCodeSelector).val(response.lastCode);
-                                    // alert("The last code has been updated to: " + response.lastCode);
-                                })
-                                .catch((error) => {
-                                    console.log(error)
-                                })
-
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
+                            if ($modalAncestor.length && window.GcModal) {
+                                GcModal.markSuccess($modalAncestor, response.lastCode);
+                                GcModal.close($modalAncestor);
+                            } else {
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
+                            }
                             toastr.success(response.message);
                         }
                         else {
@@ -102,7 +103,7 @@
                             console.log(response);
                         }
                     }
-                }
+                };
                 if (settings.haseFile) {
                     options.processData = false;
                     options.contentType = false;
@@ -111,76 +112,65 @@
             });
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
 
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
-                    });
+                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('nationalityGridContainer') : [];
                 }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
                 } else {
                     toastr.info("Please select at least one item.");
                 }
             });
 
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-nationality-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-
-                var source = $(event.relatedTarget);
-                var id = source.data("ids");
-
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(selectedItems),
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-
-                                loadTable();
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                toastr.error(response.message);
-                                console.log(response);
-                            }
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                    });
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             $("body").on("click", settings.topSelector, function (e) {
@@ -188,61 +178,18 @@
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-
             $("body").on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            $("body").on("keyup", settings.availabilitySelector, function () {
-                var self = $(this);
-                let code = $(".js-NationalityCode-code").val();
-                let name = self.val();
-
-                // check
-                $.ajax({
-                    url: settings.baseUrl + "/CheckAvailability",
-                    method: "POST",
-                    data: { code: code, name: name },
-                    success: function (response) {
-                        console.log(response);
-                        if (response.isSuccess) {
-                            toastr.error(response.message);
-                        }
-                    }
-                });
-            });
-
         });
 
-        //
         function loadTable() {
-            $.get(settings.baseUrl + "/GetTableData")
-                .done(html => {
-                    $(settings.gridContainer).html(html);
-
-                    if ($.fn.DataTable.isDataTable(settings.gridSelector)) {
-                        $(settings.gridSelector).DataTable().destroy();
-                    }
-
-                    $(settings.gridSelector).DataTable({
-                        lengthChange: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, -1],
-                            [10, 25, 50, 'All'],
-                        ],
-                        order: [[1, "desc"]],
-                        destroy: true, // Allow reinitialization
-                        paging: true,
-                        searching: true,
-                        responsive: true,
-                    });
-
-                })
-                .fail(() => toastr.error("Failed to load table data."));
+            if (window.loadGridPage) {
+                window.loadGridPage('nationalityGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
-
 
         function loadForm(url) {
             return new Promise((resolve, reject) => {
@@ -255,34 +202,24 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
-                })
-            })
+                });
+            });
         }
 
-        //
-
         function validation() {
-
-            var degName = $('#Nationality').val();
-            if (!degName) {
+            var dep = $('#Nationality').val();
+            if (!dep) {
                 toastr.info('Enter Nationality');
                 $('#Nationality').trigger('focus');
                 return false;
             }
-
             return true;
-
         }
-
-        //
-
-
-    }
+    };
 
 }(jQuery));

@@ -125,6 +125,14 @@
                 $(".checkBox").prop('checked', $(this).prop('checked'));
             });
 
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
+
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
                 selectedItems = [];
@@ -135,52 +143,44 @@
                 }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
                 } else {
                     toastr.info("Please select at least one item.");
                 }
             });
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-designation-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-                var source = $(event.relatedTarget);
-                var id = source.data("ids");
-
-                var title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(selectedItems),
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-
-                                loadTable();
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                toastr.error(response.message);
-                                console.log(response);
-                            }
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                    });
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             $("body").on("click", settings.topSelector, function (e) {

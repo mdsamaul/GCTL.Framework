@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.Religions.ReligionSetupViewModel
+@model GCTL.Core.ViewModels.Religions.ReligionSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
@@ -15,6 +15,7 @@
 
         <input type="hidden" id="lastCode" />
         <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="AutoId" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
 
@@ -25,7 +26,7 @@
             LabelText = "Religion Id",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-religion-code",
             DefaultValue = Model?.ReligionCode
@@ -43,6 +44,7 @@
             Placeholder = "Enter Religion",
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             CustomCssClass = "js-religion-check-availability",
             DefaultValue = Model.Religion,
             AutoFocus = true
@@ -55,12 +57,13 @@
             LabelText = "Short Name",
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             DefaultValue = Model.ShortName
         })
     </div>
 
-    @if (Model.Id > 0)
+    @if (Model.AutoId > 0)
     {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
@@ -99,9 +102,8 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "religion",
+            SaveBtnClass = "js-religion-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
         })
     </div>
 </div>

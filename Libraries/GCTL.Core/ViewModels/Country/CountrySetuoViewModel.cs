@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,9 +9,11 @@ namespace GCTL.Core.ViewModels.Country
 {
     public class CountrySetuoViewModel : BaseViewModel
     {
-        public decimal? Tc { get; set; }
+        public int Tc { get; set; }
         public string? CountryId { get; set; }
-        [Required(ErrorMessage = "Country Name is required")]
+
+        [Required(ErrorMessage = "{0} is required.")]
+        [Display(Name = "Country Name")]
         public string CountryName { get; set; }
         public string? Ioccode { get; set; }
         public string? Isocode { get; set; }

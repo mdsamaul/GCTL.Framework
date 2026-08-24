@@ -1,13 +1,16 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.UI.Core.Controllers;
+using GCTL.UI.Core.Helpers;
 using iText.IO.Font.Constants;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
@@ -53,14 +56,130 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
 
         #endregion
 
-        #region
+        #region Index & GetTableData
         public async Task<IActionResult> Index()
         {
+            var hasPermission = await _salesCustomerService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
             ViewBag.ContactDD = new SelectList(contactPersonrepository.All(), "Cpid", "ContactPersonName");
             ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
             SalesCustomerViewModel model = new SalesCustomerViewModel();
+
+            try
+            {
+                var list = await _salesCustomerService.GetAllAsync() ?? new List<SalesCustomerViewModel>();
+                int totalRecords = list.Count;
+                var pagedList = list.Take(10).ToList();
+
+                ViewBag.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 10,
+                    headers: new List<string> { "Cus. ID", "Customer Name", "Short Name", "Address", "Opening Balance" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "CustomerId", item.CustomerId },
+                        { "Customer Name", item.CustomerName },
+                        { "Short Name", item.ShortName },
+                        { "Address", item.CustomerAddress },
+                        { "Opening Balance", item.OpeningBalance }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "SalesCustomer") ?? "/SalesCustomer/GetTableData",
+                    primaryKey: "CustomerId",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/SalesCustomer/Details/{id}",
+                    gridId: "salesCustomerGridContainer",
+                    editClass: "js-salescustomer-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "CustomerId", "center" },
+                        { "Customer Name", "left" },
+                        { "Short Name", "left" },
+                        { "Address", "left" },
+                        { "Opening Balance", "right" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Cus. ID", "110px" },
+                        { "Customer Name", "auto" },
+                        { "Short Name", "120px" },
+                        { "Address", "180px" },
+                        { "Opening Balance", "130px" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
             return View(model);
-        
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        {
+            var list = await _salesCustomerService.GetAllAsync() ?? new List<SalesCustomerViewModel>();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                list = list.Where(x => (x.CustomerId != null && x.CustomerId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                    || (x.CustomerName != null && x.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                    || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                    || (x.CustomerAddress != null && x.CustomerAddress.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                           .ToList();
+            }
+
+            int totalRecords = list.Count;
+            var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            var dynamicGrid = GridBuilder.BuildGrid(
+                data: pagedList,
+                totalRecords: totalRecords,
+                currentPage: page,
+                pageSize: pageSize,
+                headers: new List<string> { "Cus. ID", "Customer Name", "Short Name", "Address", "Opening Balance" },
+                rowMapper: item => new Dictionary<string, object?>
+                {
+                    { "CustomerId", item.CustomerId },
+                    { "Customer Name", item.CustomerName },
+                    { "Short Name", item.ShortName },
+                    { "Address", item.CustomerAddress },
+                    { "Opening Balance", item.OpeningBalance }
+                },
+                ajaxUrl: Url.Action("GetTableData", "SalesCustomer") ?? "/SalesCustomer/GetTableData",
+                primaryKey: "CustomerId",
+                hasCheckbox: true,
+                actionUrlPattern: "/SalesCustomer/Details/{id}",
+                gridId: "salesCustomerGridContainer",
+                editClass: "js-salescustomer-edit",
+                columnAlignments: new Dictionary<string, string>
+                {
+                    { "CustomerId", "center" },
+                    { "Customer Name", "left" },
+                    { "Short Name", "left" },
+                    { "Address", "left" },
+                    { "Opening Balance", "right" }
+                },
+                searchTerm: searchTerm,
+                columnWidths: new Dictionary<string, string>
+                {
+                    { "SelectAll", "120px" },
+                    { "Cus. ID", "110px" },
+                    { "Customer Name", "auto" },
+                    { "Short Name", "120px" },
+                    { "Address", "180px" },
+                    { "Opening Balance", "130px" }
+                }
+            );
+
+            return PartialView("_DynamicGrid", dynamicGrid);
         }
 
         public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "CustomerID", string sortOrder = "desc")
@@ -103,18 +222,21 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
         {
             try
             {
+                var hasPermission = await _salesCustomerService.SavePermissionAsync(LoginInfo.AccessCode);
+                if (!hasPermission)
+                {
+                    return Json(new { isSuccess = false, message = "You have no permission to Save." });
+                }
+
                 if (model == null)
                     return BadRequest(new { message = "Customer data is required." });
 
                 var result = await _salesCustomerService.SaveAsyncSalesCustomer(model);
 
-
                 if (!result)
                     return BadRequest(new { message = "Failed to create customer." });
 
-
-
-                return Json(new { isSuccess = true, message = "Data Saved Successfully.", });
+                return Json(new { isSuccess = true, message = "Data Saved Successfully." });
             }
             catch (Exception ex)
             {
@@ -127,6 +249,12 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
         {
             try
             {
+                var hasPermission = await _salesCustomerService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                if (!hasPermission)
+                {
+                    return Json(new { isSuccess = false, message = "You have no permission to Update." });
+                }
+
                 if (model == null || id != model.CustomerId)
                     return BadRequest(new { message = "Customer data is invalid." });
 
@@ -147,20 +275,56 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
             }
         }
 
-        public async Task<IActionResult> Delete(string? id)
+        [HttpPost]
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
         {
             try
             {
-                var result = await _salesCustomerService.DeleteAsyncSalesCustomer(id);
+                var hasPermission = await _salesCustomerService.DeletePermissionAsync(LoginInfo.AccessCode);
+                if (!hasPermission)
+                {
+                    return Json(new { isSuccess = false, message = "You have no permission to Delete." });
+                }
 
-                if (!result)
-                    return NotFound(new { message = $"Customer with ID {id} not found." });
+                if (ids == null || !ids.Any())
+                {
+                    return Json(new { isSuccess = false, message = "No customer selected to delete." });
+                }
 
-                return Ok(new { message = "Data Deleted Successfully." });
+                var historyModel = new DeleteHistoryViewModel();
+                historyModel.ToAudit(LoginInfo);
+                historyModel.CompanyCode = LoginInfo.CompanyCode;
+
+                var result = await _salesCustomerService.DeleteTab(ids, historyModel);
+                return Json(new { isSuccess = result.succses, message = result.messege });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
+                return Json(new { isSuccess = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("/SalesCustomer/Delete/{id}")]
+        public async Task<IActionResult> DeleteSingle(string id)
+        {
+            try
+            {
+                var hasPermission = await _salesCustomerService.DeletePermissionAsync(LoginInfo.AccessCode);
+                if (!hasPermission)
+                {
+                    return Json(new { isSuccess = false, message = "You have no permission to Delete." });
+                }
+
+                var historyModel = new DeleteHistoryViewModel();
+                historyModel.ToAudit(LoginInfo);
+                historyModel.CompanyCode = LoginInfo.CompanyCode;
+
+                var result = await _salesCustomerService.DeleteTab(new List<string> { id }, historyModel);
+                return Json(new { isSuccess = result.succses, message = result.messege });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { isSuccess = false, message = ex.Message });
             }
         }
 
@@ -168,17 +332,23 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
         {
             try
             {
+                var hasPermission = await _salesCustomerService.DeletePermissionAsync(LoginInfo.AccessCode);
+                if (!hasPermission)
+                {
+                    return Json(new { isSuccess = false, message = "You have no permission to Delete." });
+                }
+
                 if (ids == null || !ids.Any() || ids.Count == 0)
                 {
                     return Json(new { isSuccess = false, message = "No customer is selected to delete" });
                 }
 
-                var result = await _salesCustomerService.BulkDeleteAsync(ids);
-                if (!result)
-                {
-                    return Json(new { isSuccess = false, message = "No Customer found to delete" });
-                }
-                return Json(new { isSuccess = true, message = $"Data Deleted Successfully." });
+                var historyModel = new DeleteHistoryViewModel();
+                historyModel.ToAudit(LoginInfo);
+                historyModel.CompanyCode = LoginInfo.CompanyCode;
+
+                var result = await _salesCustomerService.DeleteTab(ids, historyModel);
+                return Json(new { isSuccess = result.succses, message = result.messege });
             }
             catch (Exception ex)
             {
