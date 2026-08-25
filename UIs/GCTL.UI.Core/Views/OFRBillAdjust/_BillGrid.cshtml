@@ -83,12 +83,14 @@
 {
     GridId = "Bill-Table",
     AjaxUrl = "/OFRBillAdjust/GetAllRequisitionList",
+    AjaxMethod = "POST",
     ServerSide = true,
     UseRadio = true,
     RadioName = "AdjustSelect",
     CheckColumnData = "jobNo",
     DefaultSortColumn = "jobDate",
     DefaultSortDirection = "desc",
+    CustomGridWrapper = false,
     Columns = new()
     {
         new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },

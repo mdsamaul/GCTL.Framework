@@ -26,7 +26,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Grid Section
         #region Top Grid
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> GetAllRequisitionTopGrid(
             int draw = 1,
             int pageNumber = 1,
@@ -68,7 +68,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Bottom Grid
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> GetAllRequisitionForBottomGrid(
             int draw = 1,
             int pageNumber = 1,

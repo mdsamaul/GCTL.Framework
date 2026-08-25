@@ -83,7 +83,7 @@ namespace GCTL.Service.Pagination
 
                 throw;
             }
-            
+
         }
 
         private static Expression<Func<T, bool>> BuildSearchPredicate<T>(
@@ -244,7 +244,7 @@ namespace GCTL.Service.Pagination
             // Get total count before pagination
             var totalItems = await query.CountAsync();
 
-            // Apply pagination 
+            // Apply pagination
             var paginatedData = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(selector).ToList();
 
             // Calculate pagination info

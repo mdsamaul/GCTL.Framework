@@ -49,12 +49,14 @@
 {
     GridId = "Bill-Table",
     AjaxUrl = "/OFRAdjustApproval/GetAllRequisitionTopGrid",
+    AjaxMethod = "POST",
     ServerSide = true,
     UseRadio = true,
     RadioName = "ApproveChecked",
     CheckColumnData = "jobNo",
     DefaultSortColumn = "jobDate",
     DefaultSortDirection = "desc",
+    CustomGridWrapper = false,
     Columns = new()
     {
         new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },

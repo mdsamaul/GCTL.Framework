@@ -5,7 +5,7 @@
             baseUrl: "/",
             formSelector: "#designation-form",
             formContainer: ".js-designation-form-container",
-            gridSelector: "#designationGridContainer",
+            gridSelector: "#designationTable",
             gridContainer: ".js-designation-grid-container",
             editSelector: ".js-designation-edit, .js-grid-edit",
             saveSelector: ".js-designation-save",
@@ -38,8 +38,10 @@
         });
 
         $(() => {
-
-            loadTable();
+            // Initialize Custom DataTable from View Model
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'designationTable' });
+            }
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -121,10 +123,6 @@
                 $.ajax(options);
             });
 
-            $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked', $(this).prop('checked'));
-            });
-
             function getDeleteModal() {
                 var $m = $(settings.deleteModal);
                 if ($m.length) return $m;
@@ -139,7 +137,10 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('designationGridContainer') : [];
+                    $('#designationTable tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
+                    });
                 }
 
                 if (selectedItems.length > 0) {
@@ -195,10 +196,10 @@
 
         });
 
-        // Dynamic Grid Load Table
+        // Load / Reload Table via CustomDataTable
         function loadTable() {
-            if (window.loadGridPage) {
-                window.loadGridPage('designationGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable('#designationTable')) {
+                $('#designationTable').DataTable().ajax.reload(null, false);
             }
         }
 

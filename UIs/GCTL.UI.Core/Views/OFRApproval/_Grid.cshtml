@@ -82,12 +82,14 @@
 {
     GridId = "Appro-Table",
     AjaxUrl = "/OFRApproval/GetAllRequisitionList",
+    AjaxMethod = "POST",
     ServerSide = true,
     UseRadio = true,
     RadioName = "jobSelect",
     CheckColumnData = "jobNo",
     DefaultSortColumn = "jobDate",
     DefaultSortDirection = "desc",
+    CustomGridWrapper = false,
     Columns = new()
     {
         new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },

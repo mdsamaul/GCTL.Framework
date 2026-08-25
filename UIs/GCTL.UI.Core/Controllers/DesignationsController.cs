@@ -57,58 +57,6 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
-                var list = await designationService.GetAllAsync() ?? new List<DesignationSetupViewModel>();
-                model.DesignationList = list;
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.DesignationCode != null && x.DesignationCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.DesignationName != null && x.DesignationName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.DesignationShortName != null && x.DesignationShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BanglaDesignation != null && x.BanglaDesignation.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                model.DynamicGrid = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Designation Name", "Short Name", "Designation (বাংলা)" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "DesignationCode", item.DesignationCode },
-                        { "Designation Name", item.DesignationName },
-                        { "Short Name", item.DesignationShortName },
-                        { "Designation (বাংলা)", item.BanglaDesignation }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "Designations") ?? "/Designations/GetTableData",
-                    primaryKey: "DesignationCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Designations/Setup/{id}",
-                    gridId: "designationGridContainer",
-                    editClass: "js-designation-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "DesignationCode", "center" },
-                        { "Designation Name", "left" },
-                        { "Short Name", "center" },
-                        { "Designation (বাংলা)", "left" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Designation Name", "auto" },
-                        { "Short Name", "120px" },
-                        { "Designation (বাংলা)", "auto" }
-                    }
-                );
-
                 commonService.FindMaxNo(ref strMaxNO, "DesignationCode", "HRM_Def_Designation", 3);
                 model.Setup = new DesignationSetupViewModel
                 {
@@ -328,10 +276,9 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
-
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        #region Table Loading (Custom Grid)
+        [HttpPost]
+        public async Task<IActionResult> GetAll(int draw = 1, int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? sortColumn = null, string? sortOrder = "asc")
         {
             try
             {
@@ -346,54 +293,43 @@ namespace GCTL.UI.Core.Controllers
                                .ToList();
                 }
 
+                // Sorting
+                if (!string.IsNullOrWhiteSpace(sortColumn))
+                {
+                    bool isDesc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                    list = sortColumn switch
+                    {
+                        "designationCode" => isDesc ? list.OrderByDescending(x => x.DesignationCode).ToList() : list.OrderBy(x => x.DesignationCode).ToList(),
+                        "designationName" => isDesc ? list.OrderByDescending(x => x.DesignationName).ToList() : list.OrderBy(x => x.DesignationName).ToList(),
+                        "designationShortName" => isDesc ? list.OrderByDescending(x => x.DesignationShortName).ToList() : list.OrderBy(x => x.DesignationShortName).ToList(),
+                        "banglaDesignation" => isDesc ? list.OrderByDescending(x => x.BanglaDesignation).ToList() : list.OrderBy(x => x.BanglaDesignation).ToList(),
+                        _ => isDesc ? list.OrderByDescending(x => x.DesignationCode).ToList() : list.OrderBy(x => x.DesignationCode).ToList()
+                    };
+                }
+
                 int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                var pagedList = list.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
 
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Designation Name", "Short Name", "Designation (বাংলা)" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "DesignationCode", item.DesignationCode },
-                        { "Designation Name", item.DesignationName },
-                        { "Short Name", item.DesignationShortName },
-                        { "Designation (বাংলা)", item.BanglaDesignation }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "Designations") ?? "/Designations/GetTableData",
-                    primaryKey: "DesignationCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Designations/Setup/{id}",
-                    gridId: "designationGridContainer",
-                    editClass: "js-designation-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "DesignationCode", "center" },
-                        { "Designation Name", "left" },
-                        { "Short Name", "center" },
-                        { "Designation (বাংলা)", "left" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Designation Name", "auto" },
-                        { "Short Name", "120px" },
-                        { "Designation (বাংলা)", "auto" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new
+                {
+                    draw = draw,
+                    recordsTotal = totalRecords,
+                    recordsFiltered = totalRecords,
+                    data = pagedList
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new
+                {
+                    draw = draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<DesignationSetupViewModel>(),
+                    error = ex.Message
+                });
             }
         }
-
         #endregion
 
         #region Xls

@@ -33,7 +33,7 @@
 {
     GridId = "bottomGrid",
     AjaxUrl = "/OFRBillAdjust/GetAllRequisitionForBottomGrid",
-    AjaxMethod = "GET",
+    AjaxMethod = "POST",
     ServerSide = true,
     ShowCheckbox = true,
     CheckColumnData = "jobNo",
@@ -42,6 +42,7 @@
     DefaultSortColumn = "ofrNo",
     DefaultSortDirection = "desc",
     Bordered = true,
+    CustomGridWrapper = false,
     Columns = new()
     {
         new() { Data = "ofrNo", Header = "OFR No", Width = "12%", IsEditLink=true, IdField="jobNo", EditSelectorClass="job-no ofr-no-link text-decoration-underline" },
