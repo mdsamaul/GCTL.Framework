@@ -1,36 +1,23 @@
-﻿@* <div class="table-responsive" style="padding: 0;">
-    <table id="useraccess-grid" class="table table-striped table-sm table-hover table-bordered table-light" style="width:100%;">
-        <thead>
-            <tr>
-                 <th class="text-center align-middle p-0 no-sort" style="vertical-align: middle;" width="2%">
-                    Select<input type="checkbox" class="form-check-input" id="useraccess-check-all" />
-                </th>
-                <th style="text-align:center" class="align-middle">User ID</th>
-                <th style="text-align:center" class="align-middle">Name</th>
-                <th style="text-align:center" class="align-middle">User Name</th>
-                <th style="text-align:center" class="align-middle">Role</th>
-                <th style="text-align:center" class="align-middle">Access Code</th>
-            </tr>
-        </thead>
-    </table>
-</div> *@
-<div class="table-responsive" style="padding: 0;">
-    <table id="useraccess-grid" class="table table-striped table-sm table-hover table-bordered" style="width:100%;">
-        <thead>
-            <tr>
-                <th class="text-center align-middle p-0 no-sort" style="vertical-align: middle;" width="2%">
-                    Sel.
-                    <div class="form-check d-inline-block mb-0">
-                        <input type="checkbox" class="form-check-input" id="useraccess-check-all">
-                        <label class="form-check-label visually-hidden" for="useraccess-check-all">Select all</label>
-                    </div>
-                </th>
-                <th style="text-align:center" class="align-middle">User ID</th>
-                <th style="text-align:center" class="align-middle">Name</th>
-                <th style="text-align:center" class="align-middle">User Name</th>
-                <th style="text-align:center" class="align-middle">Role</th>
-                <th style="text-align:center" class="align-middle">Access Code</th>
-            </tr>
-        </thead>
-    </table>
-</div>
+@using GCTL.UI.Core.ViewModels
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "useraccess-grid",
+    AjaxUrl = "/UserAccess/GetTableData",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckboxClass = "checkBox",
+    CheckColumnData = "id",
+    DefaultSortColumn = "id",
+    DefaultSortDirection = "desc",
+    Columns = new()
+    {
+        new() { Data = "id", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-useraccess-edit", Align = "center" },
+        new() { Data = "username", Header = "User Name", Width = "16%", Align = "left" },
+        new() { Data = "fullName", Header = "Full Name", Width = "22%", Align = "left" },
+        new() { Data = "role", Header = "User Type(Role)", Width = "15%", Align = "left" },
+        new() { Data = "entryDate", Header = "Entry Date", Width = "14%", Align = "center" },
+        new() { Data = "accessCode", Header = "Access Code", Width = "14%", Align = "center" },
+        new() { Data = "status", Header = "Active", Width = "9%", Align = "center" }
+    }
+})

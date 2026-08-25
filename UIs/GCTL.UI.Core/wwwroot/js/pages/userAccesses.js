@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.userAccesses = function (options) {
         // Default options
         var settings = $.extend({
@@ -38,13 +38,27 @@
             loadUserAccesses(settings.baseUrl, settings.gridSelector);
             initialize();
             //toggleEmployeeRequired();
-            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+            $("body").on("click", settings.editSelector, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                let url = saveUrl + "/" + $(this).data("id") ?? "";
+                let id = $(this).data("id") || 0;
+                let url = saveUrl + "/" + id;
                 loadForm(url);
+
+                $(settings.deleteSelector).data('id', id);
+
+                $("html, body").animate({ scrollTop: 0 }, 500);
+            });
+
+            $("body").on("click", settings.clearSelector, function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                loadForm(saveUrl);
+                $(settings.deleteSelector).removeData('id');
 
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
@@ -55,12 +69,6 @@
 
                 var isValid = validation();
                 if (!isValid) return false;
-
-                // var $valid = $(settings.formSelector).valid();
-                // console.log($valid);
-                // if (!$valid) {
-                //     return false;
-                // }
 
                 if ($btn.data("submitting")) return false;
                 $btn.data("submitting", true).prop("disabled", true);
@@ -82,13 +90,13 @@
                             loadForm(saveUrl)
                                 .then((data) => {
                                     loadUserAccesses(settings.baseUrl, settings.gridSelector);
-                                    /*settings.load(settings.baseUrl, settings.gridSelector);*/
+                                    $(settings.deleteSelector).removeData('id');
                                 })
                                 .catch((error) => {
-                                    console.log(error)
-                                })
+                                    console.log(error);
+                                });
 
-                            toastr.success(response.success, 'Success');
+                            toastr.success(response.message || 'Saved Successfully', 'Success');
                         }
                         else {
                             toastr.error(response.message, 'Error');
@@ -111,67 +119,46 @@
                     $(this).prop('checked'));
             });
 
-
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
                 selectedItems = [];
-                $('input:checkbox.checkBox').each(function () {
-                    if ($(this).prop('checked')) {
-                        selectedItems.push($(this).val());
-                    }
-                });
 
-
-                if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                if ($(this).data('id')) {
+                    selectedItems.push($(this).data('id'));
                 } else {
-                    toastr.info("Please select at least one item.", 'Warning');
-                }
-            });
-
-
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-                var source = $(event.relatedTarget);
-                var id = source.data("id");
-
-                var title = source.data("title");
-                title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    $(this).prop("disabled", true);
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl + "/" + selectedItems,
-                        method: "POST",
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message, 'Success');
-                                selectedItems = [];
-                                /*settings.load(settings.baseUrl);*/
-                                loadUserAccesses(settings.baseUrl, settings.gridSelector);
-                                loadForm(saveUrl);
-                                /*$('#EmployeeId').trigger("change");*/
-                            }
-                            else {
-                                loadUserAccesses(settings.baseUrl, settings.gridSelector);
-                                toastr.error(response.message, 'Error');
-                                console.log(response);
+                    $('input:checkbox.checkBox').each(function () {
+                        if ($(this).prop('checked')) {
+                            if (!selectedItems.includes($(this).val())) {
+                                selectedItems.push($(this).val());
                             }
                         }
                     });
-                });
+                }
 
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
-                selectedItems = [];
+                if (selectedItems.length > 0) {
+                    GcDelete.confirm("Are you sure to delete?", function () {
+                        $.ajax({
+                            url: deleteUrl + "/" + selectedItems.join(","),
+                            method: "POST",
+                            success: function (response) {
+                                if (response.success) {
+                                    toastr.success(response.message || "Deleted Successfully");
+                                    selectedItems = [];
+                                    loadUserAccesses(settings.baseUrl, settings.gridSelector);
+                                    loadForm(saveUrl);
+                                    $(settings.deleteSelector).removeData('id');
+                                } else {
+                                    if (response.refSuccess) {
+                                        toastr.warning(response.message, 'Warning');
+                                    }
+                                    toastr.error(response.message || "Failed to delete", 'Error');
+                                }
+                            }
+                        });
+                    });
+                } else {
+                    toastr.info("Please select at least one item.");
+                }
             });
 
             $("body").on("click", settings.topSelector, function (e) {
@@ -223,22 +210,25 @@
             //     toggleEmployeeRequired();
             // });
 
-            $('#UserType').on('change', function () {
-                console.log('test');
+            $("body").on("change", '#UserType', function () {
                 toggleUserTypeSections();
             });
             toggleUserTypeSections();
         });
+
         function toggleUserTypeSections() {
-            var userType = $('#UserType').val();
+            var userType = $('#UserType').val() || 'Employee';
 
             if (userType === 'Employee') {
                 $('#employeeSection').show();
                 $('#customerSection').hide();
 
-                // re-enable employee inputs so they post back / validate
                 $('#employeeSection').find('input, select').prop('disabled', false);
                 $('#customerSection').find('input, select').prop('disabled', true);
+
+                if (window.reinitCustomDropdownById) {
+                    window.reinitCustomDropdownById('EmployeeId');
+                }
             }
             else if (userType === 'Customer') {
                 $('#employeeSection').hide();
@@ -246,9 +236,12 @@
 
                 $('#customerSection').find('input, select').prop('disabled', false);
                 $('#employeeSection').find('input, select').prop('disabled', true);
+
+                if (window.reinitCustomDropdownById) {
+                    window.reinitCustomDropdownById('CustomerId');
+                }
             }
             else {
-                // nothing selected yet
                 $('#employeeSection').hide();
                 $('#customerSection').hide();
 
@@ -257,155 +250,94 @@
             }
         }
 
-        // run on load (handles edit mode where UserType is already set)
-
-
-        // Select2 fires a native 'change' event on the underlying <select>,
-        // so this also fires when the user picks a value from the select2 dropdown.
-        
         function getEmployeeInfo(id) {
-
             $.ajax({
                 type: "GET",
                 url: settings.baseUrl + "/GetEmployee/",
                 data: { userId: id },
                 success: function (data) {
-                    console.log(data);
                     $(settings.formContainer).empty();
                     $(settings.formContainer).html(data);
                     $.validator.unobtrusive.parse($(settings.formSelector));
-
-
                     initialize();
                 }
             });
-        };
-        function validation() {
-            var isRequired = $("#UserType").val() === 'Employee';// $("#isRequired").is(":checked");
-            var employeeId = $("#EmployeeId").val();
-            var customerId = $('#CustomerId').val();
+        }
 
-            var userType = $('#UserType').val();
+        function validation() {
+            var userType = $("#UserType").val() || 'Employee';
             if (!userType) {
                 toastr.warning("User Type is required!", 'Warning');
                 $("#UserType").focus();
                 return false;
             }
-            if (isRequired && !employeeId) {
-                toastr.warning("Employee is required!", 'Warning');
-                $("#EmployeeId").focus();
-                return false;
+
+            if (userType === 'Employee') {
+                var employeeId = $("#EmployeeId").val();
+                if (!employeeId) {
+                    toastr.warning("Employee is required!", 'Warning');
+                    $("#EmployeeId").focus();
+                    return false;
+                }
+            } else if (userType === 'Customer') {
+                var customerId = $('#CustomerId').val();
+                if (!customerId) {
+                    toastr.warning("Customer is required!", 'Warning');
+                    $("#CustomerId").focus();
+                    return false;
+                }
             }
 
-            var isCustomerReq = $('#UserType').val() === 'Customer';
-            if (isCustomerReq && !customerId) {
-                toastr.warning("Customer is required!", 'Warning');
-                $("#CustomerId").focus();
-                return false;
-            }
-
-            var username = $("#Username").val().trim();
+            var username = ($("#Username").val() || "").trim();
             if (!username) {
                 toastr.warning("Username is required!", 'Warning');
                 $("#Username").focus();
                 return false;
             }
 
-            var userpassword = $("#UserPassword").val().trim();
-            if (!userpassword) {
+            var userId = parseInt($("input[name='UserId']").val()) || 0;
+            var userpassword = ($("#UserPassword").val() || "").trim();
+            if (userId === 0 && !userpassword) {
                 toastr.warning("Password is required!", 'Warning');
                 $("#UserPassword").focus();
                 return false;
             }
 
-            var role = $("#Role").val().trim();
+            var role = ($("#Role").val() || "").trim();
             if (!role) {
                 toastr.warning("Role is required!", 'Warning');
                 $("#Role").focus();
                 return false;
             }
 
-            var accessCode = $("#AccessCode").val().trim();
+            var accessCode = ($("#AccessCode").val() || "").trim();
             if (!accessCode) {
-                toastr.warning("Access code is required!", 'warning');
+                toastr.warning("Access code is required!", 'Warning');
                 $("#AccessCode").focus();
                 return false;
             }
 
             return true;
         }
+
         function getEmployeeByUsername(id) {
             $.ajax({
                 type: "GET",
                 url: settings.baseUrl + "/GetEmployeeByUser/",
                 data: { username: id },
                 success: function (data) {
-                    console.log(data);
                     $(settings.formContainer).empty();
                     $(settings.formContainer).html(data);
                     $.validator.unobtrusive.parse($(settings.formSelector));
-
-
                     initialize();
                 }
             });
-        };
+        }
 
         function loadUserAccesses(baseUrl, gridSelector) {
-            var dataTable = $(gridSelector).DataTable({
-                ajax: {
-                    url: baseUrl + "/grid",
-                    type: "GET",
-                    datatype: "json"
-                },
-
-                columnDefs: [
-                    {
-                        targets: [0], orderable: false,
-                        createdCell: function (td) {
-                            $(td).html(`
-                        <div class="d-flex align-items-center justify-content-center px-0">
-                            ${$(td).html()}
-                        </div>
-                    `);
-                        }
-                    },
-                ],
-                columns: [
-                    {
-                        data: "id",
-                        className: "text-center align-middle px-0",
-                        render: function (data) {
-                            return `
-                                <div class="form-check d-inline-block m-0">
-                                    <input type="checkbox" class="checkBox form-check-input" value="${data}">
-                                </div>
-                            `;
-                        }
-                    },
-                    {
-                        data: "employeeId",
-                        className: "align-middle",
-                        render: function (data, type, row) {
-                            return `<a class="btn js-useraccess-edit px-0" data-id="${row.id}"><i>${data}</i></a>`;
-                        }
-                    },
-                    { data: "employeeName", className: "align-middle" },
-                    { data: "username", className: "align-middle" },
-                    { data: "role", className: "align-middle" },
-                    { data: "accessCode", className: "align-middle" }
-                ],
-                lengthChange: true,
-                pageLength: 10,
-                lengthMenu: [[10, 25, 50, 100, 1000, -1], [10, 25, 50, 100, 1000, "All"]],
-                autowidth: false,
-                responsive: true,
-                fixedHeader: false,
-                order: [[1, "Desc"]],
-                sScrollY: "100%",
-                scrollX: true,
-                sScrollX: "100%",
-                bDestroy: true
+            $.gctlGrid.initFromModel({
+                gridSelector: gridSelector || settings.gridSelector,
+                gridId: 'useraccess-grid'
             });
         }
 
@@ -414,24 +346,29 @@
                 $.ajax({
                     url: url,
                     type: 'GET',
+                    cache: false,
                     success: function (data) {
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-
                         initialize();
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
                         console.log(error);
-                        reject(error)
-                    },
-                })
-            })
+                        reject(error);
+                    }
+                });
+            });
         }
 
         function initialize() {
+            if (window.initCustomDropdowns) {
+                window.initCustomDropdowns(settings.formContainer, true);
+            }
+
+            toggleUserTypeSections();
 
             showDecimalPlaces($(settings.decimalSelector).val(), $(settings.decimalSelector).parent().find(".input-group-text"));
 
@@ -440,8 +377,8 @@
             const toggleBtn = document.getElementById('toggleBtn');
             const eyeIcon = document.getElementById('eyeIcon');
 
-            if (passwordInput && toggleBtn) {
-                function togglePassword() {
+            if (passwordInput && toggleBtn && eyeIcon) {
+                $(toggleBtn).off('click').on('click', function () {
                     const cursorPos = passwordInput.selectionStart;
                     if (passwordInput.type === 'password') {
                         passwordInput.type = 'text';
@@ -452,24 +389,10 @@
                     }
                     passwordInput.setSelectionRange(cursorPos, cursorPos);
                     passwordInput.focus();
-                }
-
-                toggleBtn.addEventListener('click', togglePassword);
-                toggleBtn.addEventListener('mousedown', (e) => e.preventDefault());
-            }
-
-            // initInlineSearchSelect2('#EmployeeId');
-            // initInlineSearchSelect2('#Role');
-            // initInlineSearchSelect2('#AccessCode');
-            // initInlineSearchSelect2('#SingleSession');
-
-            if (typeof $.fn.multiselect !== 'undefined') {
-                // bsms_InitializeMultiselects({
-                //     '#AccessPermissionCompanyCode': 'Select Company',
-                //     '#AccessPermissionBranchCode': 'Select Branch'
-                // });
-            } else {
-                console.error('Bootstrap Multiselect not loaded!');
+                });
+                $(toggleBtn).off('mousedown').on('mousedown', function (e) {
+                    e.preventDefault();
+                });
             }
         }
 
