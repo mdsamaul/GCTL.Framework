@@ -184,7 +184,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
                 entity.Luser = entityVM.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac ?? string.Empty;
-                entity.ModifyDate = DateTime.Now; // or Mdate if that's your column name
+                entity.ModifyDate = DateTime.Now; 
 
                 await shipmentModeLedgerrepository.UpdateAsync(entity);
                 await shipmentModeLedgerrepository.CommitTransactionAsync();

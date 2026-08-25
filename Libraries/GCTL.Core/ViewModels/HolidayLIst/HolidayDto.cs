@@ -12,7 +12,6 @@ namespace GCTL.Core.ViewModels.HolidayLIst
         public DateTime? EndDate { get; set; }
         public int TotalDays { get; set; }
         public bool IsActive { get; set; }
-
         public string Date => HolidayDate.ToString("yyyy-MM-dd");
         public string Name => HolidayName;
     }

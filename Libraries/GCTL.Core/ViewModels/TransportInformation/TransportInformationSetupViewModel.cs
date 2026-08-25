@@ -16,20 +16,13 @@ namespace GCTL.Core.ViewModels.TransportInformation
         [Required]
         public string VehicleTypeId { get; set; }
         public string? VehicleType { get; set; }
-
         public string? Remarks { get; set; }
-
         public string? FactoryId { get; set; }
-
         public string? CompanyCode { get; set; }
-
         public string? PortNameId { get; set; }
         public string? PortName { get; set; }
-
         public string? EmployeeId { get; set; }
-
         public string? Phone { get; set; }
-
         public string? VendorId { get; set; }
     }
 }

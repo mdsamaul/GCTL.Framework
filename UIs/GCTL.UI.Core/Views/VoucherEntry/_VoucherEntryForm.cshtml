@@ -1,41 +1,37 @@
-﻿<div class="card shadow-sm rounded-2">
+﻿@using GCTL.UI.Core.ViewModels
 
-    <div class="px-1 card-header bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap">
-        <div class="d-flex flex-nowrap justify-content-between w-100 align-items-center">
+<div class="card shadow-sm rounded-2">
 
-            <div>
-                <h4 class="mb-0 heading-nowrap " style="font-size:14px">Voucher Entry</h4>
-            </div>
-            <div class="d-flex gap-1" id="button-div">
+    @await Html.PartialAsync("_Toolbars", new ToobarModel
+    {
+        Title = "Voucher Entry",
+        ShowSave = true,
+        SaveBtnId = "VoucherEntrysaveBtn",
+        SaveBtnClass = "js-Voucher-save VoucherEntrysaveBtn",
+        EnableSave = true,
 
-                <button type="submit" form="VoucherEntryForm" class="btn btn-sm btn-outline-primary VoucherEntrysaveBtn">
-                    <i class="fas fa-save me-1"></i> Save
-                </button>
+        ShowDelete = true,
+        DeleteBtnId = "VoucherEntrydeleteBtn",
+        DeleteBtnClass = "js-Voucher-delete-confirm VoucherEntrydeleteBtn",
+        EnableDelete = true,
 
-                <button type="button" class="btn btn-sm btn-outline-danger VoucherEntrydeleteBtn" id="VoucherEntrydeleteBtn">
-                    <i class="fas fa-trash me-1"></i> Delete
-                </button>
+        ShowClear = true,
+        ClearBtnId = "btnClear",
+        ClearBtnClass = "js-Voucher-clear VoucherEntryresetBtn",
+        EnableClear = true,
 
-                <button type="reset" class="btn btn-sm btn-outline-secondary VoucherEntryresetBtn">
-                    <i class="fas fa-eraser me-1"></i> Clear
-                </button>
+        ShowPrint = true,
+        PrintBtnId = "btnPrint",
+        PrintBtnClass = "printBtn",
+        ExcelBtnClass = "export-excel",
+        PdfBtnClass = "export-pdf",
+        EnablePrint = true,
 
-                <div class="dropdown">
-                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fas fa-print me-1"></i> Print
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item export-pdf" href="#"><i class="fas fa-file-pdf me-1"></i> PDF</a></li>
-                        <li><a class="dropdown-item export-excel" href="#"><i class="fas fa-file-excel me-1"></i> Excel</a></li>
-                    </ul>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-warning VoucherEntryfavBtn">
-                    <i class="fas fa-star me-1"></i> Fav
-                </button>
-            </div>
-
-        </div>
-    </div>
+        ShowFavorite = true,
+        FavtBtnId = "btnFav",
+        FavtBtnClass = "VoucherEntryfavBtn",
+        EnableFavorite = true
+    })
 
     <div class="card-body">
         <form id="VoucherEntryForm">
@@ -45,66 +41,101 @@
 
                 @* Main Information Section *@
                 <fieldset class="border rounded-3 p-3 position-relative">
-                    <legend class="float-none w-auto px-2 fw-bold "
+                    <legend class="float-none w-auto px-2 fw-bold"
                             style="font-size: 15px; border: 1px solid #dee2e6; border-radius: 6px; background-color: #f8f9fa;">
                         Main Information
                     </legend>
                     <div class="row g-3">
 
                         @* Company *@
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <select class="form-select" id="CompanyCode" name="CompanyCode">
-                                </select>
-                                <label for="CompanyCode"></label>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Select,
+                            InputId = "CompanyCode",
+                            InputName = "CompanyCode",
+                            LabelText = "Company",
+                            Placeholder = "-- Select Company --",
+                            IsRequired = true
+                        })
 
                         @* Branch *@
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <select class="form-select" id="BranchCode" name="BranchCode" tabindex="0">
-                                </select>
-                                <label for="BranchCode"></label>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Select,
+                            InputId = "BranchCode",
+                            InputName = "BranchCode",
+                            LabelText = "Branch",
+                            Placeholder = "-- Select Branch --",
+                            IsRequired = true
+                        })
 
                         @* Voucher Type *@
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <select class="form-select" id="VoucherTypeCode" name="VoucherType_Code">
-                                </select>
-                                <label for="VoucherType_Code"></label>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Select,
+                            InputId = "VoucherTypeCode",
+                            InputName = "VoucherType_Code",
+                            LabelText = "Voucher Type",
+                            Placeholder = "-- Select Voucher Type --",
+                            IsRequired = true
+                        })
 
                         @* Voucher Date *@
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="VoucherDate" name="VoucherDate" >
-                                <label for="VoucherDate">Voucher Date<span class="text-danger">*</span></label>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Text,
+                            InputId = "VoucherDate",
+                            InputName = "VoucherDate",
+                            LabelText = "Voucher Date",
+                            Placeholder = "Voucher Date",
+                            IsRequired = true
+                        })
 
                         @* Voucher No *@
-                        <div class="col-md-6">
-                            <div class="form-floating">
-                                <input readonly type="text" class="form-control" id="VoucherNo" name="VoucherNo" placeholder="Voucher No">
-                                <label for="VoucherNo">Voucher No<span class="text-danger">*</span></label>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.Text,
+                            InputId = "VoucherNo",
+                            InputName = "VoucherNo",
+                            LabelText = "Voucher No",
+                            Placeholder = "Voucher No",
+                            IsRequired = true,
+                            IsReadonly = true
+                        })
 
                         @* Narration *@
-                        <div class="col-md-12">
-                            <div class="form-floating">
-                                <textarea class="form-control" id="Narration" name="Narration" placeholder="Narration" rows="2"></textarea>
-                                <label for="Narration">Narration <span class="text-danger">*</span></label>
-                            </div>
-                        </div>
-
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-12",
+                            FieldType = FieldType.Textarea,
+                            InputId = "Narration",
+                            InputName = "Narration",
+                            LabelText = "Narration",
+                            Placeholder = "Narration",
+                            IsRequired = true,
+                            Rows = 2
+                        })
 
                     </div>
                 </fieldset>
+
                 <input type="hidden" id="TmpDetailsAutoID">
 
                 @* Details Information Section *@
@@ -115,20 +146,25 @@
                     </legend>
 
                     <div class="row g-3">
-                        @* Tr. Type  *@
+
+                        @* Tr. Type *@
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <select class="form-select" id="TrType" name="TrType">
-                                    <option value="" selected disabled>Select Tr. Type</option>
-                                    <option value="Dr">Dr</option>
-                                    <option value="Cr">Cr</option>
-                                </select>
-                                <label for="TrType"></label>
-                            </div>
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Select,
+                                InputId = "TrType",
+                                InputName = "TrType",
+                                LabelText = "Select Tr. Type",
+                                Placeholder = "Select Tr. Type",
+                                IsRequired = true
+                            })
                         </div>
                         <div class="col-md-6"></div>
 
-                        @* Ledger Section  *@
+                        @* Ledger Section (hidden by default) *@
                         <div class="col-md-6" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Group Ledger :</span>
@@ -156,45 +192,83 @@
 
                         @* Account Head *@
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <select class="form-select" id="AccCode" name="AccCode">
-                                </select>
-                                <label for="AccCode"></label>
-                            </div>
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Select,
+                                InputId = "AccCode",
+                                InputName = "AccCode",
+                                LabelText = "Account Head",
+                                Placeholder = "-- Select Account Head --",
+                                IsRequired = true
+                            })
                         </div>
                         <div class="col-md-6"></div>
 
-                        @* Description and Amount  *@
+                        @* Description *@
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <input readonly type="text" class="form-control" id="Description" name="Description" placeholder="Description">
-                                <label for="Description">Description</label>
-                            </div>
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Text,
+                                InputId = "Description",
+                                InputName = "Description",
+                                LabelText = "Description",
+                                Placeholder = "Description",
+                                IsReadonly = true
+                            })
                         </div>
+
+                        @* Amount *@
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="number" class="form-control" id="Amount" name="Amount" placeholder="Amount">
-                                <label for="Amount">Amount<span style="color:red">*</span></label>
-                            </div>
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Number,
+                                InputId = "Amount",
+                                InputName = "Amount",
+                                LabelText = "Amount",
+                                Placeholder = "Amount",
+                                IsRequired = true
+                            })
                         </div>
 
                         @* Cheque No *@
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="ChequeNo" name="ChequeNo" placeholder="Enter Cheque No">
-                                <label for="ChequeNo">Cheque No</label>
-                            </div>
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Text,
+                                InputId = "ChequeNo",
+                                InputName = "ChequeNo",
+                                LabelText = "Cheque No",
+                                Placeholder = "Enter Cheque No"
+                            })
                         </div>
 
                         @* Cheque Date *@
                         <div class="col-md-6">
-                            <div class="form-floating">
-                                <input type="date" class="form-control" id="ChequeDate" name="ChequeDate">
-                                <label for="ChequeDate">Cheque Date</label>
-                            </div>
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                IsVisible = true,
+                                ShowOnInit = true,
+                                ColumnClass = "",
+                                FieldType = FieldType.Date,
+                                InputId = "ChequeDate",
+                                InputName = "ChequeDate",
+                                LabelText = "Cheque Date"
+                            })
                         </div>
 
-                        @* Details Button *@
+                        @* Details Button Group *@
                         <div class="row">
                             <div class="col-12">
                                 <div class="details-icon-group">
@@ -210,7 +284,6 @@
                                         <i class="fas fa-sync-alt"></i>
                                     </button>
                                 </div>
-
                             </div>
                         </div>
 
@@ -229,55 +302,71 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-
                                         <tr>
                                             <td colspan="4" class="text-end fw-bold">Total</td>
                                             <td class="fw-bold">0.00</td>
                                             <td class="fw-bold">0.00</td>
                                         </tr>
-
                                     </tbody>
                                 </table>
                                 <small class="text-muted"></small>
                             </div>
                         </div>
+
                     </div>
                 </fieldset>
 
-                @* Creation/Modify Date Display *@
-                @* <div class="row g-3 mt-2">
-                    <div class="col-md-6" style="display:none;">
-                        <div class="ldateupdatesection">
-                            <span class="entry-label">Entry Date : </span>
-                            <span class="entry-value" id="EntryDate"></span>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6" style="display:none;">
-                        <div class="ldateupdatesection">
-                            <span class="entry-label">Last Update Date :</span>
-                            <span class="entry-value" id="UpdateDate"></span>
-                        </div>
-                    </div>
-                </div> *@
                 <hr class="my-4 mx-2">
+
+                @* Entry / Update Date Section *@
                 <div class="row g-3">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "EntryDate",
+                        LabelText = "Entry Date:",
+                        LabelInline = true,
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
+                    })
 
-                    <div class="col-md-6">
-                        <div>
-                            <span>Entry Date : </span>
-                            <span id="EntryDate"></span>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div>
-                            <span>Last Update Date :</span>
-                            <span id="UpdateDate"></span>
-                        </div>
-                    </div>
-
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "UpdateDate",
+                        LabelText = "Last Update Date:",
+                        LabelInline = true,
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
+                    })
                 </div>
+
+                @* Bottom Save Button *@
+                <div class="col-12">
+                    @await Html.PartialAsync("_Toolbars", new ToobarModel
+                    {
+                        Title = "",
+                        ShowClear = false,
+                        ShowDelete = false,
+                        ShowPrint = false,
+                        ShowFavorite = false,
+                        IsPlain = true,
+                        ReserveActionSlot = true,
+                        IsMarginRight = true,
+                        SaveBtnType = "submit"
+                    })
+                </div>
+
             </fieldset>
         </form>
     </div>
