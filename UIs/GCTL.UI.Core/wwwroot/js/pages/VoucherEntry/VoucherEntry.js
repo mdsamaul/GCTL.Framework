@@ -252,12 +252,13 @@ function LoadVoucherTypeDropdown() {
             });
 
             // Initialize Select2 to make it searchable
-            $general.select2({
-                placeholder: "Voucher Type",
-                width: '100%',
-                allowClear: true,
-                dropdownPosition: 'below'
-            });
+            // $general.select2({
+            //     placeholder: "Voucher Type",
+            //     width: '100%',
+            //     allowClear: true,
+            //     dropdownPosition: 'below'
+            // });
+            window.reinitCustomDropdownById('VoucherTypeCode');
 
             $general.next('.select2-container').find('.select2-selection__placeholder')
                 .html('Voucher Type <span style="color:red">*</span>');
@@ -288,10 +289,11 @@ function VoucherEntryCompanyDropdown() {
             });
 
             // Initialize Select2 to make it searchable
-            $company.select2({
-                width: '100%',
-                allowClear: true,
-            });
+            // $company.select2({
+            //     width: '100%',
+            //     allowClear: true,
+            // });
+            window.reinitCustomDropdownById('CompanyCode');
             if (response.data.length === 1) {
                 $company.val(response.data[0].id).trigger('change');
             }
@@ -334,11 +336,12 @@ function VoucherEntryBranchDropdown(companyCode, callback) {
             });
 
             // Initialize Select2
-            $branch.select2({
-                placeholder: "Select Branch",
-                width: '100%',
-                allowClear: true
-            });
+            // $branch.select2({
+            //     placeholder: "Select Branch",
+            //     width: '100%',
+            //     allowClear: true
+            // });
+            window.reinitCustomDropdownById('BranchCode');
 
             $branch.next('.select2-container').find('.select2-selection__placeholder')
                 .html('Select Branch <span style="color:red">*</span>');
