@@ -1,4 +1,5 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.DataTables;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.UserAccesses;
@@ -8,6 +9,7 @@ namespace GCTL.Service.Users
 {
     public interface IUserService
     {
+        Task<PaginationResponse<UserViewModel>> GetTableDataAsync(PaginationRequest request);
         Task<IEnumerable<CoreUserInfo>> GetUsers();
         //List<CoreUserInfo> GetUsers();
         Task<List<UserViewModel>> GetAllUsers();

@@ -1,4 +1,4 @@
-﻿$(document).ready(function () {
+$(document).ready(function () {
     //getMenuData(null);
 
     // Right Side Table
@@ -159,89 +159,58 @@ function hideModal(selector) {
 //#endregion
 
 function loadAccessList() {
-    $("#accessListTable").DataTable({
-        ajax: {
-            url: '/menuTab/GetAccessListTable',
-            type: "GET",
-            dataType: "json"
-        },
-        dom: '<"d-flex justify-content-between align-items-center mb-2"lf>rt<"d-flex justify-content-between align-items-center mt-2"ip>',
-        columns: [
-            {
-                data: "accessCodeId",
-                className: "text-center px-0 no-sort",
-                width: "40px",
-                render: function (data) {
-                    return `<input type="checkbox" class="text-center align-middle checkBox" value="${data}">`;
-                }
-            },
-            {
-                data: "accessCodeId",
-                className: "text-center",
-                render: function (data, type, row) {
-                    return `<button type="button" class="btn btn-link p-0 access-id-btn" 
-                        data-id="${data}" 
-                        data-name="${row.accessCodeName}">
-                        ${data}
-                    </button>`;
-                }
-            },
-            { data: "accessCodeName", className: "text-start" }
-        ],
-        columnDefs: [
-            {
-                targets: [0], orderable: false,
-                createdCell: function (td) {
-                    $(td).html(`<div class="d-flex align-items-center justify-content-center px-0">${$(td).html()}</div>`);
-                }
-            }
-        ],
-        lengthChange: true,
-        pageLength: 10,
-        lengthMenu: [[10, 25, 50, 100, 1000, -1], [10, 25, 50, 100, 1000, "All"]],
-        autoWidth: false,
-        responsive: true,
-        fixedHeader: true,
-        order: [[1, "desc"]],
-        bDestroy: true,
+    $.gctlGrid.initFromModel({
+        gridId: 'accessListTable'
     });
 }
+
 $('#selectAllAccess').on('change', function () {
-    $('.row-checkbox').prop('checked', this.checked);
+    $('.checkBox').prop('checked', this.checked);
 });
-//#endregion
 
+$('#deleteSelectedBtn').on('click', function (e) {
+    e.preventDefault();
+    let selectedIds = [];
 
-//#region Delete Selected
+    $('.checkBox:checked').each(function () {
+        selectedIds.push($(this).val());
+    });
 
-$('#deleteSelectedBtn').on('click', function () {
-    const selectedIds = $('.checkBox:checked').map(function () {
-        return $(this).val();
-    }).get();
+    if (selectedIds.length === 0 && $(this).data('id')) {
+        selectedIds.push($(this).data('id'));
+    } else if (selectedIds.length === 0 && $('#access-code-id').val()) {
+        selectedIds.push($('#access-code-id').val().trim());
+    }
 
     if (selectedIds.length === 0) {
-        alert('No items selected.');
+        toastr.info('Please select at least one item.');
         return;
     }
 
-    if (confirm(`Delete ${selectedIds.length} item(s)?`)) {
+    GcDelete.confirm("Are you sure to delete?", function () {
         $.ajax({
             url: '/menuTab/DeleteAccessCodes',
             method: 'POST',
             data: JSON.stringify(selectedIds),
             contentType: 'application/json',
-            success: function () {
+            success: function (res) {
+                toastr.success(res.message || "Deleted Successfully");
                 const currentId = $('#access-code-id').val().trim();
                 loadAccessList();
                 loadAccessCodeDropdown();
                 if (selectedIds.includes(currentId)) {
-                    $('#access-code-id').val('');
+                    $('#access-code-id').val('').trigger('change');
                     $('#access-code-name').val('');
-                    getMenuData(null);
+                    renderMenuTable([]);
+                    updateTableVisibility();
                 }
+                $('#deleteSelectedBtn').removeData('id');
+            },
+            error: function (err) {
+                toastr.error("Error deleting access code.");
             }
         });
-    }
+    });
 });
 
 //#region Modal
