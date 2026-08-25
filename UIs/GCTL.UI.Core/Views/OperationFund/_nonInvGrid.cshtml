@@ -1,4 +1,4 @@
-﻿<style>
+<style>
 
     #FundTable td:nth-child(6) {
         white-space: normal;
@@ -21,7 +21,7 @@
             {
                 GridId = "FundTable",
                 AjaxUrl = "/OperationFund/GetAllRequisition",
-                AjaxMethod = "GET",
+                AjaxMethod = "POST",
                 ServerSide = true,
                 ShowCheckbox = true,
                 CheckColumnData = "ofrNo",
@@ -29,6 +29,7 @@
                 DefaultSortColumn = "ofrNo",
                 DefaultSortDirection = "desc",
                 Bordered = true,
+                CustomGridWrapper = false,
                 Columns = new()
             {
                 new() { Data = "ofrNo", Header = "OFR No", Width = "12%", IsEditLink=true, EditSelectorClass="ofr-no-link text-decoration-underline",  },

@@ -70,9 +70,10 @@
                 pageLength: settings.pageLength,
                 lengthMenu: settings.lengthMenu,
                 order: settings.order,
+                pagingType: 'simple_numbers',
                 language: {
-                    emptyTable: "No records available",
-                    zeroRecords: "No matching records found",
+                    emptyTable: "<div class='py-2 text-center'><i class='bi bi-inbox fs-4 text-muted d-block mb-1'></i><span class='text-muted small'>No records available</span></div>",
+                    zeroRecords: "<div class='py-2 text-center'><i class='bi bi-inbox fs-4 text-muted d-block mb-1'></i><span class='text-muted small'>No matching records found</span></div>",
                     processing: "<span class='spinner-border spinner-border-sm me-1'></span> Loading...",
                     search: "_INPUT_",
                     searchPlaceholder: "Search...",
@@ -81,8 +82,6 @@
                     infoEmpty: "Showing 0 to 0 of 0 entries",
                     infoFiltered: "(filtered from _MAX_ total entries)",
                     paginate: {
-                        first: "First",
-                        last: "Last",
                         next: "Next",
                         previous: "Previous"
                     }
@@ -96,11 +95,49 @@
                 settings.onLoaded(json);
             });
 
+            // Active row highlight on draw
+            $(settings.gridSelector).off('draw.dt.gctlHighlight').on('draw.dt.gctlHighlight', function () {
+                $(settings.gridSelector).find('tbody tr').each(function () {
+                    var $tr = $(this);
+                    var $checkedInput = $tr.find('input[type="radio"]:checked, input[type="checkbox"]:checked');
+                    $tr.toggleClass('selected-row table-active', $checkedInput.length > 0);
+                });
+            });
+
+            // Active row highlight on selection change
+            $(settings.gridSelector).off('change.gctlRowSelect', 'input[type="radio"], input[type="checkbox"]')
+                .on('change.gctlRowSelect', 'input[type="radio"], input[type="checkbox"]', function () {
+                    var $input = $(this);
+                    var $tr = $input.closest('tr');
+                    if ($input.is(':radio')) {
+                        $(settings.gridSelector).find('tbody tr').removeClass('selected-row table-active');
+                        if ($input.is(':checked')) {
+                            $tr.addClass('selected-row table-active');
+                        }
+                    } else if ($input.is(':checkbox')) {
+                        $tr.toggleClass('selected-row table-active', $input.is(':checked'));
+                        if (settings.checkAllSelector) {
+                            var total = $(settings.gridSelector + " ." + settings.checkBoxClass).length;
+                            var checked = $(settings.gridSelector + " ." + settings.checkBoxClass + ":checked").length;
+                            var $checkAll = $(settings.checkAllSelector);
+                            if (checked === 0) {
+                                $checkAll.prop('checked', false).prop('indeterminate', false);
+                            } else if (checked === total) {
+                                $checkAll.prop('checked', true).prop('indeterminate', false);
+                            } else {
+                                $checkAll.prop('checked', false).prop('indeterminate', true);
+                            }
+                        }
+                    }
+                });
+
             if (settings.checkAllSelector) {
                 $("body").off("click.gctlGrid", settings.checkAllSelector)
                     .on("click.gctlGrid", settings.checkAllSelector, function () {
+                        var isChecked = $(this).prop('checked');
                         $(settings.gridSelector + " ." + settings.checkBoxClass)
-                            .prop('checked', $(this).prop('checked'));
+                            .prop('checked', isChecked)
+                            .closest('tr').toggleClass('selected-row table-active', isChecked);
                     });
             }
 
@@ -179,7 +216,7 @@
                             });
                         }
 
-                        return '<a class="btn ' + editClass + '" data-id="' + idVal + '"' + extraAttrs + '><i>' + label + '</i></a>';
+                        return '<a class="dynamic-grid-link ' + editClass + '" data-id="' + idVal + '"' + extraAttrs + '>' + label + '</a>';
                     };
                 } else if (c.renderFn && window.gctlRenderers && window.gctlRenderers[c.renderFn]) {
                     renderFn = window.gctlRenderers[c.renderFn];
@@ -249,13 +286,15 @@
         window.gctlRenderers.formatDate = function (data) {
             if (!data) return '';
             var d = new Date(data);
-            if (isNaN(d.getTime())) return data;
             var day = String(d.getDate()).padStart(2, '0');
             var month = String(d.getMonth() + 1).padStart(2, '0');
             var year = d.getFullYear();
             return day + '/' + month + '/' + year;
         };
     }
+
+    window.CustomDataTable = $.gctlGrid;
+    window.GctlGrid = $.gctlGrid;
 
 }(jQuery));
 

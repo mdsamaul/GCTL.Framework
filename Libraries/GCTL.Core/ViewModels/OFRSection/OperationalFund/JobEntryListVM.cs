@@ -13,7 +13,7 @@ namespace GCTL.Core.ViewModels.OFRSection.OperationalFund
 
         [Searchable] public DateTime? DocReceivedDate { get; set; }
         [Searchable] public string? Invoice { get; set; }
-        [Searchable] public string? BENo { get; set; }
+        [Searchable] public string? Beno { get; set; }
         [Searchable] public string? ShipmentMode { get; set; }
         public string? ShipmentModeID { get; set; }
     }

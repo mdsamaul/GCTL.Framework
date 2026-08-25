@@ -33,7 +33,7 @@ namespace GCTL.UI.Core.Controllers
 
 
         #region Job Entry List
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> GetAllJobList(
             int draw = 1,
             int pageNumber = 1,
@@ -95,7 +95,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Get All Requisition
 
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> GetAllRequisition(
             int draw = 1,
             int pageNumber = 1,

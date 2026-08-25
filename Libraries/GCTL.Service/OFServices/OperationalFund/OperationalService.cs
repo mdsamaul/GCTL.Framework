@@ -83,7 +83,7 @@ namespace GCTL.Service.OperationalFund
                             CustomerAddress = c != null ? c.CustomerAddress : "",
 
                             Invoice = d.InvoiceNo,
-                            BENo = d.Beno,
+                            Beno = d.Beno,
 
                             ShipmentModeID = e != null ? e.ExpenseTypeId : "",
                             ShipmentMode = e != null ? e.ExpenseType : ""

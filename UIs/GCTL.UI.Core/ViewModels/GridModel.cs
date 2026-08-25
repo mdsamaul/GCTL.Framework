@@ -42,7 +42,7 @@ namespace GCTL.UI.Core.ViewModels
 
 
         // Styling
-        public bool Striped { get; set; } = true;
+        public bool Striped { get; set; } = false;
         public bool Bordered { get; set; } = true;
         public bool Hover { get; set; } = true;
         public bool Compact { get; set; } = true;
@@ -58,5 +58,13 @@ namespace GCTL.UI.Core.ViewModels
         public string DefaultSortDirection { get; set; } = "desc";
         public bool ShowSearchBox { get; set; } = true;
         public string EmptyStateText { get; set; } = "No records found.";
+
+        // Optional Card / Collapsible Container
+        public bool CardWrapper { get; set; } = false;
+        public string? CardTitle { get; set; }
+        public string? IconClass { get; set; }
+        public bool IsCollapsible { get; set; } = false;
+        public bool IsCollapsedDefault { get; set; } = false;
+        public bool CustomGridWrapper { get; set; } = true;
     }
 }

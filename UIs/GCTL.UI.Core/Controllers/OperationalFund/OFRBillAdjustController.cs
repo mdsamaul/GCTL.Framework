@@ -123,7 +123,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Get All Requisition List for Top Grid
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> GetAllRequisitionList(
             int draw = 1,
             int pageNumber = 1,
@@ -164,7 +164,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Get All Requisition List for Bottom Grid
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> GetAllRequisitionForBottomGrid(
             int draw = 1,
             int pageNumber = 1,

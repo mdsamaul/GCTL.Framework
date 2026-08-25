@@ -34,11 +34,6 @@
             box-shadow: 0 0 3px #0d6efd;
         }
 
-    div.dt-layout-end,
-    div.dt-layout-full,
-    div.dt-layout-start {
-        padding: 0;
-    }
 </style>
 <div class="row mb-2">
     <div class="col-12">
@@ -75,12 +70,14 @@
     {
         GridId = "JobTable",
         AjaxUrl = "/OperationFund/GetAllJobList",
+        AjaxMethod = "POST",
         ServerSide = true,
         UseRadio = true,
         RadioName = "jobSelect",
         CheckColumnData = "jobNo",
         DefaultSortColumn = "jobDate",
         DefaultSortDirection = "desc",
+        CustomGridWrapper = false,
         Columns = new()
     {
         new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },
@@ -90,7 +87,7 @@
         new() { Data = "customerAddress", Header = "Address", Width = "27%", Align = "left" },
         new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "8%", RenderFn = "formatDate" },
         new() {  Data = "invoice", Header = "Invoice No.", Width = "10%", Align = "left" },
-        new() { Data = "beNo", Header = "B/E No.", Width = "9%", Align = "left", IsWrapable = false }
+        new() { Data = "beno", Header = "B/E No.", Width = "9%", Align = "left", IsWrapable = false }
     }
     })
 @*     <table class="table table-sm table-bordered table-striped table-hover align-middle mb-0 text-nowrap" id="JobTable">

@@ -5,9 +5,8 @@
 @{
     var tableClasses = string.Join(" ", new[]
     {
-        "table", "align-middle", "table-common",
+        "table", "table-bordered", "align-middle", "table-common", "custom-grid-table",
         Model.Compact ? "table-sm" : "",
-        Model.Striped ? "table-striped" : "",
         Model.Bordered ? "table-bordered" : "",
         Model.Hover ? "table-hover" : ""
     }.Where(c => !string.IsNullOrEmpty(c)));
@@ -16,43 +15,113 @@
     {
         PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
     };
+
+    var collapseId = $"collapse_{Model.GridId}";
 }
 
-<div class="table-responsive @Model.ContainerCssClass">
-    <table id="@Model.GridId"
-           class="@tableClasses mb-0"
-           data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
-        <thead>
-            <tr class="text-center align-middle small">
-                @if (Model.ShowCheckbox || Model.UseRadio)
+@if (Model.CardWrapper || Model.IsCollapsible || !string.IsNullOrEmpty(Model.CardTitle))
+{
+    <div class="card custom-grid-card shadow-sm mb-3">
+        @if (!string.IsNullOrEmpty(Model.CardTitle) || Model.IsCollapsible)
+        {
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3 border-bottom">
+                <span class="fw-bold text-secondary small d-flex align-items-center gap-2">
+                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                    {
+                        <i class="@Model.IconClass text-primary"></i>
+                    }
+                    @Model.CardTitle
+                </span>
+                @if (Model.IsCollapsible)
                 {
-                    <th style="width:3%;">
-                        @if (Model.UseRadio)
-                        {
-                            <span>Sel</span>
-                            <input type="radio" class="form-check-input" id="@Model.CheckAllId"
-                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
-                        }
-                        else
-                        {
-                            <text>Select<br /></text>
-                            <input type="checkbox" class="form-check-input" id="@Model.CheckAllId"
-                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
-                        }
-                    </th>
+                    <button class="btn btn-sm btn-icon-clean shadow-none text-secondary p-0" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#@collapseId" 
+                            aria-expanded="@(Model.IsCollapsedDefault ? "false" : "true")" 
+                            aria-controls="@collapseId"
+                            title="Toggle Grid">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
                 }
-                @foreach (var col in Model.Columns.Where(c => c.Visible))
-                {
-                    <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
-                        @col.Header
-                        @if (!string.IsNullOrEmpty(col.HeaderBangla))
-                        {
-                            <br /><small class="text-muted">@col.HeaderBangla</small>
-                        }
-                    </th>
-                }
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+            </div>
+        }
+        <div class="@(Model.IsCollapsible ? "collapse" + (Model.IsCollapsedDefault ? "" : " show") : "")" id="@collapseId">
+            <div class="card-body p-2">
+                <div class="table-responsive @Model.ContainerCssClass">
+                    <table id="@Model.GridId"
+                           class="@tableClasses mb-0"
+                           data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
+                        <thead>
+                            <tr class="text-center align-middle small">
+                                @if (Model.ShowCheckbox)
+                                {
+                                    <th class="text-center align-middle" style="width:3%; min-width: 42px;">
+                                        <span class="user-select-none">Select</span><br />
+                                        <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
+                                               disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                                    </th>
+                                }
+                                else if (Model.UseRadio)
+                                {
+                                    <th class="text-center align-middle" style="width:3%; min-width: 45px;">
+                                        <span class="user-select-none">Select</span>
+                                    </th>
+                                }
+                                @foreach (var col in Model.Columns.Where(c => c.Visible))
+                                {
+                                    <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
+                                        @col.Header
+                                        @if (!string.IsNullOrEmpty(col.HeaderBangla))
+                                        {
+                                            <br /><small class="text-muted">@col.HeaderBangla</small>
+                                        }
+                                    </th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="table-responsive @(Model.CustomGridWrapper ? "custom-grid-wrapper p-1" : "") @Model.ContainerCssClass">
+        <table id="@Model.GridId"
+               class="@tableClasses mb-0"
+               data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
+            <thead>
+                <tr class="text-center align-middle small">
+                    @if (Model.ShowCheckbox)
+                    {
+                        <th class="text-center align-middle" style="width:3%; min-width: 42px;">
+                            <span class="user-select-none">Select</span><br />
+                            <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
+                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                        </th>
+                    }
+                    else if (Model.UseRadio)
+                    {
+                        <th class="text-center align-middle" style="width:3%; min-width: 45px;">
+                            <span class="user-select-none">Select</span>
+                        </th>
+                    }
+                    @foreach (var col in Model.Columns.Where(c => c.Visible))
+                    {
+                        <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
+                            @col.Header
+                            @if (!string.IsNullOrEmpty(col.HeaderBangla))
+                            {
+                                <br /><small class="text-muted">@col.HeaderBangla</small>
+                            }
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+}

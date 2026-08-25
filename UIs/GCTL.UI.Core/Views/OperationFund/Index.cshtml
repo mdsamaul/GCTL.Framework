@@ -1,4 +1,4 @@
-﻿ @* @model GCTL.UI.Core.ViewModels.EmployeeNonInvestmentEntry.EmployeeNonInvestmentPageViewModel *@
+ @* @model GCTL.UI.Core.ViewModels.EmployeeNonInvestmentEntry.EmployeeNonInvestmentPageViewModel *@
 
 @* @{
     Model.Breadcrumb = "EmployeeNonInvestmentEntry";
@@ -117,14 +117,9 @@
         <partial name="_Setup" />
     </fieldset>
 
-    @* <fieldset class="custom-fieldset card">
-        <partial name="_nonInvGrid"></partial>
-    </fieldset> *@
-    <div class="collapse" id="collapseNonInvGrid">
-        <fieldset class="custom-fieldset card p-2">
-            <partial name="_nonInvGrid" />
-        </fieldset>
-    </div>
+    <fieldset class="custom-fieldset card p-2">
+        <partial name="_nonInvGrid" />
+    </fieldset>
 </div>
 
 @section Scripts {
