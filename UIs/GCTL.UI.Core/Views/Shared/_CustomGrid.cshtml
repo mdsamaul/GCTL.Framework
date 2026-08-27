@@ -7,8 +7,10 @@
     {
         "table", "table-bordered", "align-middle", "table-common", "custom-grid-table",
         Model.Compact ? "table-sm" : "",
+        Model.Striped ? "table-striped" : "",
         Model.Bordered ? "table-bordered" : "",
-        Model.Hover ? "table-hover" : ""
+        Model.Hover ? "table-hover" : "",
+        Model.SelectRowHighlight ? "enable-select-highlight" : ""
     }.Where(c => !string.IsNullOrEmpty(c)));
 
     var jsonOptions = new System.Text.Json.JsonSerializerOptions
@@ -51,12 +53,21 @@
                 <div class="table-responsive @Model.ContainerCssClass">
                     <table id="@Model.GridId"
                            class="@tableClasses mb-0"
+                           style="width:100%;"
                            data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
                         <thead>
                             <tr class="text-center align-middle small">
+                                @if (Model.HasSubRow)
+                                {
+                                    <th style="width:24px; min-width:24px;" class="col-subrow no-sort"></th>
+                                }
+                                @if (Model.ShowRowNumbers)
+                                {
+                                    <th style="width:32px; min-width:32px;" class="col-sl-no no-sort">#</th>
+                                }
                                 @if (Model.ShowCheckbox)
                                 {
-                                    <th class="text-center align-middle" style="width:3%; min-width: 42px;">
+                                    <th class="text-center align-middle no-sort" style="width:3%; min-width: 42px;">
                                         <span class="user-select-none">Select</span><br />
                                         <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
                                                disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
@@ -64,7 +75,7 @@
                                 }
                                 else if (Model.UseRadio)
                                 {
-                                    <th class="text-center align-middle" style="width:3%; min-width: 45px;">
+                                    <th class="text-center align-middle no-sort" style="width:3%; min-width: 45px;">
                                         <span class="user-select-none">Select</span>
                                     </th>
                                 }
@@ -77,6 +88,10 @@
                                             <br /><small class="text-muted">@col.HeaderBangla</small>
                                         }
                                     </th>
+                                }
+                                @if (Model.ShowActionMenu)
+                                {
+                                    <th class="align-middle text-center col-actions no-sort" style="width:6%;">Action</th>
                                 }
                             </tr>
                         </thead>
@@ -92,12 +107,21 @@ else
     <div class="table-responsive @(Model.CustomGridWrapper ? "custom-grid-wrapper p-1" : "") @Model.ContainerCssClass">
         <table id="@Model.GridId"
                class="@tableClasses mb-0"
+               style="width:100%;"
                data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
             <thead>
                 <tr class="text-center align-middle small">
+                    @if (Model.HasSubRow)
+                    {
+                        <th style="width:24px; min-width:24px;" class="col-subrow no-sort"></th>
+                    }
+                    @if (Model.ShowRowNumbers)
+                    {
+                        <th style="width:32px; min-width:32px;" class="col-sl-no no-sort">#</th>
+                    }
                     @if (Model.ShowCheckbox)
                     {
-                        <th class="text-center align-middle" style="width:3%; min-width: 42px;">
+                        <th class="text-center align-middle no-sort" style="width:3%; min-width: 42px;">
                             <span class="user-select-none">Select</span><br />
                             <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
                                    disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
@@ -105,7 +129,7 @@ else
                     }
                     else if (Model.UseRadio)
                     {
-                        <th class="text-center align-middle" style="width:3%; min-width: 45px;">
+                        <th class="text-center align-middle no-sort" style="width:3%; min-width: 45px;">
                             <span class="user-select-none">Select</span>
                         </th>
                     }
@@ -118,6 +142,10 @@ else
                                 <br /><small class="text-muted">@col.HeaderBangla</small>
                             }
                         </th>
+                    }
+                    @if (Model.ShowActionMenu)
+                    {
+                        <th class="align-middle text-center col-actions no-sort" style="width:6%;">Action</th>
                     }
                 </tr>
             </thead>
