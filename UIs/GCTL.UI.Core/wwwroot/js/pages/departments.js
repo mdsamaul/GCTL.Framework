@@ -5,7 +5,7 @@
             baseUrl: "/",
             formSelector: "#department-form",
             formContainer: ".js-department-form-container",
-            gridSelector: "#departmentGridContainer",
+            gridSelector: "#departmentTable",
             gridContainer: ".js-department-grid-container",
             editSelector: ".js-department-edit, .js-grid-edit, .js-Sex-edit",
             saveSelector: ".js-department-save",
@@ -38,8 +38,9 @@
         });
 
         $(() => {
-
-            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'departmentTable' });
+            }
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -139,7 +140,10 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('departmentGridContainer') : [];
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
+                    });
                 }
 
                 if (selectedItems.length > 0) {
@@ -165,7 +169,7 @@
                     data: JSON.stringify(selectedItems),
                     success: function (response) {
                         $modal.modal("hide");
-                        if (response.success) {
+                        if (response.success || response.isSuccess) {
                             toastr.success(response.message);
                             selectedItems = [];
                             loadTable();
@@ -197,7 +201,9 @@
 
         // Dynamic Grid Load Table
         function loadTable() {
-            if (window.loadGridPage) {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload();
+            } else if (window.loadGridPage) {
                 window.loadGridPage('departmentGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
             }
         }

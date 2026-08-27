@@ -35,14 +35,28 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-paymentterms-grid-container" id="paymentTermsGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "paymentTermsTable",
+                    AjaxUrl = "/PaymentTerms/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "paymentTermsId",
+                    CheckAllId = "paymentterms-check-all",
+                    DefaultSortColumn = "paymentTermsId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "paymentTermsId", Header = "Code", Width = "15%", IsEditLink = true, EditSelectorClass = "js-paymentterms-edit" },
+                        new() { Data = "paymentTermsName", Header = "Payment Terms Name", Width = "35%", Align = "left" },
+                        new() { Data = "paymentType", Header = "Type", Width = "20%", Align = "left" },
+                        new() { Data = "percentise", Header = "Percentage", Width = "15%", Align = "center" },
+                        new() { Data = "creditDays", Header = "Credit Days", Width = "15%", Align = "center" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -54,7 +68,7 @@
 <partial name="DeleteModal" />
 
 @section Scripts {
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/paymentTerms.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function () {

@@ -41,14 +41,27 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-department-grid-container" id="departmentGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "departmentTable",
+                    AjaxUrl = "/Departments/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "departmentCode",
+                    CheckAllId = "department-check-all",
+                    DefaultSortColumn = "departmentCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "departmentCode", Header = "Code", Width = "15%", IsEditLink = true, EditSelectorClass = "js-department-edit" },
+                        new() { Data = "departmentName", Header = "Department Name", Width = "35%", Align = "left" },
+                        new() { Data = "departmentShortName", Header = "Short Name", Width = "20%", Align = "center" },
+                        new() { Data = "banglaDepartment", Header = "Department (বাংলা)", Width = "30%", Align = "left" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -64,14 +77,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/departments.js"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Departments")'
-        };
-        options.load = () => {
-            loadGridPage('departmentGridContainer', '/Departments/GetTableData', 1, 10);
         };
 
         $.departments(options);

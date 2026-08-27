@@ -107,6 +107,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CoreMenuTab> CoreMenuTabs { get; set; }
 
+    public virtual DbSet<CoreNotice> CoreNotices { get; set; }
+
     public virtual DbSet<CorePeriodInfo> CorePeriodInfos { get; set; }
 
     public virtual DbSet<CoreServiceType> CoreServiceTypes { get; set; }
@@ -220,6 +222,8 @@ public partial class GCTL_ERP_DBContext : DbContext
     public virtual DbSet<LanguageMainTable> LanguageMainTables { get; set; }
 
     public virtual DbSet<LicenceType> LicenceTypes { get; set; }
+
+    public virtual DbSet<NoticeDocumentFile> NoticeDocumentFiles { get; set; }
 
     public virtual DbSet<PaymentMode> PaymentModes { get; set; }
 
@@ -1714,9 +1718,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.MenuId).HasMaxLength(50);
             entity.Property(e => e.MenuText).HasMaxLength(100);
-            entity.Property(e => e.OrderBy)
-                .HasDefaultValue(1)
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_AccessCode_OrderBy");
+            entity.Property(e => e.OrderBy).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
@@ -2004,17 +2006,43 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.Property(e => e.ControllerName).HasMaxLength(100);
             entity.Property(e => e.Icon).HasMaxLength(50);
-            entity.Property(e => e.IsActive).HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_IsActive");
             entity.Property(e => e.MenuId).HasMaxLength(50);
-            entity.Property(e => e.OrderBy)
-                .HasDefaultValue(1)
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_OrderBy");
+            entity.Property(e => e.OrderBy).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.TableName).HasMaxLength(50);
             entity.Property(e => e.Title)
                 .IsRequired()
                 .HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<CoreNotice>(entity =>
+        {
+            entity.HasKey(e => e.Tc).HasName("PK__Core_Not__3214E468E2E25DDF");
+
+            entity.ToTable("Core_Notice");
+
+            entity.Property(e => e.EntryDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(150)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(250)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.NoticeId)
+                .HasMaxLength(20)
+                .HasColumnName("NoticeID");
+            entity.Property(e => e.NoticeTitle).HasMaxLength(500);
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsFixedLength();
         });
 
         modelBuilder.Entity<CorePeriodInfo>(entity =>
@@ -2664,16 +2692,12 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Lmac)
                 .HasMaxLength(50)
                 .HasColumnName("LMAC");
-            entity.Property(e => e.LunchBreakHour)
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchBreakHour")
-                .HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.LunchBreakHour).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.LunchInTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchInTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.LunchOutTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchOutTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.Luser)
                 .HasMaxLength(50)
@@ -4193,6 +4217,21 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(30)
                 .HasColumnName("LMAC");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<NoticeDocumentFile>(entity =>
+        {
+            entity.HasKey(e => e.Tc).HasName("PK__NoticeDo__3214E46882A5CBC4");
+
+            entity.ToTable("NoticeDocumentFile");
+
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)");
+            entity.Property(e => e.NoticeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("NoticeID");
         });
 
         modelBuilder.Entity<PaymentMode>(entity =>

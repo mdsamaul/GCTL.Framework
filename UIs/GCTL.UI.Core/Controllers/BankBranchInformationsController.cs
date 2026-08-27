@@ -361,81 +361,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await bankBranchInfosService.GetAllAsync() ?? new List<SalesDefBankBranchInfoSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.BankBranchId != null && x.BankBranchId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BankName != null && x.BankName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BankBranchName != null && x.BankBranchName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.Swiftcode != null && x.Swiftcode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.Address != null && x.Address.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.Phone != null && x.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Bank Name", "Branch Name", "Short Name", "Swift Code", "Address", "Phone" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "BankBranchId", item.BankBranchId },
-                        { "Bank Name", item.BankName },
-                        { "Branch Name", item.BankBranchName },
-                        { "Short Name", item.ShortName },
-                        { "Swift Code", item.Swiftcode },
-                        { "Address", item.Address },
-                        { "Phone", item.Phone }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "BankBranchInformations") ?? "/BankBranchInformations/GetTableData",
-                    primaryKey: "BankBranchId",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/BankBranchInformations/Setup/{id}",
-                    gridId: "bankBranchInformationGridContainer",
-                    editClass: "js-bankbranchinformation-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "BankBranchId", "center" },
-                        { "Bank Name", "left" },
-                        { "Branch Name", "left" },
-                        { "Short Name", "left" },
-                        { "Swift Code", "center" },
-                        { "Address", "left" },
-                        { "Phone", "center" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Bank Name", "150px" },
-                        { "Branch Name", "auto" },
-                        { "Short Name", "120px" },
-                        { "Swift Code", "120px" },
-                        { "Address", "180px" },
-                        { "Phone", "130px" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<SalesDefBankBranchInfoSetupViewModel>(), error = ex.Message });
             }
         }
 

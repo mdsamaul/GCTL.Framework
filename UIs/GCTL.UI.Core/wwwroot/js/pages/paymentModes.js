@@ -5,7 +5,7 @@
             baseUrl: "/PaymentModes",
             formSelector: "#paymentmodes-form",
             formContainer: ".js-paymentmodes-form-container",
-            gridSelector: "#paymentModesGridContainer",
+            gridSelector: "#paymentModesTable",
             gridContainer: ".js-paymentmodes-grid-container",
             editSelector: ".js-paymentmodes-edit, .js-grid-edit",
             saveSelector: ".js-paymentmodes-save",
@@ -32,7 +32,9 @@
         });
 
         $(() => {
-            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'paymentModesTable' });
+            }
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -121,7 +123,10 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('paymentModesGridContainer') : [];
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
+                    });
                 }
 
                 if (selectedItems.length > 0) {
@@ -133,7 +138,7 @@
                 }
             });
 
-            $("body").on("click", `${settings.finalDeleteSelector}, .js-paymentmodes-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-paymentmode-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
                 if (!selectedItems || selectedItems.length === 0) return;
                 e.stopPropagation();
                 e.preventDefault();
@@ -147,7 +152,7 @@
                     data: JSON.stringify(selectedItems),
                     success: function (response) {
                         $modal.modal("hide");
-                        if (response.isSuccess || response.success) {
+                        if (response.success || response.isSuccess) {
                             toastr.success(response.message);
                             selectedItems = [];
                             loadTable();
@@ -173,7 +178,9 @@
         });
 
         function loadTable() {
-            if (window.loadGridPage) {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload();
+            } else if (window.loadGridPage) {
                 window.loadGridPage('paymentModesGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
             }
         }

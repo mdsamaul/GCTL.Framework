@@ -306,59 +306,20 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region GetTableData
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
-            var list = await _paymentModeService.GetAllAsync() ?? new List<PaymentModeSetupViewModel>();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            try
             {
-                list = list.Where(x => (x.PaymentModeId != null && x.PaymentModeId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.PaymentModeName != null && x.PaymentModeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.PaymentModeShortName != null && x.PaymentModeShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                           .ToList();
+                var list = await _paymentModeService.GetAllAsync() ?? new List<PaymentModeSetupViewModel>();
+                return Json(new { data = list });
             }
-
-            int totalRecords = list.Count;
-            var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            var dynamicGrid = GridBuilder.BuildGrid(
-                data: pagedList,
-                totalRecords: totalRecords,
-                currentPage: page,
-                pageSize: pageSize,
-                headers: new List<string> { "Code", "Payment Mode Name", "Short Name" },
-                rowMapper: item => new Dictionary<string, object?>
-                {
-                    { "PaymentModeId", item.PaymentModeId },
-                    { "Payment Mode Name", item.PaymentModeName },
-                    { "Short Name", item.PaymentModeShortName }
-                },
-                ajaxUrl: Url.Action("GetTableData", "PaymentModes") ?? "/PaymentModes/GetTableData",
-                primaryKey: "PaymentModeId",
-                hasCheckbox: true,
-                actionUrlPattern: "/PaymentModes/Setup/{id}",
-                gridId: "paymentModesGridContainer",
-                editClass: "js-paymentmodes-edit",
-                columnAlignments: new Dictionary<string, string>
-                {
-                    { "PaymentModeId", "center" },
-                    { "Payment Mode Name", "left" },
-                    { "Short Name", "left" }
-                },
-                searchTerm: searchTerm,
-                columnWidths: new Dictionary<string, string>
-                {
-                    { "SelectAll", "120px" },
-                    { "Code", "100px" },
-                    { "Payment Mode Name", "auto" },
-                    { "Short Name", "150px" }
-                }
-            );
-
-            return PartialView("_DynamicGrid", dynamicGrid);
+            catch (Exception ex)
+            {
+                return Json(new { data = new List<PaymentModeSetupViewModel>(), error = ex.Message });
+            }
         }
 
         #endregion

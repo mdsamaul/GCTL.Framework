@@ -307,60 +307,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 5, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.SexCode != null && x.SexCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.Sex != null && x.Sex.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Sex Name" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "SexCode", item.SexCode },
-                        { "Sex Name", item.Sex }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "Gender") ?? "/Gender/GetTableData",
-                    primaryKey: "SexCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Gender/Setup/{id}",
-                    gridId: "genderGridContainer",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "SexCode", "center" },
-                        { "Sex Name", "center" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Sex Name", "auto" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<GenderSetupViewModel>(), error = ex.Message });
             }
         }
 

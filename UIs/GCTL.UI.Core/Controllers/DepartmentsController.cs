@@ -328,66 +328,17 @@ namespace GCTL.UI.Core.Controllers
 
         #region Table Loading (Dynamic Grid)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await departmentService.GetAllAsync() ?? new List<DepartmentSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.DepartmentCode != null && x.DepartmentCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.DepartmentName != null && x.DepartmentName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.DepartmentShortName != null && x.DepartmentShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BanglaDepartment != null && x.BanglaDepartment.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Department Name", "Short Name", "Department (বাংলা)" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "DepartmentCode", item.DepartmentCode },
-                        { "Department Name", item.DepartmentName },
-                        { "Short Name", item.DepartmentShortName },
-                        { "Department (বাংলা)", item.BanglaDepartment }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "Departments") ?? "/Departments/GetTableData",
-                    primaryKey: "DepartmentCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Departments/Setup/{id}",
-                    gridId: "departmentGridContainer",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "DepartmentCode", "center" },
-                        { "Department Name", "left" },
-                        { "Short Name", "center" },
-                        { "Department (বাংলা)", "left" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Department Name", "auto" },
-                        { "Short Name", "120px" },
-                        { "Department (বাংলা)", "auto" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<DepartmentSetupViewModel>(), error = ex.Message });
             }
         }
 

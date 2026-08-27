@@ -5,7 +5,7 @@
             baseUrl: "/",
             formSelector: "#bloodgroup-form",
             formContainer: ".js-bloodgroup-form-container",
-            gridSelector: "#bloodGroupGridContainer",
+            gridSelector: "#bloodGroupTable",
             gridContainer: ".js-bloodgroup-grid-container",
             editSelector: ".js-bloodgroup-edit, .js-grid-edit",
             saveSelector: ".js-bloodgroup-save",
@@ -38,7 +38,9 @@
         });
 
         $(() => {
-            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'bloodGroupTable' });
+            }
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -129,7 +131,10 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('bloodGroupGridContainer') : [];
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
+                    });
                 }
 
                 if (selectedItems.length > 0) {
@@ -155,7 +160,7 @@
                     data: JSON.stringify(selectedItems),
                     success: function (response) {
                         $modal.modal("hide");
-                        if (response.success) {
+                        if (response.success || response.isSuccess) {
                             toastr.success(response.message);
                             selectedItems = [];
                             loadTable();
@@ -186,7 +191,9 @@
         });
 
         function loadTable() {
-            if (window.loadGridPage) {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload();
+            } else if (window.loadGridPage) {
                 window.loadGridPage('bloodGroupGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
             }
         }

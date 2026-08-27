@@ -326,75 +326,19 @@ namespace GCTL.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var list = await _service.GetAllSetupAsync() ?? new List<CurrencyTypeSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.CurrencyId != null && x.CurrencyId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.CurrencyName != null && x.CurrencyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.Symbol != null && x.Symbol.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Currency Name", "Short Name", "Symbol", "Decimal Places", "Negative Format" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "CurrencyId", item.CurrencyId },
-                        { "Currency Name", item.CurrencyName },
-                        { "Short Name", item.ShortName },
-                        { "Symbol", item.Symbol },
-                        { "Decimal Places", item.DecimalPlaces },
-                        { "Negative Format", item.NegativeFormat }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "CurrencyType") ?? "/CurrencyType/GetTableData",
-                    primaryKey: "CurrencyId",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/CurrencyType/Setup/{id}",
-                    gridId: "currencyTypeGridContainer",
-                    editClass: "js-currencytype-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "CurrencyId", "center" },
-                        { "Currency Name", "left" },
-                        { "Short Name", "left" },
-                        { "Symbol", "center" },
-                        { "Decimal Places", "center" },
-                        { "Negative Format", "center" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Currency Name", "auto" },
-                        { "Short Name", "120px" },
-                        { "Symbol", "100px" },
-                        { "Decimal Places", "120px" },
-                        { "Negative Format", "140px" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                var list = await _service.GetAllAsync() ?? new List<CurrencyTypeVM>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<CurrencyTypeVM>(), error = ex.Message });
             }
         }
 

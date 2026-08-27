@@ -41,14 +41,26 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-bloodgroup-grid-container" id="bloodGroupGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "bloodGroupTable",
+                    AjaxUrl = "/BloodGroups/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "bloodGroupCode",
+                    CheckAllId = "bloodgroup-check-all",
+                    DefaultSortColumn = "bloodGroupCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "bloodGroupCode", Header = "Code", Width = "20%", IsEditLink = true, EditSelectorClass = "js-bloodgroup-edit" },
+                        new() { Data = "bloodGroup", Header = "Blood Group", Width = "40%", Align = "left" },
+                        new() { Data = "banglaBloodGroup", Header = "Blood Group (বাংলা)", Width = "40%", Align = "center" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -64,14 +76,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/bloodGroups.js"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "BloodGroups")'
-        };
-        options.load = () => {
-            loadGridPage('bloodGroupGridContainer', '/BloodGroups/GetTableData', 1, 10);
         };
 
         $.bloodGroups(options);

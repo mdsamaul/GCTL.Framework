@@ -112,14 +112,28 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-bankbranchinformation-grid-container" id="bankBranchInformationGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "bankBranchInformationTable",
+                    AjaxUrl = "/BankBranchInformations/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "bankBranchId",
+                    CheckAllId = "bankbranchinformation-check-all",
+                    DefaultSortColumn = "bankBranchId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "bankBranchId", Header = "Code", Width = "15%", IsEditLink = true, EditSelectorClass = "js-bankbranchinformation-edit" },
+                        new() { Data = "bankBranchName", Header = "Branch Name", Width = "30%", Align = "left" },
+                        new() { Data = "bankName", Header = "Bank Name", Width = "25%", Align = "left" },
+                        new() { Data = "shortName", Header = "Short Name", Width = "15%", Align = "left" },
+                        new() { Data = "address", Header = "Address", Width = "15%", Align = "left" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -135,14 +149,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/bankBranchInformations.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "BankBranchInformations")'
-        };
-        options.load = () => {
-            loadGridPage('bankBranchInformationGridContainer', '/BankBranchInformations/GetTableData', 1, 10);
         };
 
         $.bankBranchInformations(options);

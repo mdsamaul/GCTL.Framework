@@ -113,14 +113,26 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-bankinformation-grid-container" id="bankInformationGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "bankInformationTable",
+                    AjaxUrl = "/BankInformations/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "bankId",
+                    CheckAllId = "bankinformation-check-all",
+                    DefaultSortColumn = "bankId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "bankId", Header = "Code", Width = "20%", IsEditLink = true, EditSelectorClass = "js-bankinformation-edit" },
+                        new() { Data = "bankName", Header = "Bank Name", Width = "50%", Align = "left" },
+                        new() { Data = "shortName", Header = "Short Name", Width = "30%", Align = "left" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -136,14 +148,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/bankInformations.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "BankInformations")'
-        };
-        options.load = () => {
-            loadGridPage('bankInformationGridContainer', '/BankInformations/GetTableData', 1, 10);
         };
 
         $.bankInformations(options);

@@ -305,61 +305,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await nationalitysService.GetAllAsync() ?? new List<NationalitysSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.NationalityCode != null && x.NationalityCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.Nationality != null && x.Nationality.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Nationality" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "NationalityCode", item.NationalityCode },
-                        { "Nationality", item.Nationality }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "Nationalitys") ?? "/Nationalitys/GetTableData",
-                    primaryKey: "NationalityCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Nationalitys/Setup/{id}",
-                    gridId: "nationalityGridContainer",
-                    editClass: "js-nationality-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "NationalityCode", "center" },
-                        { "Nationality", "left" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Nationality", "auto" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<NationalitysSetupViewModel>(), error = ex.Message });
             }
         }
 

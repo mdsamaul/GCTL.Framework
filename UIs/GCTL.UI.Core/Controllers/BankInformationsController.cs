@@ -306,65 +306,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await service.GetAllAsync() ?? new List<BankInformationsSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.BankId != null && x.BankId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BankName != null && x.BankName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Bank Name", "Short Name" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "BankId", item.BankId },
-                        { "Bank Name", item.BankName },
-                        { "Short Name", item.ShortName }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "BankInformations") ?? "/BankInformations/GetTableData",
-                    primaryKey: "BankId",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/BankInformations/Setup/{id}",
-                    gridId: "bankInformationGridContainer",
-                    editClass: "js-bankinformation-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "BankId", "center" },
-                        { "Bank Name", "left" },
-                        { "Short Name", "left" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Bank Name", "auto" },
-                        { "Short Name", "150px" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<BankInformationsSetupViewModel>(), error = ex.Message });
             }
         }
 
