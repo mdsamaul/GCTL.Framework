@@ -18,6 +18,7 @@ namespace GCTL.UI.Core.Controllers
 {
     public class BankBranchInformationsController : BaseController
     {
+        #region Properties
         private readonly ISalesDefBankBranchInfosService bankBranchInfosService;
         private readonly ICommonService commonService;
         private readonly IRepository<SalesDefBankInfo> bankRepository;
@@ -42,8 +43,11 @@ namespace GCTL.UI.Core.Controllers
                 Value = x.BankId,
                 Text = x.BankName
             }).ToList();
+
             ViewBag.BankDD = new SelectList(model.BankDD, "Value", "Text");
         }
+
+        #endregion
 
         #region Index
 
@@ -118,7 +122,7 @@ namespace GCTL.UI.Core.Controllers
                     columnWidths: new Dictionary<string, string>
                     {
                         { "SelectAll", "120px" },
-                        { "Code", "100px" },
+                        { "Code", "20px" },
                         { "Bank Name", "150px" },
                         { "Branch Name", "auto" },
                         { "Short Name", "120px" },
@@ -141,8 +145,10 @@ namespace GCTL.UI.Core.Controllers
                 Console.WriteLine("Error: " + ex.Message);
             }
 
-            if (child)
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
                 return PartialView(model);
+            }
 
             return View(model);
         }
@@ -316,6 +322,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region CheckAvailability
+
         [HttpPost]
         public async Task<JsonResult> CheckAvailability(string name, string typeCode, string bankId)
         {
@@ -326,6 +333,7 @@ namespace GCTL.UI.Core.Controllers
 
             return Json(new { isSuccess = false });
         }
+
         #endregion
 
         #region Delete
@@ -379,7 +387,7 @@ namespace GCTL.UI.Core.Controllers
                                         || (x.Swiftcode != null && x.Swiftcode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                                         || (x.Address != null && x.Address.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                                         || (x.Phone != null && x.Phone.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
+                    .ToList();
                 }
 
                 int totalRecords = list.Count;
@@ -440,5 +448,6 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
+
     }
 }

@@ -529,5 +529,6 @@ namespace GCTL.Controllers.CharOfAccount
             }
         }
         #endregion
+
     }
 }

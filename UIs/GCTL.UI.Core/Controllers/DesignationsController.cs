@@ -279,6 +279,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Table Loading (Custom Grid)
+
         [HttpPost]
         public async Task<IActionResult> GetAll(int draw = 1, int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? sortColumn = null, string? sortOrder = "asc")
         {
@@ -529,8 +530,6 @@ namespace GCTL.UI.Core.Controllers
                 return File(stream.ToArray(), "application/pdf", "Designations.pdf");
             }
         }
-
-
 
         #endregion
 
