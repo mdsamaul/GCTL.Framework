@@ -11,7 +11,6 @@ namespace GCTL.Core.ViewModels.Country
     {
         public int Tc { get; set; }
         public string? CountryId { get; set; }
-
         [Required(ErrorMessage = "{0} is required.")]
         [Display(Name = "Country Name")]
         public string CountryName { get; set; }

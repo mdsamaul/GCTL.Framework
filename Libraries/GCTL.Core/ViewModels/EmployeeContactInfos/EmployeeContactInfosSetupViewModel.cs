@@ -8,7 +8,6 @@ namespace GCTL.Core.ViewModels.EmployeeContactInfos
         public string? EmployeeId { get; set; }
         public string? EmpContactId { get; set; }
         public string? EmployeeName { get; set; }
-
         public string? ParmanentAddress { get; set; }
         public string? ParmanentAddressBangla { get; set; }
         public string? ParmanentPostOffice { get; set; }
@@ -24,8 +23,7 @@ namespace GCTL.Core.ViewModels.EmployeeContactInfos
         public string? PresentPostOffice { get; set; }
         public string? PresentThana { get; set; }
         public string? PresentPostCode { get; set; }
-        public string? PresentDistrict { get; set; }
-       
+        public string? PresentDistrict { get; set; }      
         [RegularExpression(@"^(?:(?:\+|00)88|01)?\d{11}$", ErrorMessage = "Invalid Phone")]
         [MaxLength(14)]
         public string PresentMobile { get; set; }
@@ -35,7 +33,6 @@ namespace GCTL.Core.ViewModels.EmployeeContactInfos
         public string? PresentFax { get; set; }
         [EmailAddress(ErrorMessage = "Please enter valid email")]
         public string PresentEmail { get; set; }
-
         public string? EmContactName1 { get; set; }
         public string? EmContactRelation1 { get; set; }
         public string? EmContactAddress1 { get; set; }
@@ -49,7 +46,6 @@ namespace GCTL.Core.ViewModels.EmployeeContactInfos
         [EmailAddress(ErrorMessage = "Please enter valid email")]
         public string EmContactEmail { get; set; }
         public string? Relation {  get; set; }
-
         public string? EmContactName2 { get; set; }
         public string? EmContactRelation2 { get; set; }
         public string? EmContactAddress2 { get; set; }
@@ -62,12 +58,9 @@ namespace GCTL.Core.ViewModels.EmployeeContactInfos
         public string? EmContactFax2 { get; set; }
         [EmailAddress(ErrorMessage = "Please enter valid email")]
         public string EmContactEmai2 { get; set; }
-
         public string? DesignationName { get; set; }
         public string? DepartmentName { get; set; }
-
-        public string? CompanyCode { get; set; }
-        
+        public string? CompanyCode { get; set; }     
         public string? BranchCode { get; set; }
         public string? CompanyName { get; set; }
         public string? BranchName { get; set; }

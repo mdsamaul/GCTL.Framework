@@ -65,8 +65,6 @@ namespace GCTL.Core.ViewModels.HrmEmployeeOfficialInfo
         public string? IsGovtHolidayEligible { get; set; }
         public string? IsAttendanceBonusEligible { get; set; }
         public string? PayId { get; set; }
-
-
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? FullName { get; set; }
@@ -80,7 +78,6 @@ namespace GCTL.Core.ViewModels.HrmEmployeeOfficialInfo
         public string? EmployeeNature { get; set; }
         public string? ShiftName { get; set; }
         public string? CompanyCode { get; set; }
-
         public List<string>? ClientId { get; set; }
         public string? ClientName { get; set; } = string.Empty;
         public string? SuporVisorName1 { get; set; }

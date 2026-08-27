@@ -106,7 +106,7 @@ namespace GCTL.Service.PaymentTerms
 
         public async Task<bool> SaveAsync(PaymentTermsSetupViewModel entityVM)
         {
-            commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 3);
+            commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 2);
             await paymentTermsrepository.BeginTransactionAsync();
             try
             {
