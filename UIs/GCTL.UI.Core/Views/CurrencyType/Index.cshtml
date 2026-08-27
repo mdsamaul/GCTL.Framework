@@ -35,14 +35,28 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-currencytype-grid-container" id="currencyTypeGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "currencyTypeTable",
+                    AjaxUrl = "/CurrencyType/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "currencyId",
+                    CheckAllId = "currencytype-check-all",
+                    DefaultSortColumn = "currencyId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "currencyId", Header = "Code", Width = "15%", IsEditLink = true, EditSelectorClass = "js-currencytype-edit" },
+                        new() { Data = "currencyName", Header = "Currency Name", Width = "30%", Align = "left" },
+                        new() { Data = "shortName", Header = "Short Name", Width = "20%", Align = "left" },
+                        new() { Data = "symbol", Header = "Symbol", Width = "15%", Align = "center" },
+                        new() { Data = "decimalPlaces", Header = "Decimals", Width = "20%", Align = "center" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -58,14 +72,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/CurrencyType.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "CurrencyType")'
-        };
-        options.load = () => {
-            loadGridPage('currencyTypeGridContainer', '/CurrencyType/GetTableData', 1, 10);
         };
 
         $.currencyType(options);

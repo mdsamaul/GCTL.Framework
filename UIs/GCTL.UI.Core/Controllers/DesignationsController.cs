@@ -281,56 +281,16 @@ namespace GCTL.UI.Core.Controllers
         #region Table Loading (Custom Grid)
 
         [HttpPost]
-        public async Task<IActionResult> GetAll(int draw = 1, int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? sortColumn = null, string? sortOrder = "asc")
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await designationService.GetAllAsync() ?? new List<DesignationSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.DesignationCode != null && x.DesignationCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.DesignationName != null && x.DesignationName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.DesignationShortName != null && x.DesignationShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BanglaDesignation != null && x.BanglaDesignation.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                // Sorting
-                if (!string.IsNullOrWhiteSpace(sortColumn))
-                {
-                    bool isDesc = string.Equals(sortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-                    list = sortColumn switch
-                    {
-                        "designationCode" => isDesc ? list.OrderByDescending(x => x.DesignationCode).ToList() : list.OrderBy(x => x.DesignationCode).ToList(),
-                        "designationName" => isDesc ? list.OrderByDescending(x => x.DesignationName).ToList() : list.OrderBy(x => x.DesignationName).ToList(),
-                        "designationShortName" => isDesc ? list.OrderByDescending(x => x.DesignationShortName).ToList() : list.OrderBy(x => x.DesignationShortName).ToList(),
-                        "banglaDesignation" => isDesc ? list.OrderByDescending(x => x.BanglaDesignation).ToList() : list.OrderBy(x => x.BanglaDesignation).ToList(),
-                        _ => isDesc ? list.OrderByDescending(x => x.DesignationCode).ToList() : list.OrderBy(x => x.DesignationCode).ToList()
-                    };
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-
-                return Json(new
-                {
-                    draw = draw,
-                    recordsTotal = totalRecords,
-                    recordsFiltered = totalRecords,
-                    data = pagedList
-                });
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return Json(new
-                {
-                    draw = draw,
-                    recordsTotal = 0,
-                    recordsFiltered = 0,
-                    data = new List<DesignationSetupViewModel>(),
-                    error = ex.Message
-                });
+                return Json(new { data = new List<DesignationSetupViewModel>(), error = ex.Message });
             }
         }
         #endregion

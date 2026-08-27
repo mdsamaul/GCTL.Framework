@@ -1,0 +1,140 @@
+﻿<style>
+    #notice-form{
+        max-width: 100%;
+    }
+
+    .form-label {
+        text-align: right;
+        font-weight: 500;
+    }
+</style>
+
+
+<div class="p-0">
+    <form id="notice-form" class="mt-1">
+        <input type="text" id="Tc" hidden />
+
+        <table style="width:100%; table-layout:fixed; border-collapse:collapse;">
+            <colgroup>
+                <col style="width:6%;" />
+                <col style="width:14%;" />
+                <col style="width:25%;" />
+                <col style="width:4%;" />
+                <col style="width:14%;" />
+                <col style="width:25%;" />
+                <col style="width:12%;" />
+            </colgroup>
+
+            <!-- Row 1: Notice Id -->
+            <tr>
+                <td></td>
+                <td style="padding:4px 4px 4px 0; vertical-align:middle; text-align:right;">
+                    <label for="NoticeId" class="form-label mb-0">Notice Id:</label>
+                </td>
+                <td style="padding:4px 0; vertical-align:bottom;">
+                    <input type="text" id="NoticeId" class="form-control form-control-sm" required readonly style="width:100%;" />
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <!-- Row 2: Notice Title | Active? -->
+            <tr>
+                <td></td>
+                <td style="padding:4px 4px 4px 0; vertical-align:middle; text-align:right;">
+                    <label for="NoticeTitle" class="form-label mb-0">Notice Title:</label>
+                </td>
+                <td style="padding:4px 0; vertical-align:bottom;">
+                    <input type="text" id="NoticeTitle" name="NoticeTitle" class="form-control form-control-sm" style="width:100%;" />
+                </td>
+                <td></td>
+                <td style="padding:4px 4px 4px 0; vertical-align:middle; text-align:right;">
+                    <label for="Status" class="form-label mb-0">Active?</label>
+                </td>
+                <td style="padding:4px 0; vertical-align:middle;">
+                    <input type="checkbox" id="Status" />
+                </td>
+                <td></td>
+            </tr>
+
+            <!-- Row 3: Details | Priority Level -->
+            <tr>
+                <td></td>
+                <td style="padding:4px 4px 4px 0; vertical-align:top; text-align:right;">
+                    <label for="NoticeDesc" class="form-label mb-0">Details:</label>
+                </td>
+                <td style="padding:4px 0; vertical-align:top;">
+                    <textarea id="NoticeDesc" class="form-control form-control-sm" rows="4" style="resize:none; width:100%;"></textarea>
+                </td>
+                <td></td>
+                <td style="padding:4px 4px 4px 0; vertical-align:top; text-align:right;">
+                    <label for="PriorityLevel" class="form-label mb-0">Priority Level:</label>
+                </td>
+                <td style="padding:4px 0; vertical-align:top;">
+                    <select id="PriorityLevel" class="form-control form-control-sm" style="width:100%;">
+                        <option value="0">Normal</option>
+                        <option value="1">Important</option>
+                    </select>
+                </td>
+                <td></td>
+            </tr>
+
+            <!-- Row 4: File Upload | Send Email -->
+            <tr>
+                <td></td>
+                <td style="padding:4px 4px 4px 0; vertical-align:middle; text-align:right;">
+                    <label for="fileUpload" class="form-label mb-0">File Upload:</label>
+                </td>
+                <td style="padding:4px 0; vertical-align:bottom;">
+                    <input type="file" id="fileUpload" class="form-control form-control-sm" style="width:100%;" />
+                </td>
+                <td></td>
+                <td></td>
+                <td style="padding:4px 0; vertical-align:bottom;">
+                    <button type="button" class="btn btn-default success-btn btn-sm" id="sendMail">
+                        Send Email
+                    </button>
+                </td>
+                <td></td>
+            </tr>
+                
+            <tr id="DateInfo" style="display:none;">
+                
+                <td colspan="7" style="padding:0 0; text-align:center;">
+                    <div class="container-fluid mx-auto">
+                        <div class="d-md-flex justify-content-around">
+                            <div style="width:10%"></div>
+                            <div style="width:37%" class="text-center me-3">
+                                <hr class="border border-2 text-dark p-0 m-0">
+                            </div>
+                            <div style="width:6%"></div>
+                            <div style="width:37%" class=" text-center p-0 m-0 ms-3">
+                                <hr class="border border-2 text-dark m-0">
+                            </div>
+                            <div style="width:10%"></div>
+                        </div>
+                        <div class="d-md-flex justify-content-around">
+                            <div style="width:10%"></div>
+                            <div style="width:37%" class="text-center me-3">
+                                <p class="mb-0">
+                                    Entry Date: <span name="LDate" id="LDate"></span>
+                                </p>
+                            </div>
+                            <div style="width:6%"></div>
+                            <div style="width:37%" class=" text-center p-0 m-0 ms-3">
+                                <p class="mb-0">
+                                    Last Update Date: <span name="ModifyDate" id="ModifyDate"></span>
+                                </p>
+                            </div>
+                            <div style="width:10%"></div>
+                        </div>
+                    </div>
+                </td>
+                
+            </tr>
+
+        </table>
+    </form>
+</div>

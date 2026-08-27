@@ -312,65 +312,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await bloodGroupService.GetAllAsync() ?? new List<BloodGroupSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.BloodGroupCode != null && x.BloodGroupCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BloodGroup != null && x.BloodGroup.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.BanglaBloodGroup != null && x.BanglaBloodGroup.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Blood Group", "Blood Group (বাংলা)" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "BloodGroupCode", item.BloodGroupCode },
-                        { "Blood Group", item.BloodGroup },
-                        { "Blood Group (বাংলা)", item.BanglaBloodGroup }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "BloodGroups") ?? "/BloodGroups/GetTableData",
-                    primaryKey: "BloodGroupCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/BloodGroups/Setup/{id}",
-                    gridId: "bloodGroupGridContainer",
-                    editClass: "js-bloodgroup-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "BloodGroupCode", "center" },
-                        { "Blood Group", "left" },
-                        { "Blood Group (বাংলা)", "center" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Blood Group", "auto" },
-                        { "Blood Group (বাংলা)", "180px" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<BloodGroupSetupViewModel>(), error = ex.Message });
             }
         }
 

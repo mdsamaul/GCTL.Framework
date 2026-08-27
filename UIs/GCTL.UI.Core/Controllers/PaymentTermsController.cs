@@ -332,65 +332,20 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region GetTableData
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
-            var list = await _paymentTermsService.GetAllAsync() ?? new List<PaymentTermsSetupViewModel>();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            try
             {
-                list = list.Where(x => (x.PaymentTermsId != null && x.PaymentTermsId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.PaymentTermsName != null && x.PaymentTermsName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.PaymentType != null && x.PaymentType.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                           .ToList();
+                var list = await _paymentTermsService.GetAllAsync() ?? new List<PaymentTermsSetupViewModel>();
+                return Json(new { data = list });
             }
-
-            int totalRecords = list.Count;
-            var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            var dynamicGrid = GridBuilder.BuildGrid(
-                data: pagedList,
-                totalRecords: totalRecords,
-                currentPage: page,
-                pageSize: pageSize,
-                headers: new List<string> { "Code", "Type", "Percentage", "Credit Days", "Payment Terms Name" },
-                rowMapper: item => new Dictionary<string, object?>
-                {
-                    { "PaymentTermsId", item.PaymentTermsId },
-                    { "Type", item.PaymentType ?? item.Type },
-                    { "Percentage", item.Percentise },
-                    { "Credit Days", item.CreditDays },
-                    { "Payment Terms Name", item.PaymentTermsName }
-                },
-                ajaxUrl: Url.Action("GetTableData", "PaymentTerms") ?? "/PaymentTerms/GetTableData",
-                primaryKey: "PaymentTermsId",
-                hasCheckbox: true,
-                actionUrlPattern: "/PaymentTerms/Setup/{id}",
-                gridId: "paymentTermsGridContainer",
-                editClass: "js-paymentterms-edit",
-                columnAlignments: new Dictionary<string, string>
-                {
-                    { "PaymentTermsId", "center" },
-                    { "Type", "left" },
-                    { "Percentage", "center" },
-                    { "Credit Days", "center" },
-                    { "Payment Terms Name", "left" }
-                },
-                searchTerm: searchTerm,
-                columnWidths: new Dictionary<string, string>
-                {
-                    { "SelectAll", "120px" },
-                    { "Code", "90px" },
-                    { "Type", "150px" },
-                    { "Percentage", "110px" },
-                    { "Credit Days", "110px" },
-                    { "Payment Terms Name", "auto" }
-                }
-            );
-
-            return PartialView("_DynamicGrid", dynamicGrid);
+            catch (Exception ex)
+            {
+                return Json(new { data = new List<PaymentTermsSetupViewModel>(), error = ex.Message });
+            }
         }
 
         #endregion

@@ -35,14 +35,26 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-paymentmodes-grid-container" id="paymentModesGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "paymentModesTable",
+                    AjaxUrl = "/PaymentModes/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "paymentModeId",
+                    CheckAllId = "paymentmodes-check-all",
+                    DefaultSortColumn = "paymentModeId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "paymentModeId", Header = "Code", Width = "20%", IsEditLink = true, EditSelectorClass = "js-paymentmodes-edit" },
+                        new() { Data = "paymentModeName", Header = "Payment Mode Name", Width = "50%", Align = "left" },
+                        new() { Data = "paymentModeShortName", Header = "Short Name", Width = "30%", Align = "left" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -54,7 +66,7 @@
 <partial name="DeleteModal" />
 
 @section Scripts {
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/paymentModes.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function () {

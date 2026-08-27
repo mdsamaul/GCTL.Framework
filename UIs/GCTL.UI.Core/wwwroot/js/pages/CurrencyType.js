@@ -5,7 +5,7 @@
             baseUrl: "/",
             formSelector: "#currencytype-form",
             formContainer: ".js-currencytype-form-container",
-            gridSelector: "#currencyTypeGridContainer",
+            gridSelector: "#currencyTypeTable",
             gridContainer: ".js-currencytype-grid-container",
             editSelector: ".js-currencytype-edit, .js-grid-edit",
             saveSelector: ".js-currencytype-save",
@@ -38,7 +38,9 @@
         });
 
         $(() => {
-            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'currencyTypeTable' });
+            }
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -129,7 +131,10 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('currencyTypeGridContainer') : [];
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
+                    });
                 }
 
                 if (selectedItems.length > 0) {
@@ -155,7 +160,7 @@
                     data: JSON.stringify(selectedItems),
                     success: function (response) {
                         $modal.modal("hide");
-                        if (response.success) {
+                        if (response.success || response.isSuccess) {
                             toastr.success(response.message);
                             selectedItems = [];
                             loadTable();
@@ -181,7 +186,9 @@
         });
 
         function loadTable() {
-            if (window.loadGridPage) {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload();
+            } else if (window.loadGridPage) {
                 window.loadGridPage('currencyTypeGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
             }
         }

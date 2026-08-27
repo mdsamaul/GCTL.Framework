@@ -48,12 +48,12 @@
                     GridId = "designationTable",
                     AjaxUrl = "/Designations/GetAll",
                     AjaxMethod = "POST",
-                    ServerSide = true,
+                    ServerSide = false,
                     ShowCheckbox = true,
                     CheckColumnData = "designationCode",
                     CheckAllId = "designation-check-all",
                     DefaultSortColumn = "designationCode",
-                    DefaultSortDirection = "asc",
+                    DefaultSortDirection = "desc",
                     Columns = new()
                     {
                         new() { Data = "designationCode", Header = "Code", Width = "15%", IsEditLink = true, EditSelectorClass = "js-designation-edit" },

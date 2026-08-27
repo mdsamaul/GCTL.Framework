@@ -41,14 +41,25 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-nationality-grid-container" id="nationalityGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "nationalityTable",
+                    AjaxUrl = "/Nationalitys/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "nationalityCode",
+                    CheckAllId = "nationality-check-all",
+                    DefaultSortColumn = "nationalityCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "nationalityCode", Header = "Code", Width = "25%", IsEditLink = true, EditSelectorClass = "js-nationality-edit" },
+                        new() { Data = "nationality", Header = "Nationality", Width = "75%", Align = "left" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -64,14 +75,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/nationalitys.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Nationalitys")'
-        };
-        options.load = () => {
-            loadGridPage('nationalityGridContainer', '/Nationalitys/GetTableData', 1, 10);
         };
 
         $.nationalitys(options);

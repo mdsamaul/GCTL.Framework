@@ -41,14 +41,25 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-country-grid-container" id="countryGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "countryTable",
+                    AjaxUrl = "/Country/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "countryId",
+                    CheckAllId = "country-check-all",
+                    DefaultSortColumn = "countryId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "countryId", Header = "Code", Width = "25%", IsEditLink = true, EditSelectorClass = "js-country-edit" },
+                        new() { Data = "countryName", Header = "Country Name", Width = "75%", Align = "left" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -64,14 +75,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/country.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Country")'
-        };
-        options.load = () => {
-            loadGridPage('countryGridContainer', '/Country/GetTableData', 1, 10);
         };
 
         $.country(options);

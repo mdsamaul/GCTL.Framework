@@ -35,14 +35,27 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-unittype-grid-container" id="unitTypeGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "unitTypeTable",
+                    AjaxUrl = "/UnitType/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "unitTypID",
+                    CheckAllId = "unittype-check-all",
+                    DefaultSortColumn = "unitTypID",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "unitTypID", Header = "Code", Width = "15%", IsEditLink = true, EditSelectorClass = "js-unittype-edit" },
+                        new() { Data = "unitTypeName", Header = "Unit Type Name", Width = "40%", Align = "left" },
+                        new() { Data = "shortName", Header = "Short Name", Width = "25%", Align = "left" },
+                        new() { Data = "decimalPlaces", Header = "Decimal Places", Width = "20%", Align = "center" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -54,7 +67,7 @@
 <partial name="DeleteModal" />
 
 @section Scripts {
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/UnitType.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function () {

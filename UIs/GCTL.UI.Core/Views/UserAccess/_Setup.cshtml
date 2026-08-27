@@ -27,7 +27,6 @@
         gap: .4rem;
         margin-bottom: .5rem;
         padding-bottom: .3rem;
-        border-bottom: 1px solid var(--gc-border);
     }
 
     .gc-ua-setup .gc-section-title i {
@@ -84,6 +83,10 @@
         background-color: #fffaf0 !important;
         border-color: var(--gc-brass) !important;
     }
+
+    .row>*{
+        margin-top: .1rem !important;
+    }
 </style>
 
 <div class="gc-ua-setup" style="padding-top: 0;">
@@ -97,7 +100,7 @@
     </div>
 
     <!-- ============ USER TYPE ============ -->
-    <div class="gc-section">
+    <div class="gc-section pt-2">
         <div class="row g-3">
             <div class="col-lg-6">
                 <label asp-for="UserType" class="form-label d-block">User Type</label>
@@ -305,7 +308,7 @@
         </div>
     </div>
 
-    <hr class="my-3" />
+    <hr class="mt-2 mb-1" />
 
     <!-- Access permission -->
     <div class="gc-section mb-0">

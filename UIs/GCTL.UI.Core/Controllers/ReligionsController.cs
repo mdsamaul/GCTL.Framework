@@ -312,65 +312,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await religionService.GetAllAsync() ?? new List<ReligionSetupViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.ReligionCode != null && x.ReligionCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.Religion != null && x.Religion.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Religion Name", "Short Name" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "ReligionCode", item.ReligionCode },
-                        { "Religion Name", item.Religion },
-                        { "Short Name", item.ShortName }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "Religions") ?? "/Religions/GetTableData",
-                    primaryKey: "ReligionCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Religions/Setup/{id}",
-                    gridId: "religionGridContainer",
-                    editClass: "js-religion-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "ReligionCode", "center" },
-                        { "Religion Name", "left" },
-                        { "Short Name", "center" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Religion Name", "auto" },
-                        { "Short Name", "140px" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<ReligionSetupViewModel>(), error = ex.Message });
             }
         }
 

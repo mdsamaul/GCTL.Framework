@@ -307,61 +307,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region Table Loading (Dynamic Grid)
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
                 var list = await countryService.GetAllAsync() ?? new List<CountrySetuoViewModel>();
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.CountryId != null && x.CountryId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.CountryName != null && x.CountryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                var gridModel = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Country Name" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "CountryId", item.CountryId },
-                        { "Country Name", item.CountryName }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "Country") ?? "/Country/GetTableData",
-                    primaryKey: "CountryId",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Country/Setup/{id}",
-                    gridId: "countryGridContainer",
-                    editClass: "js-country-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "CountryId", "center" },
-                        { "Country Name", "left" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Country Name", "auto" }
-                    }
-                );
-
-                return PartialView("_DynamicGrid", gridModel);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<CountrySetuoViewModel>(), error = ex.Message });
             }
         }
 

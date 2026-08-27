@@ -1,0 +1,72 @@
+﻿@model GCTL.UI.Core.ViewModels.ManageNotices.ManageNoticePageViewModel
+
+@{
+    Model.Breadcrumb = "ManageNoticeEntry";
+}
+
+<style>
+
+    .dataTables_scrollBody > table > thead > tr > th {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .card-header {
+        min-height: 50px;
+    }
+
+    #employee-filter-grid tbody tr td:first-child {
+        width: 3%;
+        padding: 0;
+    }
+
+    #employee-filter-grid thead th:first-child {
+        width: 3%;
+    }
+
+    th.no-sort::after,
+    th.no-sort::before {
+        display: none !important;
+    }
+
+</style>
+
+
+<section class="content-fluid col-md-12">
+    <partial name="_PageHeader" model="Model" />
+    <div class="card p-0">
+        <div class="card-header p-2">
+            <!-- <partial name="_Toolbars" model="new ToobarModel() { Title = Model.Breadcrumb, Code = Model.Code, Name = Model.Setup.NoticeId }" />-->
+        </div>
+        <div class="card-body p-1">
+            <partial name="_Grid" />
+
+            <partial name="_noticeGrid" />
+        </div>
+    </div>
+    <partial name="_BottomNavigation" />
+</section>
+
+@section Scripts {
+    <script src="~/js/pages/manageNotice.js"></script>
+
+    <link href="~/lib/bootstrap-multiselect-master/dist/css/bootstrap-multiselect.min.css" rel="stylesheet" />
+    <script src="~/lib/bootstrap-multiselect-master/dist/js/bootstrap-multiselect.min.js"></script>
+
+
+    <script type="text/javascript">
+        $(function(){
+            $.noticeManagement({
+
+                baseUrl: '@Url.Action("Index", "ManageNoticeEntry")',
+                load:function(){
+                    console.log("Custom load logic called from Razor view");
+                }
+            })
+        });
+    </script>
+}

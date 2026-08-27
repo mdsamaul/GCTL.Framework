@@ -182,14 +182,12 @@
                 </div>
             </div>
             <div class="col-md-6 ps-1 pe-0">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-company-grid-container">
-                            @await Html.PartialAsync("_CustomGrid", new GridModel
-                            {
-                                GridId = "company-grid",
-                                CheckAllId = "company-check-all",
-                                Columns = new List<GridColumn>
+                <div class="js-company-grid-container">
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
+                    {
+                        GridId = "company-grid",
+                        CheckAllId = "company-check-all",
+                        Columns = new List<GridColumn>
                                 {
                                     new() { Header = "ID", Width = "10%" },
                                     new() { Header = "Company Name", Width = "25%" },
@@ -197,12 +195,10 @@
                                     new() { Header = "Phone", Width = "15%" },
                                     new() { Header = "Email", Width = "17%" }
                                 },
-                                ShowCheckbox = true,
-                                Bordered = true,
-                                Striped = true
-                            })
-                        </div>
-                    </div>
+                        ShowCheckbox = true,
+                        Bordered = true,
+                        Striped = true
+                    })
                 </div>
             </div>
         </div>
@@ -223,12 +219,12 @@
 <script src="~/js/pages/companies.js" defer></script>
 <script type="text/javascript">
     (function waitForJQuery() {
-    if (window.jQuery && typeof $.companies === "function") {
-    var options = { baseUrl: '@Url.Action("", "Companies")' };
-    options.load = () => { };
-    $.companies(options);
-    } else {
-    setTimeout(waitForJQuery, 30);
-    }
+        if (window.jQuery && typeof $.companies === "function") {
+            var options = { baseUrl: '@Url.Action("", "Companies")' };
+            options.load = () => { };
+            $.companies(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
     })();
 </script>

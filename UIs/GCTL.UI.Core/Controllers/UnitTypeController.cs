@@ -308,62 +308,20 @@ namespace GCTL.Controllers
 
         #endregion
 
-        #region GetTableData
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
-            var list = await _service.GetAllAsync() ?? new List<UnitTypeSetupViewModel>();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            try
             {
-                list = list.Where(x => (x.UnitTypID != null && x.UnitTypID.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.UnitTypeName != null && x.UnitTypeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                           .ToList();
+                var list = await _service.GetAllAsync() ?? new List<UnitTypeSetupViewModel>();
+                return Json(new { data = list });
             }
-
-            int totalRecords = list.Count;
-            var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            var dynamicGrid = GridBuilder.BuildGrid(
-                data: pagedList,
-                totalRecords: totalRecords,
-                currentPage: page,
-                pageSize: pageSize,
-                headers: new List<string> { "Code", "Unit Type Name", "Short Name", "Decimal Places" },
-                rowMapper: item => new Dictionary<string, object?>
-                {
-                    { "UnitTypID", item.UnitTypID },
-                    { "Unit Type Name", item.UnitTypeName },
-                    { "Short Name", item.ShortName },
-                    { "Decimal Places", item.DecimalPlaces }
-                },
-                ajaxUrl: Url.Action("GetTableData", "UnitType") ?? "/UnitType/GetTableData",
-                primaryKey: "UnitTypID",
-                hasCheckbox: true,
-                actionUrlPattern: "/UnitType/Setup/{id}",
-                gridId: "unitTypeGridContainer",
-                editClass: "js-unittype-edit",
-                columnAlignments: new Dictionary<string, string>
-                {
-                    { "UnitTypID", "center" },
-                    { "Unit Type Name", "left" },
-                    { "Short Name", "left" },
-                    { "Decimal Places", "center" }
-                },
-                searchTerm: searchTerm,
-                columnWidths: new Dictionary<string, string>
-                {
-                    { "SelectAll", "120px" },
-                    { "Code", "100px" },
-                    { "Unit Type Name", "auto" },
-                    { "Short Name", "150px" },
-                    { "Decimal Places", "120px" }
-                }
-            );
-
-            return PartialView("_DynamicGrid", dynamicGrid);
+            catch (Exception ex)
+            {
+                return Json(new { data = new List<UnitTypeSetupViewModel>(), error = ex.Message });
+            }
         }
 
         #endregion

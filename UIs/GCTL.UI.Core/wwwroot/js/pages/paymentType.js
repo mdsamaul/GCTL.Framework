@@ -5,7 +5,7 @@
             baseUrl: "/PaymentType",
             formSelector: "#paymenttype-form",
             formContainer: ".js-paymenttype-form-container",
-            gridSelector: "#paymentTypeGridContainer",
+            gridSelector: "#paymentTypeTable",
             gridContainer: ".js-paymenttype-grid-container",
             editSelector: ".js-paymenttype-edit, .js-grid-edit",
             saveSelector: ".js-paymenttype-save",
@@ -32,7 +32,9 @@
         });
 
         $(() => {
-            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'paymentTypeTable' });
+            }
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -121,7 +123,10 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    selectedItems = window.getSelectedGridIds ? window.getSelectedGridIds('paymentTypeGridContainer') : [];
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
+                    });
                 }
 
                 if (selectedItems.length > 0) {
@@ -173,7 +178,9 @@
         });
 
         function loadTable() {
-            if (window.loadGridPage) {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload();
+            } else if (window.loadGridPage) {
                 window.loadGridPage('paymentTypeGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
             }
         }

@@ -41,14 +41,25 @@
                 </div>
             </div>
 
-            <!-- Right Table Dynamic Grid Column -->
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="js-Sex-grid-container" id="genderGridContainer">
-                    @if (Model.DynamicGrid != null)
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "genderTable",
+                    AjaxUrl = "/Gender/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "sexCode",
+                    CheckAllId = "gender-check-all",
+                    DefaultSortColumn = "sexCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
                     {
-                        @await Html.PartialAsync("_DynamicGrid", Model.DynamicGrid)
+                        new() { Data = "sexCode", Header = "Code", Width = "25%", IsEditLink = true, EditSelectorClass = "js-Sex-edit" },
+                        new() { Data = "sex", Header = "Sex / Gender Name", Width = "75%", Align = "left" }
                     }
-                </div>
+                })
             </div>
 
         </div>
@@ -64,14 +75,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/gender.js"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Gender")'
-        };
-        options.load = () => {
-            loadGridPage('genderGridContainer', '/Gender/GetTableData', 1, 10);
         };
 
         $.gender(options);
