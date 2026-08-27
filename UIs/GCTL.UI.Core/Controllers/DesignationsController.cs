@@ -70,8 +70,10 @@ namespace GCTL.UI.Core.Controllers
                 Console.WriteLine("Error" + ex.Message);
             }
 
-            if (child)
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
                 return PartialView(model);
+            }
 
             return View(model);
         }
@@ -277,6 +279,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Table Loading (Custom Grid)
+
         [HttpPost]
         public async Task<IActionResult> GetAll()
         {
@@ -487,8 +490,6 @@ namespace GCTL.UI.Core.Controllers
                 return File(stream.ToArray(), "application/pdf", "Designations.pdf");
             }
         }
-
-
 
         #endregion
 

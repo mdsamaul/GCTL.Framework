@@ -12,9 +12,9 @@
         public string CompanyCode { get; set; }
         public string CompanyName { get; set; }
         public string Address1 { get; set; }
-        public string CompanyCountry { get; set; }   // Doc2
+        public string CompanyCountry { get; set; }    // Doc2
         public string CompanyAddress { get; set; }   // Doc2: Intern Offer (013)
-        public string LetterRefNo { get; set; }   // Doc2
+        public string LetterRefNo { get; set; }     // Doc2
 
         // ══════════════════════════════════════════
         // ── Personal Info ──

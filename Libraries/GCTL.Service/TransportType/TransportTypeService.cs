@@ -1,8 +1,6 @@
 ﻿using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.PaymentType;
-using GCTL.Core.ViewModels.TransportInformation;
 using GCTL.Core.ViewModels.TransportType;
 using GCTL.Data.Models;
 using GCTL.Service.Common;

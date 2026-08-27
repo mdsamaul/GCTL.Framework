@@ -12,7 +12,6 @@ namespace GCTL.Core.ViewModels.PortName
         public string PortNameId { get; set; }
         [Required]
         public string PortName { get; set; }
-
         public string? ShortName { get; set; }
         [Required]
         public string? PortId { get; set; }

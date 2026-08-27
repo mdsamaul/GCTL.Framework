@@ -1,7 +1,6 @@
 ﻿using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Service.ChartOfAccounts;
 using GCTL.UI.Core.Controllers;
-using iText.Commons.Actions;
 using iText.IO.Font.Constants;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
@@ -29,7 +28,6 @@ namespace GCTL.Controllers.CharOfAccount
 
         #endregion
 
-
         #region View Ledger
         public IActionResult Index()
         {
@@ -39,7 +37,6 @@ namespace GCTL.Controllers.CharOfAccount
         }
 
         #endregion
-
 
         #region  Listview Report
         public static List<AccountReportVM> FlattenTree(List<TreeLedgerReportVM> nodes, int level = 0)
@@ -449,7 +446,6 @@ namespace GCTL.Controllers.CharOfAccount
         }
         #endregion
 
-
         #region Footer Handler
 
         public class PdfFooterHandler : AbstractPdfDocumentEventHandler
@@ -533,5 +529,6 @@ namespace GCTL.Controllers.CharOfAccount
             }
         }
         #endregion
+
     }
 }
