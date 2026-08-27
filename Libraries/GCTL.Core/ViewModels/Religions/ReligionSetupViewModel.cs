@@ -6,11 +6,9 @@ namespace GCTL.Core.ViewModels.Religions
     {
         public decimal? AutoId { get; set; }
         public string? ReligionCode { get; set; }
-
         [Required(ErrorMessage = "{0} is required.")]
         [Display(Name = "Religion Name")]
         public string Religion { get; set; }
-
         [Display(Name = "Religion Short Name")]
         public string? ShortName { get; set; }=string.Empty;
     }

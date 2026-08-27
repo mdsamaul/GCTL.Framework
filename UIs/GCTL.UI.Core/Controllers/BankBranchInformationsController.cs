@@ -18,6 +18,7 @@ namespace GCTL.UI.Core.Controllers
 {
     public class BankBranchInformationsController : BaseController
     {
+
         #region Properties
         private readonly ISalesDefBankBranchInfosService bankBranchInfosService;
         private readonly ICommonService commonService;

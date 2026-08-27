@@ -6,11 +6,9 @@ namespace GCTL.Core.ViewModels.Departments
     {
         public decimal? AutoId { get; set; }
         public string? DepartmentCode { get; set; }
-
         [Required(ErrorMessage = "{0} is required.")]
         [Display(Name ="Department Name")]
         public string? DepartmentName { get; set; }
-
         [Display(Name = "Department Short Name")]
         public string? DepartmentShortName { get; set; }
         [Display(Name = "Department ")]
