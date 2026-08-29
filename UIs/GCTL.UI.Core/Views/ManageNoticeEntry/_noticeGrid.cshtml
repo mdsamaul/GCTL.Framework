@@ -1,31 +1,32 @@
-﻿
+@using GCTL.UI.Core.ViewModels
+
 <div class="card-body p-0 pt-3">
-    <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.7); z-index:9999; text-align:center; padding-top:200px;">
-        <div class="spinner-border text-primary" role="status">
-        </div>
-    </div>
-
-    <div class="table-responsive col-12">
-        <table id="notice-grid" class="table table-bordered table-striped table-hover align-middle mb-0 table-common">
-
-            <thead>
-                <tr>
-                    <th class="text-center align-middle no-sort" style="width: 5%; padding-left: 0; padding-right: 0;">
-                        <label for="notice-check-all">Sel.</label><br />
-                        <input type="checkbox" id="notice-check-all">
-                    </th>
-                    <th class="text-center align-middle">ID</th>
-                    <th class="text-center align-middle">Notice Title</th>
-                    <th class="text-center align-middle">Details</th>
-                    <th class="text-center align-middle">Entry Date</th>
-                    <th class="text-center align-middle">Priority Level</th>
-                    <th class="text-center align-middle">Active</th>
-                    <th class="text-center align-middle">File</th>
-                </tr>
-            </thead>
-            <tbody id="notice-grid-body">
-                <!-- Data will be injected here -->
-            </tbody>
-        </table>
-    </div>
+    @await Html.PartialAsync("_CustomGrid", new GridModel
+    {
+        GridId = "notice-grid",
+        AjaxUrl = "/ManageNoticeEntry/GetPaginatedData",
+        AjaxMethod = "POST",
+        ServerSide = true,
+        ShowCheckbox = true,
+        CheckAllId = "notice-check-all",
+        CheckColumnData = "tc",
+        DefaultSortColumn = "noticeId",
+        DefaultSortDirection = "desc",
+        Bordered = true,
+        Compact = true,
+        Hover = true,
+        Striped = true,
+        CustomGridWrapper = true,
+        Columns = new()
+        {
+            new() { Data = "noticeId", Header = "ID", Width = "8%", Align = "center", IsEditLink = true, EditSelectorClass = "notice-id-link", IdField = "tc" },
+            new() { Data = "noticeTitle", Header = "Notice Title", Width = "22%", Align = "left" },
+            new() { Data = "noticeDesc", Header = "Details", Width = "30%", Align = "left" },
+            new() { Data = "entryDate", Header = "Entry Date", Width = "12%", Align = "center", RenderFn = "formatDate" },
+            new() { Data = "priorityLevel", Header = "Priority Level", Width = "10%", Align = "center", RenderFn = "renderPriority" },
+            new() { Data = "status", Header = "Active", Width = "8%", Align = "center", RenderFn = "renderActiveStatus" },
+            new() { Data = "filePath", Header = "File", Width = "10%", Align = "center", RenderFn = "renderNoticeFile" }
+        }
+    })
 </div>
+

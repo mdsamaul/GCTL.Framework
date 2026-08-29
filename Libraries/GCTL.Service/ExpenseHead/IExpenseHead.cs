@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GCTL.Core.ViewModels.ExpenseHead;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
+using GCTL.Core.DataTables;
 
 namespace GCTL.Service.ExpenseHead
 {
@@ -17,8 +18,7 @@ namespace GCTL.Service.ExpenseHead
         Task<bool> UpdateAsync(ExpenseHeadVM model);
         //Task<bool> DeleteAsync(int id);
         Task<bool> IsExistAsync(int id);
-        Task<PaginationService<CfDefExpenseHead, ExpenseHeadVM>.PaginationResult<ExpenseHeadVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "",
-        string sortColumn = "ExpenseHeadID", string sortOrder = "desc", string expenseType = "", string isReceiptable = "", string serviceType = "");
+        Task<PaginationResponse<ExpenseHeadVM>> GetPaginatedAsync(PaginationRequest request, string expenseType = "", string isReceiptable = "", string serviceType = "");
         Task<string> GetLastExpenseHeadAsync();
         Task<bool> BulkDeleteAsync(List<int> ids);
         Task<bool> IsDuplicateAsync(ExpenseHeadVM model);

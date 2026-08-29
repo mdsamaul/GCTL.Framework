@@ -30,9 +30,9 @@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "expenseTypeId",
-                    LabelText = "Expense Type ID",
+                    LabelText = "Shipment Mode ID",
                     FieldType = FieldType.Text,
-                    Placeholder = "Select Expense Type",
+                    Placeholder = "Enter Shipment Mode Id",
                     IsReadonly = true,
                     ReserveActionSlot = true,
                     ColumnClass = "col-md-6 mt-1"
@@ -42,9 +42,9 @@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "expenseType",
-                    LabelText = "Expense Type",
+                    LabelText = "Shipment Mode",
                     FieldType = FieldType.Text,
-                    Placeholder = "Enter Expense Type",
+                    Placeholder = "Enter Shipment Mode",
                     IsRequired = true,
                     ReserveActionSlot = true,
                     ColumnClass = "col-md-6 mt-1"

@@ -36,6 +36,7 @@ using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
 using GCTL.Service.Districts;
+using GCTL.Service.EmailService;
 using GCTL.Service.EmployeeContactInfos;
 using GCTL.Service.EmployeeOfficialInfo;
 using GCTL.Service.ExpenseHead;
@@ -45,6 +46,7 @@ using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
 using GCTL.Service.HrmEmployees2;
 using GCTL.Service.ImporterInfo;
+using GCTL.Service.ManageNoticeEntries;
 using GCTL.Service.Menu;
 using GCTL.Service.MenuBreadcrumbs;
 using GCTL.Service.MenuTab;
@@ -139,6 +141,8 @@ namespace GCTL.Framework.Extensions
             // Menu service – now resolves because GctlHrmContext is registered.
             services.AddScoped<IMenuService, MenuService>();
             services.AddScoped<ICompanyService, CompanyService>();
+            services.AddScoped<IManageNoticeService, ManageNoticeService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ICommonService, CommonService>();
             services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
             services.AddScoped<IBranchTypeInfoService, BranchTypeInfoService>();

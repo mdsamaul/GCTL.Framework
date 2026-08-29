@@ -1,10 +1,12 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using SpreadsheetColumn = DocumentFormat.OpenXml.Spreadsheet.Column;
 using GCTL.Core.Data;
 using GCTL.Core.ViewModels.ExpenseHead;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
+using GCTL.Core.DataTables;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +16,7 @@ using System.Data;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-
+using Core_ServiceType = GCTL.Data.Models.CoreServiceType;
 
 
 
@@ -24,14 +26,18 @@ namespace GCTL.Service.ExpenseHead
     {
         #region
         private readonly IRepository<CfDefExpenseHead> _repository;
+        private readonly IRepository<Core_ServiceType> _serviceTypeRepository;
+        private readonly IRepository<CfDefExpenseType> _expenseTypeRepository;
         private readonly GCTL_ERP_DBContext _context;
         private readonly string _connectionString;
 
-        public ExpenseHeadService(IRepository<CfDefExpenseHead> genericRepository, GCTL_ERP_DBContext context, IConfiguration configuration) : base(genericRepository)
+        public ExpenseHeadService(IRepository<CfDefExpenseHead> genericRepository, GCTL_ERP_DBContext context, IConfiguration configuration, IRepository<Core_ServiceType> serviceTypeRepository, IRepository<CfDefExpenseType> expenseTypeRepository) : base(genericRepository)
         {
             _repository = genericRepository;
             _context = context;
             _connectionString = configuration.GetConnectionString("connection");
+            _serviceTypeRepository = serviceTypeRepository;
+            _expenseTypeRepository = expenseTypeRepository;
         }
         #endregion
 
@@ -69,12 +75,13 @@ namespace GCTL.Service.ExpenseHead
             var data = await _repository.All().Where(pt => pt.Tc == id)
                        .Select(pt => new ExpenseHeadVM
                        {
+                           TC = pt.Tc,
                            ExpenseHeadID = pt.ExpenseHeadId,
                            ExpenseHead = pt.ExpenseHead,
                            ShortName = pt.ShortName,
                            Amount = pt.Amount,
                            SerialNo = pt.SerialNo,
-                           IsReceiptable = pt.IsReceiptable,
+                           IsReceiptable = (pt.IsReceiptable == "Y" || pt.IsReceiptable == "Yes" || pt.IsReceiptable == "YES") ? "Yes" : "No",
                            ServiceTypeID = pt.ServiceTypeId,
                            ExpenseTypeID = pt.ExpenseTypeId,
                            LDate = pt.Ldate,
@@ -92,60 +99,64 @@ namespace GCTL.Service.ExpenseHead
             return last?.ExpenseHeadId;
         }
 
-        public async Task<PaginationService<CfDefExpenseHead, ExpenseHeadVM>.PaginationResult<ExpenseHeadVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "ExpenseHeadID", string sortOrder = "desc", string expenseType = "", string isReceiptable = "", string serviceType = "")
+        public async Task<PaginationResponse<ExpenseHeadVM>> GetPaginatedAsync(PaginationRequest request, string expenseType = "", string isReceiptable = "", string serviceType = "")
         {
-            var query = _repository.All();
+            var totalUnfilteredCount = await _repository.All().CountAsync();
+
+            var query = from eh in _repository.All().AsNoTracking()
+                        join st in _serviceTypeRepository.All().AsNoTracking()
+                            on eh.ServiceTypeId equals st.ServiceTypeId into stGroup
+                        from st in stGroup.DefaultIfEmpty()
+
+                        join et in _expenseTypeRepository.All().AsNoTracking()
+
+                            on eh.ExpenseTypeId equals et.ExpenseTypeId into etGroup
+                        from et in etGroup.DefaultIfEmpty()
+
+                        select new ExpenseHeadVM
+                        {
+                            TC = eh.Tc,
+                            ExpenseHeadID = eh.ExpenseHeadId,
+                            ExpenseHead = eh.ExpenseHead,
+                            ShortName = eh.ShortName,
+                            Amount = eh.Amount,
+                            SerialNo = eh.SerialNo,
+                            IsReceiptable = (eh.IsReceiptable == "Y" || eh.IsReceiptable == "Yes" || eh.IsReceiptable == "YES") ? "Yes" : "No",
+                            ExpenseTypeID = eh.ExpenseTypeId,
+                            LDate = eh.Ldate,
+                            ModifyDate = eh.ModifyDate,
+                            ServiceTypeID = eh.ServiceTypeId,
+                            ServiceTypeName = st != null ? st.ServiceTypeName : "",
+                            ExpenseType = et != null ? et.ExpenseType : (eh.ExpenseTypeId ?? "")
+                        };
+
             if (!string.IsNullOrEmpty(expenseType))
-                query = query.Where(x => x.ExpenseTypeId == expenseType);
+                query = query.Where(x => x.ExpenseTypeID == expenseType);
 
             if (!string.IsNullOrEmpty(isReceiptable))
                 query = query.Where(x => x.IsReceiptable == isReceiptable);
 
             if (!string.IsNullOrEmpty(serviceType))
-                query = query.Where(x => x.ServiceTypeId == serviceType);
+                query = query.Where(x => x.ServiceTypeID == serviceType);
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            var paginatedResult = await PaginationService<CfDefExpenseHead, ExpenseHeadVM>.GetPaginatedData(
-                query,
-                pageNumber,
-                pageSize,
-                searchTerm,
-                sortColumn,
-                sortOrder,
-                term => sc =>
-                    EF.Functions.Like(sc.ExpenseHeadId ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ShortName ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ExpenseHead ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ServiceTypeId ?? "", $"%{term}%"),
-                pt => new ExpenseHeadVM
-                {
-                    TC = pt.Tc,
-                    ExpenseHeadID = pt.ExpenseHeadId,
-                    ExpenseHead = pt.ExpenseHead,
-                    ShortName = pt.ShortName,
-                    Amount = pt.Amount,
-                    SerialNo = pt.SerialNo,
-                    IsReceiptable = pt.IsReceiptable,
-                    ExpenseTypeID = pt.ExpenseTypeId,
-                    LDate = pt.Ldate,
-                    ModifyDate = pt.ModifyDate,
-                    ServiceTypeID = pt.ServiceTypeId,
-                    ServiceTypeName = _context.Set<GCTL.Data.Models.CoreServiceType>()
-                                            .Where(cs => cs.ServiceTypeId == pt.ServiceTypeId)
-                                            .Select(cs => cs.ServiceTypeName)
-                                            .FirstOrDefault(),
-                    ExpenseType = _context.Set<CfDefExpenseHead>()
-                                          .Where(et => et.ExpenseTypeId == pt.ExpenseTypeId)
-                                          .Select(et => et.ExpenseTypeId)
-                                          .FirstOrDefault()
-                }
-            );
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderBy(x => x.ExpenseTypeID)
+                             .ThenBy(x => x.ServiceTypeID)
+                             .ThenByDescending(x => x.IsReceiptable)
+                             .ThenBy(x => x.SerialNo);
+                request.SortColumn = "";
+            }
 
-            return paginatedResult;
+            var result = await PaginationService<ExpenseHeadVM>.GetPaginatedData(query, request);
+            result.TotalCount = totalUnfilteredCount;
+            return result;
         }
 
         public async Task<bool> IsDuplicateAsync(ExpenseHeadVM model)
@@ -346,7 +357,7 @@ namespace GCTL.Service.ExpenseHead
         {
             var result = new List<ExpenseHeadReportVM>();
 
-            // SqlConnection 
+            // SqlConnection
             using (var conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
@@ -405,7 +416,7 @@ namespace GCTL.Service.ExpenseHead
                 );
                 stylesPart.Stylesheet.Fonts = fonts;
 
-                // Fills 
+                // Fills
                 var fills = new Fills(
                     new Fill(new PatternFill() { PatternType = PatternValues.None }),    // 0: default
                     new Fill(new PatternFill() { PatternType = PatternValues.Gray125 }), // 1: required
@@ -525,13 +536,13 @@ namespace GCTL.Service.ExpenseHead
 
                 // Column widths
                 var columns = new Columns(
-                    new Column() { Min = 1, Max = 1, Width = 20, CustomWidth = true },
-                    new Column() { Min = 2, Max = 2, Width = 40, CustomWidth = true },
-                    new Column() { Min = 3, Max = 3, Width = 15, CustomWidth = true },
-                    new Column() { Min = 4, Max = 4, Width = 12, CustomWidth = true },
-                    new Column() { Min = 5, Max = 5, Width = 15, CustomWidth = true },
-                    new Column() { Min = 6, Max = 6, Width = 20, CustomWidth = true },
-                    new Column() { Min = 7, Max = 7, Width = 25, CustomWidth = true }
+                    new SpreadsheetColumn() { Min = 1, Max = 1, Width = 20, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 2, Max = 2, Width = 40, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 3, Max = 3, Width = 15, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 4, Max = 4, Width = 12, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 5, Max = 5, Width = 15, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 6, Max = 6, Width = 20, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 7, Max = 7, Width = 25, CustomWidth = true }
                 );
                 worksheetPart.Worksheet.InsertAt(columns, 0);
 
@@ -626,7 +637,7 @@ namespace GCTL.Service.ExpenseHead
 
                                 header.Cell()
                                       .Element(container => container
-                                      .Border(0.25f) 
+                                      .Border(0.25f)
                                       .PaddingLeft(2)
                                       .Element(container => container
                                       .Text("Expense Head").Bold().AlignLeft().FontSize(10)));
@@ -645,7 +656,7 @@ namespace GCTL.Service.ExpenseHead
                                 header.Cell()
                                       .Element(container => container
                                        .Border(0.25f)
-                                      .Text("Is\nReceiptable") 
+                                      .Text("Is\nReceiptable")
                                       .Bold().AlignCenter().FontSize(10));
 
 
@@ -677,7 +688,7 @@ namespace GCTL.Service.ExpenseHead
 
                                 table.Cell()
                                      .Border(0.25f)
-                                     .MinHeight(20) 
+                                     .MinHeight(20)
                                     .PaddingLeft(2)
                                     .BorderColor(QuestPDF.Helpers.Colors.Black)
                                      .Text(d.ExpenseHead ?? "")

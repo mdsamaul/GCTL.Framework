@@ -81,8 +81,11 @@
                                 var colIndex = d.order[0].column;
                                 var sortField = (settings.sortFieldMap && settings.sortFieldMap[colIndex])
                                     || (d.columns && d.columns[colIndex] && d.columns[colIndex].data);
-                                d.sortColumn = sortField;
-                                d.sortOrder = d.order[0].dir;
+                                d.sortColumn = sortField || "";
+                                d.sortOrder = d.order[0].dir || "";
+                            } else {
+                                d.sortColumn = "";
+                                d.sortOrder = "";
                             }
 
                             d.searchTerm = d.search ? d.search.value : "";
@@ -296,11 +299,11 @@
                 return c.visible !== false;
             });
 
-            var defaultSortIdx = columns.length;
+            var defaultSortIdx = -1;
 
             visibleCols.forEach(function (c, i) {
                 var colIdx = columns.length;
-                if (config.defaultSortColumn && c.data === config.defaultSortColumn) {
+                if (config.defaultSortColumn && (c.data === config.defaultSortColumn || c.sortField === config.defaultSortColumn)) {
                     defaultSortIdx = colIdx;
                 }
 
@@ -389,7 +392,17 @@
                 nonOrderableCols.push(actionIdx);
             }
 
-            var pageLengths = config.pageLengths || [10, 25, 50, 100];
+            var pageLengths = config.pageLengths || [10, 25, 50, 100, -1];
+            var lengthValues = [];
+            var lengthLabels = [];
+            pageLengths.forEach(function (len) {
+                lengthValues.push(len);
+                lengthLabels.push(len === -1 ? 'All' : len);
+            });
+
+            var initialOrder = (defaultSortIdx >= 0)
+                ? [[defaultSortIdx, config.defaultSortDirection || "desc"]]
+                : [];
 
             var builtSettings = {
                 gridSelector: '#' + config.gridId,
@@ -401,9 +414,9 @@
                 checkAllSelector: (config.showCheckbox && !config.disableCheckAll && config.checkAllId)
                     ? ('#' + config.checkAllId)
                     : null,
-                order: [[defaultSortIdx, config.defaultSortDirection || "desc"]],
+                order: initialOrder,
                 pageLength: config.defaultPageLength || 10,
-                lengthMenu: [pageLengths, pageLengths],
+                lengthMenu: [lengthValues, lengthLabels],
                 columnDefs: nonOrderableCols.length ? [{ targets: nonOrderableCols, orderable: false }] : [],
                 sortFieldMap: sortFieldMap,
                 showSkeletonLoading: config.showSkeletonLoading !== false,
@@ -464,6 +477,23 @@
                     return `<a class='custom-grid-link ${editSelectorClass}' data-id='${row[idField] || ''}'>${data || ''}</a>`;
                 }
             };
+        },
+
+        reload: function (gridId, resetPaging) {
+            if (!gridId) return;
+            var selector = gridId.startsWith('#') ? gridId : '#' + gridId;
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(selector)) {
+                $(selector).DataTable().ajax.reload(null, resetPaging === true);
+            }
+        },
+
+        getTable: function (gridId) {
+            if (!gridId) return null;
+            var selector = gridId.startsWith('#') ? gridId : '#' + gridId;
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(selector)) {
+                return $(selector).DataTable();
+            }
+            return null;
         }
     };
 

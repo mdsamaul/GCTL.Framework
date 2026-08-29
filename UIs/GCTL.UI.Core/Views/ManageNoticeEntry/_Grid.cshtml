@@ -1,7 +1,9 @@
-﻿<style>
+@using GCTL.UI.Core.ViewModels
+
+<style>
     .multiselect-container.dropdown-menu {
-        min-width: 100% !important; /* at least button width */
-        width: auto; /* allow it to grow if content is wider */
+        min-width: 100% !important;
+        width: auto;
     }
 
     .btn-group.single-select .multiselect-container input[type="radio"] {
@@ -9,74 +11,71 @@
     }
 
     .btn-group.single-select .multiselect-container label {
-        padding-left: 0px; /* Adjust spacing since radio is hidden */
+        padding-left: 0px;
     }
 </style>
 
-    <div class="col-xl-12 col-md-12 col-lg-12 col-sm-12 col-12 py-2 p-0">
-        <div class="row g-2 dropdown-wrapper">
-            <div class="col-xl col-lg col-md col-sm-4 col-6">
-                <label for="companySelect" class="form-label text-left mb-1">Company</label>
-                <select id="companySelect" class="form-select form-select-sm mx-auto"></select>
-            </div>
-            <div class="col-xl col-lg col-md col-sm-4 col-6">
-                <label for="branchSelect" class="form-label text-left mb-1">Branch</label>
-                <select id="branchSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
-            </div>
-            <div class="col-xl col-lg col-md col-sm-4 col-6">
-                <label for="departmentSelect" class="form-label text-left mb-1">Department</label>
-                <select id="departmentSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
-            </div>
-            <div class="col-xl col-lg col-md col-sm-4 col-6">
-                <label for="designationSelect" class="form-label text-left mb-1">Designation</label>
-                <select id="designationSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
-            </div>
-            <div class="col-xl col-lg col-md col-sm-4 col-6">
-                <label for="employeeSelect" class="form-label text-left mb-1">Employee</label>
-                <select id="employeeSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
-            </div>
-            <select id="activityStatusSelect" class="form-select form-select-sm mx-auto" multiple="multiple" hidden>
-                <option value="01" selected>Active</option>
-                <option value="02">Inactive</option>
-            </select>
-
+<div class="col-xl-12 col-md-12 col-lg-12 col-sm-12 col-12 py-2 p-0">
+    <div class="row g-2 dropdown-wrapper">
+        <div class="col-xl col-lg col-md col-sm-4 col-6">
+            <label for="companySelect" class="form-label text-start mb-1 fw-semibold">Company</label>
+            <select id="companySelect" class="form-select form-select-sm mx-auto"></select>
         </div>
-    </div>
-
-    <div class="mb-1 mt-2 border-0">
-
-        <div class="p-0">
-            <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.7); z-index:9999; text-align:center; padding-top:200px;">
-                <div class="spinner-border text-primary" role="status">
-                </div>
-            </div>
-
-            <div class="table-responsive mb-1">
-                <table id="employee-filter-grid" class="table table-bordered table-striped table-hover table-sm align-middle mb-0 table-common">
-                    <thead>
-                        <tr>
-                            <th class="text-center align-middle no-sort" style="width: 3%; padding-left: 0; padding-right: 0;">
-                                <label for="employee-check-all">Sel.</label><br />
-                                <input type="checkbox" id="employee-check-all">
-                            </th>
-                            <th class="text-center align-middle text-wrap">Emp. ID</th>
-                            <th class="text-center align-middle text-wrap">Name</th>
-                            <th class="text-center align-middle text-wrap">Designation</th>
-                            <th class="text-center align-middle text-wrap">Department</th>
-                            <th class="text-center align-middle text-wrap">Branch</th>
-                            <th class="text-center align-middle text-wrap">Emp. Type</th>
-                            <th class="text-center align-middle text-wrap">Emp. Nature</th>
-                            <th class="text-center align-middle text-wrap">Joining Date</th>
-                            <th class="text-center align-middle text-wrap">Activity Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="employee-filter-grid-body">
-                    </tbody>
-                </table>
-            </div>
+        <div class="col-xl col-lg col-md col-sm-4 col-6">
+            <label for="branchSelect" class="form-label text-start mb-1 fw-semibold">Branch</label>
+            <select id="branchSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
         </div>
+        <div class="col-xl col-lg col-md col-sm-4 col-6">
+            <label for="departmentSelect" class="form-label text-start mb-1 fw-semibold">Department</label>
+            <select id="departmentSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
+        </div>
+        <div class="col-xl col-lg col-md col-sm-4 col-6">
+            <label for="designationSelect" class="form-label text-start mb-1 fw-semibold">Designation</label>
+            <select id="designationSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
+        </div>
+        <div class="col-xl col-lg col-md col-sm-4 col-6">
+            <label for="employeeSelect" class="form-label text-start mb-1 fw-semibold">Employee</label>
+            <select id="employeeSelect" class="form-select form-select-sm mx-auto" multiple="multiple"></select>
+        </div>
+        <select id="activityStatusSelect" class="form-select form-select-sm mx-auto" multiple="multiple" hidden>
+            <option value="01" selected>Active</option>
+            <option value="02">Inactive</option>
+        </select>
     </div>
-    
-    <div id="noticeForm" class="col-md-12">
-        <partial name="_Setup" />
+</div>
+
+<div class="mb-1 mt-2 border-0">
+    <div class="p-0">
+        @await Html.PartialAsync("_CustomGrid", new GridModel
+        {
+            GridId = "employee-filter-grid",
+            ServerSide = false,
+            ShowCheckbox = true,
+            CheckAllId = "employee-check-all",
+            CheckboxClass = "empSelect",
+            CheckColumnData = "employeeId",
+            Bordered = true,
+            Compact = true,
+            Hover = true,
+            Striped = true,
+            CustomGridWrapper = true,
+            Columns = new()
+            {
+                new() { Data = "employeeId", Header = "Emp. ID", Width = "8%", Align = "center" },
+                new() { Data = "employeeName", Header = "Name", Width = "18%", Align = "left" },
+                new() { Data = "designationName", Header = "Designation", Width = "15%", Align = "left" },
+                new() { Data = "departmentName", Header = "Department", Width = "14%", Align = "center" },
+                new() { Data = "branchName", Header = "Branch", Width = "12%", Align = "center" },
+                new() { Data = "employeeTypeName", Header = "Emp. Type", Width = "10%", Align = "center" },
+                new() { Data = "employmentNature", Header = "Emp. Nature", Width = "10%", Align = "center" },
+                new() { Data = "joiningDate", Header = "Joining Date", Width = "9%", Align = "center" },
+                new() { Data = "employeeStatus", Header = "Activity Status", Width = "8%", Align = "center" }
+            }
+        })
     </div>
+</div>
+
+<div id="noticeForm" class="col-md-12">
+    <partial name="_Setup" />
+</div>
+

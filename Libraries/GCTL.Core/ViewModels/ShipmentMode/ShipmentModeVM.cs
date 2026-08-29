@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GCTL.Core.DataTables;
 
 namespace GCTL.Core.ViewModels
 {
@@ -11,12 +12,16 @@ namespace GCTL.Core.ViewModels
     {
         public int? TC { get; set; }
         [Required]
+        [Searchable]
         public string ExpenseTypeID { get; set; }
         [Required]
+        [Searchable]
         public string ExpenseType { get; set; }
         public string? transportModeTypeId { get; set; }
+        [Searchable]
         public string? transportModeType { get; set; }
 
+        [Searchable]
         public string? ShortName { get; set; }
 
         //public string? LUser { get; set; }

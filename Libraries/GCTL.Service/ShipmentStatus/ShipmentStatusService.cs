@@ -1,7 +1,8 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using GCTL.UI.Core.ViewModels.ShipmentMode;
+using GCTL.Core.DataTables;
 using Microsoft.EntityFrameworkCore;
 
 namespace GCTL.Service.ShipmentMode
@@ -94,46 +95,37 @@ namespace GCTL.Service.ShipmentMode
             return last?.ShipmentStatusId;
         }
 
-        public async Task<PaginationService<CfShipmentStatus, ShipmentStatusVM>.PaginationResult<ShipmentStatusVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ShipmentStatusId", string sortOrder = "desc")
+        public async Task<PaginationResponse<ShipmentStatusVM>> GetPaginatedAsync(PaginationRequest request)
         {
-            var query = _repository.All();
+            var query = from st in _repository.All().AsNoTracking()
+                        join tmt in tMTrepository.All().AsNoTracking()
+                            on st.TransportModeTypeId equals tmt.TransportModeId into tmtGroup
+                        from tmt in tmtGroup.DefaultIfEmpty()
+                        select new ShipmentStatusVM
+                        {
+                            AutoId = st.AutoId,
+                            ShipmentStatusId = st.ShipmentStatusId,
+                            ShipmentStatus = st.ShipmentStatus ?? "",
+                            ShortName = st.ShortName ?? "",
+                            TransportModeTypeId = st.TransportModeTypeId ?? "",
+                            transportModeType = tmt != null ? tmt.TransportMode : "",
+                            Ldate = st.Ldate,
+                            ModifyDate = st.ModifyDate
+                        };
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            var paginatedResult = await PaginationService<CfShipmentStatus, ShipmentStatusVM>.GetPaginatedData(
-                query,
-                pageNumber,
-                pageSize,
-                searchTerm,
-                currentSortColumn,
-                sortOrder,
-                term => sc =>
-                    EF.Functions.Like(sc.ShipmentStatusId ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ShipmentStatus ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ShortName ?? "", $"%{term}%") ||
-                    EF.Functions.Like(
-                        tMTrepository.All()
-                            .Where(t => t.TransportModeId == sc.TransportModeTypeId)
-                            .Select(t => t.TransportMode)
-                            .FirstOrDefault() ?? "",
-                        $"%{term}%"),
-                pt => new ShipmentStatusVM
-                {
-                    AutoId = pt.AutoId,
-                    ShipmentStatusId = pt.ShipmentStatusId,
-                    ShipmentStatus = pt.ShipmentStatus ?? "",
-                    ShortName = pt.ShortName ?? "",
-                    TransportModeTypeId = pt.TransportModeTypeId ?? "",
-                    transportModeType = tMTrepository.All().Where(t => t.TransportModeId == pt.TransportModeTypeId).Select(t => t.TransportMode).FirstOrDefault(),
-                    Ldate = pt.Ldate,
-                    ModifyDate = pt.ModifyDate
-                });
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderByDescending(x => x.ShipmentStatusId);
+                request.SortColumn = "";
+            }
 
-            return paginatedResult;
+            return await PaginationService<ShipmentStatusVM>.GetPaginatedData(query, request);
         }
 
         public async Task<bool> IsDuplicateAsync(ShipmentStatusVM model)

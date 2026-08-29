@@ -1,4 +1,4 @@
-﻿@using GCTL.UI.Core.ViewModels
+@using GCTL.UI.Core.ViewModels
 
 <div class="card shadow-sm rounded-2">
 
@@ -39,6 +39,8 @@
                     InputId = "expenseType",
                     LabelText = "Shipment Mode",
                     FieldType = FieldType.Select,
+                    Placeholder = "Select Shipment Mode",
+                    SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = true,
                     ColumnClass = "col-md-6"
@@ -105,10 +107,11 @@
                     InputId = "serviceProvider",
                     LabelText = "Service Provided By",
                     FieldType = FieldType.Select,
+                    Placeholder = "Select Service Provider",
+                    SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = true,
-                    ColumnClass = "col-md-6",
-                    DependsOnFieldId = "serviceProvider"
+                    ColumnClass = "col-md-6"
                 })
 
             </div>

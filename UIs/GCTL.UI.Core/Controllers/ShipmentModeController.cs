@@ -1,5 +1,6 @@
-﻿
+
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels;
 using GCTL.Data.Models;
@@ -67,40 +68,56 @@ namespace GCTL.Controllers.MasterSetup
         }
 
         [HttpGet]
-        [Route("expense-types")]
-        public async Task<IActionResult> GetAllPaginatedExpense(int page = 1,int pageSize = 10,string searchTerm = "",string currentSortColumn = "ExpenseTypeID", string sortDirection = "desc")
+        [Route("get-grid-data")]
+        public async Task<IActionResult> GetAllPaginatedExpense(int page = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ExpenseTypeID", string sortDirection = "desc")
         {
+            try
             {
-                try
+                var request = new PaginationRequest
                 {
-                    var result = await _service.GetPaginatedAsync(page, pageSize, searchTerm, currentSortColumn, sortDirection);
+                    PageNumber = page,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = currentSortColumn,
+                    SortOrder = sortDirection
+                };
 
-                    if (result.Data == null || !result.Data.Any())
+                var result = await _service.GetPaginatedAsync(request);
+
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new
                     {
-                        return Ok(new
+                        Data = new List<ShipmentModeVM>(),
+                        TotalCount = 0,
+                        PaginationInfo = new
                         {
-                            Data = new List<ShipmentModeVM>(),
-                            TotalCount = 0,
-                            PaginationInfo = new
-                            {
-                                StartItem = 0,
-                                EndItem = 0,
-                                TotalItems = 0,
-                                PageNumbers = new List<int>(),
-                                TotalPages = 0,
-                                CurrentPage = 0
-                            },
-                            Message = "No Unit Found."
-                        });
-                    }
+                            StartItem = 0,
+                            EndItem = 0,
+                            TotalItems = 0,
+                            PageNumbers = new List<int>(),
+                            TotalPages = 0,
+                            CurrentPage = 0
+                        },
+                        Message = "No Unit Found."
+                    });
+                }
 
-                    return Ok(result);
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
-                }
+                return Ok(result);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("shipment-mode/get-by-id/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var data = await _service.GetByIdAsync(id);
+            if (data == null)
+                return NotFound();
+            return Ok(new { data });
         }
 
         [HttpPost]

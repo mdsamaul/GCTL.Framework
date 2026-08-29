@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using GCTL.Core.ViewModels;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
+
+using GCTL.Core.DataTables;
 
 namespace GCTL.Service.ShipmentMode
 {
@@ -17,8 +19,7 @@ namespace GCTL.Service.ShipmentMode
         Task<bool> UpdateAsync(ShipmentModeVM model);
         Task<bool> DeleteAsync(int id);
         Task<bool> IsExistAsync(int id);
-        Task<PaginationService<CfDefExpenseType, ShipmentModeVM>.PaginationResult<ShipmentModeVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "",
-        string sortColumn = "ExpenseTypeID", string sortOrder = "desc");
+        Task<PaginationResponse<ShipmentModeVM>> GetPaginatedAsync(PaginationRequest request);
         Task<string> GetLastUnitAsync();
         Task<bool> BulkDeleteAsync(List<int> ids);
         Task<bool> IsDuplicateAsync(ShipmentModeVM model);

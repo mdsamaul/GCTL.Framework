@@ -1,3 +1,16 @@
 @model List<GCTL.Core.ViewModels.Menu.MenuDto>
 
-@await Html.PartialAsync("_MenuPartial", Model)
+<div class="sidebar-menu-wrapper d-flex flex-column flex-grow-1 overflow-hidden w-100">
+    <div class="sidebar-menu-scroll flex-grow-1 overflow-y-auto overflow-x-hidden">
+        @await Html.PartialAsync("_MenuPartial", Model)
+    </div>
+    <div class="sidebar-footer border-top border-translucent">
+        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0 w-100">
+            <button type="submit" class="sidebar-logout-btn menu-link d-flex align-items-center w-100 text-danger" title="Log out">
+                <i class="bi bi-box-arrow-right menu-item-icon text-danger"></i>
+                <span class="menu-text text-danger fw-semibold">Log out</span>
+            </button>
+        </form>
+    </div>
+</div>
+
