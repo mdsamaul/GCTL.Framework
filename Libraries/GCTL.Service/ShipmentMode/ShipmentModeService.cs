@@ -1,7 +1,8 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
+using GCTL.Core.DataTables;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -85,10 +86,12 @@ namespace GCTL.Service.ShipmentMode
             var data = await _repository.All().Where(pt => pt.Tc == id)
                         .Select(pt => new ShipmentModeVM
                         {
+                            TC = pt.Tc,
                             ExpenseTypeID = pt.ExpenseTypeId,
                             ExpenseType = pt.ExpenseType ?? "",
                             ShortName = pt.ShortName ?? "",
-                            Luser = pt.Luser,                         
+                            transportModeTypeId = pt.TransportModeTypeId ?? "",
+                            Luser = pt.Luser,
                             Lip = pt.Lip,
                             Lmac = pt.Lmac ?? "",
                             Ldate = pt.Ldate,
@@ -110,46 +113,37 @@ namespace GCTL.Service.ShipmentMode
             return last?.ExpenseTypeId;
         }
 
-        public async Task<PaginationService<CfDefExpenseType, ShipmentModeVM>.PaginationResult<ShipmentModeVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ExpenseTypeID", string sortOrder = "desc")
+        public async Task<PaginationResponse<ShipmentModeVM>> GetPaginatedAsync(PaginationRequest request)
         {
-            var query = _repository.All();
+            var query = from exp in _repository.All().AsNoTracking()
+                        join tmt in tMTrepository.All().AsNoTracking()
+                            on exp.TransportModeTypeId equals tmt.TransportModeId into tmtGroup
+                        from tmt in tmtGroup.DefaultIfEmpty()
+                        select new ShipmentModeVM
+                        {
+                            TC = exp.Tc,
+                            ExpenseTypeID = exp.ExpenseTypeId,
+                            ExpenseType = exp.ExpenseType ?? "",
+                            ShortName = exp.ShortName ?? "",
+                            transportModeTypeId = exp.TransportModeTypeId ?? "",
+                            transportModeType = tmt != null ? tmt.TransportMode : "",
+                            Ldate = exp.Ldate,
+                            ModifyDate = exp.ModifyDate
+                        };
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            var paginatedResult = await PaginationService<CfDefExpenseType, ShipmentModeVM>.GetPaginatedData(
-                query,
-                pageNumber,
-                pageSize,
-                searchTerm,
-                currentSortColumn,
-                sortOrder,
-               term => sc =>
-                EF.Functions.Like(sc.ExpenseTypeId ?? "", $"%{term}%") ||
-                EF.Functions.Like(sc.ExpenseType ?? "", $"%{term}%") ||
-                EF.Functions.Like(sc.ShortName ?? "", $"%{term}%") ||
-                EF.Functions.Like(
-                    tMTrepository.All()
-                        .Where(t => t.TransportModeId == sc.TransportModeTypeId)
-                        .Select(t => t.TransportMode)
-                        .FirstOrDefault() ?? "",
-                    $"%{term}%"),
-                pt => new ShipmentModeVM
-                {
-                    TC = pt.Tc,
-                    ExpenseTypeID = pt.ExpenseTypeId,
-                    ExpenseType = pt.ExpenseType ?? "",
-                    transportModeType = tMTrepository.All().Where(t => t.TransportModeId == pt.TransportModeTypeId).Select(t => t.TransportMode).FirstOrDefault(),
-                    transportModeTypeId=pt.TransportModeTypeId??"",
-                    ShortName = pt.ShortName ?? "",                  
-                    Ldate = pt.Ldate,
-                    ModifyDate = pt.ModifyDate,
-                });
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderByDescending(x => x.ExpenseTypeID);
+                request.SortColumn = "";
+            }
 
-            return paginatedResult;
+            return await PaginationService<ShipmentModeVM>.GetPaginatedData(query, request);
         }
 
         public async Task<bool> IsDuplicateAsync(ShipmentModeVM model)
@@ -204,7 +198,7 @@ namespace GCTL.Service.ShipmentMode
             await _repository.BeginTransactionAsync();
             try
             {
-                var entity = await _repository.GetByIdAsync(model.TC);
+                var entity = await _repository.GetByIdAsync(model.ExpenseTypeID);
                 if (entity == null)
                 {
                     await _repository.RollbackTransactionAsync();

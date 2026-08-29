@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Data.Models;
 using GCTL.Service.ShipmentMode;
@@ -6,6 +6,8 @@ using GCTL.UI.Core.Controllers;
 using GCTL.UI.Core.ViewModels.ShipmentMode;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+
+using GCTL.Core.DataTables;
 
 namespace GCTL.Controllers.MasterSetup
 {
@@ -53,39 +55,61 @@ namespace GCTL.Controllers.MasterSetup
             return Ok(newId);
         }
 
-        [HttpGet]
-        [Route("shipment-statuses")]
-        public async Task<IActionResult> GetAllPaginatedShipmentStatus(int page = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ShipmentStatusId", string sortDirection = "desc")
+        [HttpPost]
+        [Route("shipment-status/get-grid-data")]
+        public async Task<IActionResult> GetGridData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "ShipmentStatusId",
+            string sortOrder = "desc")
         {
             try
             {
-                var result = await _service.GetPaginatedAsync(page, pageSize, searchTerm, currentSortColumn, sortDirection);
+                var request = new PaginationRequest
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await _service.GetPaginatedAsync(request);
 
                 if (result.Data == null || !result.Data.Any())
                 {
                     return Ok(new
                     {
-                        Data = new List<ShipmentStatusVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Data Found."
+                        draw,
+                        data = new List<ShipmentStatusVM>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
                     });
                 }
 
-                return Ok(result);
+                return Ok(new
+                {
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount
+                });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
             }
+        }
+
+        [HttpGet("shipment-status/get-by-id/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var data = await _service.GetByIdAsync(id);
+            if (data == null)
+                return NotFound();
+            return Ok(new { data });
         }
 
         [HttpPost]

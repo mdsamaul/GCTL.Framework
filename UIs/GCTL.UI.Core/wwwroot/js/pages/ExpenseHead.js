@@ -23,10 +23,17 @@ function loadExpenseTypes(selectedId = null) {
             var select = $("#expenseType");
             select.empty();
             select.append('<option value="">Select Shipment Mode</option>');
-            $.each(data, function (index, item) {
-                var isSelected = selectedId == item.expenseTypeID ? 'selected' : '';
-                select.append('<option value="' + item.expenseTypeID + '" ' + isSelected + '>' + item.expenseType + '</option>');
-            });
+            if (data && data.length > 0) {
+                $.each(data, function (index, item) {
+                    var id = item.expenseTypeID || item.expenseTypeId;
+                    var name = item.expenseType || "";
+                    var isSelected = selectedId == id ? 'selected' : '';
+                    select.append('<option value="' + id + '" ' + isSelected + '>' + name + '</option>');
+                });
+            }
+            if (typeof window.initCustomDropdowns === "function") {
+                window.initCustomDropdowns('#expenseForm', true);
+            }
         },
         error: function (xhr, status, error) {
             console.error("Failed to load Expense Types:", error);
@@ -35,7 +42,7 @@ function loadExpenseTypes(selectedId = null) {
 }
 
 // Loading Core_ServiceType
-function loadServiceProviderDropdown() {
+function loadServiceProviderDropdown(selectedId = null) {
     $.ajax({
         url: '/core-service-dropdown',
         method: 'GET',
@@ -45,8 +52,14 @@ function loadServiceProviderDropdown() {
             $dropdown.append(`<option value="">Select Service Provider</option>`);
             if (response && response.length > 0) {
                 response.forEach(item => {
-                    $dropdown.append(`<option value="${item.serviceTypeID}">${item.serviceTypeName}</option>`);
+                    let id = item.serviceTypeId || item.serviceTypeID;
+                    let name = item.serviceTypeName || "";
+                    let isSelected = selectedId == id ? 'selected' : '';
+                    $dropdown.append(`<option value="${id}" ${isSelected}>${name}</option>`);
                 });
+            }
+            if (typeof window.initCustomDropdowns === "function") {
+                window.initCustomDropdowns('#expenseForm', true);
             }
         },
         error: function (xhr) {
@@ -107,7 +120,7 @@ function SaveOrUpdateExpenseHead() {
 
     // Validation
     if (!expenseHeadData.ExpenseTypeID) {
-        toastr.error("Please select Expense Type name.");
+        toastr.error("Please select Shipment Mode name.");
         $("#expenseType").addClass('error-border').focus();
         return;
     } else {
@@ -177,7 +190,9 @@ function SaveOrUpdateExpenseHead() {
 
 // Reload Grid Helper
 function reloadDataTable() {
-    if ($.fn.DataTable.isDataTable('#expenseHeadTable')) {
+    if ($.gctlGrid && typeof $.gctlGrid.reload === 'function') {
+        $.gctlGrid.reload('expenseHeadTable');
+    } else if ($.fn.DataTable && $.fn.DataTable.isDataTable('#expenseHeadTable')) {
         $('#expenseHeadTable').DataTable().ajax.reload(null, false);
     }
 }
@@ -193,8 +208,17 @@ function populateForm(item) {
     $("#amount").val(item.amount && item.amount != 0 ? item.amount : "");
     $("#serialNo").val(item.serialNo || "");
     $("#isReceiptable").prop("checked", item.isReceiptable === "Yes");
-    $("#serviceProvider").val(item.serviceTypeID || "");
-    $("#expenseType").val(item.expenseTypeID || "");
+
+    let serviceTypeVal = (item.serviceTypeID || item.serviceTypeId || "").trim();
+    let expenseTypeVal = (item.expenseTypeID || item.expenseTypeId || "").trim();
+
+    if (typeof setSelect === "function") {
+        setSelect('#serviceProvider', serviceTypeVal, false);
+        setSelect('#expenseType', expenseTypeVal, false);
+    } else {
+        $("#serviceProvider").val(serviceTypeVal).trigger('change');
+        $("#expenseType").val(expenseTypeVal).trigger('change');
+    }
 
     if (item.ldate || item.lDate) {
         const dateVal = item.ldate || item.lDate;
@@ -222,8 +246,15 @@ function ResetExpenseHeadForm() {
     $("#amount").val("");
     $("#serialNo").val("");
     $("#isReceiptable").prop("checked", false);
-    $("#serviceProvider").val("");
-    $("#expenseType").val("");
+
+    if (typeof setSelect === "function") {
+        setSelect('#serviceProvider', '', false);
+        setSelect('#expenseType', '', false);
+    } else {
+        $("#serviceProvider").val('');
+        $("#expenseType").val('');
+    }
+
     $("#displayLDate").text('');
     $("#lDateContainer").hide();
     $("#displayModifyDate").text('');
@@ -232,6 +263,7 @@ function ResetExpenseHeadForm() {
     $('.js-expensehead-check').prop('checked', false);
 
     loadNextExpenseHeadId();
+    reloadDataTable();
 }
 
 // Bulk Delete
@@ -320,7 +352,14 @@ function ExportExpenseHeadReport(format) {
 $(document).ready(function () {
 
     if ($.gctlGrid) {
-        $.gctlGrid.initFromModel({ gridId: 'expenseHeadTable' });
+        $.gctlGrid.initFromModel({
+            gridId: 'expenseHeadTable',
+            ajaxData: function (d) {
+                d.expenseType = $('#expenseType').val() || '';
+                d.serviceType = $('#serviceProvider').val() || '';
+                d.isReceiptable = $('#isReceiptable').is(':checked') ? 'Yes' : '';
+            }
+        });
     }
 
     loadNextExpenseHeadId();
@@ -362,10 +401,11 @@ $(document).ready(function () {
         }
     });
 
-    // Reset manual flag on dropdown change
-    $("#expenseType, #serviceProvider, #isReceiptable").on("change", function () {
+    // Reset manual flag, load serial, and filter grid on dropdown/checkbox change
+    $(document).on("change", "#expenseType, #serviceProvider, #isReceiptable", function () {
         manualSerialEntry = false;
         LoadNextSerialNo();
+        reloadDataTable();
     });
 
     // Handle form submission
@@ -403,8 +443,3 @@ $(document).ready(function () {
         ExportExpenseHeadReport('excel');
     });
 });
-
-
-
-
-

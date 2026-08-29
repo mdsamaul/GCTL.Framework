@@ -1,4 +1,4 @@
-﻿using GCTL.Core.DataTables;
+using GCTL.Core.DataTables;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Concurrent;
@@ -245,13 +245,29 @@ namespace GCTL.Service.Pagination
             var totalItems = await query.CountAsync();
 
             // Apply pagination
-            var paginatedData = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(selector).ToList();
+            List<TViewModel> paginatedData;
+            int totalPages;
+            int startItem;
+            int endItem;
+            List<int> pageNumbers;
 
-            // Calculate pagination info
-            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-            var startItem = totalItems == 0 ? 0 : (pageNumber - 1) * pageSize + 1;
-            var endItem = Math.Min(pageNumber * pageSize, totalItems);
-            var pageNumbers = Enumerable.Range(1, totalPages).ToList();
+            if (pageSize <= 0 || pageSize == -1 || pageSize >= totalItems)
+            {
+                paginatedData = query.Select(selector).ToList();
+                totalPages = 1;
+                startItem = totalItems == 0 ? 0 : 1;
+                endItem = totalItems;
+                pageNumbers = new List<int> { 1 };
+                pageNumber = 1;
+            }
+            else
+            {
+                paginatedData = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).Select(selector).ToList();
+                totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                startItem = totalItems == 0 ? 0 : (pageNumber - 1) * pageSize + 1;
+                endItem = Math.Min(pageNumber * pageSize, totalItems);
+                pageNumbers = Enumerable.Range(1, totalPages).ToList();
+            }
 
             return new PaginationResult<TViewModel>
             {

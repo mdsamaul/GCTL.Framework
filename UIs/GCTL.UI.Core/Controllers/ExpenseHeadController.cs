@@ -5,6 +5,9 @@ using GCTL.Service.ShipmentMode;
 using GCTL.Service.CoreServiceType;
 using GCTL.UI.Core.Controllers;
 using GCTL.Service.ExpenseHead;
+using GCTL.Service.Pagination;
+using GCTL.Core.DataTables;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GCTL.Controllers
 {
@@ -23,17 +26,28 @@ namespace GCTL.Controllers
         #endregion
 
         #region
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            await PopulateDropdowns();
             return View();
         }
-        public IActionResult ExpenseForm()
+        public async Task<IActionResult> ExpenseForm()
         {
+            await PopulateDropdowns();
             return PartialView();
         }
         public IActionResult ExpenseList()
         {
             return PartialView();
+        }
+
+        private async Task PopulateDropdowns()
+        {
+            var shipmentModes = await _shipmentMode.GetAllExpenseTypesAsync();
+            ViewBag.ShipmentModes = new SelectList(shipmentModes, "ExpenseTypeID", "ExpenseType");
+
+            var serviceTypes = await _serviceType.GetAllCoreServiceAsync();
+            ViewBag.ServiceProviders = new SelectList(serviceTypes.Select(s => new { id = s.ServiceTypeId, name = s.ServiceTypeName }), "id", "name");
         }
         #endregion
 
@@ -106,36 +120,47 @@ namespace GCTL.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetGridData()
+        public async Task<IActionResult> GetGridData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "",
+            string sortOrder = "asc",
+            string expenseType = "",
+            string isReceiptable = "",
+            string serviceType = "")
         {
             try
             {
-                var draw = Request.Form["draw"].FirstOrDefault();
-                var start = Request.Form["start"].FirstOrDefault();
-                var length = Request.Form["length"].FirstOrDefault();
-                var searchValue = Request.Form["search[value]"].FirstOrDefault() ?? Request.Form["searchTerm"].FirstOrDefault() ?? "";
-                var sortColumn = Request.Form["sortColumn"].FirstOrDefault();
-                if (string.IsNullOrEmpty(sortColumn))
+                var request = new PaginationRequest
                 {
-                    var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
-                    if (!string.IsNullOrEmpty(sortColumnIndex))
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await _service.GetPaginatedAsync(request, expenseType, isReceiptable, serviceType);
+
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new
                     {
-                        sortColumn = Request.Form[$"columns[{sortColumnIndex}][data]"].FirstOrDefault();
-                    }
+                        draw,
+                        data = new List<ExpenseHeadVM>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
+                    });
                 }
-                var sortDirection = Request.Form["sortOrder"].FirstOrDefault() ?? Request.Form["order[0][dir]"].FirstOrDefault() ?? "asc";
 
-                var pageSize = string.IsNullOrEmpty(length) ? 10 : Convert.ToInt32(length);
-                var pageNumber = string.IsNullOrEmpty(start) ? 1 : (Convert.ToInt32(start) / pageSize) + 1;
-
-                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchValue, sortColumn ?? "", sortDirection);
-
-                return Json(new
+                return Ok(new
                 {
-                    draw = draw,
-                    recordsFiltered = result.TotalCount,
+                    draw,
+                    data = result.Data,
                     recordsTotal = result.TotalCount,
-                    data = result.Data
+                    recordsFiltered = result.FilteredCount
                 });
             }
             catch (Exception ex)
@@ -150,28 +175,28 @@ namespace GCTL.Controllers
         {
             try
             {
-                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder,expenseType,isReceiptable,serviceType);
+                //var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder,expenseType,isReceiptable,serviceType);
 
-                if (result.Data == null || !result.Data.Any())
-                {
-                    return Ok(new
-                    {
-                        Data = new List<ExpenseHeadVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Expense Head Found."
-                    });
-                }
+                //if (result.Data == null || !result.Data.Any())
+                //{
+                //    return Ok(new
+                //    {
+                //        Data = new List<ExpenseHeadVM>(),
+                //        TotalCount = 0,
+                //        PaginationInfo = new
+                //        {
+                //            StartItem = 0,
+                //            EndItem = 0,
+                //            TotalItems = 0,
+                //            PageNumbers = new List<int>(),
+                //            TotalPages = 0,
+                //            CurrentPage = 0
+                //        },
+                //        Message = "No Expense Head Found."
+                //    });
+                //}
 
-                return Ok(result);
+                return Ok();
             }
             catch (Exception ex)
             {

@@ -1,5 +1,7 @@
-﻿
+
+using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels;
 using GCTL.Data.Models;
@@ -66,40 +68,50 @@ namespace GCTL.Controllers.MasterSetup
             return Ok(newId); // Send as JSON/string
         }
 
-        [HttpGet]
-        [Route("expense-types")]
-        public async Task<IActionResult> GetAllPaginatedExpense(int page = 1,int pageSize = 10,string searchTerm = "",string currentSortColumn = "ExpenseTypeID", string sortDirection = "desc")
+        [HttpPost("shipment-mode/get-grid-data")]
+        public async Task<IActionResult> GetGridData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "",
+            string sortOrder = "asc")
         {
+            try
             {
-                try
+                var request = new PaginationRequest
                 {
-                    var result = await _service.GetPaginatedAsync(page, pageSize, searchTerm, currentSortColumn, sortDirection);
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
 
-                    if (result.Data == null || !result.Data.Any())
+                var result = await _service.GetPaginatedAsync(request);
+
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new
                     {
-                        return Ok(new
-                        {
-                            Data = new List<ShipmentModeVM>(),
-                            TotalCount = 0,
-                            PaginationInfo = new
-                            {
-                                StartItem = 0,
-                                EndItem = 0,
-                                TotalItems = 0,
-                                PageNumbers = new List<int>(),
-                                TotalPages = 0,
-                                CurrentPage = 0
-                            },
-                            Message = "No Unit Found."
-                        });
-                    }
+                        draw,
+                        data = new List<ShipmentModeVM>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
+                    });
+                }
 
-                    return Ok(result);
-                }
-                catch (Exception ex)
+                return Ok(new
                 {
-                    return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
-                }
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
             }
         }
 

@@ -69,7 +69,7 @@ namespace GCTL.UI.Core.ViewModels
         public bool ServerSide { get; set; } = true;
         public string? AjaxUrl { get; set; }
         public string AjaxMethod { get; set; } = "GET";
-        public int[] PageLengths { get; set; } = { 10, 25, 50, 100 };
+        public int[] PageLengths { get; set; } = { 10, 25, 50, 100, -1 };
         public int DefaultPageLength { get; set; } = 10;
         public string? DefaultSortColumn { get; set; }
         public string DefaultSortDirection { get; set; } = "desc";

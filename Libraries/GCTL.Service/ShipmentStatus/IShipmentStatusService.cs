@@ -1,6 +1,8 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels;
 using GCTL.Service.Pagination;
 using GCTL.UI.Core.ViewModels.ShipmentMode;
+
+using GCTL.Core.DataTables;
 
 namespace GCTL.Service.ShipmentMode
 {
@@ -14,7 +16,7 @@ namespace GCTL.Service.ShipmentMode
         Task<bool> IsDuplicateAsync(ShipmentStatusVM model);
         Task<string> GetLastIdAsync();
         Task<ShipmentStatusVM> GetByIdAsync(int id);
-        Task<PaginationService<GCTL.Data.Models.CfShipmentStatus, ShipmentStatusVM>.PaginationResult<ShipmentStatusVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ShipmentStatusId", string sortOrder = "desc");
+        Task<PaginationResponse<ShipmentStatusVM>> GetPaginatedAsync(PaginationRequest request);
         Task<List<ShipmentStatusVM>> GetShipmentStatusDetailsAsync(string transportModeTypeId);
     }
 }

@@ -392,7 +392,14 @@
                 nonOrderableCols.push(actionIdx);
             }
 
-            var pageLengths = config.pageLengths || [10, 25, 50, 100];
+            var pageLengths = config.pageLengths || [10, 25, 50, 100, -1];
+            var lengthValues = [];
+            var lengthLabels = [];
+            pageLengths.forEach(function (len) {
+                lengthValues.push(len);
+                lengthLabels.push(len === -1 ? 'All' : len);
+            });
+
             var initialOrder = (defaultSortIdx >= 0)
                 ? [[defaultSortIdx, config.defaultSortDirection || "desc"]]
                 : [];
@@ -409,7 +416,7 @@
                     : null,
                 order: initialOrder,
                 pageLength: config.defaultPageLength || 10,
-                lengthMenu: [pageLengths, pageLengths],
+                lengthMenu: [lengthValues, lengthLabels],
                 columnDefs: nonOrderableCols.length ? [{ targets: nonOrderableCols, orderable: false }] : [],
                 sortFieldMap: sortFieldMap,
                 showSkeletonLoading: config.showSkeletonLoading !== false,
@@ -470,6 +477,23 @@
                     return `<a class='custom-grid-link ${editSelectorClass}' data-id='${row[idField] || ''}'>${data || ''}</a>`;
                 }
             };
+        },
+
+        reload: function (gridId, resetPaging) {
+            if (!gridId) return;
+            var selector = gridId.startsWith('#') ? gridId : '#' + gridId;
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(selector)) {
+                $(selector).DataTable().ajax.reload(null, resetPaging === true);
+            }
+        },
+
+        getTable: function (gridId) {
+            if (!gridId) return null;
+            var selector = gridId.startsWith('#') ? gridId : '#' + gridId;
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(selector)) {
+                return $(selector).DataTable();
+            }
+            return null;
         }
     };
 
