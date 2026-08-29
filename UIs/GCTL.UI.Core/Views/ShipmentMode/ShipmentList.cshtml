@@ -3,18 +3,18 @@
 @await Html.PartialAsync("_CustomGrid", new GridModel
 {
     GridId = "shipmentModeTable",
-    AjaxUrl = "/shipment-mode/get-grid-data",
+    AjaxUrl = "get-grid-data",
     AjaxMethod = "POST",
     ServerSide = true,
     ShowCheckbox = true,
-    CheckColumnData = "tc",
+    CheckColumnData = "expenseTypeID",
     CheckAllId = "selectAllShipmentMode",
     CheckboxClass = "js-shipmentmode-check",
     ShowSearchBox = true,
     ShowPagination = true,
     Columns = new List<GridColumn>
     {
-        new() { Data = "expenseTypeID", Header = "Expense ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-shipmentmode-edit", IdField = "tc", Align = "center", SortField = "ExpenseTypeID" },
+        new() { Data = "expenseTypeID", Header = "Expense ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-shipmentmode-edit", IdField = "expenseTypeID", Align = "center", SortField = "ExpenseTypeID" },
         new() { Data = "expenseType", Header = "Expense Type", Width = "35%", Align = "left", SortField = "ExpenseType" },
         new() { Data = "shortName", Header = "Short Name", Width = "20%", Align = "left", SortField = "ShortName" },
         new() { Data = "transportModeType", Header = "Transport Mode", Width = "30%", Align = "left", SortField = "transportModeType" }

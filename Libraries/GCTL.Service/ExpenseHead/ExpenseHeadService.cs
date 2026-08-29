@@ -75,6 +75,7 @@ namespace GCTL.Service.ExpenseHead
             var data = await _repository.All().Where(pt => pt.Tc == id)
                        .Select(pt => new ExpenseHeadVM
                        {
+                           TC = pt.Tc,
                            ExpenseHeadID = pt.ExpenseHeadId,
                            ExpenseHead = pt.ExpenseHead,
                            ShortName = pt.ShortName,

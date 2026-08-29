@@ -1,5 +1,4 @@
 
-using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
@@ -68,24 +67,19 @@ namespace GCTL.Controllers.MasterSetup
             return Ok(newId); // Send as JSON/string
         }
 
-        [HttpPost("shipment-mode/get-grid-data")]
-        public async Task<IActionResult> GetGridData(
-            int draw = 1,
-            int pageNumber = 1,
-            int pageSize = 10,
-            string searchTerm = "",
-            string sortColumn = "",
-            string sortOrder = "asc")
+        [HttpGet]
+        [Route("get-grid-data")]
+        public async Task<IActionResult> GetAllPaginatedExpense(int page = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ExpenseTypeID", string sortDirection = "desc")
         {
             try
             {
                 var request = new PaginationRequest
                 {
-                    PageNumber = pageNumber,
+                    PageNumber = page,
                     PageSize = pageSize,
                     SearchTerm = searchTerm,
-                    SortColumn = sortColumn,
-                    SortOrder = sortOrder
+                    SortColumn = currentSortColumn,
+                    SortOrder = sortDirection
                 };
 
                 var result = await _service.GetPaginatedAsync(request);
@@ -94,25 +88,36 @@ namespace GCTL.Controllers.MasterSetup
                 {
                     return Ok(new
                     {
-                        draw,
-                        data = new List<ShipmentModeVM>(),
-                        recordsTotal = 0,
-                        recordsFiltered = 0
+                        Data = new List<ShipmentModeVM>(),
+                        TotalCount = 0,
+                        PaginationInfo = new
+                        {
+                            StartItem = 0,
+                            EndItem = 0,
+                            TotalItems = 0,
+                            PageNumbers = new List<int>(),
+                            TotalPages = 0,
+                            CurrentPage = 0
+                        },
+                        Message = "No Unit Found."
                     });
                 }
 
-                return Ok(new
-                {
-                    draw,
-                    data = result.Data,
-                    recordsTotal = result.TotalCount,
-                    recordsFiltered = result.FilteredCount
-                });
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
             }
+        }
+
+        [HttpGet("shipment-mode/get-by-id/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var data = await _service.GetByIdAsync(id);
+            if (data == null)
+                return NotFound();
+            return Ok(new { data });
         }
 
         [HttpPost]
