@@ -30,6 +30,7 @@ using GCTL.Service.CurrencyType;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
+using GCTL.Service.CustomerType;
 using GCTL.Service.DailyJobUpdateEntry;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
@@ -199,6 +200,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IDistrictsService, DistrictsService>();
             services.AddScoped<IClientInformationEntryService, ClientInformationEntryService>();
             services.AddScoped<ICompanyInfoSupService, CompanyInfoSupService>();
+            services.AddScoped<ICustomerTypeService, CustomerTypeService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 

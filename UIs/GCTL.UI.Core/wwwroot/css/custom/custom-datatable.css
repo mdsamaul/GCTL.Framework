@@ -133,19 +133,19 @@ div.dt-container table.dataTable.enable-select-highlight tbody tr.selected-row:h
     box-shadow: none !important;
 }
 
-/* Primary Key Link Styling (Matches dynamic-grid) */
-.dynamic-grid-link {
-    color: #2563eb;
+/* Primary Key / ID Link Styling */
+.custom-grid-link {
     font-weight: 600;
     text-decoration: none;
     cursor: pointer;
     transition: color 0.15s ease-in-out, text-decoration 0.15s ease-in-out;
 }
 
-.dynamic-grid-link:hover {
-    color: #1d4ed8;
-    text-decoration: underline;
-}
+    .custom-grid-link:hover {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
 
 /* Search Input with Magnifier Icon (BS5 border, No Shadow) */
 div.dt-container .dt-search {
@@ -393,3 +393,37 @@ tr:hover .btn-copy-code {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
+
+
+
+
+/* Header Column Centering (Ignoring Sort Icon) */
+div.dt-container table.dataTable thead th div.dt-column-header,
+.custom-grid-table thead th div.dt-column-header {
+    position: relative !important;
+    display: flex !important;
+    flex-direction:row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+}
+
+    div.dt-container table.dataTable thead th div.dt-column-header span.dt-column-title,
+    .custom-grid-table thead th div.dt-column-header span.dt-column-title {
+        text-align: center !important;
+        margin: 0 auto !important;
+    }
+
+    div.dt-container table.dataTable thead th div.dt-column-header span.dt-column-order,
+    .custom-grid-table thead th div.dt-column-header span.dt-column-order {
+        position: absolute !important;
+        right: 4px !important;
+        left: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+    }
+
+
+
+ 

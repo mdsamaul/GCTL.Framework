@@ -12,11 +12,9 @@ namespace GCTL.Core.ViewModels.BankInformations
         public int Tc { get; set; }
         public decimal AutoId { get; set; }
         public string? BankId { get; set; }
-
         [Required(ErrorMessage = "{0} is required.")]
         [Display(Name = "Bank Name")]
         public string BankName { get; set; }
-
         [Display(Name = "Short Name")]
         public string? ShortName { get; set; }
     }

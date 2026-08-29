@@ -50,7 +50,7 @@
                 var originalMap = window._gctlHighlightMap || new Map();
                 window._gctlHighlightMap = originalMap;
 
-                $table.find('tbody tr:not(.skeleton-row) .target-text, tbody tr:not(.skeleton-row) .dynamic-grid-link').each(function () {
+                $table.find('tbody tr:not(.skeleton-row) .target-text, tbody tr:not(.skeleton-row) .custom-grid-link').each(function () {
                     var cell = this;
                     if (!originalMap.has(cell)) {
                         originalMap.set(cell, $(cell).text());
@@ -97,6 +97,7 @@
                         }
                     },
                     dataSrc: function (json) {
+                        console.log(json);
                         if (json.recordsTotal === undefined && json.totalCount !== undefined) {
                             json.recordsTotal = json.totalCount;
                         }
@@ -191,7 +192,7 @@
                     if ($(e.target).closest('input, button, a, .dropdown, .dropdown-menu, .btn-copy-code, .btn-expand-row, .form-check-input, .btn-action-menu').length > 0) {
                         return;
                     }
-                    var editLink = $(this).find('a.dynamic-grid-link, a.js-grid-edit, a[data-id]').first();
+                    var editLink = $(this).find('a.custom-grid-link, a.js-grid-edit, a[data-id]').first();
                     if (editLink.length) {
                         editLink.trigger('click');
                     }
@@ -201,7 +202,7 @@
             // 1-Click Copy Click Handler
             $table.off('click.gctlCopy').on('click.gctlCopy', '.btn-copy-code', function (e) {
                 e.stopPropagation();
-                var text = $(this).data('copy-text') || $(this).closest('td').find('.dynamic-grid-link, .target-text').text().trim();
+                var text = $(this).data('copy-text') || $(this).closest('td').find('.custom-grid-link, .target-text').text().trim();
                 if (text && navigator.clipboard) {
                     navigator.clipboard.writeText(text);
                     var tooltip = $(this).siblings('.copy-tooltip');
@@ -324,7 +325,7 @@
                             });
                         }
 
-                        var linkHtml = '<a class="dynamic-grid-link ' + editClass + '" data-id="' + idVal + '"' + extraAttrs + '>' + label + '</a>';
+                        var linkHtml = '<a class="custom-grid-link ' + editClass + '" data-id="' + idVal + '"' + extraAttrs + '>' + label + '</a>';
 
                         if (c.isCopyable) {
                             linkHtml += '<span class="position-relative copy-wrapper ms-1">' +
@@ -466,7 +467,7 @@
                 "className": "text-center",
                 width: "7%",
                 "render": function (data, type, row) {
-                    return `<a class='dynamic-grid-link ${editSelectorClass}' data-id='${row[idField] || ''}'>${data || ''}</a>`;
+                    return `<a class='custom-grid-link ${editSelectorClass}' data-id='${row[idField] || ''}'>${data || ''}</a>`;
                 }
             };
         }

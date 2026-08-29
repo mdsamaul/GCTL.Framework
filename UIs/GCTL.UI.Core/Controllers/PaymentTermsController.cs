@@ -39,7 +39,7 @@ namespace GCTL.UI.Core.Controllers
             string strMaxNo = string.Empty;
             try
             {
-                _commonService.FindMaxNo(ref strMaxNo, "PaymentTermsId", "Sales_Def_PaymentTerms", 3);
+                _commonService.FindMaxNo(ref strMaxNo, "PaymentTermsId", "Sales_Def_PaymentTerms", 2);
             }
             catch { }
 
