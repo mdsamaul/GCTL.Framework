@@ -1,12 +1,10 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.CustomerType;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.PaymentType;
 using GCTL.Service.Common;
 using GCTL.Service.CustomerType;
 using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.CustomerType;
-using GCTL.UI.Core.ViewModels.PaymentType;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GCTL.UI.Core.Controllers
