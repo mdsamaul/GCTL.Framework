@@ -212,11 +212,11 @@ namespace GCTL.Data.Models
                 entity.Property(p => p.AutoId)
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
-            //modelBuilder.Entity<InvDefCompanyInfo>(entity =>
-            //{
-            //    entity.Property(p => p.Tc)
-            //    .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
-            //});
+            modelBuilder.Entity<SalesDefCustomerType>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
         }
     }
 }
