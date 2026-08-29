@@ -58,7 +58,7 @@ namespace GCTL.Service.CoreBankAccountInformations
                                   AccInfoId = bA.AccInfoId,
                                   BankId = bA.BankId,
                                   BankName = b.BankName,
-                                  UserInfoEmployeeID = bA.UserInfoEmployeeId,
+                                  UserInfoEmployeeId = bA.UserInfoEmployeeId,
                                   BranchId = braBank.BankBranchId,
                                   BranchName = braBank.BankBranchName,
                                   AccountName = bA.AccountName,
@@ -88,7 +88,7 @@ namespace GCTL.Service.CoreBankAccountInformations
                                   AccInfoId = bA.AccInfoId,
                                   BankId = bA.BankId,
                                   BankName = b.BankName,
-                                  UserInfoEmployeeID = bA.UserInfoEmployeeId,
+                                  UserInfoEmployeeId = bA.UserInfoEmployeeId,
                                   BranchId = braBank.BankBranchId,
                                   BranchName = braBank.BankBranchName,
                                   AccountName = bA.AccountName,
@@ -115,7 +115,7 @@ namespace GCTL.Service.CoreBankAccountInformations
                 entity.BranchId = entityVM.BranchId;
                 entity.AccountNo = entityVM.AccountNo;
                 entity.CompanyCode = CompanyCode;
-                entity.UserInfoEmployeeId = entityVM.UserInfoEmployeeID ?? string.Empty;
+                entity.UserInfoEmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty;
                 entity.Luser = entityVM.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac ?? string.Empty;
@@ -152,7 +152,7 @@ namespace GCTL.Service.CoreBankAccountInformations
                 entity.BankId = entityVM.BankId;
                 entity.BranchId = entityVM.BranchId;
                 entity.AccountNo = entityVM.AccountNo;
-                entity.UserInfoEmployeeId = entityVM.UserInfoEmployeeID ?? string.Empty;
+                entity.UserInfoEmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty;
                 entity.Luser = entityVM.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac;

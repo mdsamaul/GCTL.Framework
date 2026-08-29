@@ -24,7 +24,7 @@ namespace GCTL.Core.ViewModels.CoreBankAccountInformations
         [Required(ErrorMessage = "{0} is required.")]
         [Display(Name = "Account No.")]
         public string AccountNo { get; set; } = string.Empty;
-        public string? UserInfoEmployeeID { get; set; }
+        //public string? UserInfoEmployeeID { get; set; }
         public string? CompanyCode { get; set; }
     }
 }

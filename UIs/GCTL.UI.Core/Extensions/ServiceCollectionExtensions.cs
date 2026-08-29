@@ -9,15 +9,14 @@ using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchAddress;
 using GCTL.Service.BranchesTypeInfo;
-using GCTL.Service.ChartOfAccounts;
 using GCTL.Service.CfDefPlaceOfLoading;
+using GCTL.Service.ChartOfAccounts;
 using GCTL.Service.ChartOfAccounts.ControlLedger;
 using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
 using GCTL.Service.ChartOfAccounts.SubControlLedger;
 using GCTL.Service.ChartOfAccounts.SubSidiaryLedger;
 using GCTL.Service.ClientInformationEntry;
-
 //using GCTL.Service.CNFMaster.VendorPrefixs;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
@@ -31,6 +30,7 @@ using GCTL.Service.CurrencyType;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
+using GCTL.Service.CustomerType;
 using GCTL.Service.DailyJobUpdateEntry;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
@@ -75,16 +75,15 @@ using GCTL.Service.TransportInformation;
 using GCTL.Service.TransportType;
 using GCTL.Service.UnitType;
 using GCTL.Service.Update;
-
 using GCTL.Service.Users;
 using GCTL.Service.VendorInfo;
 using GCTL.Service.VendorPrefix;
+using GCTL.Service.VoucherEntry;
 using GCTL.Service.VoucherType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using GCTL.Service.VoucherEntry;
 
 namespace GCTL.Framework.Extensions
 {
@@ -197,6 +196,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IDistrictsService, DistrictsService>();
             services.AddScoped<IClientInformationEntryService, ClientInformationEntryService>();
             services.AddScoped<ICompanyInfoSupService, CompanyInfoSupService>();
+            services.AddScoped<ICustomerTypeService, CustomerTypeService>();
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
