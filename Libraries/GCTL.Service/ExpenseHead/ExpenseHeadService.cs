@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using GCTL.Core.Data;
@@ -74,7 +74,7 @@ namespace GCTL.Service.ExpenseHead
                            ShortName = pt.ShortName,
                            Amount = pt.Amount,
                            SerialNo = pt.SerialNo,
-                           IsReceiptable = pt.IsReceiptable,
+                           IsReceiptable = (pt.IsReceiptable == "Y" || pt.IsReceiptable == "Yes" || pt.IsReceiptable == "YES") ? "Yes" : "No",
                            ServiceTypeID = pt.ServiceTypeId,
                            ExpenseTypeID = pt.ExpenseTypeId,
                            LDate = pt.Ldate,
@@ -104,9 +104,13 @@ namespace GCTL.Service.ExpenseHead
             if (!string.IsNullOrEmpty(serviceType))
                 query = query.Where(x => x.ServiceTypeId == serviceType);
 
-            if (pageSize == -1)
+            if (string.IsNullOrEmpty(sortColumn) || sortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
             {
-                pageSize = await query.CountAsync();
+                query = query.OrderBy(x => x.ExpenseTypeId)
+                             .ThenBy(x => x.ServiceTypeId)
+                             .ThenBy(x => x.IsReceiptable)
+                             .ThenBy(x => x.SerialNo);
+                sortColumn = "";
             }
 
             var paginatedResult = await PaginationService<CfDefExpenseHead, ExpenseHeadVM>.GetPaginatedData(
@@ -129,7 +133,7 @@ namespace GCTL.Service.ExpenseHead
                     ShortName = pt.ShortName,
                     Amount = pt.Amount,
                     SerialNo = pt.SerialNo,
-                    IsReceiptable = pt.IsReceiptable,
+                    IsReceiptable = (pt.IsReceiptable == "Y" || pt.IsReceiptable == "Yes" || pt.IsReceiptable == "YES") ? "Yes" : "No",
                     ExpenseTypeID = pt.ExpenseTypeId,
                     LDate = pt.Ldate,
                     ModifyDate = pt.ModifyDate,
@@ -138,10 +142,10 @@ namespace GCTL.Service.ExpenseHead
                                             .Where(cs => cs.ServiceTypeId == pt.ServiceTypeId)
                                             .Select(cs => cs.ServiceTypeName)
                                             .FirstOrDefault(),
-                    ExpenseType = _context.Set<CfDefExpenseHead>()
+                    ExpenseType = _context.Set<GCTL.Data.Models.CfDefExpenseType>()
                                           .Where(et => et.ExpenseTypeId == pt.ExpenseTypeId)
-                                          .Select(et => et.ExpenseTypeId)
-                                          .FirstOrDefault()
+                                          .Select(et => et.ExpenseType)
+                                          .FirstOrDefault() ?? pt.ExpenseTypeId
                 }
             );
 

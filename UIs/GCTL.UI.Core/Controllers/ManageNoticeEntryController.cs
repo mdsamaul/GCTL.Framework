@@ -21,7 +21,6 @@ namespace GCTL.UI.Core.Controllers
             this.noticeRepo = noticeRepo;
         }
 
-
         public async Task<IActionResult> Index()
         {
             var hasPermission = await entryService.PagePermissionAsync(LoginInfo.AccessCode);

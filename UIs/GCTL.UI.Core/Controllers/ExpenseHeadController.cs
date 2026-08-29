@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels.ExpenseHead;
+using GCTL.Core.ViewModels.ExpenseHead;
 using GCTL_App.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using GCTL.Service.ShipmentMode;
@@ -10,7 +10,7 @@ namespace GCTL.Controllers
 {
     public class ExpenseHeadController : BaseController
     {
-        #region 
+        #region
         private readonly IExpenseHead _service;
         private readonly IShipmentMode _shipmentMode;
         private readonly IServiceType _serviceType;
@@ -94,6 +94,55 @@ namespace GCTL.Controllers
             return Ok(new { isDuplicate = false, message = "No duplicate found." });
         }
 
+
+        [HttpGet]
+        [Route("expense-head/get-by-id/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _service.GetByIdAsync(id);
+            if (result == null)
+                return NotFound(new { message = "Data not found" });
+            return Ok(new { data = result });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetGridData()
+        {
+            try
+            {
+                var draw = Request.Form["draw"].FirstOrDefault();
+                var start = Request.Form["start"].FirstOrDefault();
+                var length = Request.Form["length"].FirstOrDefault();
+                var searchValue = Request.Form["search[value]"].FirstOrDefault() ?? Request.Form["searchTerm"].FirstOrDefault() ?? "";
+                var sortColumn = Request.Form["sortColumn"].FirstOrDefault();
+                if (string.IsNullOrEmpty(sortColumn))
+                {
+                    var sortColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
+                    if (!string.IsNullOrEmpty(sortColumnIndex))
+                    {
+                        sortColumn = Request.Form[$"columns[{sortColumnIndex}][data]"].FirstOrDefault();
+                    }
+                }
+                var sortDirection = Request.Form["sortOrder"].FirstOrDefault() ?? Request.Form["order[0][dir]"].FirstOrDefault() ?? "asc";
+
+                var pageSize = string.IsNullOrEmpty(length) ? 10 : Convert.ToInt32(length);
+                var pageNumber = string.IsNullOrEmpty(start) ? 1 : (Convert.ToInt32(start) / pageSize) + 1;
+
+                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchValue, sortColumn ?? "", sortDirection);
+
+                return Json(new
+                {
+                    draw = draw,
+                    recordsFiltered = result.TotalCount,
+                    recordsTotal = result.TotalCount,
+                    data = result.Data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
+            }
+        }
 
         [HttpGet]
         [Route("expense-head-list")]

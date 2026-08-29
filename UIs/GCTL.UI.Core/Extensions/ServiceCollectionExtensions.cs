@@ -9,15 +9,14 @@ using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchAddress;
 using GCTL.Service.BranchesTypeInfo;
-using GCTL.Service.ChartOfAccounts;
 using GCTL.Service.CfDefPlaceOfLoading;
+using GCTL.Service.ChartOfAccounts;
 using GCTL.Service.ChartOfAccounts.ControlLedger;
 using GCTL.Service.ChartOfAccounts.GeneralLedger;
 using GCTL.Service.ChartOfAccounts.GroupLedger;
 using GCTL.Service.ChartOfAccounts.SubControlLedger;
 using GCTL.Service.ChartOfAccounts.SubSidiaryLedger;
 using GCTL.Service.ClientInformationEntry;
-
 //using GCTL.Service.CNFMaster.VendorPrefixs;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
@@ -36,6 +35,7 @@ using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
 using GCTL.Service.Designations;
 using GCTL.Service.Districts;
+using GCTL.Service.EmailService;
 using GCTL.Service.EmployeeContactInfos;
 using GCTL.Service.EmployeeOfficialInfo;
 using GCTL.Service.ExpenseHead;
@@ -45,6 +45,7 @@ using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
 using GCTL.Service.HrmEmployees2;
 using GCTL.Service.ImporterInfo;
+using GCTL.Service.ManageNoticeEntries;
 using GCTL.Service.Menu;
 using GCTL.Service.MenuBreadcrumbs;
 using GCTL.Service.MenuTab;
@@ -75,16 +76,15 @@ using GCTL.Service.TransportInformation;
 using GCTL.Service.TransportType;
 using GCTL.Service.UnitType;
 using GCTL.Service.Update;
-
 using GCTL.Service.Users;
 using GCTL.Service.VendorInfo;
 using GCTL.Service.VendorPrefix;
+using GCTL.Service.VoucherEntry;
 using GCTL.Service.VoucherType;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using GCTL.Service.VoucherEntry;
 
 namespace GCTL.Framework.Extensions
 {
@@ -140,6 +140,8 @@ namespace GCTL.Framework.Extensions
             // Menu service – now resolves because GctlHrmContext is registered.
             services.AddScoped<IMenuService, MenuService>();
             services.AddScoped<ICompanyService, CompanyService>();
+            services.AddScoped<IManageNoticeService, ManageNoticeService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ICommonService, CommonService>();
             services.AddScoped<IDeleteHistoryService, DeleteHistoryService>();
             services.AddScoped<IBranchTypeInfoService, BranchTypeInfoService>();

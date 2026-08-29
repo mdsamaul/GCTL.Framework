@@ -126,4 +126,27 @@ document.addEventListener('DOMContentLoaded', () => {
         updateClock();
         setInterval(updateClock, 1000);
     }
+
+    // -----------------------------------------------------------------
+    // Sidebar Accordion (Same-Level Auto Collapse / Shrink)
+    // -----------------------------------------------------------------
+    document.addEventListener('show.bs.collapse', (e) => {
+        const targetCollapse = e.target;
+        if (!targetCollapse.closest('.sidebar-menu')) return;
+
+        // Get the immediate parent <ul> containing this menu item
+        const parentUl = targetCollapse.closest('ul.sidebar-menu');
+        if (!parentUl) return;
+
+        // Find all sibling menu items at the exact same level
+        const siblingItems = Array.from(parentUl.children).filter(li => li.classList.contains('menu-item'));
+        siblingItems.forEach(li => {
+            const siblingCollapse = li.querySelector(':scope > .collapse.show');
+            if (siblingCollapse && siblingCollapse !== targetCollapse) {
+                const bsCollapse = bootstrap.Collapse.getInstance(siblingCollapse) || new bootstrap.Collapse(siblingCollapse, { toggle: false });
+                bsCollapse.hide();
+            }
+        });
+    });
 });
+

@@ -81,8 +81,11 @@
                                 var colIndex = d.order[0].column;
                                 var sortField = (settings.sortFieldMap && settings.sortFieldMap[colIndex])
                                     || (d.columns && d.columns[colIndex] && d.columns[colIndex].data);
-                                d.sortColumn = sortField;
-                                d.sortOrder = d.order[0].dir;
+                                d.sortColumn = sortField || "";
+                                d.sortOrder = d.order[0].dir || "";
+                            } else {
+                                d.sortColumn = "";
+                                d.sortOrder = "";
                             }
 
                             d.searchTerm = d.search ? d.search.value : "";
@@ -295,11 +298,11 @@
                 return c.visible !== false;
             });
 
-            var defaultSortIdx = columns.length;
+            var defaultSortIdx = -1;
 
             visibleCols.forEach(function (c, i) {
                 var colIdx = columns.length;
-                if (config.defaultSortColumn && c.data === config.defaultSortColumn) {
+                if (config.defaultSortColumn && (c.data === config.defaultSortColumn || c.sortField === config.defaultSortColumn)) {
                     defaultSortIdx = colIdx;
                 }
 
@@ -389,6 +392,9 @@
             }
 
             var pageLengths = config.pageLengths || [10, 25, 50, 100];
+            var initialOrder = (defaultSortIdx >= 0)
+                ? [[defaultSortIdx, config.defaultSortDirection || "desc"]]
+                : [];
 
             var builtSettings = {
                 gridSelector: '#' + config.gridId,
@@ -400,7 +406,7 @@
                 checkAllSelector: (config.showCheckbox && !config.disableCheckAll && config.checkAllId)
                     ? ('#' + config.checkAllId)
                     : null,
-                order: [[defaultSortIdx, config.defaultSortDirection || "desc"]],
+                order: initialOrder,
                 pageLength: config.defaultPageLength || 10,
                 lengthMenu: [pageLengths, pageLengths],
                 columnDefs: nonOrderableCols.length ? [{ targets: nonOrderableCols, orderable: false }] : [],

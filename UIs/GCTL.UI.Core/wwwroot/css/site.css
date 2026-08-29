@@ -289,12 +289,44 @@ textarea {
     gap: 2px;
 }
 
-.app-sidebar > .sidebar-menu {
+.app-sidebar > .sidebar-menu,
+.sidebar-menu-scroll > .sidebar-menu {
     flex: 1 1 0;
     padding: 16px 8px;
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+.sidebar-footer {
+    background-color: var(--bg-sidebar);
+    flex-shrink: 0;
+    border-top: 1px solid var(--border-color);
+    padding: 8px;
+}
+
+.sidebar-logout-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 8px 10px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-logout-btn:hover {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    color: #dc3545 !important;
+}
+
+.app-sidebar.collapsed .sidebar-footer .sidebar-logout-btn {
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.app-sidebar.collapsed .sidebar-footer .sidebar-logout-btn .menu-text {
+    display: none;
+}
+
 
 .sidebar-menu .sidebar-menu {
     padding: 2px 0;
