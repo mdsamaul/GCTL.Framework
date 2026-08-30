@@ -7,5 +7,6 @@ namespace GCTL.UI.Core.ViewModels.SupplierType
     {
         public SupplierTypeSetupViewModel Setup { get; set; } = new SupplierTypeSetupViewModel();
         public List<SupplierTypeSetupViewModel> SupplierTypeList { get; set; } = new List<SupplierTypeSetupViewModel>();
+        public DynamicGridModel? DynamicGrid { get; set; }
     }
 }

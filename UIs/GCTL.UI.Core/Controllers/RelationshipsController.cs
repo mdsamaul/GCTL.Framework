@@ -1,7 +1,9 @@
 ﻿using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.ContactPersonInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Relationship;
 using GCTL.Service.Common;
+using GCTL.Service.ContactPersonInfo;
 using GCTL.Service.Relationships;
 using GCTL.UI.Core.ViewModels.Relationship;
 using Microsoft.AspNetCore.Mvc;
@@ -258,12 +260,12 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                var list = await service.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await service.GetAllAsync() ?? new List<RelationshipSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<RelationshipSetupViewModel>(), error = ex.Message });
             }
         }
         #endregion

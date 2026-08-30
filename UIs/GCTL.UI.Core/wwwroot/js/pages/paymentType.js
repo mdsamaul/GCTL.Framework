@@ -106,7 +106,7 @@
             });
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked', $(this).prop('checked'));
+                $(".checkbox").prop('checked', $(this).prop('checked'));
             });
 
             function getDeleteModal() {

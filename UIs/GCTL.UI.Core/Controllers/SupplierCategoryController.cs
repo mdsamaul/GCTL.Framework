@@ -1,5 +1,6 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
+using GCTL.Core.ViewModels.PaymentType;
 using GCTL.Core.ViewModels.SupplierCategory;
 using GCTL.Service.Common;
 using GCTL.Service.SupplierCategory;
@@ -29,7 +30,8 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Index
-        public async Task<IActionResult> Index()
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
             var hasPermission = await supplierCategoryService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -44,9 +46,49 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
+                var list = await supplierCategoryService.GetAllAsync() ?? new List<SupplierCategorySetupViewModel>();
+                model.SupplierCategoryList = list;
 
-                var list = await supplierCategoryService.GetAllAsync();
-                model.SupplierCategoryList = list ?? new List<SupplierCategorySetupViewModel>();
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.SupplierCategoryId != null && x.SupplierCategoryId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.SupplierCategory != null && x.SupplierCategory.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Supplier Category" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                { "SupplierCategoryId", item.SupplierCategoryId },
+                { "Supplier Category", item.SupplierCategory }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "SupplierCategory") ?? "/SupplierCategory/GetTableData",
+                    primaryKey: "SupplierCategoryId",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/SupplierCategory/Setup/{id}",
+                    gridId: "supplierCategoryGridContainer",
+                    editClass: "js-SupplierCategory-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                { "SupplierCategoryId", "center" },
+                { "Supplier Category", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                { "SelectAll", "120px" },
+                { "Code", "100px" },
+                { "Supplier Category", "auto" }
+                    }
+                );
 
                 commonService.FindMaxNo(ref strMaxNO, "SupplierCategoryID", "Inv_Def_SupplierCategory", 3);
 
@@ -54,20 +96,16 @@ namespace GCTL.UI.Core.Controllers
                 {
                     SupplierCategoryId = strMaxNO
                 };
-
             }
             catch (Exception ex)
             {
-
                 model.SupplierCategoryList = new List<SupplierCategorySetupViewModel>();
                 model.Setup = new SupplierCategorySetupViewModel();
-                Console.WriteLine("Error" + ex.Message);
+                Console.WriteLine("Error: " + ex.Message);
             }
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
+            if (child)
                 return PartialView(model);
-            }
 
             return View(model);
         }
@@ -78,88 +116,137 @@ namespace GCTL.UI.Core.Controllers
 
         public async Task<IActionResult> Setup(string id)
         {
-            SupplierCategorySetupViewModel model = new SupplierCategorySetupViewModel();
+            var model = new SupplierCategorySetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "SupplierCategoryID", "Inv_Def_SupplierCategory", 3);
 
-            if (!string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(id) && id != "0")
             {
-
-                model = await supplierCategoryService.GetByIdAsync(id);
-                if (model == null)
+                var existing = await supplierCategoryService.GetByIdAsync(id);
+                if (existing != null)
                 {
-
-                    return NotFound();
+                    model = existing;
+                }
+                else
+                {
+                    model.SupplierCategoryId = strMaxNO;
                 }
             }
             else
             {
-
                 model.SupplierCategoryId = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_Setup", model);
+            }
+
+            var pageModel = new SupplierCategoryPageViewModel
+            {
+                Setup = model,
+                PageUrl = Url.Action(nameof(Index))
+            };
+
+            var list = await supplierCategoryService.GetAllAsync() ?? new List<SupplierCategorySetupViewModel>();
+            int totalRecords = list.Count;
+            var pagedList = list.Take(10).ToList();
+
+            pageModel.DynamicGrid = GridBuilder.BuildGrid(
+                data: pagedList,
+                totalRecords: totalRecords,
+                currentPage: 1,
+                pageSize: 10,
+                headers: new List<string> { "Code", "Supplier Category" },
+                rowMapper: item => new Dictionary<string, object?>
+                {
+            { "SupplierCategoryId", item.SupplierCategoryId },
+            { "Supplier Category", item.SupplierCategory }
+                },
+                ajaxUrl: Url.Action("GetTableData", "SupplierCategory") ?? "/SupplierCategory/GetTableData",
+                primaryKey: "SupplierCategoryId",
+                hasCheckbox: true,
+                actionUrlPattern: "/SupplierCategory/Setup/{id}",
+                gridId: "supplierCategoryGridContainer",
+                editClass: "js-SupplierCategory-edit",
+                columnAlignments: new Dictionary<string, string>
+                {
+            { "SupplierCategoryId", "center" },
+            { "Supplier Category", "left" }
+                },
+                columnWidths: new Dictionary<string, string>
+                {
+            { "SelectAll", "120px" },
+            { "Code", "100px" },
+            { "Supplier Category", "auto" }
+                }
+            );
+
+            return View("Index", pageModel);
         }
 
         #endregion
 
-        #region Post Update 
+        #region Post Update
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Setup(SupplierCategorySetupViewModel modelVM)
         {
             try
             {
-
-                if (await supplierCategoryService.IsExistAsync(modelVM.SupplierCategory, modelVM.SupplierCategoryId))
+                if (modelVM.SupplierCategoryCode == 0 || modelVM.SupplierCategoryCode == null)
                 {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    if (await supplierCategoryService.IsExistAsync(modelVM.SupplierCategory, modelVM.SupplierCategoryId))
+                    {
+                        return Json(new { isSuccess = false, message = "Already Exists!", isDuplicate = true });
+                    }
                 }
-
 
                 if (!ModelState.IsValid)
                 {
-
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.SupplierCategoryCode > 0);
+
                 if (modelVM.SupplierCategoryCode == 0 || modelVM.SupplierCategoryCode == null)
                 {
                     var hasSavePermission = await supplierCategoryService.SavePermissionAsync(LoginInfo.AccessCode);
-                    if (hasSavePermission)
-                    {
-                        await supplierCategoryService.SaveAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.SupplierCategoryId });
-
-                    }
-                    else
+                    if (!hasSavePermission)
                     {
                         return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
                     }
+
+                    bool result = await supplierCategoryService.SaveAsync(modelVM);
+                    if (result)
+                    {
+                        commonService.FindMaxNo(ref strMaxNO, "SupplierCategoryID", "Inv_Def_SupplierCategory", 3);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = strMaxNO });
+                    }
+                    return Json(new { isSuccess = false, message = "Failed to save Supplier Category." });
                 }
                 else
                 {
-
                     var hasUpdatePermission = await supplierCategoryService.UpdatePermissionAsync(LoginInfo.AccessCode);
-                    if (hasUpdatePermission)
-                    {
-                        await supplierCategoryService.UpdateAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.SupplierCategoryId });
-                    }
-                    else
+                    if (!hasUpdatePermission)
                     {
                         return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
+
+                    bool result = await supplierCategoryService.UpdateAsync(modelVM);
+                    if (result)
+                    {
+                        commonService.FindMaxNo(ref strMaxNO, "SupplierCategoryID", "Inv_Def_SupplierCategory", 3);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = strMaxNO });
+                    }
+                    return Json(new { isSuccess = false, message = "Failed to update Supplier Category." });
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error:{ex.Message}");
-                return RedirectToAction("Login", "Accounts");
-
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { isSuccess = false, message = "An error occurred while saving." });
             }
         }
 
@@ -200,17 +287,17 @@ namespace GCTL.UI.Core.Controllers
 
         #region TabeleLodaing
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var list = await supplierCategoryService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await supplierCategoryService.GetAllAsync() ?? new List<SupplierCategorySetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<SupplierCategorySetupViewModel>(), error = ex.Message });
             }
         }
 

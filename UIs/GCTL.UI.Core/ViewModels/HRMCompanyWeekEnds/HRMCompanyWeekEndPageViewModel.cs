@@ -7,5 +7,6 @@ namespace GCTL.UI.Core.ViewModels.HRMCompanyWeekEnds
     {
         public HRMCompanyWeekEndSetupViewModel Setup { get; set; } = new HRMCompanyWeekEndSetupViewModel();
         public List<HRMCompanyWeekEndSetupViewModel> HRMCompanyWeekEndList { get; set; } = new List<HRMCompanyWeekEndSetupViewModel>();
+        public DynamicGridModel? DynamicGrid { get; set; }
     }
 }

@@ -2,9 +2,11 @@
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.ContactPersonInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
+using GCTL.Core.ViewModels.PortName;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.ContactPersonInfo;
+using GCTL.Service.PortName;
 using GCTL.UI.Core.ViewModels.ContactPersonInfo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -205,12 +207,12 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                var list = await contactPersonInfoService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await contactPersonInfoService.GetAllAsync() ?? new List<ContactPersonInfoSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<ContactPersonInfoSetupViewModel>(), error = ex.Message });
             }
         }
 

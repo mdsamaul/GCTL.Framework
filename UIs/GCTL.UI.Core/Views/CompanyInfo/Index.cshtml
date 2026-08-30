@@ -6,28 +6,17 @@
     Model.Breadcrumb = "Company Info";
 }
 
-<style>
-
-    #CompanyInfoDeleteModalBodyHeightFeixd {
-        height: 50px !important;
-    }
-
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-
-</style>
-
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Company Info",
@@ -36,49 +25,56 @@
                             ClearBtnClass = "js-CompanyInfo-clear"
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body px-4 py-3">
                         <form asp-action="Setup" method="post" id="CompanyInfo-form" asp-controller="CompanyInfo">
-
                             <div class="js-CompanyInfo-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="min-height:570px; overflow:auto;">
-                <div class="card" style="min-height: 685px !important;">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-CompanyInfo-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.CompanyInfoList)
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "companyInfoTable",
+                    AjaxUrl = "/CompanyInfo/GetTableData",
+                    AjaxMethod = "GET",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "companyId",
+                    CheckAllId = "CompanyInfo-check-all",
+                    DefaultSortColumn = "companyId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "companyId", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-CompanyInfo-edit" },
+                        new() { Data = "companyName", Header = "Company Name", Width = "23%"},
+                        new() { Data = "shortName", Header = "Short Name", Width = "12%"},
+                        new() { Data = "companyAddress", Header = "Address", Width = "40%"},
+                        new() { Data = "companyForName", Header = "Company For", Width = "19%"}
+                    }
+                })
             </div>
 
         </div>
 
-
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/companyInfo.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "CompanyInfo")'
-        };
-        options.load = () => {
-        };
-
-        $.companyInfo(options);
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/companyInfo.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.companyInfo({
+                baseUrl: '/CompanyInfo'
+            });
+        });
     </script>
 }
