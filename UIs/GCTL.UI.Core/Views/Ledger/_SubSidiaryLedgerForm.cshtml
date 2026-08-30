@@ -39,7 +39,7 @@
             <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="forsidiaryAutoID" name="autoId" />
 
-                <div class="row g-3">
+                <div class="row">
                     @* --- 1. Group Ledger Code (Readonly) --- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
@@ -50,6 +50,7 @@
                         InputId = "forsidiarygroupcode",
                         InputName = "GLCode",
                         LabelText = "Group Ledger Code",
+                        ReserveActionSlot = false,
                         IsRequired = true,
                         IsReadonly = true
                     })
@@ -67,6 +68,7 @@
                         Placeholder = "-- Select Group Ledger --",
                         IsRequired = true,
                         ShowQuickAdd = true,
+                        ReserveActionSlot = false,
                         QuickAddTarget = "#GRLModal",
                         QuickAddTitle = "Add New Group Ledger"
                     })
@@ -79,6 +81,7 @@
                         ColumnClass = "col-md-4",
                         FieldType = FieldType.Text,
                         InputId = "forsidiarygroupshortName",
+                        ReserveActionSlot = false,
                         InputName = "GLShortName",
                         LabelText = "Short Name",
                         IsReadonly = true
@@ -94,6 +97,7 @@
                         InputId = "forsidiaryControlCode",
                         InputName = "CRLCode",
                         LabelText = "Control Ledger Code",
+                        ReserveActionSlot = false,
                         IsRequired = true,
                         IsReadonly = true
                     })
@@ -108,6 +112,7 @@
                         InputId = "forsidiaryControlName",
                         InputName = "CRLName",
                         LabelText = "Control Ledger Name",
+                        ReserveActionSlot = false,
                         Placeholder = "-- Select Control Ledger --",
                         IsRequired = true,
                         ShowQuickAdd = true,
@@ -123,6 +128,7 @@
                         ColumnClass = "col-md-4",
                         FieldType = FieldType.Text,
                         InputId = "forsidiaryCLShortName",
+                        ReserveActionSlot = false,
                         InputName = "CRLShortName",
                         LabelText = "Short Name",
                         IsReadonly = true
@@ -137,6 +143,7 @@
                         FieldType = FieldType.Text,
                         InputId = "forsidiaryGeneralLedgerCodeNo",
                         InputName = "GeneralLedgerCodeNo",
+                        ReserveActionSlot = false,
                         LabelText = "Sub-Control Ledger Code",
                         IsRequired = true,
                         IsReadonly = true
@@ -154,6 +161,7 @@
                         LabelText = "Sub-Control Ledger Name",
                         Placeholder = "-- Select Sub-Control Ledger --",
                         IsRequired = true,
+                        ReserveActionSlot = false,
                         ShowQuickAdd = true,
                         QuickAddTarget = "#SCRLModal",
                         QuickAddTitle = "Add New Sub-Control Ledger"
@@ -167,6 +175,7 @@
                         ColumnClass = "col-md-4",
                         FieldType = FieldType.Text,
                         InputId = "forsidiarySubCRLshortName",
+                        ReserveActionSlot = false,
                         InputName = "SubCRLShortName",
                         LabelText = "Short Name",
                         IsReadonly = true
@@ -181,6 +190,7 @@
                         FieldType = FieldType.Text,
                         InputId = "SusidiaryLedgerCodeNo",
                         InputName = "SusidiaryLedgerCodeNo",
+                        ReserveActionSlot = false,
                         LabelText = "Sub-Sidiary Ledger Code",
                         IsRequired = true,
                         IsReadonly = true
@@ -196,6 +206,7 @@
                         InputId = "SubsidiaryLedgerName",
                         InputName = "SubsidiaryLedgerName",
                         LabelText = "Sub-Sidiary Ledger Name",
+                        ReserveActionSlot = false,
                         IsRequired = true,
                         Placeholder = "Sub-Sidiary Ledger Name"
                     })
@@ -209,6 +220,7 @@
                         FieldType = FieldType.Text,
                         InputId = "forsidiaryshortName",
                         InputName = "ShortName",
+                        ReserveActionSlot = false,
                         LabelText = "Short Name",
                         Placeholder = "Short Name"
                     })
@@ -260,8 +272,7 @@
                             ShowPrint = false,
                             ShowFavorite = false,
                             IsPlain = true,
-                            ReserveActionSlot = true,
-                            IsMarginRight = true,
+                            ReserveActionSlot = false,
                             SaveBtnType = "submit"
 
                         })

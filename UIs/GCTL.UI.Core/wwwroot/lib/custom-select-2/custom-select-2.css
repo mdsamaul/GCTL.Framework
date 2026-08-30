@@ -32,7 +32,7 @@
     flex: 1 1 30px;
     min-width: 20px;
     padding: 0 2px;
-    font-size: .875rem;
+    font-size: .750rem !important;
     background: transparent;
     line-height: 1.5;
 }

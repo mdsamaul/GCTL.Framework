@@ -163,7 +163,17 @@ namespace GCTL.UI.Core.Controllers
             ViewBag.Branches = new SelectList(await userService.GetBranch(), "Code", "Name");
             ViewBag.Departments = new SelectList(await userService.GetDepartments(), "Code", "Name");
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            var indexModel = new UserAccessPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+            return View("Index", indexModel);
         }
 
         [HttpPost]
@@ -171,16 +181,16 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> Setup(UserAccessSetupViewModel model)
         {
             if (await userService.IsUserExist(model.UserId, model.Username))
-                return Json(new { success = false, message = "Username already exists." });
+                return Json(new { isSuccess = false, message = "Username already exists." });
 
             if (model.UserId == 0 && string.IsNullOrWhiteSpace(model.UserPassword))
-                return Json(new { success = false, message = "Password is required for new users." });
+                return Json(new { isSuccess = false, message = "Password is required for new users." });
 
             if (model.UserType == "Employee" && string.IsNullOrWhiteSpace(model.EmployeeId))
-                return Json(new { success = false, message = "Employee is required." });
+                return Json(new { isSuccess = false, message = "Employee is required." });
 
             if (model.UserType == "Customer" && string.IsNullOrWhiteSpace(model.CustomerId))
-                return Json(new { success = false, message = "Customer is required." });
+                return Json(new { isSuccess = false, message = "Customer is required." });
 
             if (!ModelState.IsValid)
             {
@@ -190,7 +200,7 @@ namespace GCTL.UI.Core.Controllers
                     .ToList();
 
                 if (errors.Any())
-                    return Json(new { success = false, message = errors.FirstOrDefault() });
+                    return Json(new { isSuccess = false, message = errors.FirstOrDefault() });
             }
 
             model.CompanyCode = "001";
@@ -235,8 +245,8 @@ namespace GCTL.UI.Core.Controllers
                 user.Password = existingPassword;
             }
 
-            await userService.SaveUser(user);
-            return Json(new { isSuccess = true, message = "Saved Successfully" });
+            var savedUser = await userService.SaveUser(user);
+            return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = savedUser?.Id.ToString() ?? model.UserId.ToString() });
         }
         #endregion
 
@@ -247,7 +257,7 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Delete(string id)
+        public async Task<ActionResult> Delete([FromBody] List<string>? ids, string? id = null)
         {
             bool success = false;
 
@@ -255,14 +265,18 @@ namespace GCTL.UI.Core.Controllers
             dm.ToAudit(LoginInfo);
             dm.CompanyCode = LoginInfo.CompanyCode;
 
-            foreach (var item in id.Split(",", StringSplitOptions.RemoveEmptyEntries))
+            var targetIds = ids != null && ids.Any() 
+                ? ids 
+                : (id ?? "").Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            foreach (var item in targetIds)
             {
                 if (int.TryParse(item, out var parsedId))
                 {
                     success = await userService.DeleteUser(parsedId, dm);
                 }
             }
-            return Json(new { success = success, message = "Deleted Successfully" });
+            return Json(new { isSuccess = success, success = success, message = success ? "Deleted Successfully" : "Failed to delete" });
         }
 
         public async Task<IActionResult> GetEmployee(string userId)

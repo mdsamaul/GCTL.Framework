@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.UserAccesses;
 
 namespace GCTL.UI.Core.ViewModels.UserAcesses

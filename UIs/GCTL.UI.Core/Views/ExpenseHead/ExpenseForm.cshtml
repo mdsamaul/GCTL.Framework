@@ -1,26 +1,30 @@
 @using GCTL.UI.Core.ViewModels
 
-<div class="card shadow-sm rounded-2">
+<div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-80%, -80%); z-index: 9999;">
+    <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
+</div>
 
-    @await Html.PartialAsync("_Toolbars", new ToobarModel
-    {
-        Title = "Expense Head",
-        SaveBtnClass = "saveBtn",
-        DeleteBtnId = "deleteBtn",
-        DeleteBtnClass = "deleteBtn",
-        ClearBtnClass = "resetBtn",
-        ExcelBtnClass = "export-excel",
-        PdfBtnClass = "export-pdf",
-        FavtBtnClass = "favBtn",
-        ReserveActionSlot=false
-    })
+<div class="card rounded shadow-sm">
+    <div class="card-header dynamic-grid-header">
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "Expense Head Info",
+            SaveBtnClass = "saveBtn",
+            DeleteBtnId = "deleteBtn",
+            DeleteBtnClass = "deleteBtn",
+            ClearBtnClass = "resetBtn",
+            ExcelBtnClass = "export-excel",
+            PdfBtnClass = "export-pdf",
+            FavtBtnClass = "favBtn",
+            ReserveActionSlot = false
+        })
+    </div>
 
-    <div class="card-body">
+    <div class="card-body px-4 py-3">
         <form id="expenseForm">
             <input type="hidden" id="tc" name="tc" />
 
-            <div class="row g-3">
-
+            <div class="form-group row">
                 @* ---------- Expense Head ID (readonly) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -29,8 +33,8 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Expense Head ID",
                     IsReadonly = true,
-                    ReserveActionSlot = true,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -42,17 +46,20 @@
                     Placeholder = "Select Shipment Mode",
                     SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
-                    ReserveActionSlot = true,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
+            </div>
 
+            <div class="form-group row">
                 @* ---------- Is Receiptable (Checkbox) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "isReceiptable",
                     LabelText = "Is Receiptable Expense?",
                     FieldType = FieldType.Checkbox,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
 
                 @* ---------- Expense Head Name ---------- *@
@@ -63,10 +70,12 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Expense Head",
                     IsRequired = true,
-                    ReserveActionSlot = true,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
+            </div>
 
+            <div class="form-group row">
                 @* ---------- Short Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -74,8 +83,8 @@
                     LabelText = "Short Name",
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
-                    ReserveActionSlot = true,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
 
                 @* ---------- Amount ---------- *@
@@ -85,10 +94,12 @@
                     LabelText = "Amount",
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
-                    ReserveActionSlot = true,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
+            </div>
 
+            <div class="form-group row">
                 @* ---------- Serial No ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -97,8 +108,8 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Serial No",
                     IsRequired = true,
-                    ReserveActionSlot = true,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
 
                 @* ---------- Service Provided By (Select) ---------- *@
@@ -110,22 +121,21 @@
                     Placeholder = "Select Service Provider",
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
-                    ReserveActionSlot = true,
-                    ColumnClass = "col-md-6"
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6"
                 })
-
             </div>
 
             @* ---------- Creation & Modify Date ---------- *@
-            <div class="row g-3 mt-3">
-
+            <div class="form-group row" id="LdateModifyHide">
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     ContainerId = "lDateContainer",
                     InputId = "displayLDate",
                     LabelText = "Creation Date",
                     FieldType = FieldType.ReadonlyDisplay,
-                    ColumnClass = "col-md-6",
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6",
                     ShowOnInit = false
                 })
 
@@ -135,25 +145,25 @@
                     InputId = "displayModifyDate",
                     LabelText = "Modify Date",
                     FieldType = FieldType.ReadonlyDisplay,
-                    ColumnClass = "col-md-6",
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6",
                     ShowOnInit = false
                 })
-
             </div>
 
-           
-            <div class="row mt-3">
-                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                {
-                    SaveBtnClass = "saveBtn",
-                    ShowClear = false,
-                    ShowDelete = false,
-                    ShowFavorite = false,
-                    ShowPrint = false,
-                    IsPlain = true,
-                    ReserveActionSlot=false,
-                    IsMarginRight=true
-                })
+            <div class="row no-print" style="margin-top: 9px;">
+                <div class="col-12">
+                    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                    {
+                        SaveBtnClass = "saveBtn",
+                        ShowClear = false,
+                        ShowDelete = false,
+                        ShowFavorite = false,
+                        ShowPrint = false,
+                        IsPlain = true,
+                        ReserveActionSlot = true,
+                    })
+                </div>
             </div>
 
         </form>

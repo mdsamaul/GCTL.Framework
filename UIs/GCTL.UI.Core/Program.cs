@@ -11,11 +11,14 @@ using GCTL.UI.Core.Filters;
 using GCTL.UI.Core.Helpers.BackgroundServices;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using OfficeOpenXml;
 using QuestPDF.Infrastructure;
 using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------------------------------------------------------------------
@@ -29,6 +32,14 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // ---------------------------------------------------------------------
+// Data Protection (Persist keys across app restarts)
+// ---------------------------------------------------------------------
+var keysFolder = new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "Keys"));
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(keysFolder)
+    .SetApplicationName("GCTL.UI.Core");
+
+// ---------------------------------------------------------------------
 // EF Core - Identity DbContext
 // ---------------------------------------------------------------------
 var connectionString = builder.Configuration.GetConnectionString("connection")
@@ -39,45 +50,6 @@ builder.Services.ConfigureContexts(builder.Configuration);
 builder.Services.RegisterApplicationServices();
 builder.Services.ReadConfigaration(builder.Configuration);
 
-// ---------------------------------------------------------------------
-// ASP.NET Core Identity
-// ---------------------------------------------------------------------
-//builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-//{
-//    // Password policy - tune to your organization's requirements
-//    options.Password.RequireDigit = true;
-//    options.Password.RequireLowercase = true;
-//    options.Password.RequireUppercase = true;
-//    options.Password.RequireNonAlphanumeric = false;
-//    options.Password.RequiredLength = 6;
-
-//    options.User.RequireUniqueEmail = true;
-
-//    // Lockout after failed attempts
-//    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-//    options.Lockout.MaxFailedAccessAttempts = 5;
-
-//    // Set true once email sending (MailKit) is wired up
-//    options.SignIn.RequireConfirmedAccount = false;
-//})
-//    .AddEntityFrameworkStores<ApplicationDbContext>()
-//    .AddDefaultTokenProviders();
-
-//builder.Services.ConfigureApplicationCookie(options =>
-//{
-//    options.LoginPath = "/Account/Login";
-//    options.LogoutPath = "/Account/Logout";
-//    options.AccessDeniedPath = "/Account/AccessDenied";
-//    options.ExpireTimeSpan = TimeSpan.FromHours(8);
-//    options.SlidingExpiration = true;
-//});
-
-// ---------------------------------------------------------------------
-// AutoMapper - registers any Profile classes found in this assembly.
-// Add your mapping profiles (e.g. EmployeeProfile : Profile) anywhere in
-// GCTL.UI.Core and they'll be picked up automatically.
-// ---------------------------------------------------------------------
-//builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -89,7 +61,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
             ? CookieSecurePolicy.SameAsRequest
             : CookieSecurePolicy.Always;
-        //options.Events = new CookieAuthenticationEvents();
         options.Events = new CookieAuthenticationEvents
         {
             OnValidatePrincipal = async context =>
@@ -99,11 +70,15 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 {
                     context.RejectPrincipal();
                     await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    return;
                 }
 
                 var sessionId = context.Principal?.FindFirst("SessionId")?.Value;
                 if (!string.IsNullOrEmpty(sessionId))
                 {
+                    var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                    cache?.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
+
                     var logRepo = context.HttpContext.RequestServices.GetRequiredService<IRepository<CoreUserLog>>();
                     var stillOpen = (await logRepo.FindByAsync(l => l.SessionId == sessionId))
                         .FirstOrDefault(l => l.LogoutDate == null);
@@ -133,10 +108,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Make HttpContext available to non-controller code via IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
