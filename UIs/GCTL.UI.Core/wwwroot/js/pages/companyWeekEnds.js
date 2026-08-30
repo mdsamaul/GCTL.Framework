@@ -6,7 +6,7 @@
                 baseUrl: "/",
                 formSelector: "#companyWeekEnds-form",
                 formContainer: ".js-companyWeekEnds-form-container",
-                gridSelector: "#companyWeekEnds-grid",
+                gridSelector: "#companyWeekEndsTable",
                 gridContainer: ".js-companyWeekEnds-grid-container",
                 editSelector: ".js-companyWeekEnds-edit",
                 saveSelector: ".js-companyWeekEnds-save",
@@ -38,6 +38,10 @@
             $(document).ready(function () {
                 $('[data-toggle="tooltip"]').tooltip();
             });
+
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'companyWeekEndsTable' });
+            }
 
             var selectedItems = [];
 
@@ -118,7 +122,7 @@
                 //
                 // Select all checkboxes
                 $("body").on('click', settings.selectAllSelector, function () {
-                    $('.checkBox').prop('checked', $(this).prop('checked'));
+                    $('.checkbox').prop('checked', $(this).prop('checked'));
                 });
                 $("body").on('click', settings.deleteSelector, function (e) {
                     e.preventDefault();
@@ -191,29 +195,44 @@
                 
                // EffectiveDatePicker();
                 GenerateNextCode();
-                loadTableData();
+                loadTable();
                 ResetForm();
                 setDate("#EffectiveDate", new Date());
             }
            
 
             // Load leave types list
-            function loadTableData()
-            {
-                $.ajax({
-                    type: 'GET',
-                    url: loadTableURL,
-                    success: function (data)
-                    {
-                        $(settings.gridContainer).html(data);
-                        dataTable();
+            // function loadTableData()
+            // {
+            //     $.ajax({
+            //         type: 'GET',
+            //         url: loadTableURL,
+            //         success: function (data)
+            //         {
+            //             $(settings.gridContainer).html(data);
+            //             dataTable();
 
-                    },
-                    error: function ()
-                    {
-                        toastr.error('Failed Get Data .');
-                    }
-                });
+            //         },
+            //         error: function ()
+            //         {
+            //             toastr.error('Failed Get Data .');
+            //         }
+            //     });
+            // }
+            // window.gctlRenderers = window.gctlRenderers || {};
+            // window.gctlRenderers.formatDate = function (data) { return formatDate(data); };
+            function loadTable() {
+
+                if ($.gctlGrid) {
+                    $.gctlGrid.initFromModel({
+                        gridId: 'companyWeekEndsTable'
+                    });
+                }
+                // if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                //     $(settings.gridSelector).DataTable().ajax.reload();
+                // } else if (window.loadGridPage) {
+                //     window.loadGridPage('companyWeekEndsGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+                // }
             }
 
             // Data table initialization function

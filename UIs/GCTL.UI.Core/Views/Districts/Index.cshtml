@@ -2,27 +2,21 @@
 
 @{
     Model.PageTitle = ViewBag.Title;
-    ViewBag.Title = "District Info ";
-    Model.Breadcrumb = "District Info ";
+    ViewBag.Title = "District Info";
+    Model.Breadcrumb = "District Info";
 }
-
-<style>
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
 
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "District Info",
@@ -31,48 +25,53 @@
                             ClearBtnClass = "js-District-clear"
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body px-4 py-3">
                         <form asp-action="Setup" method="post" id="District-form" asp-controller="District">
-
-
-                            <partial name="_Setup" model="Model.Setup" />
-
+                            <div class="js-District-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
 
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-District-grid-container">
-
-                            @await Html.PartialAsync("_Grid", Model.DistrictList)
-                        </div>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "districtTable",
+                    AjaxUrl = "/Districts/GetTableData",
+                    AjaxMethod = "GET",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "districtId",
+                    CheckAllId = "District-check-all",
+                    DefaultSortColumn = "districtId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "districtId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-District-edit" },
+                        new() { Data = "district", Header = "District", Width = "90%"}
+                    }
+                })
             </div>
 
-
         </div>
+
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/districts.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "District")'
-        };
-        options.load = () => {
-        };
-
-        $.districts(options);
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/districts.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.districts({
+                baseUrl: '/District'
+            });
+        });
     </script>
 }

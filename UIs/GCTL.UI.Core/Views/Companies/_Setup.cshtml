@@ -1,5 +1,11 @@
-﻿@model GCTL.Core.ViewModels.Companies.CompanySetupViewModel
+@model GCTL.Core.ViewModels.Companies.CompanySetupViewModel
 @using GCTL.UI.Core.ViewModels
+
+<div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-80%, -80%); z-index: 9999;">
+    <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
+</div>
+
+<div style="padding-top: 10px;">
 
     <div class="row">
         <div class="col-12">
@@ -10,10 +16,10 @@
     <div class="form-group row">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+        <input type="hidden" id="lastCode" />
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <input type="hidden" id="lastCode" />
 
         @* ---------- Company Code (readonly) ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -22,9 +28,9 @@
             LabelText = "Company Code",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
-            CustomCssClass = "js-code",
+            CustomCssClass = "js-company-code js-code",
             DefaultValue = Model?.CompanyCode
         })
     </div>
@@ -39,9 +45,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Company Name",
             IsRequired = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
             CustomCssClass = "js-company-check-availability",
-            DefaultValue = Model.CompanyName,
+            DefaultValue = Model?.CompanyName,
             AutoFocus = true
         })
 
@@ -52,8 +59,9 @@
             LabelText = "Short Name",
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.CompanyShortName
+            DefaultValue = Model?.CompanyShortName
         })
     </div>
 
@@ -66,9 +74,10 @@
             LabelText = "Address",
             FieldType = FieldType.Textarea,
             Placeholder = "Enter Address",
+            ReserveActionSlot = false,
             IsRequired = true,
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.Address1
+            DefaultValue = Model?.Address1
         })
     </div>
 
@@ -80,9 +89,10 @@
             InputId = "CompanyBanglaName",
             LabelText = "Company Name (বাংলা)",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Company Name (বাংলা)",
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.CompanyBanglaName
+            DefaultValue = Model?.CompanyBanglaName
         })
 
         @* ---------- Address (বাংলা) ---------- *@
@@ -90,10 +100,11 @@
         {
             InputId = "AddressBangla",
             LabelText = "Address (বাংলা)",
+            ReserveActionSlot = false,
             FieldType = FieldType.Textarea,
             Placeholder = "Enter Address (বাংলা)",
-            ColumnClass = "col-12 col-md-6 rows=\"2\" style=\"resize: none;",
-            DefaultValue = Model.AddressBangla
+            ColumnClass = "col-12 col-md-6",
+            DefaultValue = Model?.AddressBangla
         })
     </div>
 
@@ -105,9 +116,10 @@
             InputId = "ZipCode",
             LabelText = "Zip/Postal Code",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Zip/Postal Code",
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.ZipCode
+            DefaultValue = Model?.ZipCode
         })
 
         @* ---------- City ---------- *@
@@ -117,8 +129,9 @@
             LabelText = "City",
             FieldType = FieldType.Text,
             Placeholder = "Enter City",
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.City
+            DefaultValue = Model?.City
         })
     </div>
 
@@ -131,8 +144,9 @@
             LabelText = "State",
             FieldType = FieldType.Text,
             Placeholder = "Enter State",
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.State
+            DefaultValue = Model?.State
         })
 
         @* ---------- Country (Select) ---------- *@
@@ -142,6 +156,7 @@
             LabelText = "Country",
             FieldType = FieldType.Select,
             Placeholder = "Select Country",
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
             CustomCssClass = "gc-select2"
         })
@@ -155,10 +170,11 @@
             InputId = "Phone1",
             LabelText = "Phone 1",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Phone 1",
             ColumnClass = "col-12 col-md-6",
             CustomCssClass = "phone-validationx",
-            DefaultValue = Model.Phone1
+            DefaultValue = Model?.Phone1
         })
 
         @* ---------- Phone 2 ---------- *@
@@ -167,9 +183,10 @@
             InputId = "Phone2",
             LabelText = "Phone 2",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Phone 2",
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.Phone2
+            DefaultValue = Model?.Phone2
         })
     </div>
 
@@ -181,9 +198,10 @@
             InputId = "HotLine",
             LabelText = "Hotline/Customer Care No",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Hotline/Customer Care No",
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.HotLine
+            DefaultValue = Model?.HotLine
         })
 
         @* ---------- Email ---------- *@
@@ -193,8 +211,9 @@
             LabelText = "Email",
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.Email
+            DefaultValue = Model?.Email
         })
     </div>
 
@@ -207,8 +226,9 @@
             LabelText = "Website",
             FieldType = FieldType.Text,
             Placeholder = "Enter Website",
+            ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.Url
+            DefaultValue = Model?.Url
         })
 
         @* ---------- Bin ---------- *@
@@ -217,9 +237,10 @@
             InputId = "Fax",
             LabelText = "Bin",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Bin",
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.Fax
+            DefaultValue = Model?.Fax
         })
     </div>
 
@@ -231,9 +252,10 @@
             InputId = "RegNo",
             LabelText = "Business Reg. No",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Business Reg. No",
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.RegNo
+            DefaultValue = Model?.RegNo
         })
 
         @* ---------- Tax Identification No ---------- *@
@@ -242,9 +264,10 @@
             InputId = "Tin",
             LabelText = "Tax Identification No",
             FieldType = FieldType.Text,
+            ReserveActionSlot = false,
             Placeholder = "Enter Tax Identification No",
             ColumnClass = "col-12 col-md-6",
-            DefaultValue = Model.Tin
+            DefaultValue = Model?.Tin
         })
     </div>
 
@@ -258,11 +281,12 @@
             FieldType = FieldType.Select,
             Placeholder = "Select Base Currency",
             ColumnClass = "col-12 col-md-6",
+            ReserveActionSlot = false,
             CustomCssClass = "gc-select2"
         })
     </div>
 
-    @if (Model.Id > 0)
+    @if (Model != null && (Model.Ldate.HasValue || Model.ModifyDate.HasValue))
     {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
@@ -273,6 +297,7 @@
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
                 ColumnClass = "col-12 col-md-6",
+            ReserveActionSlot = false,
                 ShowOnInit = Model.Ldate.HasValue,
                 DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
             })
@@ -284,14 +309,16 @@
                 FieldType = FieldType.ReadonlyDisplay,
                 ColumnClass = "col-12 col-md-6",
                 ShowOnInit = Model.ModifyDate.HasValue,
+            ReserveActionSlot = false,
                 DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
             })
 
         </div>
     }
+</div>
 
-<div class="btn-toolbar d-flex justify-content-end no-print" style="margin-top: 9px;">
-    <div class="btn-group ms-auto">
+<div class="row no-print" style="margin-top: 9px;">
+    <div class="col-12">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
@@ -300,9 +327,8 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "company",
-            ReserveActionSlot = true,
-            IsMarginRight = true
+            SaveBtnClass = "js-company-save",
+            ReserveActionSlot = true,   
         })
     </div>
 </div>

@@ -7,5 +7,6 @@ namespace GCTL.UI.Core.ViewModels.SupplierOrigin
     {
         public SupplierOriginSetupViewModel Setup { get; set; } = new SupplierOriginSetupViewModel();
         public List<SupplierOriginSetupViewModel> SupplierOriginList { get; set; } = new List<SupplierOriginSetupViewModel>();
+        public DynamicGridModel? DynamicGrid { get; set; }
     }
 }

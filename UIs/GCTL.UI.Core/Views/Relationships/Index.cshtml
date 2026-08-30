@@ -2,25 +2,21 @@
 
 @{
     Model.PageTitle = ViewBag.Title;
-    ViewBag.Title = "Relationship Info ";
-    Model.Breadcrumb = "Relationship Info ";
+    ViewBag.Title = "Relationship Info";
+    Model.Breadcrumb = "Relationship Info";
 }
-
-<style>
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
 
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Relationship Info",
@@ -29,47 +25,54 @@
                             ClearBtnClass = "js-Relationships-clear"
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body px-4 py-3">
                         <form asp-action="Setup" method="post" id="Relationships-form" asp-controller="Relationships">
-
-
-                            <partial name="_Setup" model="Model.Setup" />
-
+                            <div class="js-Relationships-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
 
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-Relationships-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.RelationshipList)
-                        </div>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "relationshipsTable",
+                    AjaxUrl = "/Relationships/GetTableData",
+                    AjaxMethod = "GET",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "relationshipCode",
+                    CheckAllId = "Relationships-check-all",
+                    DefaultSortColumn = "relationshipCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "relationshipCode", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-Relationships-edit" },
+                        new() { Data = "relationship", Header = "Relationship", Width = "57%"},
+                        new() { Data = "shortName", Header = "ShortName", Width = "25%"}
+                    }
+                })
             </div>
 
-
         </div>
+
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/relationships.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "Relationships")'
-        };
-        options.load = () => {
-        };
-
-        $.relationships(options);
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/relationships.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.relationships({
+                baseUrl: '/Relationships'
+            });
+        });
     </script>
 }

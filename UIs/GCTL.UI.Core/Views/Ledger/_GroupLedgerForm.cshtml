@@ -39,7 +39,7 @@
             <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="autoId" name="autoId" />
 
-                <div class="row g-3">
+                <div class="row">
                     @* --- 1. Group Ledger Code (Readonly) --- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
@@ -51,7 +51,8 @@
                         InputName = "ControlLedgerCodeNo",
                         LabelText = "Group Ledger Code",
                         IsRequired = true,
-                        IsReadonly = true
+                        IsReadonly = true,
+                        ReserveActionSlot = false
                     })
 
                     @* --- 2. Group Ledger Name --- *@
@@ -65,7 +66,8 @@
                         InputName = "ControlLedgerName",
                         LabelText = "Group Ledger Name",
                         Placeholder = "Group Ledger Name",
-                        IsRequired = true
+                        IsRequired = true,
+                        ReserveActionSlot=false
                     })
 
                     @* --- 3. Short Name --- *@
@@ -78,7 +80,8 @@
                         InputId = "ShortName",
                         InputName = "ShortName",
                         Placeholder = "Short Name",
-                        LabelText = "Short Name"
+                        LabelText = "Short Name",
+                        ReserveActionSlot = false
                     })
                 </div>
 

@@ -6,26 +6,17 @@
     Model.Breadcrumb = "Supplier Category";
 }
 
-<style>
-    #SupplierCategoryDeleteModalBodyHeightFeixd {
-        height: 50px !important;
-    }
-
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
-
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Supplier Category",
@@ -34,49 +25,53 @@
                             ClearBtnClass = "js-SupplierCategory-clear"
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body px-4 py-3">
                         <form asp-action="Setup" method="post" id="SupplierCategory-form" asp-controller="SupplierCategory">
-
                             <div class="js-SupplierCategory-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-SupplierCategory-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.SupplierCategoryList)
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "supplierCategoryTable",
+                    AjaxUrl = "/SupplierCategory/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "supplierCategoryId",
+                    CheckAllId = "SupplierCategory-check-all",
+                    DefaultSortColumn = "supplierCategoryId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "supplierCategoryId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-SupplierCategory-edit" },
+                        new() { Data = "supplierCategory", Header = "Supplier Category", Width = "90%"}
+                    }
+                })
             </div>
-
 
         </div>
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/supplierCategory.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "SupplierCategory")'
-        };
-        options.load = () => {
-        };
-
-        $.supplierCategory(options);
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/supplierCategory.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.supplierCategory({
+                baseUrl: '/SupplierCategory'
+            });
+        });
     </script>
 }

@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.TransportType.TransportTypePageViewModel
+@model GCTL.UI.Core.ViewModels.TransportType.TransportTypePageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -16,78 +16,79 @@
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Transport Type",
+                            Title = "Transport Type Info",
                             SaveBtnClass = "js-TransportType-save",
                             DeleteBtnClass = "js-TransportType-delete-confirm",
                             ClearBtnClass = "js-TransportType-clear"
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body px-4 py-3">
                         <form asp-action="Setup" method="post" id="TransportType-form" asp-controller="TransportType">
-
                             <div class="js-TransportType-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-TransportType-grid-container">
-                            @await Html.PartialAsync("_CustomGrid", new GridModel
-                            {
-                                GridId = "TransportType-grid",
-                                CheckAllId = "js-TransportType-checkall",
-                                Columns = new List<GridColumn>
-                                {
-                                    new() { Header = "ID", Width="10%"  },
-                                    new() { Header = "Transport Type",Width="52%" },
-                                    new() { Header = "Short Name" ,Width="28%" }
-                                },
-                                ShowCheckbox = true,   // ← add this
-                                Bordered = true,
-                                Striped = true
-                            })
-
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GridModel
+                {
+                    GridId = "TransportType-grid",
+                    AjaxUrl = "/TransportType/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "tc",
+                    CheckAllId = "js-TransportType-checkall",
+                    DefaultSortColumn = "vehicleTypeId",
+                    DefaultSortDirection = "desc",
+                    Columns = new List<GridColumn>
+                    {
+                        new() { Data = "vehicleTypeId", Header = "ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-TransportType-edit", IdField = "tc" },
+                        new() { Data = "vehicleType", Header = "Transport Type", Width = "50%", Align = "left" },
+                        new() { Data = "shortName", Header = "Short Name", Width = "35%", Align = "left" }
+                    }
+                })
             </div>
 
-
         </div>
-
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
-<partial name="DeleteModal" />
 
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/transportType.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-    if (window.jQuery && typeof $.transportType === "function") {
-    var options = { baseUrl: '@Url.Action("", "TransportType")' };
-    options.load = () => { };
-    $.transportType(options);
-    } else {
-    setTimeout(waitForJQuery, 30);
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    })();
-</script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/transportType.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.transportType === "function") {
+                var options = { baseUrl: '@Url.Action("", "TransportType")' };
+                options.load = () => { };
+                $.transportType(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}
 
 

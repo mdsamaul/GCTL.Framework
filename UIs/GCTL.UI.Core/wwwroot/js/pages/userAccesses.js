@@ -86,7 +86,7 @@
                     method: "POST",
                     data: data,
                     success: function (response) {
-                        if (response.isSuccess) {
+                        if (response.isSuccess || response.success) {
                             loadForm(saveUrl)
                                 .then((data) => {
                                     loadUserAccesses(settings.baseUrl, settings.gridSelector);
@@ -99,7 +99,7 @@
                             toastr.success(response.message || 'Saved Successfully', 'Success');
                         }
                         else {
-                            toastr.error(response.message, 'Error');
+                            toastr.error(response.message || 'Save Failed', 'Error');
                             console.log(response);
                         }
                     },
@@ -115,9 +115,16 @@
             });
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
+
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#useraccess-delete-modal");
+                if ($m.length) return $m;
+                return $("#deleteModal");
+            }
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
@@ -126,39 +133,52 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                    $('#useraccess-grid tbody input[type="checkbox"]:checked, input:checkbox.checkBox:checked').each(function () {
+                        var val = $(this).val();
+                        if (val && !selectedItems.includes(val)) {
+                            selectedItems.push(val);
                         }
                     });
                 }
 
                 if (selectedItems.length > 0) {
-                    GcDelete.confirm("Are you sure to delete?", function () {
-                        $.ajax({
-                            url: deleteUrl + "/" + selectedItems.join(","),
-                            method: "POST",
-                            success: function (response) {
-                                if (response.success) {
-                                    toastr.success(response.message || "Deleted Successfully");
-                                    selectedItems = [];
-                                    loadUserAccesses(settings.baseUrl, settings.gridSelector);
-                                    loadForm(saveUrl);
-                                    $(settings.deleteSelector).removeData('id');
-                                } else {
-                                    if (response.refSuccess) {
-                                        toastr.warning(response.message, 'Warning');
-                                    }
-                                    toastr.error(response.message || "Failed to delete", 'Error');
-                                }
-                            }
-                        });
-                    });
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
                 } else {
                     toastr.info("Please select at least one item.");
                 }
+            });
+
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-useraccess-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.isSuccess || response.success) {
+                            toastr.success(response.message || "Deleted Successfully");
+                            selectedItems = [];
+                            loadUserAccesses(settings.baseUrl, settings.gridSelector);
+                            loadForm(saveUrl);
+                            $(settings.deleteSelector).removeData('id');
+                        } else {
+                            toastr.error(response.message || "Failed to delete", 'Error');
+                        }
+                    },
+                    error: function (err) {
+                        $modal.modal("hide");
+                        toastr.error("Error occurred while deleting.", 'Error');
+                    }
+                });
             });
 
             $("body").on("click", settings.topSelector, function (e) {

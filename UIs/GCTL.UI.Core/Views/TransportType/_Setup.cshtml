@@ -1,5 +1,9 @@
-﻿@model GCTL.Core.ViewModels.TransportType.TransportTypeSetupViewModel
+@model GCTL.Core.ViewModels.TransportType.TransportTypeSetupViewModel
 @using GCTL.UI.Core.ViewModels
+
+<div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-80%, -80%); z-index: 9999;">
+    <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
+</div>
 
 <div style="padding-top: 10px;">
     <div class="row">
@@ -26,7 +30,7 @@
             LabelText = "ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-VehicleTypeId-code",
             DefaultValue = Model?.VehicleTypeId
@@ -41,7 +45,7 @@
             Placeholder = "Enter Transport Type",
             IsRequired = true,
             AutoFocus = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-VehicleType-check-duplicateName",
             DefaultValue = Model?.VehicleType
@@ -56,7 +60,7 @@
             LabelText = "Short Name",
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             DefaultValue = Model?.ShortName
         })
@@ -72,6 +76,7 @@
                 InputId = "displayLDate",
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
+                ReserveActionSlot = false,
                 ColumnClass = "col-lg-6",
                 ShowOnInit = Model.Ldate.HasValue,
                 DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy") : ""
@@ -82,6 +87,7 @@
                 InputId = "displayModifyDate",
                 LabelText = "Last Update Date:",
                 FieldType = FieldType.ReadonlyDisplay,
+                ReserveActionSlot = false,
                 ColumnClass = "col-lg-6",
                 ShowOnInit = Model.ModifyDate.HasValue,
                 DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy") : ""
@@ -104,7 +110,6 @@
             IsPlain = true,
             SaveBtnClass = "js-TransportType-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
         })
     </div>
 </div>

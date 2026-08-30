@@ -1,5 +1,6 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
+using GCTL.Core.ViewModels.PaymentType;
 using GCTL.Core.ViewModels.PortType;
 using GCTL.Service.Common;
 using GCTL.Service.PortType;
@@ -204,12 +205,13 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                var list = await portTypeService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await portTypeService.GetAllAsync() ?? new List<PortTypeSetupViewModel>();
+                return Json(new { data = list });
+                //return PartialView("_Grid", list);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<PortTypeSetupViewModel>(), error = ex.Message });
             }
         }
 

@@ -1,10 +1,14 @@
 ﻿
 using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.ContactPersonInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Districts;
+using GCTL.Core.ViewModels.PortName;
 using GCTL.Service.Common;
+using GCTL.Service.ContactPersonInfo;
 using GCTL.Service.Designations;
 using GCTL.Service.Districts;
+using GCTL.Service.PortName;
 using GCTL.UI.Core.ViewModels.Districts;
 using Microsoft.AspNetCore.Mvc;
 
@@ -230,12 +234,12 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                var list = await service.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await service.GetAllAsync() ?? new List<DistrictsSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<DistrictsSetupViewModel>(), error = ex.Message });
             }
         }
         #endregion

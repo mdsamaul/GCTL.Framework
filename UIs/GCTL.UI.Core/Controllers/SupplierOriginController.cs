@@ -1,5 +1,6 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
+using GCTL.Core.ViewModels.PaymentType;
 using GCTL.Core.ViewModels.SupplierOrigin;
 using GCTL.Service.Common;
 using GCTL.Service.SupplierOrigin;
@@ -29,7 +30,8 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Index
-        public async Task<IActionResult> Index()
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
             var hasPermission = await supplierOriginService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -44,8 +46,49 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
-                var list = await supplierOriginService.GetAllAsync();
-                model.SupplierOriginList = list ?? new List<SupplierOriginSetupViewModel>();
+                var list = await supplierOriginService.GetAllAsync() ?? new List<SupplierOriginSetupViewModel>();
+                model.SupplierOriginList = list;
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.SupplierOriginId != null && x.SupplierOriginId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.SupplierOrigin != null && x.SupplierOrigin.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Supplier Origin" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                { "SupplierOriginId", item.SupplierOriginId },
+                { "Supplier Origin", item.SupplierOrigin }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "SupplierOrigin") ?? "/SupplierOrigin/GetTableData",
+                    primaryKey: "SupplierOriginId",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/SupplierOrigin/Setup/{id}",
+                    gridId: "supplierOriginGridContainer",
+                    editClass: "js-SupplierOrigin-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                { "SupplierOriginId", "center" },
+                { "Supplier Origin", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                { "SelectAll", "120px" },
+                { "Code", "100px" },
+                { "Supplier Origin", "auto" }
+                    }
+                );
 
                 commonService.FindMaxNo(ref strMaxNO, "SupplierOriginID", "Inv_Def_SupplierOrigin", 3);
 
@@ -53,110 +96,157 @@ namespace GCTL.UI.Core.Controllers
                 {
                     SupplierOriginId = strMaxNO
                 };
-
             }
             catch (Exception ex)
             {
                 model.SupplierOriginList = new List<SupplierOriginSetupViewModel>();
                 model.Setup = new SupplierOriginSetupViewModel();
-                Console.WriteLine("Error" + ex.Message);
+                Console.WriteLine("Error: " + ex.Message);
             }
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
+            if (child)
                 return PartialView(model);
-            }
 
             return View(model);
         }
+
         #endregion
 
         #region Setup
 
         public async Task<IActionResult> Setup(string id)
         {
-            SupplierOriginSetupViewModel model = new SupplierOriginSetupViewModel();
+            var model = new SupplierOriginSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "SupplierOriginID", "Inv_Def_SupplierOrigin", 3);
 
-            if (!string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(id) && id != "0")
             {
-
-                model = await supplierOriginService.GetByIdAsync(id);
-                if (model == null)
+                var existing = await supplierOriginService.GetByIdAsync(id);
+                if (existing != null)
                 {
-
-                    return NotFound();
+                    model = existing;
+                }
+                else
+                {
+                    model.SupplierOriginId = strMaxNO;
                 }
             }
             else
             {
-
                 model.SupplierOriginId = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_Setup", model);
+            }
+
+            var pageModel = new SupplierOriginPageViewModel
+            {
+                Setup = model,
+                PageUrl = Url.Action(nameof(Index))
+            };
+
+            var list = await supplierOriginService.GetAllAsync() ?? new List<SupplierOriginSetupViewModel>();
+            int totalRecords = list.Count;
+            var pagedList = list.Take(10).ToList();
+
+            pageModel.DynamicGrid = GridBuilder.BuildGrid(
+                data: pagedList,
+                totalRecords: totalRecords,
+                currentPage: 1,
+                pageSize: 10,
+                headers: new List<string> { "Code", "Supplier Origin" },
+                rowMapper: item => new Dictionary<string, object?>
+                {
+            { "SupplierOriginId", item.SupplierOriginId },
+            { "Supplier Origin", item.SupplierOrigin }
+                },
+                ajaxUrl: Url.Action("GetTableData", "SupplierOrigin") ?? "/SupplierOrigin/GetTableData",
+                primaryKey: "SupplierOriginId",
+                hasCheckbox: true,
+                actionUrlPattern: "/SupplierOrigin/Setup/{id}",
+                gridId: "supplierOriginGridContainer",
+                editClass: "js-SupplierOrigin-edit",
+                columnAlignments: new Dictionary<string, string>
+                {
+            { "SupplierOriginId", "center" },
+            { "Supplier Origin", "left" }
+                },
+                columnWidths: new Dictionary<string, string>
+                {
+            { "SelectAll", "120px" },
+            { "Code", "100px" },
+            { "Supplier Origin", "auto" }
+                }
+            );
+
+            return View("Index", pageModel);
         }
 
         #endregion
 
-        #region Post Update 
+        #region Post Update
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Setup(SupplierOriginSetupViewModel modelVM)
         {
             try
             {
-
-                if (await supplierOriginService.IsExistAsync(modelVM.SupplierOrigin, modelVM.SupplierOriginId))
+                if (modelVM.Tc == 0 || modelVM.Tc == null)
                 {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    if (await supplierOriginService.IsExistAsync(modelVM.SupplierOrigin, modelVM.SupplierOriginId))
+                    {
+                        return Json(new { isSuccess = false, message = "Already Exists!", isDuplicate = true });
+                    }
                 }
-
 
                 if (!ModelState.IsValid)
                 {
-
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.Tc > 0);
+
                 if (modelVM.Tc == 0 || modelVM.Tc == null)
                 {
                     var hasSavePermission = await supplierOriginService.SavePermissionAsync(LoginInfo.AccessCode);
-                    if (hasSavePermission)
-                    {
-                        await supplierOriginService.SaveAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.SupplierOriginId });
-
-                    }
-                    else
+                    if (!hasSavePermission)
                     {
                         return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
                     }
+
+                    bool result = await supplierOriginService.SaveAsync(modelVM);
+                    if (result)
+                    {
+                        commonService.FindMaxNo(ref strMaxNO, "SupplierOriginID", "Inv_Def_SupplierOrigin", 3);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = strMaxNO });
+                    }
+                    return Json(new { isSuccess = false, message = "Failed to save Supplier Origin." });
                 }
                 else
                 {
-
                     var hasUpdatePermission = await supplierOriginService.UpdatePermissionAsync(LoginInfo.AccessCode);
-                    if (hasUpdatePermission)
-                    {
-                        await supplierOriginService.UpdateAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.SupplierOriginId });
-                    }
-                    else
+                    if (!hasUpdatePermission)
                     {
                         return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
+
+                    bool result = await supplierOriginService.UpdateAsync(modelVM);
+                    if (result)
+                    {
+                        commonService.FindMaxNo(ref strMaxNO, "SupplierOriginID", "Inv_Def_SupplierOrigin", 3);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = strMaxNO });
+                    }
+                    return Json(new { isSuccess = false, message = "Failed to update Supplier Origin." });
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error:{ex.Message}");
-                return RedirectToAction("Login", "Accounts");
-
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { isSuccess = false, message = "An error occurred while saving." });
             }
         }
 
@@ -196,21 +286,39 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region TabeleLodaing
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var list = await supplierOriginService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await supplierOriginService.GetAllAsync() ?? new List<SupplierOriginSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<SupplierOriginSetupViewModel>(), error = ex.Message });
             }
         }
+
+        #endregion
+
+        #region TabeleLodaing
+
+        //[HttpGet]
+        //public async Task<IActionResult> GetTableData()
+        //{
+        //    try
+        //    {
+        //        var list = await supplierOriginService.GetAllAsync();
+        //        return PartialView("_Grid", list);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ex.Message);
+        //    }
+        //}
 
         #endregion
 

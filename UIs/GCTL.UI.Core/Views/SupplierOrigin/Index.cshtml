@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.SupplierOrigin.SupplierOriginPageViewModel
+﻿@* @model GCTL.UI.Core.ViewModels.SupplierOrigin.SupplierOriginPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -7,6 +7,7 @@
 }
 
 <style>
+
     #SupplierOriginDeleteModalBodyHeightFeixd {
         height: 50px !important;
     }
@@ -14,6 +15,7 @@
     .dataTables_filter {
         margin-right: 0px;
     }
+
 </style>
 
 <!-- Content Header (Page header) -->
@@ -57,9 +59,7 @@
                 </div>
             </div>
 
-
         </div>
-
 
         <partial name="_BottomNavigation" />
     </div>
@@ -79,5 +79,85 @@
         };
 
         $.supplierOrigin(options);
+    </script>
+}
+ *@
+
+
+@model GCTL.UI.Core.ViewModels.SupplierOrigin.SupplierOriginPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Supplier Origin";
+    Model.Breadcrumb = "Supplier Origin";
+}
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Supplier Origin",
+                            SaveBtnClass = "js-SupplierOrigin-save",
+                            DeleteBtnClass = "js-SupplierOrigin-delete-confirm",
+                            ClearBtnClass = "js-SupplierOrigin-clear"
+                        })
+                    </div>
+                    <div class="card-body px-4 py-3">
+                        <form asp-action="Setup" method="post" id="SupplierOrigin-form" asp-controller="SupplierOrigin">
+                            <div class="js-SupplierOrigin-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "supplierOriginTable",
+                    AjaxUrl = "/SupplierOrigin/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "supplierOriginId",
+                    CheckAllId = "SupplierOrigin-check-all",
+                    DefaultSortColumn = "supplierOriginId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "supplierOriginId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-SupplierOrigin-edit" },
+                        new() { Data = "supplierOrigin", Header = "Supplier Origin", Width = "90%"}
+                    }
+                })
+            </div>
+
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+
+@section Scripts {
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/supplierOrigin.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function() {
+            $.supplierOrigin({
+                baseUrl: '/SupplierOrigin'
+            });
+        });
     </script>
 }

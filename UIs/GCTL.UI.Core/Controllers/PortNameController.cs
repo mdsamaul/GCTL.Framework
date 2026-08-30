@@ -2,9 +2,11 @@
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PortName;
+using GCTL.Core.ViewModels.PortType;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.PortName;
+using GCTL.Service.PortType;
 using GCTL.UI.Core.ViewModels.PortName;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -120,7 +122,7 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (await portNameService.IsExistAsync(modelVM.PortName, modelVM.PortNameId))
+                if (await portNameService.IsExistAsync(modelVM.PortName, modelVM.PortId))
                 {
                     return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                 }
@@ -213,12 +215,12 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                var list = await portNameService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await portNameService.GetAllAsync() ?? new List<PortNameSetupViewModel>();
+                return Json(new { data = list });             
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<PortNameSetupViewModel>(), error = ex.Message });
             }
         }
 

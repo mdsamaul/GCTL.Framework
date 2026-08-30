@@ -299,30 +299,11 @@
 
         //#region loadTable
         function loadTable() {
-            $.get(settings.baseUrl + "/GetTableData")
-                .done(html => {
-                    $(settings.gridContainer).html(html);
-
-                    if ($.fn.DataTable.isDataTable(settings.gridSelector)) {
-                        $(settings.gridSelector).DataTable().destroy();
-                    }
-
-                    $(settings.gridSelector).DataTable({
-                        lengthChange: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, -1],
-                            [10, 25, 50, 'All'],
-                        ],
-                        order: [[1, "desc"]],
-                        destroy: true,
-                        paging: true,
-                        searching: true,
-                        responsive: true,
-                    });
-
-                })
-                .fail(() => toastr.error("Failed to load table data."));
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({
+                    gridId: 'clientInformationEntryTable'
+                });
+            }
         }
 
         //#endregion

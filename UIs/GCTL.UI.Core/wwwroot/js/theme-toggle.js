@@ -2,11 +2,18 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------
-    // Theme Management (Light / Dark / System)
+    // Theme Management (Always Light Mode - Dark & System commented out)
     // -----------------------------------------------------------------
     const themeSelectButtons = document.querySelectorAll('[data-theme-value]');
     const activeThemeIcon = document.getElementById('active-theme-icon');
 
+    // Force light mode always
+    const setTheme = theme => {
+        document.documentElement.setAttribute('data-theme', 'light');
+        updateThemeUI('light');
+    };
+
+    /*
     const getStoredTheme = () => localStorage.getItem('theme') || 'system';
     const setStoredTheme = theme => localStorage.setItem('theme', theme);
 
@@ -17,45 +24,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     };
-
-    const setTheme = theme => {
-        if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        } else if (theme === 'system') {
-            document.documentElement.setAttribute('data-theme', 'light');
-        } else {
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-        
-        updateThemeUI(theme);
-    };
+    */
 
     const updateThemeUI = (theme) => {
         // Remove active class from all buttons
         themeSelectButtons.forEach(btn => {
             btn.classList.remove('active');
-            if (btn.getAttribute('data-theme-value') === theme) {
+            if (btn.getAttribute('data-theme-value') === 'light') {
                 btn.classList.add('active');
             }
         });
 
         // Update the top-nav theme toggle icon
         if (activeThemeIcon) {
-            activeThemeIcon.className = ''; // Reset
-            if (theme === 'dark') {
-                activeThemeIcon.className = 'bi bi-moon-stars-fill';
-            } else if (theme === 'light') {
-                activeThemeIcon.className = 'bi bi-sun-fill';
-            } else {
-                activeThemeIcon.className = 'bi bi-laptop-fill';
-            }
+            activeThemeIcon.className = 'bi bi-sun-fill';
         }
     };
 
-    // Initialize theme
-    setTheme(getStoredTheme());
+    // Initialize theme to light always
+    setTheme('light');
 
-    // Listen for theme buttons clicks
+    /*
+    // Listen for theme buttons clicks (Dark/System disabled)
     themeSelectButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const theme = btn.getAttribute('data-theme-value');
@@ -71,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTheme('system');
         }
     });
+    */
 
     // -----------------------------------------------------------------
     // Collapsible Sidebar Management

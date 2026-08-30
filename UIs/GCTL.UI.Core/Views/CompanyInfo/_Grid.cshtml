@@ -50,7 +50,7 @@
 </table> *@
 
 
-@model List<GCTL.Core.ViewModels.CompanyInfo.CompanyInfoSetupViewModel>
+@* @model List<GCTL.Core.ViewModels.CompanyInfo.CompanyInfoSetupViewModel>
 
 <style>
 
@@ -147,9 +147,7 @@
         @if (Model == null || !Model.Any())
         {
             <tr>
-                @* <td colspan="6" class="no-data">
-                    No Data Available.
-                </td> *@
+               
             </tr>
         }
         else
@@ -223,4 +221,4 @@
 
     });
 </script>
-
+ *@
