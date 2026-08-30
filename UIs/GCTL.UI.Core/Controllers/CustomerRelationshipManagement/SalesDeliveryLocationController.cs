@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
@@ -28,17 +29,47 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
             return Ok(deliveryAddress);
         }
 
-        public async Task<IActionResult> GetAllPaginated(string cusId ="", int pageNumber = 1, int pageSizeDl = 10, string searchTerm = "", string sortColumn = "DeliveryLocationCode", string sortOrder = "desc")
+        [HttpPost]
+        public async Task<IActionResult> GetAllPaginated(
+            int draw = 1,
+            string cusId = "",
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "DeliveryLocationCode",
+            string sortOrder = "desc")
         {
             try
             {
-                var result = await _salesDeliveryLocation.GetPaginatedDeliveryLocations(cusId, pageNumber, pageSizeDl, searchTerm, sortColumn, sortOrder);
-
-                if (result.Data == null || result.Data.Count() == 0)
+                var request = new PaginationRequest
                 {
-                    return NotFound(new { message = "No customers found." });
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await _salesDeliveryLocation.GetPaginatedAsync(request, cusId);
+
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new
+                    {
+                        draw,
+                        data = new List<SalesDeliveryLocationViewModel>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
+                    });
                 }
-                return Ok(result);
+
+                return Ok(new
+                {
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount
+                });
             }
             catch (Exception ex)
             {
@@ -54,7 +85,7 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
 
             if (!string.IsNullOrEmpty(lastDLCode))
             {
-              
+
                 if (int.TryParse(lastDLCode, out int numericPart))
                 {
                     newCode = (numericPart + 1).ToString("D8");
@@ -66,7 +97,7 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
             }
             else
             {
-                
+
                 newCode = "00000001";
             }
 

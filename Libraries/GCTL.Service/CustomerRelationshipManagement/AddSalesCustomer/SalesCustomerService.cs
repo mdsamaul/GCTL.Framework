@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -164,6 +165,55 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     ModifyDate = sc.ModifyDate
                 }).FirstOrDefaultAsync();
             return data;
+        }
+
+        public async Task<PaginationResponse<SalesCustomerViewModel>> GetPaginatedAsync(PaginationRequest request)
+        {
+            var totalUnfilteredCount = await _salesCustomer.All().CountAsync();
+
+            var query = _salesCustomer.All().AsNoTracking().Select(sc => new SalesCustomerViewModel
+            {
+                CustomerId = sc.CustomerId,
+                CustomerName = sc.CustomerName ?? "",
+                ShortName = sc.ShortName ?? "",
+                CustomerAddress = sc.CustomerAddress ?? "",
+                OpeningBalance = sc.OpeningBalance ?? 0.00m,
+                Phone = sc.Phone ?? "",
+                Email = sc.Email ?? "",
+                CountryId = sc.CountryId,
+                City = sc.City,
+                StateOrProvince = sc.StateOrProvince,
+                ZipCode = sc.ZipCode,
+                Fax = sc.Fax,
+                Url = sc.Url,
+                Bin = sc.Bin,
+                VatRegNo = sc.VatRegNo,
+                Tin = sc.Tin,
+                ContactPerson = sc.ContactPerson,
+                OpeningDate = sc.OpeningDate,
+                CreditLimit = sc.CreditLimit ?? 0.0m,
+                CustomerType = sc.CustomerType,
+                Category = sc.Category,
+                SalesPerson = sc.SalesPersonId,
+                LDate = sc.Ldate,
+                ModifyDate = sc.ModifyDate
+            });
+
+            if (request.PageSize == -1)
+            {
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
+            }
+
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                request.SortColumn = "CustomerId";
+                request.SortOrder = "desc";
+            }
+
+            var result = await PaginationService<SalesCustomerViewModel>.GetPaginatedData(query, request);
+            result.TotalCount = totalUnfilteredCount;
+            return result;
         }
 
         public async Task<PaginationService<SalesCustomer, SalesCustomerViewModel>.PaginationResult<SalesCustomerViewModel>> GetPaginatedSalesCustomer(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "CustomerID", string sortOrder = "desc")

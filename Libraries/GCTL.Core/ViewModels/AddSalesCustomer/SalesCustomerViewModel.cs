@@ -1,30 +1,38 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GCTL.Core.DataTables;
 
 namespace GCTL.Core.ViewModels.AddSalesCustomer
 {
     public class SalesCustomerViewModel
     {
+        [Searchable]
         public string? CustomerId { get; set; }
         public string? CustomerCode { get; set; }
+        [Searchable]
         public string? CustomerName { get; set; }
+        [Searchable]
         public string? ShortName { get; set; }
+        [Searchable]
         public string? CustomerAddress { get; set; }
         public string? CountryId { get; set; }
         public string? City { get; set; }
         public string? StateOrProvince { get; set; }
         public string? ZipCode { get; set; }
+        [Searchable]
         public string? Phone { get; set; }
         public string? Fax { get; set; }
+        [Searchable]
         public string? Email { get; set; }
         public string? Url { get; set; }
         public string? Bin { get; set; }
         public string? VatRegNo { get; set; }
         public string? Tin { get; set; }
         public string? ContactPerson { get; set; }
+        [Searchable]
         public decimal? OpeningBalance { get; set; } = 0.0m;
         public DateTime? OpeningDate { get; set; }
         public decimal? CreditLimit { get; set; } = 0.0m;

@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
@@ -23,6 +24,79 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation
             _salesCustomer = salesCustomer;
             _salesDeliveryLocation = salesDeliveryLocation;
             _salesContactRepository = salesContactRepository;
+        }
+
+        public async Task<PaginationResponse<SalesDeliveryLocationViewModel>> GetPaginatedAsync(PaginationRequest request, string customerId = "")
+        {
+            var deliveryLocationsQuery = _salesDeliveryLocation.All().AsNoTracking();
+            var customersQuery = _salesCustomer.All().AsNoTracking();
+
+            var totalUnfilteredCount = await deliveryLocationsQuery.CountAsync();
+
+            var query = from dl in deliveryLocationsQuery
+                        join c in customersQuery on dl.CustomerId equals c.CustomerId into cg
+                        from c in cg.DefaultIfEmpty()
+                        where string.IsNullOrEmpty(customerId) || dl.CustomerId == customerId
+                        select new SalesDeliveryLocationViewModel
+                        {
+                            DeliveryLocationCode = dl.DeliveryLocationCode,
+                            CustomerId = dl.CustomerId,
+                            CustomerName = c != null ? c.CustomerName : "",
+                            LocationAddress = dl.LocationAddress ?? "",
+                            CountryId = dl.CountryId ?? "",
+                            City = dl.City ?? "",
+                            StateOrProvince = dl.StateOrProvince ?? "",
+                            ZipCode = dl.ZipCode ?? "",
+                            Phone = dl.Phone ?? "",
+                            Email = dl.Email ?? "",
+                            ContactPersonName = "",
+                            Remarks = dl.Remarks ?? "",
+                            ContactPerson = dl.ContactPerson ?? ""
+                        };
+
+            if (request.PageSize == -1)
+            {
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
+            }
+
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                request.SortColumn = "DeliveryLocationCode";
+                request.SortOrder = "desc";
+            }
+
+            var paginatedResult = await PaginationService<SalesDeliveryLocationViewModel>.GetPaginatedData(query, request);
+            paginatedResult.TotalCount = totalUnfilteredCount;
+
+            if (paginatedResult.Data != null && paginatedResult.Data.Any())
+            {
+                var deliveryLocationCodes = paginatedResult.Data.Select(x => x.DeliveryLocationCode).ToList();
+                var relevantDeliveryLocations = await _salesDeliveryLocation.All().AsNoTracking()
+                    .Where(dl => deliveryLocationCodes.Contains(dl.DeliveryLocationCode))
+                    .ToListAsync();
+                var allContacts = await _salesContactRepository.All().AsNoTracking().ToListAsync();
+
+                var contactPersonMap = relevantDeliveryLocations
+                    .Where(dl => !string.IsNullOrEmpty(dl.ContactPerson))
+                    .SelectMany(dl => dl.ContactPerson.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(cpId => {
+                            var contact = allContacts.FirstOrDefault(c => c.Cpid != null && c.Cpid.Trim() == cpId.Trim());
+                            return new { dl.DeliveryLocationCode, ContactName = contact?.ContactPersonName ?? "" };
+                        }))
+                    .GroupBy(x => x.DeliveryLocationCode)
+                    .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => x.ContactName).Where(name => !string.IsNullOrEmpty(name))));
+
+                foreach (var item in paginatedResult.Data)
+                {
+                    if (item.DeliveryLocationCode != null && contactPersonMap.ContainsKey(item.DeliveryLocationCode))
+                    {
+                        item.ContactPersonName = contactPersonMap[item.DeliveryLocationCode];
+                    }
+                }
+            }
+
+            return paginatedResult;
         }
 
         public async Task<bool> DeleteAsyncDeliveryLocation(string deliveryId)

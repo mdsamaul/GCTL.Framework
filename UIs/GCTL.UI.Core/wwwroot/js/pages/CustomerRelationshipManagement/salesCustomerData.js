@@ -1,41 +1,18 @@
 let editId = null;
 
 $(document).ready(function () {
+    if ($.gctlGrid) {
+        $.gctlGrid.initFromModel({ gridId: 'salesCustomerTable' });
+    }
+
     setupEventListeners();
     loadCUSId();
     showFooter();
-    LoadCountryDropdown();
 
     $("#btnAddContactPerson").click(function () {
         $("#contactPersonModal").modal("show");
     });
 });
-
-// Country Dropdown 
-function LoadCountryDropdown() {
-    $.ajax({
-        url: '/SalesCustomer/GetAllCountryDropdown', 
-        method: 'GET',
-        success: function (countries) {
-            var $country = $('#CountryId'); 
-            if ($country.length) {
-                $country.empty().append('<option value=""></option>'); 
-                $.each(countries, function (index, country) {
-                    $country.append(
-                        '<option value="' + country.countryID + '">' + country.countryName + '</option>'
-                    );
-                });
-                $country.select2({
-                    placeholder: "Country",
-                    width: '100%'
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error('Failed to load countries:', error);
-        }
-    });
-}
 
 function setupEventListeners() {
     // Clear Button
@@ -47,10 +24,7 @@ function setupEventListeners() {
     // Delete Button (Triggers modal)
     $('#salesCustomer-btnDelete, #salesCustomer-btnBulkDelete').on('click', function (e) {
         e.preventDefault();
-        var selectedIds = window.getSelectedGridIds ? window.getSelectedGridIds('salesCustomerGridContainer') : [];
-        if (selectedIds.length === 0 && editId) {
-            selectedIds = [editId];
-        }
+        var selectedIds = getSelectedCustomerIds();
         if (selectedIds.length === 0) {
             toastr.warning('Please select at least one customer to delete.');
             return;
@@ -61,10 +35,7 @@ function setupEventListeners() {
     // Confirm Delete inside Modal
     $(document).on('click', '.js-salescustomer-delete', function (e) {
         e.preventDefault();
-        var selectedIds = window.getSelectedGridIds ? window.getSelectedGridIds('salesCustomerGridContainer') : [];
-        if (selectedIds.length === 0 && editId) {
-            selectedIds = [editId];
-        }
+        var selectedIds = getSelectedCustomerIds();
         if (selectedIds.length === 0) {
             toastr.warning('No customer selected to delete.');
             $('#salescustomer-delete-modal').modal('hide');
@@ -94,7 +65,7 @@ function setupEventListeners() {
         });
     });
 
-    // Edit row selection from DynamicGrid
+    // Edit row selection from _CustomGrid
     $(document).on('click', '.js-salescustomer-edit', function (e) {
         e.preventDefault();
         var customerId = $(this).data('id');
@@ -115,16 +86,32 @@ function setupEventListeners() {
     $("#listPreviewBtn").on('click', function () { generateReport('list'); });
 }
 
+function getSelectedCustomerIds() {
+    var selectedIds = [];
+    $('.js-salescustomer-check:checked').each(function () {
+        var val = $(this).val();
+        if (val) selectedIds.push(val);
+    });
+    if (selectedIds.length === 0 && editId) {
+        selectedIds.push(editId);
+    }
+    return selectedIds;
+}
+
 function refreshCustomerGrid() {
-    if (typeof window.loadGridPage === 'function') {
-        window.loadGridPage('salesCustomerGridContainer', '/SalesCustomer/GetTableData', 1, 10);
-    } else {
-        location.reload();
+    if ($.gctlGrid) {
+        $.gctlGrid.reload('salesCustomerTable');
     }
 }
 
 function showFooter() {
-    $("#salesCustomer-Footer").toggleClass("d-none", !editId);
+    if (editId) {
+        $("#salesCustomerLDateContainer").show();
+        $("#salesCustomerModifyDateContainer").show();
+    } else {
+        $("#salesCustomerLDateContainer").hide();
+        $("#salesCustomerModifyDateContainer").hide();
+    }
 }
 
 function populateCustomerForm(response) {
@@ -149,8 +136,8 @@ function populateCustomerForm(response) {
         $("#OpeningDate").val(formattedDate);
     }
 
-    $("#salesCustomer-entryDate").text(`Entry Date: ${formatDate(response.lDate)}`);
-    $("#salesCustomer-lastUpdateDate").text(`Last Updated: ${formatDate(response.modifyDate)}`);
+    $("#displayLDate").val(formatDate(response.lDate));
+    $("#displayModifyDate").val(formatDate(response.modifyDate));
 
     if (response.contactPerson) {
         const selectedContactPersons = response.contactPerson.split(',');
@@ -246,8 +233,8 @@ function resetCustomerForm() {
     $('#CountryId, #TransactionType, #Category, #SalesPerson, #ContactPerson')
         .val('').trigger('change');
 
-    $('#salesCustomer-entryDate').text('Entry Date: --');
-    $('#salesCustomer-lastUpdateDate').text('Last Updated: --');
+    $("#displayLDate").val('');
+    $("#displayModifyDate").val('');
 
     editId = null;
     loadCUSId();

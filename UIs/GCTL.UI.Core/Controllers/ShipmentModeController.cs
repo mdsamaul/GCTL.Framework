@@ -67,7 +67,7 @@ namespace GCTL.Controllers.MasterSetup
             return Ok(newId); // Send as JSON/string
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("get-grid-data")]
         public async Task<IActionResult> GetAllPaginatedExpense(int page = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ExpenseTypeID", string sortDirection = "desc")
         {

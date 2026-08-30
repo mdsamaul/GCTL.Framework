@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.AddSalesCustomer;
+using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using System;
@@ -24,6 +25,8 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation
         Task<bool> BulkDeleteAsync(List<string> deliveryIds);
 
         Task<bool> IsExistAsync(string deliveryId);
+
+        Task<PaginationResponse<SalesDeliveryLocationViewModel>> GetPaginatedAsync(PaginationRequest request, string customerId = "");
 
         Task<PaginationService<SalesDeliveryLocationViewModel, SalesDeliveryLocationViewModel>.PaginationResult<SalesDeliveryLocationViewModel>> GetPaginatedDeliveryLocations(
             string customerId,

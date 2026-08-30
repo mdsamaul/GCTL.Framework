@@ -1,3 +1,4 @@
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -17,6 +18,7 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
         Task<bool> DeleteAsyncSalesCustomer(string customerId);
         Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model);
         Task<bool> IsExistAsync(string customerId);
+        Task<PaginationResponse<SalesCustomerViewModel>> GetPaginatedAsync(PaginationRequest request);
         Task<PaginationService<SalesCustomer, SalesCustomerViewModel>.PaginationResult<SalesCustomerViewModel>> GetPaginatedSalesCustomer(int pageNumber = 1, int pageSize = 5, string searchTerm = "",
         string sortColumn = "FullName", string sortOrder = "asc");
         Task<string> GenerateCustomerIdAsync();
