@@ -39,7 +39,7 @@
             <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="SubCRLAutoID" name="autoId" />
 
-                <div class="row g-3">
+                <div class="row">
                     @* --- 1. Group Ledger Code (Readonly) --- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
@@ -50,6 +50,7 @@
                         InputId = "groupcode",
                         InputName = "groupcode",
                         LabelText = "Group Ledger Code",
+                        ReserveActionSlot=false,
                         IsRequired = true,
                         IsReadonly = true
                     })
@@ -67,6 +68,7 @@
                         Placeholder = "-- Select Group Ledger --",
                         IsRequired = true,
                         ShowQuickAdd = true,
+                        ReserveActionSlot=false,
                         QuickAddTarget = "#GRLModal",
                         QuickAddTitle = "Add New Group Ledger"
                     })
@@ -80,6 +82,7 @@
                         FieldType = FieldType.Text,
                         InputId = "groupshortName",
                         InputName = "shortName",
+                        ReserveActionSlot=false,
                         LabelText = "Short Name",
                         IsReadonly = true
                     })
@@ -94,6 +97,7 @@
                         InputId = "ConRLCode",
                         InputName = "SubControlLedgerCodeNo",
                         LabelText = "Control Ledger Code",
+                        ReserveActionSlot=false,
                         IsRequired = true,
                         IsReadonly = true
                     })
@@ -111,6 +115,7 @@
                         Placeholder = "-- Select Control Ledger --",
                         IsRequired = true,
                         ShowQuickAdd = true,
+                        ReserveActionSlot=false,
                         QuickAddTarget = "#UICRLModal",
                         QuickAddTitle = "Add New Control Ledger"
                     })
@@ -124,6 +129,7 @@
                         FieldType = FieldType.Text,
                         InputId = "CLShortName",
                         InputName = "CRLShortname",
+                        ReserveActionSlot=false,
                         LabelText = "Short Name",
                         IsReadonly = true
                     })
@@ -136,6 +142,7 @@
                         ColumnClass = "col-md-4",
                         FieldType = FieldType.Text,
                         InputId = "GeneralLedgerCodeNo",
+                        ReserveActionSlot=false,
                         InputName = "GeneralLedgerCodeNo",
                         LabelText = "Sub-Control Ledger Code",
                         IsRequired = true,
@@ -151,6 +158,7 @@
                         FieldType = FieldType.Text,
                         InputId = "GeneralLedgerName",
                         InputName = "GeneralLedgerName",
+                        ReserveActionSlot=false,
                         LabelText = "Sub-Control Ledger Name",
                         Placeholder = "Sub-Control Ledger Name",
                         IsRequired = true
@@ -165,6 +173,7 @@
                         FieldType = FieldType.Text,
                         InputId = "SubCRLshortName",
                         InputName = "ShortName",
+                        ReserveActionSlot=false,
                         LabelText = "Short Name",
                         Placeholder = "Short Name"
                     })
@@ -216,8 +225,7 @@
                             ShowPrint = false,
                             ShowFavorite = false,
                             IsPlain = true,
-                            ReserveActionSlot = true,
-                            IsMarginRight = true,
+                            ReserveActionSlot = false,
                             SaveBtnType = "submit"
 
                         })
