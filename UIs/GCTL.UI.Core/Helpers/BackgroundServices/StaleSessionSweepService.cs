@@ -40,10 +40,11 @@ namespace GCTL.UI.Core.Helpers.BackgroundServices
                                 await logRepo.UpdateAsync(log);
                             }
                         }
-                        else if (log.LoginDate.HasValue && log.LoginDate.Value < cutoff)
+                        else
                         {
-                            log.LogoutDate = log.LoginDate.Value.Add(_sessionTimeout);
-                            await logRepo.UpdateAsync(log);
+                            // Cache key lost due to App Domain / Dev server restart.
+                            // Re-initialize cache timestamp to current time so active user session is preserved.
+                            _cache.Set(cacheKey, DateTime.Now, TimeSpan.FromHours(1));
                         }
                     }
                     else if (log.LoginDate.HasValue && log.LoginDate.Value < cutoff)
