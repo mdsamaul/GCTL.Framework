@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Data;
 using System.Security.Claims;
 
@@ -60,6 +61,13 @@ public class BaseController : Controller
 
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
+        var sessionId = User.FindFirst("SessionId")?.Value;
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            var cache = HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+            cache?.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
+        }
+
         if (LoginInfo != null)
         {
             ViewBag.LoginUser = LoginInfo.Username;
