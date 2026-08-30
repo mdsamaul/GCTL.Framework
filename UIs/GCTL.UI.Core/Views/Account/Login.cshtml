@@ -51,18 +51,22 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
-        body {
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
             background-color: var(--cnf-bg-light);
             color: var(--cnf-text-main);
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0;
-            padding: 1.5rem;
-            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body {
             position: relative;
-            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Subtle background container grid */
@@ -79,11 +83,12 @@
         .cnf-login-wrapper {
             position: relative;
             z-index: 1;
-            width: 100%;
-            max-width: 1120px;
+            width: 92%;
+            max-width: 1100px;
+            max-height: 92vh;
             background: var(--cnf-card-bg);
             border: 1px solid var(--cnf-border-color);
-            border-radius: 24px;
+            border-radius: 20px;
             box-shadow: var(--cnf-shadow);
             overflow: hidden;
             backdrop-filter: blur(16px);
@@ -93,24 +98,31 @@
         /* Split Row */
         .cnf-login-row {
             display: flex;
-            min-height: 680px;
+            height: 100%;
+            max-height: 92vh;
         }
 
         /* Left Section: Form */
         .cnf-form-section {
             flex: 1;
-            padding: 3.5rem 3rem;
+            padding: clamp(1.2rem, 3vh, 2.5rem) clamp(1.2rem, 3vw, 2.5rem);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             background: var(--cnf-card-bg);
+            overflow-y: auto;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .cnf-form-section::-webkit-scrollbar {
+            display: none;
         }
 
         /* Right Section: Logistics Visual Panel */
         .cnf-visual-section {
             flex: 1.5;
             background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.88) 50%, rgba(3, 105, 161, 0.82) 100%), url('@Url.Content("~/images/login-bg.png")') no-repeat center center / cover;
-            padding: 3.5rem 3rem;
+            padding: clamp(1.5rem, 3.5vh, 3rem) clamp(1.5rem, 3vw, 2.5rem);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -178,14 +190,13 @@
             align-items: center;
             gap: 12px;
             text-decoration: none;
-            margin-bottom: 2rem;
+            margin-bottom: clamp(1rem, 2.5vh, 2rem);
         }
 
         .cnf-logo-icon {
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            /* background: linear-gradient(135deg, #0284c7, #0369a1); */
             color: #0369a1;
             display: flex;
             align-items: center;
@@ -214,29 +225,29 @@
 
         /* Titles */
         .cnf-heading {
-            font-size: 1.85rem;
+            font-size: clamp(1.4rem, 2.5vh, 1.85rem);
             font-weight: 700;
             letter-spacing: -0.025em;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.3rem;
             color: var(--cnf-text-main);
         }
 
         .cnf-subtitle {
-            font-size: 0.925rem;
+            font-size: clamp(0.825rem, 1.5vh, 0.925rem);
             color: var(--cnf-text-muted);
-            margin-bottom: 2.2rem;
+            margin-bottom: clamp(1rem, 2.5vh, 2rem);
         }
 
         /* Form Inputs */
         .cnf-field-wrapper {
-            margin-bottom: 1.35rem;
+            margin-bottom: clamp(0.75rem, 1.8vh, 1.25rem);
             position: relative;
         }
 
         .cnf-label {
             font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             color: var(--cnf-text-main);
             display: flex;
             align-items: center;
@@ -260,8 +271,8 @@
 
         .cnf-input {
             width: 100%;
-            height: 48px;
-            padding: 0.65rem 1rem 0.65rem 2.6rem;
+            height: clamp(40px, 5.5vh, 48px);
+            padding: 0.5rem 1rem 0.5rem 2.6rem;
             font-size: 0.95rem;
             background-color: var(--cnf-input-bg);
             border: 1.5px solid var(--cnf-border-color);
@@ -305,19 +316,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.8rem;
+            margin-bottom: clamp(1rem, 2.2vh, 1.6rem);
         }
 
         .cnf-checkbox-label {
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             color: var(--cnf-text-muted);
             cursor: pointer;
             user-select: none;
         }
 
         .cnf-checkbox {
-            width: 18px;
-            height: 18px;
+            width: 17px;
+            height: 17px;
             border-radius: 5px;
             border: 1.5px solid var(--cnf-border-color);
             accent-color: #0284c7;
@@ -325,7 +336,7 @@
         }
 
         .cnf-forgot-link {
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--cnf-primary);
             text-decoration: none;
@@ -340,11 +351,11 @@
         /* Primary Login Button */
         .cnf-btn-submit {
             width: 100%;
-            height: 50px;
+            height: clamp(42px, 5.5vh, 50px);
             background: linear-gradient(135deg, #0284c7, #0369a1);
             color: #ffffff;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             border: none;
             border-radius: 12px;
             box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
@@ -372,15 +383,15 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             font-weight: 600;
             color: #10b981;
             background: rgba(16, 185, 129, 0.08);
             border: 1px solid rgba(16, 185, 129, 0.2);
-            padding: 8px 14px;
+            padding: 6px 12px;
             border-radius: 20px;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
+            margin-top: clamp(0.75rem, 1.8vh, 1.25rem);
+            margin-bottom: 0.5rem;
         }
 
         /* Validation Summary Alert */
@@ -389,17 +400,17 @@
             border: 1px solid rgba(239, 68, 68, 0.25);
             color: #ef4444;
             border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            margin-bottom: 1.2rem;
         }
 
         /* Form Footer */
         .cnf-footer {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: var(--cnf-text-muted);
             text-align: center;
-            margin-top: 1.5rem;
+            margin-top: clamp(0.75rem, 1.8vh, 1.25rem);
         }
 
         /* Right Panel Content & Artwork */
@@ -409,26 +420,15 @@
         }
 
         .cnf-visual-tag {
-            /* display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #38bdf8;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600; */
-            margin-bottom: 1.5rem;
+            margin-bottom: clamp(1rem, 2vh, 1.5rem);
         }
 
         .cnf-visual-heading {
-            font-size: 2.2rem;
+            font-size: clamp(1.6rem, 3vh, 2.2rem);
             font-weight: 800;
             line-height: 1.25;
             letter-spacing: -0.03em;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .cnf-visual-heading span {
@@ -438,10 +438,10 @@
         }
 
         .cnf-visual-desc {
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 1.5vh, 0.95rem);
             color: #94a3b8;
-            line-height: 1.6;
-            margin-bottom: 2.5rem;
+            line-height: 1.5;
+            margin-bottom: clamp(1.2rem, 2.5vh, 2rem);
             max-width: 440px;
         }
 
@@ -449,18 +449,18 @@
         .cnf-feature-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            margin-bottom: 2.5rem;
+            gap: clamp(8px, 1.5vh, 14px);
+            margin-bottom: clamp(1.2rem, 2.5vh, 2rem);
         }
 
         .cnf-feature-item {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 18px;
-            border-radius: 14px;
+            padding: 10px 16px;
+            border-radius: 12px;
             backdrop-filter: blur(2px);
             transition: all 0.25s ease;
         }
@@ -472,20 +472,20 @@
         }
 
         .cnf-feature-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             background: rgba(56, 189, 248, 0.15);
             color: #38bdf8;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             flex-shrink: 0;
         }
 
         .cnf-feature-text {
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 500;
             color: #e2e8f0;
         }
@@ -496,7 +496,7 @@
             align-items: center;
             gap: 1rem;
             border-top: 1px solid rgba(255, 255, 255, 0.12);
-            padding-top: 1.5rem;
+            padding-top: 1.2rem;
             position: relative;
             z-index: 2;
         }
@@ -506,14 +506,14 @@
         }
 
         .cnf-stat-val {
-            font-size: 1.4rem;
+            font-size: clamp(1.1rem, 2vh, 1.4rem);
             font-weight: 800;
             color: #ffffff;
             margin-bottom: 2px;
         }
 
         .cnf-stat-lbl {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -522,29 +522,35 @@
 
         /* Responsive Breakpoints */
         @@media (max-width: 991.98px) {
+            .cnf-login-wrapper {
+                width: 95%;
+                max-height: 96vh;
+            }
             .cnf-login-row {
                 flex-direction: column;
-                min-height: auto;
+                max-height: 96vh;
             }
             .cnf-visual-section {
-                display: none; /* Hide visual on tablet/mobile for focused login */
+                display: none; /* Hide right panel on tablet/mobile to guarantee zero vertical scroll */
             }
             .cnf-form-section {
-                padding: 2.5rem 2rem;
+                padding: 1.75rem 1.25rem;
             }
         }
 
         @@media (max-width: 575.98px) {
-            body {
-                padding: 0.75rem;
+            .cnf-login-wrapper {
+                width: 98%;
+                max-height: 98vh;
             }
             .cnf-form-section {
-                padding: 2rem 1.25rem;
+                padding: 1.25rem 1rem;
             }
             .cnf-heading {
-                font-size: 1.5rem;
+                font-size: 1.35rem;
             }
         }
+    </style>
     </style>
 </head>
 <body>
@@ -674,7 +680,7 @@
                     <div class="cnf-visual-tag">
                         @* <i class="bi bi-globe-americas"></i> 
                          <span>Port & Customs Automation</span> *@
-                         <img src="@Url.Content("~/images/gctl.png")" width="325 alt="Fermosa" />
+                         <img src="@Url.Content("~/images/gctl.png")" alt="GCTL" style="max-width: 260px; height: auto;" />
                     </div>
 
                     <h2 class="cnf-visual-heading">

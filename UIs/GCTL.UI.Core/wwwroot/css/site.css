@@ -533,7 +533,7 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 2px 24px;
+    padding: 2px 24px 2px 0px;
     flex-shrink: 0;
     z-index: 99;
     box-shadow: var(--shadow-sm);
