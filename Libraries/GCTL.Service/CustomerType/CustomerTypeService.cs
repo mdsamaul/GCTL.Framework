@@ -87,23 +87,52 @@ namespace GCTL.Service.CustomerType
 
         public async Task<bool> SaveAsync(CustomerTypeSetupViewModel entityVM)
         {
-            commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 3);
             await customerTyperepository.BeginTransactionAsync();
             try
             {
-                SalesDefCustomerType entity = new SalesDefCustomerType
+                bool isNew = string.IsNullOrWhiteSpace(entityVM.CustomerTypeId);
+                SalesDefCustomerType entity;
+
+                if (isNew)
                 {
-                    CustomerTypeId = string.IsNullOrWhiteSpace(entityVM.CustomerTypeId) ? strMaxNO : entityVM.CustomerTypeId,
-                    CustomerType = entityVM.CustomerType,
-                    ShortName = entityVM.ShortName ?? string.Empty,
-                    EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty,
-                    CompanyId = entityVM.CompanyId ?? string.Empty,
-                    Luser = entityVM.Luser,
-                    Lip = entityVM.Lip,
-                    Lmac = entityVM.Lmac ?? string.Empty,
-                    Ldate = DateTime.Now
-                };
-                await customerTyperepository.AddAsync(entity);
+                    commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 3);
+
+                    entity = new SalesDefCustomerType
+                    {
+                        CustomerTypeId = strMaxNO,
+                        CustomerType = entityVM.CustomerType,
+                        ShortName = entityVM.ShortName ?? string.Empty,
+                        EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty,
+                        CompanyId = entityVM.CompanyId ?? string.Empty,
+                        Luser = entityVM.Luser,
+                        Lip = entityVM.Lip,
+                        Lmac = entityVM.Lmac ?? string.Empty,
+                        Ldate = DateTime.Now
+                    };
+
+                    await customerTyperepository.AddAsync(entity);
+                }
+                else
+                {
+                    entity = await customerTyperepository.GetByIdAsync(entityVM.CustomerTypeId);
+                    if (entity == null)
+                    {
+                        await customerTyperepository.RollbackTransactionAsync();
+                        return false;
+                    }
+
+                    entity.CustomerType = entityVM.CustomerType;
+                    entity.ShortName = entityVM.ShortName ?? string.Empty;
+                    entity.EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty;
+                    entity.CompanyId = entityVM.CompanyId ?? string.Empty;
+                    entity.Luser = entityVM.Luser;
+                    entity.Lip = entityVM.Lip;
+                    entity.Lmac = entityVM.Lmac ?? string.Empty;
+                    entity.Ldate = DateTime.Now;
+
+                    await customerTyperepository.UpdateAsync(entity);
+                }
+
                 await customerTyperepository.CommitTransactionAsync();
                 return true;
             }

@@ -142,7 +142,7 @@
                     selectedIds.push(editCode); // Add the single ID to the array
                 } else {
                     // Otherwise, collect all selected checkboxes' IDs for bulk deletion
-                    $('.checkBox:checked').each(function () {
+                    $('.checkbox:checked').each(function () {
                         selectedIds.push($(this).val());
                     });
                 }
@@ -199,26 +199,18 @@
         function initialize() {
 
             GenerateNextCode();
-            loadTableData();
+            loadTable();
             ResetForm();
 
         }
 
         // Load leave types list
-        function loadTableData() {
-            -
-                $.ajax({
-                    type: 'GET',
-                    url: loadTableURL,
-                    success: function (data) {
-                        $(settings.gridContainer).html(data);
-                        dataTable();
-
-                    },
-                    error: function () {
-                        toastr.error('An error Job Title list.');
-                    }
+        function loadTable() {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({
+                    gridId: 'relationshipsTable'
                 });
+            }
         }
 
         // Data table initialization function

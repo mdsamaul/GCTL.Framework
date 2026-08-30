@@ -7,7 +7,7 @@
             baseUrl: "/",
             formSelector: "#SupplierType-form",
             formContainer: ".js-SupplierType-form-container",
-            gridSelector: "#SupplierType-grid",
+            gridSelector: "#supplierTypeTable",
             gridContainer: ".js-SupplierType-grid-container",
             editSelector: ".js-SupplierType-edit",
             saveSelector: ".js-SupplierType-save",
@@ -44,6 +44,10 @@
         $(() => {
 
             loadTable();
+
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'supplierTypeTable' });
+            }
 
             //#region editSelector & clearSelector
 
@@ -132,7 +136,7 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
+                    $('input:checkbox.checkbox').each(function () {
                         if ($(this).prop('checked')) {
                             if (!selectedItems.includes($(this).val())) {
                                 selectedItems.push($(this).val());
@@ -239,30 +243,11 @@
 
         //#region loadTable
         function loadTable() {
-            $.get(settings.baseUrl + "/GetTableData")
-                .done(html => {
-                    $(settings.gridContainer).html(html);
-
-                    if ($.fn.DataTable.isDataTable(settings.gridSelector)) {
-                        $(settings.gridSelector).DataTable().destroy();
-                    }
-
-                    $(settings.gridSelector).DataTable({
-                        lengthChange: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, -1],
-                            [10, 25, 50, 'All'],
-                        ],
-                        order: [[1, "desc"]],
-                        destroy: true,
-                        paging: true,
-                        searching: true,
-                        responsive: true,
-                    });
-
-                })
-                .fail(() => toastr.error("Failed to load table data."));
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload();
+            } else if (window.loadGridPage) {
+                window.loadGridPage('supplierTypeGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+            }
         }
 
         //#endregion

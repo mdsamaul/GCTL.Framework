@@ -1,4 +1,4 @@
-﻿@model List<GCTL.Core.ViewModels.PortName.PortNameSetupViewModel>
+﻿@* @model List<GCTL.Core.ViewModels.PortName.PortNameSetupViewModel>
 
 <table id="PortName-grid" class="table table-striped  table-bordered table-sm table-hover table-common">
     <thead class="row-border">
@@ -18,7 +18,6 @@
         @if (Model == null || !Model.Any())
         {
             <tr class="text-center text-middle">
-                @* <td colspan="8">No Data Available.</td> *@
             </tr>
         }
         else
@@ -47,3 +46,4 @@
 
     </tbody>
 </table>
+ *@

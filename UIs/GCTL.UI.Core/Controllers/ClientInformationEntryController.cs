@@ -2,9 +2,11 @@
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.ClientInformationEntry;
 using GCTL.Core.ViewModels.DeleteHistories;
+using GCTL.Core.ViewModels.PortName;
 using GCTL.Data.Models;
 using GCTL.Service.ClientInformationEntry;
 using GCTL.Service.Common;
+using GCTL.Service.PortName;
 using GCTL.UI.Core.ViewModels.ClientInformationEntry;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -206,12 +208,12 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                var list = await clientInformationEntryService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await clientInformationEntryService.GetAllAsync() ?? new List<ClientInformationEntrySetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<ClientInformationEntrySetupViewModel>(), error = ex.Message });
             }
         }
 

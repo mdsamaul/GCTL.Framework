@@ -245,7 +245,7 @@ namespace GCTL.Service.PortName
 
         public async Task<bool> IsExistAsync(string name, string typeCode)
         {
-            return await portNamerepository.All().AnyAsync(x => x.PortName == name && x.PortNameId != typeCode);
+            return await portNamerepository.All().AnyAsync(x => x.PortName == name && x.PortId != typeCode);
         }
 
         #endregion

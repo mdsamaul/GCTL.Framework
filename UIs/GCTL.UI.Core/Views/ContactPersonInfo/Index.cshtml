@@ -6,78 +6,75 @@
     Model.Breadcrumb = "Contact Person Info";
 }
 
-<style>
-    #ContactPersonInfoDeleteModalBodyHeightFeixd {
-        height: 50px !important;
-    }
-
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
-
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
-                           @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                    {
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
                             Title = "Contact Person Info",
-                            SaveBtnClass = "js-Contact Person Info-save",
-                            DeleteBtnClass = "js-Contact Person Info-delete-confirm",
-                            ClearBtnClass = "js-Contact Person Info-clear"
-                    })
+                            SaveBtnClass = "js-ContactPersonInfo-save",
+                            DeleteBtnClass = "js-ContactPersonInfo-delete-confirm",
+                            ClearBtnClass = "js-ContactPersonInfo-clear"
+                        })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body px-4 py-3">
                         <form asp-action="Setup" method="post" id="ContactPersonInfo-form" asp-controller="ContactPersonInfo">
-
                             <div class="js-ContactPersonInfo-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-ContactPersonInfo-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.ContactPersonList)
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "contactPersonInfoTable",
+                    AjaxUrl = "/ContactPersonInfo/GetTableData",
+                    AjaxMethod = "GET",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "cpid",
+                    CheckAllId = "ContactPersonInfo-check-all",
+                    DefaultSortColumn = "cpid",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "cpid", Header = "ID", Width = "11%", IsEditLink = true, EditSelectorClass = "js-ContactPersonInfo-edit" },
+                        new() { Data = "contactPersonName", Header = "Name", Width = "30%"},
+                        new() { Data = "designationName", Header = "Designation", Width = "21%"},
+                        new() { Data = "contactPersonMobile", Header = "Phone", Width = "18%"},
+                        new() { Data = "contactPersonEmail", Header = "Email", Width = "20%"}
+                    }
+                })
             </div>
 
-
         </div>
-
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/contactPersonInfo.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "ContactPersonInfo")'
-        };
-        options.load = () => {
-        };
-
-        $.contactPersonInfo(options);
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/contactPersonInfo.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.contactPersonInfo({
+                baseUrl: '/ContactPersonInfo'
+            });
+        });
     </script>
 }
