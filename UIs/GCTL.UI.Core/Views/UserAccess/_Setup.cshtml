@@ -89,9 +89,16 @@
     }
 </style>
 
+<div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-80%, -80%); z-index: 9999;">
+    <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
+</div>
+
 <div class="gc-ua-setup" style="padding-top: 0;">
+    <input type="hidden" id="lastCode" />
     <input type="hidden" asp-for="UserId" />
     <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
 
     <div class="row">
         <div class="col-12">
@@ -339,6 +346,23 @@
         </div>
     </div>
 
+    @if (Model.UserId > 0 || Model.Id > 0)
+    {
+        <hr class="mt-2 mb-1" />
+        <div class="gc-section mb-2" id="LdateModifyHide">
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <label class="form-label d-block">Creation Date:</label>
+                    <p id="lblLdate" class="form-control form-control-sm bg-light mb-0">@(Model.Ldate?.ToString("dd/MM/yyyy HH:mm"))</p>
+                </div>
+                <div class="col-lg-6">
+                    <label class="form-label d-block">Last Update Date:</label>
+                    <p id="lblModifyDate" class="form-control form-control-sm bg-light mb-0">@(Model.ModifyDate?.ToString("dd/MM/yyyy HH:mm"))</p>
+                </div>
+            </div>
+        </div>
+    }
+
     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
     {
         SaveBtnClass = "js-useraccess-save",
@@ -346,6 +370,7 @@
         ShowDelete = false,
         IsPlain = true,
         ShowFavorite = false,
-        ShowPrint = false
+        ShowPrint = false,
+        ReserveActionSlot = true
     })
 </div>
