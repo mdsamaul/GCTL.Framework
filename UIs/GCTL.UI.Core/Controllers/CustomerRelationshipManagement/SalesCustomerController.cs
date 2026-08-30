@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.AddSalesCustomer;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -39,9 +40,9 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
         private readonly IRepository<SalesContactPerson> contactPersonrepository;
         private readonly IRepository<CaDefCountry> caDefCountryRepository;
 
-        public SalesCustomerController( 
-            ISalesCustomerService salesCustomerService, 
-            IContactPersonService contactPersonService, 
+        public SalesCustomerController(
+            ISalesCustomerService salesCustomerService,
+            IContactPersonService contactPersonService,
             IRepository<SalesContactPerson> contactPersonrepository,
             IRepository<CaDefCountry> caDefCountryRepository
 
@@ -69,129 +70,49 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
             ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
             SalesCustomerViewModel model = new SalesCustomerViewModel();
 
-            try
-            {
-                var list = await _salesCustomerService.GetAllAsync() ?? new List<SalesCustomerViewModel>();
-                int totalRecords = list.Count;
-                var pagedList = list.Take(10).ToList();
-
-                ViewBag.DynamicGrid = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: 1,
-                    pageSize: 10,
-                    headers: new List<string> { "Cus. ID", "Customer Name", "Short Name", "Address", "Opening Balance" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "CustomerId", item.CustomerId },
-                        { "Customer Name", item.CustomerName },
-                        { "Short Name", item.ShortName },
-                        { "Address", item.CustomerAddress },
-                        { "Opening Balance", item.OpeningBalance }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "SalesCustomer") ?? "/SalesCustomer/GetTableData",
-                    primaryKey: "CustomerId",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/SalesCustomer/Details/{id}",
-                    gridId: "salesCustomerGridContainer",
-                    editClass: "js-salescustomer-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "CustomerId", "center" },
-                        { "Customer Name", "left" },
-                        { "Short Name", "left" },
-                        { "Address", "left" },
-                        { "Opening Balance", "right" }
-                    },
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Cus. ID", "110px" },
-                        { "Customer Name", "auto" },
-                        { "Short Name", "120px" },
-                        { "Address", "180px" },
-                        { "Opening Balance", "130px" }
-                    }
-                );
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-            }
-
             return View(model);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(int page = 1, int pageSize = 10, string? searchTerm = null)
-        {
-            var list = await _salesCustomerService.GetAllAsync() ?? new List<SalesCustomerViewModel>();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                list = list.Where(x => (x.CustomerId != null && x.CustomerId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.CustomerName != null && x.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                    || (x.CustomerAddress != null && x.CustomerAddress.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                           .ToList();
-            }
-
-            int totalRecords = list.Count;
-            var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            var dynamicGrid = GridBuilder.BuildGrid(
-                data: pagedList,
-                totalRecords: totalRecords,
-                currentPage: page,
-                pageSize: pageSize,
-                headers: new List<string> { "Cus. ID", "Customer Name", "Short Name", "Address", "Opening Balance" },
-                rowMapper: item => new Dictionary<string, object?>
-                {
-                    { "CustomerId", item.CustomerId },
-                    { "Customer Name", item.CustomerName },
-                    { "Short Name", item.ShortName },
-                    { "Address", item.CustomerAddress },
-                    { "Opening Balance", item.OpeningBalance }
-                },
-                ajaxUrl: Url.Action("GetTableData", "SalesCustomer") ?? "/SalesCustomer/GetTableData",
-                primaryKey: "CustomerId",
-                hasCheckbox: true,
-                actionUrlPattern: "/SalesCustomer/Details/{id}",
-                gridId: "salesCustomerGridContainer",
-                editClass: "js-salescustomer-edit",
-                columnAlignments: new Dictionary<string, string>
-                {
-                    { "CustomerId", "center" },
-                    { "Customer Name", "left" },
-                    { "Short Name", "left" },
-                    { "Address", "left" },
-                    { "Opening Balance", "right" }
-                },
-                searchTerm: searchTerm,
-                columnWidths: new Dictionary<string, string>
-                {
-                    { "SelectAll", "120px" },
-                    { "Cus. ID", "110px" },
-                    { "Customer Name", "auto" },
-                    { "Short Name", "120px" },
-                    { "Address", "180px" },
-                    { "Opening Balance", "130px" }
-                }
-            );
-
-            return PartialView("_DynamicGrid", dynamicGrid);
-        }
-
-        public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "CustomerID", string sortOrder = "desc")
+        [HttpPost]
+        public async Task<IActionResult> GetAll(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "CustomerId",
+            string sortOrder = "desc")
         {
             try
             {
-                var result = await _salesCustomerService.GetPaginatedSalesCustomer(pageNumber, pageSize, searchTerm, sortColumn, sortOrder);
+                var request = new PaginationRequest
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
 
-                if (result.Data == null || result.Data.Count() == 0)
-                    return NotFound(new { message = "No customers found." });
+                var result = await _salesCustomerService.GetPaginatedAsync(request);
 
-                return Ok(result);
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new
+                    {
+                        draw,
+                        data = new List<SalesCustomerViewModel>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
+                    });
+                }
+
+                return Ok(new
+                {
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount
+                });
             }
             catch (Exception ex)
             {
@@ -418,7 +339,7 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
         #endregion
 
 
-        #region Customer Report 
+        #region Customer Report
         public async Task<IActionResult> GetForListReport()
         {
             var customers = await _salesCustomerService.GetCustomerReportAsync();
@@ -1509,7 +1430,7 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
                 // Tab to right
                 footerPara.Append(new Run(new TabChar()));
 
-                // Right: Page X of Y      
+                // Right: Page X of Y
                 footerPara.Append(new Run(new DocumentFormat.OpenXml.Wordprocessing.Text("Page ") { Space = SpaceProcessingModeValues.Preserve }));
 
                 // PAGE field

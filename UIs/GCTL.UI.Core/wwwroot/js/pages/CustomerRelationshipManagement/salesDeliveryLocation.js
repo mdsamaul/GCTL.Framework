@@ -1,102 +1,53 @@
-﻿let currentPageDL = 1;
-let pageSizeDL = 10;
-let totalPageDL = 0;
 let editdlId;
 let selectedCustomer;
 
-let currentSortColumnDL = 'DeliveryLocationCode';
-let currentSortOrderDL = 'desc';
 console.log("Delivery Page Worked");
 
 $(document).ready(() => {
-    loadDeliveryLocationsPaginated();
     loadCustomerDD();
     setupDLEventListeners();
     loadDLId();
     showFooterDl();
-    updatePaginationDl();
-    updateSortingIndicatorDl();
     setupDLActionButtons();
-    
     LoadCountryDropdownDL();
+
+    if ($.gctlGrid) {
+        $.gctlGrid.initFromModel({
+            gridId: 'salesDeliveryLocationTable',
+            ajaxData: function (d) {
+                d.cusId = selectedCustomer || "";
+            }
+        });
+    }
 
     $("#CustomerIdForDelivery").change(function () {
         var customerId = $(this).val();
-        selectedCustomer = customerId || ""; 
-        currentPageDL = 1; 
-        loadDeliveryLocationsPaginated(selectedCustomer);
-    }); 
-})
+        selectedCustomer = customerId || "";
+        reloadDeliveryGrid(true);
+    });
+
+    $('button#delivery-address-tab').on('shown.bs.tab', function () {
+        var dt = $.gctlGrid.getTable('salesDeliveryLocationTable');
+        if (dt) {
+            dt.columns.adjust().draw(false);
+        }
+    });
+});
 
 function setupDLEventListeners() {
-
-
-    $('#pageSizeDropdown').on('change', function () {
-        var selectedSize = $(this).val(); 
-        if (!selectedSize) return;
-
-        pageSizeDL = parseInt(selectedSize, 10);
-        console.log("New pageSizeDL:", pageSizeDL);
-
-        loadDeliveryLocationsPaginated();
-    });
-
-
-    $('th.sortDL').on('click', function () {
-        const column = $(this).data('sort');
-        $('.sortDL').removeClass('sort-asc sort-desc');
-
-        if (currentSortColumnDL === column) {
-            currentSortOrderDL = currentSortOrderDL === 'asc' ? 'desc' : 'asc';
-        } else {
-            currentSortColumnDL = column;
-            currentSortOrderDL = 'asc';
-        }
-
-        $(this).addClass('sort-' + currentSortOrderDL);
-
-        loadDeliveryLocationsPaginated(selectedCustomer, currentSortColumnDL, currentSortOrderDL);
-        updateSortingIndicator(column, currentSortOrderDL);
-    });
-
     $("#btnBulkDeleteDL").on('click', bulkDeleteDeliveryLocation);
-
     $("#btnDeleteDL").on('click', confirmDelete);
 
-    const debouncedSearch = debounce(() => {
-        currentPageDL = 1;
-        loadDeliveryLocationsPaginated(selectedCustomer);
-    }, 300);
-
-    $("#searchInput-Dl").on("input", debouncedSearch);
-
-    $("#prevPageBtn-Dl").on('click', function () {
-        if (currentPageDL > 1) {
-            currentPageDL--;
-            loadDeliveryLocationsPaginated(selectedCustomer);
-        }
-    });
-
-    $("#nextPageBtn-Dl").on('click', function () {
-        if (currentPageDL < totalPagesDL) {
-            currentPageDL++;
-            loadDeliveryLocationsPaginated(selectedCustomer);
-        }
-    });
-
-    $('#viewBank-Dl-check-all').on('change', function () {
-        $('.selectItem-Dl').prop('checked', $(this).prop('checked'));
+    $(document).on('change', '.js-salesdl-check', toggleBulkActionsDl);
+    $(document).on('change', '#selectAllSalesDeliveryLocation', function () {
+        $('.js-salesdl-check').prop('checked', $(this).prop('checked'));
         toggleBulkActionsDl();
-    })
+    });
 
-    $(document).on('change', '.selectItem-Dl', toggleBulkActionsDl);
-
-    //Clear Button handler
-    //$("#btnResetDL").on('click', resetDLForm);
+    // Clear Button handler
     $("#btnResetDL").on('click', function () {
         resetDLForm({ resetCustomer: true, keepEdit: false });
     });
-
 
     $('#btnSaveDL').on('click', saveDeliveryLocation);
 
@@ -105,77 +56,6 @@ function setupDLEventListeners() {
         allowClear: true,
         width: '100%'
     });
-
-}
-
-function debounce(func, delay) {
-    let timer;
-    return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            func.apply(this, args);
-        }, delay);
-    };
-}
-
-function updateSortingIndicatorDl() {
-    $('th.sortDL').find('.sort-icon').remove();
-
-    const th = $(`th.sortDL[data-sort="${currentSortColumnDL}"]`);
-    const icon = currentSortOrderDL === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
-
-    th.append(`<span class="sort-icon ms-2"><i class="fas ${icon}"></i></span>`);
-}
-
-function updatePaginationDl(pageNumbers, currentPage, totalPages) {
-    const paginationLinks = $("#paginationLinks-Dl");
-    paginationLinks.empty();
-    const windowSize = 1;
-
-
-    const createPageButton = (page) => {
-        return $('<li>')
-            .addClass('page-item')
-            .toggleClass('active', page === currentPage)
-            .append(
-                $('<button>')
-                    .addClass('page-link')
-                    .text(page)
-                    .on('click', () => goToPageDl(page))
-            );
-    };
-
-    const addEllipsis = () => {
-        return $('<li>')
-            .addClass('page-item disabled')
-            .append(
-                $('<span>')
-                    .addClass('page-link')
-                    .text('...')
-            );
-    };
-
-    if (currentPage > windowSize + 1) {
-        paginationLinks.append(createPageButton(1), addEllipsis());
-    }
-
-    const startPage = Math.max(1, currentPage - windowSize);
-    const endPage = Math.min(totalPages, currentPage + windowSize);
-    for (let i = startPage; i <= endPage; i++) {
-        paginationLinks.append(createPageButton(i));
-    }
-
-    if (currentPage < totalPages - windowSize) {
-        paginationLinks.append(addEllipsis(), createPageButton(totalPages));
-    }
-
-    $("#prevPageBtn-Dl").prop('disabled', currentPage === 1);
-    $("#nextPageBtn-Dl").prop('disabled', currentPage === totalPages);
-}
-
-function goToPageDl(page) {
-    currentPageDL = page;
-    loadDeliveryLocationsPaginated(selectedCustomer);
 }
 
 function showFooterDl() {
@@ -183,87 +63,21 @@ function showFooterDl() {
 }
 
 function toggleBulkActionsDl() {
-    const anyChecked = $('.selectItem-Dl:checked').length > 0;
-    $('#btnBulkDeleteDL').toggleClass('d-none',!anyChecked);
-    $('#btnDeleteDL').toggleClass('d-none',anyChecked);
+    const anyChecked = $('.js-salesdl-check:checked').length > 0;
+    $('#btnBulkDeleteDL').toggleClass('d-none', !anyChecked);
+    $('#btnDeleteDL').toggleClass('d-none', anyChecked);
 }
 
-function loadDeliveryLocationsPaginated(customerId = "", sortColumn = 'DeliveryLocationCode', sortOrder = 'desc') {
-    //resetDLWOcusDD();
-    //if (!editdlId) {
-    //    resetDLWOcusDD();
-    //}
-    const searchTermDl = $("#searchInput-Dl").val();
-
-    $.ajax({
-        url: '/SalesDeliveryLocation/GetAllPaginated',
-        method: 'GET',
-        data: {
-            cusId: customerId, 
-            pageNumber: currentPageDL,
-            pageSizeDl: pageSizeDL,
-            searchTerm: searchTermDl,
-            sortColumn: sortColumn,
-            sortOrder: sortOrder
-        },
-        success: function (response) {
-            console.log("Delivery Data Loaded", response);
-
-            if (response && response.paginationInfo) {
-                totalPagesDL = response.paginationInfo.totalPages; 
-            }
-
-            renderDeliveryLocationTable(response);
-            setupDLActionButtons();
-        },
-        error: function (error) {
-            console.error("Error loading data: ", error);
-            $("#deliveryTableBody").html('<tr><td colspan="6" class="text-center">No Data Found</td></tr>');
-        }
-    });
-}
-
-function renderDeliveryLocationTable(response) {
-    const tableBody = $("#deliveryTableBody");
-    tableBody.empty();
-
-    if (response.data.length > 0) {
-        $("no-data").hide();
-        console.log(response.data);
-        $.each(response.data, (_, item) => {
-            tableBody.append(`
-                        <tr class="position-static delivery-row" data-id="${item.deliveryLocationCode}">
-                            <td style="width:5%" class="text-center text-middle align-middle">
-                                <input type="checkbox" class="selectItem-Dl" data-id="${item.deliveryLocationCode}" />
-                            </td>
-                            <td style="padding: 5px 10px; font-size: 10px;" class="align-middle white-space-nowrap ps-0">${item.deliveryLocationCode}</td>
-                            <td style="padding: 5px 10px; font-size: 10px;" class="align-middle ps-0">${item.customerName}</td>
-                            <td style="padding: 5px 10px; font-size: 10px;" class="align-middle ps-0">${item.locationAddress}</td>
-                            <td style="padding: 5px 10px; font-size: 10px;" class="align-middle ps-0">${item.contactPersonName}</td>
-                        </tr>
-            `)
-        });
-    } else {
-        tableBody.html('<tr><td colspan="6" class="text-center">No data available</td></tr>');
-        $("#paginationInfo-Dl").text('');
-        $("#paginationLinks-Dl").empty();
+function reloadDeliveryGrid(resetPaging) {
+    if ($.gctlGrid) {
+        $.gctlGrid.reload('salesDeliveryLocationTable', resetPaging === true);
     }
-
-    const paginationInfo = response.paginationInfo;
-    $("#paginationInfo-Dl").text(`Showing ${paginationInfo.startItem} to ${paginationInfo.endItem} Items of ${paginationInfo.totalItems}`);
-    $("#paginationLinks-Dl").text(`(${paginationInfo.totalItems})`);
-
-    updatePaginationDl(paginationInfo.pageNumber, paginationInfo.currentPage, paginationInfo.totalPages);
-    totalPages = paginationInfo.totalPages;
 }
 
 function setupDLActionButtons() {
-
-    $(".delivery-row").find("select, input").click(e => e.stopPropagation());
-
-    $(".delivery-row").on("click", function () {
+    $(document).on("click", ".js-salesdl-edit", function (e) {
+        e.preventDefault();
         const deliveryId = $(this).data("id");
-
         if (!deliveryId) return;
 
         $.ajax({
@@ -340,7 +154,7 @@ function saveDeliveryLocation(e) {
 
             editdlId = null;
             resetDLForm({ resetCustomer: false, keepEdit: false }); 
-            loadDeliveryLocationsPaginated(selectedCustomer);
+            reloadDeliveryGrid(false);
         },
         error: function (error) {
             handleDLSaveError(error);
@@ -352,29 +166,28 @@ function handleDLSaveError(error){
     if (error.responseJSON && error.responseJSON.errors) {
         let errorMessage = [];
 
-        $.each(error.responseJSON.error, (_, messages) => {
-            $.each(message, (_, message) => {
+        $.each(error.responseJSON.errors, (_, messages) => {
+            $.each(messages, (_, message) => {
                 errorMessage.push(`<li>${message}</li>`);
             });
         });
 
-        errorMessage += "</ul>";
-        toastr.error('Validation Error:\n<ul>' + errorMessage.join('') + '</ul>');;
+        toastr.error('Validation Error:\n<ul>' + errorMessage.join('') + '</ul>');
     } else {
-        toastr.error('Error saving customer');
+        toastr.error('Error saving delivery location');
     }
-    console.error("Error saving customer:", error);
+    console.error("Error saving delivery location:", error);
 }
 
 function confirmDelete() {
     if (!editdlId) {
-        toastr.warning("Please select a customer.");
+        toastr.warning("Please select a delivery location.");
         return;
     }
 
     Swal.fire({
         title: "Are you sure?",
-        text: "Once deleted, you won't be able to recover this customer!",
+        text: "Once deleted, you won't be able to recover this delivery location!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Delete",
@@ -387,6 +200,7 @@ function confirmDelete() {
         }
     });
 }
+
 function deleteDeliveryLocation(dlCode) {
     $.ajax({
         url: `/SalesDeliveryLocation/Delete/${dlCode}`,
@@ -395,24 +209,23 @@ function deleteDeliveryLocation(dlCode) {
             if (response.success) {
                 toastr.success(response.message);
             }
-            //resetDLWOcusDD();
             resetDLForm();
             loadDLId();
-            loadDeliveryLocationsPaginated(selectedCustomer);
+            reloadDeliveryGrid(false);
         },
         error: function (xhr, status, error) {
-            console.error("Error deleting customer:", error);
-            toastr.error("Failed to delete customer. Please try again.");
+            console.error("Error deleting delivery location:", error);
+            toastr.error("Failed to delete delivery location. Please try again.");
         }
     });
-};
-
+}
 
 function bulkDeleteDeliveryLocation() {
     const selectedIds = [];
 
-    $(".selectItem-Dl:checked").each(function () {
-        selectedIds.push($(this).data('id'));
+    $(".js-salesdl-check:checked").each(function () {
+        var val = $(this).val();
+        if (val) selectedIds.push(val);
     });
 
     if (selectedIds.length === 0) {
@@ -422,7 +235,7 @@ function bulkDeleteDeliveryLocation() {
 
     Swal.fire({
         title: 'Are you sure?',
-        text: `You are about to delete ${selectedIds.length} DeliveryLocation(s) (This action cannot be undone).`,
+        text: `You are about to delete ${selectedIds.length} Delivery Location(s) (This action cannot be undone).`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -439,12 +252,10 @@ function bulkDeleteDeliveryLocation() {
                 success: function (response) {
                     Swal.fire('Deleted!', response.message, 'success');
 
-                    // Reset form in "new entry" mode
                     resetDLForm({ resetCustomer: false, keepEdit: false });
                     editdlId = null;
 
-                    // Reload table for current customer
-                    loadDeliveryLocationsPaginated(selectedCustomer);
+                    reloadDeliveryGrid(false);
                 },
                 error: function () {
                     Swal.fire('Error!', 'An error occurred while deleting.', 'error');
@@ -530,23 +341,25 @@ $(document).ready(function () {
     loadContactPersonDropdownDL();
 
     var dropdownElement = document.getElementById('DLdropdownButton');
-    var bootstrapDropdown = new bootstrap.Dropdown(dropdownElement, {
-        autoClose: true,
-        popperConfig: {
-            placement: 'top-start'
-        }
-    });
+    if (dropdownElement) {
+        var bootstrapDropdown = new bootstrap.Dropdown(dropdownElement, {
+            autoClose: true,
+            popperConfig: {
+                placement: 'top-start'
+            }
+        });
 
-    $('#DLdropdownButton').on('click', function (e) {
-        e.stopPropagation();
-        bootstrapDropdown.toggle();
-    });
+        $('#DLdropdownButton').on('click', function (e) {
+            e.stopPropagation();
+            bootstrapDropdown.toggle();
+        });
 
-    $(document).on('click', function (event) {
-        if (!$(event.target).closest('#DLcontactPersonDropdown, #DLdropdownButton').length) {
-            bootstrapDropdown.hide();
-        }
-    });
+        $(document).on('click', function (event) {
+            if (!$(event.target).closest('#DLcontactPersonDropdown, #DLdropdownButton').length) {
+                bootstrapDropdown.hide();
+            }
+        });
+    }
 
     // Search/filter inside dropdown
     $('#DLcontactSearch').on('input', function () {
@@ -652,19 +465,10 @@ function resetDLForm(options = { resetCustomer: true, keepEdit: false }) {
     // Generate new DeliveryLocationCode
     if (!editdlId) loadDLId();
 
+    $('.js-salesdl-check').prop('checked', false);
+    $('#selectAllSalesDeliveryLocation').prop('checked', false);
     toggleBulkActionsDl();
     showFooterDl();
-
-    $('.selectItem-Dl').prop('checked', false);
-    $('#viewBank-Dl-check-all').prop('checked', false);
-
-    // Reset search
-    const searchInput = $("#searchInput-Dl");
-    searchInput.val('');
-    if (searchInput.val() === '') {
-        currentPageDL = 1;
-        loadDeliveryLocationsPaginated(selectedCustomer);
-    }
 }
 
 //Live Validation for Email And Phone

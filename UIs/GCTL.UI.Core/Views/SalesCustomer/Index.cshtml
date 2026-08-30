@@ -5,37 +5,28 @@
         margin-right: 0 !important;
     }
     .equal-height-container {
-        display: flex; 
+        display: flex;
     }
-    .fill-height { 
+    .fill-height {
         display: flex;
         flex-direction: column;
         height: 100%;
     }
-    #delivery-form-container { 
+    #delivery-form-container {
         overflow: hidden;
         flex-grow: 1;
         overflow-y: hidden;
     }
     #customer-form-container,
-    #delivery-form-container { 
-        height: 100%; 
-        display: flex; 
+    #delivery-form-container {
+        height: 100%;
+        display: flex;
         flex-direction: column;
     }
 
     #customer-form-container .card, #delivery-form-container .card {
-        flex: 1; display: flex; 
+        flex: 1; display: flex;
         flex-direction: column;
-    }
-    .select2-container .select2-selection--single {
-        height: 48px !important;
-        padding: 8px 12px;
-        font-size: 16px;
-    }
-    .select2-container--default .select2-selection--single .select2-selection__arrow b {
-        border-width: 8px 6px 0 6px !important;
-        left: 10% !important; top: 85% !important;
     }
     #contactPersonModal .modal-dialog {
         max-width: 1600px !important;
@@ -61,14 +52,12 @@
         <div class="tab-content" id="customerTabsContent">
             <div class="tab-pane fade show active" id="customer-info" role="tabpanel" aria-labelledby="customer-info-tab">
                 <div class="row mt-3">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div id="customer-form-container">
-                                @await Html.PartialAsync("_Setup", Model ?? new SalesCustomerViewModel())
-                            </div>
+                    <div class="col-md-6 pe-1">
+                        <div id="customer-form-container">
+                            @await Html.PartialAsync("_Setup", Model ?? new SalesCustomerViewModel())
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 ps-1">
                         <div id="customer-list-container">
                             @await Html.PartialAsync("_Table")
                         </div>
@@ -78,14 +67,14 @@
 
             <div class="tab-pane fade" id="delivery-address" role="tabpanel" aria-labelledby="delivery-address-tab">
                 <div class="row mt-3">
-                    <div class="col-md-6">
+                    <div class="col-md-6 pe-1">
                         <div class="card">
                             <div id="delivery-form-container">
                                 @await Html.PartialAsync("_DLForm", new SalesDeliveryLocationViewModel())
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 ps-1">
                         <div id="delivery-list-container">
                             @await Html.PartialAsync("_DLTable")
                         </div>
@@ -127,7 +116,7 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <script src="~/js/grid-manager.js" asp-append-version="true"></script>
+    @* <script src="~/js/grid-manager.js" asp-append-version="true"></script> *@
     <script src="~/js/pages/CustomerRelationshipManagement/salesCustomerData.js" asp-append-version="true"></script>
     <script src="~/js/pages/customerrelationshipmanagement/salesDeliveryLocation.js" asp-append-version="true"></script>
     <script src="~/js/pages/customerrelationshipmanagement/SaleContactPerson.js" asp-append-version="true"></script>
