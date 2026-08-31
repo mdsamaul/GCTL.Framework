@@ -82,5 +82,10 @@ namespace GCTL.UI.Core.ViewModels
         public string? IconClass { get; set; }
         public bool IsCollapsible { get; set; } = false;
         public bool IsCollapsedDefault { get; set; } = false;
+
+        // Card Header Action Button
+        public string? AddButtonUrl { get; set; }
+        public string AddButtonText { get; set; } = "Add New";
+        public string? AddButtonId { get; set; }
     }
 }

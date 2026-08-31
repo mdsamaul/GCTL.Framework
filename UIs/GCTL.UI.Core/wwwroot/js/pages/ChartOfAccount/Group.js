@@ -1,4 +1,4 @@
-﻿let selectedGroupLedger = [];
+let selectedGroupLedger = [];
 let currentPage = 1;
 let pageSize = 10;
 let currentSortColumn = 'ControlLedgerCodeNo';
@@ -150,6 +150,10 @@ function ClearGroupLedgerForm() {
 
 //#region Load All Group Ledger Data
 function LoadGroupLedger(page = 1, pageSize = 10, sortColumn = currentSortColumn, sortDirection = currentSortDirection, searchTerm = "") {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#groupLedgerTable')) {
+        $('#groupLedgerTable').DataTable().ajax.reload(null, false);
+        return;
+    }
 
     $.ajax({
         url: '/group-ledger-list',
@@ -208,8 +212,9 @@ function LoadGroupLedger(page = 1, pageSize = 10, sortColumn = currentSortColumn
 
 
 //#region Populate Data For Edit
-$(document).on('click', '.group-ledger', function () {
-    const id = $(this).data('autoid');
+$(document).on('click', '.js-groupledger-edit, .group-ledger', function (e) {
+    e.preventDefault();
+    const id = $(this).data('id') || $(this).data('autoid');
     console.log("Edited Group Ledger Code:", id);
 
     if (!id) return;

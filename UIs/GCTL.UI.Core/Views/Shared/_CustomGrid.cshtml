@@ -34,18 +34,26 @@
                     }
                     @Model.CardTitle
                 </span>
-                @if (Model.IsCollapsible)
-                {
-                    <button class="btn btn-sm btn-icon-clean shadow-none text-secondary p-0" 
-                            type="button" 
-                            data-bs-toggle="collapse" 
-                            data-bs-target="#@collapseId" 
-                            aria-expanded="@(Model.IsCollapsedDefault ? "false" : "true")" 
-                            aria-controls="@collapseId"
-                            title="Toggle Grid">
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-                }
+                <div class="d-flex align-items-center gap-2">
+                    @if (!string.IsNullOrEmpty(Model.AddButtonUrl))
+                    {
+                        <a href="@Model.AddButtonUrl" id="@Model.AddButtonId" class="btn btn-sm btn-primary px-3 shadow-none fw-semibold d-inline-flex align-items-center gap-1" style="font-size:0.78rem;">
+                            <i class="fa-solid fa-plus"></i> @Model.AddButtonText
+                        </a>
+                    }
+                    @if (Model.IsCollapsible)
+                    {
+                        <button class="btn btn-sm btn-icon-clean shadow-none text-secondary p-0" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#@collapseId" 
+                                aria-expanded="@(Model.IsCollapsedDefault ? "false" : "true")" 
+                                aria-controls="@collapseId"
+                                title="Toggle Grid">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    }
+                </div>
             </div>
         }
         <div class="@(Model.IsCollapsible ? "collapse" + (Model.IsCollapsedDefault ? "" : " show") : "")" id="@collapseId">

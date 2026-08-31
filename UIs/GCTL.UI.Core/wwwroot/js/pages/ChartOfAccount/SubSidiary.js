@@ -1,4 +1,4 @@
-﻿let selectedSubSidiaryLedger = [];
+let selectedSubSidiaryLedger = [];
 let currenSubSidiarytPage = 1;
 let SubSidiarypageSize = 10;
 let SubSidiarycurrentSortColumn = 'SusidiaryLedgerCodeNo';
@@ -251,6 +251,10 @@ function GetSubcontrolInfo(selectedSubControlCode) {
 
 //#region Load All Sub-Sidiary Ledger Data
 function SubSididiarLedgerAll(page = 1, pageSize = SubSidiarypageSize, sortColumn = SubSidiarycurrentSortColumn, sortDirection = SubSidiarycurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "", subcontrolLedgerCode = "") {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#subSidiaryLedgerTable')) {
+        $('#subSidiaryLedgerTable').DataTable().ajax.reload(null, false);
+        return;
+    }
     $.ajax({
         url: '/subsidiary-ledger-list',
         type: 'GET',
@@ -409,9 +413,9 @@ function SubSidiaryLedgerSaveOrUpdate() {
 //#endregion
 
 //#region Populate Data For Edit
-$(document).on('click', '.subsidiary-ledger', function (e) {
+$(document).on('click', '.js-subsidiaryledger-edit, .subsidiary-ledger', function (e) {
     e.preventDefault();
-    const autoId = parseInt($(this).data('autoid'));
+    const autoId = parseInt($(this).data('id') || $(this).data('autoid'));
     if (!autoId) return;
 
     isEditModeSubSidiary = true;

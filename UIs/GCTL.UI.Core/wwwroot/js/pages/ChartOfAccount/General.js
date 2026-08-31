@@ -1,4 +1,4 @@
-﻿let selectedGeneralLedger = [];
+let selectedGeneralLedger = [];
 let currenGeneraltPage = 1;
 let GeneralpageSize = 10;
 let GeneralcurrentSortColumn = 'SubSusidiaryLedgerCodeNo';
@@ -484,9 +484,9 @@ function GeneralLedgerSaveOrUpdate() {
 
 //#region Populate Data For Edit
 
-$(document).on('click', '.General-ledger', function (e) {
+$(document).on('click', '.js-generalledger-edit, .General-ledger', function (e) {
     e.preventDefault();
-    const id = parseInt($(this).data('autoid'));
+    const id = parseInt($(this).data('id') || $(this).data('autoid'));
     if (!id) return;
 
     isEditModeGeneral = true;
@@ -616,6 +616,10 @@ function GeneralLedgerFormClear() {
 //#region Load All General Ledger Data
 
 function GeneralLedgerAll(page = 1, pageSize = GeneralpageSize, sortColumn = GeneralcurrentSortColumn, sortDirection = GeneralcurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "", subcontrolLedgerCode = "", subSididaryLedger = "") {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#generalLedgerTable')) {
+        $('#generalLedgerTable').DataTable().ajax.reload(null, false);
+        return;
+    }
     $.ajax({
         url: '/general-ledger-list',
         type: 'GET',

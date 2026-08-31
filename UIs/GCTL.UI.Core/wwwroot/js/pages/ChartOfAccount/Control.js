@@ -1,4 +1,4 @@
-﻿let selectedControlLedger = [];
+let selectedControlLedger = [];
 let currenControltPage = 1;
 let ControlpageSize = 10;
 let ControlcurrentSortColumn = 'SubControlLedgerCodeNo';
@@ -222,6 +222,10 @@ function ClearControlLedgerForm() {
 
 //#region Load All Control Ledger Data
 function LoadAllControlLedger(page = 1, pageSize = ControlpageSize, sortColumn = ControlcurrentSortColumn, sortDirection = ControlcurrentSortDirection, searchTerm = "", groupCode = "") {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#controlLedgerTable')) {
+        $('#controlLedgerTable').DataTable().ajax.reload(null, false);
+        return;
+    }
     $.ajax({
         url: '/control-ledger-list',
         type: 'GET',
@@ -282,9 +286,9 @@ function LoadAllControlLedger(page = 1, pageSize = ControlpageSize, sortColumn =
 //#endregion
 
 //#region Populate Data For Edit
-$(document).on('click', '.control-ledger', function (e) {
+$(document).on('click', '.js-controlledger-edit, .control-ledger', function (e) {
     e.preventDefault();
-    const id = parseInt($(this).data('autoid'));
+    const id = parseInt($(this).data('id') || $(this).data('autoid'));
     if (!id) return;
 
     isEditMode = true;

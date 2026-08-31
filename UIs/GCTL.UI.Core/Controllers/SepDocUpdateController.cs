@@ -133,6 +133,36 @@ namespace GCTL_App.Controllers
         #region Save / Delete
         [HttpPost]
         [ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Save(SepDocumentationEntryViewModel model)
+        //{
+        //    bool isNewRecord = model.Tc == 0;
+        //    try
+        //    {
+        //        var permissionResult = await CheckAddOrEditPermissionAsync(isNewRecord);
+        //        if (permissionResult != null)
+        //            return permissionResult;
+
+        //        if (!ModelState.IsValid)
+        //        {
+        //            var errors = ModelState
+        //                .Where(x => x.Value.Errors.Count > 0)
+        //                .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+        //                .ToList();
+
+        //            return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+        //        }
+
+
+        //        model.ToAudit(LoginInfo);
+        //        var result = await _service.SaveDocumentationAsync(model, LoginInfo.CompanyCode, LoginInfo?.EmployeeId);
+
+        //        return Json(new { success = result.Success, message = result.Message, data = result.Data });
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return Json(ApiResponse.Error(isNewRecord ? AppMessages.SaveFailed : AppMessages.UpdateFailed));
+        //    }
+        //}
         public async Task<IActionResult> Save(SepDocumentationEntryViewModel model)
         {
             bool isNewRecord = model.Tc == 0;
@@ -145,24 +175,47 @@ namespace GCTL_App.Controllers
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
-                        .ToList();
+                        .Where(x => x.Value.Errors.Count > 0).Select(x => new
+                        {
+                            Field = x.Key,
+                            Errors = x.Value.Errors
+                                .Select(e => e.ErrorMessage)
+                        }).ToList();
 
-                    return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Please correct the highlighted fields.",
+                        errors
+                    });
                 }
 
-
                 model.ToAudit(LoginInfo);
-                var result = await _service.SaveDocumentationAsync(model, LoginInfo.CompanyCode, LoginInfo?.EmployeeId);
 
-                return Json(new { success = result.Success, message = result.Message, data = result.Data });
+                var result = await _service.SaveDocumentationAsync(
+                    model,
+                    LoginInfo.CompanyCode,
+                    LoginInfo?.EmployeeId);
+
+                return Json(new
+                {
+                    success = result.Success,
+                    message = result.Message,
+                    data = result.Data
+                });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return Json(ApiResponse.Error(isNewRecord ? AppMessages.SaveFailed : AppMessages.UpdateFailed));
+                return Json(new
+                {
+                    success = false,
+                    message = isNewRecord
+                        ? AppMessages.SaveFailed
+                        : AppMessages.UpdateFailed
+                });
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ModulePermission(PermissionType.Delete)]
