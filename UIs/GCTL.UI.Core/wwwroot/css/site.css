@@ -424,32 +424,33 @@ textarea {
 
 .menu-item a:hover,
 .menu-item .menu-link:hover {
-    background-color: var(--primary-soft) !important;
+    background-color: hsl(var(--primary-hsl) / 0.05) !important;
     color: var(--primary) !important;
 }
 
-/* Parent active menu item */
+/* Parent active menu item - 8% opacity */
 .menu-item.active > .menu-link {
-    background-color: rgba(var(--primary-hsl), 0.08);
-    color: var(--primary);
+    background-color: hsl(var(--primary-hsl) / 0.08) !important;
+    color: var(--primary) !important;
     font-weight: 600;
 }
 
-/* Direct active leaf link */
+/* Direct active child leaf link - 13% opacity (5% higher than parent) */
 .menu-item .menu-link.active,
 .menu-item.direct-active > .menu-link {
-    background-color: var(--primary) !important;
-    color: #ffffff !important;
+    background-color: hsl(var(--primary-hsl) / 0.13) !important;
+    color: var(--primary) !important;
     font-weight: 600;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    box-shadow: none !important;
 }
 
 .menu-item .menu-link.active i,
 .menu-item.direct-active > .menu-link i,
 .menu-item .menu-link.active .menu-arrow,
 .menu-item.direct-active > .menu-link .menu-arrow {
-    color: #ffffff !important;
+    color: var(--primary) !important;
 }
+
 
 .menu-text {
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -477,9 +478,12 @@ textarea {
 
 :root[data-theme="dark"] .menu-item .menu-link.active,
 :root[data-theme="dark"] .menu-item.direct-active > .menu-link {
-    background-color: var(--primary) !important;
-    color: #ffffff !important;
+    background-color: hsl(var(--primary-hsl) / 0.2) !important;
+    color: var(--primary) !important;
 }
+
+
+
 /* -----------------------------------------------------------------
    Content Wrapper
    ----------------------------------------------------------------- */
