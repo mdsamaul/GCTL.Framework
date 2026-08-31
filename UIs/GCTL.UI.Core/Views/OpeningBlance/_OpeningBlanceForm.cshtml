@@ -1,4 +1,4 @@
-﻿@using GCTL.UI.Core.ViewModels
+@using GCTL.UI.Core.ViewModels
 
 <div class="card shadow-sm rounded-2">
 
@@ -35,10 +35,9 @@
 
     <div class="card-body">
         <form id="BlanceTypeForm">
-            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="BlanceautoId" name="autoId" />
 
-                <fieldset class="border rounded-3 p-3 mb-3">
+                @* <fieldset class="border rounded-3 p-3 mb-3"> *@
                     <div class="row g-3">
 
                         @* 1. Company Code *@
@@ -115,46 +114,53 @@
                                 InputName = "TrType",
                                 LabelText = "Select TrType",
                                 Placeholder = "-- Select --",
+                                SelectItems = new SelectList(new[]
+                                {
+                                    new { Value = "Dr", Text = "Debit" },
+                                    new { Value = "Cr", Text = "Credit" }
+                                }, "Value", "Text"),
                                 IsRequired = true
                             })
                         </div>
 
                     </div>
-                </fieldset>
+                @* </fieldset> *@
 
-                <hr class="my-3 mx-1">
+                @* --- Entry & Update Date Section (Hidden by default; shown only on edit) --- *@
+                <div id="entryUpdateDateSection" class="d-none">
+                    <hr class="my-3 mx-1">
 
-                @* --- Entry & Update Date Section --- *@
-                <div class="row g-3">
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                    {
-                        IsVisible = true,
-                        ShowOnInit = true,
-                        ColumnClass = "col-md-6",
-                        FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "BlancedisplayLDate",
-                        LabelText = "Entry Date:",
-                        LabelInline = true,
-                        LabelColWidth = 4,
-                        LabelColumnClass = "text-end",
-                        LabelStyle = "font-size:13px;",
-                        InputStyle = "font-size:13px;"
-                    })
+                    <div class="row g-3">
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.ReadonlyDisplay,
+                            InputId = "BlancedisplayLDate",
+                            LabelText = "Entry Date:",
+                            LabelInline = true,
+                            LabelColWidth = 4,
+                            LabelColumnClass = "text-end",
+                            LabelStyle = "font-size:13px;",
+                            InputStyle = "font-size:13px;"
+                        })
 
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                    {
-                        IsVisible = true,
-                        ShowOnInit = true,
-                        ColumnClass = "col-md-6",
-                        FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "BlancedisplayModifyDate",
-                        LabelText = "Last Update Date:",
-                        LabelInline = true,
-                        LabelColWidth = 4,
-                        LabelColumnClass = "text-end",
-                        LabelStyle = "font-size:13px;",
-                        InputStyle = "font-size:13px;"
-                    })
+                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                        {
+                            IsVisible = true,
+                            ShowOnInit = true,
+                            ColumnClass = "col-md-6",
+                            FieldType = FieldType.ReadonlyDisplay,
+                            InputId = "BlancedisplayModifyDate",
+                            LabelText = "Last Update Date:",
+                            LabelInline = true,
+                            LabelColWidth = 4,
+                            LabelColumnClass = "text-end",
+                            LabelStyle = "font-size:13px;",
+                            InputStyle = "font-size:13px;"
+                        })
+                    </div>
                 </div>
 
                 @* Bottom Save Button *@
@@ -173,7 +179,6 @@
                     })
                 </div>
 
-            </fieldset>
         </form>
     </div>
 </div>

@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.VoucherType;
+using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels.VoucherType;
 using GCTL.Service.VoucherType;
 using GCTL.UI.Core.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ namespace GCTL_App.Controllers.VoucherType
     public class VoucherTypeController : BaseController
     {
         private readonly IVoucherType _service;
-        public VoucherTypeController( IVoucherType service) : base()
+        public VoucherTypeController(IVoucherType service) : base()
         {
             _service = service;
         }
@@ -17,6 +18,49 @@ namespace GCTL_App.Controllers.VoucherType
             return View();
         }
 
+        [HttpPost]
+        [Route("voucher-type/get-table-data")]
+        public async Task<IActionResult> GetGridData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "",
+            string sortOrder = "desc")
+        {
+            try
+            {
+                var request = new PaginationRequest
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await _service.GetTableDataAsync(request);
+                return Json(new
+                {
+                    draw = draw,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount,
+                    data = result.Data ?? new List<VoucherTypeVM>()
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching voucher types.", error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("next-voucher-type-code")]
+        public async Task<IActionResult> GetNextVoucherTypeCode()
+        {
+            var code = await _service.GetLastVoucherTypeCodeAsync();
+            return Ok(code);
+        }
 
         [HttpGet]
         [Route("voucher-type/details/{id}")]

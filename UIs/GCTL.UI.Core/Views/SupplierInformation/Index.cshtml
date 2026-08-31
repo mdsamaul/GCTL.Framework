@@ -16,7 +16,7 @@
         margin-right: 0px;
     }
 </style>
-@* 
+@*
 <section class="content-header" style="padding-bottom: 0;">
     <div class="container-fluid">
         <div class="calloutx callout-info" style="height: 30px;">
@@ -34,15 +34,15 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
 </section> *@
 
-<section class="content">
-    <div class="container-fluid">
+<section class="content px-0">
+    <div class="container-fluid px-0">
         <div class="form-group row">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header px-lg-4">
+                    <div class="card-header">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Supplier Information",
@@ -72,7 +72,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
                 <partial name="_BottomNavigation" />
             </div>

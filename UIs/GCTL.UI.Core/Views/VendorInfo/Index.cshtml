@@ -88,15 +88,15 @@
         }
 
 </style>
-     
+
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
-<section class="content consistent-look">
-    <div class="container-fluid">
+<section class="content consistent-look px-0">
+    <div class="container-fluid px-0">
         <div class="row">
 
-            <div class="col-md-6 pr-0">
+            <div class="col-md-6 pe-1">
                 <div class="card">
                     <div class="card-header px-2">
 
@@ -108,7 +108,7 @@
                             ClearBtnClass = "js-VendorInfo-clear"
                         })
                     </div>
-                  
+
 
                    <div>
                         @* @if (Model.TabModel != null)
@@ -151,9 +151,7 @@
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
+            <div class="col-md-6 ps-1">
                         <div class="js-VendorInfo-grid-container">
                             @await Html.PartialAsync("_CustomGrid", new GridModel
                             {
@@ -174,8 +172,6 @@
                             })
 
                         </div>
-                    </div>
-                </div>
             </div>
         </div>
 
