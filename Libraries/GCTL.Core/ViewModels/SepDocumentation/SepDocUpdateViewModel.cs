@@ -22,7 +22,7 @@ namespace GCTL.Core.ViewModels.SepDocumentation
         public decimal? Tc { get; set; }               // 0 = new
         public string? JobNo { get; set; }
         public string? PrifixId { get; set; }
-        public bool? IsCustomJobNo { get; set; }
+        public string? IsCustomJobNo { get; set; }
         public string? ShipmentModeId { get; set; }     // ExpenseTypeID (drives Sea/Air group)
         public string? TransportModeTypeId { get; set; } // "SEA" / "AIR" - resolved server-side too
         public DateTime? Date { get; set; }             // Job Date
@@ -96,6 +96,27 @@ namespace GCTL.Core.ViewModels.SepDocumentation
 
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? DocumentHandoverDate { get; set; }
+        public DateTime? CargoHandoverDate { get; set; }
+        public string? UndertakingNo { get; set; }
+        public string? PONo { get; set; }
+        public string? ShipmentStatus { get; set; }
+        public string? SupplierId { get; set; }
+        public string? VehicleId { get; set; }
+        public string? Vehicle { get; set; }
+        public string? Vendor { get; set; }
+        public string? DocumentationId { get; set; }
+        public string? ConsoleNo { get; set; }
+        public string? DocumentTypeId { get; set; }
+        public string? CustomerID_Importer { get; set; }
+        public string? DepotID { get; set; }
+        public string? BookingConfirmationReference { get; set; }
+        public string? PackingUnitType { get; set; }
+        public decimal? TransportCost { get; set; }
+        public bool? IsEdit { get; set; }
+        public decimal? MinimumAgencyCom { get; set; }
+        public decimal? CommOnInvoiceValue { get; set; }
+        public decimal? PackingQuantity { get; set; }
     }
 
     public class SepDocJobListDto

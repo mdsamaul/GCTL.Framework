@@ -625,7 +625,8 @@ $(document).ready(function () {
         }
 
         const model = collectFormData();
-
+        debugger
+        console.log(model);
         $.ajax({
             url: '/SepDocUpdate/Save',
             type: 'POST',
