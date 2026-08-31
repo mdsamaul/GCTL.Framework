@@ -118,10 +118,9 @@
             display: none;
         }
 
-        /* Right Section: Logistics Visual Panel */
+        /* Visual Panel (Left Side with Mirrored Background Image) */
         .cnf-visual-section {
             flex: 1.5;
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.88) 50%, rgba(3, 105, 161, 0.82) 100%), url('@Url.Content("~/images/login-bg.png")') no-repeat center center / cover;
             padding: clamp(1.5rem, 3.5vh, 3rem) clamp(1.5rem, 3vw, 2.5rem);
             display: flex;
             flex-direction: column;
@@ -129,6 +128,15 @@
             position: relative;
             overflow: hidden;
             color: #ffffff;
+        }
+
+        .cnf-visual-section::after {          
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgb(15 23 42 / 38%) 0%, rgb(30 41 59 / 38%) 50%, rgb(3 105 161 / 51%) 100%), url(/images/login-bg-2.jpg) no-repeat center center / cover;
+            transform: scaleX(-1);
+            z-index: 0;
         }
        .com-text {
             position: absolute;
@@ -551,7 +559,6 @@
             }
         }
     </style>
-    </style>
 </head>
 <body>
 
@@ -568,10 +575,69 @@
     <div class="cnf-login-wrapper">
         <div class="cnf-login-row">
             
-            <!-- Left Side: Login Form -->
+            <!-- Left Side: Logistics Visual Panel -->
+            <div class="cnf-visual-section">
+                
+                <div class="cnf-visual-content">
+                    <div class="cnf-visual-tag">
+                         <img src="@Url.Content("~/images/gctl.png")" alt="GCTL" style="max-width: 260px; height: auto;" />
+                    </div>
+
+                    <h2 class="cnf-visual-heading">
+                        Streamline Your <span>Customs Clearance</span> & Cargo Freight
+                    </h2>
+
+                    <p class="cnf-visual-desc">
+                        Complete enterprise suite for customs brokers, freight forwarders, and shipping agents to manage Bill of Entry, Duty Assessment, and Port Manifests seamlessly.
+                    </p>
+
+                    <!-- Feature Highlights -->
+                    <div class="cnf-feature-list">
+                        <div class="cnf-feature-item">
+                            <div class="cnf-feature-icon">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                            <div class="cnf-feature-text">Automated Bill of Entry & ASYCUDA Integration</div>
+                        </div>
+
+                        <div class="cnf-feature-item">
+                            <div class="cnf-feature-icon">
+                                <i class="bi bi-calculator-fill"></i>
+                            </div>
+                            <div class="cnf-feature-text">Real-time HS-Code Duty & Tariff Calculator</div>
+                        </div>
+
+                        <div class="cnf-feature-item">
+                            <div class="cnf-feature-icon">
+                                <i class="bi bi-diagram-3-fill"></i>
+                            </div>
+                            <div class="cnf-feature-text">Container Yard & Port Manifest Tracking</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Footer -->
+                <div class="cnf-stats-row">
+                    <div class="cnf-stat-box">
+                        <div class="cnf-stat-val">99.9%</div>
+                        <div class="cnf-stat-lbl">Clearance Accuracy</div>
+                    </div>
+                    <div class="cnf-stat-box">
+                        <div class="cnf-stat-val">50K+</div>
+                        <div class="cnf-stat-lbl">Shipments Handled</div>
+                    </div>
+                    <div class="cnf-stat-box">
+                        <div class="cnf-stat-val">24/7</div>
+                        <div class="cnf-stat-lbl">Port Integration</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Side: Login Form -->
             <div class="cnf-form-section" style="position: relative;">
                 
-                <!-- Top-Right Logo of Left Section -->
+                <!-- Top-Right Logo of Form Section -->
                 <div style="position: absolute; top: 0px; right: 0px; z-index: 5;">
                     <h3 class="com-text mb-0">
                         <img src="@Url.Content("~/images/fermosa-wX200.png")" alt="Fermosa" style="max-height: 42px; width: auto;" />
@@ -580,18 +646,8 @@
 
                 <div>
                     <!-- Logo Header -->
-                    @* <a href="/" class="cnf-logo-brand mb-4">
-                        <div class="cnf-logo-icon">
-                            <i class="bi bi-box-seam-fill"></i>
-                        </div>
-                        <div>
-                            <h1 class="cnf-logo-text">CNF ERP</h1>
-                            <span class="cnf-logo-sub">Customs & Logistics</span> 
-                        </div>
-                    </a> *@
                    <div class="mb-3 pt-4 mt-4">
                         <div class="cnf-logo-icon">
-                            @* <i class="bi bi-person-gear"></i> *@
                            <i class="bi bi-people"></i>
                         </div>
                    </div>
@@ -667,71 +723,6 @@
                 <div class="cnf-footer">
                     © 2026 CNF Management System. All rights reserved.
                 </div>
-            </div>
-
-            <!-- Right Side: Logistics Visual Panel -->
-            <div class="cnf-visual-section" style="background-image: linear-gradient(135deg, rgb(15 23 42 / 11%) 0%, rgb(30 41 59 / 26%) 50%, rgb(3 105 161 / 37%) 100%), url(/images/login-bg.png);
-    background-size: cover;
-    background-position: center;">
-               @* <h3 class="com-text">
-                    <img src="@Url.Content("~/images/fermosa-wX200.png")" alt="Fermosa" />
-                </h3> *@
-                <div class="cnf-visual-content">
-                    <div class="cnf-visual-tag">
-                        @* <i class="bi bi-globe-americas"></i> 
-                         <span>Port & Customs Automation</span> *@
-                         <img src="@Url.Content("~/images/gctl.png")" alt="GCTL" style="max-width: 260px; height: auto;" />
-                    </div>
-
-                    <h2 class="cnf-visual-heading">
-                        Streamline Your <span>Customs Clearance</span> & Cargo Freight
-                    </h2>
-
-                    <p class="cnf-visual-desc">
-                        Complete enterprise suite for customs brokers, freight forwarders, and shipping agents to manage Bill of Entry, Duty Assessment, and Port Manifests seamlessly.
-                    </p>
-
-                    <!-- Feature Highlights -->
-                    <div class="cnf-feature-list">
-                        <div class="cnf-feature-item">
-                            <div class="cnf-feature-icon">
-                                <i class="bi bi-file-earmark-text-fill"></i>
-                            </div>
-                            <div class="cnf-feature-text">Automated Bill of Entry & ASYCUDA Integration</div>
-                        </div>
-
-                        <div class="cnf-feature-item">
-                            <div class="cnf-feature-icon">
-                                <i class="bi bi-calculator-fill"></i>
-                            </div>
-                            <div class="cnf-feature-text">Real-time HS-Code Duty & Tariff Calculator</div>
-                        </div>
-
-                        <div class="cnf-feature-item">
-                            <div class="cnf-feature-icon">
-                                <i class="bi bi-diagram-3-fill"></i>
-                            </div>
-                            <div class="cnf-feature-text">Container Yard & Port Manifest Tracking</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistics Footer -->
-                <div class="cnf-stats-row">
-                    <div class="cnf-stat-box">
-                        <div class="cnf-stat-val">99.9%</div>
-                        <div class="cnf-stat-lbl">Clearance Accuracy</div>
-                    </div>
-                    <div class="cnf-stat-box">
-                        <div class="cnf-stat-val">50K+</div>
-                        <div class="cnf-stat-lbl">Shipments Handled</div>
-                    </div>
-                    <div class="cnf-stat-box">
-                        <div class="cnf-stat-val">24/7</div>
-                        <div class="cnf-stat-lbl">Port Integration</div>
-                    </div>
-                </div>
-
             </div>
 
         </div>
