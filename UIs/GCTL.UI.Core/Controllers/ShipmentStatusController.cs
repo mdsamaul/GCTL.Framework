@@ -1,5 +1,4 @@
 using GCTL.Core.Data;
-using GCTL.Core.Helpers;
 using GCTL.Data.Models;
 using GCTL.Service.ShipmentMode;
 using GCTL.UI.Core.Controllers;
@@ -198,5 +197,6 @@ namespace GCTL.Controllers.MasterSetup
 
             return Json(result);
         }
+
     }
 }

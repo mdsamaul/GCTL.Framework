@@ -1,11 +1,8 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.PortType;
 using GCTL.Core.ViewModels.TransportType;
 using GCTL.Service.Common;
-using GCTL.Service.PortType;
 using GCTL.Service.TransportType;
-using GCTL.UI.Core.ViewModels.PortType;
 using GCTL.UI.Core.ViewModels.TransportType;
 using Microsoft.AspNetCore.Mvc;
 
@@ -231,5 +228,6 @@ namespace GCTL.UI.Core.Controllers
         //}
 
         #endregion
+
     }
 }

@@ -20,24 +20,10 @@ namespace GCTL.Core.ViewModels
         public string? transportModeTypeId { get; set; }
         [Searchable]
         public string? transportModeType { get; set; }
-
         [Searchable]
         public string? ShortName { get; set; }
-
-        //public string? LUser { get; set; }
-
-        //public DateTime? LDate { get; set; }
-
-        //public string? LIP { get; set; }
-
-        //public string? LMAC { get; set; }
-
-        //public DateTime? ModifyDate { get; set; }
-
         public string? ExpenseLedgerCodeNo { get; set; }
-
         public string? RevenueLedgerCodeNo { get; set; }
-
         public string? AdvanceLedgerCode { get; set; }
     }
 }

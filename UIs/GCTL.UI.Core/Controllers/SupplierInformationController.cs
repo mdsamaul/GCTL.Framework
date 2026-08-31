@@ -4,7 +4,6 @@ using GCTL.Core.ViewModels.SupplierInformation;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.SupplierInformation;
-using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.SupplierInformation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
