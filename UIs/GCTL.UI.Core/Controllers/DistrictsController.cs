@@ -1,14 +1,9 @@
 ﻿
 using GCTL.Core.Helpers;
-using GCTL.Core.ViewModels.ContactPersonInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Districts;
-using GCTL.Core.ViewModels.PortName;
 using GCTL.Service.Common;
-using GCTL.Service.ContactPersonInfo;
-using GCTL.Service.Designations;
 using GCTL.Service.Districts;
-using GCTL.Service.PortName;
 using GCTL.UI.Core.ViewModels.Districts;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,7 +48,7 @@ namespace GCTL.UI.Core.Controllers
                 }
                 else
                 {
-                    commonService.FindMaxNo(ref strMaxNO, "DistrictID", "HRM_Def_District", 2);
+                    commonService.FindMaxNo(ref strMaxNO, "DistrictID", "HRM_Def_District", 3);
 
                     model.Setup = new DistrictsSetupViewModel
                     {
