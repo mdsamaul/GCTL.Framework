@@ -221,7 +221,6 @@ namespace GCTL.Service.Districts
 
         #region NextCode
 
-
         public async Task<string> GenerateNextCode()
         {
 
@@ -234,7 +233,7 @@ namespace GCTL.Service.Districts
                 lastNumber++;
                 nextCode = lastNumber;
             }
-            return nextCode.ToString("D2");
+            return nextCode.ToString("D3");
 
         }
 
