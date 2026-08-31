@@ -1,786 +1,417 @@
 @model LoginViewModel
 @{
+    ViewData["Title"] = "HRM & Payroll Management System - Login";
     Layout = null;
-    ViewData["Title"] = "CNF System - Sign In";
 }
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
+
+<!doctype html>
+<html lang="en">
 <head>
+    <link rel="shortcut icon" href="~/images/CoIcon.ico" />
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Customs & Freight ERP</title>
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5.3 & Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
     <style>
-        :root {
-            --cnf-primary: #0284c7;
-            --cnf-primary-hover: #0369a1;
-            --cnf-navy-dark: #0f172a;
-            --cnf-navy-card: #1e293b;
-            --cnf-bg-light: #f8fafc;
-            --cnf-card-bg: #ffffff;
-            --cnf-text-main: #0f172a;
-            --cnf-text-muted: #64748b;
-            --cnf-border-color: #e2e8f0;
-            --cnf-input-bg: #f8fafc;
-            --cnf-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
-            --cnf-accent-cyan: #06b6d4;
-            --cnf-accent-blue: #3b82f6;
-        }
-
-        [data-theme="dark"] {
-            --cnf-primary: #38bdf8;
-            --cnf-primary-hover: #0284c7;
-            --cnf-bg-light: #0b0f17;
-            --cnf-card-bg: rgba(15, 23, 42, 0.85);
-            --cnf-text-main: #f8fafc;
-            --cnf-text-muted: #94a3b8;
-            --cnf-border-color: #334155;
-            --cnf-input-bg: #1e293b;
-            --cnf-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
         * {
-            box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        html, body {
-            height: 100vh;
-            width: 100vw;
             margin: 0;
             padding: 0;
-            overflow: hidden !important;
-            background-color: var(--cnf-bg-light);
-            color: var(--cnf-text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            position: relative;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            height: 100vh;
+            background: #f4f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
 
-        /* Subtle background container grid */
-        .bg-grid-overlay {
-            position: absolute;
-            inset: 0;
-            background-image: radial-gradient(rgba(14, 165, 233, 0.12) 1px, transparent 1px);
-            background-size: 24px 24px;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Outer Container */
-        .cnf-login-wrapper {
-            position: relative;
-            z-index: 1;
-            width: 92%;
+        .login-container {
+            width: 68vw;
             max-width: 1100px;
-            max-height: 92vh;
-            background: var(--cnf-card-bg);
-            border: 1px solid var(--cnf-border-color);
-            border-radius: 20px;
-            box-shadow: var(--cnf-shadow);
+            min-width: 850px;
+            height: 72vh;
+            min-height: 540px;
+            background: #fff;
+            border-radius: 12px;
             overflow: hidden;
-            backdrop-filter: blur(16px);
-            transition: all 0.3s ease;
+            display: flex;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .35);
         }
 
-        /* Split Row */
-        .cnf-login-row {
-            display: flex;
-            height: 100%;
-            max-height: 92vh;
-        }
-
-        /* Left Section: Form */
-        .cnf-form-section {
-            flex: 1;
-            padding: clamp(1.2rem, 3vh, 2.5rem) clamp(1.2rem, 3vw, 2.5rem);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: var(--cnf-card-bg);
-            overflow-y: auto;
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
-        .cnf-form-section::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Visual Panel (Left Side with Mirrored Background Image) */
-        .cnf-visual-section {
-            flex: 1.5;
-            padding: clamp(1.5rem, 3.5vh, 3rem) clamp(1.5rem, 3vw, 2.5rem);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        .left-panel {
+            width: 58%;
             position: relative;
-            overflow: hidden;
-            color: #ffffff;
+            background: linear-gradient(rgba(11, 52, 112, .60), rgba(20, 87, 190, .85)), url('/images/login-bg-2.jpg') center center;
+            background-size: cover;
+            background-repeat: no-repeat;
         }
 
-        .cnf-visual-section::after {          
-            content: '';
+        .overlay {
             position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgb(15 23 42 / 38%) 0%, rgb(30 41 59 / 38%) 50%, rgb(3 105 161 / 51%) 100%), url(/images/login-bg-2.jpg) no-repeat center center / cover;
-            transform: scaleX(-1);
-            z-index: 0;
-        }
-       .com-text {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-
-        .com-text img {
-            height: auto;
-            display: block;
-        }
-        /* Animated cargo pattern lines */
-        .cnf-visual-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 60%);
-            animation: pulseGlow 12s infinite ease-in-out;
-            pointer-events: none;
+            height: 100%;
+            padding: 45px 50px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        @@keyframes pulseGlow {
-            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
-            50% { transform: scale(1.15) rotate(180deg); opacity: 0.9; }
+        .logo {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
         }
 
-        /* Theme Toggle Floating Button */
-        .theme-toggle-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            z-index: 10;
+        .logo img {
+            max-height: 75px;
+            width: auto;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+            margin-bottom: 8px;
+        }
+
+        .logo i {
+            color: #38bdf8;
+            margin-right: 10px;
+        }
+
+        .hero-title {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 18px;
+        }
+
+        .hero-title span {
+            color: #38bdf8;
+        }
+
+        .hero-text {
+            font-size: 13.5px;
+            line-height: 1.75;
+            opacity: .95;
+            margin-bottom: 28px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 14px;
+        }
+
+        .feature i {
             width: 42px;
             height: 42px;
-            border-radius: 12px;
-            border: 1px solid var(--cnf-border-color);
-            background: var(--cnf-card-bg);
-            color: var(--cnf-text-main);
+            background: #38bdf8;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-
-        .theme-toggle-btn:hover {
-            transform: translateY(-2px);
-            border-color: var(--cnf-primary);
-            color: var(--cnf-primary);
-        }
-
-        /* Logo Branding */
-        .cnf-logo-brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            margin-bottom: clamp(1rem, 2.5vh, 2rem);
-        }
-
-        .cnf-logo-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            color: #0369a1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            border: 1px dotted #0369a1;
-        }
-
-        .cnf-logo-text {
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: var(--cnf-text-main);
-            margin: 0;
-            line-height: 1.1;
-        }
-
-        .cnf-logo-sub {
-            font-size: 0.72rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--cnf-primary);
-            display: block;
-        }
-
-        /* Titles */
-        .cnf-heading {
-            font-size: clamp(1.4rem, 2.5vh, 1.85rem);
-            font-weight: 700;
-            letter-spacing: -0.025em;
-            margin-bottom: 0.3rem;
-            color: var(--cnf-text-main);
-        }
-
-        .cnf-subtitle {
-            font-size: clamp(0.825rem, 1.5vh, 0.925rem);
-            color: var(--cnf-text-muted);
-            margin-bottom: clamp(1rem, 2.5vh, 2rem);
-        }
-
-        /* Form Inputs */
-        .cnf-field-wrapper {
-            margin-bottom: clamp(0.75rem, 1.8vh, 1.25rem);
-            position: relative;
-        }
-
-        .cnf-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-            color: var(--cnf-text-main);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .cnf-input-group {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .cnf-input-icon {
-            position: absolute;
-            left: 14px;
-            color: var(--cnf-text-muted);
-            font-size: 1.1rem;
-            pointer-events: none;
-            transition: color 0.2s ease;
-        }
-
-        .cnf-input {
-            width: 100%;
-            height: clamp(40px, 5.5vh, 48px);
-            padding: 0.5rem 1rem 0.5rem 2.6rem;
-            font-size: 0.95rem;
-            background-color: var(--cnf-input-bg);
-            border: 1.5px solid var(--cnf-border-color);
-            border-radius: 12px;
-            color: var(--cnf-text-main);
-            transition: all 0.2s ease-in-out;
-            outline: none;
-        }
-
-        .cnf-input:focus {
-            border-color: var(--cnf-primary);
-            background-color: var(--cnf-card-bg);
-            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
-        }
-
-        .cnf-input:focus + .cnf-input-icon,
-        .cnf-input-group:focus-within .cnf-input-icon {
-            color: var(--cnf-primary);
-        }
-
-        /* Password Toggle Eye Button */
-        .cnf-password-toggle {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: var(--cnf-text-muted);
-            font-size: 1.15rem;
-            padding: 4px 8px;
-            cursor: pointer;
-            transition: color 0.2s ease;
-            border-radius: 6px;
-        }
-
-        .cnf-password-toggle:hover {
-            color: var(--cnf-primary);
-        }
-
-        /* Checkbox & Links */
-        .cnf-form-options {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: clamp(1rem, 2.2vh, 1.6rem);
-        }
-
-        .cnf-checkbox-label {
-            font-size: 0.85rem;
-            color: var(--cnf-text-muted);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .cnf-checkbox {
-            width: 17px;
-            height: 17px;
-            border-radius: 5px;
-            border: 1.5px solid var(--cnf-border-color);
-            accent-color: #0284c7;
-            cursor: pointer;
-        }
-
-        .cnf-forgot-link {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--cnf-primary);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .cnf-forgot-link:hover {
-            color: var(--cnf-primary-hover);
-            text-decoration: underline;
-        }
-
-        /* Primary Login Button */
-        .cnf-btn-submit {
-            width: 100%;
-            height: clamp(42px, 5.5vh, 50px);
-            background: linear-gradient(135deg, #0284c7, #0369a1);
+            font-size: 17px;
             color: #ffffff;
-            font-weight: 600;
-            font-size: 0.95rem;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
-            cursor: pointer;
-            transition: all 0.25 ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .cnf-btn-submit:hover {
-            transform: translateY(-1.5px);
-            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
-            background: linear-gradient(135deg, #0369a1, #075985);
-        }
-
-        .cnf-btn-submit:active {
-            transform: translateY(0);
-        }
-
-        /* Secure Login Indicator */
-        .cnf-secure-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            color: #10b981;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            padding: 6px 12px;
-            border-radius: 20px;
-            margin-top: clamp(0.75rem, 1.8vh, 1.25rem);
-            margin-bottom: 0.5rem;
-        }
-
-        /* Validation Summary Alert */
-        .cnf-alert-danger {
-            background-color: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            color: #ef4444;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-size: 0.85rem;
-            margin-bottom: 1.2rem;
-        }
-
-        /* Form Footer */
-        .cnf-footer {
-            font-size: 0.76rem;
-            color: var(--cnf-text-muted);
-            text-align: center;
-            margin-top: clamp(0.75rem, 1.8vh, 1.25rem);
-        }
-
-        /* Right Panel Content & Artwork */
-        .cnf-visual-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        .cnf-visual-tag {
-            margin-bottom: clamp(1rem, 2vh, 1.5rem);
-        }
-
-        .cnf-visual-heading {
-            font-size: clamp(1.6rem, 3vh, 2.2rem);
-            font-weight: 800;
-            line-height: 1.25;
-            letter-spacing: -0.03em;
-            margin-bottom: 0.75rem;
-        }
-
-        .cnf-visual-heading span {
-            background: linear-gradient(135deg, #38bdf8, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .cnf-visual-desc {
-            font-size: clamp(0.85rem, 1.5vh, 0.95rem);
-            color: #94a3b8;
-            line-height: 1.5;
-            margin-bottom: clamp(1.2rem, 2.5vh, 2rem);
-            max-width: 440px;
-        }
-
-        /* Logistics Feature Pills */
-        .cnf-feature-list {
-            display: flex;
-            flex-direction: column;
-            gap: clamp(8px, 1.5vh, 14px);
-            margin-bottom: clamp(1.2rem, 2.5vh, 2rem);
-        }
-
-        .cnf-feature-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 16px;
-            border-radius: 12px;
-            backdrop-filter: blur(2px);
-            transition: all 0.25s ease;
-        }
-
-        .cnf-feature-item:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateX(4px);
-            border-color: rgba(56, 189, 248, 0.4);
-        }
-
-        .cnf-feature-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: rgba(56, 189, 248, 0.15);
-            color: #38bdf8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
             flex-shrink: 0;
         }
 
-        .cnf-feature-text {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #e2e8f0;
+        .right-panel {
+            position: relative;
+            width: 42%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
         }
 
-        /* Statistics Counter Pill */
-        .cnf-stats-row {
+        .login-box {
+            width: 100%;
+            max-width: 90%;
+        }
+
+        .login-header {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .login-header .header-logo-icon {
+            font-size: 32px;
+            color: #38bdf8;
+            margin-bottom: 12px;
+        }
+
+        .login-header h2 {
+            font-size: 30px;
+            color: #0f172a;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .input-group-custom {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .input-group-custom input {
+            width: 100%;
+            padding: 13px 15px 13px 45px;
+            border: 1px solid #dbe4ee;
+            border-radius: 10px;
+            font-size: 14.5px;
+            outline: none;
+            transition: .3s;
+        }
+
+        .input-group-custom input:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 10px rgba(14, 165, 233, .2);
+        }
+
+        .field-validation-error {
+            color: #d9534f;
+            font-size: 0.85rem;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .validation-summary-errors {
+            color: #d9534f;
+            margin-bottom: 12px;
+            font-size: 0.88rem;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            font-size: 14px;
+        }
+
+        .options label {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-            padding-top: 1.2rem;
-            position: relative;
-            z-index: 2;
+            gap: 6px;
+            cursor: pointer;
+            color: #334155;
         }
 
-        .cnf-stat-box {
-            flex: 1;
-        }
-
-        .cnf-stat-val {
-            font-size: clamp(1.1rem, 2vh, 1.4rem);
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 2px;
-        }
-
-        .cnf-stat-lbl {
-            font-size: 0.72rem;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .options a {
+            text-decoration: none;
+            color: #0284c7;
             font-weight: 600;
         }
 
-        /* Responsive Breakpoints */
-        @@media (max-width: 991.98px) {
-            .cnf-login-wrapper {
-                width: 95%;
-                max-height: 96vh;
-            }
-            .cnf-login-row {
-                flex-direction: column;
-                max-height: 96vh;
-            }
-            .cnf-visual-section {
-                display: none; /* Hide right panel on tablet/mobile to guarantee zero vertical scroll */
-            }
-            .cnf-form-section {
-                padding: 1.75rem 1.25rem;
-            }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0284c7, #0ea5e9);
+            border: none;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: .3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        @@media (max-width: 575.98px) {
-            .cnf-login-wrapper {
-                width: 98%;
-                max-height: 98vh;
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(14, 165, 233, .3);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .version {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        @@media(max-width:992px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+                padding: 20px 10px;
             }
-            .cnf-form-section {
-                padding: 1.25rem 1rem;
+
+            .login-container {
+                width: 95%;
+                min-width: auto;
+                height: auto;
+                flex-direction: column;
             }
-            .cnf-heading {
-                font-size: 1.35rem;
+
+            .left-panel,
+            .right-panel {
+                width: 100%;
+            }
+
+            .left-panel {
+                height: auto;
+                min-height: 420px;
+            }
+
+            .hero-title {
+                font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="login-container">
+        <div class="left-panel">
+            <div class="overlay">
+                <div class="logo">                   
+                    <img src="@Url.Content("~/images/gctl.png")" alt="GCTL Infosys" height="70" style="object-fit:contain;display:inline-block;vertical-align:middle;margin-bottom:8px;" />
+                </div>
 
-    <!-- Background overlay -->
-    <div class="bg-grid-overlay"></div>
+                <div class="hero-title">
+                    ERP Based HRM &amp; Finance Solution for Modern Businesses.
+                </div>
 
-    @* Theme Switcher Button Commented Out - Forced to Light Mode *@
-    @*
-    <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light / Dark Mode">
-        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
-    </button>
-    *@
+                <div class="hero-text">
+                    Manage employee attendance from biometric devices, mobile apps,
+                    GPS attendance tracking, shift scheduling, leave management,
+                    salary processing, tax calculation, payroll workflow approval,
+                    employee self-service and management reporting from a single platform.
+                </div>
 
-    <div class="cnf-login-wrapper">
-        <div class="cnf-login-row">
-            
-            <!-- Left Side: Logistics Visual Panel -->
-            <div class="cnf-visual-section">
-                
-                <div class="cnf-visual-content">
-                    <div class="cnf-visual-tag">
-                         <img src="@Url.Content("~/images/gctl.png")" alt="GCTL" style="max-width: 260px; height: auto;" />
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-fingerprint"></i>
+                        <div>
+                            <b>Attendance Device</b><br />
+                            Biometric Integration
+                        </div>
                     </div>
 
-                    <h2 class="cnf-visual-heading">
-                        Streamline Your <span>Customs Clearance</span> & Cargo Freight
-                    </h2>
-
-                    <p class="cnf-visual-desc">
-                        Complete enterprise suite for customs brokers, freight forwarders, and shipping agents to manage Bill of Entry, Duty Assessment, and Port Manifests seamlessly.
-                    </p>
-
-                    <!-- Feature Highlights -->
-                    <div class="cnf-feature-list">
-                        <div class="cnf-feature-item">
-                            <div class="cnf-feature-icon">
-                                <i class="bi bi-file-earmark-text-fill"></i>
-                            </div>
-                            <div class="cnf-feature-text">Automated Bill of Entry & ASYCUDA Integration</div>
+                    <div class="feature">
+                        <i class="fas fa-mobile-screen"></i>
+                        <div>
+                            <b>Mobile Attendance</b><br />
+                            GPS &amp; Self Service App
                         </div>
+                    </div>
 
-                        <div class="cnf-feature-item">
-                            <div class="cnf-feature-icon">
-                                <i class="bi bi-calculator-fill"></i>
-                            </div>
-                            <div class="cnf-feature-text">Real-time HS-Code Duty & Tariff Calculator</div>
+                    <div class="feature">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <div>
+                            <b>Payroll Workflow</b><br />
+                            Salary &amp; Tax Automation
                         </div>
+                    </div>
 
-                        <div class="cnf-feature-item">
-                            <div class="cnf-feature-icon">
-                                <i class="bi bi-diagram-3-fill"></i>
-                            </div>
-                            <div class="cnf-feature-text">Container Yard & Port Manifest Tracking</div>
+                    <div class="feature">
+                        <i class="fas fa-laptop"></i>
+                        <div>
+                            <b>Management Dashboard</b><br />
+                            Real-Time Analytics
                         </div>
                     </div>
                 </div>
-
-                <!-- Statistics Footer -->
-                <div class="cnf-stats-row">
-                    <div class="cnf-stat-box">
-                        <div class="cnf-stat-val">99.9%</div>
-                        <div class="cnf-stat-lbl">Clearance Accuracy</div>
-                    </div>
-                    <div class="cnf-stat-box">
-                        <div class="cnf-stat-val">50K+</div>
-                        <div class="cnf-stat-lbl">Shipments Handled</div>
-                    </div>
-                    <div class="cnf-stat-box">
-                        <div class="cnf-stat-val">24/7</div>
-                        <div class="cnf-stat-lbl">Port Integration</div>
-                    </div>
-                </div>
-
             </div>
+        </div>
 
-            <!-- Right Side: Login Form -->
-            <div class="cnf-form-section" style="position: relative;">
-                
-                <!-- Top-Right Logo of Form Section -->
-                <div style="position: absolute; top: 0px; right: 0px; z-index: 5;">
-                    <h3 class="com-text mb-0">
-                        <img src="@Url.Content("~/images/fermosa-wX200.png")" alt="Fermosa" style="max-height: 42px; width: auto;" />
-                    </h3>
+        <div class="right-panel">
+            <img src="@Url.Content("~/images/fermosa-wX200.png")"
+                 alt="CNF Logo"
+                 style="position:absolute; top:20px; right:20px; max-height:45px; width:auto; object-fit:contain;" />
+
+            <div class="login-box">
+                <div class="login-header">
+                    <div class="header-logo-icon">
+                        <i class="fas fa-users-cog"></i> 
+                    </div>
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to access your HRM &amp; Payroll System</p>
                 </div>
 
-                <div>
-                    <!-- Logo Header -->
-                   <div class="mb-3 pt-4 mt-4">
-                        <div class="cnf-logo-icon">
-                           <i class="bi bi-people"></i>
-                        </div>
-                   </div>
-                    <!-- Welcome Title -->
-                    <h2 class="cnf-heading">Welcome Back</h2>
-                    <p class="cnf-subtitle">Sign in to access your CNF Management System</p>
-
-                    <!-- Validation Summary -->
+                <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
                     @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
                     {
-                        <div class="cnf-alert-danger">
-                            <div class="d-flex align-items-center mb-1 font-weight-bold fw-semibold">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                Authentication Error
-                            </div>
-                            <div asp-validation-summary="All" style="list-style-type: none; padding-left: 0; margin-bottom: 0;"></div>
-                        </div>
+                        <div asp-validation-summary="All" class="validation-summary-errors"></div>
                     }
 
-                    <!-- Login Form -->
-                    <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" id="cnfLoginForm">
-                        
-                        <!-- Email / Username Input -->
-                        <div class="cnf-field-wrapper">
-                            <label asp-for="Email" class="cnf-label">Username / Email Address</label>
-                            <div class="cnf-input-group">
-                                <i class="bi bi-person-fill cnf-input-icon"></i>
-                                <input asp-for="Email" class="cnf-input" placeholder="e.g. agent@cnflogistics.com" autocomplete="username" required autofocus />
-                            </div>
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                        </div>
-
-                        <!-- Password Input -->
-                        <div class="cnf-field-wrapper">
-                            <label asp-for="Password" class="cnf-label">
-                                <span>Password</span>
-                            </label>
-                            <div class="cnf-input-group">
-                                <i class="bi bi-lock-fill cnf-input-icon"></i>
-                                <input asp-for="Password" id="passwordInput" type="password" class="cnf-input" placeholder="Enter your password" autocomplete="current-password" required />
-                                <button type="button" class="cnf-password-toggle" id="togglePasswordBtn" title="Show/Hide Password">
-                                    <i class="bi bi-eye-fill" id="passwordEyeIcon"></i>
-                                </button>
-                            </div>
-                            <span asp-validation-for="Password" class="text-danger small"></span>
-                        </div>
-
-                        <!-- Options: Remember Me & Forgot Password -->
-                        <div class="cnf-form-options">
-                            <label class="d-flex align-items-center gap-2 cnf-checkbox-label">
-                                <input asp-for="RememberMe" type="checkbox" class="cnf-checkbox" />
-                                <span>Remember Me</span>
-                            </label>
-                            <a href="#" class="cnf-forgot-link">Forgot Password?</a>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" class="cnf-btn-submit" id="submitBtn">
-                            <span>Sign In to System</span>
-                            <i class="bi bi-arrow-right-short fs-4"></i>
-                        </button>
-
-                    </form>
-
-                    <!-- Secure Login Indicator -->
-                    <div class="cnf-secure-indicator">
-                        <i class="bi bi-shield-lock-fill"></i>
-                        <span>256-bit SSL Secure Enterprise Login</span>
+                    <div class="input-group-custom">
+                        <i class="fas fa-user"></i>
+                        <input asp-for="Email" class="form-control" placeholder="Username" id="txtusername" autocomplete="username" required autofocus />
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
                     </div>
+
+                    <div class="input-group-custom">
+                        <i class="fas fa-lock"></i>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Password" id="txtUserPassword" autocomplete="current-password" required />
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                    </div>
+
+                    <div class="options">
+                        <label>
+                            <input asp-for="RememberMe" type="checkbox" /> Remember Me
+                        </label>
+
+                        <a href="#">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-right-to-bracket"></i>&nbsp; Sign In
+                    </button>
+                </form>
+
+                <div class="footer-text">
+                    Attendance • Leave • Payroll • Employee Self-Service
                 </div>
 
-                <!-- Footer -->
-                <div class="cnf-footer">
-                    © 2026 CNF Management System. All rights reserved.
+                <div class="version">
+                    HRM &amp; Payroll Management System Version 2026
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
-    <script>
-        // Password Show/Hide Toggle
-        document.getElementById('togglePasswordBtn').addEventListener('click', function () {
-            const passwordInput = document.getElementById('passwordInput');
-            const eyeIcon = document.getElementById('passwordEyeIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.classList.remove('bi-eye-fill');
-                eyeIcon.classList.add('bi-eye-slash-fill');
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.classList.remove('bi-eye-slash-fill');
-                eyeIcon.classList.add('bi-eye-fill');
-            }
-        });
-
-        // Theme Switcher (Dark / System Mode Commented Out - Forced to Light Mode)
-        document.documentElement.setAttribute('data-theme', 'light');
-
-        /*
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        const themeIcon = document.getElementById('themeIcon');
-        const htmlElement = document.documentElement;
-
-        const savedTheme = localStorage.getItem('cnf_theme') || 'light';
-        setTheme(savedTheme);
-
-        themeToggleBtn.addEventListener('click', function () {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            setTheme(newTheme);
-        });
-
-        function setTheme(theme) {
-            htmlElement.setAttribute('data-theme', theme);
-            localStorage.setItem('cnf_theme', theme);
-            if (theme === 'dark') {
-                themeIcon.classList.remove('bi-moon-stars-fill');
-                themeIcon.classList.add('bi-sun-fill');
-            } else {
-                themeIcon.classList.remove('bi-sun-fill');
-                themeIcon.classList.add('bi-moon-stars-fill');
-            }
-        }
-        */
-    </script>
 </body>
 </html>
+
