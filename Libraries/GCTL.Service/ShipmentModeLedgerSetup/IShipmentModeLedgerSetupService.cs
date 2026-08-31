@@ -32,12 +32,12 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
         Task<bool> UpdatePermissionAsync(string accessCode);
         Task<bool> DeletePermissionAsync(string accessCode);
 
-
         #region Dropdown
         Task<IEnumerable<CommonSelectModel>> SelectShipmentMode();
         Task<IEnumerable<CommonSelectModel>> SelectRevenueLedger();
         Task<IEnumerable<CommonSelectModel>> SelectExpenseLedger();
         Task<IEnumerable<CommonSelectModel>> SelectAdvanceLedger();
         #endregion
+
     }
 }

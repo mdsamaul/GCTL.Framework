@@ -1,6 +1,5 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.PaymentType;
 using GCTL.Core.ViewModels.SupplierCategory;
 using GCTL.Service.Common;
 using GCTL.Service.SupplierCategory;
@@ -315,5 +314,6 @@ namespace GCTL.UI.Core.Controllers
         //}
 
         #endregion
+
     }
 }
