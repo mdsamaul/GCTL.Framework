@@ -156,6 +156,7 @@
             LabelText = "Country",
             FieldType = FieldType.Select,
             Placeholder = "Select Country",
+            SelectItems = ViewBag.CountryDD as SelectList,
             ReserveActionSlot = false,
             ColumnClass = "col-12 col-md-6",
             CustomCssClass = "gc-select2"
@@ -280,6 +281,7 @@
             LabelText = "Base Currency",
             FieldType = FieldType.Select,
             Placeholder = "Select Base Currency",
+            SelectItems = ViewBag.CurrencyDD as SelectList,
             ColumnClass = "col-12 col-md-6",
             ReserveActionSlot = false,
             CustomCssClass = "gc-select2"
@@ -328,7 +330,7 @@
             ShowFavorite = false,
             IsPlain = true,
             SaveBtnClass = "js-company-save",
-            ReserveActionSlot = true,   
+            ReserveActionSlot = true,
         })
     </div>
 </div>

@@ -98,7 +98,7 @@
     <div class="container-fluid">
         <div class="row">
 
-            <div class="col-md-6 pr-0">
+            <div class="col-md-6 pe-1">
                 <div class="card">
                     <div class="card-header px-2">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -123,9 +123,8 @@
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
+            <div class="col-md-6 ps-1">
                 <div class="card">
-                    <div class="card-body p-2 pt-3">
                         <div class="js-TransportInformation-grid-container">
                             @await Html.PartialAsync("_CustomGrid", new GridModel
                             {
@@ -142,9 +141,8 @@
                                 Bordered = true,
                                 Striped =true
                             })
-                            
+
                         </div>
-                    </div>
                 </div>
             </div>
 

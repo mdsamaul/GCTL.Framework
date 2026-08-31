@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
 
 namespace GCTL.UI.Core.ViewModels
@@ -119,6 +119,11 @@ namespace GCTL.UI.Core.ViewModels
         {
             get
             {
+                if (CustomAttributes != null && CustomAttributes.TryGetValue("table-view", out var tv) && tv == "true")
+                {
+                    return "form-select form-select-sm custom-table-dropdown";
+                }
+
                 if (FieldType == FieldType.MultiSelect || IsMultiple)
                     return "form-select form-select-sm custom-select-multi";
 
