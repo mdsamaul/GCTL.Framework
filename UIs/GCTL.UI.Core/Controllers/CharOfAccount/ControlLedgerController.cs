@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels.ChartOfAccount;
+using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Service.ChartOfAccounts.ControlLedger;
 using GCTL.UI.Core.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -173,6 +173,8 @@ namespace GCTL.Controllers.CharOfAccount
         }
 
 
+        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var data = await _service.GetAllAsync();

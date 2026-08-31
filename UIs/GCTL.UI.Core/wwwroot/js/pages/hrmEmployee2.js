@@ -1,4 +1,4 @@
-﻿//(function ($) {
+//(function ($) {
 //    $.hrmEmployee2 = function (options) {
 
 //        var settings = $.extend({
@@ -1055,6 +1055,19 @@
 
         // ── SERVER-SIDE DataTable ─────────────────────────────────────────────
         function initDataTable() {
+            var $grid = $(settings.gridSelector);
+            if ($grid.length && $grid.attr('data-grid-config')) {
+                if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                    dataTableInstance = $grid.DataTable();
+                    dataTableInstance.ajax.reload(null, false);
+                    return;
+                }
+                if ($.gctlGrid) {
+                    dataTableInstance = $.gctlGrid.initFromModel({ gridId: 'HrmEmployee2-grid' });
+                    return;
+                }
+            }
+
             // Destroy previous instance cleanly
             if (dataTableInstance) {
                 dataTableInstance.destroy();
