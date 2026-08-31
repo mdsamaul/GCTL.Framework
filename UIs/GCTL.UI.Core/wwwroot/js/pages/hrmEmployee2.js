@@ -826,6 +826,7 @@
         // ── DOM ready ────────────────────────────────────────────────────────
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();
+            $("#customLoadingOverlay").hide();
         });
 
         $(window).on("load", function () {
