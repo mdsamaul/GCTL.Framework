@@ -1,4 +1,4 @@
-﻿$(function () {
+$(function () {
 
     function getItems($el) {
         var items = [];
@@ -82,8 +82,8 @@
         $container.find('select[data-placeholder]').each(function () {
             var $el = $(this);
 
-            // custom-select-single/custom-select-multi class thakle upore already handle hoyeche, skip
-            if ($el.hasClass('custom-select-single') || $el.hasClass('custom-select-multi')) return;
+            // custom-select-single/custom-select-multi or custom-table-dropdown class thakle upore already handle hoyeche, skip
+            if ($el.hasClass('custom-select-single') || $el.hasClass('custom-select-multi') || $el.hasClass('custom-table-dropdown') || $el.data('table-view') === true || $el.data('tableView') === true) return;
 
             if ($el.data('customDdInstance')) {
                 if (!forceReinit) return;

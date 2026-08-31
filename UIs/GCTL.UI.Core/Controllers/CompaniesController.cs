@@ -1,5 +1,6 @@
 using AutoMapper;
 using ClosedXML.Excel;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.Companies;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -19,6 +20,7 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 
 namespace GCTL.UI.Core.Controllers
@@ -29,6 +31,8 @@ namespace GCTL.UI.Core.Controllers
         private readonly ICompanyService companyService;
         private readonly ICommonService commonService;
         private readonly IMapper mapper;
+        private readonly IRepository<CaDefCurrency> caDefCurrencyRepository;
+        private readonly IRepository<CaDefCountry> caDefCountryRepository;
 
         string strMaxNO = string.Empty;
 
@@ -36,11 +40,15 @@ namespace GCTL.UI.Core.Controllers
             ICommonService commonService,
             ICompanyService companyService,
             IMapper mapper
-        )
+,
+            IRepository<CaDefCountry> caDefCountryRepository,
+            IRepository<CaDefCurrency> caDefCurrencyRepository)
         {
             this.companyService = companyService;
             this.commonService = commonService;
             this.mapper = mapper;
+            this.caDefCountryRepository = caDefCountryRepository;
+            this.caDefCurrencyRepository = caDefCurrencyRepository;
         }
 
         #endregion
@@ -67,6 +75,8 @@ namespace GCTL.UI.Core.Controllers
                 {
                     CompanyCode = strMaxNO
                 };
+                ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
+                ViewBag.CurrencyDD = new SelectList(caDefCurrencyRepository.All(), "CurrencyId", "CurrencyName");
             }
             catch (Exception ex)
             {
@@ -128,47 +138,6 @@ namespace GCTL.UI.Core.Controllers
                 var list = await companyService.GetAllAsync() ?? new List<CompanySetupViewModel>();
                 indexModel.CompanyList = list;
 
-                int totalRecords = list.Count;
-                var pagedList = list.Take(10).ToList();
-
-                indexModel.DynamicGrid = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: 1,
-                    pageSize: 10,
-                    headers: new List<string> { "Code", "Company Name", "Address", "Phone", "Email" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "CompanyCode", item.CompanyCode },
-                        { "Company Name", item.CompanyName },
-                        { "Address", item.Address1 },
-                        { "Phone", item.Phone1 },
-                        { "Email", item.Email }
-                    },
-                    ajaxUrl: Url.Action("GetAll", "Companies") ?? "/Companies/GetAll",
-                    primaryKey: "CompanyCode",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/Companies/Setup/{id}",
-                    gridId: "companyGridContainer",
-                    editClass: "js-company-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "CompanyCode", "center" },
-                        { "Company Name", "left" },
-                        { "Address", "left" },
-                        { "Phone", "center" },
-                        { "Email", "left" }
-                    },
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Company Name", "auto" },
-                        { "Address", "auto" },
-                        { "Phone", "120px" },
-                        { "Email", "auto" }
-                    }
-                );
             }
             catch (Exception ex)
             {

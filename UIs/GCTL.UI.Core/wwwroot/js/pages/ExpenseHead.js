@@ -72,8 +72,8 @@ function loadServiceProviderDropdown(selectedId = null) {
 function LoadNextSerialNo() {
     let expenseType = $("#expenseType").val();
     let serviceType = $("#serviceProvider").val();
-    let isReceiptable = $("#isReceiptable").is(":checked") ? "Yes" : "No";
-    let requestedSerial = manualSerialEntry ? parseInt($("#serialNo").val()) : null;
+    let isReceiptable = $("#isReceiptable").is(":checked") ? "Y" : "N";
+    //let requestedSerial = manualSerialEntry ? parseInt($("#serialNo").val()) : null;
 
     if (!expenseType) {
         $("#serialNo").val("");
@@ -87,7 +87,7 @@ function LoadNextSerialNo() {
             expenseType: expenseType,
             serviceType: serviceType,
             isReceiptable: isReceiptable,
-            requestedSerial: requestedSerial
+            //requestedSerial: requestedSerial
         },
         success: function (res) {
             if (!manualSerialEntry) {
@@ -112,7 +112,7 @@ function SaveOrUpdateExpenseHead() {
         ShortName: $("#shortName").val()?.trim(),
         Amount: parseFloat($("#amount").val()) || 0,
         SerialNo: $("#serialNo").val()?.trim(),
-        IsReceiptable: $("#isReceiptable").is(":checked") ? "Yes" : "No",
+        IsReceiptable: $("#isReceiptable").is(":checked") ? "Y" : "N",
         ServiceTypeID: $("#serviceProvider").val(),
         ExpenseTypeID: $("#expenseType").val(),
         EntryType: ""
@@ -207,7 +207,7 @@ function populateForm(item) {
     $("#shortName").val(item.shortName || "");
     $("#amount").val(item.amount && item.amount != 0 ? item.amount : "");
     $("#serialNo").val(item.serialNo || "");
-    $("#isReceiptable").prop("checked", item.isReceiptable === "Yes");
+    $("#isReceiptable").prop("checked", item.isReceiptable === "Y");
 
     let serviceTypeVal = (item.serviceTypeID || item.serviceTypeId || "").trim();
     let expenseTypeVal = (item.expenseTypeID || item.expenseTypeId || "").trim();
@@ -357,7 +357,7 @@ $(document).ready(function () {
             ajaxData: function (d) {
                 d.expenseType = $('#expenseType').val() || '';
                 d.serviceType = $('#serviceProvider').val() || '';
-                d.isReceiptable = $('#isReceiptable').is(':checked') ? 'Yes' : '';
+                d.isReceiptable = $('#isReceiptable').is(':checked') ? 'Y' : '';
             }
         });
     }
@@ -395,9 +395,6 @@ $(document).ready(function () {
             manualSerialEntry = false;
         } else {
             manualSerialEntry = value !== "";
-            if (manualSerialEntry) {
-                LoadNextSerialNo();
-            }
         }
     });
 

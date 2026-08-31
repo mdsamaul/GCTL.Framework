@@ -9,7 +9,6 @@ $(document).ready(() => {
     loadDLId();
     showFooterDl();
     setupDLActionButtons();
-    LoadCountryDropdownDL();
 
     if ($.gctlGrid) {
         $.gctlGrid.initFromModel({
@@ -31,6 +30,12 @@ $(document).ready(() => {
         if (dt) {
             dt.columns.adjust().draw(false);
         }
+        if (typeof window.initCustomDropdowns === "function") {
+            window.initCustomDropdowns('#delivery-form-container', false);
+        }
+        if (typeof window.initCustomTableDropdowns === "function") {
+            window.initCustomTableDropdowns('#delivery-form-container', false);
+        }
     });
 });
 
@@ -50,16 +55,10 @@ function setupDLEventListeners() {
     });
 
     $('#btnSaveDL').on('click', saveDeliveryLocation);
-
-    $('#CustomerIdForDelivery').select2({
-        placeholder: "Customer",
-        allowClear: true,
-        width: '100%'
-    });
 }
 
 function showFooterDl() {
-    $("#Dlfooter").toggleClass("d-none", !editId);
+    $("#Dlfooter").toggleClass("d-none", !editdlId);
 }
 
 function toggleBulkActionsDl() {
@@ -94,50 +93,69 @@ function populateDeliveryLocationForm(response) {
     editdlId = response.deliveryLocationCode;
     showFooterDl();
 
-    //populate field
+    // Populate fields
     $('#DeliveryLocationCode').val(response.deliveryLocationCode);
-
-    $('#CustomerIdForDelivery').val(response.customerId).trigger('change.select2');
-    $('#DeliveryCountryId').val(response.countryId).trigger('change.select2');
+    $('#CustomerIdForDelivery').val(response.customerId);
+    $('#DeliveryCountryId').val(response.countryId);
     $('#LocationAddress').val(response.locationAddress);
     $('#DeliveryPhone').val(response.phone);
     $('#DeliveryEmail').val(response.email);
     $('#DeliveryCity').val(response.city);
+    $('#DeliveryStateOrProvince').val(response.stateOrProvince);
     $('#DeliveryZipCode').val(response.zipCode);
     $('#DeliveryRemarks').val(response.remarks);
 
-    //Contact Person auto-select
-    loadContactPersonDropdownDL(function () {
-        if (response.contactPerson) {
-            const ids = response.contactPerson.split(',');
-            $('.contact-person-checkboxDL').prop('checked', false);
-            ids.forEach(id => {
-                $(`.contact-person-checkboxDL[value='${id}']`).prop('checked', true);
-            });
-            updateSelectedContactsDL(); 
+    // MultiSelect Contact Person
+    const cpidInstance = $('#DLCpid').data('customTableDdInstance');
+    if (response.contactPerson) {
+        const ids = response.contactPerson.split(',').map(s => s.trim()).filter(Boolean);
+        if (cpidInstance && typeof cpidInstance.setValue === 'function') {
+            cpidInstance.setValue(ids);
+        } else {
+            $('#DLCpid').val(ids);
         }
-    });
+    } else {
+        if (cpidInstance && typeof cpidInstance.setValue === 'function') {
+            cpidInstance.setValue([]);
+        } else {
+            $('#DLCpid').val([]);
+        }
+    }
+
+    if (typeof window.initCustomDropdowns === "function") {
+        window.initCustomDropdowns('#delivery-form-container', true);
+    }
+    if (typeof window.initCustomTableDropdowns === "function") {
+        window.initCustomTableDropdowns('#delivery-form-container', false);
+    }
 }
 
 function saveDeliveryLocation(e) {
     e.preventDefault();
 
-    const formData = new FormData($('#deliveryForm')[0]);
-    const customerId = formData.get("CustomerId");
+    const customerId = $('#CustomerIdForDelivery').val();
     if (!customerId) {
         toastr.warning('Please Select a Customer.');
         return;
     }
 
-    const locationaddress = formData.get("LocationAddress");
+    const locationaddress = $('#LocationAddress').val();
     if (!locationaddress) {
-        toastr.warning('Please Enter a Address.');
+        toastr.warning('Please Enter an Address.');
         return;
     }
 
-    const selectedContacts = $('#DLselectedContactPersonIds').val();
-    if (selectedContacts) {
-        formData.append('ContactPersonIds', selectedContacts); // only append if selected
+    const formData = new FormData($('#deliveryForm')[0]);
+    formData.set("CustomerId", customerId);
+    formData.set("CountryId", $('#DeliveryCountryId').val() || "");
+
+    const selectedContactIds = $('#DLCpid').val();
+    if (Array.isArray(selectedContactIds) && selectedContactIds.length > 0) {
+        formData.set("ContactPerson", selectedContactIds.join(','));
+        formData.set("ContactPersonIds", selectedContactIds.join(','));
+    } else {
+        formData.set("ContactPerson", "");
+        formData.set("ContactPersonIds", "");
     }
 
     const url = editdlId ? `/SalesDeliveryLocation/Edit/${editdlId}` : '/SalesDeliveryLocation/Create';
@@ -162,7 +180,7 @@ function saveDeliveryLocation(e) {
     });
 }
 
-function handleDLSaveError(error){
+function handleDLSaveError(error) {
     if (error.responseJSON && error.responseJSON.errors) {
         let errorMessage = [];
 
@@ -174,7 +192,7 @@ function handleDLSaveError(error){
 
         toastr.error('Validation Error:\n<ul>' + errorMessage.join('') + '</ul>');
     } else {
-        toastr.error('Error saving delivery location');
+        toastr.error(error.responseJSON?.message || 'Error saving delivery location');
     }
     console.error("Error saving delivery location:", error);
 }
@@ -281,24 +299,26 @@ function loadDLId() {
     });
 }
 
-function loadCustomerDD() {
+function loadCustomerDD(selectedId = null) {
     $.ajax({
         url: "/SalesCustomer/SearchCustomers",
         type: "GET",
         dataType: "json",
         success: function (data) {
             var dropdown = $("#CustomerIdForDelivery");
-
             dropdown.empty();
-            dropdown.append('<option value="">--Select Customer--</option>');
+            dropdown.append('<option value="">Select Customer</option>');
 
             $.each(data, function (index, customer) {
+                var isSelected = selectedId == customer.customerId ? 'selected' : '';
                 dropdown.append(
-                    '<option value="' + customer.customerId + '">' + customer.customerName + '</option>'
+                    '<option value="' + customer.customerId + '" ' + isSelected + '>' + customer.customerName + '</option>'
                 );
             });
 
-            //dropdown.trigger('change');
+            if (typeof window.initCustomDropdowns === "function") {
+                window.initCustomDropdowns('#delivery-form-container', true);
+            }
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.error("Error loading customers:", textStatus, errorThrown);
@@ -306,158 +326,31 @@ function loadCustomerDD() {
     });
 }
 
-//Coutry dropdown
-function LoadCountryDropdownDL() {
-    $.ajax({
-        url: '/SalesDeliveryLocation/GetCountryDropdown',
-        method: 'GET',
-        success: function (countries) {
-            console.log("Country Dropdown Loaded", countries);
-            var $country = $('#DeliveryCountryId');
-            $country.empty().append('<option value=""></option>');
-
-            $.each(countries, function (index, country) {
-                $country.append(
-                    '<option value="' + country.countryID + '">' + country.countryName + '</option>'
-                );
-            });
-
-            // Initialize Select2 to make it searchable
-            $country.select2({
-                placeholder: "Country",
-                width: '100%',
-
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error('Failed to load countries:', error);
-        }
-    });
-}
-
-//Contact Person Dropdown
-
-$(document).ready(function () {
-    loadContactPersonDropdownDL();
-
-    var dropdownElement = document.getElementById('DLdropdownButton');
-    if (dropdownElement) {
-        var bootstrapDropdown = new bootstrap.Dropdown(dropdownElement, {
-            autoClose: true,
-            popperConfig: {
-                placement: 'top-start'
-            }
-        });
-
-        $('#DLdropdownButton').on('click', function (e) {
-            e.stopPropagation();
-            bootstrapDropdown.toggle();
-        });
-
-        $(document).on('click', function (event) {
-            if (!$(event.target).closest('#DLcontactPersonDropdown, #DLdropdownButton').length) {
-                bootstrapDropdown.hide();
-            }
-        });
-    }
-
-    // Search/filter inside dropdown
-    $('#DLcontactSearch').on('input', function () {
-        var value = $(this).val().toLowerCase();
-        $('#DLcontactPersonList tr').each(function () {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-        });
-    });
-
-
-    $(document).on('change', '.contact-person-checkboxDL', updateSelectedContactsDL);
-
-    $('#DLselectAllContacts').on('change', function () {
-        $('.contact-person-checkboxDL').prop('checked', this.checked);
-        updateSelectedContactsDL();
-    });
-
-    window.addEventListener('contactPersonChanged', function (e) {
-        console.log("Contact Person changed, reloading dropdown:", e.detail);
-        loadContactPersonDropdownDL();
-    });
-});
-
-function loadContactPersonDropdownDL(callback) {
-    $.ajax({
-        url: '/SalesDeliveryLocation/GetContactPerson',
-        type: 'GET',
-        dataType: 'json',
-        success: function (persons) {
-            console.log("Contact Person Data for Delivery Page", persons);
-            const $list = $('#DLcontactPersonList');
-            $list.empty();
-
-            if (persons.length > 0) {
-                $.each(persons, function (_, person) {
-                    const $row = $('<tr>');
-                    $row.append(
-                        $('<td>').css('text-align', 'center').append(
-                            $('<input>').attr({
-                                type: 'checkbox',
-                                class: 'contact-person-checkboxDL',
-                                value: person.cpid
-                            }).data({
-                                name: person.contactPersonName,
-                                phone: person.contactPersonMobile || '',
-                                designation: person.designationName || '',
-                                email: person.contactPersonEmail || ''
-                            })
-                        )
-                    );
-                    $row.append($('<td>').text(person.contactPersonName));
-                    $row.append($('<td>').text(person.designationName || ''));
-                    $row.append($('<td>').text(person.contactPersonMobile || ''));
-                    $row.append($('<td>').text(person.contactPersonEmail || ''));
-                    $list.append($row);
-                });
-            } else {
-                $list.append('<tr><td colspan="5" class="text-center">No Data Available</td></tr>');
-            }
-
-            if (callback) callback();
-        },
-        error: function (xhr) {
-            console.error("Error fetching contact persons:", xhr.responseText);
-            $('#DLcontactPersonList').html('<tr><td colspan="5" class="text-center text-danger">Error loading contacts</td></tr>');
-        }
-    });
-}
-
-//Update selected contacts properly
-function updateSelectedContactsDL() {
-    let selectedDLIds = [];
-    $('.contact-person-checkboxDL:checked').each(function () {
-        selectedDLIds.push($(this).val());
-    });
-
-    selectedDLIds = [...new Set(selectedDLIds)];
-    $('#DLselectedContactPersonIds').val(selectedDLIds.join(','));
-}
-
 function resetDLForm(options = { resetCustomer: true, keepEdit: false }) {
     const form = document.getElementById('deliveryForm');
     if (form) form.reset();
 
     if (options.resetCustomer) {
-        $('#CustomerIdForDelivery').val('').trigger('change.select2');
+        $('#CustomerIdForDelivery').val('');
         selectedCustomer = "";
     }
 
-    // Clear contact person selection
-    $('#DLselectedContactPersonIds').val('');
-    $('.contact-person-checkboxDL').prop('checked', false);
-
-    // Clear country & other fields
-    $('#DeliveryCountryId').val('').trigger('change');
-    $('#DeliveryContactPerson').val('').trigger('change');
+    $('#DeliveryCountryId').val('');
+    const cpidInst = $('#DLCpid').data('customTableDdInstance');
+    if (cpidInst && typeof cpidInst.clear === 'function') {
+        cpidInst.clear();
+    } else {
+        $('#DLCpid').val([]);
+    }
     $('#DeliveryPhone, #DeliveryEmail').removeClass('error-border');
     $('#DeliveryPhoneError, #DeliveryEmailError').remove();
+
+    if (typeof window.initCustomDropdowns === "function") {
+        window.initCustomDropdowns('#delivery-form-container', true);
+    }
+    if (typeof window.initCustomTableDropdowns === "function") {
+        window.initCustomTableDropdowns('#delivery-form-container', false);
+    }
 
     // Edit mode
     editdlId = options.keepEdit ? editdlId : null;
@@ -471,7 +364,7 @@ function resetDLForm(options = { resetCustomer: true, keepEdit: false }) {
     showFooterDl();
 }
 
-//Live Validation for Email And Phone
+// Live Validation for Email And Phone
 $(document).on("input", "#DeliveryPhone, #DeliveryEmail", function () {
     const id = $(this).attr("id");
     const value = $(this).val().trim();

@@ -1,12 +1,12 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using SpreadsheetColumn = DocumentFormat.OpenXml.Spreadsheet.Column;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.ExpenseHead;
 using GCTL.Data.Models;
+using GCTL.Service.CoreServiceType;
 using GCTL.Service.Pagination;
-using GCTL.Core.DataTables;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +17,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using Core_ServiceType = GCTL.Data.Models.CoreServiceType;
+using SpreadsheetColumn = DocumentFormat.OpenXml.Spreadsheet.Column;
 
 
 
@@ -81,7 +82,7 @@ namespace GCTL.Service.ExpenseHead
                            ShortName = pt.ShortName,
                            Amount = pt.Amount,
                            SerialNo = pt.SerialNo,
-                           IsReceiptable = (pt.IsReceiptable == "Y" || pt.IsReceiptable == "Yes" || pt.IsReceiptable == "YES") ? "Yes" : "No",
+                           IsReceiptable = pt.IsReceiptable,
                            ServiceTypeID = pt.ServiceTypeId,
                            ExpenseTypeID = pt.ExpenseTypeId,
                            LDate = pt.Ldate,
@@ -121,7 +122,7 @@ namespace GCTL.Service.ExpenseHead
                             ShortName = eh.ShortName,
                             Amount = eh.Amount,
                             SerialNo = eh.SerialNo,
-                            IsReceiptable = (eh.IsReceiptable == "Y" || eh.IsReceiptable == "Yes" || eh.IsReceiptable == "YES") ? "Yes" : "No",
+                            IsReceiptable = eh.IsReceiptable,
                             ExpenseTypeID = eh.ExpenseTypeId,
                             LDate = eh.Ldate,
                             ModifyDate = eh.ModifyDate,
@@ -147,10 +148,25 @@ namespace GCTL.Service.ExpenseHead
 
             if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
             {
-                query = query.OrderBy(x => x.ExpenseTypeID)
-                             .ThenBy(x => x.ServiceTypeID)
+                query = query.OrderBy(x => x.ExpenseType)
+                             .ThenBy(x => x.ServiceTypeName)
                              .ThenByDescending(x => x.IsReceiptable)
+                             .ThenBy(x => (x.SerialNo == null ? "" : x.SerialNo).Length)
                              .ThenBy(x => x.SerialNo);
+                request.SortColumn = "";
+            }
+            else if (request.SortColumn.Equals("SerialNo", StringComparison.OrdinalIgnoreCase))
+            {
+                if (request.SortOrder?.ToLower() == "desc")
+                {
+                    query = query.OrderByDescending(x => (x.SerialNo == null ? "" : x.SerialNo).Length)
+                                 .ThenByDescending(x => x.SerialNo);
+                }
+                else
+                {
+                    query = query.OrderBy(x => (x.SerialNo == null ? "" : x.SerialNo).Length)
+                                 .ThenBy(x => x.SerialNo);
+                }
                 request.SortColumn = "";
             }
 
@@ -178,19 +194,44 @@ namespace GCTL.Service.ExpenseHead
 
         public async Task<bool> SaveAsync(ExpenseHeadVM model)
         {
+            await _repository.BeginTransactionAsync();
+
             try
             {
+                var lastId = await GetLastExpenseHeadAsync();
+                int.TryParse(model.SerialNo, out int targetSerial);
+                if (targetSerial <= 0)
+                {
+                    targetSerial = await GetNextSerialNoAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable);
+                }
+                else
+                {
+                    // Shift existing records with serial >= targetSerial up by 1
+                    await ShiftSerialsAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable, targetSerial, excludeTc: null);
+                }
+
+                string newId;
+                if (!string.IsNullOrEmpty(lastId) && int.TryParse(lastId, out int lastNumericId))
+                {
+                    int nextId = lastNumericId + 1;
+                    newId = nextId.ToString("D4");
+                }
+                else
+                {
+                    newId = "001";
+                }
+
                 var entity = new CfDefExpenseHead
                 {
-                    ExpenseHeadId = model.ExpenseHeadID,
+                    ExpenseHeadId = newId,
                     ExpenseHead = model.ExpenseHead,
                     ShortName = model.ShortName ?? "",
                     Amount = model.Amount,
-                    SerialNo = model.SerialNo,
+                    SerialNo = targetSerial.ToString(),
                     IsReceiptable = model.IsReceiptable,
                     ServiceTypeId = model.ServiceTypeID,
                     ExpenseTypeId = model.ExpenseTypeID,
-                    Luser = "",
+                    Luser = model.LUser,
                     Ldate = DateTime.Now,
                     Lip = GetLocalIP() ?? "",
                     Lmac = GetMacAddress() ?? "",
@@ -198,10 +239,12 @@ namespace GCTL.Service.ExpenseHead
                 };
 
                 await _repository.AddAsync(entity);
+                await _repository.CommitTransactionAsync();
                 return true;
             }
             catch (Exception ex)
             {
+                await _repository.RollbackTransactionAsync();
                 Console.WriteLine($"Insertion Failed: {ex.Message}");
                 return false;
             }
@@ -210,6 +253,7 @@ namespace GCTL.Service.ExpenseHead
         public async Task<bool> UpdateAsync(ExpenseHeadVM model)
         {
             await _repository.BeginTransactionAsync();
+
             try
             {
                 var entity = await _repository.GetByIdAsync(model.TC);
@@ -219,11 +263,22 @@ namespace GCTL.Service.ExpenseHead
                     return false;
                 }
 
+                int.TryParse(model.SerialNo, out int targetSerial);
+                if (targetSerial <= 0)
+                {
+                    targetSerial = await GetNextSerialNoAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable);
+                }
+                else
+                {
+                    // Shift existing other records with serial >= targetSerial up by 1
+                    await ShiftSerialsAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable, targetSerial, excludeTc: model.TC);
+                }
+
                 entity.ExpenseHeadId = model.ExpenseHeadID;
                 entity.ExpenseHead = model.ExpenseHead;
                 entity.ShortName = model.ShortName ?? "";
                 entity.Amount = model.Amount;
-                entity.SerialNo = model.SerialNo;
+                entity.SerialNo = targetSerial.ToString();
                 entity.IsReceiptable = model.IsReceiptable;
                 entity.ServiceTypeId = model.ServiceTypeID;
                 entity.ExpenseTypeId = model.ExpenseTypeID;
@@ -270,54 +325,50 @@ namespace GCTL.Service.ExpenseHead
                 throw new ArgumentException("ExpenseType and IsReceiptable are required.");
 
             isReceiptable = isReceiptable.Trim().ToUpper();
-            if (isReceiptable != "YES" && isReceiptable != "NO")
-                throw new ArgumentException("IsReceiptable must be 'Yes' or 'No'");
+            if (isReceiptable != "Y" && isReceiptable != "N")
+                throw new ArgumentException("IsReceiptable must be 'Y' or 'N'.");
 
             var allRecords = await _repository.GetAllAsync();
 
-            // Filter for the type & service & receiptable
             var filtered = allRecords.Where(e =>
                 e.ExpenseTypeId == expenseType &&
                 (string.IsNullOrEmpty(serviceType) || e.ServiceTypeId == serviceType) &&
                 e.IsReceiptable?.Trim().ToUpper() == isReceiptable
-            ).OrderBy(e => int.TryParse(e.SerialNo, out int s) ? s : 0).ToList();
+            ).ToList();
 
-            int nextSerial = 1;
-
-            if (requestedSerial.HasValue)
+            if (requestedSerial.HasValue && requestedSerial.Value > 0)
             {
-                int req = requestedSerial.Value;
-                if (req <= 0)
-                    throw new ArgumentException("Requested serial must be a positive integer.");
-
-                if (filtered.Any())
-                {
-                    int minSerial = filtered.Min(e => int.Parse(e.SerialNo));
-
-                    if (req >= minSerial)
-                    {
-                        // Shift serials >= requestedSerial
-                        var toShift = filtered.Where(e => int.TryParse(e.SerialNo, out int s) && s >= req)
-                                              .OrderByDescending(e => int.Parse(e.SerialNo))
-                                              .ToList();
-
-                        foreach (var record in toShift)
-                        {
-                            int currentSerial = int.Parse(record.SerialNo);
-                            record.SerialNo = (currentSerial + 1).ToString();
-                            await _repository.UpdateAsync(record);
-                        }
-                    }
-                }
-
-                nextSerial = req;
-            }
-            else if (filtered.Any())
-            {
-                nextSerial = filtered.Max(e => int.TryParse(e.SerialNo, out int s) ? s : 0) + 1;
+                return requestedSerial.Value;
             }
 
-            return nextSerial;
+            if (filtered.Any())
+            {
+                return filtered.Max(e => int.TryParse(e.SerialNo, out int s) ? s : 0) + 1;
+            }
+
+            return 1;
+        }
+
+        private async Task ShiftSerialsAsync(string expenseType, string serviceType, string isReceiptable, int targetSerial, int? excludeTc = null)
+        {
+            if (targetSerial <= 0) return;
+
+            var allRecords = await _repository.GetAllAsync();
+
+            var toShift = allRecords.Where(e =>
+                e.ExpenseTypeId == expenseType &&
+                (string.IsNullOrEmpty(serviceType) || e.ServiceTypeId == serviceType) &&
+                e.IsReceiptable?.Trim().ToUpper() == isReceiptable?.Trim().ToUpper() &&
+                (!excludeTc.HasValue || e.Tc != excludeTc.Value) &&
+                int.TryParse(e.SerialNo, out int s) && s >= targetSerial
+            ).OrderByDescending(e => int.TryParse(e.SerialNo, out int s) ? s : 0).ToList();
+
+            foreach (var record in toShift)
+            {
+                int currentSerial = int.TryParse(record.SerialNo, out int cs) ? cs : 0;
+                record.SerialNo = (currentSerial + 1).ToString();
+                await _repository.UpdateAsync(record);
+            }
         }
         #endregion
 
@@ -390,7 +441,19 @@ namespace GCTL.Service.ExpenseHead
                 }
             }
 
-            return result;
+            var orderedList = result
+                .OrderBy(x => x.ExpenseType)
+                .ThenBy(x => x.ServiceProvidedBy)
+                .ThenByDescending(x => x.IsReceiptable)
+                .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                .ToList();
+
+            foreach (var item in orderedList)
+            {
+                item.IsReceiptable = (item.IsReceiptable == "Y" || item.IsReceiptable == "Yes" || item.IsReceiptable == "YES") ? "Yes" : "No";
+            }
+
+            return orderedList;
         }
         #endregion
 
