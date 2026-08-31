@@ -12,8 +12,6 @@
     }
 </style>
 
-<!-- Content Header (Page header) -->
-<partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
     <div class="">
@@ -22,7 +20,7 @@
             <!-- Left Setup Form Column -->
             <div class="col-md-6">
                 <div class="card rounded shadow-sm">
-                    <div class="card-header dynamic-grid-header">
+                    @* <div class="card-header dynamic-grid-header"> *@
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Company Info",
@@ -30,8 +28,8 @@
                             DeleteBtnClass = "js-company-delete-confirm",
                             ClearBtnClass = "js-company-clear"
                         })
-                    </div>
-                    <div class="card-body px-4 py-3">
+                    @* </div> *@
+                    <div class="card-body px-4 py-1">
                         <form asp-action="Setup" method="post" id="company-form" asp-controller="Companies">
                             <div class="js-company-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
