@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.HrmEmployees2.HrmEmployee2PageViewModel
+@model GCTL.UI.Core.ViewModels.HrmEmployees2.HrmEmployee2PageViewModel
  @{
     ViewBag.Title = "Employee Information List";
     Model.PageTitle = ViewBag.Title;
@@ -71,51 +71,63 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
-                <div class="card">
-                    <div>
-                        @await Html.PartialAsync("_CustomButton", new GCTL.UI.Core.ViewModels.ToolbarButton
-                        {
-                            Id = "add_employee",
-                            Text = "Add Employee",
-                            Icon = "fa-solid fa-plus",
-                            CssClass = "btn-dark px-3 text-dark",
-                            IsLink = true,
-                            Href = "/HrmEmployee2/Setup"
-                        })
-                    </div>
-                    <div class="card-header border-transparent">
-                        <h3 class="card-title">@ViewBag.Title</h3>
-                    </div>
-                    <!-- /.card-header -->
-                    <div class="card-body p-2 pt-3">
-                       
-                        <div class="js-HrmEmployee2-grid-container">
-
-                            @await Html.PartialAsync("_Grid", Model.ListTableData)
-                          
-                        </div>
-                       
-                    </div>
+                <div class="js-HrmEmployee2-grid-container">
+                    @await Html.PartialAsync("_Grid", Model.ListTableData)
                 </div>
             </div>
         </div>
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
+
 <partial name="DeleteModal" />
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/pages/hrmEmployee2.js"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/hrmEmployee2.js" asp-append-version="true"></script>
     <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "HrmEmployee2")'
-        };
-        options.load = () => {
+        window.gctlRenderers = window.gctlRenderers || {};
+
+        window.gctlRenderers.hrmEmpName = function (data, type, row) {
+            var name = (row.firstName || '') + ' ' + (row.lastName || '');
+            return '<span class="target-text">' + name + '</span>';
         };
 
-        $.hrmEmployee2(options);
+        window.gctlRenderers.hrmEmpNameBn = function (data, type, row) {
+            var nameBn = (row.firstNameBangla || '') + ' ' + (row.lastNameBangla || '');
+            return '<span class="target-text">' + nameBn + '</span>';
+        };
+
+        window.gctlRenderers.hrmEmpPhoto = function (data, type, row) {
+            return row.photoUrl
+                ? '<img src="' + row.photoUrl + '" class="rounded-circle" height="40" width="40" />'
+                : '<div style="height:40px;width:40px;"></div>';
+        };
+
+        window.gctlRenderers.hrmEmpActions = function (data, type, row) {
+            var fullName = (row.firstName || '') + ' ' + (row.lastName || '');
+            return '<a title="Edit ' + fullName + '" class="btn btn-sm text-primary px-1" href="/HrmEmployee2/Setup?id=' + row.employeeId + '">' +
+                '<i class="fas fa-pencil-alt"></i></a>' +
+                '<button type="button" title="Delete ' + fullName + '" class="btn btn-sm text-danger px-1 js-HrmEmployee2-delete-confirm" data-id="' + row.employeeId + '">' +
+                '<i class="fas fa-trash"></i></button>';
+        };
+
+        $(document).ready(function () {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'HrmEmployee2-grid' });
+            }
+
+            var options = {
+                baseUrl: '@Url.Action("", "HrmEmployee2")'
+            };
+            options.load = function () {};
+
+            $.hrmEmployee2(options);
+        });
     </script>
 }
+

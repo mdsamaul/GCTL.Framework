@@ -288,10 +288,6 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-
-
-        //
-
         #region Xls
         public async Task<IActionResult> ExportToExcel()
         {

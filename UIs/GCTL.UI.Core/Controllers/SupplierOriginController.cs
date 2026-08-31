@@ -1,6 +1,5 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.PaymentType;
 using GCTL.Core.ViewModels.SupplierOrigin;
 using GCTL.Service.Common;
 using GCTL.Service.SupplierOrigin;
@@ -301,24 +300,6 @@ namespace GCTL.UI.Core.Controllers
                 return Json(new { data = new List<SupplierOriginSetupViewModel>(), error = ex.Message });
             }
         }
-
-        #endregion
-
-        #region TabeleLodaing
-
-        //[HttpGet]
-        //public async Task<IActionResult> GetTableData()
-        //{
-        //    try
-        //    {
-        //        var list = await supplierOriginService.GetAllAsync();
-        //        return PartialView("_Grid", list);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, ex.Message);
-        //    }
-        //}
 
         #endregion
 

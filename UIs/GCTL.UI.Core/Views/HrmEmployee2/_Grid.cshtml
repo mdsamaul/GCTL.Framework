@@ -1,24 +1,31 @@
-﻿@model List<GCTL.Core.ViewModels.HrmEmployees2.HrmEmployee2SetUpViewModel>
-
-<table id="HrmEmployee2-grid" class="table table-striped  table-bordered table-sm table-hover table-common">
-    <thead class="row-border">
-        <tr class="table row-border">
-
-            <th class="text-center text-middle" style="width: 5%;">
-                Select <br /> <input type="checkbox" id="HrmEmployee2-check-all" />
-            </th>
-            <th class="text-center text-middle" style="width: 7%;">Employee Id</th>
-            <th class="text-center text-middle" style="width: 21%;">Name</th>
-            <th class="text-center text-middle" style="width: 20%;">Name (বাংলা)</th>
-            <th class="text-center text-middle" style="width: 6%;">Gender</th>
-            <th class="text-center text-middle" style="width: 9%;">Nationality</th>
-            <th class="text-center text-middle" style="width: 11%;">National ID</th>
-            <th class="text-center text-middle" style="width: 9%;">Phone</th>
-            <th class="text-center text-middle" style="width: 7%;">Picture</th>
-            <th class="text-center text-middle" style="width: 5%;">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-
-    </tbody>
-</table>
+@await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+{
+    GridId = "HrmEmployee2-grid",
+    AjaxUrl = "/HrmEmployee2/GetTableData",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "employeeId",
+    CheckAllId = "HrmEmployee2-check-all",
+    DefaultSortColumn = "employeeId",
+    DefaultSortDirection = "desc",
+    CardWrapper = true,
+    CardTitle = "Employee Information List",
+    IconClass = "fa-solid fa-users",
+    AddButtonUrl = "/HrmEmployee2/Setup",
+    AddButtonText = "Add Employee",
+    AddButtonId = "add_employee",
+    Columns = new()
+    {
+        new() { Data = "employeeId", Header = "Employee Id", Width = "8%", IsEditLink = true, EditSelectorClass = "js-HrmEmployee2-edit" },
+        new() { Data = "firstName", Header = "Name", Width = "18%", RenderFn = "hrmEmpName" },
+        new() { Data = "firstNameBangla", Header = "Name (বাংলা)", Width = "18%", RenderFn = "hrmEmpNameBn" },
+        new() { Data = "sexCode", Header = "Gender", Width = "7%" },
+        new() { Data = "nationalityCode", Header = "Nationality", Width = "10%" },
+        new() { Data = "nationalIdno", Header = "National ID", Width = "11%" },
+        new() { Data = "telephone", Header = "Phone", Width = "10%" },
+        new() { Data = "photoUrl", Header = "Picture", Width = "8%", Sortable = false, Searchable = false, RenderFn = "hrmEmpPhoto" },
+        new() { Data = "autoId", Header = "Actions", Width = "10%", Sortable = false, Searchable = false, RenderFn = "hrmEmpActions" }
+    }
+})
+

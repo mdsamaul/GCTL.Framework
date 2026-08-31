@@ -1,9 +1,7 @@
 ﻿using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.Departments;
 using GCTL.Core.ViewModels.SupplierType;
 using GCTL.Service.Common;
-using GCTL.Service.Departments;
 using GCTL.Service.SupplierType;
 using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.SupplierType;

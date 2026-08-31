@@ -16,6 +16,7 @@ namespace GCTL.UI.Core.Controllers
 {
     public class PaymentTypeController : BaseController
     {
+        #region Service & Repository
         private readonly IPaymentTypeService _paymentTypeService;
         private readonly ICommonService _commonService;
         private string strMaxNO = string.Empty;
@@ -27,6 +28,10 @@ namespace GCTL.UI.Core.Controllers
             _paymentTypeService = paymentTypeService;
             _commonService = commonService;
         }
+
+        #endregion
+
+        #region Get Next Code
 
         private async Task<string> GetNextCodeAsync()
         {
@@ -52,6 +57,8 @@ namespace GCTL.UI.Core.Controllers
             }
             return strMaxNo;
         }
+
+        #endregion
 
         #region Index
 
@@ -213,6 +220,10 @@ namespace GCTL.UI.Core.Controllers
             return View("Index", pageModel);
         }
 
+        #endregion
+
+        #region Save/Update
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Setup(PaymentTypeSetupViewModel modelVM)
@@ -323,5 +334,6 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
+
     }
 }

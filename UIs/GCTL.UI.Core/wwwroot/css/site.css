@@ -424,32 +424,33 @@ textarea {
 
 .menu-item a:hover,
 .menu-item .menu-link:hover {
-    background-color: var(--primary-soft) !important;
+    background-color: hsl(var(--primary-hsl) / 0.05) !important;
     color: var(--primary) !important;
 }
 
-/* Parent active menu item */
+/* Parent active menu item - 8% opacity */
 .menu-item.active > .menu-link {
-    background-color: rgba(var(--primary-hsl), 0.08);
-    color: var(--primary);
+    background-color: hsl(var(--primary-hsl) / 0.08) !important;
+    color: var(--primary) !important;
     font-weight: 600;
 }
 
-/* Direct active leaf link */
+/* Direct active child leaf link - 13% opacity (5% higher than parent) */
 .menu-item .menu-link.active,
 .menu-item.direct-active > .menu-link {
-    background-color: var(--primary) !important;
-    color: #ffffff !important;
+    background-color: hsl(var(--primary-hsl) / 0.13) !important;
+    color: var(--primary) !important;
     font-weight: 600;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    box-shadow: none !important;
 }
 
 .menu-item .menu-link.active i,
 .menu-item.direct-active > .menu-link i,
 .menu-item .menu-link.active .menu-arrow,
 .menu-item.direct-active > .menu-link .menu-arrow {
-    color: #ffffff !important;
+    color: var(--primary) !important;
 }
+
 
 .menu-text {
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -477,9 +478,12 @@ textarea {
 
 :root[data-theme="dark"] .menu-item .menu-link.active,
 :root[data-theme="dark"] .menu-item.direct-active > .menu-link {
-    background-color: var(--primary) !important;
-    color: #ffffff !important;
+    background-color: hsl(var(--primary-hsl) / 0.2) !important;
+    color: var(--primary) !important;
 }
+
+
+
 /* -----------------------------------------------------------------
    Content Wrapper
    ----------------------------------------------------------------- */
@@ -533,7 +537,7 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 2px 24px;
+    padding: 2px 24px 2px 0px;
     flex-shrink: 0;
     z-index: 99;
     box-shadow: var(--shadow-sm);
@@ -1249,42 +1253,106 @@ textarea {
     font-family: "Segoe UI", Arial, sans-serif !important;
 }*/
 
+/* All Inputs, Selects, and Dropdowns Uniform Typography */
+.form-control,
+.form-select,
+.custom-dd-input,
+.select2-container .select2-selection--single,
+.select2-selection__rendered,
+.select2-search__field,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"],
+input[type="week"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+    font-size: 0.750rem !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+/* All Input Placeholders (Text, Date, Number, Dropdowns, Textarea) */
 .form-control::placeholder,
 .form-select::placeholder,
-.custom-dd-input::placeholder {
+.custom-dd-input::placeholder,
+.select2-search__field::placeholder,
+input::placeholder,
+textarea::placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
+    font-size: 0.750rem !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
 
 .form-control::-webkit-input-placeholder,
-.custom-dd-input::-webkit-input-placeholder {
+.form-select::-webkit-input-placeholder,
+.custom-dd-input::-webkit-input-placeholder,
+.select2-search__field::-webkit-input-placeholder,
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
+    font-size: 0.750rem !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
 }
 
 .form-control::-moz-placeholder,
-.custom-dd-input::-moz-placeholder {
+.form-select::-moz-placeholder,
+.custom-dd-input::-moz-placeholder,
+.select2-search__field::-moz-placeholder,
+input::-moz-placeholder,
+textarea::-moz-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
+    font-size: 0.750rem !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
 
 .form-control:-ms-input-placeholder,
-.custom-dd-input:-ms-input-placeholder {
+.form-select:-ms-input-placeholder,
+.custom-dd-input:-ms-input-placeholder,
+.select2-search__field:-ms-input-placeholder,
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
+    font-size: 0.750rem !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
+    opacity: 1 !important;
 }
 
 select.form-select option[value=""],
-select.form-control option[value=""] {
-    color: #8a9bb8;
-    font-style: italic;
+select.form-control option[value=""],
+select option[value=""] {
+    color: #8a9bb8 !important;
+    font-style: italic !important;
+    font-size: 0.750rem !important;
 }
+
+/* Webkit Date & Time Input Specific Alignment */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="datetime-local"]::-webkit-datetime-edit,
+input[type="month"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit {
+    font-size: 0.750rem !important;
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
 
 /* All table headers */
 .table thead th,

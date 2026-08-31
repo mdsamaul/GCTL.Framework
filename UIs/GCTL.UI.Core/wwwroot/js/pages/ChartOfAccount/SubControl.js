@@ -1,4 +1,4 @@
-﻿let selectedSubControlLedger = [];
+let selectedSubControlLedger = [];
 let currenSubControltPage = 1;
 let SubControlpageSize = 10;
 let SubControlcurrentSortColumn = 'GeneralLedgerCodeNo';
@@ -305,6 +305,10 @@ function SubControlLedgerFormClear() {
 
 //#region Load All Sub-Control Ledger Data
 function LoadSubControlLedgerAll(page = 1, pageSize = SubControlpageSize, sortColumn = SubControlcurrentSortColumn, sortDirection = SubControlcurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "") {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#subControlLedgerTable')) {
+        $('#subControlLedgerTable').DataTable().ajax.reload(null, false);
+        return;
+    }
     $.ajax({
         url: '/subcontrol-ledger-list',
         type: 'GET',
@@ -366,9 +370,9 @@ function LoadSubControlLedgerAll(page = 1, pageSize = SubControlpageSize, sortCo
 //#endregion
 
 //#region Populate Data For Edit
-$(document).on('click', '.subcontrol-ledger', function (e) {
+$(document).on('click', '.js-subcontrolledger-edit, .subcontrol-ledger', function (e) {
     e.preventDefault();
-    const id = parseInt($(this).data('autoid'));
+    const id = parseInt($(this).data('id') || $(this).data('autoid'));
     if (!id) return;
 
     isEditModeSubControl = true;

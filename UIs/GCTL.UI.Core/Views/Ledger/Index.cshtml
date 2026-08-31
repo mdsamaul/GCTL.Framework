@@ -1,4 +1,4 @@
-﻿
+
 <style>
     .custom-width-modal {
         max-width: 1600px !important;
@@ -229,18 +229,39 @@
         </div>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@section Scripts {
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
 
-@* ================= Scripts ================= *@
-<script src="~/js/pages/ChartOfAccount/Group.js"></script>
-<script src="~/js/pages/ChartOfAccount/Control.js"></script>
-<script src="~/js/pages/ChartOfAccount/SubControl.js"></script>
-<script src="~/js/pages/ChartOfAccount/SubSidiary.js"></script>
-<script src="~/js/pages/ChartOfAccount/General.js"></script>
+    @* ================= Scripts ================= *@
+    <script src="~/js/pages/ChartOfAccount/Group.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/Control.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/SubControl.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/SubSidiary.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/General.js" asp-append-version="true"></script>
 
-@* Modal Scripts *@
-<script src="~/js/pages/ChartOfAccount/CommonModal.js"></script>
-<script src="~/js/pages/ChartOfAccount/ModalGroup.js"></script>
-<script src="~/js/pages/ChartOfAccount/ModalControl.js"></script>
-<script src="~/js/pages/ChartOfAccount/ModalSubControl.js"></script>
-<script src="~/js/pages/ChartOfAccount/ModalSubSidiary.js"></script>
+    @* Modal Scripts *@
+    <script src="~/js/pages/ChartOfAccount/CommonModal.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalGroup.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalControl.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalSubControl.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalSubSidiary.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function () {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'groupLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'controlLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'subControlLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'subSidiaryLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'generalLedgerTable' });
+            }
+
+            $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                if ($.fn.dataTable) {
+                    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                }
+            });
+        });
+    </script>
+}
+
