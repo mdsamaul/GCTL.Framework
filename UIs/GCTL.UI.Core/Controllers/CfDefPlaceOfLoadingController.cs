@@ -38,7 +38,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 var hasPermission = await placeOfLoadingService.PagePermissionAsync(LoginInfo.AccessCode);
 
-                if (!hasPermission)
+                if (hasPermission)
                 {
                     return RedirectToAction("Login", "Accounts");
                 }

@@ -76,68 +76,102 @@
                         }
 
                         var data = response.data || response || {};
-                      //  console.log('Employee details response:', data);
+                        
                         if (data) {
-                            _suppressEmployeeChange = true;
-
-                            // Text Inputs
-                            setField('#AutoId', response.autoId || '0');
-                            setField('#FullName', data.employeeName || '');
-                            setField('#MobileNo', data.officialPhone || '');
-                            setField('#Email', data.officialEmail || '');
-                            setField('#PayId', data.payId || '');
-                            setField('#AttendenceId', data.attendenceId || '');
-                            setField('#DesignationName', data.designationName || '');
-                            setField('#DepartmentName', data.departmentName || '');
-                            setField('#ProbationPeriod', data.probationPeriod || '');
-                            setField('#AppointmentLetterNo', data.appointmentLetterNo || '');
-                            setField('#ConfirmationRefNo', data.confirmationRefNo || '');
-                            setField('#JoiningSalary', data.joiningSalary || '');
-                           
-                            if (data.clientId) {
-                                setSelect('#ClientId', data.clientId);
-                            }
-                            
-                            // Select2 Dropdowns
-                            setSelect('#EmployeeId', data.employeeID);
-                            setSelect('#OfficialInfoCompanyCode', data.companyCode);
-                            setSelect('#OfficialInfoBranchCode', data.branchCode);
-                            setSelect('#DepartmentCode', data.departmentCode);
-                            setSelect('#DesignationCode', data.designationCode);
-                            setSelect('#EmpTypeCode', data.employeeTypeCode);
-                            setSelect('#EmploymentNatureId', data.employmentNatureId);
-                            setSelect('#GradeCode', data.gradeCode);
-                            setSelect('#ShiftCode', data.shiftCode);
-                            setSelect('#ReportingTo', data.immediateSupervisorID);
-                            setSelect('#Hod', data.headOfDepartmentID);
-                            setSelect('#EmployeeStatus', data.employeeStatusId);
-                            
-                            setSelect('#IsLunchBilEligible', data.isLunchBilEligible);
-                            setSelect('#IsOverTimeEligible', data.isOverTimeEligible);
-                            setSelect('#IsExtraDutyEligible', data.isExtraDutyEligible);
-                            setSelect('#IsGovtHolidayEligible', data.isGovtHolidayEligible);
-                            setSelect('#IsAttendanceBonusEligible', data.isAttendanceBonusEligible);
-
-                            // Dates
-                            setDate('#JoiningDate', data.joiningDate);
-                            setDate('#ConfirmeDate', data.confirmationDate);
-                            setDate('#AppointmentLetterDate', data.appointmentLetterDate);
-                            setDate('#ContractEndDate', data.contractEndDate);
-
-                            // Update Save button label
-                            var autoId = parseInt(response.autoId) || 0;
-                            if (autoId > 0) {
-                                $(settings.saveSelector).html('<i class="fas fa-save"></i> Update');
-                            } else {
-                                $(settings.saveSelector).html('<i class="fas fa-save"></i> Save');
-                            }
-                            _suppressEmployeeChange = false;
+                            populateFormFromData(data, response.autoId);
                         }
                     },
                     error: function () {
                         _suppressEmployeeChange = false;
                         console.error('Failed to fetch employee details.');
                         toastr.error('Failed to load employee details.');
+                    }
+                });
+            }
+
+            // ── Extract populate logic to a reusable function ──────────────────────
+            function populateFormFromData(data, autoIdParam) {
+                function getProp(obj, propName) {
+                    if (!obj) return undefined;
+                    var key = Object.keys(obj).find(k => k.toLowerCase() === propName.toLowerCase());
+                    return key ? obj[key] : undefined;
+                }
+
+                _suppressEmployeeChange = true;
+
+                // Text Inputs
+                var autoId = autoIdParam || getProp(data, 'autoId') || '0';
+                setField('#AutoId', autoId);
+                setField('#FullName', getProp(data, 'employeeName') || getProp(data, 'fullName') || '');
+                setField('#MobileNo', getProp(data, 'officialPhone') || getProp(data, 'mobileNo') || '');
+                setField('#Email', getProp(data, 'officialEmail') || getProp(data, 'email') || '');
+                setField('#PayId', getProp(data, 'payId') || '');
+                setField('#AttendenceId', getProp(data, 'attendenceId') || '');
+                setField('#DesignationName', getProp(data, 'designationName') || '');
+                setField('#DepartmentName', getProp(data, 'departmentName') || '');
+                setField('#ProbationPeriod', getProp(data, 'probationPeriod') || '');
+                setField('#AppointmentLetterNo', getProp(data, 'appointmentLetterNo') || '');
+                setField('#ConfirmationRefNo', getProp(data, 'confirmationRefNo') || '');
+                setField('#JoiningSalary', getProp(data, 'joiningSalary') || '');
+                
+                if (getProp(data, 'clientId')) {
+                    setSelect('#ClientId', getProp(data, 'clientId'));
+                }
+                
+                // Select2 Dropdowns
+                setSelect('#EmployeeId', getProp(data, 'employeeId') || getProp(data, 'employeeID'));
+                setSelect('#OfficialInfoCompanyCode', getProp(data, 'officialInfoCompanyCode') || getProp(data, 'companyCode'));
+                setSelect('#OfficialInfoBranchCode', getProp(data, 'officialInfoBranchCode') || getProp(data, 'branchCode'));
+                setSelect('#DepartmentCode', getProp(data, 'departmentCode'));
+                setSelect('#DesignationCode', getProp(data, 'designationCode'));
+                setSelect('#EmpTypeCode', getProp(data, 'empTypeCode') || getProp(data, 'employeeTypeCode'));
+                setSelect('#EmploymentNatureId', getProp(data, 'employmentNatureId'));
+                setSelect('#GradeCode', getProp(data, 'gradeCode'));
+                setSelect('#ShiftCode', getProp(data, 'shiftCode'));
+                setSelect('#ReportingTo', getProp(data, 'reportingTo') || getProp(data, 'immediateSupervisorID') || getProp(data, 'immediateSupervisorId'));
+                setSelect('#Hod', getProp(data, 'hod') || getProp(data, 'headOfDepartmentID') || getProp(data, 'headOfDepartmentId'));
+                setSelect('#EmployeeStatus', getProp(data, 'employeeStatus') || getProp(data, 'employeeStatusId'));
+                
+                setSelect('#IsLunchBilEligible', getProp(data, 'isLunchBilEligible'));
+                setSelect('#IsOverTimeEligible', getProp(data, 'isOverTimeEligible'));
+                setSelect('#IsExtraDutyEligible', getProp(data, 'isExtraDutyEligible'));
+                setSelect('#IsGovtHolidayEligible', getProp(data, 'isGovtHolidayEligible'));
+                setSelect('#IsAttendanceBonusEligible', getProp(data, 'isAttendanceBonusEligible'));
+
+                // Dates
+                setDate('#JoiningDate', getProp(data, 'joiningDate'));
+                setDate('#ConfirmeDate', getProp(data, 'confirmeDate') || getProp(data, 'confirmationDate'));
+                setDate('#AppointmentLetterDate', getProp(data, 'appointmentLetterDate'));
+                setDate('#ContractEndDate', getProp(data, 'contractEndDate'));
+
+                // Update Save button label
+                autoId = parseInt(autoId) || 0;
+                if (autoId > 0) {
+                    $(settings.saveSelector).html('<i class="fas fa-save"></i> Update');
+                } else {
+                    $(settings.saveSelector).html('<i class="fas fa-save"></i> Save');
+                }
+                _suppressEmployeeChange = false;
+            }
+
+            // ── Fetch Full Official Info ───────────────────────────────────────────
+            function fetchAndPopulateOfficialInfo(employeeId) {
+                $.ajax({
+                    url: '/OfficialInfo/GetTableData',
+                    type: 'GET',
+                    data: { employeeId: employeeId },
+                    success: function (response) {
+                        if (response && response.data && response.data.length > 0) {
+                            var data = response.data[0];
+                            populateFormFromData(data, data.autoId);
+                        } else {
+                            // fallback to basic employee fetch if official info not found
+                            fetchAndPopulateEmployee(employeeId);
+                        }
+                    },
+                    error: function () {
+                        console.error('Failed to fetch official info.');
+                        fetchAndPopulateEmployee(employeeId); // fallback
                     }
                 });
             }
@@ -203,9 +237,11 @@
 
                 _suppressEmployeeChange = false;
 
-                // Directly call populate — do NOT trigger 'change'
-                fetchAndPopulateEmployee(employeeId);
-                  loadTableData(employeeId); 
+                _suppressEmployeeChange = false;
+
+                // Directly call fetchAndPopulateOfficialInfo
+                fetchAndPopulateOfficialInfo(employeeId);
+                loadTableData(employeeId); 
                 // Scroll to form top
                 $('html, body').animate({
                     scrollTop: $(settings.formSelector).offset().top - 20
@@ -289,23 +325,23 @@
                 var designation = $('#DesignationCode').val();
 
                 if (!employee) {
-                    toastr.info('Select Employee');
-                    $('#EmployeeId').select2('open');
+                    toastr.warning('Please select an Employee');
+                    validateEmployeeDD();
                     return false;
                 }
                 if (!company) {
-                    toastr.info('Select Company');
-                    $('#OfficialInfoCompanyCode').select2('open');
+                    toastr.warning('Please select a Company');
+                    validateCompanyCodeDD();
                     return false;
                 }
                 if (!department) {
-                    toastr.info('Select Department');
-                    $('#DepartmentCode').select2('open');
+                    toastr.warning('Please select a Department');
+                    validateDepartmentCodeDD();
                     return false;
                 }
                 if (!designation) {
-                    toastr.info('Select Designation');
-                    $('#DesignationCode').select2('open');
+                    toastr.warning('Please select a Designation');
+                    validateDesignationCodeDD();
                     return false;
                 }
                 return true;
