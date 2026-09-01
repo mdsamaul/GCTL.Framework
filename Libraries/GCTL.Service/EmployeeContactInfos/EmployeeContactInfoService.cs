@@ -357,8 +357,7 @@ namespace GCTL.Service.EmployeeContactInfos
                     await employeeContactInfoRepository.RollbackTransactionAsync();
                     return false;
                 }
-                entity.AutoId = (decimal)entityVM.AutoId;
-                entity.EmpContactId = entityVM.EmpContactId ?? string.Empty;
+
                 entity.EmployeeId = entityVM.EmployeeId ?? string.Empty;
                 entity.CompanyCode = entityVM.CompanyCode ?? string.Empty;
                 entity.BranchCode = entityVM.BranchCode ?? string.Empty;

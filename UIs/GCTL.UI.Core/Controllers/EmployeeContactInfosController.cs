@@ -111,70 +111,57 @@ namespace GCTL.UI.Core.Controllers
                 ViewBag.IsEditMode = true;
             }
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_Setup", model);
+            }
+
             return View(model);
         }
 
         #endregion
 
-        #region GetEmployeeNameDesDeptByCode GetEmployeeDetailsByComapnyCode GetBranchByCode
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetContactInfoByEmployeeId(string employeeId)
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
-            if (string.IsNullOrEmpty(employeeId))
-                return Json(new { success = false, message = "Invalid employee ID" });
-
-            var result = await employeeContactInfoService.GetContactInfoByEmployeeId(employeeId);
-
-            if (result == null)
-                return Json(new { success = false, message = "No data found" });
-
-            return Json(new { success = true, data = result });
-        }
-
-
-        [HttpGet]
-        public async Task<IActionResult> GetEmployeeDetailsByComapnyCode(string companyCode)
-        {
-            if (string.IsNullOrEmpty(companyCode))
+            try
             {
-                return Json(new { success = false, message = "Invalid company code" });
+                var list = await employeeContactInfoService.GetAllAsync();
+                return Json(new { data = list });
             }
-
-            var result = await employeeContactInfoService.GetComapnyByCode(companyCode);
-            return Json(result);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetBranchByCode(string companyCode)
-        {
-            if (string.IsNullOrEmpty(companyCode))
+            catch (Exception ex)
             {
-                return Json(new { success = false, message = "Invalid company code" });
+                return Json(new { data = new List<EmployeeContactInfosSetupViewModel>(), error = ex.Message });
             }
-
-            var result = await employeeContactInfoService.GetComapnyByBranchCode(companyCode);
-            return Json(result);
         }
 
         #endregion
 
-        #region Post Update 
+        #region Post Update
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Setup(EmployeeContactInfosSetupViewModel modelVM)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    var errors = string.Join("; ", ModelState.Values
+                                        .SelectMany(x => x.Errors)
+                                        .Select(x => x.ErrorMessage));
+                    return Json(new { isSuccess = false, message = errors });
+                }
+
                 if (await employeeContactInfoService.IsExistByAsync(modelVM.EmpContactId, modelVM.EmployeeId))
                 {
-                    return Json(new { isSuccess = false, message = $"Already  Exists!", isDuplicate = true });
+                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                 }
 
                 if (string.IsNullOrEmpty(modelVM.EmpContactId))
                 {
-                    modelVM.EmpContactId = commonService.NextCode("EmpContactID", "HRM_EmployeeContactInfo", 4);
-                    //await employeeContactInfoService.GenerateNextCode();
+                    modelVM.EmpContactId = await employeeContactInfoService.GenerateNextCode();
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
@@ -183,12 +170,11 @@ namespace GCTL.UI.Core.Controllers
                     var hasSavePermission = await employeeContactInfoService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)
                     {
-                        await employeeContactInfoService.SaveAsync(modelVM, LoginInfo.CompanyCode);
-                        //TempData["Data"] = "This is the data I want to share.";
-                        //return RedirectToAction("Index", "HRM_EmployeeContactInfo");
-
-                        return Json(new { isSuccess = true, message = "Saved Successfully", redirectUrl = Url.Action("Index", "EmployeeContactInfos"), lastCode = modelVM.EmpContactId });
-
+                        bool isSaved = await employeeContactInfoService.SaveAsync(modelVM, LoginInfo.CompanyCode);
+                        if (isSaved)
+                            return Json(new { isSuccess = true, message = "Saved Successfully", redirectUrl = Url.Action("Index", "EmployeeContactInfos"), lastCode = modelVM.EmpContactId });
+                        else
+                            return Json(new { isSuccess = false, message = "Failed to save data. Please check constraints." });
                     }
                     else
                     {
@@ -200,8 +186,11 @@ namespace GCTL.UI.Core.Controllers
                     var hasUpdatePermission = await employeeContactInfoService.UpdatePermissionAsync(LoginInfo.AccessCode);
                     if (hasUpdatePermission)
                     {
-                        await employeeContactInfoService.UpdateAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Updated Successfully", redirectUrl = Url.Action("Index", "EmployeeContactInfos"), lastCode = modelVM.EmpContactId });
+                        bool isUpdated = await employeeContactInfoService.UpdateAsync(modelVM);
+                        if (isUpdated)
+                            return Json(new { isSuccess = true, message = "Updated Successfully", redirectUrl = Url.Action("Index", "EmployeeContactInfos"), lastCode = modelVM.EmpContactId });
+                        else
+                            return Json(new { isSuccess = false, message = "Failed to update data." });
                     }
                     else
                     {
@@ -213,8 +202,8 @@ namespace GCTL.UI.Core.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
-
         }
+
 
         #endregion
 
@@ -296,31 +285,7 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region TabeleLodaing
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData(string employeeId = null)
-        {
-            try
-            {
-                List<EmployeeContactInfosSetupViewModel> list;
-                if (!string.IsNullOrEmpty(employeeId))
-                {
-                    list = await employeeContactInfoService.GetByEmployeeAsync(employeeId);
-                }
-                else
-                {
-                    list = await employeeContactInfoService.GetAllAsync();
-                }
-                return PartialView("_Grid", list);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        #endregion
 
         #region CheckAvailability
 
