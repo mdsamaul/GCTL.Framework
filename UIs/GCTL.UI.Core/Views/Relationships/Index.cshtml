@@ -65,14 +65,17 @@
 
 <partial name="DeleteModal" />
 
-@section Scripts {
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-    <script src="~/js/pages/relationships.js" asp-append-version="true"></script>
-    <script>
-        $(document).ready(function () {
-            $.relationships({
-                baseUrl: '/Relationships'
-            });
-        });
-    </script>
-}
+<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/relationships.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.relationships === "function") {
+            var options = { baseUrl: '@Url.Action("", "Relationships")' };
+            options.load = () => { };
+            $.relationships(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>

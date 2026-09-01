@@ -103,8 +103,10 @@ namespace GCTL.UI.Core.Controllers
                 Console.WriteLine("Error: " + ex.Message);
             }
 
-            if (child)
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
                 return PartialView(model);
+            }
 
             return View(model);
         }
