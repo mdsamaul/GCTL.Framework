@@ -1,4 +1,5 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.VoucherType;
 using GCTL.Data.Models;
@@ -17,7 +18,7 @@ namespace GCTL.Service.VoucherType
         public VoucherTypeService(
             IRepository<AccVoucherType> genericRepository,
             IRepository<AccDurationType> durationType
-            ) 
+            )
     : base(genericRepository)
         {
             _repository = genericRepository;
@@ -142,7 +143,7 @@ namespace GCTL.Service.VoucherType
 
             int nextCode = maxCode + 1;
 
-            return nextCode.ToString(); 
+            return nextCode.ToString();
         }
 
         //public async Task<PaginationService<Acc_VoucherType, VoucherTypeVM>.PaginationResult<VoucherTypeVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherType_Code", string sortOrder = "desc")
@@ -217,11 +218,47 @@ namespace GCTL.Service.VoucherType
         //            EndItem = endItem,
         //            TotalItems = totalItems,
         //            PageNumbers = pageNumbers,
-        //            TotalPages = totalPages,
-        //            CurrentPage = pageNumber
-        //        }
-        //    };
-        //}
+        public async Task<PaginationResponse<VoucherTypeVM>> GetTableDataAsync(PaginationRequest request)
+        {
+            var query = from v in _repository.All().AsNoTracking()
+                        join d in _durationType.All().AsNoTracking()
+                            on v.ResetDurationTypeCode equals d.DurationTypeCode into vd
+                        from duration in vd.DefaultIfEmpty()
+                        select new VoucherTypeVM
+                        {
+                            autoId = v.AutoId,
+                            VoucherType_Code = v.VoucherTypeCode ?? string.Empty,
+                            Voucher_TypeName = v.VoucherTypeName ?? string.Empty,
+                            Description = v.Description ?? string.Empty,
+                            numberingMethod = v.NumberingMethod ?? string.Empty,
+                            startingNumber = v.StartingNumber,
+                            resetDuration = v.ResetDuration,
+                            resetDurationType_Code = v.ResetDurationTypeCode ?? string.Empty,
+                            DurationTypeName = duration.DurationType ?? string.Empty,
+                            //DurationTypeName = duration != null ? (duration.DurationType ?? string.Empty) : string.Empty,
+                            prefix = v.Prefix ?? string.Empty,
+                            suffix = v.Suffix ?? string.Empty,
+                            padding = v.Padding,
+                            LIP = v.Lip ?? string.Empty,
+                            LMAC = v.Lmac ?? string.Empty,
+                            LDate = v.Ldate,
+                            ModifyDate = v.ModifyDate
+                        };
+
+            if (request.PageSize == -1)
+            {
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
+            }
+
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderByDescending(x => x.autoId);
+                request.SortColumn = "";
+            }
+
+            return await PaginationService<VoucherTypeVM>.GetPaginatedData(query, request);
+        }
 
         public async Task<PaginationService<AccVoucherType, VoucherTypeVM>.PaginationResult<VoucherTypeVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherType_Code", string sortOrder = "desc")
         {

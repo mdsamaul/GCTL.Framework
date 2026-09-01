@@ -672,7 +672,7 @@ namespace GCTL.Service.SepDocumentation
                             Message = "Exp. No or Invoice No already exists."
                         };
                     }
-                }                              
+                }
                 entity.JobNo = model.JobNo ?? string.Empty;
                 entity.PrifixId = model.PrifixId ?? string.Empty;
                 entity.Date = model.Date;
@@ -927,7 +927,7 @@ namespace GCTL.Service.SepDocumentation
         public async Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId)
         {
             try
-            {               
+            {
                 var shipmentModeShortName = await _shipmentModeRepository.All()
                     .Where(x => x.ExpenseTypeId == shipmentModeId)
                     .Select(x => x.ShortName)

@@ -1,226 +1,171 @@
-﻿@using GCTL.UI.Core.ViewModels
+@using GCTL.UI.Core.ViewModels
 
-<div class="card shadow-sm rounded-2">
+<div class="card rounded shadow-sm">
+    <div class="card-header dynamic-grid-header">
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "Voucher Type",
+            SaveBtnClass = "js-vouchertype-save VoucherSaveBtn",
+            DeleteBtnClass = "js-vouchertype-delete-confirm VoucherdeleteBtn",
+            ClearBtnClass = "js-vouchertype-clear VoucherresetBtn",
+            ExcelBtnClass = "export-excel",
+            PdfBtnClass = "export-pdf",
+            FavtBtnClass = "VoucherfavBtn"
+        })
+    </div>
 
-    @* ================= Toolbar Section ================= *@
-    @await Html.PartialAsync("_Toolbars", new ToobarModel
-    {
-        Title = "Voucher Type",
-        ShowSave = true,
-        SaveBtnId = "VoucherSaveBtn",
-        SaveBtnClass = "js-VoucherType-save VoucherSaveBtn",
-        EnableSave = true,
-
-        ShowDelete = true,
-        DeleteBtnId = "VoucherdeleteBtn",
-        DeleteBtnClass = "js-VoucherType-delete-confirm VoucherdeleteBtn",
-        EnableDelete = true,
-
-        ShowClear = true,
-        ClearBtnId = "btnClear",
-        ClearBtnClass = "js-VoucherType-clear VoucherresetBtn",
-        EnableClear = true,
-
-        ShowPrint = true,
-        PrintBtnId = "btnPrint",
-        PrintBtnClass = "printBtn",
-        ExcelBtnClass = "export-excel",
-        PdfBtnClass = "export-pdf",
-        EnablePrint = true,
-
-        ShowFavorite = true,
-        FavtBtnId = "btnFav",
-        FavtBtnClass = "VoucherfavBtn",
-        EnableFavorite = true
-    })
-
-    <div class="card-body">
+    <div class="card-body px-4 py-3">
         <form id="VoucherTypeForm">
-            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
-                <input type="hidden" id="VoucherautoId" name="autoId" />
+            <input type="hidden" id="VoucherautoId" name="autoId" />
 
-                <fieldset class="border rounded-3 p-3 mb-3">
-                    <div class="row g-3">
+            <div class="form-group row">
+                @* 1. Voucher Type ID (readonly) *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "VoucherTypeCode",
+                    LabelText = "Voucher Type ID",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Auto Generated",
+                    IsReadonly = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
 
-                        @* 1. Voucher Type *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Text,
-                            InputId = "VoucherTypeName",
-                            InputName = "Voucher_TypeName",
-                            LabelText = "Voucher Type",
-                            Placeholder = "Voucher Type",
-                            IsRequired = true
-                        })
+                @* 2. Voucher Type Name *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "VoucherTypeName",
+                    LabelText = "Voucher Type",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Voucher Type",
+                    IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
+            </div>
 
-                        @* 2. Description *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Text,
-                            InputId = "Description",
-                            InputName = "Description",
-                            LabelText = "Description",
-                            Placeholder = "Description",
-                            IsRequired = true
-                        })
+            <div class="form-group row">
+                @* 3. Description *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "Description",
+                    LabelText = "Description",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Description",
+                    IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
 
-                        @* 3. Numbering Method *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Select,
-                            InputId = "numberingMethod",
-                            InputName = "numberingMethod",
-                            LabelText = "Numbering Method",
-                            Placeholder = "Numbering Method",
-                            IsRequired = true
-                        })
+                @* 4. Numbering Method *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "numberingMethod",
+                    LabelText = "Numbering Method",
+                    FieldType = FieldType.Select,
+                    Placeholder = "Select Numbering Method",
+                    IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
+            </div>
 
-                        @* 4. Starting Number *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Number,
-                            InputId = "startingNumber",
-                            InputName = "startingNumber",
-                            Placeholder = "Starting Number",
-                            LabelText = "Starting Number"
-                        })
+            <div class="form-group row">
+                @* 5. Starting Number *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "startingNumber",
+                    LabelText = "Starting Number",
+                    FieldType = FieldType.Number,
+                    Placeholder = "Enter Starting Number",
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
 
-                        @* 5. Reset Duration *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Number,
-                            InputId = "resetDuration",
-                            InputName = "resetDuration",
-                            LabelText = "Reset Duration",
-                            Placeholder = "Reset Duration",
-                            IsRequired = true
-                        })
+                @* 6. Reset Duration *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "resetDuration",
+                    LabelText = "Reset Duration",
+                    FieldType = FieldType.Number,
+                    Placeholder = "Enter Reset Duration",
+                    IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
+            </div>
 
-                        @* Duration Type *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Select,
-                            InputId = "resetDurationTypeCode",
-                            InputName = "resetDurationTypeCode",
-                            LabelText = "Duration Type",
-                            Placeholder = "Duration Type",
-                            IsRequired = true
-                        })                     
+            <div class="form-group row">
+                @* 7. Duration Type *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "resetDurationTypeCode",
+                    LabelText = "Duration Type",
+                    FieldType = FieldType.Select,
+                    Placeholder = "Select Duration Type",
+                    IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
 
-                        @* 7. Prefix *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Text,
-                            InputId = "prefix",
-                            InputName = "prefix",
-                            LabelText = "Prefix",
-                            Placeholder = "Prefix",
-                            IsRequired = true
-                        })
+                @* 8. Padding *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "padding",
+                    LabelText = "Padding",
+                    FieldType = FieldType.Number,
+                    Placeholder = "Enter Padding",
+                    IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
+            </div>
 
-                        @* 8. Suffix *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Text,
-                            InputId = "suffix",
-                            InputName = "suffix",
-                            Placeholder = "suffix",
-                            LabelText = "Suffix"
-                        })
+            <div class="form-group row">
+                @* 9. Prefix *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "prefix",
+                    LabelText = "Prefix",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Prefix",
+                    IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
 
-                        @* 9. Padding *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-4",
-                            FieldType = FieldType.Number,
-                            InputId = "padding",
-                            InputName = "padding",
-                            LabelText = "Padding",
-                            Placeholder = "Padding",
-                            IsRequired = true
-                        })
+                @* 10. Suffix *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "suffix",
+                    LabelText = "Suffix",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Suffix",
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
+            </div>
 
-                    </div>
-                </fieldset>
+            <div class="row g-3 mt-2" id="entryUpdateDateSection" style="display: none;">
+                <hr class="my-2" />
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "VoucherdisplayLDate",
+                    LabelText = "Creation Date:",
+                    FieldType = FieldType.ReadonlyDisplay,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
 
-                <hr class="my-3 mx-1">
-
-                @* --- Entry & Update Date Section --- *@
-                <div class="row g-3">
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                    {
-                        IsVisible = true,
-                        ShowOnInit = true,
-                        ColumnClass = "col-md-6",
-                        FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "VoucherdisplayLDate",
-                        LabelText = "Entry Date:",
-                        LabelInline = true,
-                        LabelColWidth = 4,
-                        LabelColumnClass = "text-end",
-                        LabelStyle = "font-size:13px;",
-                        InputStyle = "font-size:13px;"
-                    })
-
-                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                    {
-                        IsVisible = true,
-                        ShowOnInit = true,
-                        ColumnClass = "col-md-6",
-                        FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "VoucherdisplayModifyDate",
-                        LabelText = "Last Update Date:",
-                        LabelInline = true,
-                        LabelColWidth = 4,
-                        LabelColumnClass = "text-end",
-                        LabelStyle = "font-size:13px;",
-                        InputStyle = "font-size:13px;"
-                    })
-                </div>
-
-                @* Bottom Save Button *@
-                <div class="col-12">
-                    @await Html.PartialAsync("_Toolbars", new ToobarModel
-                    {
-                        Title = "",
-                        ShowClear = false,
-                        ShowDelete = false,
-                        ShowPrint = false,
-                        ShowFavorite = false,
-                        IsPlain = true,
-                        ReserveActionSlot = true,
-                        IsMarginRight = true,
-                        SaveBtnType = "submit"
-                    })
-                </div>
-
-            </fieldset>
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    InputId = "VoucherdisplayModifyDate",
+                    LabelText = "Last Update Date:",
+                    FieldType = FieldType.ReadonlyDisplay,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6"
+                })
+            </div>
         </form>
     </div>
 </div>

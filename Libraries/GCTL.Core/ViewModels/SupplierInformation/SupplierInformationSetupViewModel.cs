@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.SupplierBankAccountTemp;
+using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels.SupplierBankAccountTemp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,12 +12,18 @@ namespace GCTL.Core.ViewModels.SupplierInformation
     public class SupplierInformationSetupViewModel : BaseViewModel
     {
         public decimal? Tc { get; set; } = 0;
+
+        [Searchable]
         public string? SupplierId { get; set; }
+
         [Required(ErrorMessage = "Supplier Name is required")]
+        [Searchable]
         public string SupplierName { get; set; }
         public string? SupplierTitle { get; set; }
         public string? SupplierCode { get; set; }
         public string? SupplierCategoryId { get; set; }
+
+        [Searchable]
         public string? SupplierCategory { get; set; }
         public string? SupplierTypeId { get; set; }
         public string? SupplierTypeName { get; set; }
@@ -25,8 +32,12 @@ namespace GCTL.Core.ViewModels.SupplierInformation
         public string? CompanyId { get; set; }
         public string? CompanyName { get; set; }
         public string? SupplierOriginId { get; set; }
+
+        [Searchable]
         public string? SupplierOrigin { get; set; }
         public string? CountryId { get; set; }
+
+        [Searchable]
         public string? CountryName { get; set; }
         public string? City { get; set; }
         public string? State { get; set; }
@@ -62,6 +73,8 @@ namespace GCTL.Core.ViewModels.SupplierInformation
         public decimal? OpeningBalance { get; set; }
         public string? Optype { get; set; }
         public string? SalesPersonId { get; set; }
+
+        [Searchable]
         public string? SalesPersonName { get; set; }
         public string? SalesPerson { get; set; }
         public string? Remarks { get; set; }

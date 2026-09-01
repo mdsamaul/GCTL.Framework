@@ -1,52 +1,27 @@
-﻿@model List<GCTL.Core.ViewModels.SupplierInformation.SupplierInformationSetupViewModel>
+@using GCTL.UI.Core.ViewModels
 
-<div class="card">
-    <div class="card-body">
-        <table id="SupplierInformation-grid" class="table table-striped  table-bordered table-sm table-hover table-common">
-            <thead class="row-border">
-                <tr class="table row-border">
-                    <th class="text-center text-middle" style="width: 3%;">
-                        Select <br /> <input type="checkbox" id="SupplierInformation-check-all" />
-                    </th>
-                    <th class="text-center text-middle" style="width: 7%;">Supplier ID</th>
-                    <th class="text-center text-middle" style="width: 20%;">Supplier Name</th>
-                    <th class="text-center text-middle" style="width: 17%;">Supplier Category</th>
-                    <th class="text-center text-middle" style="width: 17%;">Supplier Origin</th>
-                    <th class="text-center text-middle" style="width: 14%;">Country Name</th>
-                    <th class="text-center text-middle" style="width: 21%;">Sales Person</th>
-                </tr>
-            </thead>
-            <tbody id="SupplierInformation-grid-body">
-                @if (Model == null || !Model.Any())
-                {
-                    <tr class="text-center text-middle">
-                       @*  <td colspan="8">No Data Available.</td> *@
-                    </tr>
-                }
-                else
-                {
-                    @foreach (var item in Model.OrderByDescending(x => x.SupplierId))
-                    {
-                        <tr>
-                            <td class="text-center">
-                                <input type="checkbox" class="text-center text-middle checkBox" data-id="@item.SupplierId" value="@item.SupplierId" />
-                            </td>
-                            <td>
-                                <a href="#" class='btn js-SupplierInformation-edit'
-                                   style="text-decoration: underline; color: rebeccapurple;"
-                                   data-id="@item.SupplierId" title="Edit">
-                                    @item.SupplierId
-                                </a>
-                            </td>
-                            <td class="text-center text-middle">@item.SupplierName</td>
-                            <td class="text-center text-middle">@item.SupplierCategory</td>
-                            <td class="text-center text-middle">@item.SupplierOrigin</td>
-                            <td class="text-center text-middle">@item.CountryName</td>
-                            <td class="text-center text-middle">@item.SalesPersonName</td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "SupplierInformation-grid",
+    AjaxUrl = "/SupplierInformation/GetTableData",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "supplierId",
+    CheckAllId = "SupplierInformation-check-all",
+    CheckboxClass = "checkBox",
+    DefaultSortColumn = "supplierId",
+    DefaultSortDirection = "desc",
+    ShowSearchBox = true,
+    ShowPagination = true,
+    CustomGridWrapper = false,
+    Columns = new List<GridColumn>
+    {
+        new() { Data = "supplierId", Header = "Supplier ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-SupplierInformation-edit", IdField = "supplierId", Align = "center", SortField = "SupplierId" },
+        new() { Data = "supplierName", Header = "Supplier Name", Width = "20%", Align = "left", SortField = "SupplierName" },
+        new() { Data = "supplierCategory", Header = "Supplier Category", Width = "17%", Align = "left", SortField = "SupplierCategory" },
+        new() { Data = "supplierOrigin", Header = "Supplier Origin", Width = "17%", Align = "left", SortField = "SupplierOrigin" },
+        new() { Data = "countryName", Header = "Country Name", Width = "14%", Align = "left", SortField = "CountryName" },
+        new() { Data = "salesPersonName", Header = "Sales Person", Width = "21%", Align = "left", SortField = "SalesPersonName" }
+    }
+})

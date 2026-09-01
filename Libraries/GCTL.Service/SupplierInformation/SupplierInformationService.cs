@@ -1,8 +1,10 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.SupplierInformation;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
+using GCTL.Service.Pagination;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -115,6 +117,54 @@ namespace GCTL.Service.SupplierInformation
             ).ToListAsync();
 
             return data;
+        }
+
+        public async Task<PaginationResponse<SupplierInformationSetupViewModel>> GetTableDataAsync(PaginationRequest request)
+        {
+            var query = from sup in supplierInformationRepository.All().AsNoTracking()
+
+                        join cat in supplierInformationCategoryRepository.All().AsNoTracking()
+                        on sup.SupplierCategoryId equals cat.SupplierCategoryId into catJoin
+                        from cat in catJoin.DefaultIfEmpty()
+
+                        join typ in caDefCountryRepository.All().AsNoTracking()
+                        on sup.CountryId equals typ.CountryId into typJoin
+                        from typ in typJoin.DefaultIfEmpty()
+
+                        join org in supplierInformationOriginRepository.All().AsNoTracking()
+                        on sup.SupplierOriginId equals org.SupplierOriginId into orgJoin
+                        from org in orgJoin.DefaultIfEmpty()
+
+                        join sal in invDefSalesPersonRepository.All().AsNoTracking()
+                        on sup.SalesPersonId equals sal.SalesPersonId into supJoin
+                        from sal in supJoin.DefaultIfEmpty()
+
+                        select new SupplierInformationSetupViewModel
+                        {
+                            Tc = sup.Tc,
+                            SupplierId = sup.SupplierId ?? string.Empty,
+                            SupplierName = sup.SupplierName ?? string.Empty,
+                            SupplierCategory = cat.SupplierCategory ?? string.Empty,
+                            SupplierOrigin = org.SupplierOrigin ?? string.Empty,
+                            CountryName = typ.CountryName ?? string.Empty,
+                            SalesPersonName = sal.SalesPerson ?? string.Empty,
+                            Luser = sup.Luser,
+                            Ldate = sup.Ldate
+                        };
+
+            if (request.PageSize == -1)
+            {
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
+            }
+
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderByDescending(x => x.Tc);
+                request.SortColumn = "";
+            }
+
+            return await PaginationService<SupplierInformationSetupViewModel>.GetPaginatedData(query, request);
         }
 
         #endregion

@@ -8,6 +8,7 @@ using GCTL.Service.ExpenseHead;
 using GCTL.Service.Pagination;
 using GCTL.Core.DataTables;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using GCTL.Core.Helpers;
 
 namespace GCTL.Controllers
 {
@@ -218,13 +219,12 @@ namespace GCTL.Controllers
                 if (model == null)
                     return BadRequest(new { message = "Expense Head is required." });
 
-                var result = await _service.SaveAsync(model);
+                model.ToAudit(LoginInfo, false);
 
+                var result = await _service.SaveAsync(model);
 
                 if (!result)
                     return BadRequest(new { message = "Insertion Failed." });
-
-
 
                 return Ok(new { success = true, message = "Data Saved Successfully." });
             }
@@ -249,6 +249,8 @@ namespace GCTL.Controllers
             var typeExists = await _service.IsExistAsync(id);
             if (!typeExists)
                 return NotFound(new { message = $"Expense Head With ID {id} Not Found." });
+
+            model.ToAudit(LoginInfo, true);
 
             var result = await _service.UpdateAsync(model);
 

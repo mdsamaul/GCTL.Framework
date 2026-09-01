@@ -115,6 +115,9 @@ namespace GCTL.UI.Core.Controllers
                 model.CompanyCode = strMaxNO;
             }
 
+            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName", model.Country);
+            ViewBag.CurrencyDD = new SelectList(caDefCurrencyRepository.All(), "CurrencyId", "CurrencyName", model.BaseCurrency);
+
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
                 return PartialView($"_{nameof(Setup)}", model);

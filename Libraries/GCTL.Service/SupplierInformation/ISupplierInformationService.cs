@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.Common;
+using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.SupplierInformation;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace GCTL.Service.SupplierInformation
     public interface ISupplierInformationService
     {
         Task<List<SupplierInformationSetupViewModel>> GetAllAsync();
+        Task<PaginationResponse<SupplierInformationSetupViewModel>> GetTableDataAsync(PaginationRequest request);
         Task<List<SalesSupplierBankAccountTempDto>> GetTableBankAccountInfoDataAsync();
         Task<SupplierInformationSetupViewModel> GetByIdAsync(string code);
 

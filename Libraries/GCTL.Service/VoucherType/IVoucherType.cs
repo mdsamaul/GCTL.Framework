@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.VoucherType;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
@@ -13,6 +14,7 @@ namespace GCTL.Service.VoucherType
         Task<bool> UpdateAsync(VoucherTypeVM model);
         Task<bool> DeleteAsync(decimal id);
         Task<bool> IsExistAsync(int id);
+        Task<PaginationResponse<VoucherTypeVM>> GetTableDataAsync(PaginationRequest request);
         Task<PaginationService<AccVoucherType, VoucherTypeVM>.PaginationResult<VoucherTypeVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherType_Code", string sortOrder = "desc");
         Task<string> GetLastVoucherTypeCodeAsync();
         Task<bool> BulkDeleteAsync(List<decimal> ids);

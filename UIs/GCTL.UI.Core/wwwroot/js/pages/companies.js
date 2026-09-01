@@ -214,6 +214,10 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
+                        if (window.initCustomDropdowns) {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
+
                         resolve(data);
                     },
                     error: function (error) {

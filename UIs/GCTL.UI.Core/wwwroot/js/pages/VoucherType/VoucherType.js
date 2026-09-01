@@ -1,186 +1,236 @@
-﻿let selectedVoucherType = [];
-let VouchercurrentPage = 1;
-let VoucherpageSize = 5;
-let VouchercurrentSortColumn = 'VoucherType_Code';
-let VouchercurrentSortDirection = 'desc';
-console.log(`Global Call on Voucher Page: ${selectedVoucherType}`);
+let selectedVoucherType = [];
 
-//#region Validation Error Border(Common input handler)
+$(document).ready(function () {
+    console.log("Voucher Type Page Loaded");
 
-// Common handler for all inputs
-$(document).on('input', '.form-control', function () {
-    if ($(this).val().trim() !== '') {
-        $(this).removeClass('is-invalid');
+    // Initialize _CustomGrid DataTable
+    if ($.gctlGrid) {
+        $.gctlGrid.initFromModel({
+            gridId: 'voucherTypeTable'
+        });
     }
+
+    loadNextVoucherTypeCode();
+    loadNumberingMethodDropdown();
+    loadResetDurationDropdown();
+
+    // Save Button
+    $(document).on("click", ".VoucherSaveBtn, .js-vouchertype-save", function (e) {
+        e.preventDefault();
+        saveOrUpdateVoucherType();
+    });
+
+    $(document).on("submit", "#VoucherTypeForm", function (e) {
+        e.preventDefault();
+        saveOrUpdateVoucherType();
+    });
+
+    // Delete Button (Toolbar)
+    $(document).on("click", ".VoucherdeleteBtn, .js-vouchertype-delete-confirm", function (e) {
+        e.preventDefault();
+        openDeleteModal();
+    });
+
+    // Clear Button
+    $(document).on("click", ".VoucherresetBtn, .js-vouchertype-clear", function (e) {
+        e.preventDefault();
+        clearVoucherForm();
+    });
+
+    // Row Edit Click Handler
+    $(document).on("click", ".js-vouchertype-edit", function (e) {
+        e.preventDefault();
+        var id = $(this).data("id");
+        if (id) {
+            loadVoucherTypeDetails(id);
+        }
+    });
+
+    // Checkbox synchronization for bulk actions
+    $(document).on('change', '.js-vouchertype-check', function () {
+        syncSelectedCheckboxes();
+    });
+
+    $(document).on('change', '#selectAllVoucherType', function () {
+        $('.js-vouchertype-check').prop('checked', $(this).prop('checked'));
+        syncSelectedCheckboxes();
+    });
+
+    // Confirm Delete Click
+    $(document).on("click", "#deleteModal .js-delete, #deleteModal .js-gc-delete-confirm", function (e) {
+        e.preventDefault();
+        confirmDeleteVoucherType();
+    });
 });
 
-
-//#endregion
-
-
-//#region Reset Duration Type Dropdown
-function LoadResetDurationDropdown() {
-    // $.ajax({
-    //     url: '/reset-duration-dropdown',
-    //     method: 'GET',
-    //     success: function (response) {
-    //         console.log("Duration Type Loaded", response.data);
-
-    //         var $duration = $('#resetDurationTypeCode');
-    //         $duration.empty().append('<option value="">Select Duration Type</option>');
-
-    //         $.each(response.data, function (index, duration) {
-    //             $duration.append(
-    //                 '<option value="' + duration.id + '">' + duration.name + '</option>'
-    //             );
-    //         });
-
-    //         // Initialize Select2 to make it searchable
-    //         $duration.select2({
-    //             placeholder: "Duration Type",
-    //             width: '100%',
-    //             allowClear: true, 
-    //         });
-    //     },
-    //     error: function (xhr, status, error) {
-    //         console.error('Failed to load Duration Type:', error);
-    //     }
-    // });
-}
-//#endregion
-
-
-//#region Voucher Type Validation
-function ValidateVoucherType(VoucherTypeData) {
-    // Voucher Type Name validation
-    if (!VoucherTypeData.Voucher_TypeName) {
-        toastr.error("Please Enter Voucher Type.");
-        $('#VoucherTypeName').addClass('is-invalid');
-        return false;
-    } else {
-        $('#VoucherTypeName').removeClass('is-invalid');
-    }
-
-    // Description validation
-    if (!VoucherTypeData.Description) {
-        toastr.error("Please Enter Description.");
-        $('#Description').addClass('is-invalid');
-        return false;
-    } else {
-        $('#Description').removeClass('is-invalid');
-    }
-
-    // Numbering Method validation
-    if (!VoucherTypeData.numberingMethod) {
-        toastr.error("Please Select Numbering Method.");
-        $('#numberingMethod').addClass('is-invalid');
-        return false;
-    } else {
-        $('#numberingMethod').removeClass('is-invalid');
-    }
-
-    // Reset Duration validation
-    if (!VoucherTypeData.resetDuration) {
-        toastr.error("Please Enter Reset Duration.");
-        $('#resetDuration').addClass('is-invalid');
-        return false;
-    } else {
-        $('#resetDuration').removeClass('is-invalid');
-    }
-
-    // Prefix validation
-    if (!VoucherTypeData.prefix) {
-        toastr.error("Please Enter Prefix.");
-        $('#prefix').addClass('is-invalid');
-        return false;
-    } else {
-        $('#prefix').removeClass('is-invalid');
-    }
-
-    // Padding validation
-    if (!VoucherTypeData.padding) {
-        toastr.error("Please Enter Padding.");
-        $('#padding').addClass('is-invalid');
-        return false;
-    } else {
-        $('#padding').removeClass('is-invalid');
-    }
-
-    return true; // all valid
+function syncSelectedCheckboxes() {
+    selectedVoucherType = [];
+    $('.js-vouchertype-check:checked').each(function () {
+        var val = parseFloat($(this).val());
+        if (!isNaN(val)) selectedVoucherType.push(val);
+    });
 }
 
-//#endregion
+function reloadVoucherTypeGrid(resetPaging = false) {
+    if ($.gctlGrid) {
+        $.gctlGrid.reload('voucherTypeTable', resetPaging);
+    }
+}
 
+// Load Next Voucher Type Code
+function loadNextVoucherTypeCode() {
+    $.ajax({
+        url: '/next-voucher-type-code',
+        method: 'GET',
+        success: function (response) {
+            $('#VoucherTypeCode').val(response);
+        },
+        error: function (xhr, status, error) {
+            console.error("Failed to load next Voucher Type Code:", error);
+        }
+    });
+}
 
-//#region Save Or Update Voucher Type
-function SaveOrUpdateVoucherType() {
-    console.log("Save Or Update Voucher Function Called");
+// Load Numbering Method Dropdown
+function loadNumberingMethodDropdown(selectedVal = null) {
+    var $dropdown = $('#numberingMethod');
+    $dropdown.empty().append('<option value="">Select Numbering Method</option>');
+    var methods = [
+        { id: 'Manual', name: 'Manual' },
+        { id: 'Auto', name: 'Auto' },
+        { id: 'Date Wise Auto', name: 'Date Wise Auto' }
+    ];
 
-    let autoID = $('#VoucherautoId').val();
-    let VoucherTypeData = {
-        autoId: autoID || 0,
-        VoucherType_Code: "", 
-        Voucher_TypeName: $("#VoucherTypeName").val(),
-        Description: $("#Description").val(),
-        numberingMethod: $("#numberingMethod").val(),
+    $.each(methods, function (i, item) {
+        var selected = (selectedVal && selectedVal.toLowerCase() === item.id.toLowerCase()) ? 'selected' : '';
+        $dropdown.append(`<option value="${item.id}" ${selected}>${item.name}</option>`);
+    });
+
+    if (typeof window.initCustomDropdowns === "function") {
+        window.initCustomDropdowns('#VoucherFormView', true);
+    }
+}
+
+// Load Duration Type Dropdown
+function loadResetDurationDropdown(selectedId = null) {
+    $.ajax({
+        url: '/reset-duration-dropdown',
+        method: 'GET',
+        success: function (response) {
+            var $duration = $('#resetDurationTypeCode');
+            $duration.empty().append('<option value="">Select Duration Type</option>');
+
+            if (response && response.data) {
+                $.each(response.data, function (index, item) {
+                    var selected = (selectedId && String(selectedId) === String(item.id)) ? 'selected' : '';
+                    $duration.append(`<option value="${item.id}" ${selected}>${item.name}</option>`);
+                });
+            }
+
+            if (typeof window.initCustomDropdowns === "function") {
+                window.initCustomDropdowns('#VoucherFormView', true);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Failed to load Duration Type:', error);
+        }
+    });
+}
+
+// Validation
+function validateVoucherType(model) {
+    if (!model.Voucher_TypeName) {
+        toastr.warning("Please enter Voucher Type.");
+        $('#VoucherTypeName').focus();
+        return false;
+    }
+
+    if (!model.Description) {
+        toastr.warning("Please enter Description.");
+        $('#Description').focus();
+        return false;
+    }
+
+    if (!model.numberingMethod) {
+        toastr.warning("Please select Numbering Method.");
+        $('#numberingMethod').focus();
+        return false;
+    }
+
+    if (!model.resetDuration && model.resetDuration !== 0) {
+        toastr.warning("Please enter Reset Duration.");
+        $('#resetDuration').focus();
+        return false;
+    }
+
+    if (!model.resetDurationType_Code) {
+        toastr.warning("Please select Duration Type.");
+        $('#resetDurationTypeCode').focus();
+        return false;
+    }
+
+    if (!model.prefix) {
+        toastr.warning("Please enter Prefix.");
+        $('#prefix').focus();
+        return false;
+    }
+
+    return true;
+}
+
+// Save or Update
+function saveOrUpdateVoucherType() {
+    let autoId = $('#VoucherautoId').val();
+    let model = {
+        autoId: autoId ? parseFloat(autoId) : 0,
+        VoucherType_Code: $('#VoucherTypeCode').val() || "",
+        Voucher_TypeName: ($("#VoucherTypeName").val() || "").trim(),
+        Description: ($("#Description").val() || "").trim(),
+        numberingMethod: $("#numberingMethod").val() || "",
         startingNumber: $("#startingNumber").val() ? parseFloat($("#startingNumber").val()) : 0,
         resetDuration: $("#resetDuration").val() ? parseFloat($("#resetDuration").val()) : 0,
-        resetDurationType_Code: $("#resetDurationTypeCode").val(),
-        prefix: $("#prefix").val(),
-        suffix: $("#suffix").val(),
+        resetDurationType_Code: $("#resetDurationTypeCode").val() || "",
+        prefix: ($("#prefix").val() || "").trim(),
+        suffix: ($("#suffix").val() || "").trim(),
         padding: $("#padding").val() ? parseFloat($("#padding").val()) : 0
     };
 
-    //validation
-    if (!ValidateVoucherType(VoucherTypeData)) {
-        console.log("Validation Failed!");
-        return false; // stop if validation fails
+    if (!validateVoucherType(model)) {
+        return false;
     }
 
-
-    //Check for duplicate
     $.ajax({
         url: '/voucher-type/check-duplicate',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify(VoucherTypeData),
+        data: JSON.stringify(model),
         success: function (dupResponse) {
             if (dupResponse.isDuplicate) {
-                toastr.error(dupResponse.message);
+                toastr.error(dupResponse.message || "Voucher Type already exists.");
                 return;
             }
 
-            //Decide if POST or PUT
-            let url = '/voucher-type';
-            let method = 'POST';
-            let successMessage = 'Data Saved Successfully.';
-            if (autoID) {
-                url = `/voucher-type/${autoID}`;
-                method = 'PUT';
-                successMessage = 'Data Updated Successfully.';
-            }
+            let isEdit = autoId && parseFloat(autoId) > 0;
+            let url = isEdit ? `/voucher-type/${autoId}` : '/voucher-type';
+            let method = isEdit ? 'PUT' : 'POST';
 
-            //Save or Update
             $.ajax({
                 url: url,
                 type: method,
                 contentType: 'application/json',
-                data: JSON.stringify(VoucherTypeData),
+                data: JSON.stringify(model),
                 success: function (response) {
-                    if (response.success) {
-                        toastr.success(successMessage);
-
-                        ClearVoucherForm();
-                        selectedVoucherType = [];
-                        LoadAllVoucher(1, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection);
-
+                    if (response.success || response.isSuccess) {
+                        toastr.success(response.message || (isEdit ? 'Data Updated Successfully.' : 'Data Saved Successfully.'));
+                        clearVoucherForm();
+                        reloadVoucherTypeGrid(false);
                     } else {
                         toastr.error(response.message || "Operation Failed!");
-                        console.error('Error Voucher Type :', response);
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error('Error Saving Voucher Type :', error);
+                    toastr.error(xhr.responseJSON?.message || "Error saving Voucher Type.");
+                    console.error('Error saving:', error);
                 }
             });
         },
@@ -190,457 +240,134 @@ function SaveOrUpdateVoucherType() {
         }
     });
 }
-//#endregion
 
-
-//#region Voucher Form Clear
-function ClearVoucherForm() {
-    $("#VoucherautoId").val("");
-    $("#VoucherTypeName").val("");
-    $("#Description").val("");
-    $("#startingNumber").val("");
-    $("#resetDuration").val("");
-    $("#resetDurationTypeCode").val("").trigger('change');
-    $("#prefix").val("");
-    $("#suffix").val("");
-    $("#padding").val("");
-    $(".form-control").removeClass("is-invalid is-valid");
-    $(".invalid-feedback, .valid-feedback").remove();
-    $('#VoucherdisplayModifyDate').text('');
-    $('#VoucherdisplayLDate').text('');
-    $(".voucher-checkbox").prop("checked", false);
-    $("#VoucherselectAll").prop("checked", false);
-    $('#VouchersearchInput').val('');
-
-    // Set Entry Date
-    $('#VoucherdisplayLDate').text(getBangladeshDateTime());
-
-    selectedVoucherType = [];
-    VouchercurrentPage = 1;
-    const emptySearch = '';
-    LoadAllVoucher(1, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection, emptySearch);
-}
-//#endregion
-
-
-//#region Load All Voucher Data
-function LoadAllVoucher(page = 1, VoucherpageSize = 5, sortColumn = VouchercurrentSortColumn, sortDirection = VouchercurrentSortDirection, searchTerm = "") {
-
-    $.ajax({
-        url: '/voucher-type-list',
-        type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: VoucherpageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection
-        },
-        success: function (response) {
-            console.log("Voucher Type Data:", response);
-            let rows = '';
-            response.data.forEach(function (item) {
-                rows += `<tr>
-                    <td class="text-center">
-                        <input type="checkbox" class="form-check-input form-check-input-sm voucher-checkbox"
-                            data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                    </td>
-                    <td>
-                            <button class="btn btn-transfer voucher-type"
-                                data-autoid="${item.autoId}"
-                            </button>
-                              ${item.voucherType_Code}
-                    </td>
-                    <td>${item.voucher_TypeName || ''}</td>
-                    <td>${item.description || ''}</td>
-                    <td>${item.numberingMethod || ''}</td>
-                    <td class="text-center">${item.startingNumber || ''}</td>
-                    <td class="text-center">${item.resetDuration || ''}</td>
-                    <td>${item.durationTypeName || ''}</td>
-                    <td>${item.prefix || ''}</td>
-                    <td>${item.suffix || ''}</td>
-                 </tr>`;
-            });
-            $('#VouchertblBody').html(rows);
-
-            // Pagination Info
-            let page = response.paginationInfo.currentPage;
-            let totalPages = response.paginationInfo.totalPages;
-            let totalRecords = response.totalCount;
-            let startIndex = response.paginationInfo.startItem;
-            let endIndex = response.paginationInfo.endItem;
-
-            $('#VoucherpaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-            $('#VoucherpaginationInfo').text(`Page ${page} of ${Math.max(1, totalPages)}`);
-            $('#VouchertotalRecordsInfo').text(`Total Records: ${totalRecords}`);
-
-            VouchercurrentPage = page;
-            VouchergeneratePageButtons(VouchercurrentPage, totalPages);
-            VoucherupdateCheckboxState();
-            VoucherupdateSortIndicators();
-        },
-        error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
-
-        }
-    });
-}
-//#endregion
-
-
-//#region Populate Data For Edit
-$(document).on('click', '.voucher-type', function () {
-    const id = $(this).data('autoid');
-    console.log("Edited Voucher Type Code:", id);
-
+// Load Details for Edit
+function loadVoucherTypeDetails(id) {
     if (!id) return;
 
     $.ajax({
         url: `/voucher-type/details/${id}`,
         type: 'GET',
         success: function (data) {
-            // Populate form fields
-            $('#VoucherautoId').val(id);
+            $('#VoucherautoId').val(data.autoId);
+            $('#VoucherTypeCode').val(data.voucherType_Code || '');
             $('#VoucherTypeName').val(data.voucher_TypeName || '');
             $('#Description').val(data.description || '');
-            $('#numberingMethod').val(data.numberingMethod || '');
-            $('#startingNumber').val(data.startingNumber || '');
-            $('#resetDuration').val(data.resetDuration || '');
-            $('#resetDurationTypeCode').val(data.resetDurationTypeCode || '');
+            $('#startingNumber').val(data.startingNumber != null ? data.startingNumber : '');
+            $('#resetDuration').val(data.resetDuration != null ? data.resetDuration : '');
             $('#prefix').val(data.prefix || '');
             $('#suffix').val(data.suffix || '');
-            $('#padding').val(data.padding || '');
+            $('#padding').val(data.padding != null ? data.padding : '');
 
-            // Display LDate if available
+            loadNumberingMethodDropdown(data.numberingMethod);
+            loadResetDurationDropdown(data.resetDurationType_Code);
 
-            if (data.lDate) {
-                let entryDate = new Date(data.lDate).toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                }).replace(',', '');
-                $('#VoucherdisplayLDate').text(entryDate.toUpperCase());
+            // Audit Dates
+            if (data.lDate || data.modifyDate) {
+                $('#entryUpdateDateSection').show();
+                $('#VoucherdisplayLDate').text(data.lDate ? formatDate(data.lDate) : '');
+                $('#VoucherdisplayModifyDate').text(data.modifyDate ? formatDate(data.modifyDate) : '');
             } else {
-                $('#VoucherdisplayLDate').text('');
+                $('#entryUpdateDateSection').hide();
             }
 
-            if (data.modifyDate) {
-                let updateDate = new Date(data.modifyDate).toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                }).replace(',', '');
-                $('#VoucherdisplayModifyDate').text(updateDate.toUpperCase());
-            } else {
-                $('#VoucherdisplayModifyDate').text('');
-            }
-
-            // Optionally clear previous selections
-            selectedVoucherType = [parseInt(id)];
-
-            // Uncheck all row checkboxes to prevent conflict
-            $('.voucher-checkbox').prop('checked', false);
-            $("#VoucherselectAll").prop('checked', false); 
-
-            $(`.voucher-checkbox[data-autoid="${id}"]`).prop('checked', true);
-
-            VoucherupdateCheckboxState();
+            $("html, body").animate({ scrollTop: 0 }, 300);
         },
         error: function (xhr, status, error) {
-            toastr.error("Failed to fetch Voucher Type details.");
-            console.error("Error fetching details:", error);
+            toastr.error("Failed to load details.");
+            console.error("Error loading details:", error);
         }
     });
-});
+}
 
-//#endregion
+// Open Delete Modal
+function openDeleteModal() {
+    if (!selectedVoucherType.length) {
+        const formAutoId = parseFloat($("#VoucherautoId").val());
+        if (!isNaN(formAutoId) && formAutoId > 0) {
+            selectedVoucherType = [formAutoId];
+        }
+    }
 
-
-//#region Single & More Delete Voucher
-function DeleteVoucherType() {
-    // Filter only valid IDs
-    const ids = selectedVoucherType.map(x => parseInt(x)).filter(x => !isNaN(x));
-    console.log("Voucher IDs to delete:", ids);
+    const ids = selectedVoucherType.map(x => parseFloat(x)).filter(x => !isNaN(x));
 
     if (!ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
 
-    //URL for both single & multiple delete
-    const url = '/voucher-type-all-delete';
+    var $modal = $("#deleteModal");
+    if ($modal.length) {
+        $modal.find('.title').html(`Are you sure you want to delete ${ids.length} record(s)?`);
+        $modal.modal("show");
+    }
+}
 
+// Confirm Delete
+function confirmDeleteVoucherType() {
+    const ids = selectedVoucherType.map(x => parseFloat(x)).filter(x => !isNaN(x));
+    if (!ids.length) return;
+
+    var $modal = $("#deleteModal");
     $.ajax({
-        url: url,
+        url: '/voucher-type-all-delete',
         type: 'DELETE',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
-            toastr.success(response.message || "Data Deleted Successfully.");
-
-            // Clear form, reload table, reset selection
-            ClearVoucherForm();
-            LoadAllVoucher(VouchercurrentPage, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection);
-            selectedVoucherType = [];
-            $("#VoucherselectAll").prop("checked", false);
-
-
+            $modal.modal("hide");
+            if (response.isSuccess || response.success) {
+                toastr.success(response.message || "Data Deleted Successfully.");
+                clearVoucherForm();
+                selectedVoucherType = [];
+                reloadVoucherTypeGrid(false);
+            } else {
+                toastr.error(response.message || "Failed to delete.");
+            }
         },
         error: function (xhr, status, error) {
-            toastr.error("Error Occurred During Deletion.");
+            $modal.modal("hide");
+            toastr.error("Error occurred during deletion.");
             console.error("Delete Error:", error);
         }
     });
 }
-//#endregion
 
+// Clear Form
+function clearVoucherForm() {
+    $("#VoucherautoId").val("");
+    $("#VoucherTypeName").val("");
+    $("#Description").val("");
+    $("#startingNumber").val("");
+    $("#resetDuration").val("");
+    $("#prefix").val("");
+    $("#suffix").val("");
+    $("#padding").val("");
 
-//#region Select all checkbox
-$(document).on('click', '#VoucherselectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.voucher-checkbox:visible').prop('checked', isChecked);
+    $('#VoucherdisplayModifyDate').text('');
+    $('#VoucherdisplayLDate').text('');
+    $('#entryUpdateDateSection').hide();
 
-    if (isChecked) {
-        $('.voucher-checkbox:visible').each(function () {
-            const id = parseFloat($(this).data('autoid'));
-            if (!selectedVoucherType.includes(id)) {
-                selectedVoucherType.push(id);
-            }
-        });
-    } else {
-        $('.voucher-checkbox:visible').each(function () {
-            const id = parseFloat($(this).data('autoid'));
-            const index = selectedVoucherType.indexOf(id);
-            if (index !== -1) {
-                selectedVoucherType.splice(index, 1);
-            }
-        });
-    }
-    console.log("Selected Voucher Type:", selectedVoucherType);
-});
-//#endregion
+    $(".js-vouchertype-check").prop("checked", false);
+    $("#selectAllVoucherType").prop("checked", false);
 
+    selectedVoucherType = [];
 
-//#region Sort & Pagination Helpers
-function VoucherupdateSortIndicators() {
-    $('.Vouchersortable').removeClass('sort-asc sort-desc');
-    $('.Vouchersortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+    loadNextVoucherTypeCode();
+    loadNumberingMethodDropdown();
+    loadResetDurationDropdown();
 
-    const header = $(`.Vouchersortable[data-column="${VouchercurrentSortColumn}"]`);
-    header.addClass(VouchercurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-
-    const icon = header.find('.sort-icon');
-    icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(VouchercurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-}
-
-function VouchergeneratePageButtons(VouchercurrentPage, totalPages) {
-    const navigationDiv = $('#VoucherpageNavigation');
-    navigationDiv.empty();
-
-    function createButton(page) {
-        const btn = $('<button>')
-            .addClass('btn btn-sm mx-1')
-            .text(page)
-            .click(() => LoadAllVoucher(page, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection, $('#VouchersearchInput').val().trim()));
-
-        if (page === VouchercurrentPage) {
-            btn.removeClass('btn-outline-primary').addClass('btn-primary');
-        } else {
-            btn.addClass('btn-outline-primary');
-        }
-        return btn;
-    }
-
-    // Always show first page
-    navigationDiv.append(createButton(1));
-
-    if (VouchercurrentPage > 2) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    if (VouchercurrentPage > 1 && VouchercurrentPage < totalPages) {
-        navigationDiv.append(createButton(VouchercurrentPage));
-    }
-
-    if (VouchercurrentPage < totalPages - 1) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    if (totalPages > 1) {
-        navigationDiv.append(createButton(totalPages));
+    if (typeof window.clearAllCustomDropdowns === 'function') {
+        window.clearAllCustomDropdowns('#VoucherFormView');
     }
 }
 
-function VoucherupdateCheckboxState() {
-    $('.voucher-checkbox').each(function () {
-        const bankID = $(this).data('autoid');
-        $(this).prop('checked', selectedVoucherType.includes(bankID));
-    });
-    const allChecked = $('.voucher-checkbox:visible').length > 0 &&
-        $('.voucher-checkbox:visible:not(:checked)').length === 0;
-    $('#VoucherselectAll').prop('checked', allChecked);
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    var day = String(d.getDate()).padStart(2, '0');
+    var month = String(d.getMonth() + 1).padStart(2, '0');
+    var year = d.getFullYear();
+    return day + '/' + month + '/' + year;
 }
-
-function debounce(func, delay) {
-    let timer;
-    return function () {
-        const context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-function VoucherbindCheckboxHandlers() {
-    $(document).off('click', '.voucher-checkbox');
-    $(document).on('click', '.voucher-checkbox', function () {
-        const id = parseInt($(this).data('autoid'));
-        const isChecked = $(this).prop('checked');
-
-        if (isChecked) {
-            if (!selectedVoucherType.includes(id)) {
-                selectedVoucherType.push(id);
-            }
-        } else {
-            const index = selectedVoucherType.indexOf(id);
-            if (index !== -1) {
-                selectedVoucherType.splice(index, 1);
-            }
-        }
-
-        const allChecked = $('.voucher-checkbox:visible').length > 0 &&
-            $('.voucher-checkbox:visible:not(:checked)').length === 0;
-        $('#VoucherselectAll').prop('checked', allChecked);
-
-        console.log("Selected Voucher Type:", selectedVoucherType);
-    });
-}
-//#endregion
-
-
-//#region Ready Part
-
-$(document).ready(function () {
-    console.log("Voucher Type Page Loaded");
-
-    LoadAllVoucher();
-    LoadResetDurationDropdown();
-
-    // Set Entry Date
-    $('#VoucherdisplayLDate').text(getBangladeshDateTime());
-
-    //Handle Save Or Update Button Handle
-    $(document).on("submit", "#VoucherTypeForm", function (e) {
-        e.preventDefault();
-        SaveOrUpdateVoucherType();
-    });
-
-    // Handle Delete Button
-    $(document).on("click", ".VoucherdeleteBtn", function (e) {
-        e.preventDefault();
-        DeleteVoucherType();
-    });
-
-    // Handle Clear button
-    $(document).on("click", ".VoucherresetBtn", function () {
-        console.log("Clerar Button Clicked")
-        ClearVoucherForm();
-    });
-
-    // Handle print button
-    $(".printBtn").on("click", function (e) {
-        e.preventDefault();
-        printForm();
-    });
-
-    // Handle favorite button
-    $(".favBtn").on("click", function () {
-        toggleFavorite();
-    });
-
-    //Pagination Handle
-    $(document).on('input', '.VouchersearchInput', debounce(function () {
-        const searchValue = $('.VouchersearchInput').val();
-        LoadAllVoucher(1, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection, searchValue);
-    }, 500));
-
-    $(document).on('click', '#VoucherfirstPage', function () {
-        VouchercurrentPage = 1;
-        LoadAllVoucher(VouchercurrentPage, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection);
-    });
-
-    $(document).on('click', '#VoucherprevPage', function () {
-        console.log("previous page called ");
-        if (VouchercurrentPage > 1) {
-            VouchercurrentPage--;
-            LoadAllVoucher(VouchercurrentPage, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection);
-        }
-    });
-
-    $(document).on('click', '#VouchernextPage', function () {
-        VouchercurrentPage++;
-        LoadAllVoucher(VouchercurrentPage, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection);
-    });
-
-    $(document).on('click', '#VoucherlastPage', function () {
-        let lastPage = $('#VoucherpageNavigation button').last().text();
-        lastPage = parseInt(lastPage);
-        if (!isNaN(lastPage)) {
-            VouchercurrentPage = lastPage;
-            LoadAllVoucher(VouchercurrentPage, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection);
-        }
-    });
-
-    $(document).on('change', '.VoucherpageSize', function () {
-        VoucherpageSize = parseInt($(this).val());
-        LoadAllVoucher(1, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection);
-    });
-
-    $(document).on('click', '.Vouchersortable', function () {
-        const column = $(this).data('column');
-
-        if (column === VouchercurrentSortColumn) {
-            VouchercurrentSortDirection = (VouchercurrentSortDirection === 'desc') ? 'asc' : 'desc';
-        } else {
-            VouchercurrentSortColumn = column;
-            VouchercurrentSortDirection = 'desc';
-        }
-
-        LoadAllVoucher(1, VoucherpageSize, VouchercurrentSortColumn, VouchercurrentSortDirection, $('#VouchersearchInput').val().trim());
-    });
-
-    VoucherbindCheckboxHandlers();
-});
-
-//#endregion
-
-//#region Bangladesh Date and Time Formate 
-function getBangladeshDateTime() {
-    // BD timezone offset is +6:00 from UTC
-    let now = new Date();
-    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    let bdOffset = 6 * 60 * 60 * 1000;
-    let bdTime = new Date(utc + bdOffset);
-
-    // Format DD/MM/YYYY hh:MM AM/PM
-    let day = bdTime.getDate().toString().padStart(2, '0');
-    let month = (bdTime.getMonth() + 1).toString().padStart(2, '0');
-    let year = bdTime.getFullYear();
-
-    let hours = bdTime.getHours();
-    let minutes = bdTime.getMinutes().toString().padStart(2, '0');
-
-    let ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12; // 0 => 12
-
-    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
-}
-
-//#endregion

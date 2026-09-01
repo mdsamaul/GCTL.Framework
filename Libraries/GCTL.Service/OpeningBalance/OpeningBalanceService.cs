@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OpeningBalance;
 using GCTL.Data.Models;
@@ -270,7 +270,7 @@ namespace GCTL.Service.OpeningBalance
                             BranchCode = ob.BranchCode,
                             SubSusidiaryLedgerCodeNo = ob.SubSusidiaryLedgerCodeNo,
                             OpeningBalance = ob.OpeningBalance,
-                            TrType = ob.TrType,
+                            TrType = ob.TrType == "Dr" || ob.TrType == "Debit" ? "Debit" : (ob.TrType == "Cr" || ob.TrType == "Credit" ? "Credit" : ob.TrType),
                             LIP = ob.Lip,
                             LMAC = ob.Lmac,
                             LDate = ob.Ldate,

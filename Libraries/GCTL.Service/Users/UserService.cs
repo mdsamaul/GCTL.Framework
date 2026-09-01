@@ -8,6 +8,7 @@ using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.UserAccesses;
 using GCTL.Data.Models;
 using GCTL.Service.DeleteHistories;
+using GCTL.Service.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 namespace GCTL.Service.Users
@@ -54,83 +55,50 @@ namespace GCTL.Service.Users
 
         public async Task<PaginationResponse<UserViewModel>> GetTableDataAsync(PaginationRequest request)
         {
-            var query = from u in repository.All().AsNoTracking()
-                        join e in employeeRepository.All().AsNoTracking() on u.EmployeeId equals e.EmployeeId into ue
-                        from e in ue.DefaultIfEmpty()
-                        join c in customerRepository.All().AsNoTracking() on u.CustomerId equals c.CustomerId into uc
-                        from c in uc.DefaultIfEmpty()
-                        select new UserViewModel
-                        {
-                            Id = u.Id,
-                            Username = u.Username ?? string.Empty,
-                            FullName = (u.UserType == "Customer" || (!string.IsNullOrEmpty(u.CustomerId) && string.IsNullOrEmpty(u.EmployeeId)))
-                                ? (c != null && !string.IsNullOrEmpty(c.CustomerName) ? c.CustomerName : $"{u.FirstName} {u.LastName}".Trim())
-                                : (e != null && (!string.IsNullOrEmpty(e.FirstName) || !string.IsNullOrEmpty(e.LastName))
-                                    ? $"{e.FirstName} {e.LastName}".Trim()
-                                    : $"{u.FirstName} {u.LastName}".Trim()),
-                            UserType = u.UserType,
-                            Role = !string.IsNullOrEmpty(u.Role) ? u.Role : u.Type,
-                            EntryDate = u.EntryDate.HasValue ? u.EntryDate.Value.ToString("dd/MM/yyyy") : string.Empty,
-                            AccessCode = u.AccessCode ?? string.Empty,
-                            Status = u.Status == "1" ? "Active" : "Inactive",
-                            EmployeeId = u.EmployeeId,
-                            CustomerId = u.CustomerId
-                        };
-
-            int totalCount = await query.CountAsync();
-
-            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            try
             {
-                var term = request.SearchTerm.Trim();
-                query = query.Where(x =>
-                    EF.Functions.Like(x.Username, $"%{term}%") ||
-                    EF.Functions.Like(x.FullName, $"%{term}%") ||
-                    EF.Functions.Like(x.Role, $"%{term}%") ||
-                    EF.Functions.Like(x.AccessCode, $"%{term}%") ||
-                    EF.Functions.Like(x.Status, $"%{term}%") ||
-                    x.Id.ToString().Contains(term)
-                );
+                var query = from u in repository.All().AsNoTracking()
+                            join e in employeeRepository.All().AsNoTracking() on u.EmployeeId equals e.EmployeeId into ue
+                            from e in ue.DefaultIfEmpty()
+                            join c in customerRepository.All().AsNoTracking() on u.CustomerId equals c.CustomerId into uc
+                            from c in uc.DefaultIfEmpty()
+                            select new UserViewModel
+                            {
+                                Id = u.Id,
+                                Username = u.Username ?? string.Empty,
+                                FullName = (u.UserType == "Customer" || (!string.IsNullOrEmpty(u.CustomerId) && string.IsNullOrEmpty(u.EmployeeId)))
+                                    ? (c != null && !string.IsNullOrEmpty(c.CustomerName) ? c.CustomerName : ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim())
+                                    : (e != null && (!string.IsNullOrEmpty(e.FirstName) || !string.IsNullOrEmpty(e.LastName))
+                                        ? ((e.FirstName ?? "") + " " + (e.LastName ?? "")).Trim()
+                                        : ((u.FirstName ?? "") + " " + (u.LastName ?? "")).Trim()),
+                                UserType = u.UserType ?? string.Empty,
+                                Role = !string.IsNullOrEmpty(u.Role) ? u.Role : (u.Type ?? string.Empty),
+                                EntryDate = u.EntryDate,
+                                AccessCode = u.AccessCode ?? string.Empty,
+                                Status = u.Status == "1" ? "Active" : "Inactive",
+                                EmployeeId = u.EmployeeId ?? string.Empty,
+                                CustomerId = u.CustomerId ?? string.Empty
+                            };
+
+                if (request.PageSize == -1)
+                {
+                    request.PageSize = await query.CountAsync();
+                    request.PageNumber = 1;
+                }
+
+                if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.OrderByDescending(x => x.Id);
+                    request.SortColumn = "";
+                }
+
+                return await PaginationService<UserViewModel>.GetPaginatedData(query, request);
             }
-
-            int filteredCount = await query.CountAsync();
-
-            var sortOrder = request.SortOrder?.ToLower() == "asc" ? "asc" : "desc";
-            var sortCol = request.SortColumn?.ToLower() ?? "id";
-
-            query = (sortCol, sortOrder) switch
+            catch (Exception ex)
             {
-                ("id", "asc") => query.OrderBy(x => x.Id),
-                ("id", "desc") => query.OrderByDescending(x => x.Id),
-                ("username", "asc") => query.OrderBy(x => x.Username),
-                ("username", "desc") => query.OrderByDescending(x => x.Username),
-                ("fullname", "asc") => query.OrderBy(x => x.FullName),
-                ("fullname", "desc") => query.OrderByDescending(x => x.FullName),
-                ("role", "asc") => query.OrderBy(x => x.Role),
-                ("role", "desc") => query.OrderByDescending(x => x.Role),
-                ("usertype", "asc") => query.OrderBy(x => x.Role),
-                ("usertype", "desc") => query.OrderByDescending(x => x.Role),
-                ("usertyperole", "asc") => query.OrderBy(x => x.Role),
-                ("usertyperole", "desc") => query.OrderByDescending(x => x.Role),
-                ("entrydate", "asc") => query.OrderBy(x => x.EntryDate),
-                ("entrydate", "desc") => query.OrderByDescending(x => x.EntryDate),
-                ("accesscode", "asc") => query.OrderBy(x => x.AccessCode),
-                ("accesscode", "desc") => query.OrderByDescending(x => x.AccessCode),
-                ("status", "asc") => query.OrderBy(x => x.Status),
-                ("status", "desc") => query.OrderByDescending(x => x.Status),
-                _ => query.OrderByDescending(x => x.Id)
-            };
 
-            var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
-            var pageSize = request.PageSize > 0 ? request.PageSize : 10;
-
-            var data = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-
-            return new PaginationResponse<UserViewModel>
-            {
-                Data = data,
-                TotalCount = totalCount,
-                FilteredCount = filteredCount
-            };
+                throw;
+            }
         }
 
         public async Task<int> GetIdByEmployee(string code)
