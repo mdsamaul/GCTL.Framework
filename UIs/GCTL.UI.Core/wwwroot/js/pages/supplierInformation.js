@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.supplierInformation = function (options) {
 
         //#region Default options
@@ -43,10 +43,15 @@
         });
 
         //#endregion
-       
+
         $(() => {
 
-            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({
+                    gridId: 'SupplierInformation-grid'
+                });
+            }
+
             select2DD();
             loadSNCId();
             loadBankAccountInfoTable();
@@ -194,12 +199,12 @@
             $(document).on('change', '#SupplierInformation-check-all', function () {
                 const isChecked = $(this).is(':checked');
 
-                $(`#SupplierInformation-grid-body input[type="checkbox"]`).prop('checked', isChecked);
+                $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`).prop('checked', isChecked);
                 updateSelectedIds();
             });
 
-            $(document).on(`change`, `#SupplierInformation-grid-body input[type="checkbox"]`, function () {
-                const id = $(this).data('id');
+            $(document).on('change', `${settings.gridSelector} tbody input[type="checkbox"].checkBox`, function () {
+                const id = $(this).data('id') || $(this).val();
                 if ($(this).is(':checked')) {
                     selectedItems.add(id);
                 } else {
@@ -225,7 +230,7 @@
             //#region Delete
 
             $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-                
+
                 var source = $(event.relatedTarget);
                 var id = source.data("ids");
 
@@ -377,57 +382,26 @@
         // #endregion
 
         //#region loadTable
-
         function loadTable() {
-            $.get(settings.baseUrl + "/GetTableData")
-                .done(html => {
-                    $(".js-SupplierInformation-grid-container").html(html);
-                    if ($.fn.DataTable.isDataTable("#SupplierInformation-grid")) {
-                        $("#SupplierInformation-grid").DataTable().destroy();
-                    }
-                    setTimeout(() => {
-                        $("#SupplierInformation-grid").DataTable({
-                            lengthChange: true,
-                            pageLength: 10,
-                            lengthMenu: [
-                                [10, 25, 50, -1],
-                                [10, 25, 50, 'All'],
-                            ],
-                            order: [[1, "desc"]],
-                            destroy: true,
-                            paging: true,
-                            searching: true,
-                            responsive: true,
-                            autoWidth: false,
-                            columnDefs: [
-                                { targets: 0, orderable: false }
-                            ],
-                            drawCallback: function () {
-                                restoreCheckboxStates();
-                                updateCheckAllState();
-                            }
-                        });
-                    }, 0);
-                })
-                .fail((xhr, status, error) => {
-                    console.error("Error loading table:", status, error, xhr.responseText);
-                    toastr.error("Failed to load table data.");
-                    loadForm(url);
-                });
+            if ($.gctlGrid && typeof $.gctlGrid.reload === 'function') {
+                $.gctlGrid.reload('SupplierInformation-grid');
+            } else if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         function restoreCheckboxStates() {
-            $(`#SupplierInformation-grid-body input[type="checkbox"]`).each(function () {
-                const id = $(this).data('id');
+            $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`).each(function () {
+                const id = $(this).data('id') || $(this).val();
                 $(this).prop('checked', selectedItems.has(id));
             });
         }
 
         function updateSelectedIds() {
-            const checkboxes = $(`#SupplierInformation-grid-body input[type="checkbox"]`);
+            const checkboxes = $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`);
 
             checkboxes.each(function () {
-                const id = $(this).data('id');
+                const id = $(this).data('id') || $(this).val();
                 if ($(this).is(':checked')) {
                     selectedItems.add(id);
                 } else {
@@ -437,9 +411,9 @@
         }
 
         function updateCheckAllState() {
-            const total = $(`#SupplierInformation-grid-body input[type="checkbox"]`).length;
-            const checked = $(`#SupplierInformation-grid-body input[type="checkbox"]:checked`).length;
-            $('#SupplierInformation-check-all').prop('checked', total > 0 && total === checked);
+            const total = $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`).length;
+            const checked = $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox:checked`).length;
+            $(settings.selectAllSelector).prop('checked', total > 0 && total === checked);
         }
 
         //#endregion
@@ -564,11 +538,11 @@
 
             $('#LdateModifyHide').hide();
             $('#sectionBreak').hide();
-            
+
             selectedItems.clear();
             $("#SupplierInformation-check-all").prop("checked", false);
             $('#SupplierInformation-grid input[type="checkbox"]').prop('checked', false);
-            
+
         }
 
         //#endregion
@@ -714,7 +688,7 @@
                 const isSelected = selectedCPs.some(selected => selected.cpid === cp.cpid);
                 return `
             <tr>
-                <td class="text-center align-middle"><input type="checkbox" class="contact-checkbox " 
+                <td class="text-center align-middle"><input type="checkbox" class="contact-checkbox "
                            value="${cp.cpid}" data-name="${cp.contactPersonName}"
                            ${isSelected ? 'checked' : ''}></td>
                 <td>${cp.contactPersonName}</td>
@@ -861,7 +835,7 @@
         }
         function ResetBankAccountInfoForm() {
             $('#Sbaid').val(0);
-            //$('#SupplierId').val('').trigger('change');       
+            //$('#SupplierId').val('').trigger('change');
             $('#SupplierBankId').val('').trigger('change');
             $('#SupplierBankBranchId').val('').trigger('change');
             $('#AccountNo').val('');

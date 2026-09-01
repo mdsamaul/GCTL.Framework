@@ -37,4 +37,17 @@ public interface IRepository<T> where T : class
     Task RollbackTransactionAsync();
     Task DisposeTransactionAsync();
     string GetTableName();
+
+    Task<GCTL.Core.ViewModels.DeleteHistories.DependencyCheckResult> CheckDependenciesAsync(
+        string keyColumnName,
+        List<string> keyValues,
+        List<string>? alternateColumns = null,
+        List<string>? ignoreTables = null);
+
+    Task<(bool Success, string Message)> DeleteWithAuditAsync(
+        string keyColumnName,
+        List<string> keyValues,
+        List<string>? alternateColumns = null,
+        List<string>? ignoreTables = null,
+        GCTL.Core.ViewModels.DeleteHistories.DeleteHistoryViewModel? auditInfo = null);
 }

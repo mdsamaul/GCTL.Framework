@@ -85,7 +85,7 @@ namespace GCTL.Service.ExpenseHead
                            IsReceiptable = pt.IsReceiptable,
                            ServiceTypeID = pt.ServiceTypeId,
                            ExpenseTypeID = pt.ExpenseTypeId,
-                           LDate = pt.Ldate,
+                           Ldate = pt.Ldate,
                            ModifyDate = pt.ModifyDate,
                        }).FirstOrDefaultAsync();
             return data;
@@ -124,7 +124,7 @@ namespace GCTL.Service.ExpenseHead
                             SerialNo = eh.SerialNo,
                             IsReceiptable = eh.IsReceiptable,
                             ExpenseTypeID = eh.ExpenseTypeId,
-                            LDate = eh.Ldate,
+                            Ldate = eh.Ldate,
                             ModifyDate = eh.ModifyDate,
                             ServiceTypeID = eh.ServiceTypeId,
                             ServiceTypeName = st != null ? st.ServiceTypeName : "",
@@ -231,10 +231,10 @@ namespace GCTL.Service.ExpenseHead
                     IsReceiptable = model.IsReceiptable,
                     ServiceTypeId = model.ServiceTypeID,
                     ExpenseTypeId = model.ExpenseTypeID,
-                    Luser = model.LUser,
-                    Ldate = DateTime.Now,
-                    Lip = GetLocalIP() ?? "",
-                    Lmac = GetMacAddress() ?? "",
+                    Luser = model.Luser,
+                    Ldate = model.Ldate ?? DateTime.Now,
+                    Lip = !string.IsNullOrEmpty(model.Lip) ? model.Lip : (GetLocalIP() ?? ""),
+                    Lmac = !string.IsNullOrEmpty(model.Lmac) ? model.Lmac : (GetMacAddress() ?? ""),
                     EntryType = model.EntryType ?? "",
                 };
 
@@ -282,10 +282,9 @@ namespace GCTL.Service.ExpenseHead
                 entity.IsReceiptable = model.IsReceiptable;
                 entity.ServiceTypeId = model.ServiceTypeID;
                 entity.ExpenseTypeId = model.ExpenseTypeID;
-                entity.Luser = "";
-                entity.ModifyDate = DateTime.Now;
-                entity.Lip = GetLocalIP() ?? "";
-                entity.Lmac = GetMacAddress() ?? "";
+                entity.ModifyDate = model.ModifyDate ?? DateTime.Now;
+                entity.Lip = !string.IsNullOrEmpty(model.Lip) ? model.Lip : (GetLocalIP() ?? "");
+                entity.Lmac = !string.IsNullOrEmpty(model.Lmac) ? model.Lmac : (GetMacAddress() ?? "");
                 entity.EntryType = model.EntryType ?? "";
 
                 await _repository.UpdateAsync(entity);
