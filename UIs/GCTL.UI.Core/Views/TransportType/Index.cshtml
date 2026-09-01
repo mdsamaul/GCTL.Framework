@@ -72,23 +72,19 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-    <script src="~/js/pages/transportType.js" asp-append-version="true"></script>
-    <script type="text/javascript">
-        (function waitForJQuery() {
-            if (window.jQuery && typeof $.transportType === "function") {
-                var options = { baseUrl: '@Url.Action("", "TransportType")' };
-                options.load = () => { };
-                $.transportType(options);
-            } else {
-                setTimeout(waitForJQuery, 30);
-            }
-        })();
-    </script>
-}
+<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/transportType.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.transportType === "function") {
+            var options = { baseUrl: '@Url.Action("", "TransportType")' };
+            options.load = () => { };
+            $.transportType(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>
 
 

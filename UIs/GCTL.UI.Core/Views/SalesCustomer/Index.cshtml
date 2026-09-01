@@ -113,8 +113,21 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    @* <script src="~/js/grid-manager.js" asp-append-version="true"></script> *@
-    <script src="~/js/pages/CustomerRelationshipManagement/salesCustomerData.js" asp-append-version="true"></script>
-    <script src="~/js/pages/customerrelationshipmanagement/salesDeliveryLocation.js" asp-append-version="true"></script>
-    <script src="~/js/pages/customerrelationshipmanagement/SaleContactPerson.js" asp-append-version="true"></script>
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/CustomerRelationshipManagement/salesCustomerData.js" defer></script>
+    <script src="~/js/pages/customerrelationshipmanagement/salesDeliveryLocation.js" defer></script>
+    <script src="~/js/pages/customerrelationshipmanagement/SaleContactPerson.js" defer></script>
+
+     <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.salesCustomerData === "function") {
+                var options = { baseUrl: '@Url.Action("", "SaleContactPerson")' };
+                options.load = () => { };
+                $.salesCustomerData(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script> 
 }

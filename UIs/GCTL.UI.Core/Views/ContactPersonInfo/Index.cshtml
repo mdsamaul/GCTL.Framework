@@ -67,14 +67,17 @@
 
 <partial name="DeleteModal" />
 
-@section Scripts {
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-    <script src="~/js/pages/contactPersonInfo.js" asp-append-version="true"></script>
-    <script>
-        $(document).ready(function () {
-            $.contactPersonInfo({
-                baseUrl: '/ContactPersonInfo'
-            });
-        });
-    </script>
-}
+<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/contactPersonInfo.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.contactPersonInfo === "function") {
+            var options = { baseUrl: '@Url.Action("", "ContactPersonInfo")' };
+            options.load = () => { };
+            $.contactPersonInfo(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>
