@@ -44,7 +44,7 @@
 
         $(() => {
 
-            select2DD();
+           // select2DD();
             loadTable();
             enterKeyNavigation();
 

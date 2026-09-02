@@ -844,10 +844,10 @@
                         Placeholder = "Select Place of Loading",
                         SelectItems = ViewBag.PlaceOfLoading as SelectList,
                         ShowQuickAdd = true,
-                        QuickAddUrl = Url.Action("Index", "Companies"),
-                        QuickAddTarget = "#CompanyCode",
-                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                        QuickAddTitle = "Company"
+                        QuickAddUrl = Url.Action("Index", "CfDefPlaceOfLoading"),
+                        QuickAddTarget = "#placeOfLoadingId",
+                        QuickAddReloadUrl = Url.Action("GetplaceOfLoading", "Cascading"),
+                        QuickAddTitle = "Place of Loading"
                     })
 
                     @* ---------- ETD Date (shared Sea+Air) — no button needed ---------- *@

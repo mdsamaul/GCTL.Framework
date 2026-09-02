@@ -71,18 +71,17 @@
 </section>
 <partial name="DeleteModal" />
 
-@section Scripts{
-    <script src="~/js/app.input.validation.js" defer></script>
-    <script src="~/js/pages/designations.js" defer></script>
-    <script type="text/javascript">
-        (function waitForJQuery() {
-            if (window.jQuery && typeof $.designations === "function") {
-                var options = { baseUrl: '@Url.Action("", "Designations")' };
-                options.load = () => { };
-                $.designations(options);
-            } else {
-                setTimeout(waitForJQuery, 30);
-            }
-        })();
-    </script>
-}
+<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/designations.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.designations === "function") {
+            var options = { baseUrl: '@Url.Action("", "Designations")' };
+            options.load = () => { };
+            $.designations(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>

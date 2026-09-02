@@ -26,7 +26,7 @@
             LabelText = "ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-Cpid-code",
             DefaultValue = Model?.Cpid
@@ -44,6 +44,7 @@
             Placeholder = "Enter Contact Person Name",
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             CustomCssClass = "js-ContactPersonName-check-duplicateName",
             DefaultValue = Model.ContactPersonName,
             AutoFocus = true
@@ -57,7 +58,8 @@
             FieldType = FieldType.Select,
             Placeholder = "-- Select Designation --",
             SelectItems = ViewBag.DesignationDD as SelectList,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false
         })
     </div>
 
@@ -71,6 +73,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Contact Person Phone",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.ContactPersonMobile
         })
 
@@ -82,6 +85,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Contact Person Email",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.ContactPersonEmail
         })
     </div>
@@ -128,7 +132,7 @@
             IsPlain = true,
             SaveBtnClass = "js-ContactPersonInfo-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
         })
     </div>
 </div>
+
