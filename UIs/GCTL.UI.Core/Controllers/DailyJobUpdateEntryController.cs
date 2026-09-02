@@ -183,17 +183,17 @@ namespace GCTL.UI.Core.Controllers
             return PartialView("_DynamicGrid", gridModel);
         }
 
-        [HttpGet]
+        [HttpPost]
         [ModulePermission]
-        public async Task<IActionResult> GetJobs(int page = 1, int pageSize = 5, string? customerId = null, string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? search = null)
+        public async Task<IActionResult> GetJobs(int pageNumber = 1, int pageSize = 5, string? customerId = null, string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? searchTerm = null, string sortColumn = "JobNo", string sortOrder = "desc")
         {
-            var result = await _jobService.GetJobsPagedAsync(page, pageSize, customerId, shipmentMode, dateFrom, dateTo, search);
+            var result = await _jobService.GetJobsPagedAsync(pageNumber, pageSize, customerId, shipmentMode, dateFrom, dateTo, searchTerm);
 
             return Json(new
             {
                 data = result.Data,
-                totalRecords = result.TotalRecords,
-                filteredRecords = result.FilteredRecords // usually same as total if no search, but good to have
+                recordsTotal = result.TotalRecords,
+                recordsFiltered = result.FilteredRecords
             });
         }
 
@@ -220,14 +220,14 @@ namespace GCTL.UI.Core.Controllers
 
 
 
-        [HttpGet]
+        [HttpPost]
         [ModulePermission]
-        public async Task<IActionResult> GetJobStatuses(int page = 1, int pageSize = 10, string? search = null, string? customerCode = null, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<IActionResult> GetJobStatuses(int pageNumber = 1, int pageSize = 10, string? searchTerm = null, string? customerCode = null, DateTime? fromDate = null, DateTime? toDate = null, string sortColumn = "JobNo", string sortOrder = "desc")
         {
             var result = await _jobService.GetJobStatusesPagedAsync(
-                page,
+                pageNumber,
                 pageSize,
-                search,
+                searchTerm,
                 customerCode,
                 fromDate,
                 toDate);
@@ -235,7 +235,8 @@ namespace GCTL.UI.Core.Controllers
             return Json(new
             {
                 data = result.Data,
-                filteredRecords = result.FilteredRecords
+                recordsTotal = result.TotalRecords, // Might need to check if result has TotalRecords, if not we'll use FilteredRecords
+                recordsFiltered = result.FilteredRecords
             });
         }
 
