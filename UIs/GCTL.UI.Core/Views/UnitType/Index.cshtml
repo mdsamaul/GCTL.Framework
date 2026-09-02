@@ -16,7 +16,7 @@
             <!-- Left Setup Form Column -->
             <div class="col-md-6">
                 <div class="card rounded shadow-sm">
-                    <div class="card-header dynamic-grid-header">
+                    <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Unit Type",
@@ -66,14 +66,17 @@
 
 <partial name="DeleteModal" />
 
-@section Scripts {
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-    <script src="~/js/pages/UnitType.js" asp-append-version="true"></script>
-    <script>
-        $(document).ready(function () {
-            $.unitType({
-                baseUrl: '/UnitType'
-            });
-        });
-    </script>
-}
+<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/UnitType.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.UnitType === "function") {
+            var options = { baseUrl: '@Url.Action("", "UnitType")' };
+            options.load = () => { };
+            $.UnitType(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>

@@ -22,7 +22,7 @@
             <!-- Left Setup Form Column -->
             <div class="col-md-6">
                 <div class="card rounded shadow-sm">
-                    <div class="card-header dynamic-grid-header">
+                    <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Designation Info",
@@ -69,23 +69,19 @@
         <partial name="_BottomNavigation" />
     </div>
 </section>
-
 <partial name="DeleteModal" />
-<partial name="QuickAddModal" />
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-    <script src="~/js/pages/designations.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "Designations")'
-        };
-
-        $.designations(options);
-    </script>
-}
-
-
+<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/designations.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.designations === "function") {
+            var options = { baseUrl: '@Url.Action("", "Designations")' };
+            options.load = () => { };
+            $.designations(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>

@@ -154,7 +154,8 @@ namespace GCTL.Service.ShipmentMode
             // Compare directly in the DB with trimming and case-insensitivity
             return await _repository.All()
                 .AnyAsync(pm =>
-                    pm.ExpenseType.Trim().ToLower() == model.ExpenseType.Trim().ToLower()
+                    pm.ExpenseType.Trim().ToLower() == model.ExpenseType.Trim().ToLower() 
+
                     && pm.Tc != model.TC
                 );
         }

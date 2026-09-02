@@ -220,7 +220,7 @@ namespace GCTL.Service.BankInformations
                 lastNumber++;
                 nextCode = lastNumber;
             }
-            return nextCode.ToString("D2");
+            return nextCode.ToString("D3");
         }
 
         #endregion

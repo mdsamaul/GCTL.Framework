@@ -73,26 +73,26 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                     return;
                 }
 
-                var sessionId = context.Principal?.FindFirst("SessionId")?.Value;
-                if (!string.IsNullOrEmpty(sessionId))
-                {
-                    var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
-                    cache?.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
+                //var sessionId = context.Principal?.FindFirst("SessionId")?.Value;
+                //if (!string.IsNullOrEmpty(sessionId))
+                //{
+                //    var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                //    cache?.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
 
-                    var logRepo = context.HttpContext.RequestServices.GetRequiredService<IRepository<CoreUserLog>>();
-                    var stillOpen = (await logRepo.FindByAsync(l => l.SessionId == sessionId))
-                        .FirstOrDefault(l => l.LogoutDate == null);
+                //    var logRepo = context.HttpContext.RequestServices.GetRequiredService<IRepository<CoreUserLog>>();
+                //    var stillOpen = (await logRepo.FindByAsync(l => l.SessionId == sessionId))
+                //        .FirstOrDefault(l => l.LogoutDate == null);
 
-                    if (stillOpen == null) // this session's row was closed (superseded or timed out)
-                    {
-                        context.RejectPrincipal();
-                        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                    }
-                }
+                //    if (stillOpen == null) // this session's row was closed (superseded or timed out)
+                //    {
+                //        context.RejectPrincipal();
+                //        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                //    }
+                //}
             }
         };
     });
-builder.Services.AddHostedService<StaleSessionSweepService>();
+//builder.Services.AddHostedService<StaleSessionSweepService>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
