@@ -47,7 +47,7 @@
 
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        Place Of Loading List
+                        
                     </h5>
                 </div>
 
@@ -65,15 +65,17 @@
 
 </div>
 
-@await Html.PartialAsync("_DeleteModal") 
-@section Scripts
-{
-    <script src="~/js/pages/placeofloading.js"></script>
-    <script>
-        $(function () {
-            $.placeOfLoading({
-                baseUrl: '/CfDefPlaceOfLoading'
-            });
-        });
-    </script>
-}
+<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/placeofloading.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.placeofloading === "function") {
+            var options = { baseUrl: '@Url.Action("", "CfDefPlaceOfLoading")' };
+            options.load = () => { };
+            $.placeofloading(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>

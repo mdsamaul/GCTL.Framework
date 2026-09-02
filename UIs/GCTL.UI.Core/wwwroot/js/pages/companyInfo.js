@@ -44,7 +44,7 @@
 
         $(() => {
 
-            select2DD();
+           // select2DD();
             loadTable();
             enterKeyNavigation();
 
@@ -300,7 +300,8 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        select2DD();
+                        // select2DD();
+                        console.log("data", data)
                         resolve(data)
                     },
                     error: function (error) {

@@ -26,7 +26,7 @@
             LabelText = "ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-          ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-TransportModeId-code",
             DefaultValue = Model?.TransportModeId
@@ -41,7 +41,7 @@
             Placeholder = "Enter Transport Mode",
             IsRequired = true,
             AutoFocus = true,
-          ReserveActionSlot = true,
+           ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-TransportMode-check-duplicateName",
             DefaultValue = Model?.TransportMode
@@ -56,7 +56,7 @@
             LabelText = "Short Name",
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
-          ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             DefaultValue = Model?.ShortName
         })
@@ -103,8 +103,7 @@
             ShowFavorite = false,
             IsPlain = true,
             SaveBtnClass = "js-TransportModeType-save",
-            ReserveActionSlot = true,
-            IsMarginRight = true
+            ReserveActionSlot = true
         })
     </div>
 </div>
