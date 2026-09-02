@@ -199,61 +199,57 @@ namespace GCTL.UI.Core.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Setup(GenderSetupViewModel modelVM)
         {
             try
             {
-                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
+                if (!ModelState.IsValid)
+                {
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                bool isExist = await genderService.IsExistByCodeAsync(modelVM.SexCode);
+
+                if (isExist)
                 {
                     if (await genderService.IsExistAsync(modelVM.Sex, modelVM.SexCode))
                     {
                         return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                     }
-                }
-
-                if (!ModelState.IsValid)
-                {
-
-                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
-                    return Json(new { isSuccess = false, message = errorMessage });
-                }
-
-                modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0 || modelVM.AutoId == null)
-                {
-                    var hasSavePermission = await genderService.SavePermissionAsync(LoginInfo.AccessCode);
-                    if (hasSavePermission)
-                    {
-                        await genderService.SaveAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.SexCode });
-
-                    }
-                    else
-                    {
-                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
-                    }
-                }
-                else
-                {
 
                     var hasUpdatePermission = await genderService.UpdatePermissionAsync(LoginInfo.AccessCode);
-                    if (hasUpdatePermission)
-                    {
-                        await genderService.UpdateAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.SexCode });
-                    }
-                    else
+                    if (!hasUpdatePermission)
                     {
                         return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
+
+                    modelVM.ToAudit(LoginInfo, true);
+                    await genderService.UpdateAsync(modelVM);
+                    return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.SexCode });
+                }
+                else
+                {
+                    if (await genderService.IsExistAsync(modelVM.Sex))
+                    {
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
+
+                    var hasSavePermission = await genderService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (!hasSavePermission)
+                    {
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
+                    }
+
+                    modelVM.ToAudit(LoginInfo, false);
+                    await genderService.SaveAsync(modelVM);
+                    return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.SexCode });
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error:{ex.Message}");
                 return RedirectToAction("Login", "Accounts");
-
             }
         }
 

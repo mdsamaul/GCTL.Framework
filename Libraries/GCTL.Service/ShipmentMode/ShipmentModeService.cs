@@ -151,11 +151,14 @@ namespace GCTL.Service.ShipmentMode
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
+            var expenseType = (model.ExpenseType ?? "").Trim().ToLower();
+            var transportModeTypeId = (model.transportModeTypeId ?? "").Trim();
+
             // Compare directly in the DB with trimming and case-insensitivity
             return await _repository.All()
                 .AnyAsync(pm =>
-                    pm.ExpenseType.Trim().ToLower() == model.ExpenseType.Trim().ToLower() 
-
+                    pm.ExpenseType.Trim().ToLower() == expenseType
+                    && (pm.TransportModeTypeId ?? "").Trim() == transportModeTypeId
                     && pm.Tc != model.TC
                 );
         }

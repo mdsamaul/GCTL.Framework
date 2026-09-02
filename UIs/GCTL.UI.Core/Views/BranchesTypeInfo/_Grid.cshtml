@@ -1,16 +1,22 @@
-﻿<div class="table-responsive">
-    <table id="branch-grid" class="table table-striped table-hover table-bordered table-sm table-common">
-       <thead>
-            <tr>
-                <th class="text-center text-middle">
-                    Select <br /> <input type="checkbox" id="branch-check-all" />
-                </th>
-                <th class="text-center text-middle">ID</th>
-                <th class="text-center text-middle">Branch</th>
-                <th class="text-center text-middle">Address</th>
-                <th class="text-center text-middle">Phone</th>
-                <th class="text-center text-middle">Company</th>
-           </tr>
-       </thead>
-    </table>
-</div>
+@using GCTL.UI.Core.ViewModels
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "branch-grid",
+    AjaxUrl = "/BranchesTypeInfo/Grid",
+    AjaxMethod = "GET",
+    ServerSide = false,
+    ShowCheckbox = true,
+    CheckColumnData = "branchCode",
+    CheckAllId = "branch-check-all",
+    DefaultSortColumn = "branchCode",
+    DefaultSortDirection = "desc",
+    Columns = new List<GridColumn>
+    {
+        new() { Data = "branchCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-branch-edit" },
+        new() { Data = "branchName", Header = "Branch", Width = "20%", Align = "left" },
+        new() { Data = "address", Header = "Address", Width = "27%", Align = "left" },
+        new() { Data = "phone", Header = "Phone", Width = "15%", Align = "center" },
+        new() { Data = "companyName", Header = "Company", Width = "20%", Align = "left" }
+    }
+})
