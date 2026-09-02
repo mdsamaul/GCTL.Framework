@@ -525,7 +525,7 @@ function SaveVoucherEntry() {
         CompanyCode: $('#CompanyCode').val(),
         BranchCode: $('#BranchCode').val(),
         VoucherType_Code: $('#VoucherTypeCode').val(),
-        VoucherDate: new Date($('#VoucherDate').val().split('-').reverse().join('-')).toISOString(),
+        VoucherDate: $('#VoucherDate').val(),
         Narration: $('#Narration').val(),
         VoucherNo: $('#VoucherNo').val()
     };
@@ -583,12 +583,15 @@ function SaveVoucherEntry() {
 
 //#region  Main Information Section Clear
 function ClearVoucherEntryForm() {
+    debugger
     isEditModeVoucher = false; 
 
     $("#VoucherEntryAutoID").val("");
-    $('#CompanyCode').val('').trigger('change');
-    $('#BranchCode').val('').trigger('change');
-    $('#VoucherTypeCode').val('').trigger('change');
+    // $('#CompanyCode').val('').trigger('change');
+    // $('#BranchCode').val('').trigger('change');
+    // $('#VoucherTypeCode').val('').trigger('change');
+    setSelect('#BranchCode', "", false);
+    setSelect('#VoucherTypeCode', "", false);
     $('#Narration').val(''); 
     $('#VoucherNo').val('');
     $('#EntryDate').text('');
@@ -665,10 +668,10 @@ function LoadVoucherEntriesTable() {
 
 //#region Click Handler for Edit Information
 
-$(document).on('click', '.voucher-no-btn', function () {
-
-    const autoId = $(this).data('autoid');
-
+$(document).on('click', '.voucher-no-btn, .js-VoucherEntry-edit', function (e) {
+    e.preventDefault();
+    const autoId = $(this).data('autoid') || $(this).data('id');
+    debugger
     DetailsCopiedToTmptable(autoId);
 
     $.ajax({
@@ -719,17 +722,33 @@ function fillMainVoucherInfo(main) {
 
     //I am setting the Voucher Type but I don't want to fire the event
     $('#VoucherEntryAutoID').val(main.autoId || 0);
-    $('#VoucherTypeCode') .val(main.voucherType_Code).trigger('change.select2', [true]); 
+
+    if (typeof setSelect === "function") {
+        setSelect('#VoucherTypeCode', main.voucherType_Code, false);
+        setSelect('#BranchCode', main.branchCode, false);
+    } else {
+        $('#VoucherTypeCode').val(main.voucherType_Code).trigger('change.select2', [true]); 
+        $('#BranchCode').val(main.branchCode).trigger('change.select2');
+    }
+    
     $('#VoucherNo').val(main.voucherNo);
     $('#Narration').val(main.narration);
-    $('#BranchCode').val(main.branchCode).trigger('change.select2');
 
     // datepicker handle
-    const fp = flatpickr("#VoucherDate", { dateFormat: "d-m-Y", allowInput: true });
     if (main.voucherDate) {
-        fp.setDate(new Date(main.voucherDate), true);
+        if (typeof setDate === "function") {
+            setDate("#VoucherDate", new Date(main.voucherDate));
+        } else {
+            const fp = document.querySelector("#VoucherDate")._flatpickr;
+            if (fp) fp.setDate(new Date(main.voucherDate), true);
+        }
     } else {
-        fp.clear();
+        if (typeof setDate === "function") {
+            setDate("#VoucherDate", "");
+        } else {
+            const fp = document.querySelector("#VoucherDate")._flatpickr;
+            if (fp) fp.clear();
+        }
     }
 
     if (main.lDate) {

@@ -55,7 +55,7 @@ namespace GCTL.Service.VoucherEntry
 
         #region When Edit Button Clicked then Details table data Copied to Tmp Table
 
-        Task<bool> DetailsCopiedToTmp(decimal id, int? currenUserID);
+        Task<bool> DetailsCopiedToTmp(decimal id, string? currenUserID);
 
         #endregion
 

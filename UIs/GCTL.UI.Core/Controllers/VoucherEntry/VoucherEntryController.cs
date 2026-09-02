@@ -101,7 +101,7 @@ namespace GCTL_App.Controllers.VoucherEntry
             var typeExists = await _service.IsExistAsync(id);
             if (!typeExists)
                 return NotFound(new { message = $"Voucher Entry with ID {id} Not Found." });
-
+                model.ToAudit(LoginInfo);
             var result = await _service.UpdateAsync(model);
 
             if (!result)
@@ -246,12 +246,12 @@ namespace GCTL_App.Controllers.VoucherEntry
         [HttpPost("details-copied-tmptable/{id}")]
         public async Task<IActionResult> CopyDetailsToTmp([FromRoute] decimal id)
         {
-            string currentUserId = LoginInfo?.EmployeeId;
+            string currentUserId = LoginInfo?.Username;
 
             int.TryParse(currentUserId, out int employeeId);
             try
             {
-                var success = await _service.DetailsCopiedToTmp(id, employeeId);
+                var success = await _service.DetailsCopiedToTmp(id, currentUserId);
 
                 if (success)
                     return Ok(new { success = true, message = "Details copied to temp table successfully" });
