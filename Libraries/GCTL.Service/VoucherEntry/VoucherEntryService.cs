@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Data.Models;
@@ -72,16 +72,24 @@ namespace GCTL.Service.VoucherEntry
         #region Checking Debit & Credit Amount Is Equal or Not
         public async Task<bool> IsDebitCreditEqualAsync(string userId)
         {
-            var tmpdetails = await _tmpDetails.All()
+            try
+            {
+                var tmpdetails = await _tmpDetails.All()
                                 .Where(d => d.Luser == userId)
                                 .ToListAsync();
 
-            decimal totalDebit = tmpdetails.Sum(d => d.DebitAmount ?? 0);
-            decimal totalCredit = tmpdetails.Sum(d => d.CreditAmount ?? 0);
+                decimal totalDebit = tmpdetails.Sum(d => d.DebitAmount ?? 0);
+                decimal totalCredit = tmpdetails.Sum(d => d.CreditAmount ?? 0);
 
-            if (totalDebit != totalCredit) return false;
+                if (totalDebit != totalCredit) return false;
 
-            return true;
+                return true;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         #endregion
@@ -390,21 +398,18 @@ namespace GCTL.Service.VoucherEntry
                         //        .Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault()
                         //};
 
-            var query = from main in _repository.All()
-                        join detail in _voucherDetails.All()
-                            on main.VoucherEntryCodeNo equals detail.VoucherEntryCodeNo into detailsGroup
-                        join branch in _branch.All()
+            var query = from main in _repository.All().AsNoTracking()
+                        join branch in _branch.All().AsNoTracking()
                            on main.BranchCode equals branch.BranchCode
                         select new VoucherEntryVM
                         {
                             autoId = main.AutoId,
+                            VoucherEntryCodeNo = main.VoucherEntryCodeNo,
                             VoucherNo = main.VoucherNo,
                             VoucherDate = main.VoucherDate,
                             Narration = main.Narration,
                             InvoiceNo = main.InvoiceNo,
-                            BranchName = branch.BranchName,
-                            //BranchName = detailsGroup.FirstOrDefault() != null ? detailsGroup.FirstOrDefault().Branch : "",
-                            Amount = detailsGroup.Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault()
+                            BranchName = branch.BranchName
                         };
 
             if (startDate.HasValue && endDate.HasValue)
@@ -435,6 +440,29 @@ namespace GCTL.Service.VoucherEntry
                     ob => ob
              );
 
+            // Populate Amount for the current page only to avoid SQL timeouts on the Count/Sort query
+            if (paginatedResult.Data != null && paginatedResult.Data.Any())
+            {
+                var voucherCodes = paginatedResult.Data.Select(x => x.VoucherEntryCodeNo).Where(c => c != null).ToList();
+                
+                var amounts = await _voucherDetails.All().AsNoTracking()
+                    .Where(d => voucherCodes.Contains(d.VoucherEntryCodeNo))
+                    .Select(d => new { d.VoucherEntryCodeNo, d.DebitAmount, d.CreditAmount, d.AutoId })
+                    .ToListAsync();
+
+                var groupedAmounts = amounts
+                    .GroupBy(d => d.VoucherEntryCodeNo)
+                    .ToDictionary(g => g.Key, g => g.OrderBy(d => d.AutoId).Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault());
+
+                foreach (var item in paginatedResult.Data)
+                {
+                    if (item.VoucherEntryCodeNo != null && groupedAmounts.TryGetValue(item.VoucherEntryCodeNo, out var amt))
+                    {
+                        item.Amount = amt;
+                    }
+                }
+            }
+
             return paginatedResult;
         }
 
@@ -455,7 +483,7 @@ namespace GCTL.Service.VoucherEntry
                                   VoucherDate = main.VoucherDate,
                                   Narration = main.Narration,
                                   VoucherType_Code = main.VoucherTypeCode,
-                                  LDate = main.Ldate,
+                                  Ldate = main.Ldate,
                                   ModifyDate = main.ModifyDate
                               }).FirstOrDefaultAsync();
 

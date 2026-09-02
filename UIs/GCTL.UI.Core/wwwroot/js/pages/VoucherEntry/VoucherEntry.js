@@ -27,13 +27,13 @@ $(document).ready(function () {
     $('#EntryDate').text(getBangladeshDateTime());
 
     //Handle Save Or Update Button Handle
-    $(document).on("click", ".VoucherEntrysaveBtn", function (e) {
+    $(document).on("click", ".js-VoucherEntry-save", function (e) {
         e.preventDefault();
         SaveVoucherEntry();
     });
 
     //// Handle Delete Button
-    $(document).on("click", ".VoucherEntrydeleteBtn", function (e) {
+    $(document).on("click", ".js-VoucherEntry-delete-confirm", function (e) {
         e.preventDefault();
         BulkDeleteSelectedVouchers();
         DeleteWithUser();
@@ -41,8 +41,8 @@ $(document).ready(function () {
     });
 
     //// Handle Clear button
-    $(document).on("click", ".VoucherEntryresetBtn", function () {
-        console.log("Clerar Button Clicked")
+    $(document).on("click", ".js-VoucherEntry-clear", function () {
+        console.log("Clear Button Clicked")
         ClearVoucherEntryForm();
         DeleteWithUser();
 
@@ -558,7 +558,9 @@ function SaveVoucherEntry() {
                     if (response.success) {
                         toastr.success(response.message || (ajaxType === 'POST' ? "Data Saved Successfully!" : "Data Updated Successfully!"));
                         ClearVoucherEntryForm();
-                        //LoadTmpVoucherDetailsTable();
+                        if (window.GctlGrid) {
+                            window.GctlGrid.reload('VoucherEntryTempGrid');
+                        }
                         LoadVoucherEntriesTable();
                     } else {
                         toastr.error(response.message || failMessage);
@@ -646,7 +648,13 @@ function ClearVoucherEntryForm() {
 
 function LoadVoucherEntriesTable() {
     if ($.fn.DataTable.isDataTable('#voucherEntryTable')) {
-        $('#voucherEntryTable').DataTable().ajax.reload();
+        if (window.GctlGrid) {
+            window.GctlGrid.reload('voucherEntryTable');
+        }
+    } else {
+        if (window.GctlGrid) {
+            window.GctlGrid.initFromModel({ gridId: 'voucherEntryTable' });
+        }
     }
 }
 //#endregion 

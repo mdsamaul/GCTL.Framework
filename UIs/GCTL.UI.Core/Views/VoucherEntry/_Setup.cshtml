@@ -278,16 +278,18 @@
                                 {
                                     GridId = "VoucherEntryTempGrid",
                                     AjaxUrl = Url.Action("GetAllTmpVoucherDetails", "VoucherDetails") ?? "/VoucherDetails/all-tmp-voucher-details",
+                                    ServerSide = false,
                                     ShowCheckbox = true,
-                                    ShowActionMenu = true,
+                                    ShowActionMenu = false,
                                     CheckColumnData = "autoId",
                                     Columns = new List<GridColumn>
                                     {
-                                        new GridColumn { Data = "accCode", Header = "Acc. Code", Align = "center", Width = "15%", IsEditLink = true, IdField = "autoId" },
-                                        new GridColumn { Data = "accountHead", Header = "Account Head", Width = "30%" },
+                                        new GridColumn { Data = "accCode", Header = "Acc. Code", Align = "center", Width = "15%", IsEditLink = true, IdField = "autoId", EditSelectorClass = "js-grid-edit" },
+                                        new GridColumn { Data = "accountHead", Header = "Account Head", Width = "20%" },
                                         new GridColumn { Data = "description", Header = "Description", Width = "20%" },
                                         new GridColumn { Data = "debitAmount", Header = "Debit", Align = "right", Width = "15%" },
-                                        new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "15%" }
+                                        new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "15%" },
+                                        new GridColumn { Data = "autoId", Header = "Action", Align = "center", Width = "20%", RenderFn = "voucherActionButtons", Sortable = false, Searchable = false }
                                     }
                                 })
                                 <div class="row mt-2 mx-0" style="background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">

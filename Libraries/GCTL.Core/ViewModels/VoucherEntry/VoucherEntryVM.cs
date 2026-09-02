@@ -1,4 +1,4 @@
-﻿namespace GCTL.Core.ViewModels.VoucherEntry
+namespace GCTL.Core.ViewModels.VoucherEntry
 {
     public class VoucherEntryVM : BaseViewModel
     {
@@ -10,13 +10,10 @@
         public string? VoucherEntryCodeNo { get; set; }
         public string Narration { get; set; }
         public string VoucherNo { get; set; }
-        public string? Luser { get; set; }
         public string? BranchName { get; set; }
         public decimal? Amount { get; set; }
         public string? InvoiceNo { get; set; }
         public decimal? autoId { get; set; }
-        public DateTime? LDate { get; set; }
-        public DateTime? ModifyDate { get; set; }
 
 
 

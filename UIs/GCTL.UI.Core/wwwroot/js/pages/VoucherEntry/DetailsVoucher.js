@@ -1,3 +1,11 @@
+//#region Custom Renderers
+window.gctlRenderers = window.gctlRenderers || {};
+window.gctlRenderers.voucherActionButtons = function (data, type, row) {
+    return `<button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 js-grid-edit me-1" data-id="${data}" title="Edit"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 js-grid-delete" data-id="${data}" title="Delete"><i class="bi bi-trash"></i></button>`;
+};
+//#endregion
+
 //#region Ready Part
 
 $(document).ready(function () {
