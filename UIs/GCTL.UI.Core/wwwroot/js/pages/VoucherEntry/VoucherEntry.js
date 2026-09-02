@@ -558,7 +558,7 @@ function SaveVoucherEntry() {
                     if (response.success) {
                         toastr.success(response.message || (ajaxType === 'POST' ? "Data Saved Successfully!" : "Data Updated Successfully!"));
                         ClearVoucherEntryForm();
-                        LoadTmpVoucherDetailsTable();
+                        //LoadTmpVoucherDetailsTable();
                         LoadVoucherEntriesTable();
                     } else {
                         toastr.error(response.message || failMessage);
@@ -680,7 +680,7 @@ $(document).on('click', '.voucher-no-btn', function () {
 
                 // Call functions
                 fillMainVoucherInfo(main);
-                LoadTmpVoucherDetailsTable();   // Load Tmp table Data
+                //LoadTmpVoucherDetailsTable();   // Load Tmp table Data
                 //renderVoucherDetailsTable(details);
 
                 selectedVoucher = [autoId];
@@ -918,7 +918,7 @@ function DeleteWithUser() {
         type: 'DELETE',
         success: function (response) {
             console.log("Data Delete with User ID");
-            LoadTmpVoucherDetailsTable();
+            //LoadTmpVoucherDetailsTable();
         },
         error: function (xhr, status, error) {
             console.log("Failed Deleted With USerID",error);

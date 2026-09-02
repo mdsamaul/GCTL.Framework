@@ -273,27 +273,28 @@
 
                         @* Details Table *@
                         <div class="row pe-0">
-                            <div class="col-12 table-responsive  pe-0">
-                                <table class="table table-bordered table-striped voucher-entry-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 5%; text-align:center;">Select</th>
-                                            <th style="width: 15%; text-align:center;" data-column="AccCode">Acc. Code</th>
-                                            <th style="width: 30%; text-align:center;" data-column="AccountHeadName">Account Head</th>
-                                            <th style="width: 20%; text-align:center;" data-column="Description">Description</th>
-                                            <th style="width: 15%; text-align:center;" data-column="DebitAmount">Debit</th>
-                                            <th style="width: 15%; text-align:center;" data-column="CreditAmount">Credit</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="4" class="text-end fw-bold">Total</td>
-                                            <td class="fw-bold">0.00</td>
-                                            <td class="fw-bold">0.00</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <small class="text-muted"></small>
+                            <div class="col-12 table-responsive pe-0">
+                                @await Html.PartialAsync("_CustomGrid", new GridModel
+                                {
+                                    GridId = "VoucherEntryTempGrid",
+                                    AjaxUrl = Url.Action("GetAllTmpVoucherDetails", "VoucherDetails") ?? "/VoucherDetails/all-tmp-voucher-details",
+                                    ShowCheckbox = true,
+                                    ShowActionMenu = true,
+                                    CheckColumnData = "autoId",
+                                    Columns = new List<GridColumn>
+                                    {
+                                        new GridColumn { Data = "accCode", Header = "Acc. Code", Align = "center", Width = "15%", IsEditLink = true, IdField = "autoId" },
+                                        new GridColumn { Data = "accountHead", Header = "Account Head", Width = "30%" },
+                                        new GridColumn { Data = "description", Header = "Description", Width = "20%" },
+                                        new GridColumn { Data = "debitAmount", Header = "Debit", Align = "right", Width = "15%" },
+                                        new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "15%" }
+                                    }
+                                })
+                                <div class="row mt-2 mx-0" style="background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+                                    <div class="col-md-6 offset-md-1 text-end fw-bold">Total :</div>
+                                    <div class="col-md-2 text-end fw-bold" id="TotalDrValue">0.00</div>
+                                    <div class="col-md-2 text-end fw-bold" id="TotalCrValue">0.00</div>
+                                </div>
                             </div>
                         </div>
 
