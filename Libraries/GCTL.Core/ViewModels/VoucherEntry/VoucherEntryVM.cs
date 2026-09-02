@@ -7,6 +7,7 @@ namespace GCTL.Core.ViewModels.VoucherEntry
         public string BranchCode { get; set; }
         public string VoucherType_Code { get; set; }
         public DateTime VoucherDate { get; set; }
+        public string? VoucherDateDisplay { get; set; }
         public string? VoucherEntryCodeNo { get; set; }
         public string Narration { get; set; }
         public string VoucherNo { get; set; }

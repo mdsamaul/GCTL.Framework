@@ -524,6 +524,7 @@ namespace GCTL.Service.VoucherEntry
                     VoucherEntryCodeNo = main.VoucherEntryCodeNo,
                     VoucherNo = main.VoucherNo,
                     VoucherDate = main.VoucherDate,
+                    VoucherDateDisplay = main.VoucherDate.ToString("dd/MM/yyyy"),
                     Narration = main.Narration,
                     InvoiceNo = main.InvoiceNo,
                     BranchCode = main.BranchCode   // add this field to VM if missing
