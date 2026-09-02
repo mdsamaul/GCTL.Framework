@@ -171,7 +171,7 @@ function saveDeliveryLocation(e) {
             toastr.success(editdlId ? 'Data Updated Successfully' : 'Data Saved Successfully');
 
             editdlId = null;
-            resetDLForm({ resetCustomer: false, keepEdit: false }); 
+            resetDLForm({ resetCustomer: false, keepEdit: false });
             reloadDeliveryGrid(false);
         },
         error: function (error) {
@@ -371,7 +371,7 @@ $(document).on("input", "#DeliveryPhone, #DeliveryEmail", function () {
     $(this).removeClass("error-border");
     $(`#${id}Error`).remove();
 
-    if (!value) return; 
+    if (!value) return;
 
     if (id === "DeliveryPhone") {
         if (!/^\d+$/.test(value)) {

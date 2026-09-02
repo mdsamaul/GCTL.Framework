@@ -92,7 +92,6 @@ namespace GCTL.UI.Core.Controllers
 
             if (!string.IsNullOrEmpty(id))
             {
-
                 model = await clientInformationEntryService.GetByIdAsync(id);
                 if (model == null)
                 {
@@ -117,7 +116,6 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-
                 if (await clientInformationEntryService.IsExistAsync(modelVM.ClientId, modelVM.ClientName))
                 {
                     return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
@@ -130,7 +128,7 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                modelVM.CompanyCode = LoginInfo.CompanyCode;
+                modelVM.UserCompany = LoginInfo.CompanyCode;
                 if (modelVM.AutoId == 0)
                 {
                     var hasSavePermission = await clientInformationEntryService.SavePermissionAsync(LoginInfo.AccessCode);
@@ -146,7 +144,6 @@ namespace GCTL.UI.Core.Controllers
                 }
                 else
                 {
-
                     var hasUpdatePermission = await clientInformationEntryService.UpdatePermissionAsync(LoginInfo.AccessCode);
                     if (hasUpdatePermission)
                     {

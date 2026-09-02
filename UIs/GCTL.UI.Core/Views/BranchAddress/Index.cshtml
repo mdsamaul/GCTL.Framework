@@ -113,7 +113,7 @@
                     {
                         @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
                     }
-                    <div class="card-body px-4 py-3" style="padding-left: 50px !important;">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="BranchAddress-form" asp-controller="BranchAddress">
                             <div class="js-BranchAddress-form-container">
                                 <partial name="_Setup" model="Model.Setup" />

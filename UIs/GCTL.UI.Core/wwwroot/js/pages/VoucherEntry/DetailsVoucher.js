@@ -263,8 +263,7 @@ function SaveOrUpdateTmpDetails() {
         data: JSON.stringify(TmpData),
         success: function (response) {
             if (response.success) {
-                toastr.success(successMessage);
-                debugger
+                toastr.success(successMessage);                
                 // Clear details form
                 DetailsSectionClear();
 

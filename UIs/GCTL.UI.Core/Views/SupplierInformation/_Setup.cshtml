@@ -44,7 +44,7 @@
           height: 34px;
           outline: none;
       }
-     
+
       .input-group .btn,
       .input-group .add-btn {
           flex-shrink: 0;
@@ -136,7 +136,7 @@
         max-width: 90vw;
     }
 
-    .contact-table {
+  /*   .contact-table {
         width: 100%;
         margin: 0;
         min-width: 700px;
@@ -155,7 +155,7 @@
          white-space: nowrap;
          text-align: left;
      }
-    
+
      .contact-table td {
          padding: 8px 10px;
          font-size: 12px;
@@ -194,7 +194,7 @@
 
     .contact-table tbody tr:hover {
         background-color: #f8f9fa;
-    }
+    } */
 
     .contact-checkbox {
         margin: 0;
@@ -318,9 +318,6 @@
                 <input type="hidden" asp-for="ModifyDate" />
                 <input type="hidden" asp-for="Tc" value="0" />
 
-                <div class="card">
-                    <div class="card-body">
-
                         @* Supplier ID / Supplier Name *@
                         <div class="row pe-2 mb-2">
                             <div class="col-12 col-md-6">
@@ -362,7 +359,7 @@
                                                     asp-items="@ViewBag.SupplierDepDD as SelectList">
                                                 <option value=""></option>
                                             </select>
-                                            
+
                                         </div>
                                     </div>
                                     <div class="col-md-1 ps-0">
@@ -389,7 +386,7 @@
                                     </div>
                                 </div>
                             </div>
-                           
+
                         </div>
 
                         <div class="row pe-2 mb-2">
@@ -406,7 +403,7 @@
                                                     asp-items="@ViewBag.SupplierTypeDD as SelectList">
                                                 <option value=""></option>
                                             </select>
-                                           
+
                                         </div>
                                     </div>
                                     <div class="col-md-1 ps-0">
@@ -419,7 +416,7 @@
                                             <i class="fa fa-plus"></i>
                                         </button>
                                     </div>
-                                    
+
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
@@ -435,7 +432,7 @@
                                                     asp-items="@ViewBag.SupplierCatDD as SelectList">
                                                 <option value=""></option>
                                             </select>
-                                           
+
                                         </div>
                                     </div>
                                     <div class="col-md-1 ps-0">
@@ -448,7 +445,7 @@
                                             <i class="fa fa-plus"></i>
                                         </button>
                                     </div>
-                                    
+
                                 </div>
                             </div>
                         </div>
@@ -468,9 +465,9 @@
                                                     asp-items="@ViewBag.SupplierOrgDD as SelectList">
                                                 <option value=""></option>
                                             </select>
-                                            
+
                                         </div>
-                                        
+
                                     </div>
                                     <div class="col-md-1 ps-0">
                                         <button type="button"
@@ -497,7 +494,7 @@
                                                     asp-items="@ViewBag.SupplierComDD as SelectList">
                                                 <option value=""></option>
                                             </select>
-                                           
+
                                         </div>
                                     </div>
                                     <div class="col-md-1 ps-0">
@@ -510,7 +507,7 @@
                                             <i class="fa fa-plus"></i>
                                         </button>
                                     </div>
-                                    
+
                                 </div>
                             </div>
                         </div>
@@ -558,7 +555,7 @@
                                                     asp-items="@ViewBag.SCountryDD as SelectList">
                                                 <option value=""></option>
                                             </select>
-                                           
+
                                         </div>
                                     </div>
                                     <div class="col-md-1 ps-0">
@@ -571,7 +568,7 @@
                                             <i class="fa fa-plus"></i>
                                         </button>
                                     </div>
-                                    
+
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
@@ -756,7 +753,7 @@
                                                 data-title="Contact Person Info">
                                             <i class="fa fa-plus"></i>
                                         </button>
-                                    </div>                                  
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-12 col-md-6"></div>
@@ -957,8 +954,6 @@
                             </div>
                         </div>
 
-                    </div>
-                </div>
             </div>
         </div>
     </div>

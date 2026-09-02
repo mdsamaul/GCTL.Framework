@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.shipmentModeLedgerSetup = function (options) {
 
         //#region Default options
@@ -75,20 +75,20 @@
                     success: function (data) {
                         if (data) {
                            // console.log(data);
-                            
+
                             $('#Tc').val(data.tc);
                             $('#Id').val(data.id);
                             $('#ExpenseTypeId').val(data.expenseTypeId);
-                          
+
                             $('#ExpenseType').val(data.expenseType).trigger('change');
                             window.reinitCustomDropdownById('ExpenseType');
-                           
+
                             $('#RevenueLedgerCodeNo').val(data.revenueLedgerCodeNo).trigger('change');
                             window.reinitCustomDropdownById('RevenueLedgerCodeNo');
 
                             $('#ExpenseLedgerCodeNo').val(data.expenseLedgerCodeNo).trigger('change');
                             window.reinitCustomDropdownById('ExpenseLedgerCodeNo');
-                            
+
                             $('#AdvanceLedgerCode').val(data.advanceLedgerCode).trigger('change');
                             window.reinitCustomDropdownById('AdvanceLedgerCode');
 
@@ -328,6 +328,21 @@
 
         //#region ResetBranchAddressForm
 
+        function getNextExpenseTypeId() {
+            $.ajax({
+                url: '/ShipmentModeLedgerSetup/GetNextId',
+                type: 'GET',
+                success: function (response) {
+                    console.log(response);
+                    $('#ExpenseTypeId').val(response);
+                    $('#lastCode').val(response);
+                },
+                error: function (xhr) {
+                    console.error("Error fetching next Expense Type ID:", xhr.responseText);
+                }
+            });
+        }
+
         $(document).on('click', '.js-ShipmentModeLedgerSetup-clear', function () {
             ResetBranchAddressForm();
             loadTable(); // if applicable
@@ -337,8 +352,8 @@
             // Reset hidden/control fields
             $('#Tc').val(0);
             $('#Id').val('');
-            $('#ExpenseTypeId').val('');
 
+            getNextExpenseTypeId();
 
             setSelect('#ExpenseType', '', false);
             setSelect('#ExpenseLedgerCodeNo', '', false);
@@ -347,16 +362,13 @@
 
             // Hide sections
             $('#LdateModifyHide').hide();
+            $('#sectionBreak').hide();
 
-            // Optional: clear checkbox selections if you have a grid
-            selectedItems?.clear?.();
+            // Clear checkbox selections
+            selectedItems = [];
 
             $("#ShipmentModeLedgerSetup-check-all").prop("checked", false);
             $('#ShipmentModeLedgerSetup-grid input[type="checkbox"]').prop('checked', false);
-
-            // Optional: hide additional containers
-            // $('#sectionBreak').hide();
-            // $('#employeeIdContainer').addClass('d-none');
         }
 
         //#endregion

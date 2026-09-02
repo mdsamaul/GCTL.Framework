@@ -90,7 +90,7 @@ namespace GCTL.UI.Core.Controllers
                     }
                 );
 
-                commonService.FindMaxNo(ref strMaxNO, "BankId", "SALES_Def_BankInfo", 2);
+                commonService.FindMaxNo(ref strMaxNO, "BankId", "SALES_Def_BankInfo", 3);
                 model.Setup = new BankInformationsSetupViewModel
                 {
                     BankId = strMaxNO

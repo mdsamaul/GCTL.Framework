@@ -83,7 +83,7 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> Setup(string id)
         {
             ContactPersonInfoSetupViewModel model = new ContactPersonInfoSetupViewModel();
-            var nextCode = commonService.GenerateCode("CPID", "Sales_ContactPerson", "CP", 3);
+            var nextCode = commonService.GenerateCode("CPID", "Sales_ContactPerson", "CP", 5);
 
             if (!string.IsNullOrEmpty(id))
             {
@@ -223,7 +223,7 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> GenerateNewId()
         {
             await Task.Delay(100);
-            var nextCode = commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 3, "CP");
+            var nextCode = commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 5, "CP");
             return Json(nextCode);
         }
 

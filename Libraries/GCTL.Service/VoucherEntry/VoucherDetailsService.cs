@@ -135,10 +135,10 @@ namespace GCTL.Service.VoucherEntry
         #endregion
 
         #region Get All Tmp Voucher Details
-        public async Task<List<VoucherEntryDetailsTempVM>> GetAllAsync(int? currentUser)
+        public async Task<List<VoucherEntryDetailsTempVM>> GetAllAsync(string? currentUser)
         {
-            var result = await (from tmp in _repository.All()                           
-                                join subSub in _generalLedger.All()                      
+            var result = await (from tmp in _repository.All().AsNoTracking()
+                                join subSub in _generalLedger.All().AsNoTracking()
                                     on tmp.AccCode equals subSub.SubSusidiaryLedgerCodeNo
                                     into subSubJoin
                                 from subSub in subSubJoin.DefaultIfEmpty()

@@ -1,60 +1,92 @@
-﻿let selectedBalance = []; 
-let BalancecurrentPage = 1;
-let BalancepageSize = 5;
-let BalancecurrentSortColumn = 'ComOpeningBalanceCode';
-let BalancecurrentSortDirection = 'desc';
-console.log(`Global Call on Opening Balance Page: ${selectedBalance}`);
+let selectedBalance = [];
 
-//#region Bangladeshi Date Formate
+$(document).ready(function () {
+    console.log("Opening Balance Page Loaded");
 
-// Reusable function to format date as DD/MM/YYYY
-function formatBangladeshDate(dateValue) {
-    if (!dateValue) return '';
-    const date = new Date(dateValue);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Month 0-based
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    // Initialize _CustomGrid DataTable
+    if ($.gctlGrid) {
+        $.gctlGrid.initFromModel({
+            gridId: 'openingBalanceTable'
+        });
+    }
+
+    LoadCompanyDropdown();
+    LoadGeneralLedgerDropdown();
+
+    // Save Button
+    $(document).on("click", ".BlanceSaveBtn", function (e) {
+        e.preventDefault();
+        SaveOrUpdateOpeningBalance();
+    });
+
+    $(document).on("submit", "#BlanceTypeForm", function (e) {
+        e.preventDefault();
+        SaveOrUpdateOpeningBalance();
+    });
+
+    // Delete Button
+    $(document).on("click", ".BlancedeleteBtn", function (e) {
+        e.preventDefault();
+        DeleteOpeningBalance();
+    });
+
+    // Clear Button
+    $(document).on("click", ".BlanceresetBtn", function (e) {
+        e.preventDefault();
+        ClearOpeningBalanceForm();
+    });
+
+    // Checkbox synchronization for bulk actions
+    $(document).on('change', '.js-openingbalance-check', function () {
+        syncSelectedCheckboxes();
+    });
+
+    $(document).on('change', '#selectAllOpeningBalance', function () {
+        $('.js-openingbalance-check').prop('checked', $(this).prop('checked'));
+        syncSelectedCheckboxes();
+    });
+});
+
+function syncSelectedCheckboxes() {
+    selectedBalance = [];
+    $('.js-openingbalance-check:checked').each(function () {
+        var val = parseFloat($(this).val());
+        if (!isNaN(val)) selectedBalance.push(val);
+    });
 }
 
+function reloadOpeningBalanceGrid(resetPaging = false) {
+    if ($.gctlGrid) {
+        $.gctlGrid.reload('openingBalanceTable', resetPaging);
+    }
+}
 
-//#endregion
-
-
-//#region Validation Error Border(Common input handler)
-
-// Common handler for all inputs
+// Validation Error Border(Common input handler)
 $(document).on('input', '.form-control', function () {
     if ($(this).val().trim() !== '') {
         $(this).removeClass('is-invalid');
     }
 });
-// All Select2 dropdown 
+
 $('#CompanyCode, #BranchCode, #SubSusidiaryLedgerCodeNo').on('change', function () {
     const $selection = $(this).next('.select2-container').find('.select2-selection');
     if ($(this).val()) {
-        $selection.removeClass('border-danger'); // error remove
+        $selection.removeClass('border-danger');
     }
 });
-// TrType validation remove on change
+
 $('#TrType').on('change', function () {
     if ($(this).val()) {
         $(this).removeClass('is-invalid');
     }
 });
 
-
-//#endregion
-
-
-//#region Account Head Dropdown
+// Account Head Dropdown
 function LoadGeneralLedgerDropdown() {
     $.ajax({
         url: '/openingUI-General-Ledger-dropdown',
         method: 'GET',
         success: function (response) {
-            console.log("General Ledger Dropdown Loaded", response.data);
-
             var $general = $('#SubSusidiaryLedgerCodeNo');
             $general.empty().append('<option value="">Select Account Head</option>');
 
@@ -64,35 +96,24 @@ function LoadGeneralLedgerDropdown() {
                 );
             });
 
-            // Initialize Select2 to make it searchable
-            // $general.select2({
-            //     placeholder: "Account Head",
-            //     width: '100%',
-            //     allowClear: true,
-            //     dropdownPosition: 'below'
-            // });
-            window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
-            $general.next('.select2-container').find('.select2-selection__placeholder')
-                .html('Account Head <span style="color:red">*</span>');
+            if (typeof window.reinitCustomDropdownById === 'function') {
+                window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
+            }
         },
         error: function (xhr, status, error) {
             console.error('Failed to load Account Head:', error);
         }
     });
 }
-//#endregion
 
-
-//#region Company Dropdown
+// Company Dropdown
 function LoadCompanyDropdown() {
     $.ajax({
         url: '/openingUI-company-dropdown',
         method: 'GET',
         success: function (response) {
-            console.log("Company Dropdown Loaded", response.data);
-
             var $company = $('#CompanyCode');
-            $company.empty().append('<option value=""></option>');
+            $company.empty().append('<option value="">Select Company</option>');
 
             $.each(response.data, function (index, company) {
                 $company.append(
@@ -100,67 +121,46 @@ function LoadCompanyDropdown() {
                 );
             });
 
-            // Initialize Select2 to make it searchable
-            // $company.select2({
-            //     width: '100%',
-            //     allowClear: true,
-            // });
-            //$company.trigger('change');
-            window.reinitCustomDropdownById('CompanyCode');
-            if (response.data.length === 1) {
-                $company.val(response.data[0].id).trigger('change');
+            if (typeof window.reinitCustomDropdownById === 'function') {
                 window.reinitCustomDropdownById('CompanyCode');
             }
-            $company.prop("disabled", true);
+            if (response.data.length === 1) {
+                $company.val(response.data[0].id).trigger('change');
+                if (typeof window.reinitCustomDropdownById === 'function') {
+                    window.reinitCustomDropdownById('CompanyCode');
+                }
+            }
         },
         error: function (xhr, status, error) {
             console.error('Failed to load Company:', error);
         }
     });
 }
-//#endregion
 
-
-//#region Company Dropdown On change Event
+// Company Dropdown On change Event
 $("#CompanyCode").on('change', function (e) {
-    e.preventDefault();
     const code = $(this).val() || "";
-    console.log("Selected Company Code:", code); // Debug
     LoadBranchDropdown(code);
 });
-//#endregion
 
-
-//#region Branch Dropdown
+// Branch Dropdown
 function LoadBranchDropdown(companyCode, callback) {
     $.ajax({
         url: '/openingUI-branch-dropdown',
         method: 'GET',
         data: { companycode: companyCode },
         success: function (response) {
-            console.log("Branch Dropdown Loaded", response.data);
-
             var $branch = $('#BranchCode');
-            $branch.empty().append('<option value=""></option>');
+            $branch.empty().append('<option value="">Select Branch</option>');
 
             $.each(response.data, function (index, branch) {
                 $branch.append('<option value="' + branch.id + '">' + branch.name + '</option>');
             });
 
-            // Initialize Select2
-            // $branch.select2({
-            //     placeholder:"Select Branch",
-            //     width: '100%',
-            //     allowClear: true
-            // });
+            if (typeof window.reinitCustomDropdownById === 'function') {
+                window.reinitCustomDropdownById('BranchCode');
+            }
 
-            // $branch.trigger('change');
-            window.reinitCustomDropdownById('BranchCode');
-
-            $branch.next('.select2-container').find('.select2-selection__placeholder')
-                .html('Select Branch <span style="color:red">*</span>');
-
-            // trigger callback if provided
             if (callback) callback();
         },
         error: function (xhr, status, error) {
@@ -168,137 +168,38 @@ function LoadBranchDropdown(companyCode, callback) {
         }
     });
 }
-//#endregion
-
-
-//#region Opening Balance Validation
-function validateSelect2(selector, value, message) {
-    const $selection = $(selector).next('.select2-container').find('.select2-selection');
-    if (!value) {
-        toastr.error(message);
-        $selection.addClass('border-danger'); // safer than is-invalid
-        return false;
-    } else {
-        $selection.removeClass('border-danger');
-        return true;
-    }
-}
 
 function OpeningBalanceValidate(BalanceData) {
-    // Company Name validation 
-    if (!validateSelect2('#CompanyCode', BalanceData.CompanyCode, "Please Select a Company")) return false;
-
-    // Branch validation 
-    if (!validateSelect2('#BranchCode', BalanceData.BranchCode, "Please Select a Branch")) return false;
-
-    // Account head validation
-    if (!validateSelect2('#SubSusidiaryLedgerCodeNo', BalanceData.SubSusidiaryLedgerCodeNo, "Please Select an Account Head")) return false;
-
-    // Opening Balance validation 
+    if (!BalanceData.CompanyCode) {
+        toastr.error("Please Select a Company.");
+        return false;
+    }
+    if (!BalanceData.BranchCode) {
+        toastr.error("Please Select a Branch.");
+        return false;
+    }
+    if (!BalanceData.SubSusidiaryLedgerCodeNo) {
+        toastr.error("Please Select an Account Head.");
+        return false;
+    }
     if (!BalanceData.OpeningBalance) {
         toastr.error("Please Enter Opening Balance.");
         $('#OpeningBalance').addClass('is-invalid');
         return false;
-    } else {
-        $('#OpeningBalance').removeClass('is-invalid');
     }
-
-    // Tr Type validation
     if (!BalanceData.TrType) {
         toastr.error("Please Select a Tr Type.");
         $('#TrType').addClass('is-invalid');
         return false;
-    } else {
-        $('#TrType').removeClass('is-invalid');
     }
-
-    return true; // all valid
+    return true;
 }
 
-//#endregion
-
-
-//#region Save Or Update Opening Balance
-//function SaveOrUpdateVoucherType() {
-//    console.log("Save Or Update OpeningBalance Function Called");
-
-//    let autoID = $('#BlanceautoId').val();
-//    let BalanceData = {
-//        autoId: autoID || 0,
-//        ComOpeningBalanceCode: "",
-//        CompanyCode: $("#CompanyCode").val(),
-//        BranchCode: $("#BranchCode").val(),
-//        SubSusidiaryLedgerCodeNo: $("#SubSusidiaryLedgerCodeNo").val(),
-//        OpeningBalance: $("#OpeningBalance").val() ? parseFloat($("#OpeningBalance").val()) : 0,
-//        TrType: $("#TrType").val(),
-
-//    };
-
-//    //validation
-//    if (!OpeningBalanceValidate(BalanceData)) {
-//        console.log("Validation Failed!");
-//        return false; // stop if validation fails
-//    }
-
-
-//    //Check for duplicate
-//    $.ajax({
-//        url: '/voucher-type/check-duplicate',
-//        type: 'POST',
-//        contentType: 'application/json',
-//        data: JSON.stringify(VoucherTypeData),
-//        success: function (dupResponse) {
-//            if (dupResponse.isDuplicate) {
-//                toastr.error(dupResponse.message);
-//                return;
-//            }
-
-//            //Decide if POST or PUT
-//            let url = '/opening-balance';
-//            let method = 'POST';
-//            let successMessage = 'Data Saved Successfully.';
-//            if (autoID) {
-//                url = `/opening-balance/${autoID}`;
-//                method = 'PUT';
-//                successMessage = 'Data Updated Successfully.';
-//            }
-
-//            //Save or Update
-//            $.ajax({
-//                url: url,
-//                type: method,
-//                contentType: 'application/json',
-//                data: JSON.stringify(BalanceData),
-//                success: function (response) {
-//                    if (response.success) {
-//                        toastr.success(successMessage);
-
-//                        ClearOpeningBalanceForm();
-//                        selectedBalance = [];
-//                        LoadAllOpeningBalanceData(1, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
-
-//                    } else {
-//                        toastr.error(response.message || "Operation Failed!");
-//                        console.error('Error Opening Balance :', response);
-//                    }
-//                },
-//                error: function (xhr, status, error) {
-//                    console.error('Error Saving Opening Balance :', error);
-//                }
-//            });
-//        },
-//        error: function (xhr, status, error) {
-//            toastr.error("Server error occurred during duplicate check!");
-//            console.error('Error checking duplicate:', error);
-//        }
-//    });
-//}
+// Save Or Update Opening Balance
 function SaveOrUpdateOpeningBalance() {
-    console.log("Save Or Update OpeningBalance Function Called");
-
     let autoID = $('#BlanceautoId').val();
     let BalanceData = {
-        autoId: autoID || 0,
+        autoId: autoID ? parseFloat(autoID) : 0,
         ComOpeningBalanceCode: "",
         CompanyCode: $("#CompanyCode").val(),
         BranchCode: $("#BranchCode").val(),
@@ -307,13 +208,10 @@ function SaveOrUpdateOpeningBalance() {
         TrType: $("#TrType").val(),
     };
 
-    // Validation
     if (!OpeningBalanceValidate(BalanceData)) {
-        console.log("Validation Failed!");
-        return false; // stop if validation fails
+        return false;
     }
 
-    // Decide if POST or PUT
     let url = '/opening-balance';
     let method = 'POST';
     let successMessage = 'Data Saved Successfully.';
@@ -323,7 +221,6 @@ function SaveOrUpdateOpeningBalance() {
         successMessage = 'Data Updated Successfully.';
     }
 
-    // Save or Update
     $.ajax({
         url: url,
         type: method,
@@ -333,142 +230,51 @@ function SaveOrUpdateOpeningBalance() {
             if (response.success) {
                 toastr.success(successMessage);
                 ClearOpeningBalanceForm();
-                selectedBalance = [];
-                LoadAllOpeningBalanceData(1, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
+                reloadOpeningBalanceGrid(false);
             } else {
                 toastr.error(response.message || "Operation Failed!");
-                console.error('Error Opening Balance :', response);
             }
         },
         error: function (xhr, status, error) {
+            toastr.error("Error Saving Opening Balance.");
             console.error('Error Saving Opening Balance :', error);
         }
     });
 }
-//#endregion
 
-
-//#region Opening Balance Form Clear
-function ClearOpeningBalanceForm() {
-    $("#BlanceautoId").val("");
-    $("#CompanyCode").val("").trigger('change');
-    $("#BranchCode").val("").trigger('change');
-    $("#SubSusidiaryLedgerCodeNo").val("").trigger('change');
-    $("#OpeningBalance").val("");
-    $("#TrType").val("").trigger('change');
-
-    $(".form-control").removeClass("is-invalid is-valid");
-    $(".invalid-feedback, .valid-feedback").remove();
-    $('#BlancedisplayModifyDate').text('');    
-    $('#BlancedisplayLDate').text('');  
-    $(".balance-checkbox").prop("checked", false);
-    $("#BlanceselectAll").prop("checked", false);
-    $('#BlancesearchInput').val('');
-
-    // Set Entry Date
-    $('#BlancedisplayLDate').text(getBangladeshDateTime());
-
-    selectedBalance = [];
-    BalancecurrentPage = 1;
-    const emptySearch = '';
-    LoadAllOpeningBalanceData(1, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection, emptySearch);
-    LoadCompanyDropdown();
-
-    $('#SubSusidiaryLedgerCodeNo').next('.select2-container').find('.select2-selection__placeholder')
-        .html('Account Head <span style="color:red">*</span>');
-    $('#BranchCode').next('.select2-container').find('.select2-selection__placeholder')
-        .html('Select Branch <span style="color:red">*</span>');
-}
-//#endregion
-
-
-//#region Load All Opening Balance Data
-function LoadAllOpeningBalanceData(page = 1, BalancepageSize = 5, sortColumn = BalancecurrentSortColumn, sortDirection = BalancecurrentSortDirection, searchTerm = "") {
-
-    $.ajax({
-        url: '/opening-balance-list',
-        type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: BalancepageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection
-        },
-        success: function (response) {
-            console.log("Opening Balance Data:", response);
-            let rows = '';
-            response.data.forEach(function (item) {
-                rows += `<tr>
-                    <td class="text-center">
-                        <input type="checkbox" class="form-check-input form-check-input-sm balance-checkbox"
-                            data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                    </td>
-                    <td style="text-align:center">
-                            <button class="btn btn-transfer opening-balance"
-                                data-autoid="${item.autoId}"
-                            </button>
-                              ${item.comOpeningBalanceCode}
-                    </td>
-                    <td>${item.accountHead || ''}</td>
-                    <td style="text-align:center">${item.openingBalance || ''}</td>
-                    <td>${item.trType || ''}</td>
-                    <td>${item.companyName || ''}</td>
-                    <td>${item.branchName || ''}</td>
-                 </tr>`;
-            });
-            $('#BlancetblBody').html(rows);
-
-            // Pagination Info
-            let page = response.paginationInfo.currentPage;
-            let totalPages = response.paginationInfo.totalPages;
-            let totalRecords = response.totalCount;
-            let startIndex = response.paginationInfo.startItem;
-            let endIndex = response.paginationInfo.endItem;
-
-            $('#BlancepaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-            $('#BlancepaginationInfo').text(`Page ${page} of ${Math.max(1, totalPages)}`);
-            $('#BlancetotalRecordsInfo').text(`Total Records: ${totalRecords}`);
-
-            BalancecurrentPage = page;
-            BalancegeneratePageButtons(BalancecurrentPage, totalPages);
-            BalanceupdateCheckboxState(); 
-            BalanceupdateSortIndicators();
-        },
-        error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
-
-        }
-    });
-}
-//#endregion
-
-
-//#region Populate Data For Edit
-$(document).on('click', '.opening-balance', function () {
-    const id = $(this).data('autoid');
-    console.log("Edited Opening Balance Code:", id);
-
+// Populate Data For Edit
+$(document).on('click', '.js-openingbalance-edit', function (e) {
+    e.preventDefault();
+    const id = $(this).data('id');
     if (!id) return;
 
     $.ajax({
         url: `/opening-balance/details/${id}`,
         type: 'GET',
         success: function (data) {
-            // Populate form fields
             $('#BlanceautoId').val(id);
             $('#CompanyCode').val(data.companyCode || '').trigger('change');
             LoadBranchDropdown(data.companyCode, function () {
-                // callback executed after branch options loaded
                 $('#BranchCode').val(data.branchCode || '').trigger('change');
+                if (typeof window.reinitCustomDropdownById === 'function') {
+                    window.reinitCustomDropdownById('BranchCode');
+                }
             });
             $('#SubSusidiaryLedgerCodeNo').val(data.subSusidiaryLedgerCodeNo || '').trigger('change');
-            $('#TrType').val(data.trType || '');
+            if (typeof window.reinitCustomDropdownById === 'function') {
+                window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
+                window.reinitCustomDropdownById('CompanyCode');
+            }
+
+            let trTypeVal = data.trType || '';
+            if (trTypeVal.toLowerCase() === 'debit') trTypeVal = 'Dr';
+            if (trTypeVal.toLowerCase() === 'credit') trTypeVal = 'Cr';
+            $('#TrType').val(trTypeVal);
+            if (typeof window.reinitCustomDropdownById === 'function') {
+                window.reinitCustomDropdownById('TrType');
+            }
             $('#OpeningBalance').val(data.openingBalance || '');
 
-            //const banglaModifyDate = formatBangladeshDate(data.modifyDate);
-            //    $('#BlancedisplayModifyDate').text(banglaModifyDate);
-            // Entry Date
             if (data.lDate) {
                 let entryDate = new Date(data.lDate).toLocaleString('en-GB', {
                     day: '2-digit',
@@ -497,17 +303,12 @@ $(document).on('click', '.opening-balance', function () {
                 $('#BlancedisplayModifyDate').text('');
             }
 
+            // Show full date row (including hr and labels) only in Edit mode
+            $('#entryUpdateDateSection').removeClass('d-none').show();
 
-            // Optionally clear previous selections
-            selectedBalance = [parseInt(id)];
-
-            // Uncheck all row checkboxes to prevent conflict
-            $('.balance-checkbox').prop('checked', false);
-            $("#BlanceselectAll").prop('checked', false);
-
-            $(`.balance-checkbox[data-autoid="${id}"]`).prop('checked', true);
-
-            BalanceupdateCheckboxState();
+            selectedBalance = [parseFloat(id)];
+            $('.js-openingbalance-check').prop('checked', false);
+            $(`.js-openingbalance-check[value="${id}"]`).prop('checked', true);
         },
         error: function (xhr, status, error) {
             toastr.error("Failed to fetch Opening Balance details.");
@@ -516,299 +317,88 @@ $(document).on('click', '.opening-balance', function () {
     });
 });
 
-//#endregion
-
-
-//#region Single & More Delete Voucher
+// Single & Bulk Delete Opening Balance
 function DeleteOpeningBalance() {
-    // Filter only valid IDs
-    const ids = selectedBalance.map(x => parseInt(x)).filter(x => !isNaN(x));
-    console.log("Opening Balance IDs to delete:", ids);
+    // If nothing selected from table checkboxes, check if form has active record ID
+    if (!selectedBalance.length) {
+        const formAutoId = parseFloat($("#BlanceautoId").val());
+        if (!isNaN(formAutoId) && formAutoId > 0) {
+            selectedBalance = [formAutoId];
+        }
+    }
+
+    const ids = selectedBalance.map(x => parseFloat(x)).filter(x => !isNaN(x));
 
     if (!ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
 
-    //URL for both single & multiple delete
-    const url = '/opening-balance-all-delete';
+    var $modal = $("#deleteModal");
+    if ($modal.length) {
+        $modal.find('.title').html(`Are you sure you want to delete ${ids.length} record(s)?`);
+        $modal.modal("show");
+    }
+}
 
+// Delete Confirmation Click Handler for Bootstrap Modal
+$(document).on("click", "#deleteModal .js-delete, #deleteModal .js-gc-delete-confirm", function (e) {
+    e.preventDefault();
+    const ids = selectedBalance.map(x => parseFloat(x)).filter(x => !isNaN(x));
+    if (!ids.length) return;
+
+    var $modal = $("#deleteModal");
     $.ajax({
-        url: url,
+        url: '/opening-balance-all-delete',
         type: 'DELETE',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
+            $modal.modal("hide");
             toastr.success(response.message || "Data Deleted Successfully.");
-
-            // Clear form, reload table, reset selection
             ClearOpeningBalanceForm();
-            LoadAllOpeningBalanceData(BalancecurrentPage, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
             selectedBalance = [];
-            $("#BlanceselectAll").prop("checked", false);
-
-
+            reloadOpeningBalanceGrid(false);
         },
         error: function (xhr, status, error) {
+            $modal.modal("hide");
             toastr.error("Error Occurred During Deletion.");
             console.error("Delete Error:", error);
         }
     });
-}
-//#endregion
-
-
-//#region Select all checkbox
-$(document).on('click', '#BlanceselectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.balance-checkbox:visible').prop('checked', isChecked);
-
-    if (isChecked) {
-        $('.balance-checkbox:visible').each(function () {
-            const id = parseFloat($(this).data('autoid'));
-            if (!selectedBalance.includes(id)) {
-                selectedBalance.push(id);
-            }
-        });
-    } else {
-        $('.balance-checkbox:visible').each(function () {
-            const id = parseFloat($(this).data('autoid'));
-            const index = selectedBalance.indexOf(id);
-            if (index !== -1) {
-                selectedBalance.splice(index, 1);
-            }
-        });
-    }
-    console.log("Selected Opening Balance:", selectedBalance);
 });
-//#endregion
 
+// Clear Form
+function ClearOpeningBalanceForm() {
+    $("#BlanceautoId").val("");
+    $("#CompanyCode").val("").trigger('change');
+    $("#BranchCode").val("").trigger('change');
+    $("#SubSusidiaryLedgerCodeNo").val("").trigger('change');
+    $("#OpeningBalance").val("");
+    $("#TrType").val("").trigger('change');
 
-//#region Entry Date Up to date
-//function SetCurrentEntryDate() {
-//    const now = new Date();
-
-//    // Bangladesh Format: DD-MM-YYYY
-//    const day = String(now.getDate()).padStart(2, '0');
-//    const month = String(now.getMonth() + 1).padStart(2, '0'); // Month starts from 0
-//    const year = now.getFullYear();
-
-//    const formattedDate = `${day}/${month}/${year}`;
-
-//    const entryDateDiv = document.getElementById("BlancedisplayLDate");
-//    if (entryDateDiv) {
-//        entryDateDiv.textContent = formattedDate;
-//        document.getElementById("BlancelDateContainer").style.display = "block"; // Ensure container visible
-//    }
-//}
-//#endregion
-
-
-//#region Sort & Pagination Helpers
-function BalanceupdateSortIndicators() {
-    $('.Blancesortable').removeClass('sort-asc sort-desc');
-    $('.Blancesortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
-
-    const header = $(`.Blancesortable[data-column="${BalancecurrentSortColumn}"]`);
-    header.addClass(BalancecurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-
-    const icon = header.find('.sort-icon');
-    icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(BalancecurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-}
-
-function BalancegeneratePageButtons(BalancecurrentPage, totalPages) {
-    const navigationDiv = $('#BlancepageNavigation');
-    navigationDiv.empty();
-
-    function createButton(page) {
-        const btn = $('<button>')
-            .addClass('btn btn-sm mx-1')
-            .text(page)
-            .click(() => LoadAllOpeningBalanceData(page, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection, $('#BlancesearchInput').val().trim()));
-
-        if (page === BalancecurrentPage) {
-            btn.removeClass('btn-outline-primary').addClass('btn-primary');
-        } else {
-            btn.addClass('btn-outline-primary');
-        }
-        return btn;
+    if (typeof window.clearAllCustomDropdowns === 'function') {
+        window.clearAllCustomDropdowns('#VoucherFormView');
     }
 
-    // Always show first page
-    navigationDiv.append(createButton(1));
+    $(".form-control").removeClass("is-invalid is-valid");
+    $(".invalid-feedback, .valid-feedback").remove();
+    $('#BlancedisplayModifyDate').text('');    
+    $('#BlancedisplayLDate').text('');  
+    $('#entryUpdateDateSection').addClass('d-none').hide(); // Hide entire row including hr and labels
+    $(".js-openingbalance-check").prop("checked", false);
+    $("#selectAllOpeningBalance").prop("checked", false);
 
-    if (BalancecurrentPage > 2) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    if (BalancecurrentPage > 1 && BalancecurrentPage < totalPages) {
-        navigationDiv.append(createButton(BalancecurrentPage));
-    }
-
-    if (BalancecurrentPage < totalPages - 1) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    if (totalPages > 1) {
-        navigationDiv.append(createButton(totalPages));
-    }
-}
-
-function BalanceupdateCheckboxState() {
-    $('.balance-checkbox').each(function () {
-        const bankID = $(this).data('autoid');
-        $(this).prop('checked', selectedBalance.includes(bankID));
-    });
-    const allChecked = $('.balance-checkbox:visible').length > 0 &&
-        $('.balance-checkbox:visible:not(:checked)').length === 0;
-    $('#BlanceselectAll').prop('checked', allChecked);
-}
-
-function debounce(func, delay) {
-    let timer;
-    return function () {
-        const context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-function BalancebindCheckboxHandlers() {
-    $(document).off('click', '.balance-checkbox');
-    $(document).on('click', '.balance-checkbox', function () {
-        const id = parseInt($(this).data('autoid'));
-        const isChecked = $(this).prop('checked');
-
-        if (isChecked) {
-            if (!selectedBalance.includes(id)) {
-                selectedBalance.push(id);
-            }
-        } else {
-            const index = selectedBalance.indexOf(id);
-            if (index !== -1) {
-                selectedBalance.splice(index, 1);
-            }
-        }
-
-        const allChecked = $('.balance-checkbox:visible').length > 0 &&
-            $('.balance-checkbox:visible:not(:checked)').length === 0;
-        $('#BlanceselectAll').prop('checked', allChecked);
-
-        console.log("Selected Opening Balance:", selectedBalance);
-    });
-}
-//#endregion
-
-
-//#region Ready Part
-
-$(document).ready(function () {
-    console.log("Voucher Type Page Loaded");
-
-    LoadAllOpeningBalanceData();
+    selectedBalance = [];
     LoadCompanyDropdown();
-    LoadGeneralLedgerDropdown();
-    //setInterval(SetCurrentEntryDate, 1000);
+}
 
-    // Set Entry Date
-    $('#BlancedisplayLDate').text(getBangladeshDateTime());
-
-    //Handle Save Or Update Button Handle
-    $(document).on("submit", "#BlanceTypeForm", function (e) {
-        e.preventDefault();
-        SaveOrUpdateOpeningBalance();
-    });
-
-    // Handle Delete Button
-    $(document).on("click", ".BlancedeleteBtn", function (e) {
-        e.preventDefault();
-        DeleteOpeningBalance();
-    });
-
-    // Handle Clear button
-    $(document).on("click", ".BlanceresetBtn", function () {
-        console.log("Clerar Button Clicked")
-        ClearOpeningBalanceForm();
-    });
-
-    // Handle print button
-    $(".printBtn").on("click", function (e) {
-        e.preventDefault();
-        printForm();
-    });
-
-    // Handle favorite button
-    $(".favBtn").on("click", function () {
-        toggleFavorite();
-    });
-
-    //Pagination Handle
-    $(document).on('input', '.BlancesearchInput', debounce(function () {
-        const searchValue = $('.BlancesearchInput').val();
-        LoadAllOpeningBalanceData(1, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection, searchValue);
-    }, 500));
-
-    $(document).on('click', '#BlancefirstPage', function () {
-        BalancecurrentPage = 1;
-        LoadAllOpeningBalanceData(BalancecurrentPage, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
-    });
-
-    $(document).on('click', '#BlanceprevPage', function () {
-        console.log("previous page called ");
-        if (BalancecurrentPage > 1) {
-            BalancecurrentPage--;
-            LoadAllOpeningBalanceData(BalancecurrentPage, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
-        }
-    });
-
-    $(document).on('click', '#BlancenextPage', function () {
-        BalancecurrentPage++;
-        LoadAllOpeningBalanceData(BalancecurrentPage, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
-    });
-
-    $(document).on('click', '#BlancelastPage', function () {
-        let lastPage = $('#BlancepageNavigation button').last().text();
-        lastPage = parseInt(lastPage);
-        if (!isNaN(lastPage)) {
-            BalancecurrentPage = lastPage;
-            LoadAllOpeningBalanceData(BalancecurrentPage, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
-        }
-    });
-
-    $(document).on('change', '.BlancepageSize', function () {
-        BalancepageSize = parseInt($(this).val());
-        LoadAllOpeningBalanceData(1, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection);
-    });
-
-    $(document).on('click', '.Blancesortable', function () {
-        const column = $(this).data('column');
-
-        if (column === BalancecurrentSortColumn) {
-            BalancecurrentSortDirection = (BalancecurrentSortDirection === 'desc') ? 'asc' : 'desc';
-        } else {
-            BalancecurrentSortColumn = column;
-            BalancecurrentSortDirection = 'desc';
-        }
-
-        LoadAllOpeningBalanceData(1, BalancepageSize, BalancecurrentSortColumn, BalancecurrentSortDirection, $('#BlancesearchInput').val().trim());
-    });
-
-    BalancebindCheckboxHandlers();
-});
-
-//#endregion
-
-
-//#region Bangladesh Date and Time Formate 
 function getBangladeshDateTime() {
-    // BD timezone offset is +6:00 from UTC
     let now = new Date();
     let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     let bdOffset = 6 * 60 * 60 * 1000;
     let bdTime = new Date(utc + bdOffset);
 
-    // Format DD/MM/YYYY hh:MM AM/PM
     let day = bdTime.getDate().toString().padStart(2, '0');
     let month = (bdTime.getMonth() + 1).toString().padStart(2, '0');
     let year = bdTime.getFullYear();
@@ -818,9 +408,7 @@ function getBangladeshDateTime() {
 
     let ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
-    hours = hours ? hours : 12; // 0 => 12
+    hours = hours ? hours : 12;
 
     return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
 }
-
-//#endregion

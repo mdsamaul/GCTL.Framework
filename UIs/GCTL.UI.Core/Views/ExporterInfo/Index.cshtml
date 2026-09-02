@@ -33,16 +33,16 @@
         transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-        .btn-plus:hover {
-            background-color: #0d6efd; /* Bootstrap blue */
-            color: #ffffff;
-            border-color: #0d6efd;
-        }
+    .btn-plus:hover {
+        background-color: #0d6efd; /* Bootstrap blue */
+        color: #ffffff;
+        border-color: #0d6efd;
+    }
 
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
-        }
+    .btn-plus:focus {
+        outline: none;
+        box-shadow: none;
+    }
 
     /* Country wrapper */
     .con-input-wrapper {
@@ -56,10 +56,10 @@
         min-width: 0; /* flex child shrink fix */
     }
 
-        /* Select2 container full width */
-        .con-select-wrap .select2-container {
-            width: 100% !important;
-        }
+     /* Select2 container full width */
+     .con-select-wrap .select2-container {
+         width: 100% !important;
+     }
 
     /* Plus button */
     .btn-plus {
@@ -77,16 +77,16 @@
         transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-        .btn-plus:hover {
-            background-color: #0d6efd;
-            color: #ffffff;
-            border-color: #0d6efd;
-        }
+    .btn-plus:hover {
+        background-color: #0d6efd;
+        color: #ffffff;
+        border-color: #0d6efd;
+    }
 
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
-        }
+    .btn-plus:focus {
+        outline: none;
+        box-shadow: none;
+    }
 
 </style>
 
@@ -152,18 +152,18 @@
 
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-    <script src="~/js/pages/exporterInfo.js" asp-append-version="true"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "ExporterInfo")'
-        };
-
-        $.exporterInfo(options);
-    </script>
+@section Scripts{
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/exporterInfo.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.exporterInfo === "function") {
+            var options = { baseUrl: '@Url.Action("", "ExporterInfo")' };
+            options.load = () => { };
+            $.exporterInfo(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>
 }

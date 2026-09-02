@@ -1,33 +1,17 @@
-﻿@* <div class="row">
-    <div class="col-md-12">
-        <div id="VoucherFormView">
-            @await Html.PartialAsync("~/Views/VoucherType/_VoucherForm.cshtml")
-        </div>
-    </div>
+<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
 
-    <div class="col-md-12 mt-3">
-        <div id="VoucherListView">
-            @await Html.PartialAsync("~/Views/VoucherType/_VoucherList.cshtml")
-        </div>
-    </div>
-</div> *@
-
-<div class="container-fluid">
-  @* Voucher Type Form  *@
-    <div class="mb-4">
-
+<div class="row g-2">
+    <div class="col-md-6" id="VoucherFormView">
         @await Html.PartialAsync("~/Views/VoucherType/_VoucherForm.cshtml")
     </div>
-
-        @* List View  *@
-    <div>
+    <div class="col-md-6" id="VoucherListView">
         @await Html.PartialAsync("~/Views/VoucherType/_VoucherList.cshtml")
     </div>
 </div>
 
+<partial name="~/Views/Shared/DeleteModal.cshtml" />
 
 @section Scripts {
-
-    <script src="~/js/pages/VoucherType/VoucherType.js"></script>
-
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/VoucherType/VoucherType.js" asp-append-version="true"></script>
 }

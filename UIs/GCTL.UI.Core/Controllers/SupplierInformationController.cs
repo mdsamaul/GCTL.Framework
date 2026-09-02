@@ -1,4 +1,5 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.SupplierInformation;
 using GCTL.Data.Models;
@@ -309,17 +310,39 @@ namespace GCTL.UI.Core.Controllers
 
         #region TabeleLodaing
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        [HttpPost]
+        [Route("SupplierInformation/GetTableData")]
+        public async Task<IActionResult> GetTableData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "",
+            string sortOrder = "desc")
         {
             try
             {
-                var list = await supplierInformationService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var request = new PaginationRequest
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await supplierInformationService.GetTableDataAsync(request);
+                return Json(new
+                {
+                    draw = draw,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount,
+                    data = result.Data ?? new List<SupplierInformationSetupViewModel>()
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new { message = "An error occurred while fetching suppliers.", error = ex.Message });
             }
         }
 

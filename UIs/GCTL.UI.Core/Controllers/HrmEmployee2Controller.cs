@@ -77,6 +77,13 @@ namespace GCTL.UI.Core.Controllers
             //model.HeaderButtonText = "Add Employee";
             //model.HeaderButtonUrl = Url.Action("Setup", "HrmEmployee2");
             //model.HeaderButtonIcon = "fa fa-plus";
+
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
+
             return View(model);
 
         }

@@ -70,6 +70,11 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
             ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
             SalesCustomerViewModel model = new SalesCustomerViewModel();
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
+
             return View(model);
         }
 

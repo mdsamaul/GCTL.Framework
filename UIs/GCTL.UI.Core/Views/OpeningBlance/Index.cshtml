@@ -1,4 +1,6 @@
-﻿ <div class="row">
+<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+
+<div class="row">
     <div class="col-md-12">
         <div id="VoucherFormView">
             @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceForm.cshtml")
@@ -12,8 +14,9 @@
     </div>
 </div> 
 
+<partial name="~/Views/Shared/DeleteModal.cshtml" />
+
 @section Scripts {
-
-    <script src="~/js/pages/OpeningBalance/OpeningBalance.js"></script>
-
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+    <script src="~/js/pages/OpeningBalance/OpeningBalance.js" asp-append-version="true"></script>
 }

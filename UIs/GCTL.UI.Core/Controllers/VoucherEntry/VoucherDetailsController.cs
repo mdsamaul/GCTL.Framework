@@ -68,11 +68,12 @@ namespace GCTL_App.Controllers.VoucherEntry
         {
             try
             {
-                string currentUserId = LoginInfo?.EmployeeId;
+                string currentUserId = LoginInfo?.Username;
 
                 int.TryParse(currentUserId, out int employeeId);
 
-                var data = await _service.GetAllAsync(employeeId);
+                //var data = await _service.GetAllAsync(employeeId);
+                var data = await _service.GetAllAsync(currentUserId);
 
                 if (data == null) data = new List<VoucherEntryDetailsTempVM>();
                 

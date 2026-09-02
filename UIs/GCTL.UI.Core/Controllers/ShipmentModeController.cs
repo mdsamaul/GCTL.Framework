@@ -21,7 +21,7 @@ namespace GCTL.Controllers.MasterSetup
         private readonly IShipmentMode _service;
         private readonly IGenericRepository<TransportModeType> transportModeTypeRepo;
 
-        public ShipmentModeController( IShipmentMode service, IGenericRepository<TransportModeType> transportModeTypeRepo) : base()
+        public ShipmentModeController(IShipmentMode service, IGenericRepository<TransportModeType> transportModeTypeRepo) : base()
         {
             _service = service;
             this.transportModeTypeRepo = transportModeTypeRepo;
@@ -69,17 +69,17 @@ namespace GCTL.Controllers.MasterSetup
 
         [HttpPost]
         [Route("get-grid-data")]
-        public async Task<IActionResult> GetAllPaginatedExpense(int page = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ExpenseTypeID", string sortDirection = "desc")
+        public async Task<IActionResult> GetAllPaginatedExpense(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "ExpenseTypeID", string sortOrder = "desc")
         {
             try
             {
                 var request = new PaginationRequest
                 {
-                    PageNumber = page,
+                    PageNumber = pageNumber,
                     PageSize = pageSize,
                     SearchTerm = searchTerm,
-                    SortColumn = currentSortColumn,
-                    SortOrder = sortDirection
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
                 };
 
                 var result = await _service.GetPaginatedAsync(request);
@@ -129,7 +129,7 @@ namespace GCTL.Controllers.MasterSetup
                 if (model == null)
                     return BadRequest(new { message = "Shipment Mode is required." });
 
-                model.ToAudit(LoginInfo, model.TC>0);
+                model.ToAudit(LoginInfo, model.TC > 0);
                 var result = await _service.SaveAsync(model);
 
 

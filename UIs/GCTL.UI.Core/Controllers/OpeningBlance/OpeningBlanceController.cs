@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels.OpeningBalance;
+using GCTL.Core.ViewModels.OpeningBalance;
 using GCTL.Service.OpeningBalance;
 using GCTL.UI.Core.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +35,45 @@ namespace GCTL.Controllers.OpeningBlance
             return Ok(data);
         }
 
+
+        [HttpPost]
+        [Route("OpeningBlance/GetGridData")]
+        public async Task<IActionResult> GetGridData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "ComOpeningBalanceCode",
+            string sortOrder = "desc")
+        {
+            try
+            {
+                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder);
+
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new
+                    {
+                        draw,
+                        data = new List<OpeningBalanceVM>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
+                    });
+                }
+
+                return Ok(new
+                {
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.TotalCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An Error Occurred.", error = ex.Message });
+            }
+        }
 
         [HttpGet]
         [Route("opening-balance-list")]
@@ -122,7 +161,7 @@ namespace GCTL.Controllers.OpeningBlance
             var typeExists = await _service.IsExistAsync(id);
             if (!typeExists)
                 return NotFound(new { message = $"Opening Balance with ID {id} Not Found." });
-
+            
             var result = await _service.UpdateAsync(model);
 
             if (!result)

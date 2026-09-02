@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.BranchesTypeInfo.BranchTypePageViewModel
+@model GCTL.UI.Core.ViewModels.BranchesTypeInfo.BranchTypePageViewModel
 
 @{
     ViewBag.Title = "BranchesTypeInfo";
@@ -15,10 +15,10 @@
         --bs-btn-padding-y: 0.3rem !important;
     }
 
-    
+
 
     /* .custom-dd-box {
-        border-radius: .375rem .0rem 0rem .375rem;       
+        border-radius: .375rem .0rem 0rem .375rem;
     } */
 </style>
 
@@ -27,7 +27,7 @@
 <section class="content consistent-look">
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-6 pr-0">
+            <div class="col-md-6 ps-0 pe-1">
                 <div class="card">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -47,50 +47,32 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
+            <div class="col-md-6 pe-0 ps-1">
                         <div class="js-branch-grid-container">
                             <partial name="_Grid" />
                         </div>
-                    </div>
-                </div>
             </div>
         </div>
-        <partial name="_BottomNavigation" />
     </div>
-</section>
-@* <partial name="DeleteModal" /> *@
-@* <partial name="QuickAddModal" /> *@
+    <partial name="_BottomNavigation" />
 
-                
-@* @section Scripts {
+</section>
+
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+@section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/app.input.validation.js"></script>
     <script src="~/js/pages/branchesTypeInfo.js"></script>
     <script type="text/javascript">
         var options = {
-        baseUrl: '@Url.Action("", "BranchesTypeInfo")'
+            baseUrl: '@Url.Action("", "BranchesTypeInfo")'
         };
-        options.load = () => {
-        };
-
+        options.load = () => { };
         $.branchesTypeInfo(options);
     </script>
-} *@
-
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/branchesTypeInfo.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-    if (window.jQuery && typeof $.branchesTypeInfo === "function") {
-    var options = { baseUrl: '@Url.Action("", "BranchesTypeInfo")' };
-    options.load = () => { };
-    $.branchesTypeInfo(options);
-    } else {
-    setTimeout(waitForJQuery, 30);
-    }
-    })();
-</script>
+}
