@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.ShipmentModeLedgerSetup.ShipmentModeLedgerSetupPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.ShipmentModeLedgerSetup.ShipmentModeLedgerSetupPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -71,7 +71,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/shipmentModeLedgerSetup.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {

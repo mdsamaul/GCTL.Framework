@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.CoreBankAccountInformations.CoreBankAccountInformationPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.CoreBankAccountInformations.CoreBankAccountInformationPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -149,7 +149,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/bankAccountInfo.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
