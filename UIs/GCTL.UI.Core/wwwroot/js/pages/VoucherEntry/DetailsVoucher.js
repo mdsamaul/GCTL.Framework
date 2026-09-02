@@ -1,9 +1,35 @@
+//#region Custom Renderers
+window.gctlRenderers = window.gctlRenderers || {};
+window.gctlRenderers.voucherActionButtons = function (data, type, row) {
+    return `<button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 js-grid-edit me-1" data-id="${data}" title="Edit"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 js-grid-delete" data-id="${data}" title="Delete"><i class="bi bi-trash"></i></button>`;
+};
+//#endregion
+
 //#region Ready Part
 
 $(document).ready(function () {
 
     LoadAccountHeadDropdown();
-    LoadTmpVoucherDetailsTable();
+    
+    if ($.gctlGrid) {
+        $.gctlGrid.initFromModel({
+            gridId: 'VoucherEntryTempGrid',
+            onLoaded: function (json) {
+                let totalDr = 0;
+                let totalCr = 0;
+                let records = json.data ? json.data : (Array.isArray(json) ? json : []);
+                
+                records.forEach(item => {
+                    totalDr += (item.debitAmount || 0);
+                    totalCr += (item.creditAmount || 0);
+                });
+                
+                $('#TotalDrValue').text(totalDr.toFixed(2));
+                $('#TotalCrValue').text(totalCr.toFixed(2));
+            }
+        });
+    }
     
     // Initialize ChequeDate
     if (document.querySelector("#ChequeDate")) {
@@ -122,34 +148,18 @@ $(document).on('input', '.form-control', function () {
         $(this).removeClass('is-invalid');
     }
 });
-// All Select2 dropdown 
-$('#AccCode').on('change', function () {
-    const $selection = $(this).next('.select2-container').find('.select2-selection');
-    if ($(this).val()) {
-        $selection.removeClass('border-danger'); // error remove
-    }
-});
-$('#TrType').on('change', function () {
-    const $selection = $(this).next('.select2-container').find('.select2-selection');
-    if ($(this).val()) {
-        $selection.removeClass('border-danger'); // error remove
-    }
-});
+
 
 //#endregion
 
 
 //#region Tmp Voucher Entry Details Validation
 function validateSelect2(selector, value, message) {
-    const $selection = $(selector).next('.select2-container').find('.select2-selection');
     if (!value) {
         toastr.error(message);
-        $selection.addClass('border-danger'); // safer than is-invalid
         return false;
-    } else {
-        $selection.removeClass('border-danger');
-        return true;
-    }
+    } 
+    return true;
 }
 
 function TmpVoucherDetailsValidate(TmpData) {
@@ -179,8 +189,11 @@ function TmpVoucherDetailsValidate(TmpData) {
 function DetailsSectionClear() {
     $("#TmpDetailsAutoID").val("");
 
-    $("#TrType").val("").trigger('change');
-    $("#AccCode").val("").trigger('change');
+    $("#TrType").val("");
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("TrType");
+
+    $("#AccCode").val("");
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("AccCode");
 
     $(".form-control").removeClass("is-invalid");
 
@@ -199,19 +212,6 @@ function DetailsSectionClear() {
     if (document.querySelector("#ChequeDate") && $("#ChequeDate")[0]._flatpickr) {
         $("#ChequeDate")[0]._flatpickr.clear();
     }
-
-    $('#AccCode').next('.select2-container').find('.select2-selection__placeholder')
-        .html('Account Head <span style="color:red">*</span>');
-
-    $('#TrType').next('.select2-container').find('.select2-selection__placeholder')
-        .html('Tr. Type <span style="color:red">*</span>');
-
-    $('#TrType').next('.select2-container').find('.select2-selection')
-        .removeClass('border-danger');
-
-    $('#AccCode').next('.select2-container').find('.select2-selection')
-        .removeClass('border-danger');
-
 }
 
 //#endregion
@@ -289,13 +289,14 @@ function SaveOrUpdateTmpDetails() {
         data: JSON.stringify(TmpData),
         success: function (response) {
             if (response.success) {
-                toastr.success(successMessage);
-                debugger
+                toastr.success(successMessage);                
                 // Clear details form
                 DetailsSectionClear();
 
                 // Reload Details Table
-                LoadTmpVoucherDetailsTable();
+                if (window.GctlGrid) {
+                    window.GctlGrid.reload('VoucherEntryTempGrid');
+                }
             } else {
                 toastr.error(response.message || failMessage);
                 console.error('Error Tmp Voucher Entry Details :', response);
@@ -391,166 +392,7 @@ function SaveOrUpdateTmpDetails() {
 //#endregion
 
 
-//#region Load All Tmp Voucher Details
-function LoadTmpVoucherDetailsTable() {
-    $.ajax({
-        url: '/all-tmp-voucher-details',
-        type: 'GET',
-        success: function (data) {
-            const $tbody = $('.voucher-entry-table tbody');
-            $tbody.empty(); // Clear previous rows
 
-            let totalDr = 0, totalCr = 0;
-
-            if (data && Array.isArray(data) && data.length > 0) {
-                // Records found
-                $.each(data, function (index, item) {
-                    const row = `
-                        <tr>
-                            <td class="text-center" style="vertical-align: middle;">
-                                <input type="checkbox" class="row-select" data-id="${item.autoId}" />
-                            </td>
-                            <td style="text-align:center">
-                               <button type="button" class="btn btn-transfer tmp-details tooltip-btn" data-autoid="${item.autoId}" data-tooltip="Edit">
-                                    <i class="fas fa-edit me-2"></i> ${item.accCode}
-                                </button>
-                            </td>
-                            <td style="vertical-align: middle;">${item.accountHead || ''}</td>
-                            <td style="vertical-align: middle;">${item.description || ''}</td>
-                            <td class="text-end" style="vertical-align: middle;">${item.debitAmount?.toFixed(2) || '0.00'}</td>
-                            <td class="text-end" style="vertical-align: middle;">${item.creditAmount?.toFixed(2) || '0.00'}</td>
-                        </tr>`;
-                    $tbody.append(row);
-
-                    totalDr += item.debitAmount || 0;
-                    totalCr += item.creditAmount || 0;
-                });
-            } else {
-                // Empty row with all tds
-                $tbody.append(`
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                `);
-            }
-
-            // Always append total row
-            $tbody.append(`
-                <tr>
-                    <td colspan="4" class="text-end fw-bold">Total</td>
-                    <td class="fw-bold text-end">${totalDr.toFixed(2)}</td>
-                    <td class="fw-bold text-end">${totalCr.toFixed(2)}</td>
-                </tr>
-            `);
-
-            // Summary text
-            const from = data && data.length > 0 ? 1 : 0;
-            const to = data && data.length > 0 ? data.length : 0;
-            $('.voucher-entry-table + small').text(`Showing ${from} to ${to} of ${to} entries`);
-        },
-        error: function (xhr, status, error) {
-            console.error("Error loading tmp voucher details:", xhr);
-            toastr.error("Failed to load tmp voucher details due to server/network error!");
-
-            const $tbody = $('.voucher-entry-table tbody');
-            $tbody.empty();
-
-            // Empty row with all tds
-            $tbody.append(`
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            `);
-
-            // Total row 0
-            $tbody.append(`
-                <tr>
-                    <td colspan="4" class="text-end fw-bold">Total</td>
-                    <td class="fw-bold text-end">0.00</td>
-                    <td class="fw-bold text-end">0.00</td>
-                </tr>
-            `);
-
-            $('.voucher-entry-table + small').text(`Showing 0 to 0 of 0 entries`);
-        }
-    });
-}
-
-//#region Load All Tmp Voucher Details
-//function LoadTmpVoucherDetailsTable(luser) {
-//    $.ajax({
-//        url: '/all-tmp-voucher-details',
-//        type: 'GET',
-//        data: { luser: luser }, 
-//        success: function (data) {
-//            const $tbody = $('.voucher-entry-table tbody');
-//            $tbody.empty(); // Clear previous rows
-
-//            let totalDr = 0, totalCr = 0;
-
-//            if (data && Array.isArray(data) && data.length > 0) {
-//                $.each(data, function (index, item) {
-//                    const row = `
-//                        <tr>
-//                            <td class="text-center" style="vertical-align: middle;">
-//                                <input type="checkbox" class="row-select" data-id="${item.autoId}" />
-//                            </td>
-//                            <td style="text-align:center">
-//                               <button type="button" class="btn btn-transfer tmp-details" data-autoid="${item.autoId}">
-//                                    <i class="fas fa-edit me-2"></i> ${item.accCode}
-//                                </button>
-//                            </td>
-//                            <td style="vertical-align: middle;">${item.accountHead || ''}</td>
-//                            <td style="vertical-align: middle;">${item.description || ''}</td>
-//                            <td class="text-end" style="vertical-align: middle;">${item.debitAmount?.toFixed(2) || '0.00'}</td>
-//                            <td class="text-end" style="vertical-align: middle;">${item.creditAmount?.toFixed(2) || '0.00'}</td>
-//                        </tr>`;
-//                    $tbody.append(row);
-
-//                    totalDr += item.debitAmount || 0;
-//                    totalCr += item.creditAmount || 0;
-//                });
-//            } else {
-//                $tbody.append(`
-//                    <tr>
-//                        <td colspan="6" class="text-center">No Records Found</td>
-//                    </tr>
-//                `);
-//            }
-
-//            // Always append total row
-//            $tbody.append(`
-//                <tr>
-//                    <td colspan="4" class="text-end fw-bold">Total</td>
-//                    <td class="fw-bold text-end">${totalDr.toFixed(2)}</td>
-//                    <td class="fw-bold text-end">${totalCr.toFixed(2)}</td>
-//                </tr>
-//            `);
-
-//            // Summary text
-//            const from = data && data.length > 0 ? 1 : 0;
-//            const to = data && data.length > 0 ? data.length : 0;
-//            $('.voucher-entry-table + small').text(`Showing ${from} to ${to} of ${to} entries`);
-//        },
-//        error: function (xhr, status, error) {
-//            console.error("Error loading tmp voucher details:", xhr);
-//            toastr.error("Failed to load tmp voucher details due to server/network error!");
-//        }
-//    });
-//}
-//#endregion
-
-//#endregion
 
 
 //#region tmp-details button click event
@@ -558,8 +400,11 @@ function fillFormFields(data) {
     if (!data) return;
 
     $('#TmpDetailsAutoID').val(data.autoId);
-    $('#TrType').val(data.trType).trigger('change');
-    $('#AccCode').val(data.accCode).trigger('change');
+    $('#TrType').val(data.trType);
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("TrType");
+    
+    $('#AccCode').val(data.accCode);
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("AccCode");
     $('#Description').val(data.description || '');
 
     // Amount
@@ -591,9 +436,9 @@ function fillFormFields(data) {
     if (data.subSidiaryLedgerName) $('#SubSidiaryLedgerValue').text(data.subSidiaryLedgerName).closest('.ledger-row').show();
 }
 
-$(document).on('click', '.tmp-details', function (e) {
+$(document).on('click', '.js-grid-edit', function (e) {
     e.preventDefault();
-    const id = $(this).data('autoid');
+    const id = $(this).data('id');
     if (!id) return;
 
     $.get(`/tmp-voucher/details/${id}`, function (data) {
@@ -607,33 +452,32 @@ $(document).on('click', '.tmp-details', function (e) {
 //#endregion
 
 
-//#region Checkbox Update
+//#region Single & Multiple Delete Tmp Voucher
+$(document).on('click', '.js-grid-delete', function (e) {
+    e.preventDefault();
+    const id = parseInt($(this).data('id'));
+    if (!id || isNaN(id)) return;
 
-let selectedTmpDetails = []; // global variable
-
-$(document).on('change', '.voucher-entry-table tbody input.row-select', function () {
-    const id = $(this).data('id');
-    if ($(this).is(':checked')) {
-        if (!selectedTmpDetails.includes(id)) selectedTmpDetails.push(id);
-    } else {
-        selectedTmpDetails = selectedTmpDetails.filter(x => x !== id);
-    }
+    DeleteTmpDetails([id]);
 });
 
-//#endregion
-
-
-//#region Single & Multiple Delete Tmp Voucher
 function DeleteSelectedTmpDetails() {
-    // Filter only valid IDs
-    const ids = selectedTmpDetails.map(x => parseInt(x)).filter(x => !isNaN(x));
-    console.log("Tmp Voucher IDs to delete:", ids);
+    let ids = [];
+    $('#VoucherEntryTempGrid tbody input[type="checkbox"]:checked').each(function() {
+        let idVal = $(this).val() || $(this).data('id');
+        let id = parseInt(idVal);
+        if (id && !isNaN(id)) ids.push(id);
+    });
 
     if (!ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
+    DeleteTmpDetails(ids);
+}
 
+function DeleteTmpDetails(ids) {
+    console.log("Tmp Voucher IDs to delete:", ids);
     // URL for delete
     const url = '/tmp-voucher-all-delete';
 
@@ -645,11 +489,10 @@ function DeleteSelectedTmpDetails() {
         success: function (response) {
             if (response.isSuccess) {
                 toastr.success(response.message || "Data Deleted Successfully.");
-                // Reload Tmp Voucher Table
-                LoadTmpVoucherDetailsTable();
-                // Clear selection
-                selectedTmpDetails = [];
-                $('.voucher-entry-table tbody input.row-select').prop('checked', false);
+                // Reload Details Table
+                if (window.GctlGrid) {
+                    window.GctlGrid.reload('VoucherEntryTempGrid');
+                }
             } else {
                 toastr.error(response.message || "Delete Failed.");
             }

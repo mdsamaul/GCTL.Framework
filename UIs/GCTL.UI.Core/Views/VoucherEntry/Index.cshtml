@@ -286,8 +286,8 @@
                 {
                     GridId = "voucherEntryTable",
                     AjaxUrl = "/VoucherEntry/GetTableData",
-                    AjaxMethod = "GET",
-                    ServerSide = false,
+                    AjaxMethod = "POST",
+                    ServerSide = true,
                     ShowCheckbox = true,
                     CheckColumnData = "autoId",
                     CheckAllId = "VoucherEntry-check-all",
@@ -295,8 +295,8 @@
                     DefaultSortDirection = "desc",
                     Columns = new()
                     {
-                        new() { Data = "voucherNo", Header = "Voucher No.", Width = "15%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit" },
-                        new() { Data = "voucherDate", Header = "Voucher Date", Width = "10%"},
+                        new() { Data = "voucherNo", Header = "Voucher No.", Width = "15%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId" },
+                        new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "10%"},
                         new() { Data = "narration", Header = "Narration", Width = "30%"},
                         new() { Data = "branchName", Header = "Branch", Width = "15%"},
                         new() { Data = "amount", Header = "Amount", Width = "15%"},
