@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -265,8 +265,8 @@ namespace GCTL.Service.VoucherEntry
                     DebitAmount = model.TrType == "Dr" ? model.DebitAmount : 0,
                     CreditAmount = model.TrType == "Cr" ? model.CreditAmount : 0,
                     ChequeNo = model.ChequeNo,
-                    ChequeDate = model.ChequeDate ,
-                    Luser  = model.LUser.ToString(),
+                    ChequeDate = model.ChequeDate.Value,
+                    Luser  = model.Luser?.ToString(),
                     VoucherEntryCodeNo = ""
                 };
 
@@ -302,8 +302,8 @@ namespace GCTL.Service.VoucherEntry
                 entity.DebitAmount = model.TrType == "Dr" ? model.DebitAmount : 0;
                 entity.CreditAmount = model.TrType == "Cr" ? model.CreditAmount : 0;
                 entity.ChequeNo = model.ChequeNo;
-                entity.ChequeDate = model.ChequeDate;
-                entity.Luser = model.LUser.ToString();
+                entity.ChequeDate = model.ChequeDate.Value;
+                entity.Luser = model.Luser?.ToString();
 
                 await _repository.UpdateAsync(entity);
                 await _repository.CommitTransactionAsync();

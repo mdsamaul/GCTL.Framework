@@ -1,4 +1,4 @@
-﻿
+
 // Pagination & Table State
 let VoucherEntrycurrentPage = 1;
 let VoucherEntrypageSize = parseInt($('#VoucherEntrypageSize').val()) || 5;
@@ -12,14 +12,15 @@ let selectedVoucher = []; // Selected voucher IDs
 //#region Ready Part
 
 $(document).ready(function () {
-
+    setDate("#VoucherDate", new Date());
+    setDate("#StartDate", new Date());
+    setDate("#EndDate", new Date());
     LoadVoucherTypeDropdown();
     LoadAccountHeadDropdown();
     VoucherEntryCompanyDropdown();
     VoucherEntryBranchDropdown();
 
     LoadVoucherEntriesTable();
-    initVoucherDatePicker();
     DeleteWithUser();
 
     // Set Entry Date
@@ -293,11 +294,16 @@ function VoucherEntryCompanyDropdown() {
             //     width: '100%',
             //     allowClear: true,
             // });
-            window.reinitCustomDropdownById('CompanyCode');
-            if (response.data.length === 1) {
-                $company.val(response.data[0].id).trigger('change');
+            if (response.data.length > 0) {
+                $company.val(response.data[0].id);
             }
+            
             $company.prop("disabled", true);
+            window.reinitCustomDropdownById('CompanyCode');
+            
+            if (response.data.length > 0) {
+                $company.trigger('change');
+            }
         },
         error: function (xhr, status, error) {
             console.error('Failed to load Company:', error);
@@ -348,13 +354,7 @@ function VoucherEntryBranchDropdown(companyCode, callback) {
 
 
 
-            // trigger callback if provided
             if (callback) callback();
-
-           // enableSelect2ArrowNavigation("#BranchCode");
-
-            //$branch.select2('open');
-            $branch.select2('focus');
 
         },
         error: function (xhr, status, error) {
@@ -369,18 +369,18 @@ function VoucherEntryBranchDropdown(companyCode, callback) {
 
 //#region Voucher Type Current Date
 
-function initVoucherDatePicker() {
-    return flatpickr("#VoucherDate", {
-        dateFormat: "d-m-Y",
-        defaultDate: "today",
-        allowInput: true,
-        altInput: true,
-        altFormat: "d-m-Y",
-        locale: {
-            firstDayOfWeek: 5
-        }
-    });
-}
+// function initVoucherDatePicker() {
+//     return flatpickr("#VoucherDate", {
+//         dateFormat: "d-m-Y",
+//         defaultDate: "today",
+//         allowInput: true,
+//         altInput: true,
+//         altFormat: "d-m-Y",
+//         locale: {
+//             firstDayOfWeek: 5
+//         }
+//     });
+// }
 
 
 //#endregion
@@ -388,30 +388,14 @@ function initVoucherDatePicker() {
 
 //#region Table Search Start Date
 
-flatpickr("#StartDate", {
-    dateFormat: "d-m-Y",
-    allowInput: true,
-    altInput: true,
-    altFormat: "d-m-Y",
-    locale: {
-        firstDayOfWeek: 5
-    }
-});
+// setDate("#StartDate", new Date()); // initialized in document.ready
 
 //#endregion
 
 
 //#region  Table Search End Date
 
-flatpickr("#EndDate", {
-    dateFormat: "d-m-Y",
-    allowInput: true,
-    altInput: true,
-    altFormat: "d-m-Y",
-    locale: {
-        firstDayOfWeek: 5
-    }
-});
+// setDate("#EndDate", new Date()); // initialized in document.ready
 
 //#endregion
 
@@ -612,8 +596,7 @@ function ClearVoucherEntryForm() {
     $('#table-search').val('');
 
     VoucherEntryCompanyDropdown();
-    initVoucherDatePicker();
-
+    setDate("#VoucherDate", new Date());
     // Set Entry Date
     $('#EntryDate').text(getBangladeshDateTime());
 
@@ -661,127 +644,15 @@ function ClearVoucherEntryForm() {
 //#endregion
 
 
-//#region Load Voucher Entries Table
-function LoadVoucherEntriesTable(page = 1, pageSize = VoucherEntrypageSize, sortColumn = VoucherEntrySortColumn, sortOrder = VoucherEntrySortOrder, searchTerm = VoucherEntrySearchTerm)
-{
-    const startDateVal = $('#StartDate').val();
-    const endDateVal = $('#EndDate').val();
-
-    // Convert from "dd-mm-yyyy" → "yyyy-MM-dd"
-    const startDate = startDateVal ? startDateVal.split('-').reverse().join('-') : null;
-    const endDate = endDateVal ? endDateVal.split('-').reverse().join('-') : null;
-
-    $.ajax({
-        url: '/entry-voucher-list',
-        type: 'GET',
-        data: { pageNumber: page, pageSize, sortColumn, sortOrder, searchTerm, startDate, endDate },
-        success: function (response) {
-            const data = response.Data || response.data || [];
-            const pagination = response.PaginationInfo || response.paginationInfo || {};
-            const totalRecords = response.TotalCount || response.totalCount || data.length;
-
-            renderVoucherTable(data);
-            renderPagination(pagination, totalRecords);
-
-            // Update global page and checkboxes
-            VoucherEntrycurrentPage = pagination.CurrentPage ?? pagination.currentPage ?? 1;
-
-        },
-        error: function (xhr, status, error) {
-            console.error('Error fetching voucher entries:', error);
-            $('#VoucherEntrytable').html(`<tr><td colspan="7" class="text-center">Failed to load data</td></tr>`);
-        }
-    });
+function LoadVoucherEntriesTable() {
+    if ($.fn.DataTable.isDataTable('#voucherEntryTable')) {
+        $('#voucherEntryTable').DataTable().ajax.reload();
+    }
 }
 //#endregion 
 
 
-//#region Render Table Rows
 
-function renderVoucherTable(data) {
-    if (!data || data.length === 0) {
-        $('#VoucherEntrytable').html(`<tr><td colspan="7" class="text-center">No Voucher Found</td></tr>`);
-        return;
-    }
-
-    const rows = data.map(item => `
-        <tr>
-            <td class="text-center">
-                <input type="checkbox" class="form-check-input voucher-checkbox" data-autoid="${item.autoId}" style="width:12px; height:12px;">
-            </td>
-            <td class="text-center">
-                <button type="button" class="voucher-no-btn btn btn-transfer tooltip-btn" data-autoid="${item.autoId}" data-tooltip="Edit">
-                    <i class="fas fa-edit me-2"></i> ${item.voucherNo}
-                </button>
-            </td>
-            <td class="text-center">
-                ${item.voucherDate ? new Date(item.voucherDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
-            </td>
-            <td>${item.narration || ''}</td>
-            <td>${item.branchName || ''}</td>
-            <td class="text-end">${item.amount ?? 0}</td>
-            <td>${item.invoiceNo || ''}</td>
-        </tr>
-    `).join('');
-
-    $('#VoucherEntrytable').html(rows);
-
-    VoucherbindCheckboxHandlers();
-    VoucherupdateCheckboxState();
-}
-//#endregion
-
-
-//#region Render Pagination
-
-function renderPagination(pagination, totalRecords) {
-    const currentPage = pagination.CurrentPage ?? pagination.currentPage ?? 1;
-    const totalPages = pagination.TotalPages ?? pagination.totalPages ?? 1;
-    const startItem = pagination.StartItem ?? pagination.startItem ?? 1;
-    const endItem = pagination.EndItem ?? pagination.endItem ?? 1;
-
-    $('#Entrypaginationtext').text(`Showing ${startItem} to ${endItem} of ${totalRecords} entries`);
-
-    let buttons = '';
-    buttons += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
-                </li>`;
-
-    for (let i = 1; i <= totalPages; i++) {
-        buttons += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                    </li>`;
-    }
-
-    buttons += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
-                </li>`;
-
-    $('#paginationbutton').html(buttons);
-}
-
-//#endregion
-
-
-//#region Sorting Handler
-$(document).on('click', '.VoucherEntrySortable', function () {
-    const column = $(this).data('column');
-
-    if (VoucherEntrySortColumn === column) {
-        VoucherEntrySortOrder = (VoucherEntrySortOrder === 'asc') ? 'desc' : 'asc';
-    } else {
-        VoucherEntrySortColumn = column;
-        VoucherEntrySortOrder = 'asc';
-    }
-
-    // active column indication
-    $('.VoucherEntrysortable').removeClass('sorting-asc sorting-desc');
-    $(this).addClass(VoucherEntrySortOrder === 'asc' ? 'sorting-asc' : 'sorting-desc');
-
-    // reload table
-    LoadVoucherEntriesTable(VoucherEntrycurrentPage, VoucherEntrypageSize, VoucherEntrySortColumn, VoucherEntrySortOrder, VoucherEntrySearchTerm);
-});
-//#endregion
 
 
 //#region Click Handler for Edit Information
