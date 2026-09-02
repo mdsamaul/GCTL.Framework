@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.Nationalitys.NationalitysPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.Nationalitys.NationalitysPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -75,7 +75,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/nationalitys.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {

@@ -192,9 +192,9 @@
                 <thead>
                     <tr class="text-center align-middle small">
                         <!-- SubRow Expander Column (Controlled by HasSubRow) -->
-                        <th style="width: 24px; min-width: 24px;" class="col-subrow d-none no-sort"></th>
+                        <th style="width: 24px; min-width: 24px;" class="col-subrow no-sort"></th>
                         <!-- Row Number Column (Controlled by ShowRowNumbers) -->
-                        <th style="width: 32px; min-width: 32px;" class="col-sl-no d-none no-sort">#</th>
+                        <th style="width: 32px; min-width: 32px;" class="col-sl-no no-sort">#</th>
                         <!-- Select All Checkbox Column -->
                         <th class="text-center align-middle no-sort" style="width:3%; min-width: 42px;">
                             <span class="user-select-none">Select</span><br />
@@ -207,16 +207,16 @@
                         <th class="align-middle text-end" style="width:12%;">Basic Salary (৳)</th>
                         <th class="align-middle text-start" style="width:14%;">Remarks</th>
                         <!-- Action Menu Column (Controlled by ShowActionMenu) -->
-                        <th class="align-middle text-center col-actions d-none no-sort" style="width:6%;">Action</th>
+                        <th class="align-middle text-center col-actions no-sort" style="width:6%;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="customGridBody">
                     <!-- Row 1 -->
                     <tr id="row-1" data-id="001">
-                        <td class="text-center col-subrow d-none">
+                        <td class="text-center col-subrow">
                             <i class="bi bi-chevron-right btn-expand-row" data-id="001"></i>
                         </td>
-                        <td class="text-center col-sl-no d-none fw-medium text-muted">1</td>
+                        <td class="text-center col-sl-no fw-medium text-muted">1</td>
                         <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox"
                                 value="001"></td>
                         <td class="text-start">
@@ -237,7 +237,7 @@
                                 Core framework development and database...
                             </span>
                         </td>
-                        <td class="text-center col-actions d-none">
+                        <td class="text-center col-actions">
                             <div class="dropdown">
                                 <button class="btn-action-menu" data-bs-toggle="dropdown"><i
                                         class="bi bi-three-dots"></i></button>
@@ -258,10 +258,10 @@
 
                     <!-- Row 2 -->
                     <tr id="row-2" data-id="002">
-                        <td class="text-center col-subrow d-none">
+                        <td class="text-center col-subrow">
                             <i class="bi bi-chevron-right btn-expand-row" data-id="002"></i>
                         </td>
-                        <td class="text-center col-sl-no d-none fw-medium text-muted">2</td>
+                        <td class="text-center col-sl-no fw-medium text-muted">2</td>
                         <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox"
                                 value="002"></td>
                         <td class="text-start">
@@ -282,7 +282,7 @@
                                 High availability cluster and replication...
                             </span>
                         </td>
-                        <td class="text-center col-actions d-none">
+                        <td class="text-center col-actions">
                             <div class="dropdown">
                                 <button class="btn-action-menu" data-bs-toggle="dropdown"><i
                                         class="bi bi-three-dots"></i></button>
@@ -303,10 +303,10 @@
 
                     <!-- Row 3 -->
                     <tr id="row-3" data-id="003">
-                        <td class="text-center col-subrow d-none">
+                        <td class="text-center col-subrow">
                             <i class="bi bi-chevron-right btn-expand-row" data-id="003"></i>
                         </td>
-                        <td class="text-center col-sl-no d-none fw-medium text-muted">3</td>
+                        <td class="text-center col-sl-no fw-medium text-muted">3</td>
                         <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox"
                                 value="003"></td>
                         <td class="text-start">
@@ -327,7 +327,7 @@
                                 Automated testing and regression...
                             </span>
                         </td>
-                        <td class="text-center col-actions d-none">
+                        <td class="text-center col-actions">
                             <div class="dropdown">
                                 <button class="btn-action-menu" data-bs-toggle="dropdown"><i
                                         class="bi bi-three-dots"></i></button>
@@ -348,10 +348,10 @@
 
                     <!-- Row 4 -->
                     <tr id="row-4" data-id="004">
-                        <td class="text-center col-subrow d-none">
+                        <td class="text-center col-subrow">
                             <i class="bi bi-chevron-right btn-expand-row" data-id="004"></i>
                         </td>
-                        <td class="text-center col-sl-no d-none fw-medium text-muted">4</td>
+                        <td class="text-center col-sl-no fw-medium text-muted">4</td>
                         <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox"
                                 value="004"></td>
                         <td class="text-start">
@@ -372,7 +372,7 @@
                                 Design tokens, Figma design system...
                             </span>
                         </td>
-                        <td class="text-center col-actions d-none">
+                        <td class="text-center col-actions">
                             <div class="dropdown">
                                 <button class="btn-action-menu" data-bs-toggle="dropdown"><i
                                         class="bi bi-three-dots"></i></button>
@@ -393,10 +393,10 @@
 
                     <!-- Row 5 -->
                     <tr id="row-5" data-id="005">
-                        <td class="text-center col-subrow d-none">
+                        <td class="text-center col-subrow">
                             <i class="bi bi-chevron-right btn-expand-row" data-id="005"></i>
                         </td>
-                        <td class="text-center col-sl-no d-none fw-medium text-muted">5</td>
+                        <td class="text-center col-sl-no fw-medium text-muted">5</td>
                         <td class="text-center"><input type="checkbox" class="form-check-input row-checkbox"
                                 value="005"></td>
                         <td class="text-start">
@@ -417,7 +417,7 @@
                                 Kubernetes CI/CD pipeline and...
                             </span>
                         </td>
-                        <td class="text-center col-actions d-none">
+                        <td class="text-center col-actions">
                             <div class="dropdown">
                                 <button class="btn-action-menu" data-bs-toggle="dropdown"><i
                                         class="bi bi-three-dots"></i></button>
@@ -715,11 +715,12 @@
         function toggleActionMenu(checked) {
             if (dataTable) {
                 dataTable.column(9).visible(checked);
+                applyStriping();
             }
         }
 
         function toggleSearchBox(checked) {
-            $('.dt-search').closest('.dt-layout-row').toggleClass('d-none', !checked);
+            $('.dt-search').toggleClass('d-none', !checked);
         }
 
         function toggleHighlight(checked) {
