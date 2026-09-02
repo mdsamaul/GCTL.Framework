@@ -583,7 +583,7 @@ function SaveVoucherEntry() {
 
 //#region  Main Information Section Clear
 function ClearVoucherEntryForm() {
-    debugger
+    
     isEditModeVoucher = false; 
 
     $("#VoucherEntryAutoID").val("");
@@ -671,7 +671,7 @@ function LoadVoucherEntriesTable() {
 $(document).on('click', '.voucher-no-btn, .js-VoucherEntry-edit', function (e) {
     e.preventDefault();
     const autoId = $(this).data('autoid') || $(this).data('id');
-    debugger
+    
     DetailsCopiedToTmptable(autoId);
 
     $.ajax({
@@ -928,6 +928,9 @@ function DetailsCopiedToTmptable(voucherId) {
         success: function (response) {
             if (response.success) {
                 console.log("Copied Succesfully");
+                if (window.GctlGrid) {
+                    window.GctlGrid.reload('VoucherEntryTempGrid');
+                }
             }
             else {
                 toastr.error(response.message || "Failed to copy details to temp table");
