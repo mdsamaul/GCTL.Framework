@@ -135,7 +135,7 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
+                    $('input:checkbox.checkbox').each(function () {
                         if ($(this).prop('checked')) {
                             if (!selectedItems.includes($(this).val())) {
                                 selectedItems.push($(this).val());
