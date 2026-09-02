@@ -458,3 +458,37 @@ $('.table-sm').on('draw.dt', function () {
     $('.table-sm tbody tr td input[type="checkbox"]').addClass('form-check-input');
     $('.table-sm thead th input[type="checkbox"]').addClass('form-check-input');
 });
+
+// Preserve sidebar scroll position exactly
+$(function () {
+    var $sidebar = $('.app-sidebar');
+    if ($sidebar.length > 0) {
+        var $scrollable = $sidebar;
+        
+        var $menuUl = $sidebar.find('.sidebar-menu');
+        if ($menuUl.length > 0 && ($menuUl.css('overflow-y') === 'auto' || $menuUl.css('overflow-y') === 'scroll')) {
+            $scrollable = $menuUl;
+        } else {
+            var $wrapper = $sidebar.find('.sidebar-menu-wrapper, .sidebar-menu-scroll').first();
+            if ($wrapper.length > 0 && ($wrapper.css('overflow-y') === 'auto' || $wrapper.css('overflow-y') === 'scroll')) {
+                $scrollable = $wrapper;
+            }
+        }
+
+        // Restore scroll position
+        var savedScroll = localStorage.getItem('sidebarScrollTop');
+        if (savedScroll) {
+            $scrollable.scrollTop(parseInt(savedScroll, 10));
+        }
+
+        // Save scroll position on scroll
+        $scrollable.on('scroll', function() {
+            localStorage.setItem('sidebarScrollTop', $(this).scrollTop());
+        });
+        
+        // Also save on click just in case
+        $('.menu-link').on('click', function() {
+            localStorage.setItem('sidebarScrollTop', $scrollable.scrollTop());
+        });
+    }
+});
