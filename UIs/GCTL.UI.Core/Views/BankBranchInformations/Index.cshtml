@@ -145,17 +145,18 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/bankBranchInformations.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.bankBranchInformations === "function") {
-            var options = { baseUrl: '@Url.Action("", "BankBranchInformations")' };
-            options.load = () => { };
-            $.bankBranchInformations(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+@section Scripts{
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/bankBranchInformations.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.bankBranchInformations === "function") {
+                var options = { baseUrl: '@Url.Action("", "BankBranchInformations")' };
+                options.load = () => { };
+                $.bankBranchInformations(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}
