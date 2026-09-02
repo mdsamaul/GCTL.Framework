@@ -1,7 +1,7 @@
 ﻿@using GCTL.UI.Core.ViewModels
 
 <div class="card shadow-sm rounded-2">
-    <div class="card-body" style="padding-left: 50px !important;">
+    <div class="card-body px-2">
         <form id="shipmentStatusForm">
             <input type="hidden" id="autoId" name="autoId" />
 
@@ -36,7 +36,7 @@
                     ReserveActionSlot=true,
                     ColumnClass="col-6 mt-1"
                         })
-              
+
 
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                         {
@@ -48,7 +48,7 @@
                     Placeholder = "Enter Shipment Status",
                     ColumnClass="col-6 mt-1"
                         })
-              
+
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "statusShortName",
@@ -58,7 +58,7 @@
                     ColumnClass = "col-6 mt-1",
                     Placeholder = "Enter Short Name"
                 })
-               
+
             </div>
 
             <div class="row g-3 mt-2">
