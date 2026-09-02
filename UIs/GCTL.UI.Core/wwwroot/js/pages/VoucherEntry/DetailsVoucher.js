@@ -122,34 +122,18 @@ $(document).on('input', '.form-control', function () {
         $(this).removeClass('is-invalid');
     }
 });
-// All Select2 dropdown 
-$('#AccCode').on('change', function () {
-    const $selection = $(this).next('.select2-container').find('.select2-selection');
-    if ($(this).val()) {
-        $selection.removeClass('border-danger'); // error remove
-    }
-});
-$('#TrType').on('change', function () {
-    const $selection = $(this).next('.select2-container').find('.select2-selection');
-    if ($(this).val()) {
-        $selection.removeClass('border-danger'); // error remove
-    }
-});
+
 
 //#endregion
 
 
 //#region Tmp Voucher Entry Details Validation
 function validateSelect2(selector, value, message) {
-    const $selection = $(selector).next('.select2-container').find('.select2-selection');
     if (!value) {
         toastr.error(message);
-        $selection.addClass('border-danger'); // safer than is-invalid
         return false;
-    } else {
-        $selection.removeClass('border-danger');
-        return true;
-    }
+    } 
+    return true;
 }
 
 function TmpVoucherDetailsValidate(TmpData) {
@@ -179,8 +163,11 @@ function TmpVoucherDetailsValidate(TmpData) {
 function DetailsSectionClear() {
     $("#TmpDetailsAutoID").val("");
 
-    $("#TrType").val("").trigger('change');
-    $("#AccCode").val("").trigger('change');
+    $("#TrType").val("");
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("TrType");
+
+    $("#AccCode").val("");
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("AccCode");
 
     $(".form-control").removeClass("is-invalid");
 
@@ -199,19 +186,6 @@ function DetailsSectionClear() {
     if (document.querySelector("#ChequeDate") && $("#ChequeDate")[0]._flatpickr) {
         $("#ChequeDate")[0]._flatpickr.clear();
     }
-
-    $('#AccCode').next('.select2-container').find('.select2-selection__placeholder')
-        .html('Account Head <span style="color:red">*</span>');
-
-    $('#TrType').next('.select2-container').find('.select2-selection__placeholder')
-        .html('Tr. Type <span style="color:red">*</span>');
-
-    $('#TrType').next('.select2-container').find('.select2-selection')
-        .removeClass('border-danger');
-
-    $('#AccCode').next('.select2-container').find('.select2-selection')
-        .removeClass('border-danger');
-
 }
 
 //#endregion
@@ -558,8 +532,11 @@ function fillFormFields(data) {
     if (!data) return;
 
     $('#TmpDetailsAutoID').val(data.autoId);
-    $('#TrType').val(data.trType).trigger('change');
-    $('#AccCode').val(data.accCode).trigger('change');
+    $('#TrType').val(data.trType);
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("TrType");
+    
+    $('#AccCode').val(data.accCode);
+    if (window.reinitCustomDropdownById) window.reinitCustomDropdownById("AccCode");
     $('#Description').val(data.description || '');
 
     // Amount
