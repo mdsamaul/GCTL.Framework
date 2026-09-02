@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.clientInformationEntry = function (options) {
 
         //#region Default options
@@ -55,9 +55,7 @@
                 let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
                 loadForm(url).then((data) => {
-                   // console.info("Form Loaded Successfully", data);
-                    initializeMultiselects('.gc-multiselect');
-                    initInlineSearchSelect2('.gc-select2');
+                    // Form loaded
                 }).catch((error) => {
                     console.error("Failed to load form", error);
                 });
@@ -126,20 +124,19 @@
             //#region selectAllSelector & deleteSelector
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $("#clientInformationEntryTable input:checkbox.checkbox").prop('checked', $(this).prop('checked'));
             });
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkbox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                    $('#clientInformationEntryTable input:checkbox.checkbox:checked').each(function () {
+                        var val = $(this).val();
+                        if (val && !selectedItems.includes(val)) {
+                            selectedItems.push(val);
                         }
                     });
                 }
@@ -321,12 +318,14 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        resolve(data)
-                        initializeMultiselects('.gc-multiselect');
-                        initInlineSearchSelect2('.gc-select2');
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
+
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
                 })
             })

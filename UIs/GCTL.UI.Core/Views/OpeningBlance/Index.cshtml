@@ -1,16 +1,11 @@
 <link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
 
-<div class="row">
-    <div class="col-md-12">
-        <div id="VoucherFormView">
-            @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceForm.cshtml")
-        </div>
+<div class="row g-2">
+    <div class="col-md-6" id="VoucherFormView">
+        @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceForm.cshtml")
     </div>
-
-    <div class="col-md-12 mt-3">
-        <div id="VoucherListView">
-            @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceList.cshtml")
-        </div>
+    <div class="col-md-6" id="VoucherListView">
+        @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceList.cshtml")
     </div>
 </div> 
 

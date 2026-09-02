@@ -35,149 +35,156 @@
 
     <div class="card-body">
         <form id="BlanceTypeForm">
-                <input type="hidden" id="BlanceautoId" name="autoId" />
+            <input type="hidden" id="BlanceautoId" name="autoId" />
 
-                @* <fieldset class="border rounded-3 p-3 mb-3"> *@
-                    <div class="row g-3">
+            @* <fieldset class="border rounded-3 p-3 mb-3"> *@
+            <div class="row g-3">
 
-                        @* 1. Company Code *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Select,
-                            InputId = "CompanyCode",
-                            InputName = "CompanyCode",
-                            LabelText = "Company",
-                            Placeholder = "-- Select Company --",
-                            IsRequired = true
-                        })
+                @* 1. Company Code *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    IsVisible = true,
+                    ShowOnInit = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6",
+                    FieldType = FieldType.Select,
+                    InputId = "CompanyCode",
+                    InputName = "CompanyCode",
+                    LabelText = "Company",
+                    Placeholder = "-- Select Company --",
+                    IsRequired = true
+                })
 
-                        @* 2. Branch Code *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Select,
-                            InputId = "BranchCode",
-                            InputName = "BranchCode",
-                            LabelText = "Branch",
-                            Placeholder = "-- Select Branch --",
-                            IsRequired = true
-                        })
+                @* 2. Branch Code *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    IsVisible = true,
+                    ShowOnInit = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6",
+                    FieldType = FieldType.Select,
+                    InputId = "BranchCode",
+                    InputName = "BranchCode",
+                    LabelText = "Branch",
+                    Placeholder = "-- Select Branch --",
+                    IsRequired = true
+                })
 
-                    </div>
+            </div>
 
-                    <div class="row g-3 mt-1">
+            <div class="row g-3 mt-1">
 
-                        @* 3. Account Head (Sub-Sidiary Ledger) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Select,
-                            InputId = "SubSusidiaryLedgerCodeNo",
-                            InputName = "SubSusidiaryLedgerCodeNo",
-                            LabelText = "Account Head",
-                            Placeholder = "-- Select Account Head --",
-                            IsRequired = true
-                        })
+                @* 3. Account Head (Sub-Sidiary Ledger) *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    IsVisible = true,
+                    ShowOnInit = true,
+                    ColumnClass = "col-12",
+                    ReserveActionSlot = false,
+                    FieldType = FieldType.Select,
+                    InputId = "SubSusidiaryLedgerCodeNo",
+                    InputName = "SubSusidiaryLedgerCodeNo",
+                    LabelText = "Account Head",
+                    Placeholder = "-- Select Account Head --",
+                    IsRequired = true
+                })
 
-                        @* 4. Opening Balance *@
-                        <div class="col-md-3">
-                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                            {
-                                IsVisible = true,
-                                ShowOnInit = true,
-                                ColumnClass = "",
-                                FieldType = FieldType.Number,
-                                InputId = "OpeningBalance",
-                                InputName = "OpeningBalance",
-                                LabelText = "Opening Balance",
-                                Placeholder = "Opening Balance",
-                                IsRequired = true
-                            })
-                        </div>
+            </div>
 
-                        @* 5. TrType *@
-                        <div class="col-md-3">
-                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                            {
-                                IsVisible = true,
-                                ShowOnInit = true,
-                                ColumnClass = "",
-                                FieldType = FieldType.Select,
-                                InputId = "TrType",
-                                InputName = "TrType",
-                                LabelText = "Select TrType",
-                                Placeholder = "-- Select --",
-                                SelectItems = new SelectList(new[]
-                                {
-                                    new { Value = "Dr", Text = "Debit" },
-                                    new { Value = "Cr", Text = "Credit" }
-                                }, "Value", "Text"),
-                                IsRequired = true
-                            })
-                        </div>
+            <div class="row g-3 mt-1">
 
-                    </div>
-                @* </fieldset> *@
+                @* 4. Opening Balance *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    IsVisible = true,
+                    ShowOnInit = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6",
+                    FieldType = FieldType.Number,
+                    InputId = "OpeningBalance",
+                    InputName = "OpeningBalance",
+                    LabelText = "Opening Balance",
+                    Placeholder = "Opening Balance",
+                    IsRequired = true
+                })
 
-                @* --- Entry & Update Date Section (Hidden by default; shown only on edit) --- *@
-                <div id="entryUpdateDateSection" class="d-none">
-                    <hr class="my-3 mx-1">
-
-                    <div class="row g-3">
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.ReadonlyDisplay,
-                            InputId = "BlancedisplayLDate",
-                            LabelText = "Entry Date:",
-                            LabelInline = true,
-                            LabelColWidth = 4,
-                            LabelColumnClass = "text-end",
-                            LabelStyle = "font-size:13px;",
-                            InputStyle = "font-size:13px;"
-                        })
-
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.ReadonlyDisplay,
-                            InputId = "BlancedisplayModifyDate",
-                            LabelText = "Last Update Date:",
-                            LabelInline = true,
-                            LabelColWidth = 4,
-                            LabelColumnClass = "text-end",
-                            LabelStyle = "font-size:13px;",
-                            InputStyle = "font-size:13px;"
-                        })
-                    </div>
-                </div>
-
-                @* Bottom Save Button *@
-                <div class="col-12">
-                    @await Html.PartialAsync("_Toolbars", new ToobarModel
+                @* 5. TrType *@
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    IsVisible = true,
+                    ShowOnInit = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-12 col-md-6",
+                    FieldType = FieldType.Select,
+                    InputId = "TrType",
+                    InputName = "TrType",
+                    LabelText = "Select TrType",
+                    Placeholder = "-- Select --",
+                    SelectItems = new SelectList(new[]
                     {
-                        Title = "",
-                        ShowClear = false,
-                        ShowDelete = false,
-                        ShowPrint = false,
-                        ShowFavorite = false,
-                        IsPlain = true,
-                        ReserveActionSlot = true,
-                        IsMarginRight = true,
-                        SaveBtnType = "submit"
+                                new { Value = "Dr", Text = "Debit" },
+                                new { Value = "Cr", Text = "Credit" }
+                            }, "Value", "Text"),
+                    IsRequired = true
+                })
+
+            </div>
+            @* </fieldset> *@
+
+            @* --- Entry & Update Date Section (Hidden by default; shown only on edit) --- *@
+            <div id="entryUpdateDateSection" class="d-none">
+                <hr class="my-3 mx-1">
+
+                <div class="row g-3">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ReserveActionSlot = false,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "BlancedisplayLDate",
+                        LabelText = "Entry Date:",
+                        LabelInline = true,
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ReserveActionSlot = false,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "BlancedisplayModifyDate",
+                        LabelText = "Last Update Date:",
+                        LabelInline = true,
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
                     })
                 </div>
+            </div>
+
+            @* Bottom Save Button *@
+            <div class="col-12">
+                @await Html.PartialAsync("_Toolbars", new ToobarModel
+                {
+                    Title = "",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowPrint = false,
+                    ShowFavorite = false,
+                    IsPlain = true,
+                    ReserveActionSlot = true,
+                    IsMarginRight = true,
+                    SaveBtnType = "submit"
+                })
+            </div>
 
         </form>
     </div>

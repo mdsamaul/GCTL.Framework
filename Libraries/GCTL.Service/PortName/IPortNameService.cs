@@ -24,6 +24,7 @@ namespace GCTL.Service.PortName
         Task<bool> IsExistByCodeAsync(string code);
         Task<bool> IsExistAsync(string name);
         Task<bool> IsExistAsync(string name, string typeCode);
+        Task<bool> IsExistAsync(string name, string typeCode, string portId);
 
         Task<bool> PagePermissionAsync(string accessCode);
         Task<bool> SavePermissionAsync(string accessCode);

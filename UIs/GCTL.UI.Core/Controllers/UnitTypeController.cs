@@ -30,20 +30,20 @@ namespace GCTL.Controllers
             string strMaxNO = string.Empty;
             try
             {
-                _commonService.FindMaxNo(ref strMaxNO, "UnitTypID", "RMG_Prod_Def_UnitType", 3);
+                _commonService.FindMaxNo(ref strMaxNO, "UnitTypID", "RMG_Prod_Def_UnitType",0);
             }
             catch { }
 
-            if (string.IsNullOrWhiteSpace(strMaxNO) || strMaxNO == "000")
+            if (string.IsNullOrWhiteSpace(strMaxNO) || strMaxNO == "0")
             {
                 var lastId = await _service.GetLastUnitAsync();
                 if (!string.IsNullOrEmpty(lastId) && int.TryParse(lastId, out int lastNumericId))
                 {
-                    strMaxNO = (lastNumericId + 1).ToString("D3");
+                    strMaxNO = (lastNumericId + 1).ToString();
                 }
                 else
                 {
-                    strMaxNO = "001";
+                    strMaxNO = "1";
                 }
             }
             return strMaxNO;
@@ -68,54 +68,6 @@ namespace GCTL.Controllers
             {
                 var list = await _service.GetAllAsync() ?? new List<UnitTypeSetupViewModel>();
                 model.TableList = list;
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.UnitTypID != null && x.UnitTypID.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.UnitTypeName != null && x.UnitTypeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                model.DynamicGrid = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Unit Type Name", "Short Name", "Decimal Places" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "UnitTypID", item.UnitTypID },
-                        { "Unit Type Name", item.UnitTypeName },
-                        { "Short Name", item.ShortName },
-                        { "Decimal Places", item.DecimalPlaces }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "UnitType") ?? "/UnitType/GetTableData",
-                    primaryKey: "UnitTypID",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/UnitType/Setup/{id}",
-                    gridId: "unitTypeGridContainer",
-                    editClass: "js-unittype-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "UnitTypID", "center" },
-                        { "Unit Type Name", "left" },
-                        { "Short Name", "left" },
-                        { "Decimal Places", "center" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Unit Type Name", "auto" },
-                        { "Short Name", "150px" },
-                        { "Decimal Places", "120px" }
-                    }
-                );
 
                 model.Setup = new UnitTypeSetupViewModel
                 {
@@ -177,44 +129,6 @@ namespace GCTL.Controllers
             };
 
             var list = await _service.GetAllAsync() ?? new List<UnitTypeSetupViewModel>();
-            int totalRecords = list.Count;
-            var pagedList = list.Take(10).ToList();
-
-            pageModel.DynamicGrid = GridBuilder.BuildGrid(
-                data: pagedList,
-                totalRecords: totalRecords,
-                currentPage: 1,
-                pageSize: 10,
-                headers: new List<string> { "Code", "Unit Type Name", "Short Name", "Decimal Places" },
-                rowMapper: item => new Dictionary<string, object?>
-                {
-                    { "UnitTypID", item.UnitTypID },
-                    { "Unit Type Name", item.UnitTypeName },
-                    { "Short Name", item.ShortName },
-                    { "Decimal Places", item.DecimalPlaces }
-                },
-                ajaxUrl: Url.Action("GetTableData", "UnitType") ?? "/UnitType/GetTableData",
-                primaryKey: "UnitTypID",
-                hasCheckbox: true,
-                actionUrlPattern: "/UnitType/Setup/{id}",
-                gridId: "unitTypeGridContainer",
-                editClass: "js-unittype-edit",
-                columnAlignments: new Dictionary<string, string>
-                {
-                    { "UnitTypID", "center" },
-                    { "Unit Type Name", "left" },
-                    { "Short Name", "left" },
-                    { "Decimal Places", "center" }
-                },
-                columnWidths: new Dictionary<string, string>
-                {
-                    { "SelectAll", "120px" },
-                    { "Code", "100px" },
-                    { "Unit Type Name", "auto" },
-                    { "Short Name", "150px" },
-                    { "Decimal Places", "120px" }
-                }
-            );
 
             return View("Index", pageModel);
         }
