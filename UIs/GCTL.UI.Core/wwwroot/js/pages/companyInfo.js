@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.companyInfo = function (options) {
 
         //#region Default options
@@ -136,20 +136,19 @@
             //#region selectAllSelector & deleteSelector
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $("#companyInfoTable input:checkbox.checkbox").prop('checked', $(this).prop('checked'));
             });
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkbox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                    $('#companyInfoTable input:checkbox.checkbox:checked').each(function () {
+                        var val = $(this).val();
+                        if (val && !selectedItems.includes(val)) {
+                            selectedItems.push(val);
                         }
                     });
                 }
@@ -300,8 +299,9 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        // select2DD();
-                        console.log("data", data)
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
                         resolve(data)
                     },
                     error: function (error) {

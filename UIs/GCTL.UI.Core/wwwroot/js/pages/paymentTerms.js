@@ -274,8 +274,10 @@
         }
 
         function select2DD() {
-            if ($.fn.select2) {
-                $('.selectpickers').select2({
+            if (window.initCustomDropdowns) {
+                window.initCustomDropdowns(settings.formContainer, true);
+            } else if ($.fn.select2) {
+                $('#Type, .selectpickers, .custom-select-single').select2({
                     language: {
                         noResults: function () { return "No results found"; }
                     },

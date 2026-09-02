@@ -3,7 +3,7 @@
         // Default options
         var settings = $.extend({
             baseUrl: "/CustomerType",
-            formSelector: "#customertype-form",
+            formSelector: "#customerType-form",
             formContainer: ".js-customertype-form-container",
             gridSelector: "#customerTypeTable",
             gridContainer: ".js-customertype-grid-container",
@@ -56,7 +56,7 @@
 
             // Save
             $("body").on("click", settings.saveSelector, function () {
-                deb
+
                 if (!validation()) return false;
                 // var $valid = $(settings.formSelector).valid();
                 // if (!$valid) {

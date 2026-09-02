@@ -38,7 +38,6 @@
 }
 
 /* Form Container & Control Sizing for Universal Resolution Parity */
-.js-Sex-form-container,
 .form-container-responsive {
     padding: 0.25rem 0;
 }
@@ -50,8 +49,6 @@
     width: 100%;
 }
 
-.js-Sex-form-container .form-control,
-.js-Sex-form-container .form-select,
 .form-container-responsive .form-control,
 .form-container-responsive .form-select {
     font-size: var(--ratio-font-input);
@@ -156,7 +153,6 @@
     width: 100% !important;
 }
 
-.js-Sex-form-container label,
 .form-container-responsive label {
     font-weight: 600;
     font-size: var(--ratio-font-label);
@@ -164,7 +160,6 @@
     margin-bottom: 0.35rem;
 }
 
-.js-Sex-form-container .form-group,
 .form-container-responsive .form-group {
     margin-bottom: var(--ratio-form-gap) !important;
 }
@@ -217,7 +212,7 @@
         padding: 0.25rem 0.45rem !important;
         font-size: 0.75rem !important;
     }
-    
+
     .toolbar-btn i {
         font-size: 0.75rem;
     }
