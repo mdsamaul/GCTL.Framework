@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.ShipmentModeLedgerSetup;
 using GCTL.Service.Common;
@@ -117,6 +117,15 @@ namespace GCTL.UI.Core.Controllers
         {
             var data = await _service.GetByIdAsync(code); 
             return Json(data);
+        }
+
+        [HttpGet]
+        [Route("/ShipmentModeLedgerSetup/GetNextId")]
+        public IActionResult GetNextId()
+        {
+            string nextId = string.Empty;
+            commonService.FindMaxNo(ref nextId, "ExpenseTypeID", "CF_Def_ExpenseType", 4);
+            return Ok(nextId);
         }
 
         #endregion
