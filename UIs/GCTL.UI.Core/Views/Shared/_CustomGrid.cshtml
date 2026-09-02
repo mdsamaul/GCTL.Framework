@@ -62,7 +62,7 @@
                     <table id="@Model.GridId"
                            class="@tableClasses mb-0"
                            style="width:100%;"
-                           data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
+                           data-grid-config="@System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions)">
                         <thead>
                             <tr class="text-center align-middle small">
                                 @if (Model.HasSubRow)
@@ -116,7 +116,7 @@ else
         <table id="@Model.GridId"
                class="@tableClasses mb-0"
                style="width:100%;"
-               data-grid-config='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions))'>
+               data-grid-config="@System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions)">
             <thead>
                 <tr class="text-center align-middle small">
                     @if (Model.HasSubRow)
