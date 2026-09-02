@@ -615,16 +615,16 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntry>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Acc_VoucherEntry");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.ApprovedBy).HasMaxLength(50);
-            entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
+            entity.ToTable("Acc_VoucherEntry");
+
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
+            entity.Property(e => e.ApprovedBy).HasMaxLength(50);
+            entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
             entity.Property(e => e.BranchCode).HasMaxLength(50);
             entity.Property(e => e.CompanyCode).HasMaxLength(50);
             entity.Property(e => e.CostCenterCodeNo)
@@ -674,17 +674,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntryDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Acc_VoucherEntryDetails");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.AccCode)
-                .IsRequired()
-                .HasMaxLength(50);
+            entity.ToTable("Acc_VoucherEntryDetails");
+
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
+            entity.Property(e => e.AccCode)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.BankName).HasMaxLength(100);
             entity.Property(e => e.Branch).HasMaxLength(100);
             entity.Property(e => e.ChequeDate).HasColumnType("datetime");
@@ -724,17 +724,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntryDetailsTemp>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Acc_VoucherEntryDetailsTemp");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.AccCode)
-                .IsRequired()
-                .HasMaxLength(50);
+            entity.ToTable("Acc_VoucherEntryDetailsTemp");
+
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
+            entity.Property(e => e.AccCode)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.ChequeDate).HasColumnType("datetime");
             entity.Property(e => e.ChequeNo)
                 .IsRequired()

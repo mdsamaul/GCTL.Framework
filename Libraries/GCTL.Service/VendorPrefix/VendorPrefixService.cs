@@ -127,6 +127,7 @@ namespace GCTL.Service.VendorPrefix
         #endregion
 
         #region UpdateAsync
+
         public async Task<bool> UpdateAsync(VendorPrefixSetupViewModel entityVM)
         {
             await vendorPrefixrepository.BeginTransactionAsync();
@@ -138,13 +139,15 @@ namespace GCTL.Service.VendorPrefix
                     await vendorPrefixrepository.RollbackTransactionAsync();
                     return false;
                 }
-                entityVM.VendorPrifixId = entity.VendorPrifixId;
-                entityVM.PrifixName = entity.PrifixName ?? string.Empty;
-                entityVM.ShortName = entity.ShortName ?? string.Empty;
+
+                // Copy FROM the view model INTO the entity (this was reversed before)
+                entity.PrifixName = entityVM.PrifixName ?? entity.PrifixName;
+                entity.ShortName = entityVM.ShortName ?? entity.ShortName;
                 entity.Luser = entityVM.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac;
                 entity.ModifyDate = DateTime.Now;
+
                 await vendorPrefixrepository.UpdateAsync(entity);
                 await vendorPrefixrepository.CommitTransactionAsync();
                 return true;
@@ -156,6 +159,36 @@ namespace GCTL.Service.VendorPrefix
                 return false;
             }
         }
+
+        //public async Task<bool> UpdateAsync(VendorPrefixSetupViewModel entityVM)
+        //{
+        //    await vendorPrefixrepository.BeginTransactionAsync();
+        //    try
+        //    {
+        //        var entity = await vendorPrefixrepository.GetByIdAsync(entityVM.VendorPrifixId);
+        //        if (entity == null)
+        //        {
+        //            await vendorPrefixrepository.RollbackTransactionAsync();
+        //            return false;
+        //        }
+        //        entityVM.VendorPrifixId = entity.VendorPrifixId;
+        //        entityVM.PrifixName = entity.PrifixName ?? string.Empty;
+        //        entityVM.ShortName = entity.ShortName ?? string.Empty;
+        //        entity.Luser = entityVM.Luser;
+        //        entity.Lip = entityVM.Lip;
+        //        entity.Lmac = entityVM.Lmac;
+        //        entity.ModifyDate = DateTime.Now;
+        //        await vendorPrefixrepository.UpdateAsync(entity);
+        //        await vendorPrefixrepository.CommitTransactionAsync();
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Error occurred : {ex.Message}");
+        //        await vendorPrefixrepository.RollbackTransactionAsync();
+        //        return false;
+        //    }
+        //}
 
         #endregion
 

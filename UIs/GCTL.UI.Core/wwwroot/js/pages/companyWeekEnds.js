@@ -122,7 +122,7 @@
                 //
                 // Select all checkboxes
                 $("body").on('click', settings.selectAllSelector, function () {
-                    $('.checkbox').prop('checked', $(this).prop('checked'));
+                    $('.checkBox').prop('checked', $(this).prop('checked'));
                 });
                 $("body").on('click', settings.deleteSelector, function (e) {
                     e.preventDefault();
@@ -136,7 +136,7 @@
                         selectedIds.push(editCode); // Add the single ID to the array
                     } else {
                         // Otherwise, collect all selected checkboxes' IDs for bulk deletion
-                        $('.checkBox:checked').each(function () {
+                        $('.checkbox:checked').each(function () {
                             selectedIds.push($(this).val());
                         });
                     }

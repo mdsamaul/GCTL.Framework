@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.EmployeeContactInfos.EmployeeContactInfosPageViewModel
+@model GCTL.UI.Core.ViewModels.EmployeeContactInfos.EmployeeContactInfosPageViewModel
 
 @{
     ViewBag.Title = "Employee Contact List";
@@ -67,7 +67,7 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <script src="~/js/pages/employeeContactInfos.js"></script>
+    <script src="~/js/pages/employeeContactInfos.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "EmployeeContactInfos")'

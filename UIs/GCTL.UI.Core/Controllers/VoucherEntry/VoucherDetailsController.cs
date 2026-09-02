@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.VoucherEntry;
+using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Service.OpeningBalance;
 using GCTL.Service.VoucherEntry;
 using GCTL.UI.Core.Controllers;
@@ -67,11 +68,12 @@ namespace GCTL_App.Controllers.VoucherEntry
         {
             try
             {
-                string currentUserId = LoginInfo?.EmployeeId;
+                string currentUserId = LoginInfo?.Username;
 
                 int.TryParse(currentUserId, out int employeeId);
 
-                var data = await _service.GetAllAsync(employeeId);
+                //var data = await _service.GetAllAsync(employeeId);
+                var data = await _service.GetAllAsync(currentUserId);
 
                 if (data == null) data = new List<VoucherEntryDetailsTempVM>();
                 
@@ -96,6 +98,8 @@ namespace GCTL_App.Controllers.VoucherEntry
             {  
                 if (model == null) return BadRequest(new { message = "Validation Failed." });
 
+                model.Luser = LoginInfo?.EmployeeId;
+                model.ToAudit(LoginInfo);
                 var result = await _service.SaveAsync(model);
 
 
@@ -123,6 +127,7 @@ namespace GCTL_App.Controllers.VoucherEntry
             if (!typeExists)
                 return NotFound(new { message = $"Voucher Tmp with ID {id} Not Found." });
 
+            model.Luser = LoginInfo?.EmployeeId;
             var result = await _service.UpdateAsync(model);
 
             if (!result)
