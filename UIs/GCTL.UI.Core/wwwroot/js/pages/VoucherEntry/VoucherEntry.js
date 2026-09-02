@@ -32,13 +32,7 @@ $(document).ready(function () {
         SaveVoucherEntry();
     });
 
-    //// Handle Delete Button
-    $(document).on("click", ".js-VoucherEntry-delete-confirm", function (e) {
-        e.preventDefault();
-        BulkDeleteSelectedVouchers();
-        DeleteWithUser();
 
-    });
 
     //// Handle Clear button
     $(document).on("click", ".js-VoucherEntry-clear", function () {
@@ -668,6 +662,53 @@ function LoadVoucherEntriesTable() {
 
 //#region Click Handler for Edit Information
 
+$(document).on("click", ".js-VoucherEntry-delete-confirm", function (e) {
+    e.preventDefault();
+    
+    let ids = [];
+    var $checked = $('#voucherEntryTable tbody input[type="checkbox"]:checked');
+    if ($checked.length > 0) {
+        ids = $checked.map(function() { return $(this).val(); }).get();
+    }
+    if (!ids || ids.length === 0) {
+        ids = selectedVoucher;
+    }
+    ids = ids.map(x => parseInt(x)).filter(x => !isNaN(x));
+
+    if (ids.length === 0) {
+        toastr.warning("No voucher selected to delete!");
+        return;
+    }
+
+    // Open Modal
+    var $modal = $("#deleteModal");
+    if ($modal.length) {
+        $modal.modal('show');
+    }
+});
+
+// Confirm Delete Click
+$(document).on("click", "#deleteModal .js-delete, #deleteModal .js-gc-delete-confirm", function (e) {
+    e.preventDefault();
+    
+    // Ensure we only try to delete if we actually have selection
+    let ids = [];
+    var $checked = $('#voucherEntryTable tbody input[type="checkbox"]:checked');
+    if ($checked.length > 0) {
+        ids = $checked.map(function() { return $(this).val(); }).get();
+    }
+    if (!ids || ids.length === 0) {
+        ids = selectedVoucher;
+    }
+    ids = ids.map(x => parseInt(x)).filter(x => !isNaN(x));
+    
+    if (ids.length > 0) {
+        BulkDeleteSelectedVouchers();
+        DeleteWithUser();
+        $("#deleteModal").modal('hide');
+    }
+});
+
 $(document).on('click', '.voucher-no-btn, .js-VoucherEntry-edit', function (e) {
     e.preventDefault();
     const autoId = $(this).data('autoid') || $(this).data('id');
@@ -789,7 +830,17 @@ function fillMainVoucherInfo(main) {
 //#region Master & Details Table Data Delete
 function BulkDeleteSelectedVouchers() {
     // Collect selected row IDs
-    const ids = selectedVoucher.map(x => parseInt(x)).filter(x => !isNaN(x));
+    let ids = [];
+    var $checked = $('#voucherEntryTable tbody input[type="checkbox"]:checked');
+    if ($checked.length > 0) {
+        ids = $checked.map(function() { return $(this).val(); }).get();
+    }
+    
+    if (!ids || ids.length === 0) {
+        ids = selectedVoucher;
+    }
+    
+    ids = ids.map(x => parseInt(x)).filter(x => !isNaN(x));
 
 
     if (ids.length === 0) {
@@ -812,7 +863,11 @@ function BulkDeleteSelectedVouchers() {
                 selectedVoucher = []; 
                 $("#VoucherEntrySelectAll").prop("checked", false);
 
-                LoadVoucherEntriesTable(VoucherEntrycurrentPage); // Refresh table
+                if (window.GctlGrid) {
+                    window.GctlGrid.reload('voucherEntryTable');
+                } else {
+                    LoadVoucherEntriesTable(VoucherEntrycurrentPage); // Refresh table
+                }
             } else {
                 toastr.error(response.message || "Failed to delete selected vouchers!");
             }
