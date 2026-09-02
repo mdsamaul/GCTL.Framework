@@ -565,6 +565,38 @@
       {
          "Name": "[dbo].[VendorBranchInfo]",
          "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FullEmployeeDetailsGetByid]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[GetExpenseHeadReport]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[GetLedgerTree]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetAllCustomerDeliveryInfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetCustomerReportsInfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetVoucherPreviewData]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[SP_HrmEmployee2_GetPagedList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[usp_GetHolidayList]",
+         "ObjectType": 1
       }
    ],
    "UiHint": null,

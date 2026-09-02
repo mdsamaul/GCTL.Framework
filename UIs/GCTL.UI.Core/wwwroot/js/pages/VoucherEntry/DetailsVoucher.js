@@ -1,9 +1,14 @@
-﻿//#region Ready Part
+//#region Ready Part
 
 $(document).ready(function () {
 
     LoadAccountHeadDropdown();
     LoadTmpVoucherDetailsTable();
+    
+    // Initialize ChequeDate
+    if (document.querySelector("#ChequeDate")) {
+        setDate("#ChequeDate", new Date());
+    }
 
 
     ////Handle Save Or Update Button Handle
@@ -31,17 +36,7 @@ $(document).ready(function () {
 
 
 //#region Tr. Type Dropdown
-
-$('#TrType').select2({
-    placeholder: "Tr. Type",
-    width: '100%',
-    allowClear: true,
-    dropdownPosition: 'below'
-});
-
-$('#TrType').next('.select2-container').find('.select2-selection__placeholder')
-    .html('Tr. Type <span style="color:red">*</span>');
-
+// Handled by _DynamicFieldColumn and global scripts
 //#endregion
 
 
@@ -62,16 +57,9 @@ function LoadAccountHeadDropdown() {
                 );
             });
 
-            // Initialize Select2 to make it searchable
-            $general.select2({
-                placeholder: "Account Head",
-                width: '100%',
-                allowClear: true,
-                dropdownPosition: 'below'
-            });
-
-            $general.next('.select2-container').find('.select2-selection__placeholder')
-                .html('Account Head <span style="color:red">*</span>');
+            if (window.reinitCustomDropdownById) {
+                window.reinitCustomDropdownById('AccCode');
+            }
         },
         error: function (xhr, status, error) {
             console.error('Failed to load Account Head:', error);
@@ -122,17 +110,7 @@ function clearLedgerFields() {
 
 
 //#region Cheque Date
-
-flatpickr("#ChequeDate", {
-    dateFormat: "d-m-Y",
-    allowInput: true,
-    altInput: true,
-    altFormat: "d-m-Y",
-    locale: {
-        firstDayOfWeek: 5
-    }
-});
-
+// Handled by dynamic field column
 //#endregion
 
 
@@ -241,6 +219,7 @@ function DetailsSectionClear() {
 
 //#region Save Or Update Tmp Voucher Entry Details
 function SaveOrUpdateTmpDetails() {
+    
     console.log("Save Or Update Tmp Voucher Details Function Called");
 
     let autoID = $("#TmpDetailsAutoID").val();
@@ -253,9 +232,28 @@ function SaveOrUpdateTmpDetails() {
         AccCode: $("#AccCode").val(),
         Description: $("#Description").val(),
         ChequeNo: $("#ChequeNo").val(),
-        ChequeDate: $('#ChequeDate').val()
-            ? new Date($('#ChequeDate').val().split('-').reverse().join('-')).toISOString()
-            : null,
+        ChequeDate: (function() {
+            let val = $('#ChequeDate').val();
+            if (!val) return null;
+            
+            let fp = document.querySelector("#ChequeDate")?._flatpickr;
+            if (fp && fp.selectedDates && fp.selectedDates.length > 0) {
+                let d = fp.selectedDates[0];
+                return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString();
+            }
+            
+            if (val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                return new Date(val).toISOString();
+            }
+            
+            if (val.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                let parts = val.split('-');
+                let parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (!isNaN(parsedDate.getTime())) return parsedDate.toISOString();
+            }
+            
+            return null;
+        })(),
         DebitAmount: $("#TrType").val() === "Dr" ? amountValue : 0,
         CreditAmount: $("#TrType").val() === "Cr" ? amountValue : 0,
     };
@@ -279,6 +277,10 @@ function SaveOrUpdateTmpDetails() {
         failMessage = 'Update Failed.';
     }
 
+    console.log("Request URL:", url);
+    console.log("Request Method:", method);
+    console.log("Data to send:", TmpData);
+
     // Save or Update
     $.ajax({
         url: url,
@@ -288,7 +290,7 @@ function SaveOrUpdateTmpDetails() {
         success: function (response) {
             if (response.success) {
                 toastr.success(successMessage);
-
+                debugger
                 // Clear details form
                 DetailsSectionClear();
 
@@ -572,7 +574,7 @@ function fillFormFields(data) {
         if ($("#ChequeDate")[0]._flatpickr) {
             $("#ChequeDate")[0]._flatpickr.setDate(bdDate, true);
         } else {
-            $('#ChequeDate').val(bdDate);
+            $('#ChequeDate').val(isoDate);
         }
     } else {
         if ($("#ChequeDate")[0]._flatpickr) {

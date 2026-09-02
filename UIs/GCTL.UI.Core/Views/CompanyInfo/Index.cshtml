@@ -2,8 +2,8 @@
 
 @{
     Model.PageTitle = ViewBag.Title;
-    ViewBag.Title = "Company Info";
-    Model.Breadcrumb = "Company Info";
+    ViewBag.Title = "Company Information";
+    Model.Breadcrumb = "Company Information";
 }
 
 <!-- Content Header (Page header) -->
@@ -19,7 +19,7 @@
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Company Info",
+                            Title = "Company Information",
                             SaveBtnClass = "js-CompanyInfo-save",
                             DeleteBtnClass = "js-CompanyInfo-delete-confirm",
                             ClearBtnClass = "js-CompanyInfo-clear"

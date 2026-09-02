@@ -123,6 +123,11 @@ window.setField = function (selector, value, disabled = false) {
 
         if ($el.is('select')) {
             $el.prop('disabled', !!disabled);
+            if (typeof window.reinitCustomDropdownById === 'function' && $el.attr('id')) {
+                window.reinitCustomDropdownById($el.attr('id'));
+            } else if ($el.hasClass('select2-hidden-accessible')) {
+                $el.trigger('change.select2');
+            }
         } else {
             $el.prop('readonly', !!disabled);
             $el.prop('disabled', false);

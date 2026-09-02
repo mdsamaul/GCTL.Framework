@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.Interfaces.Services;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -142,7 +142,7 @@ namespace GCTL.UI.Core.Controllers
             }
 
 
-            ViewBag.CoreCompanyDD = new SelectList(companies, "CompanyCode", "CompanyName");
+            ViewBag.CoreCompanyDD = new SelectList(companies, "CompanyCode", "CompanyName", model.CompanyCode);
             ViewBag.SexesDD = new SelectList(sexRepository.All(), "SexCode", "Sex", model.SexCode);
             ViewBag.BloodGroupDD = new SelectList(bloodRepository.All(), "BloodGroupCode", "BloodGroup", model.BloodGroupCode);
             ViewBag.ReligionDD = new SelectList(religionRepository.All(), "ReligionCode", "Religion", model.ReligionCode);

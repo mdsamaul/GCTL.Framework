@@ -42,9 +42,9 @@
                         @await Html.PartialAsync("_Toolbars", new ToobarModel
                         {
                             Title = "Official Info",
-                            SaveBtnClass = "js-HrmEmployee2-save",
-                            DeleteBtnClass = "js-HrmEmployee2-delete-confirm",
-                            ClearBtnClass = "js-HrmEmployee2-clear"
+                            SaveBtnClass = "js-officialInfo-save",
+                            DeleteBtnClass = "js-officialInfo-delete-confirm",
+                            ClearBtnClass = "js-officialInfo-clear"
                         })
                     </div>
                 </div>
@@ -152,6 +152,7 @@
                                             ColumnClass = "col-lg-4",
                                             CustomCssClass = "selectpickerOfficialInfo gc-select2",
                                             DefaultValue = Model.OfficialInfoCompanyCode,
+                                            SelectItems = ViewBag.CompanyDD as SelectList,
                                             ReserveActionSlot = true
                                         })
 
@@ -169,6 +170,7 @@
                                             QuickAddReloadUrl = Url.Action("GetCompanieBranchSelections", "Cascading"),
                                             QuickAddTitle = "Branch",
                                             DefaultValue = Model.OfficialInfoBranchCode,
+                                            SelectItems = ViewBag.BranchDD as SelectList,
                                             ReserveActionSlot = true
                                         })
 
@@ -181,6 +183,7 @@
                                             ColumnClass = "col-lg-4",
                                             CustomCssClass = "selectpickerOfficialInfo gc-select2",
                                             DefaultValue = Model.DivisionCode,
+                                            SelectItems = ViewBag.DivisionDD as SelectList,
                                             ReserveActionSlot = true
                                         })
                                     </div>
@@ -202,6 +205,7 @@
                                             QuickAddReloadUrl = Url.Action("GetDepartments", "Cascading"),
                                             QuickAddTitle = "Department",
                                             DefaultValue = Model.DepartmentCode,
+                                            SelectItems = ViewBag.DepartmentDD as SelectList,
                                             ReserveActionSlot = true
                                         })
 
@@ -220,6 +224,7 @@
                                             QuickAddReloadUrl = Url.Action("GetDesignations", "Cascading"),
                                             QuickAddTitle = "Designation",
                                             DefaultValue = Model.DesignationCode,
+                                            SelectItems = ViewBag.DesignationDD as SelectList,
                                             ReserveActionSlot = true
                                         })
 
@@ -680,7 +685,27 @@
                         <div class="card">
                             <div class="card-body p-2">
                                 <div class="js-officialInfo-grid-container">
-                                    @await Html.PartialAsync("_Grid", Model.SetupList)
+                                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                                    {
+                                        GridId = "officialInfoTable",
+                                        AjaxUrl = Url.Action("GetTableData", "OfficialInfo") ?? "/OfficialInfo/GetTableData",
+                                        AjaxMethod = "GET",
+                                        ServerSide = false,
+                                        ShowCheckbox = true,
+                                        ShowActionMenu = true,
+                                        CheckColumnData = "employeeId",
+                                        CheckAllId = "officialInfo-check-all",
+                                        DefaultSortColumn = "employeeId",
+                                        DefaultSortDirection = "desc",
+                                        Columns = new()
+                                        {
+                                            new() { Data = "employeeId", Header = "Employee ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-officialInfo-Edit-confirm" },
+                                            new() { Data = "employeeName", Header = "Name", Width = "30%", Align = "left" },
+                                            new() { Data = "departmentName", Header = "Department", Width = "20%" },
+                                            new() { Data = "designationName", Header = "Designation", Width = "20%" },
+                                            new() { Data = "joiningDateStr", Header = "Joining Date", Width = "15%", RenderFn = "formatDate" }
+                                        }
+                                    })
                                 </div>
                             </div>
                         </div>
@@ -699,10 +724,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/officialinfo.js"></script>
     <script type="text/javascript">
         var options = {
-        baseUrl: '@Url.Action("", "OfficialInfo")'
+            baseUrl: '@Url.Action("", "OfficialInfo")'
         };
         options.load = () => { };
         $.officialInfo(options);

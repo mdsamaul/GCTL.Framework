@@ -1,4 +1,4 @@
-﻿namespace GCTL.Core.ViewModels.VoucherEntry
+namespace GCTL.Core.ViewModels.VoucherEntry
 {
     public class VoucherEntryDetailsTempVM : BaseViewModel
     {
@@ -20,9 +20,8 @@
 
         public string? ChequeNo { get; set; }
 
-        public DateTime ChequeDate { get; set; }
+        public DateTime? ChequeDate { get; set; }
 
-        public string? LUser { get; set; }
 
         public string? AccountHead { get; set; }
 

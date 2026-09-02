@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Service.OpeningBalance;
 using GCTL.Service.VoucherEntry;
@@ -136,6 +136,27 @@ namespace GCTL_App.Controllers.VoucherEntry
 
 
         #region Get All Voucher Entry
+
+        [HttpGet]
+        [Route("VoucherEntry/GetTableData")]
+        public async Task<IActionResult> GetTableData()
+        {
+            try
+            {
+                var result = await _service.GetPaginatedAsync(1, 10000, "", "VoucherDate", "desc", null, null);
+
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new { data = new List<VoucherEntryVM>() });
+                }
+
+                return Ok(new { data = result.Data });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { data = new List<VoucherEntryVM>(), message = "An Error Occurred.", error = ex.Message });
+            }
+        }
 
         [HttpGet]
         [Route("entry-voucher-list")]
