@@ -183,7 +183,10 @@ namespace GCTL.Service.ExpenseHead
             return await _repository.All()
                 .AnyAsync(eh =>
                     eh.Tc != model.TC &&
-                    eh.ExpenseHead.Trim().ToLower() == model.ExpenseHead.Trim().ToLower()
+                    eh.ExpenseHead.Trim().ToLower() == model.ExpenseHead.Trim().ToLower() &&
+                    eh.ExpenseTypeId == model.ExpenseTypeID &&
+                    eh.ServiceTypeId == model.ServiceTypeID &&
+                    eh.IsReceiptable == model.IsReceiptable
                 );
         }
 
