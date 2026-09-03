@@ -34,7 +34,9 @@
                     Placeholder = "Expense Head ID",
                     IsReadonly = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6",
+                    LabelInline=true,
+                    LabelColumnClass="text-end"
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -47,7 +49,9 @@
                     SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6",
+                    LabelInline = true,
+                    LabelColumnClass = "text-end"
                 })
             </div>
 
@@ -70,6 +74,8 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Expense Head",
                     IsRequired = true,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ReserveActionSlot = false,
                     ColumnClass = "col-lg-6"
                 })
@@ -84,6 +90,8 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
 
@@ -95,6 +103,8 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
             </div>
@@ -109,6 +119,8 @@
                     Placeholder = "Serial No",
                     IsRequired = true,
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
 
@@ -122,6 +134,8 @@
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
             </div>

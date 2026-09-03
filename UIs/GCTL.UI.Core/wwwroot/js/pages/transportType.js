@@ -42,6 +42,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'TransportType-grid' });
+            }
+
 
             loadTable();
 
@@ -299,19 +303,9 @@
 
         //#region loadTable
         function loadTable() {
-            $("#TransportType-grid tbody").empty();
-            return $.gctlGrid.init({
-                gridSelector: '#TransportType-grid',
-                ajaxUrl: settings.baseUrl + "/GetTableData",
-                checkAllSelector: "#js-TransportType-checkall",
-                checkBoxClass: "checkBox",
-                columns: [
-                    $.gctlGrid.checkboxColumn("vehicleTypeId", "checkBox"),
-                    $.gctlGrid.editLinkColumn("vehicleTypeId", "js-TransportType-edit"),
-                    { data: "vehicleType", className: "text-center text-middle" },
-                    { data: "shortName", className: "text-center text-middle" },
-                ]
-            });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         //#endregion

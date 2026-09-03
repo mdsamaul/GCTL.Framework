@@ -74,6 +74,8 @@
             if ($.gctlGrid) {
                 $.gctlGrid.initFromModel({ gridId: 'PlaceOfLoading-grid' });
             }
+
+
             bindEventHandlers();
         });
 
@@ -537,9 +539,7 @@
 
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().ajax.reload();
-            } else if (window.loadGridPage) {
-                window.loadGridPage('PlaceOfLoading-grid', settings.baseUrl + "/GetTableData", 1, 10);
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 

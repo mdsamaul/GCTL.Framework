@@ -42,6 +42,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'VendorInfo-grid' });
+            }
+
 
             loadTable();
             $('#LdateModifyHide').hide();
@@ -311,22 +315,9 @@
 
         //#region loadTable
         function loadTable() {
-            $("#VendorInfo-grid tbody").empty();
-            return $.gctlGrid.init({
-                gridSelector: '#VendorInfo-grid',
-                ajaxUrl: settings.baseUrl + "/GetTableData",
-                checkAllSelector: "#js-VendorInfo-checkall",
-                checkBoxClass: "checkBox",
-                columns: [
-                    $.gctlGrid.checkboxColumn("vendorId", "checkBox"),
-                    $.gctlGrid.editLinkColumn("vendorId", "js-VendorInfo-edit"),
-                    { data: "name", className: " text-middle" },
-                    { data: "address", className: " text-middle" },
-                    { data: "phone", className: "text-center text-middle" },
-                    { data: "website", className: "text-center text-middle" },
-                    { data: "email", className: "text-center text-middle" }
-                ]
-            });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         //#endregion
