@@ -32,11 +32,11 @@
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
-                    Title = "Branch",
+                            Title = "Branch Information",
                             SaveBtnClass = "js-branch-save",
                             DeleteBtnClass = "js-branch-delete-confirm",
                             ClearBtnClass = "js-branch-clear"
-                })
+                    })
                     </div>
                     <div class="card-body px-2">
                         <form asp-action="Setup" id="branch-form">

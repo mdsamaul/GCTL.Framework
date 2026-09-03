@@ -69,19 +69,17 @@
 </section>
 
 <partial name="DeleteModal" />
-<partial name="QuickAddModal" />
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-    <script src="~/js/pages/companies.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "Companies")'
-        };
-
-        $.companies(options);
-    </script>
-}
+<partial name="QuickAddModal" /><script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/companies.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.companies === "function") {
+            var options = { baseUrl: '@Url.Action("", "Companies")' };
+            options.load = () => { };
+            $.companies(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>
