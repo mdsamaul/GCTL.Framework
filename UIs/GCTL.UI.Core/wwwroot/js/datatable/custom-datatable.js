@@ -406,13 +406,10 @@
                     render: function (data, type, row) {
                         var checkCol = config.checkColumnData || config.CheckColumnData;
                         var id = (checkCol && row[checkCol]) ? row[checkCol] : '';
-                        return '<div class="dropdown">' +
-                            '<button class="btn-action-menu" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>' +
-                            '<ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.72rem;">' +
-                            '<li><a class="dropdown-item py-1 js-grid-edit" data-id="' + id + '"><i class="bi bi-pencil me-1 text-primary"></i> Edit</a></li>' +
-                            '<li><hr class="dropdown-divider my-1"></li>' +
-                            '<li><a class="dropdown-item py-1 text-danger js-grid-delete" data-id="' + id + '"><i class="bi bi-trash me-1"></i> Delete</a></li>' +
-                            '</ul></div>';
+                        return '<div class="d-flex justify-content-center gap-2">' +
+                            '<a href="javascript:void(0)" class="text-primary js-grid-edit" data-id="' + id + '" title="Edit" style="font-size: 1.1rem;"><i class="bi bi-pencil-square"></i></a>' +
+                            '<a href="javascript:void(0)" class="text-danger js-grid-delete" data-id="' + id + '" title="Delete" style="font-size: 1.1rem;"><i class="bi bi-trash"></i></a>' +
+                            '</div>';
                     }
                 });
                 sortFieldMap.push(null);

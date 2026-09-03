@@ -52,14 +52,15 @@
             //    fetchAndPopulateEmployee(selectedEmployee);
             //});
             $('#EmployeeId').on('change', function () {
+                debugger
                 if (_suppressEmployeeChange) return;
                 var selectedEmployee = $(this).val();
                 if (!selectedEmployee) {
-                    loadTableData(null); // employee clear হলে সব দেখাবে
+                    loadTableData(null); 
                     clear();
                     return;
                 }
-                loadTableData(selectedEmployee); // ✅ grid filter করবে
+                loadTableData(selectedEmployee); 
                 fetchAndPopulateEmployee(selectedEmployee);
             });
 
@@ -70,6 +71,7 @@
                     type: 'GET',
                     data: { code: employeeId },
                     success: function (response) {
+                        
                         if (!response) {
                             console.error('No response received.');
                             return;
@@ -91,6 +93,7 @@
 
             // ── Extract populate logic to a reusable function ──────────────────────
             function populateFormFromData(data, autoIdParam) {
+                
                 function getProp(obj, propName) {
                     if (!obj) return undefined;
                     var key = Object.keys(obj).find(k => k.toLowerCase() === propName.toLowerCase());
@@ -98,51 +101,56 @@
                 }
 
                 _suppressEmployeeChange = true;
-
+                console.log(data);
                 // Text Inputs
                 var autoId = autoIdParam || getProp(data, 'autoId') || '0';
-                setField('#AutoId', autoId);
-                setField('#FullName', getProp(data, 'employeeName') || getProp(data, 'fullName') || '');
-                setField('#MobileNo', getProp(data, 'officialPhone') || getProp(data, 'mobileNo') || '');
-                setField('#Email', getProp(data, 'officialEmail') || getProp(data, 'email') || '');
-                setField('#PayId', getProp(data, 'payId') || '');
-                setField('#AttendenceId', getProp(data, 'attendenceId') || '');
-                setField('#DesignationName', getProp(data, 'designationName') || '');
-                setField('#DepartmentName', getProp(data, 'departmentName') || '');
-                setField('#ProbationPeriod', getProp(data, 'probationPeriod') || '');
-                setField('#AppointmentLetterNo', getProp(data, 'appointmentLetterNo') || '');
-                setField('#ConfirmationRefNo', getProp(data, 'confirmationRefNo') || '');
-                setField('#JoiningSalary', getProp(data, 'joiningSalary') || '');
+                window.setField('#AutoId', autoId);
+                
+                var firstName = getProp(data, 'firstName') || '';
+                var lastName = getProp(data, 'lastName') || '';
+                var fallbackName = (firstName + ' ' + lastName).trim();
+                window.setField('#FullName', getProp(data, 'employeeName') || getProp(data, 'name') || getProp(data, 'fullName') || fallbackName || '');
+                
+                window.setField('#MobileNo', getProp(data, 'officialPhone') || getProp(data, 'mobileNo') || '');
+                window.setField('#Email', getProp(data, 'officialEmail') || getProp(data, 'email') || '');
+                window.setField('#PayId', getProp(data, 'payId') || '');
+                window.setField('#AttendenceId', getProp(data, 'attendenceId') || '');
+                window.setField('#DesignationName', getProp(data, 'designationName') || '');
+                window.setField('#DepartmentName', getProp(data, 'departmentName') || '');
+                window.setField('#ProbationPeriod', getProp(data, 'probationPeriod') || '');
+                window.setField('#AppointmentLetterNo', getProp(data, 'appointmentLetterNo') || '');
+                window.setField('#ConfirmationRefNo', getProp(data, 'confirmationRefNo') || '');
+                window.setField('#JoiningSalary', getProp(data, 'joiningSalary') || '');
                 
                 if (getProp(data, 'clientId')) {
-                    setSelect('#ClientId', getProp(data, 'clientId'));
+                    window.setField('#ClientId', getProp(data, 'clientId'));
                 }
                 
                 // Select2 Dropdowns
-                setSelect('#EmployeeId', getProp(data, 'employeeId') || getProp(data, 'employeeID'));
-                setSelect('#OfficialInfoCompanyCode', getProp(data, 'officialInfoCompanyCode') || getProp(data, 'companyCode'));
-                setSelect('#OfficialInfoBranchCode', getProp(data, 'officialInfoBranchCode') || getProp(data, 'branchCode'));
-                setSelect('#DepartmentCode', getProp(data, 'departmentCode'));
-                setSelect('#DesignationCode', getProp(data, 'designationCode'));
-                setSelect('#EmpTypeCode', getProp(data, 'empTypeCode') || getProp(data, 'employeeTypeCode'));
-                setSelect('#EmploymentNatureId', getProp(data, 'employmentNatureId'));
-                setSelect('#GradeCode', getProp(data, 'gradeCode'));
-                setSelect('#ShiftCode', getProp(data, 'shiftCode'));
-                setSelect('#ReportingTo', getProp(data, 'reportingTo') || getProp(data, 'immediateSupervisorID') || getProp(data, 'immediateSupervisorId'));
-                setSelect('#Hod', getProp(data, 'hod') || getProp(data, 'headOfDepartmentID') || getProp(data, 'headOfDepartmentId'));
-                setSelect('#EmployeeStatus', getProp(data, 'employeeStatus') || getProp(data, 'employeeStatusId'));
+                window.setField('#EmployeeId', getProp(data, 'employeeId') || getProp(data, 'employeeID'));
+                window.setField('#OfficialInfoCompanyCode', getProp(data, 'officialInfoCompanyCode') || getProp(data, 'companyCode'));
+                window.setField('#OfficialInfoBranchCode', getProp(data, 'officialInfoBranchCode') || getProp(data, 'branchCode'));
+                window.setField('#DepartmentCode', getProp(data, 'departmentCode'));
+                window.setField('#DesignationCode', getProp(data, 'designationCode'));
+                window.setField('#EmpTypeCode', getProp(data, 'empTypeCode') || getProp(data, 'employeeTypeCode'));
+                window.setField('#EmploymentNatureId', getProp(data, 'employmentNatureId'));
+                window.setField('#GradeCode', getProp(data, 'gradeCode'));
+                window.setField('#ShiftCode', getProp(data, 'shiftCode'));
+                window.setField('#ReportingTo', getProp(data, 'reportingTo') || getProp(data, 'immediateSupervisorID') || getProp(data, 'immediateSupervisorId'));
+                window.setField('#Hod', getProp(data, 'hod') || getProp(data, 'headOfDepartmentID') || getProp(data, 'headOfDepartmentId'));
+                window.setField('#EmployeeStatus', getProp(data, 'employeeStatus') || getProp(data, 'employeeStatusId'));
                 
-                setSelect('#IsLunchBilEligible', getProp(data, 'isLunchBilEligible'));
-                setSelect('#IsOverTimeEligible', getProp(data, 'isOverTimeEligible'));
-                setSelect('#IsExtraDutyEligible', getProp(data, 'isExtraDutyEligible'));
-                setSelect('#IsGovtHolidayEligible', getProp(data, 'isGovtHolidayEligible'));
-                setSelect('#IsAttendanceBonusEligible', getProp(data, 'isAttendanceBonusEligible'));
+                window.setField('#IsLunchBilEligible', getProp(data, 'isLunchBilEligible'));
+                window.setField('#IsOverTimeEligible', getProp(data, 'isOverTimeEligible'));
+                window.setField('#IsExtraDutyEligible', getProp(data, 'isExtraDutyEligible'));
+                window.setField('#IsGovtHolidayEligible', getProp(data, 'isGovtHolidayEligible'));
+                window.setField('#IsAttendanceBonusEligible', getProp(data, 'isAttendanceBonusEligible'));
 
                 // Dates
-                setDate('#JoiningDate', getProp(data, 'joiningDate'));
-                setDate('#ConfirmeDate', getProp(data, 'confirmeDate') || getProp(data, 'confirmationDate'));
-                setDate('#AppointmentLetterDate', getProp(data, 'appointmentLetterDate'));
-                setDate('#ContractEndDate', getProp(data, 'contractEndDate'));
+                flatpickrHelper.setDate('#JoiningDate', getProp(data, 'joiningDate'));
+                flatpickrHelper.setDate('#ConfirmeDate', getProp(data, 'confirmeDate') || getProp(data, 'confirmationDate'));
+                flatpickrHelper.setDate('#AppointmentLetterDate', getProp(data, 'appointmentLetterDate'));
+                flatpickrHelper.setDate('#ContractEndDate', getProp(data, 'contractEndDate'));
 
                 // Update Save button label
                 autoId = parseInt(autoId) || 0;
@@ -155,71 +163,13 @@
             }
 
             // ── Fetch Full Official Info ───────────────────────────────────────────
-            function fetchAndPopulateOfficialInfo(employeeId) {
-                $.ajax({
-                    url: '/OfficialInfo/GetTableData',
-                    type: 'GET',
-                    data: { employeeId: employeeId },
-                    success: function (response) {
-                        if (response && response.data && response.data.length > 0) {
-                            var data = response.data[0];
-                            populateFormFromData(data, data.autoId);
-                        } else {
-                            // fallback to basic employee fetch if official info not found
-                            fetchAndPopulateEmployee(employeeId);
-                        }
-                    },
-                    error: function () {
-                        console.error('Failed to fetch official info.');
-                        fetchAndPopulateEmployee(employeeId); // fallback
-                    }
-                });
-            }
+            // (Removed fetchAndPopulateOfficialInfo because it only fetched partial grid data.
+            // Using fetchAndPopulateEmployee instead, which fetches the full JSON details).
 
             // ── Helpers ────────────────────────────────────────────────────────────
-            
-            function setField(selector, value, isHtml = false) {
-                if (isHtml) {
-                    $(selector).html(value);
-                } else {
-                    $(selector).val(value);
-                }
-            }
-
-            function setSelect(selector, value) {
-                if (value === null || value === undefined) return;
-                var $el = $(selector);
-                if ($el.length === 0) return;
-                
-                if ($el.hasClass('select2-hidden-accessible')) {
-                    $el.val(value).trigger('change.select2');
-                } else {
-                    $el.val(value).trigger('change');
-                }
-            }
-
-            function setDate(selector, dateStr) {
-                if (!dateStr) return;
-                var el = document.querySelector(selector);
-                if (!el) return;
-                if (el._flatpickr) {
-                    el._flatpickr.setDate(toFlatpickrFormat(dateStr), true);
-                } else {
-                    $(selector).val(toFlatpickrFormat(dateStr));
-                }
-            }
-
-            function toFlatpickrFormat(dateStr) {
-                if (!dateStr) return '';
-                var parts = dateStr.split('/');
-                if (parts.length === 3) {
-                    return parts[1] + '-' + parts[0] + '-' + parts[2]; // DD/MM/YYYY -> MM-DD-YYYY
-                }
-                return dateStr;
-            }
 
             // ── EDIT button click ──────────────────────────────────────────────────
-            $(document).on('click', '.js-officialInfo-Edit-confirm', function () {
+            $(document).on('click', '.js-officialInfo-Edit-confirm, .js-grid-edit', function () {
                 var employeeId = $(this).attr('data-id');
                 console.log('Edit clicked, employeeId:', employeeId);
                 if (!employeeId) return;
@@ -239,8 +189,8 @@
 
                 _suppressEmployeeChange = false;
 
-                // Directly call fetchAndPopulateOfficialInfo
-                fetchAndPopulateOfficialInfo(employeeId);
+                // Directly call fetchAndPopulateEmployee to get full details (instead of partial grid data)
+                fetchAndPopulateEmployee(employeeId);
                 loadTableData(employeeId); 
                 // Scroll to form top
                 $('html, body').animate({
@@ -373,10 +323,6 @@
                     .css('border', (!val || val.trim() === '') ? '1px solid red' : '');
             }
 
-            // ── Select All ─────────────────────────────────────────────────────────
-            $("body").on('click', settings.selectAllSelector, function () {
-                $('.checkbox').prop('checked', $(this).prop('checked'));
-            });
 
             // ── Delete confirmation ────────────────────────────────────────────────
             function getDeleteModal() {
@@ -393,10 +339,14 @@
                 if ($(this).attr('data-id')) {
                     selectedItems.push($(this).attr('data-id'));
                 } else {
-                    $('.checkbox:checked').each(function () {
-                        var val = $(this).val();
-                        if (val) selectedItems.push(val);
-                    });
+                    if (typeof getSelectedGridIds !== 'undefined') {
+                        selectedItems = getSelectedGridIds('officialInfoTable');
+                    } else {
+                        $('.grid-row-checkbox:checked, .checkbox:checked').each(function () {
+                            var val = $(this).val();
+                            if (val) selectedItems.push(val);
+                        });
+                    }
                 }
 
                 if (selectedItems.length > 0) {
@@ -426,7 +376,7 @@
                         if (result.isSuccess || result.success) {
                             toastr.success(result.message);
                             selectedItems = [];
-                            $('.checkbox').prop('checked', false);
+                            $('.grid-row-checkbox, .checkbox, .grid-select-all').prop('checked', false);
                             var employeeId = $("#EmployeeId").val();
                             loadTableData(employeeId || null);
                         } else {

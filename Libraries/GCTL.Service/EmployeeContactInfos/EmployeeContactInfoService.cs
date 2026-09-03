@@ -448,7 +448,22 @@ namespace GCTL.Service.EmployeeContactInfos
 
         public async Task<bool> DeleteTab(List<string> ids, DeleteHistoryViewModel model)
         {
-            var entity = await employeeContactInfoRepository.All().Where(x => ids.Contains(x.EmpContactId)).ToListAsync();
+            var autoIds = new List<decimal>();
+
+            foreach (var id in ids)
+            {
+                if (decimal.TryParse(id, out var autoId))
+                {
+                    autoIds.Add(autoId);
+                }
+            }
+
+            if (!autoIds.Any())
+            {
+                return false;
+            }
+
+            var entity = await employeeContactInfoRepository.All().Where(x => autoIds.Contains(x.AutoId)).ToListAsync();
 
             if (!entity.Any())
             {
