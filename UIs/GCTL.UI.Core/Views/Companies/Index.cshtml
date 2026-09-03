@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -29,7 +29,7 @@
                             ClearBtnClass = "js-company-clear"
                         })
                     </div>
-                    <div class="card-body px-2">
+                    <div class="card-body px-4 py-1">
                         <form asp-action="Setup" method="post" id="company-form" asp-controller="Companies">
                             <div class="js-company-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -69,17 +69,18 @@
 </section>
 
 <partial name="DeleteModal" />
-<partial name="QuickAddModal" /><script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/companies.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.companies === "function") {
-            var options = { baseUrl: '@Url.Action("", "Companies")' };
-            options.load = () => { };
-            $.companies(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+<partial name="QuickAddModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/companies.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "Companies")'
+        };
+
+        $.companies(options);
+    </script>
+}

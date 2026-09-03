@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.BranchAddress.BranchAddressPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.BranchAddress.BranchAddressPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -159,7 +159,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/branchAddress.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {

@@ -85,18 +85,18 @@ namespace GCTL_App.Controllers
 
         #region Grid / Detail
 
-        [HttpGet]
+        [HttpPost]
         [ModulePermission]
-        public async Task<IActionResult> GetJobs(int page = 1, int pageSize = 10, string? customerId = null,
-            string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? search = null)
+        public async Task<IActionResult> GetJobs(int pageNumber = 1, int pageSize = 10, string? customerId = null,
+            string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? searchTerm = null, string sortColumn = "JobNo", string sortOrder = "desc")
         {
-            var result = await _service.GetJobsPagedAsync(page, pageSize, customerId, shipmentMode, dateFrom, dateTo, search);
+            var result = await _service.GetJobsPagedAsync(pageNumber, pageSize, customerId, shipmentMode, dateFrom, dateTo, searchTerm);
 
             return Json(new
             {
                 data = result.Data,
-                totalRecords = result.TotalRecords,
-                filteredRecords = result.FilteredRecords
+                recordsTotal = result.TotalRecords,
+                recordsFiltered = result.FilteredRecords
             });
         }
 
