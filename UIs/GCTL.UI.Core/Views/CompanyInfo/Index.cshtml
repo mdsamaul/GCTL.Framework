@@ -19,7 +19,7 @@
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Company Information",
+                            Title = "Supplier Company Info",
                             SaveBtnClass = "js-CompanyInfo-save",
                             DeleteBtnClass = "js-CompanyInfo-delete-confirm",
                             ClearBtnClass = "js-CompanyInfo-clear"
@@ -52,9 +52,9 @@
                     {
                         new() { Data = "companyId", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-CompanyInfo-edit" },
                         new() { Data = "companyName", Header = "Company Name", Width = "23%"},
-                        new() { Data = "shortName", Header = "Short Name", Width = "12%"},
-                        new() { Data = "companyAddress", Header = "Address", Width = "40%"},
-                        new() { Data = "companyForName", Header = "Company For", Width = "19%"}
+                        new() { Data = "shortName", Header = "Short Name", Width = "11%"},
+                        new() { Data = "companyAddress", Header = "Address", Width = "38%"},
+                        new() { Data = "companyForName", Header = "Company For", Width = "22%"}
                     }
                 })
             </div>

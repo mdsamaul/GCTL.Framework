@@ -206,15 +206,15 @@
             LabelText = "Website",
             FieldType = FieldType.Text,
             Placeholder = "Enter Website",
-          ReserveActionSlot = true,
+            ReserveActionSlot = true,
             ColumnClass = "col-lg-6 ",
             DefaultValue = Model?.Website
         })
     </div>
 
     <div class="form-group row">
-        @* ---------- Contact Person (MultiSelect + Quick Add) ---------- *@
-        @* @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        @* ---------- Contact Person (MultiSelect + Quick Add) ---------- *@     
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Cpid",
             LabelText = "Contact Person",
@@ -226,23 +226,9 @@
             QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
             QuickAddTarget = "#ContactPerson",
             QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
-            QuickAddTitle = "Contact Person Info"
-        }) *@
-        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-{
-    InputId = "Cpid",
-    LabelText = "Contact Person",
-    FieldType = FieldType.MultiSelect,
-    Placeholder = "Select Contact Person",
-    SelectItems = ViewBag.ContactDD as SelectList,
-    ColumnClass = "col-lg-6",
-    ShowQuickAdd = true,
-    QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
-    QuickAddTarget = "#ContactPerson",
-    QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
-    QuickAddTitle = "Contact Person Info",
-    CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
-})
+            QuickAddTitle = "Contact Person Info",
+            CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
+        })
 
         @* ---------- Remarks ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
