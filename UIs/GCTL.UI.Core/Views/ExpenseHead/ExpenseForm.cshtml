@@ -45,6 +45,9 @@
     .form-grid-layout label.form-label {
         margin-bottom: 0;
     }
+    .form-grid-layout .form-check {
+        padding-left: 0 !important;
+    }
 </style>
 
 <div class="card rounded shadow-sm">
@@ -209,9 +212,10 @@
                     ShowOnInit = false
                 })
             </div>
-
-            <div class="row no-print" style="margin-top: 9px;">
-                <div class="col-12">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div class="" style="margin-top: 9px;">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
                         SaveBtnClass = "saveBtn",
@@ -222,7 +226,6 @@
                         IsPlain = true,
                         ReserveActionSlot = true,
                     })
-                </div>
             </div>
 
         </form>
