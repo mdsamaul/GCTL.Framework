@@ -15,11 +15,19 @@ document.body.addEventListener('click', function(e) {
         
         $modal.data('from-tab', currentTabId);
         
-        // Load the fresh data for the specific modal
-        if (target === '#GRLModal' && typeof ModalLoadGroupLedger === "function") ModalLoadGroupLedger();
-        if (target === '#UICRLModal' && typeof ModalLoadAllControlLedger === "function") ModalLoadAllControlLedger();
-        if (target === '#SCRLModal' && typeof ModalLoadAllSubControlLedger === "function") ModalLoadAllSubControlLedger();
-        if (target === '#SSLModal' && typeof ModalSubSididiarLedgerAll === "function") ModalSubSididiarLedgerAll();
+        // Load the fresh data for the specific modal using DataTables
+        if (target === '#GRLModal' && $.fn.DataTable.isDataTable('#modalGroupLedgerTable')) {
+            $('#modalGroupLedgerTable').DataTable().ajax.reload(null, false);
+        }
+        if (target === '#UICRLModal' && $.fn.DataTable.isDataTable('#modalControlLedgerTable')) {
+            $('#modalControlLedgerTable').DataTable().ajax.reload(null, false);
+        }
+        if (target === '#SCRLModal' && $.fn.DataTable.isDataTable('#modalSubControlLedgerTable')) {
+            $('#modalSubControlLedgerTable').DataTable().ajax.reload(null, false);
+        }
+        if (target === '#SSLModal' && $.fn.DataTable.isDataTable('#modalSubSidiaryLedgerTable')) {
+            $('#modalSubSidiaryLedgerTable').DataTable().ajax.reload(null, false);
+        }
         
         // Open the static modal
         $modal.modal('show');

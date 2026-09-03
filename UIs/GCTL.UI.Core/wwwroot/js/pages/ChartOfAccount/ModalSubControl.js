@@ -243,6 +243,13 @@ function ModalSubControlLedgerSaveOrUpdate() {
                     if (response.success) {
                         toastr.success(successMessage);
 
+                        if ($.fn.DataTable.isDataTable('#modalSubControlLedgerTable')) {
+                            $('#modalSubControlLedgerTable').DataTable().ajax.reload(null, false);
+                        }
+                        if ($.fn.DataTable.isDataTable('#subControlLedgerTable')) {
+                            $('#subControlLedgerTable').DataTable().ajax.reload(null, false);
+                        }
+
                         const event = new CustomEvent('SubcontrolLedgerUpdated', { detail: { newSubCRLlLedgerCodeNo: response.generalLedgerCodeNo } });
                         window.dispatchEvent(event);
 

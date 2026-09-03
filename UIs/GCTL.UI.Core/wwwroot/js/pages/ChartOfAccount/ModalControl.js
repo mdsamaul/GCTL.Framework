@@ -153,14 +153,22 @@ function ModalSaveOrUpdateControlLedger() {
             let method = autoID ? 'PUT' : 'POST';
             let successMessage = autoID ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
 
+            
             $.ajax({
                 url: url,
                 type: method,
                 contentType: 'application/json',
                 data: JSON.stringify(ControlLedgerData),
                 success: function (response) {
-                    if (response.success) {
-                        toastr.success(successMessage);
+                    if (response.isSuccess) {
+                        toastr.success(response.message);
+                        ModalLoadAllControlLedger();
+                        if ($.fn.DataTable.isDataTable('#modalControlLedgerTable')) {
+                            $('#modalControlLedgerTable').DataTable().ajax.reload(null, false);
+                        }
+                        if ($.fn.DataTable.isDataTable('#controlLedgerTable')) {
+                            $('#controlLedgerTable').DataTable().ajax.reload(null, false);
+                        }
 
                         ModalClearControlLedgerForm();
                         selectedModalControlLedger = [];
@@ -480,9 +488,11 @@ $(document).on('click', '#ModalControlselectAll', function () {
 
 //#region Document Ready
 $(document).ready(function () {
+    console.log("Control Ledger Modal Page Loaded");
     ModalLoadGroupLedgerDropdown();
-    ModalLoadAllControlLedger();
     ModalControlbindCheckboxHandlers();
+    
+    // Grid loading is now handled by _CustomGrid (DataTables)
 
     $('#ModalControldisplayLDate').text(getBangladeshDateTime());
 

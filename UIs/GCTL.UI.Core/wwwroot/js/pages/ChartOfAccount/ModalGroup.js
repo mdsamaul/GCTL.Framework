@@ -80,6 +80,13 @@ function ModalSaveOrUpdateGroupLedger() {
                 success: function (response) {
                     if (response.success) {
                         toastr.success(successMessage);
+                        ModalLoadGroupLedger();
+                        if ($.fn.DataTable.isDataTable('#modalGroupLedgerTable')) {
+                            $('#modalGroupLedgerTable').DataTable().ajax.reload(null, false);
+                        }
+                        if ($.fn.DataTable.isDataTable('#groupLedgerTable')) {
+                            $('#groupLedgerTable').DataTable().ajax.reload(null, false);
+                        }
 
                         //Custom Event For Update Group Ledger Dropdown in Control Ledger UI
                         //const event = new CustomEvent('ModalgroupLedgerUpdated', {
@@ -458,9 +465,10 @@ function ModalbindCheckboxHandlers() {
 //#region Ready Part
 
 $(document).ready(function () {
-    console.log("Group Ledger Page Loaded");
+    console.log("Group Ledger Modal Page Loaded");
     ModalLoadNextGroupLedgerCode();
-    ModalLoadGroupLedger();
+    
+    // Grid loading is now handled by _CustomGrid (DataTables)
 
     // Set Entry Date
     $('#ModaldisplayLDate').text(getBangladeshDateTime());
