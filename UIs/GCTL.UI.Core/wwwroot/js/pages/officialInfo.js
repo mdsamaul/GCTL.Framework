@@ -51,8 +51,7 @@
             //    if (!selectedEmployee) return;
             //    fetchAndPopulateEmployee(selectedEmployee);
             //});
-            $('#EmployeeId').on('change', function () {
-                debugger
+            $('#EmployeeId').on('change', function () {                
                 if (_suppressEmployeeChange) return;
                 var selectedEmployee = $(this).val();
                 if (!selectedEmployee) {

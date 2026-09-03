@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportInformation;
 using GCTL.Data.Models;
@@ -243,7 +243,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 var list = await transportInformationService.GetAllAsync();
-                return Json(list);
+                return Json(new { data = list });
                 //return PartialView("_Grid", list);
             }
             catch (Exception ex)

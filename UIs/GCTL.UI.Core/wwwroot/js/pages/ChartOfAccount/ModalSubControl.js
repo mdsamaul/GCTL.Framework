@@ -1,17 +1,15 @@
-﻿let selectedModalSubSidiaryLedger = [];
-let ModalcurrenSubSidiarytPage = 1;
-let ModalSubSidiarypageSize = 10;
-let ModalSubSidiarycurrentSortColumn = 'SusidiaryLedgerCodeNo';
-let ModalSubSidiarycurrentSortDirection = 'desc';
-let ModalisEditModeSubSidiary = false;
+var selectedModalSubControlLedger = [];
+var ModalcurrenSubControltPage = 1;
+var ModalSubControlpageSize = 10;
+var ModalSubControlcurrentSortColumn = 'ModalGeneralLedgerCodeNo';
+var ModalSubControlcurrentSortDirection = 'desc';
+var ModalisEditModeSubControl = false;
 
-// Selected dropdown values (used for reload, pagination, sorting)
-let ModalselectedGroupCodeSSL = "";
-let ModalselectedControlCodeSSL = "";
-let ModalselectedSubControlCodeSSL = "";
+var ModalselectedGroupLedgerCodeForSubControl = "";
+var ModalselectedControlLedgerCodeForSubControl = "";
 
 // Helper: Bangladesh Local Date & Time Formatter
-function getBangladeshDateTime() {
+window.getBangladeshDateTime = window.getBangladeshDateTime || function() {
     return new Date().toLocaleString('en-GB', {
         day: '2-digit',
         month: '2-digit',
@@ -33,335 +31,206 @@ document.addEventListener('change', function (e) {
 
 //#region Custom Event Listener For Group Ledger Dropdown Updated
 window.addEventListener('groupLedgerUpdated', function (e) {
-    ModalSubSidiaryForGeneralUI();
-    $("#Modalforsidiarygroupcode, #ModalforsidiarygroupshortName").val("");
-    $("#ModalforsidiaryControlCode, #ModalforsidiaryCLShortName").val("");
-    $("#ModalforsidiaryGeneralLedgerCodeNo, #ModalforsidiarySubCRLshortName").val("");
-    $("#ModalSusidiaryLedgerCodeNo").val("");
-    ModalSubSididiarLedgerAll();
+    ModalLoadDropdownGRLCRL();
+    $('#Modalgroupcode').val('');
+    $('#ModalgroupshortName').val('');
+    $('#ModalConRLCode').val('');
+    $('#ModalCLShortName').val('');
+    $('#ModalGeneralLedgerCodeNo').val('');
+    ModalLoadSubControlLedgerAll();
 });
 //#endregion
 
-//#region Load Cascading Dropdowns
+//#region Group and Control Ledger Dropdown For Sub-Control Ledger UI
 
 // 1. Group Ledger Dropdown
-function ModalSubSidiaryForGeneralUI(selectedId = null) {
+function ModalLoadDropdownGRLCRL(selectedId = null) {
     $.ajax({
-        url: "/forsubsidiary-group-ledger-dropdown",
+        url: "/group-ledger-dropdown-forsubcontrol",
         type: "GET",
-        success: function (groupResponse) {
-            let $dropdown = $('#ModalforsidiarygroupName');
-            $dropdown.find('option:not(:first)').remove();
+        success: function (response) {
+            let $gldropdown = $("#ModalgroupName");
+            $gldropdown.find('option:not(:first)').remove();
 
-            if (groupResponse && groupResponse.data) {
-                $.each(groupResponse.data, function (index, item) {
-                    $dropdown.append($('<option></option>').val(item.id).text(item.name));
+            if (response && response.data) {
+                $.each(response.data, function (index, item) {
+                    $gldropdown.append($('<option></option>').val(item.id).text(item.name));
                 });
             }
 
             if (selectedId) {
-                $dropdown.val(selectedId);
+                $gldropdown.val(selectedId);
             }
 
-            window.reinitCustomDropdownById('ModalforsidiarygroupName');
+            // Plugin Reinitialization
+            window.reinitCustomDropdownById('ModalgroupName');
 
-            $dropdown.off('change').on('change', function () {
-                const selectedGroupCode = $(this).val();
-                ModalselectedGroupCodeSSL = selectedGroupCode || "";
+            // Group Ledger change event
+            $gldropdown.off('change').on('change', function () {
+                let selectedGroupCode = $(this).val();
+                ModalselectedGroupLedgerCodeForSubControl = selectedGroupCode || "";
+
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
+                // Reset fields if no group selected
                 if (!selectedGroupCode) {
-                    $('#Modalforsidiarygroupcode, #ModalforsidiarygroupshortName').val('');
+                    $('#Modalgroupcode, #ModalgroupshortName').val('');
 
-                    // Control & Sub-Control Clear
-                    window.clearCustomDropdownById('ModalforsidiaryControlName');
-                    $('#ModalforsidiaryControlCode, #ModalforsidiaryCLShortName').val('');
+                    // Clear Control Dropdown via Plugin Helper
+                    window.clearCustomDropdownById('ModalConRLName');
+                    $('#ModalConRLCode, #ModalCLShortName, #ModalGeneralLedgerCodeNo').val('');
 
-                    window.clearCustomDropdownById('ModalforsidiaryGeneralLedgerName');
-                    $('#ModalforsidiaryGeneralLedgerCodeNo, #ModalforsidiarySubCRLshortName, #ModalSusidiaryLedgerCodeNo').val('');
-
-                    ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", "", "", "");
+                    ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", "", "");
                     return;
                 }
 
-                // Load Control Ledger Dropdown
-                ModalgetControlLedger(selectedGroupCode);
-
-                // Fetch Group Info
+                // Load group info
                 $.ajax({
-                    url: '/forsubsidiary-group-ledger-info',
+                    url: '/group-ledger-info-forsubcontrol',
                     type: 'GET',
-                    data: { groupcode: selectedGroupCode },
+                    data: { Modalgroupcode: selectedGroupCode },
                     success: function (data) {
-                        $('#Modalforsidiarygroupcode').val(data.controlLedgerCodeNo || '');
-                        $('#ModalforsidiarygroupshortName').val(data.shortName || '');
-                        ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, "", "");
+                        $('#Modalgroupcode').val(data.controlLedgerCodeNo || '');
+                        $('#ModalgroupshortName').val(data.shortName || '');
                     }
                 });
+
+                // Load Control Ledger under selected Group
+                ModalLoadControlLedgerDropdown(selectedGroupCode);
             });
         },
-        error: function () {
-            console.error("Failed to fetch Group Ledger dropdown");
+        error: function (xhr, status, error) {
+            console.error("Failed to load Group Ledger dropdown:", error);
         }
     });
 }
 
 // 2. Control Ledger Dropdown
-function ModalgetControlLedger(selectedGroupCode, selectedId = null) {
+function ModalLoadControlLedgerDropdown(selectedGroupCode, selectedId = null) {
     $.ajax({
-        url: '/forSubsidiary-control-ledger-dropdown',
+        url: '/control-ledger-dropdown',
         type: 'GET',
-        data: { groupcode: selectedGroupCode },
-        success: function (controlResponse) {
-            let $dropdown = $('#ModalforsidiaryControlName');
-            $dropdown.find('option:not(:first)').remove();
+        data: { Modalgroupcode: selectedGroupCode },
+        success: function (response) {
+            let $crldropdown = $('#ModalConRLName');
+            $crldropdown.find('option:not(:first)').remove();
 
-            if (controlResponse && controlResponse.data) {
-                $.each(controlResponse.data, function (index, item) {
-                    $dropdown.append($('<option></option>').val(item.id).text(item.name));
+            if (response && response.data) {
+                $.each(response.data, function (index, item) {
+                    $crldropdown.append($('<option></option>').val(item.id).text(item.name));
                 });
             }
 
             if (selectedId) {
-                $dropdown.val(selectedId);
+                $crldropdown.val(selectedId);
             }
 
-            window.reinitCustomDropdownById('ModalforsidiaryControlName');
+            // Plugin Reinitialization
+            window.reinitCustomDropdownById('ModalConRLName');
 
-            $dropdown.off('change').on('change', function () {
-                const selectedControlCode = $(this).val();
-                ModalselectedControlCodeSSL = selectedControlCode || "";
+            // Auto reload Sub-Control Ledger list based on selected group
+            ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", ModalselectedGroupLedgerCodeForSubControl, "");
+
+            // Control Ledger change event
+            $crldropdown.off('change').on('change', function () {
+                let selectedControlCode = $(this).val();
+                ModalselectedControlLedgerCodeForSubControl = selectedControlCode || "";
+
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
                 if (!selectedControlCode) {
-                    $('#ModalforsidiaryControlCode, #ModalforsidiaryCLShortName').val('');
-
-                    window.clearCustomDropdownById('ModalforsidiaryGeneralLedgerName');
-                    $('#ModalforsidiaryGeneralLedgerCodeNo, #ModalforsidiarySubCRLshortName, #ModalSusidiaryLedgerCodeNo').val('');
-
-                    ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, "", "");
+                    $('#ModalConRLCode, #ModalCLShortName, #ModalGeneralLedgerCodeNo').val('');
+                    ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", ModalselectedGroupLedgerCodeForSubControl, "");
                     return;
                 }
 
-                // Load Sub-Control Dropdown
-                ModalgetSubControllerLedger(selectedControlCode);
-
-                // Fetch Control Info
-                ModalGetControlLedgerInfo(selectedControlCode);
-            });
-        },
-        error: function () {
-            console.error("Failed to fetch Control Ledger dropdown");
-        }
-    });
-}
-
-function ModalGetControlLedgerInfo(selectedControlCode) {
-    $.ajax({
-        url: '/forSubsidiary-control-ledger-info',
-        type: 'GET',
-        data: { contrlcode: selectedControlCode },
-        success: function (controlInfo) {
-            $('#ModalforsidiaryControlCode').val(controlInfo.subControlLedgerCodeNo || '');
-            $('#ModalforsidiaryCLShortName').val(controlInfo.shortName || '');
-            ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, "");
-        }
-    });
-}
-
-// 3. Sub-Control Ledger Dropdown
-function ModalgetSubControllerLedger(selectedControlCode, selectedId = null) {
-    $.ajax({
-        url: '/subcontrol-ledger-dropdown',
-        type: 'GET',
-        data: { controlcode: selectedControlCode },
-        success: function (subControlResponse) {
-            let $dropdown = $('#ModalforsidiaryGeneralLedgerName');
-            $dropdown.find('option:not(:first)').remove();
-
-            if (subControlResponse && subControlResponse.data) {
-                $.each(subControlResponse.data, function (index, item) {
-                    $dropdown.append($('<option></option>').val(item.id).text(item.name));
-                });
-            }
-
-            if (selectedId) {
-                $dropdown.val(selectedId);
-            }
-
-            window.reinitCustomDropdownById('ModalforsidiaryGeneralLedgerName');
-
-            $dropdown.off('change').on('change', function () {
-                const selectedSubControlCode = $(this).val();
-                ModalselectedSubControlCodeSSL = selectedSubControlCode || "";
-                $(this).removeClass('border-error');
-                $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
-
-                if (!selectedSubControlCode) {
-                    $('#ModalforsidiaryGeneralLedgerCodeNo, #ModalforsidiarySubCRLshortName, #ModalSusidiaryLedgerCodeNo').val('');
-                    ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, "");
-                    return;
-                }
-
-                // Fetch Sub-Control Info
-                ModalGetSubcontrolInfo(selectedSubControlCode);
-            });
-        },
-        error: function () {
-            console.error("Failed to fetch Sub-Control Ledger dropdown");
-        }
-    });
-}
-
-function ModalGetSubcontrolInfo(selectedSubControlCode) {
-    $.ajax({
-        url: '/forsudsidiary-subcontrol-ledger-info',
-        type: 'GET',
-        data: { subcontrlcode: selectedSubControlCode },
-        success: function (subControlInfo) {
-            $('#ModalforsidiaryGeneralLedgerCodeNo').val(subControlInfo.generalLedgerCodeNo || '');
-            $('#ModalforsidiarySubCRLshortName').val(subControlInfo.shortName || '');
-
-            if (!ModalisEditModeSubSidiary) {
+                // Fetch control ledger details
                 $.ajax({
-                    url: '/next-subsidiary-ledger-code',
+                    url: '/control-ledger-info',
                     type: 'GET',
-                    data: { subcontrolLedgercode: subControlInfo.generalLedgerCodeNo },
-                    success: function (nextCode) {
-                        $('#ModalSusidiaryLedgerCodeNo').val(nextCode);
+                    data: { contrlcode: selectedControlCode },
+                    success: function (data) {
+                        $('#ModalConRLCode').val(data.subControlLedgerCodeNo || '');
+                        $('#ModalCLShortName').val(data.shortName || '');
+
+                        if (!ModalisEditModeSubControl) {
+                            $.ajax({
+                                url: '/next-subcontrol-ledger-code',
+                                type: 'GET',
+                                data: { controlLedgercode: data.subControlLedgerCodeNo },
+                                success: function (nextCode) {
+                                    $('#ModalGeneralLedgerCodeNo').val(nextCode);
+                                }
+                            });
+                        }
+
+                        // Reload list filtered by both group and control
+                        ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl);
+                    },
+                    error: function () {
+                        console.error("Failed to fetch Control Ledger info");
                     }
                 });
-            }
-
-            ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, ModalselectedSubControlCodeSSL);
+            });
+        },
+        error: function () {
+            console.error("Failed to fetch Control Ledger list under group");
         }
     });
 }
 
 //#endregion
 
-//#region Load All Sub-Sidiary Ledger Data
-function ModalSubSididiarLedgerAll(page = 1, pageSize = ModalSubSidiarypageSize, sortColumn = ModalSubSidiarycurrentSortColumn, sortDirection = ModalSubSidiarycurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "", subcontrolLedgerCode = "") {
-    $.ajax({
-        url: '/subsidiary-ledger-list',
-        type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: pageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection,
-            groupLedgerCode: groupLedgerCode,
-            controlLedgerCode: controlLedgerCode,
-            subcontrolLedgerCode: subcontrolLedgerCode
-        },
-        success: function (response) {
-            let rows = '';
-            if (response.data && response.data.length > 0) {
-                response.data.forEach(function (item) {
-                    rows += `<tr>
-                        <td class="text-center">
-                            <input type="checkbox" class="form-check-input form-check-input-sm ModalSubsidiary-checkbox"
-                                data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none Modalsubsidiary-ledger" data-autoid="${item.autoId}">
-                                ${item.susidiaryLedgerCodeNo}
-                            </button>
-                        </td>
-                        <td>${item.subsidiaryLedgerName || ''}</td>
-                        <td>${item.shortName || ''}</td>
-                    </tr>`;
-                });
-            } else {
-                rows = `<tr><td colspan="4" class="text-center text-muted">No records found</td></tr>`;
-            }
-            $('#ModalSubSidiarytblBody').html(rows);
-
-            if (response.paginationInfo) {
-                let currPage = response.paginationInfo.currentPage;
-                let totalPages = response.paginationInfo.totalPages;
-                let totalRecords = response.totalCount || 0;
-                let startIndex = response.paginationInfo.startItem || 0;
-                let endIndex = response.paginationInfo.endItem || 0;
-
-                $('#ModalSubSidiarypaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-                $('#ModalSubSidiarypaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
-                $('#ModalSubSidiarytotalRecordsInfo').text(`Total Records: ${totalRecords}`);
-
-                ModalcurrenSubSidiarytPage = currPage;
-                ModalSubSidiarygeneratePageButtons(ModalcurrenSubSidiarytPage, totalPages);
-            }
-
-            ModalSubSidiaryupdateCheckboxState();
-            ModalSubSidiaryupdateSortIndicators();
-        },
-        error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
-        }
-    });
-}
-//#endregion
-
-//#region Save Or Update Sub-Sidiary Ledger
-function ModalSubSidiaryLedgerSaveOrUpdate() {
-    let autoID = $('#ModalforsidiaryAutoID').val();
-
-    let SubSidiaryLedgerData = {
+//#region Save Or Update Sub Control Ledger
+function ModalSubControlLedgerSaveOrUpdate() {
+    let autoID = $('#ModalSubCRLAutoID').val();
+    let SubControlLedgerData = {
         autoId: autoID ? parseInt(autoID) : 0,
-        GeneralLedgerCodeNo: $("#ModalforsidiaryGeneralLedgerCodeNo").val(),
-        SusidiaryLedgerCodeNo: $("#ModalSusidiaryLedgerCodeNo").val(),
-        SubsidiaryLedgerName: $("#ModalSubsidiaryLedgerName").val(),
-        ShortName: $("#ModalforsidiaryshortName").val(),
-        CRLCode: $("#ModalforsidiaryControlName").val(),
-        GLCode: $("#ModalforsidiarygroupName").val()
+        SubControlLedgerCodeNo: $("#ModalConRLCode").val(),
+        ModalGeneralLedgerCodeNo: $("#ModalGeneralLedgerCodeNo").val(),
+        ModalGeneralLedgerName: $("#ModalGeneralLedgerName").val(),
+        ShortName: $("#ModalSubCRLshortName").val(),
+        GRLCode: $("#ModalgroupName").val()
     };
 
     // Validations
-    if (!SubSidiaryLedgerData.GLCode) {
+    if (!SubControlLedgerData.GRLCode) {
         toastr.error("Please Select a Group Ledger.");
-        $('#ModalforsidiarygroupName').addClass('border-error');
-        $('#ModalforsidiarygroupName').siblings('.custom-dd-wrapper').addClass('border-error');
+        $('#ModalgroupName').addClass('border-error');
+        $('#ModalgroupName').siblings('.custom-dd-wrapper').addClass('border-error');
         return false;
     }
 
-    if (!SubSidiaryLedgerData.CRLCode) {
+    if (!SubControlLedgerData.SubControlLedgerCodeNo) {
         toastr.error("Please Select a Control Ledger.");
-        $('#ModalforsidiaryControlName').addClass('border-error');
-        $('#ModalforsidiaryControlName').siblings('.custom-dd-wrapper').addClass('border-error');
+        $('#ModalConRLName').addClass('border-error');
+        $('#ModalConRLName').siblings('.custom-dd-wrapper').addClass('border-error');
         return false;
     }
 
-    if (!SubSidiaryLedgerData.GeneralLedgerCodeNo) {
-        toastr.error("Please Select a Sub-Control Ledger.");
-        $('#ModalforsidiaryGeneralLedgerName').addClass('border-error');
-        $('#ModalforsidiaryGeneralLedgerName').siblings('.custom-dd-wrapper').addClass('border-error');
-        return false;
-    }
-
-    if (!SubSidiaryLedgerData.SubsidiaryLedgerName) {
-        toastr.error("Please Enter Sub-Sidiary Ledger Name.");
-        $('#ModalSubsidiaryLedgerName').addClass('border-error');
+    if (!SubControlLedgerData.ModalGeneralLedgerName) {
+        toastr.error("Please Enter Sub-Control Ledger.");
+        $('#ModalGeneralLedgerName').addClass('border-error');
         return false;
     } else {
-        $('#ModalSubsidiaryLedgerName').removeClass('border-error');
+        $('#ModalGeneralLedgerName').removeClass('border-error');
     }
 
-    // Check duplicate
+    // Check for duplicate
     $.ajax({
-        url: '/subsidiary-ledger/check-duplicate',
+        url: '/subcontrol-ledger/check-duplicate',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify(SubSidiaryLedgerData),
+        data: JSON.stringify(SubControlLedgerData),
         success: function (dupResponse) {
             if (dupResponse.isDuplicate) {
                 toastr.error(dupResponse.message);
                 return;
             }
 
-            let url = autoID ? `/subsidiary-ledger/${autoID}` : '/subsidiary-ledger';
+            let url = autoID ? `/subcontrol-ledger/${autoID}` : '/subcontrol-ledger';
             let method = autoID ? 'PUT' : 'POST';
             let successMessage = autoID ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
 
@@ -369,28 +238,26 @@ function ModalSubSidiaryLedgerSaveOrUpdate() {
                 url: url,
                 type: method,
                 contentType: 'application/json',
-                data: JSON.stringify(SubSidiaryLedgerData),
+                data: JSON.stringify(SubControlLedgerData),
                 success: function (response) {
                     if (response.success) {
                         toastr.success(successMessage);
 
-                        const event = new CustomEvent('SubSidiaryLedgerUpdated', { detail: { newSubSidiaryLedgerCodeNo: response.susidiaryLedgerCodeNo } });
+                        const event = new CustomEvent('SubcontrolLedgerUpdated', { detail: { newSubCRLlLedgerCodeNo: response.generalLedgerCodeNo } });
                         window.dispatchEvent(event);
 
-                        ModalSubSidiaryLedgerFormClear();
-                        selectedModalSubSidiaryLedger = [];
+                        ModalSubControlLedgerFormClear();
+                        selectedModalSubControlLedger = [];
 
-                        // Load parent Sub-Sidiary Table if exists
-                        if (typeof SubSididiarLedgerAll === "function") {
-                            SubSididiarLedgerAll();
+                        if (typeof ModalModalLoadSubControlLedgerAll === "function") {
+                            ModalModalLoadSubControlLedgerAll();
                         }
                     } else {
                         toastr.error(response.message || "Operation Failed!");
                     }
                 },
                 error: function (xhr, status, error) {
-                    toastr.error("Error Saving Sub-Sidiary Ledger.");
-                    console.error('Error Saving Sub-Sidiary Ledger :', error);
+                    console.error('Error Saving Sub-Control Ledger :', error);
                 }
             });
         },
@@ -402,122 +269,178 @@ function ModalSubSidiaryLedgerSaveOrUpdate() {
 }
 //#endregion
 
-//#region Populate Data For Edit
-$(document).on('click', '.Modalsubsidiary-ledger', function (e) {
-    e.preventDefault();
-    const autoId = parseInt($(this).data('autoid'));
-    if (!autoId) return;
+//#region Sub Control Ledger Clear
+function ModalSubControlLedgerFormClear() {
+    ModalisEditModeSubControl = false;
 
-    ModalisEditModeSubSidiary = true;
-    selectedModalSubSidiaryLedger = [autoId];
-
-    $.ajax({
-        url: `/subsidiary-ledger/details/${autoId}`,
-        type: 'GET',
-        success: function (response) {
-            if (response) {
-                $('#ModalforsidiaryAutoID').val(response.autoId);
-                $('#ModalSusidiaryLedgerCodeNo').val(response.susidiaryLedgerCodeNo || '');
-                $('#ModalSubsidiaryLedgerName').val(response.subsidiaryLedgerName || '');
-                $('#ModalforsidiaryshortName').val(response.shortName || '');
-
-                // Group Ledger
-                $('#Modalforsidiarygroupcode').val(response.glCode || '');
-                $('#ModalforsidiarygroupshortName').val(response.glShortName || '');
-                $('#ModalforsidiarygroupName').val(response.glCode);
-                window.reinitCustomDropdownById('ModalforsidiarygroupName');
-
-                // Control Ledger
-                if (response.glCode) {
-                    ModalgetControlLedger(response.glCode, response.crlCode);
-                }
-                $('#ModalforsidiaryControlCode').val(response.crlCode || '');
-                $('#ModalforsidiaryCLShortName').val(response.crLShortName || '');
-
-                // Sub-Control Ledger
-                if (response.crlCode) {
-                    ModalgetSubControllerLedger(response.crlCode, response.generalLedgerCodeNo);
-                }
-                $('#ModalforsidiaryGeneralLedgerCodeNo').val(response.generalLedgerCodeNo || '');
-                $('#ModalforsidiarySubCRLshortName').val(response.subCRLShortName || '');
-
-                // Dates
-                if (response.lDate) {
-                    let entryDate = new Date(response.lDate).toLocaleString('en-GB', {
-                        day: '2-digit', month: '2-digit', year: 'numeric',
-                        hour: 'numeric', minute: '2-digit', hour12: true
-                    }).replace(',', '');
-                    $('#ModalSubSidiaryldisplayLDate').text(entryDate.toUpperCase());
-                } else {
-                    $('#ModalSubSidiaryldisplayLDate').text('');
-                }
-
-                if (response.modifyDate) {
-                    let updateDate = new Date(response.modifyDate).toLocaleString('en-GB', {
-                        day: '2-digit', month: '2-digit', year: 'numeric',
-                        hour: 'numeric', minute: '2-digit', hour12: true
-                    }).replace(',', '');
-                    $('#ModalSubSidiarydisplayModifyDate').text(updateDate.toUpperCase());
-                } else {
-                    $('#ModalSubSidiarydisplayModifyDate').text('');
-                }
-
-                $('.ModalSubsidiary-checkbox').prop('checked', false);
-                $(`.ModalSubsidiary-checkbox[data-autoid="${autoId}"]`).prop('checked', true);
-                $("#ModalSubSidiaryselectAll").prop('checked', false);
-
-                ModalSubSidiaryupdateCheckboxState();
-            } else {
-                toastr.error("Sub-Sidiary Ledger not found!");
-            }
-        },
-        error: function (xhr, status, error) {
-            toastr.error("Error fetching Sub-Sidiary Ledger details!");
-            console.error("Error fetching details:", error);
-        }
-    });
-});
-//#endregion
-
-//#region Clear Form
-function ModalSubSidiaryLedgerFormClear() {
-    ModalisEditModeSubSidiary = false;
-
-    $("#ModalforsidiaryAutoID").val("");
+    $("#ModalSubCRLAutoID").val("");
 
     // Clear all custom dropdowns
-    window.clearAllCustomDropdowns('#ModalsubSidiaryForm');
+    window.clearAllCustomDropdowns('#ModalsubcontrolForm');
 
-    $("#Modalforsidiarygroupcode, #ModalforsidiarygroupshortName").val("");
-    $("#ModalforsidiaryControlCode, #ModalforsidiaryCLShortName").val("");
-    $("#ModalforsidiaryGeneralLedgerCodeNo, #ModalforsidiarySubCRLshortName").val("");
-    $("#ModalSusidiaryLedgerCodeNo, #ModalSubsidiaryLedgerName, #ModalforsidiaryshortName").val("");
+    $("#Modalgroupcode, #ModalgroupshortName").val("");
+    $("#ModalConRLCode, #ModalCLShortName").val("");
+    $("#ModalGeneralLedgerCodeNo, #ModalGeneralLedgerName, #ModalSubCRLshortName").val("");
 
     $(".form-control, .form-select").removeClass("is-invalid is-valid border-error");
     $(".custom-dd-wrapper").removeClass("border-error");
     $(".invalid-feedback, .valid-feedback").remove();
 
-    $('#ModalSubSidiarydisplayModifyDate').text('');
-    $('#ModalSubSidiaryldisplayLDate').text(getBangladeshDateTime());
+    $('#ModalSubControldisplayModifyDate').text('');
+    $('#ModalSubControldisplayLDate').text(getBangladeshDateTime());
 
-    $(".ModalSubsidiary-checkbox").prop("checked", false);
-    $("#ModalSubSidiaryselectAll").prop("checked", false);
-    $('#ModalSubSidiarysearchInput').val('');
+    $(".ModalSubcontrol-checkbox").prop("checked", false);
+    $("#ModalSubControlselectAll").prop("checked", false);
+    $('#ModalSubControlsearchInput').val('');
 
-    selectedModalSubSidiaryLedger = [];
-    ModalcurrenSubSidiarytPage = 1;
-    ModalselectedGroupCodeSSL = "";
-    ModalselectedControlCodeSSL = "";
-    ModalselectedSubControlCodeSSL = "";
+    selectedModalSubControlLedger = [];
+    ModalcurrenSubControltPage = 1;
+    ModalselectedGroupLedgerCodeForSubControl = "";
+    ModalselectedControlLedgerCodeForSubControl = "";
 
-    ModalSubSidiaryForGeneralUI();
-    ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", "", "", "");
+    ModalLoadDropdownGRLCRL();
+    ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", "", "");
 }
 //#endregion
 
-//#region Delete Sub-Sidiary Ledger
-function ModalSubSidiaryLedgerDelete() {
-    const ids = selectedModalSubSidiaryLedger.map(x => parseInt(x)).filter(x => !isNaN(x));
+//#region Load All Sub-Control Ledger Data
+function ModalLoadSubControlLedgerAll(page = 1, pageSize = ModalSubControlpageSize, sortColumn = ModalSubControlcurrentSortColumn, sortDirection = ModalSubControlcurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "") {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#subControlLedgerTable')) {
+        $('#subControlLedgerTable').DataTable().ajax.reload(null, false);
+        return;
+    }
+    $.ajax({
+        url: '/subcontrol-ledger-list',
+        type: 'GET',
+        data: {
+            pageNumber: page,
+            pageSize: pageSize,
+            searchTerm: searchTerm,
+            sortColumn: sortColumn,
+            sortOrder: sortDirection,
+            controlLedgerCode: controlLedgerCode,
+            groupLedgerCode: groupLedgerCode
+        },
+        success: function (response) {
+            let rows = '';
+            if (response.data && response.data.length > 0) {
+                response.data.forEach(function (item) {
+                    rows += `<tr>
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input form-check-input-sm ModalSubcontrol-checkbox"
+                                data-autoid="${item.autoId}" style="width:12px; height:12px;">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-transfer subcontrol-ledger" data-autoid="${item.autoId}">
+                                ${item.generalLedgerCodeNo}
+                            </button>
+                        </td>
+                        <td>${item.generalLedgerName || ''}</td>
+                        <td>${item.shortName || ''}</td>
+                     </tr>`;
+                });
+            } else {
+                rows = `<tr><td colspan="4" class="text-center text-muted">No records found</td></tr>`;
+            }
+            $('#ModalSubControltblBody').html(rows);
+
+            if (response.paginationInfo) {
+                let currPage = response.paginationInfo.currentPage;
+                let totalPages = response.paginationInfo.totalPages;
+                let totalRecords = response.totalCount || 0;
+                let startIndex = response.paginationInfo.startItem || 0;
+                let endIndex = response.paginationInfo.endItem || 0;
+
+                $('#ModalSubControlpaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
+                $('#ModalSubControlpaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
+                $('#ModalSubControltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
+
+                ModalcurrenSubControltPage = currPage;
+                ModalSubControlgeneratePageButtons(ModalcurrenSubControltPage, totalPages);
+            }
+
+            ModalSubControlupdateCheckboxState();
+            ModalSubControlupdateSortIndicators();
+        },
+        error: function (xhr, status, error) {
+            console.error("Error Loading Data: ", error);
+        }
+    });
+}
+//#endregion
+
+//#region Populate Data For Edit
+$(document).on('click', '.js-subcontrolledger-edit, .subcontrol-ledger', function (e) {
+    e.preventDefault();
+    const id = parseInt($(this).data('id') || $(this).data('autoid'));
+    if (!id) return;
+
+    ModalisEditModeSubControl = true;
+    selectedModalSubControlLedger = [id];
+
+    $.ajax({
+        url: `/subcontrol-ledger/details/${id}`,
+        type: 'GET',
+        success: function (data) {
+            if (data) {
+                $('#ModalSubCRLAutoID').val(id);
+                $('#Modalgroupcode').val(data.grlCode || '');
+                $('#ModalgroupshortName').val(data.grlShortname || '');
+
+                // Group Ledger
+                $('#ModalgroupName').val(data.grlCode);
+                window.reinitCustomDropdownById('ModalgroupName');
+
+                // Control Ledger Dropdown
+                if (data.grlCode) {
+                    ModalLoadControlLedgerDropdown(data.grlCode, data.subControlLedgerCodeNo);
+                }
+
+                $('#ModalConRLCode').val(data.subControlLedgerCodeNo || '');
+                $('#ModalCLShortName').val(data.crlShortname || '');
+
+                $('#ModalGeneralLedgerCodeNo').val(data.generalLedgerCodeNo || '');
+                $('#ModalGeneralLedgerName').val(data.generalLedgerName || '');
+                $('#ModalSubCRLshortName').val(data.shortName || '');
+
+                // Dates
+                if (data.lDate) {
+                    let entryDate = new Date(data.lDate).toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                    }).replace(',', '');
+                    $('#ModalSubControldisplayLDate').text(entryDate.toUpperCase());
+                } else {
+                    $('#ModalSubControldisplayLDate').text('');
+                }
+
+                if (data.modifyDate) {
+                    let updateDate = new Date(data.modifyDate).toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                    }).replace(',', '');
+                    $('#ModalSubControldisplayModifyDate').text(updateDate.toUpperCase());
+                } else {
+                    $('#ModalSubControldisplayModifyDate').text('');
+                }
+
+                $('.ModalSubcontrol-checkbox').prop('checked', false);
+                $("#ModalSubControlselectAll").prop('checked', false);
+                $(`.ModalSubcontrol-checkbox[data-autoid="${id}"]`).prop('checked', true);
+                ModalSubControlupdateCheckboxState();
+            }
+        },
+        error: function (xhr, status, error) {
+            toastr.error("Failed To Fetch Sub-Control Ledger Details.");
+            console.error("Error Fetching Sub-Control Details:", error);
+        }
+    });
+});
+//#endregion
+
+//#region Single & Multiple Delete Sub-Control Ledger
+function ModalSubControlLedgerDelete() {
+    const ids = selectedModalSubControlLedger.map(x => parseInt(x)).filter(x => !isNaN(x));
 
     if (!ids.length) {
         toastr.warning("No Record Selected For Deletion.");
@@ -525,23 +448,23 @@ function ModalSubSidiaryLedgerDelete() {
     }
 
     $.ajax({
-        url: '/subsidiary-ledger-all-delete',
+        url: '/subcontrol-ledger-all-delete',
         type: 'DELETE',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
             toastr.success(response.message || "Data Deleted Successfully.");
 
-            const event = new CustomEvent('SubSidiaryLedgerUpdated', { detail: { newSubSidiaryLedgerCodeNo: response.susidiaryLedgerCodeNo } });
+            const event = new CustomEvent('SubcontrolLedgerUpdated', { detail: { newSubCRLlLedgerCodeNo: response.generalLedgerCodeNo } });
             window.dispatchEvent(event);
 
-            ModalSubSidiaryLedgerFormClear();
-            ModalSubSididiarLedgerAll(ModalcurrenSubSidiarytPage, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection);
-            selectedModalSubSidiaryLedger = [];
-            $("#ModalSubSidiaryselectAll").prop("checked", false);
+            ModalSubControlLedgerFormClear();
+            ModalLoadSubControlLedgerAll(ModalcurrenSubControltPage, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection);
+            selectedModalSubControlLedger = [];
+            $("#ModalSubControlselectAll").prop("checked", false);
 
-            if (typeof SubSididiarLedgerAll === "function") {
-                SubSididiarLedgerAll();
+            if (typeof ModalModalLoadSubControlLedgerAll === "function") {
+                ModalModalLoadSubControlLedgerAll();
             }
         },
         error: function (xhr, status, error) {
@@ -552,37 +475,28 @@ function ModalSubSidiaryLedgerDelete() {
 }
 //#endregion
 
-//#region Pagination & Checkbox Helpers
-function ModalSubSidiaryupdateSortIndicators() {
-    $('.ModalSubSidiarysortable').removeClass('sort-asc sort-desc');
-    $('.ModalSubSidiarysortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+//#region Sort & Pagination Helpers 
+function ModalSubControlupdateSortIndicators() {
+    $('.ModalSubControlsortable').removeClass('sort-asc sort-desc');
+    $('.ModalSubControlsortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
 
-    const header = $(`.ModalSubSidiarysortable[data-column="${ModalSubSidiarycurrentSortColumn}"]`);
-    header.addClass(ModalSubSidiarycurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+    const header = $(`.ModalSubControlsortable[data-column="${ModalSubControlcurrentSortColumn}"]`);
+    header.addClass(ModalSubControlcurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
 
     const icon = header.find('.sort-icon');
     icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(ModalSubSidiarycurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+    icon.addClass(ModalSubControlcurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
 }
 
-function ModalSubSidiarygeneratePageButtons(currentPage, totalPages) {
-    const navigationDiv = $('#ModalSubSidiarypageNavigation');
+function ModalSubControlgeneratePageButtons(currentPage, totalPages) {
+    const navigationDiv = $('#ModalSubControlpageNavigation');
     navigationDiv.empty();
 
     function createButton(page) {
         const btn = $('<button type="button">')
             .addClass('btn btn-sm mx-1')
             .text(page)
-            .click(() => ModalSubSididiarLedgerAll(
-                page,
-                ModalSubSidiarypageSize,
-                ModalSubSidiarycurrentSortColumn,
-                ModalSubSidiarycurrentSortDirection,
-                $('#ModalSubSidiarysearchInput').val().trim(),
-                ModalselectedGroupCodeSSL,
-                ModalselectedControlCodeSSL,
-                ModalselectedSubControlCodeSSL
-            ));
+            .click(() => ModalLoadSubControlLedgerAll(page, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, $('#ModalSubControlsearchInput').val().trim(), ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl));
 
         if (page === currentPage) {
             btn.addClass('btn-primary');
@@ -611,17 +525,17 @@ function ModalSubSidiarygeneratePageButtons(currentPage, totalPages) {
     navigationDiv.append(createButton(totalPages));
 }
 
-function ModalSubSidiaryupdateCheckboxState() {
-    $('.ModalSubsidiary-checkbox').each(function () {
+function ModalSubControlupdateCheckboxState() {
+    $('.ModalSubcontrol-checkbox').each(function () {
         const ID = parseInt($(this).data('autoid'));
-        $(this).prop('checked', selectedModalSubSidiaryLedger.includes(ID));
+        $(this).prop('checked', selectedModalSubControlLedger.includes(ID));
     });
-    const allChecked = $('.ModalSubsidiary-checkbox:visible').length > 0 &&
-        $('.ModalSubsidiary-checkbox:visible:not(:checked)').length === 0;
-    $('#ModalSubSidiaryselectAll').prop('checked', allChecked);
+    const allChecked = $('.ModalSubcontrol-checkbox:visible').length > 0 &&
+        $('.ModalSubcontrol-checkbox:visible:not(:checked)').length === 0;
+    $('#ModalSubControlselectAll').prop('checked', allChecked);
 }
 
-function ModalSubSidiarydebounce(func, delay) {
+function SubControldebounce(func, delay) {
     let timer;
     return function () {
         const context = this, args = arguments;
@@ -630,35 +544,35 @@ function ModalSubSidiarydebounce(func, delay) {
     };
 }
 
-function ModalSubSidiarybindCheckboxHandlers() {
-    $(document).off('click', '.ModalSubsidiary-checkbox').on('click', '.ModalSubsidiary-checkbox', function () {
+function SubControlbindCheckboxHandlers() {
+    $(document).off('click', '.ModalSubcontrol-checkbox').on('click', '.ModalSubcontrol-checkbox', function () {
         const id = parseInt($(this).data('autoid'));
         const isChecked = $(this).prop('checked');
 
         if (isChecked) {
-            if (!selectedModalSubSidiaryLedger.includes(id)) selectedModalSubSidiaryLedger.push(id);
+            if (!selectedModalSubControlLedger.includes(id)) selectedModalSubControlLedger.push(id);
         } else {
-            const index = selectedModalSubSidiaryLedger.indexOf(id);
-            if (index !== -1) selectedModalSubSidiaryLedger.splice(index, 1);
+            const index = selectedModalSubControlLedger.indexOf(id);
+            if (index !== -1) selectedModalSubControlLedger.splice(index, 1);
         }
 
-        const allChecked = $('.ModalSubsidiary-checkbox:visible').length > 0 &&
-            $('.ModalSubsidiary-checkbox:visible:not(:checked)').length === 0;
-        $('#ModalSubSidiaryselectAll').prop('checked', allChecked);
+        const allChecked = $('.ModalSubcontrol-checkbox:visible').length > 0 &&
+            $('.ModalSubcontrol-checkbox:visible:not(:checked)').length === 0;
+        $('#ModalSubControlselectAll').prop('checked', allChecked);
     });
 }
 
-$(document).on('click', '#ModalSubSidiaryselectAll', function () {
+$(document).on('click', '#ModalSubControlselectAll', function () {
     const isChecked = $(this).prop('checked');
-    $('.ModalSubsidiary-checkbox:visible').prop('checked', isChecked);
+    $('.ModalSubcontrol-checkbox:visible').prop('checked', isChecked);
 
-    $('.ModalSubsidiary-checkbox:visible').each(function () {
+    $('.ModalSubcontrol-checkbox:visible').each(function () {
         const id = parseInt($(this).data('autoid'));
-        const index = selectedModalSubSidiaryLedger.indexOf(id);
+        const index = selectedModalSubControlLedger.indexOf(id);
         if (isChecked && index === -1) {
-            selectedModalSubSidiaryLedger.push(id);
+            selectedModalSubControlLedger.push(id);
         } else if (!isChecked && index !== -1) {
-            selectedModalSubSidiaryLedger.splice(index, 1);
+            selectedModalSubControlLedger.splice(index, 1);
         }
     });
 });
@@ -666,70 +580,74 @@ $(document).on('click', '#ModalSubSidiaryselectAll', function () {
 
 //#region Document Ready
 $(document).ready(function () {
-    ModalSubSidiaryForGeneralUI();
-    ModalSubSididiarLedgerAll();
-    ModalSubSidiarybindCheckboxHandlers();
+    ModalLoadDropdownGRLCRL();
+    ModalLoadSubControlLedgerAll();
+    SubControlbindCheckboxHandlers();
 
-    $('#ModalSubSidiaryldisplayLDate').text(getBangladeshDateTime());
+    $('#ModalSubControldisplayLDate').text(getBangladeshDateTime());
 
-    $(document).on("submit", "#ModalsubSidiaryForm", function (e) {
+    $(document).on("submit", "#ModalsubcontrolForm", function (e) {
         e.preventDefault();
-        ModalSubSidiaryLedgerSaveOrUpdate();
+        ModalSubControlLedgerSaveOrUpdate();
     });
-
-    $(document).on("click", "#ModalSubSidiarydeleteBtn, .js-ModalSubSidiary-delete-confirm", function (e) {
+    $(document).on("click", ".js-SubControl-save", function (e) {
         e.preventDefault();
-        ModalSubSidiaryLedgerDelete();
+        ModalSubControlLedgerSaveOrUpdate();
     });
 
-    $(document).on("click", ".ModalSubSidiaryresetBtn, .js-ModalSubSidiary-clear", function () {
-        ModalSubSidiaryLedgerFormClear();
+    $(document).on("click", "#ModalSubcontroldeleteBtn, .js-SubControl-delete-confirm", function (e) {
+        e.preventDefault();
+        ModalSubControlLedgerDelete();
     });
 
-    $(document).on('input', '.ModalSubSidiarysearchInput', ModalSubSidiarydebounce(function () {
+    $(document).on("click", ".SubcontrolresetBtn, .js-SubControl-clear", function () {
+        ModalSubControlLedgerFormClear();
+    });
+
+    $(document).on('input', '.ModalSubControlsearchInput', SubControldebounce(function () {
         const searchValue = $(this).val().trim();
-        ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, searchValue, ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, ModalselectedSubControlCodeSSL);
+        ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, searchValue, ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl);
     }, 500));
 
-    $(document).on('click', '#ModalSubSidiaryfirstPage', function () {
-        ModalcurrenSubSidiarytPage = 1;
-        ModalSubSididiarLedgerAll(ModalcurrenSubSidiarytPage, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, ModalselectedSubControlCodeSSL);
+    $(document).on('click', '#ModalSubControlfirstPage', function () {
+        ModalcurrenSubControltPage = 1;
+        ModalLoadSubControlLedgerAll(ModalcurrenSubControltPage, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl);
     });
 
-    $(document).on('click', '#ModalSubSidiarynextPage', function () {
-        ModalcurrenSubSidiarytPage++;
-        ModalSubSididiarLedgerAll(ModalcurrenSubSidiarytPage, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, ModalselectedSubControlCodeSSL);
+    $(document).on('click', '#ModalSubControlnextPage', function () {
+        ModalcurrenSubControltPage++;
+        ModalLoadSubControlLedgerAll(ModalcurrenSubControltPage, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl);
     });
 
-    $(document).on('click', '#ModalSubSidiaryprevPage', function () {
-        if (ModalcurrenSubSidiarytPage > 1) {
-            ModalcurrenSubSidiarytPage--;
-            ModalSubSididiarLedgerAll(ModalcurrenSubSidiarytPage, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, ModalselectedSubControlCodeSSL);
+    $(document).on('click', '#ModalSubControlprevPage', function () {
+        if (ModalcurrenSubControltPage > 1) {
+            ModalcurrenSubControltPage--;
+            ModalLoadSubControlLedgerAll(ModalcurrenSubControltPage, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl);
         }
     });
 
-    $(document).on('click', '#ModalSubSidiarylastPage', function () {
-        let lastPage = parseInt($('#ModalSubSidiarypageNavigation button').last().text());
+    $(document).on('click', '#ModalSubControllastPage', function () {
+        let lastPage = parseInt($('#ModalSubControlpageNavigation button').last().text());
         if (!isNaN(lastPage)) {
-            ModalcurrenSubSidiarytPage = lastPage;
-            ModalSubSididiarLedgerAll(ModalcurrenSubSidiarytPage, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, "", ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, ModalselectedSubControlCodeSSL);
+            ModalcurrenSubControltPage = lastPage;
+            ModalLoadSubControlLedgerAll(ModalcurrenSubControltPage, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, "", ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl);
         }
     });
 
-    $(document).on('change', '.ModalSubSidiarypageSize', function () {
-        ModalSubSidiarypageSize = parseInt($(this).val());
-        ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection);
+    $(document).on('change', '.ModalSubControlpageSize', function () {
+        ModalSubControlpageSize = parseInt($(this).val());
+        ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection);
     });
 
-    $(document).on('click', '.ModalSubSidiarysortable', function () {
+    $(document).on('click', '.ModalSubControlsortable', function () {
         const column = $(this).data('column');
-        if (column === ModalSubSidiarycurrentSortColumn) {
-            ModalSubSidiarycurrentSortDirection = (ModalSubSidiarycurrentSortDirection === 'desc') ? 'asc' : 'desc';
+        if (column === ModalSubControlcurrentSortColumn) {
+            ModalSubControlcurrentSortDirection = (ModalSubControlcurrentSortDirection === 'desc') ? 'asc' : 'desc';
         } else {
-            ModalSubSidiarycurrentSortColumn = column;
-            ModalSubSidiarycurrentSortDirection = 'desc';
+            ModalSubControlcurrentSortColumn = column;
+            ModalSubControlcurrentSortDirection = 'desc';
         }
-        ModalSubSididiarLedgerAll(1, ModalSubSidiarypageSize, ModalSubSidiarycurrentSortColumn, ModalSubSidiarycurrentSortDirection, $('#ModalSubSidiarysearchInput').val().trim(), ModalselectedGroupCodeSSL, ModalselectedControlCodeSSL, ModalselectedSubControlCodeSSL);
+        ModalLoadSubControlLedgerAll(1, ModalSubControlpageSize, ModalSubControlcurrentSortColumn, ModalSubControlcurrentSortDirection, $('#ModalSubControlsearchInput').val().trim(), ModalselectedGroupLedgerCodeForSubControl, ModalselectedControlLedgerCodeForSubControl);
     });
 });
 //#endregion

@@ -1,8 +1,8 @@
-﻿let selectedModalGroupLedger = [];
-let ModalcurrentPage = 1;
-let ModalpageSize = 10;
-let ModalcurrentSortColumn = 'ControlLedgerCodeNo';
-let ModalcurrentSortDirection = 'desc';
+var selectedModalGroupLedger = [];
+var ModalcurrentPage = 1;
+var ModalpageSize = 10;
+var ModalcurrentSortColumn = 'ControlLedgerCodeNo';
+var ModalcurrentSortDirection = 'desc';
 console.log(`Global Call: ${selectedModalGroupLedger}`);
 
 
@@ -198,8 +198,8 @@ function ModalLoadGroupLedger(page = 1, ModalpageSize = 10, sortColumn = Modalcu
             $('#ModalpaginationInfo').text(`Page ${page} of ${Math.max(1, totalPages)}`);
             $('#ModaltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
 
-            currentPage = page;
-            ModalgeneratePageButtons(currentPage, totalPages);
+            ModalcurrentPage = page;
+            ModalgeneratePageButtons(ModalcurrentPage, totalPages);
             ModalupdateCheckboxState();
             ModalupdateSortIndicators();
         },
@@ -308,7 +308,7 @@ function ModalDeleteGroupLedger() {
 
             // Clear form, reload table, reset selection
             ModalClearGroupLedgerForm();
-            ModalLoadGroupLedger(currentPage, pageSize, currentSortColumn, currentSortDirection);
+            ModalLoadGroupLedger(ModalcurrentPage, ModalpageSize, ModalcurrentSortColumn, ModalcurrentSortDirection);
             selectedModalGroupLedger = [];
             $("#ModalselectAll").prop("checked", false);
 
@@ -319,7 +319,7 @@ function ModalDeleteGroupLedger() {
             loadGeneralLedgerData();
             ModalSubSidiaryForGeneralUI();
             LoadGroupLedgerDropdown();
-            LoadGroupLedger(1, pageSize, currentSortColumn, currentSortDirection, "");
+            LoadGroupLedger(1, 10, 'ControlLedgerCodeNo', 'desc', "");
             ModalLoadNextGroupLedgerCode();
             LoadNextGroupLedgerCode();
         },
