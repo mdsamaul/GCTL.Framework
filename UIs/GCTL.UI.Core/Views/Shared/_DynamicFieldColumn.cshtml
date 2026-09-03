@@ -41,6 +41,12 @@
         labelClass += " " + Model.LabelCssClass;
     }
 
+    var useGridLayout = Model.UseGridLayout;
+    if (useGridLayout)
+    {
+        fullContainerStyle += "display: contents;";
+    }
+
     <div class="@wrapperClasses"
          id="@Model.ContainerId"
          style="@fullContainerStyle"
@@ -62,24 +68,44 @@
                 {
                     @if (Model.LabelInline)
                     {
-                        <div class="row align-items-center gx-2">
-                            <div class="col-@labelCol @Model.LabelColumnClass">
-                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
-                                    @if (!string.IsNullOrEmpty(Model.IconClass))
-                                    {
-                                        <i class="@Model.IconClass me-1"></i>
-                                    }
-                                    @Model.LabelText
-                                    @if (Model.IsRequired)
-                                    {
-                                        <sup class="text-danger required-star">*</sup>
-                                    }
-                                </label>
-                            </div>
-                            <div class="col-@fieldCol">
+                        if (useGridLayout)
+                        {
+                            <label class="@labelClass text-end" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                @if (!string.IsNullOrEmpty(Model.IconClass))
+                                {
+                                    <i class="@Model.IconClass me-1"></i>
+                                }
+                                @Model.LabelText
+                                @if (Model.IsRequired)
+                                {
+                                    <sup class="text-danger required-star">*</sup>
+                                }
+                            </label>
+                            <div class="custom-field-input-wrapper">
                                 <partial name="_DynamicField_InputWithGroup" model="Model" />
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="row align-items-center gx-2">
+                                <div class="col-@labelCol @Model.LabelColumnClass">
+                                    <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                        @if (!string.IsNullOrEmpty(Model.IconClass))
+                                        {
+                                            <i class="@Model.IconClass me-1"></i>
+                                        }
+                                        @Model.LabelText
+                                        @if (Model.IsRequired)
+                                        {
+                                            <sup class="text-danger required-star">*</sup>
+                                        }
+                                    </label>
+                                </div>
+                                <div class="col-@fieldCol">
+                                    <partial name="_DynamicField_InputWithGroup" model="Model" />
+                                </div>
+                            </div>
+                        }
                     }
                     else
                     {

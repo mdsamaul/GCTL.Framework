@@ -4,6 +4,49 @@
     <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
 </div>
 
+<style>
+    .form-grid-layout {
+        display: grid;
+        grid-template-columns: max-content 1fr max-content 1fr;
+        column-gap: 5px;
+        row-gap: 5px;
+        align-items: center;
+    }
+    /* Flatten the bootstrap grid so children become grid items */
+    .form-grid-layout .form-group,
+    .form-grid-layout .col-lg-6,
+    .form-grid-layout .col-md-6,
+    .form-grid-layout .row.align-items-center {
+        display: contents;
+    }
+    
+    /* Let col-4 and col-8 act as the actual grid cells */
+    .form-grid-layout .col-4 {
+        display: block !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin: 0 !important;
+        text-align: right;
+    }
+    .form-grid-layout .col-8 {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        flex: none !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Additional alignments */
+    .form-grid-layout label.form-label {
+        margin-bottom: 0;
+    }
+</style>
+
 <div class="card rounded shadow-sm">
     <div class="card-header p-0">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
@@ -20,8 +63,8 @@
         })
     </div>
 
-    <div class="card-body px-2">
-        <form id="expenseForm">
+    <div class="card-body px-5 mx-3">
+        <form id="expenseForm" class="form-grid-layout">
             <input type="hidden" id="tc" name="tc" />
 
             <div class="form-group row">
@@ -65,7 +108,7 @@
                     ReserveActionSlot = false,
                     ColumnClass = "col-lg-6",
                     LabelInline = true,
-                    LabelColumnClass = "text-end"
+                    LabelColumnClass = "text-end",                    
                 })
 
                 @* ---------- Expense Head Name ---------- *@
