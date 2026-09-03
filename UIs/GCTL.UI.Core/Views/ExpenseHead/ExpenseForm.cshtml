@@ -60,10 +60,12 @@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "isReceiptable",
-                    LabelText = "Is Receiptable Expense?",
+                    LabelText = "Is Receiptable Expense",
                     FieldType = FieldType.Checkbox,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6",
+                    LabelInline = true,
+                    LabelColumnClass = "text-end"
                 })
 
                 @* ---------- Expense Head Name ---------- *@
