@@ -76,6 +76,7 @@ namespace GCTL.Service.Users
                                 EntryDate = u.EntryDate,
                                 AccessCode = u.AccessCode ?? string.Empty,
                                 Status = u.Status == "1" ? "Active" : "Inactive",
+                                IsMobileAppUser = u.IsMobile.Trim() == "1" ? "Yes" : "No",
                                 EmployeeId = u.EmployeeId ?? string.Empty,
                                 CustomerId = u.CustomerId ?? string.Empty
                             };

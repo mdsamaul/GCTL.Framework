@@ -20,6 +20,40 @@
         color: #0000e0 !important;
     }
 
+    /* Breakpoint adjustments for 900px - 1500px and >1500px */
+    @@media (min-width: 900px) and (max-width: 1500px) {
+        .ua-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-bottom: 1.5rem;
+        }
+
+        .ua-layout-form-col .card-body {
+            padding-bottom: 1.5rem !important;
+        }
+
+        .ua-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            padding-bottom: 2rem !important;
+        }
+    }
+
+    @@media (min-width: 1500.02px) {
+        .ua-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ua-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -28,7 +62,7 @@
 <section class="content">
     <div class="container-fluid">
         <div class="row pb-2">
-            <div class="col-md-6 pe-1 ps-0">
+            <div class="col-12 col-xl-6 ua-layout-form-col pe-xl-1 ps-0">
                 <div class="card card-primary">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
@@ -36,9 +70,6 @@
                         SaveBtnClass = "js-useraccess-save", DeleteBtnClass = "js-useraccess-delete-confirm", ClearBtnClass = "js-useraccess-clear",
                         ShowFavorite = false, ShowPrint = false
                     })
-                    @* <div class="card-header p-1" style="background-color: white; color: black; font-weight: 600;">
-                        <partial name="_Toolbars" model="new ToobarModel() { Title = Model.Breadcrumb, Code = Model.Code, Name = Model.Setup.EmployeeName }" />
-                    </div> *@
                     <div class="card-body" style="padding-left: 7px; padding-right: 8px; padding-top: 10px; padding-bottom: 0px;">
                         <form asp-action="Setup" id="useraccess-form">
                             <div class="js-useraccess-form-container">
@@ -48,10 +79,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 ps-1 pe-0">
-                        <div class="js-useraccess-grid-container">
-                            <partial name="_Grid" />
-                        </div>
+            <div class="col-12 col-xl-6 ua-layout-grid-col ps-xl-1 pe-0">
+                <div class="js-useraccess-grid-container">
+                    <partial name="_Grid" />
+                </div>
             </div>
         </div>
         <partial name="_BottomNavigation" />
