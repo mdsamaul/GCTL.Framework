@@ -39,13 +39,14 @@
                 $('[data-toggle="tooltip"]').tooltip();
             });
 
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: 'companyWeekEndsTable' });
-            }
 
             var selectedItems = [];
 
             $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'companyWeekEndsTable' });
+            }
+
                 initialize();
 
                 // Save button click event
@@ -222,10 +223,9 @@
             // window.gctlRenderers = window.gctlRenderers || {};
             // window.gctlRenderers.formatDate = function (data) { return formatDate(data); };
             function loadTable() {
-
-                if ($.gctlGrid) {
-                    $.gctlGrid.initFromModel({
-                        gridId: 'companyWeekEndsTable'
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
                     });
                 }
                 // if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {

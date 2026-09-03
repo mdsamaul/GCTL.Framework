@@ -42,6 +42,10 @@
         //#endregion
       
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'ContactPersonInfo-grid' });
+            }
+
 
             loadSNCId();
             select2DD();
@@ -256,10 +260,8 @@
         //#region loadTable
 
         function loadTable() {
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({
-                    gridId: 'contactPersonInfoTable'
-                });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 

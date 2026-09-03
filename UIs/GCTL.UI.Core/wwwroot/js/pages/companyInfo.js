@@ -43,6 +43,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'CompanyInfo-grid' });
+            }
+
 
            // select2DD();
             loadTable();
@@ -277,10 +281,8 @@
 
         //#region loadTable
         function loadTable() {
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({
-                    gridId: 'companyInfoTable'
-                });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 

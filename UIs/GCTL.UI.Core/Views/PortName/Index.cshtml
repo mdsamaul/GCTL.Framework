@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.PortName.PortNamePageViewModel
+@model GCTL.UI.Core.ViewModels.PortName.PortNamePageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -91,7 +91,7 @@
             <div class="col-md-6">
                 @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                 {
-                    GridId = "portNameTable",
+                    GridId = "PortName-grid",
                     AjaxUrl = "/PortName/GetTableData",
                     AjaxMethod = "GET",
                     ServerSide = false,
@@ -118,8 +118,8 @@
 
 <partial name="DeleteModal" />
 
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/portName.js" defer></script>
+<script src="~/js/app.input.validation.js"></script>
+<script src="~/js/pages/portName.js"></script>
 <script type="text/javascript">
     (function waitForJQuery() {
         if (window.jQuery && typeof $.portName === "function") {

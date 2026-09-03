@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportType;
 using GCTL.Service.Common;
@@ -205,7 +205,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 var list = await transportTypeService.GetAllAsync();
-                return Json(list);
+                return Json(new { data = list });
                 //return PartialView("_Grid", list);
             }
             catch (Exception ex)

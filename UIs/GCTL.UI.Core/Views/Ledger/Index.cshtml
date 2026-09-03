@@ -1,4 +1,4 @@
-﻿
+
 <style>
     .custom-width-modal {
         max-width: 1600px !important;
@@ -298,9 +298,25 @@
                 $.gctlGrid.initFromModel({ gridId: 'subControlLedgerTable' });
                 $.gctlGrid.initFromModel({ gridId: 'subSidiaryLedgerTable' });
                 $.gctlGrid.initFromModel({ gridId: 'generalLedgerTable' });
+                
+                // Initialize Modal Grids
+                $.gctlGrid.initFromModel({ gridId: 'modalGroupLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'modalControlLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'modalSubControlLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'modalSubSidiaryLedgerTable' });
+            }
+
+            // Restore active tab from localStorage
+            var activeTab = localStorage.getItem('activeLedgerTab');
+            if (activeTab) {
+                var tab = new bootstrap.Tab(document.querySelector('#' + activeTab));
+                tab.show();
             }
 
             $('[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                // Save active tab to localStorage
+                localStorage.setItem('activeLedgerTab', e.target.id);
+                
                 if ($.fn.dataTable) {
                     $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
                 }

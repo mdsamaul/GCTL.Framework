@@ -124,8 +124,8 @@
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",
-                    AjaxUrl = "/ExporterInfo/GetAll",
-                    AjaxMethod = "POST",
+                    AjaxUrl = "/ExporterInfo/GetTableData",
+                    AjaxMethod = "GET",
                     ServerSide = false,
                     ShowCheckbox = true,
                     CheckColumnData = "tc",

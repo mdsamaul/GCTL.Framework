@@ -22,6 +22,7 @@ namespace GCTL.UI.Core.ViewModels
 
     public class DynamicFieldColumnModel
     {
+        public bool UseGridLayout { get; set; } = false;
         // ================= Layout =================
         public string ColumnClass { get; set; } = "col-lg-4 col-md-6";
         public int? Order { get; set; }                     // display order (mobile-first reordering)

@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -266,7 +266,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 var list = await vendorInfoService.GetAllAsync();
-                return Json(list);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {

@@ -1,50 +1,43 @@
-﻿//#region Modal Open & Close Event Handlers
+document.body.addEventListener('click', function(e) {
+    let btn = e.target.closest('.js-quick-add');
+    if (!btn) return;
+    
+    let target = btn.getAttribute('data-target');
+    
+    // Only intercept for the static Ledger modals
+    if (target === '#GRLModal' || target === '#UICRLModal' || target === '#SCRLModal' || target === '#SSLModal') {
+        e.preventDefault();
+        e.stopPropagation(); // Stops gc-modal.js from making an AJAX request
+        
+        let tabPane = btn.closest('.tab-pane');
+        let currentTabId = tabPane ? tabPane.getAttribute('id') : null;
+        let $modal = $(target);
+        
+        $modal.data('from-tab', currentTabId);
+        
+        // Load the fresh data for the specific modal using DataTables
+        if (target === '#GRLModal' && $.fn.DataTable.isDataTable('#modalGroupLedgerTable')) {
+            $('#modalGroupLedgerTable').DataTable().ajax.reload(null, false);
+        }
+        if (target === '#UICRLModal' && $.fn.DataTable.isDataTable('#modalControlLedgerTable')) {
+            $('#modalControlLedgerTable').DataTable().ajax.reload(null, false);
+        }
+        if (target === '#SCRLModal' && $.fn.DataTable.isDataTable('#modalSubControlLedgerTable')) {
+            $('#modalSubControlLedgerTable').DataTable().ajax.reload(null, false);
+        }
+        if (target === '#SSLModal' && $.fn.DataTable.isDataTable('#modalSubSidiaryLedgerTable')) {
+            $('#modalSubSidiaryLedgerTable').DataTable().ajax.reload(null, false);
+        }
+        
+        // Open the static modal
+        $modal.modal('show');
+    }
+}, true); // Use capture phase to run before jQuery delegated events
 
-// Group Ledger Modal
-$(document).on('click', '.openGroupLedgerModal, .js-quick-add[data-target="#GRLModal"]', function () {
-    let currentTab = $(this).closest('.tab-pane').attr('id');
-    console.log("Group Ledger Modal opened from:", currentTab);
-    $('#GRLModal').data('from-tab', currentTab);
-});
-
-$('#GRLModal').on('hidden.bs.modal', function () {
-    console.log('Group Ledger Modal closed');
-});
-
-// Control Ledger Modal
-$(document).on('click', '.openControlLedgerModal, .js-quick-add[data-target="#UICRLModal"]', function () {
-    let currentTab = $(this).closest('.tab-pane').attr('id');
-    console.log("Control Ledger Modal opened from:", currentTab);
-    $('#UICRLModal').data('from-tab', currentTab);
-});
-
-$('#UICRLModal').on('hidden.bs.modal', function () {
+// Optional: Log when modals close
+$('#GRLModal, #UICRLModal, #SCRLModal, #SSLModal').on('hidden.bs.modal', function () {
     let fromTab = $(this).data('from-tab');
-    console.log('Control Ledger Modal closed from tab:', fromTab);
-});
-
-// Sub-Control Ledger Modal
-$(document).on('click', '.AddSCRL, .js-quick-add[data-target="#SCRLModal"]', function () {
-    let currentTab = $(this).closest('.tab-pane').attr('id');
-    console.log("Sub-Control Ledger Modal opened from:", currentTab);
-    $('#SCRLModal').data('from-tab', currentTab);
-});
-
-$('#SCRLModal').on('hidden.bs.modal', function () {
-    let fromTab = $(this).data('from-tab');
-    console.log('Sub-Control Ledger Modal closed from tab:', fromTab);
-});
-
-// Sub-Sidiary Ledger Modal
-$(document).on('click', '.SubSidiModal, .js-quick-add[data-target="#SSLModal"]', function () {
-    let currentTab = $(this).closest('.tab-pane').attr('id');
-    console.log("Sub-Sidiary Ledger Modal opened from:", currentTab);
-    $('#SSLModal').data('from-tab', currentTab);
-});
-
-$('#SSLModal').on('hidden.bs.modal', function () {
-    let fromTab = $(this).data('from-tab');
-    console.log('Sub-Sidiary Ledger Modal closed from tab:', fromTab);
+    console.log(this.id + ' closed from tab:', fromTab);
 });
 
 //#endregion
