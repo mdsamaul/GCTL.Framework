@@ -3,7 +3,7 @@
 
                             <div style="padding-top: 10px;">
 
-                                <input type="hidden" asp-for="Id" />
+                                @* <input type="text" asp-for="Id" /> *@
                                 <input type="hidden" asp-for="Ldate" />
                                 <input type="hidden" asp-for="ModifyDate" />
                                 <input type="hidden" asp-for="EmpContactId" />
@@ -298,7 +298,7 @@
                                             FieldType = FieldType.Select,
                                             Placeholder = "Select District",
                                             ColumnClass = "col-lg-4",
-                                            SelectItems = ViewBag.DistrictDD as SelectList,
+                                            SelectItems = ViewBag.PresentDistrictDD as SelectList,
                                             DefaultValue = Model.PresentDistrict,
                                             ReserveActionSlot = true
                                         })
@@ -387,7 +387,7 @@
                                             FieldType = FieldType.Select,
                                             Placeholder = "Select Relationship",
                                             ColumnClass = "col-lg-4",
-                                            SelectItems = ViewBag.RelationshipDD as SelectList,
+                                            SelectItems = ViewBag.Relationship1DD as SelectList,
                                             ShowQuickAdd = true,
                                             QuickAddUrl = Url.Action("Index", "Relationships"),
                                             QuickAddTarget = "#EmContactRelation1",
@@ -493,7 +493,7 @@
                                             FieldType = FieldType.Select,
                                             Placeholder = "Select Relationship",
                                             ColumnClass = "col-lg-4",
-                                            SelectItems = ViewBag.RelationshipDD as SelectList,
+                                            SelectItems = ViewBag.Relationship2DD as SelectList,
                                             DefaultValue = Model.EmContactRelation2,
                                             ReserveActionSlot = true
                                         })

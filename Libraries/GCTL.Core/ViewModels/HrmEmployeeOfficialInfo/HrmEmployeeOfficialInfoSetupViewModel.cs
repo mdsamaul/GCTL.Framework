@@ -83,7 +83,6 @@ namespace GCTL.Core.ViewModels.HrmEmployeeOfficialInfo
         public string? SuporVisorName1 { get; set; }
         public string? HodName1 { get; set; }
 
-        public List<HrmEmployeeOfficialInfoSetupViewModel> SetupList { get; set; } = new List<HrmEmployeeOfficialInfoSetupViewModel>();
-
+        public List<HrmEmployeeOfficialInfoSetupViewModel>? SetupList { get; set; } = new List<HrmEmployeeOfficialInfoSetupViewModel>();
     }
 }

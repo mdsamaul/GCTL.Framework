@@ -114,15 +114,15 @@
                                         AjaxMethod = "POST",
                                         ServerSide = false,
                                         ShowCheckbox = true,
-                                        CheckColumnData = "empContactId",
+                                        CheckColumnData = "autoId",
                                         CheckAllId = "EmployeeContactInfos-check-all",
-                                        DefaultSortColumn = "empContactId",
+                                        DefaultSortColumn = "autoId",
                                         DefaultSortDirection = "desc",
                                         ShowActionMenu = false, // Disabling Action Menu to use click-to-edit
                                         Columns = new()
                                         {
-                                            new() { Data = "empContactId", Header = "System ID", Width = "0%", Visible = false },
-                                            new() { Data = "employeeId", Header = "Employee Id", Width = "10%", IsEditLink = true, EditSelectorClass = "js-EmployeeContactInfos-edit", IdField = "empContactId" },
+                                            new() { Data = "autoId", Header = "System ID", Width = "0%", Visible = false },
+                                            new() { Data = "employeeId", Header = "Employee Id", Width = "10%", IsEditLink = true, EditSelectorClass = "js-EmployeeContactInfos-edit", IdField = "autoId" },
                                             new() { Data = "employeeName", Header = "Name", Width = "20%" },
                                             new() { Data = "parmanentAddress", Header = "Permanent Address", Width = "25%" },
                                             new() { Data = "parmanentPostOffice", Header = "Post Office", Width = "15%" },
