@@ -34,9 +34,11 @@
 
             // ── Edit & Clear Button ──────────────────────────────────────────────
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+                
                 e.preventDefault();
                 let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
                 loadForm(url).then((data) => {
+                    console.log(data);
                     console.info("Form Loaded Successfully");
                     // Rebind ConvertToBangla after form loads
                     ConvertToBangla();
@@ -47,6 +49,7 @@
 
             // ── Save Button ──────────────────────────────────────────────────────
             $("body").on("click", settings.saveSelector, function () {
+                
                 var $form = $(settings.formSelector);
                 if ($form.valid && !$form.valid()) {
                     return false;
@@ -56,6 +59,7 @@
 
             // ── Form Submit ──────────────────────────────────────────────────────
             $("body").on("submit", settings.formSelector, function (e) {
+                
                 e.preventDefault();
                 var $form = $(this);
                 var formData = new FormData($form[0]);
@@ -152,6 +156,7 @@
             var _suppressEmployeeChange = false;
 
             $("body").on('change', '#EmployeeId', function () {
+                
                 if (_suppressEmployeeChange) return;
                 var selectedEmployee = $(this).val();
                 if (!selectedEmployee) {
@@ -169,11 +174,11 @@
                     data: { code: selectedEmployee },
                     success: function (response) {
                         if (response && response.data) {
-                            var data = response.data;
+                            var data = response.data;                            
                             if (window.setField) {
-                                window.setField('#FullName', data.employeeName || '');
-                                window.setField('#DesignationName', data.designationName || '');
-                                window.setField('#DepartmentName', data.departmentName || '');
+                                window.setField('#FullName', data.EmployeeName || '');
+                                window.setField('#DesignationName', data.DesignationName || '');
+                                window.setField('#DepartmentName', data.DepartmentName || '');
                             } else {
                                 $('#FullName').text(data.employeeName || '');
                                 $('#DesignationName').text(data.designationName || '');
@@ -197,6 +202,7 @@
                     type: "GET",
                     success: function (result) {
                         $(settings.formContainer).html(result);
+                        console.log(result);
                         $(settings.formSelector).attr("action", saveUrl);
 
                         if (typeof window.initCustomDropdowns === "function") {

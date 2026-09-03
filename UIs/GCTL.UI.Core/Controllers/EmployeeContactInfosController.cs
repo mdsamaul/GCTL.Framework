@@ -95,10 +95,13 @@ namespace GCTL.UI.Core.Controllers
                 .Select(x => x.BranchName)
                 .FirstOrDefault() ?? "";
             ViewBag.RelationshipDD = new SelectList(relationshipRepository.All(), "RelationshipCode", "Relationship");
+            ViewBag.Relationship1DD = new SelectList(relationshipRepository.All(), "RelationshipCode", "Relationship", model.EmContactRelation1);
+            ViewBag.Relationship2DD = new SelectList(relationshipRepository.All(), "RelationshipCode", "Relationship", model.EmContactRelation2);
             ViewBag.CoreBranchDD = new SelectList(coreBranchRepository.All(), "BranchCode", "BranchName", model.BranchCode);
             ViewBag.CoreCompanyDD = new SelectList(coreCompanyRepository.All(), "CompanyCode", "CompanyName", model.CompanyCode);
-            ViewBag.EmployeeDD = new SelectList(await hrmEmployee.GetEmployeeDropSelections(), "Code", "Name");
-            ViewBag.DistrictDD = new SelectList(districtRepository.All(), "DistrictId", "District");
+            ViewBag.EmployeeDD = new SelectList(await hrmEmployee.GetEmployeeDropSelections(), "Code", "Name", model.EmployeeId);
+            ViewBag.DistrictDD = new SelectList(districtRepository.All(), "DistrictId", "District", model.ParmanentDistrict);
+            ViewBag.PresentDistrictDD = new SelectList(districtRepository.All(), "DistrictId", "District", model.PresentDistrict);
 
             model.AddUrl = Url.Action(nameof(Setup));
             if (model.EmpContactId == null)
@@ -109,6 +112,7 @@ namespace GCTL.UI.Core.Controllers
             else
             {
                 ViewBag.IsEditMode = true;
+                
             }
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -164,8 +168,8 @@ namespace GCTL.UI.Core.Controllers
                     modelVM.EmpContactId = await employeeContactInfoService.GenerateNextCode();
                 }
 
-                modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0)
+                modelVM.ToAudit(LoginInfo, modelVM.AutoId.GetValueOrDefault() > 0);
+                if (modelVM.AutoId.GetValueOrDefault() == 0)
                 {
                     var hasSavePermission = await employeeContactInfoService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)
