@@ -38,6 +38,9 @@ namespace GCTL.Core.ViewModels.UserAccesses
         [Searchable]
         public DateTime? EntryDate { get; set; }
 
+        [Searchable]
+        public string? IsMobileAppUser { get; set; }
+
         public string? DepartmentName { get; set; }
         public string? DesignationName { get; set; }
         public string? NationalId { get; set; }
