@@ -84,8 +84,69 @@
         border-color: var(--gc-brass) !important;
     }
 
-    .row>*{
+    .row > * {
         margin-top: .1rem !important;
+    }
+
+    /* --- Responsive Form Layout (900px to 1500px) --- */
+    @@media (min-width: 900px) and (max-width: 1500px) {
+        .gc-ua-setup {
+            padding-bottom: 1.5rem !important;
+        }
+
+        .gc-ua-setup .ua-col-half {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+            margin-bottom: 0.65rem !important;
+        }
+
+        .gc-ua-setup .ua-field-row {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 8px !important;
+            width: 100% !important;
+            margin-bottom: 0 !important;
+        }
+
+        .gc-ua-setup .ua-field-label {
+            flex: 0 0 35% !important;
+            max-width: 35% !important;
+            text-align: right !important;
+            margin-bottom: 0 !important;
+            white-space: normal !important;
+            line-height: 1.2 !important;
+        }
+
+        .gc-ua-setup .ua-field-input {
+            flex: 0 0 calc(65% - 8px) !important;
+            max-width: calc(65% - 8px) !important;
+            width: calc(65% - 8px) !important;
+        }
+
+        .gc-ua-setup .ua-field-input .select2-container {
+            width: 100% !important;
+        }
+
+        .gc-ua-setup .ua-switch-row {
+            display: flex !important;
+            align-items: center !important;
+            height: 100% !important;
+            padding-left: 35% !important;
+        }
+    }
+
+    /* Mobile (< 900px) */
+    @@media (max-width: 899.98px) {
+        .gc-ua-setup .ua-col-half {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 0.35rem !important;
+        }
+
+        .gc-ua-setup .ua-field-label {
+            text-align: left !important;
+        }
     }
 </style>
 
@@ -109,17 +170,22 @@
     <!-- ============ USER TYPE ============ -->
     <div class="gc-section pt-2">
         <div class="row g-3">
-            <div class="col-lg-6">
-                <label asp-for="UserType" class="form-label d-block">User Type</label>
-                <select asp-for="UserType"
-                        id="UserType"
-                        class="form-select form-select-sm custom-select-single"
-                        data-placeholder="Select User Type">
-                    <option value="Employee">Employee</option>
-                    <option value="Customer">Customer</option>
-                </select>
-                <span asp-validation-for="UserType" class="text-danger small"></span>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="UserType" class="form-label ua-field-label d-block">User Type</label>
+                    <div class="ua-field-input">
+                        <select asp-for="UserType"
+                                id="UserType"
+                                class="form-select form-select-sm custom-select-single"
+                                data-placeholder="Select User Type">
+                            <option value="Employee">Employee</option>
+                            <option value="Customer">Customer</option>
+                        </select>
+                        <span asp-validation-for="UserType" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
+            <div class="col-12 col-xl-6 ua-col-half"></div>
         </div>
     </div>
 
@@ -128,20 +194,28 @@
         <!-- Employee identification -->
         <div class="gc-section">
             <div class="row g-3">
-                <div class="col-lg-6">
-                    <label asp-for="EmployeeId" class="form-label d-block">Employee<span class="text-danger">*</span></label>
-                    <select asp-for="EmployeeId"
-                            id="EmployeeId"
-                            class="form-select form-select-sm custom-select-single"
-                            asp-items="@ViewBag.Employees as SelectList"
-                            data-placeholder="Select Employee">
-                        <option value="">--Select Employee--</option>
-                    </select>
-                    <span asp-validation-for="EmployeeId" class="text-danger small"></span>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label asp-for="EmployeeId" class="form-label ua-field-label d-block">Employee<span class="text-danger">*</span></label>
+                        <div class="ua-field-input">
+                            <select asp-for="EmployeeId"
+                                    id="EmployeeId"
+                                    class="form-select form-select-sm custom-select-single"
+                                    asp-items="@ViewBag.Employees as SelectList"
+                                    data-placeholder="Select Employee">
+                                <option value="">--Select Employee--</option>
+                            </select>
+                            <span asp-validation-for="EmployeeId" class="text-danger small"></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                    <label asp-for="EmployeeName" class="form-label d-block">Name</label>
-                    <p id="lblEmployeeName" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeName</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label asp-for="EmployeeName" class="form-label ua-field-label d-block">Name</label>
+                        <div class="ua-field-input">
+                            <p id="lblEmployeeName" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeName</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -149,46 +223,82 @@
         <!-- Employment details -->
         <div class="gc-section">
             <div class="row g-3">
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Designation</label>
-                    <p id="lblDesignation" class="form-control form-control-sm bg-light mb-0">@Model.DesignationName</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Designation</label>
+                        <div class="ua-field-input">
+                            <p id="lblDesignation" class="form-control form-control-sm bg-light mb-0">@Model.DesignationName</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Joining Date</label>
-                    <p id="lblJoiningDate" class="form-control form-control-sm bg-light mb-0">@Model.JoiningDate</p>
-                </div>
-
-                <div class="col-lg-6">
-                    <label class="form-label d-block">National ID</label>
-                    <p id="lblNationalId" class="form-control form-control-sm bg-light mb-0">@Model.NationalId</p>
-                </div>
-                <div class="col-lg-6"></div>
-
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Company</label>
-                    <p id="lblCompany" class="form-control form-control-sm bg-light mb-0">@Model.Company</p>
-                </div>
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Branch</label>
-                    <p id="lblBranch" class="form-control form-control-sm bg-light mb-0">@Model.Branch</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Joining Date</label>
+                        <div class="ua-field-input">
+                            <p id="lblJoiningDate" class="form-control form-control-sm bg-light mb-0">@Model.JoiningDate</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Department</label>
-                    <p id="lblDepartment" class="form-control form-control-sm bg-light mb-0">@Model.DepartmentName</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">National ID</label>
+                        <div class="ua-field-input">
+                            <p id="lblNationalId" class="form-control form-control-sm bg-light mb-0">@Model.NationalId</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Work Station</label>
-                    <p id="lblWorkStation" class="form-control form-control-sm bg-light mb-0">@Model.WorkStation</p>
+                <div class="col-12 col-xl-6 ua-col-half"></div>
+
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Company</label>
+                        <div class="ua-field-input">
+                            <p id="lblCompany" class="form-control form-control-sm bg-light mb-0">@Model.Company</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Branch</label>
+                        <div class="ua-field-input">
+                            <p id="lblBranch" class="form-control form-control-sm bg-light mb-0">@Model.Branch</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Employee Type</label>
-                    <p id="lblEmpType" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeType</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Department</label>
+                        <div class="ua-field-input">
+                            <p id="lblDepartment" class="form-control form-control-sm bg-light mb-0">@Model.DepartmentName</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Employment Nature</label>
-                    <p id="lblEmpNature" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeNature</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Work Station</label>
+                        <div class="ua-field-input">
+                            <p id="lblWorkStation" class="form-control form-control-sm bg-light mb-0">@Model.WorkStation</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Employee Type</label>
+                        <div class="ua-field-input">
+                            <p id="lblEmpType" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeType</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Employment Nature</label>
+                        <div class="ua-field-input">
+                            <p id="lblEmpNature" class="form-control form-control-sm bg-light mb-0">@Model.EmployeeNature</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -196,13 +306,21 @@
         <!-- Contact -->
         <div class="gc-section">
             <div class="row g-3">
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Office Phone</label>
-                    <p id="lblOffPhone" class="form-control form-control-sm bg-light mb-0">@Model.OfficePhone</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Office Phone</label>
+                        <div class="ua-field-input">
+                            <p id="lblOffPhone" class="form-control form-control-sm bg-light mb-0">@Model.OfficePhone</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Office Email</label>
-                    <p id="lblOffEmail" class="form-control form-control-sm bg-light mb-0">@Model.OfficeEmail</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Office Email</label>
+                        <div class="ua-field-input">
+                            <p id="lblOffEmail" class="form-control form-control-sm bg-light mb-0">@Model.OfficeEmail</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,17 +330,22 @@
     <div id="customerSection" style="display: @(Model.UserType == "Customer" ? "block" : "none");">
         <div class="gc-section">
             <div class="row g-3">
-                <div class="col-lg-6">
-                    <label asp-for="CustomerId" class="form-label d-block">Customer<span class="text-danger">*</span></label>
-                    <select asp-for="CustomerId"
-                            id="CustomerId"
-                            class="form-select form-select-sm custom-select-single"
-                            asp-items="@ViewBag.Customers as SelectList"
-                            data-placeholder="Select Customer">
-                        <option value="">--Select Customer--</option>
-                    </select>
-                    <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label asp-for="CustomerId" class="form-label ua-field-label d-block">Customer<span class="text-danger">*</span></label>
+                        <div class="ua-field-input">
+                            <select asp-for="CustomerId"
+                                    id="CustomerId"
+                                    class="form-select form-select-sm custom-select-single"
+                                    asp-items="@ViewBag.Customers as SelectList"
+                                    data-placeholder="Select Customer">
+                                <option value="">--Select Customer--</option>
+                            </select>
+                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                        </div>
+                    </div>
                 </div>
+                <div class="col-12 col-xl-6 ua-col-half"></div>
             </div>
         </div>
     </div>
@@ -232,39 +355,47 @@
     <!-- Account credentials -->
     <div class="gc-section">
         <div class="row g-3">
-            <div class="col-lg-6">
-                <label asp-for="Username" class="form-label d-block">Username<span class="text-danger">*</span></label>
-                <div class="d-flex gap-0">
-                    <input asp-for="Username"
-                           id="Username"
-                           class="form-control form-control-sm"
-                           placeholder="Enter Username"
-                           autocomplete="off" />
-                    <button type="button" id="searchBtn" class="btn btn-sm flex-shrink-0" title="Search">
-                        <i class="fa fa-search"></i>
-                    </button>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="Username" class="form-label ua-field-label d-block">Username<span class="text-danger">*</span></label>
+                    <div class="ua-field-input">
+                        <div class="d-flex gap-0">
+                            <input asp-for="Username"
+                                   id="Username"
+                                   class="form-control form-control-sm"
+                                   placeholder="Enter Username"
+                                   autocomplete="off" />
+                            <button type="button" id="searchBtn" class="btn btn-sm flex-shrink-0" title="Search">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
                 </div>
-                <span asp-validation-for="Username" class="text-danger small"></span>
             </div>
-            <div class="col-lg-6">
-                <label asp-for="UserPassword" class="form-label d-block">Password<span class="text-danger">*</span></label>
-                <div class="password-wrapper">
-                    <input asp-for="UserPassword"
-                           id="UserPassword"
-                           type="password"
-                           class="form-control form-control-sm"
-                           autocomplete="off"
-                           placeholder="Enter Password"
-                           value="@Model.UserPassword" />
-                    <button type="button"
-                            id="toggleBtn"
-                            style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; padding:0; cursor:pointer; line-height:1;"
-                            tabindex="-1"
-                            title="Show password">
-                        <i id="eyeIcon" class="fa fa-eye" style="font-size:14px;"></i>
-                    </button>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="UserPassword" class="form-label ua-field-label d-block">Password<span class="text-danger">*</span></label>
+                    <div class="ua-field-input">
+                        <div class="password-wrapper">
+                            <input asp-for="UserPassword"
+                                   id="UserPassword"
+                                   type="password"
+                                   class="form-control form-control-sm"
+                                   autocomplete="off"
+                                   placeholder="Enter Password"
+                                   value="@Model.UserPassword" />
+                            <button type="button"
+                                    id="toggleBtn"
+                                    style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; padding:0; cursor:pointer; line-height:1;"
+                                    tabindex="-1"
+                                    title="Show password">
+                                <i id="eyeIcon" class="fa fa-eye" style="font-size:14px;"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="UserPassword" class="text-danger small"></span>
+                    </div>
                 </div>
-                <span asp-validation-for="UserPassword" class="text-danger small"></span>
             </div>
         </div>
     </div>
@@ -272,44 +403,58 @@
     <!-- Role / access code / session -->
     <div class="gc-section">
         <div class="row g-3">
-            <div class="col-lg-6">
-                <label asp-for="Role" class="form-label d-block">Role<span class="text-danger">*</span></label>
-                <select asp-for="Role"
-                        id="Role"
-                        class="form-select form-select-sm custom-select-single"
-                        data-placeholder="Select Role"
-                        asp-items="@ViewBag.Roles as SelectList">
-                    <option value="">--Select Role--</option>
-                </select>
-                <span asp-validation-for="Role" class="text-danger small"></span>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="Role" class="form-label ua-field-label d-block">Role<span class="text-danger">*</span></label>
+                    <div class="ua-field-input">
+                        <select asp-for="Role"
+                                id="Role"
+                                class="form-select form-select-sm custom-select-single"
+                                data-placeholder="Select Role"
+                                asp-items="@ViewBag.Roles as SelectList">
+                            <option value="">--Select Role--</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6">
-                <label asp-for="AccessCode" class="form-label d-block">Access Code<span class="text-danger">*</span></label>
-                <select asp-for="AccessCode"
-                        id="AccessCode"
-                        class="form-select form-select-sm custom-select-single"
-                        asp-items="@ViewBag.AccessCodes as SelectList"
-                        data-placeholder="Select Access Code">
-                    <option value="">--Select Access Code--</option>
-                </select>
-                <span asp-validation-for="AccessCode" class="text-danger small"></span>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="AccessCode" class="form-label ua-field-label d-block">Access Code<span class="text-danger">*</span></label>
+                    <div class="ua-field-input">
+                        <select asp-for="AccessCode"
+                                id="AccessCode"
+                                class="form-select form-select-sm custom-select-single"
+                                asp-items="@ViewBag.AccessCodes as SelectList"
+                                data-placeholder="Select Access Code">
+                            <option value="">--Select Access Code--</option>
+                        </select>
+                        <span asp-validation-for="AccessCode" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="col-lg-6">
-                <label asp-for="SingleSession" class="form-label d-block">Session</label>
-                <select asp-for="SingleSession"
-                        id="SingleSession"
-                        class="form-select form-select-sm custom-select-single"
-                        data-placeholder="Select Session"
-                        asp-items="@ViewBag.Sessions as SelectList">
-                </select>
-                <span asp-validation-for="SingleSession" class="text-danger small"></span>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="SingleSession" class="form-label ua-field-label d-block">Session</label>
+                    <div class="ua-field-input">
+                        <select asp-for="SingleSession"
+                                id="SingleSession"
+                                class="form-select form-select-sm custom-select-single"
+                                data-placeholder="Select Session"
+                                asp-items="@ViewBag.Sessions as SelectList">
+                        </select>
+                        <span asp-validation-for="SingleSession" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6 d-flex align-items-end">
-                <div class="form-check form-switch mb-1">
-                    <input type="checkbox" class="form-check-input" role="switch"
-                           asp-for="Status" style="cursor:pointer;">
-                    <label class="form-check-label" for="Status">Status</label>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-switch-row">
+                    <div class="form-check form-switch mb-1">
+                        <input type="checkbox" class="form-check-input" role="switch"
+                               asp-for="Status" style="cursor:pointer;">
+                        <label class="form-check-label" for="Status">Status</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -321,27 +466,35 @@
     <div class="gc-section mb-0">
         <div class="gc-section-title"><i class="fa fa-key"></i>Access Permission</div>
         <div class="row g-3">
-            <div class="col-lg-6">
-                <label asp-for="AccessPermissionCompanyCode" class="form-label d-block">Company</label>
-                <select asp-for="AccessPermissionCompanyCode"
-                        id="AccessPermissionCompanyCode"
-                        class="form-select form-select-sm custom-select-multi"
-                        asp-items="@ViewBag.Companies as SelectList"
-                        data-placeholder="Select Company"
-                        multiple="multiple">
-                </select>
-                <span asp-validation-for="AccessPermissionCompanyCode" class="text-danger small"></span>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="AccessPermissionCompanyCode" class="form-label ua-field-label d-block">Company</label>
+                    <div class="ua-field-input">
+                        <select asp-for="AccessPermissionCompanyCode"
+                                id="AccessPermissionCompanyCode"
+                                class="form-select form-select-sm custom-select-multi"
+                                asp-items="@ViewBag.Companies as SelectList"
+                                data-placeholder="Select Company"
+                                multiple="multiple">
+                        </select>
+                        <span asp-validation-for="AccessPermissionCompanyCode" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6">
-                <label asp-for="AccessPermissionBranchCode" class="form-label d-block">Branch</label>
-                <select asp-for="AccessPermissionBranchCode"
-                        id="AccessPermissionBranchCode"
-                        class="form-select form-select-sm custom-select-multi"
-                        multiple="multiple"
-                        data-placeholder="Select Branch"
-                        asp-items="@ViewBag.Branches as SelectList">
-                </select>
-                <span asp-validation-for="AccessPermissionBranchCode" class="text-danger small"></span>
+            <div class="col-12 col-xl-6 ua-col-half">
+                <div class="ua-field-row">
+                    <label asp-for="AccessPermissionBranchCode" class="form-label ua-field-label d-block">Branch</label>
+                    <div class="ua-field-input">
+                        <select asp-for="AccessPermissionBranchCode"
+                                id="AccessPermissionBranchCode"
+                                class="form-select form-select-sm custom-select-multi"
+                                multiple="multiple"
+                                data-placeholder="Select Branch"
+                                asp-items="@ViewBag.Branches as SelectList">
+                        </select>
+                        <span asp-validation-for="AccessPermissionBranchCode" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -351,13 +504,21 @@
         <hr class="mt-2 mb-1" />
         <div class="gc-section mb-2" id="LdateModifyHide">
             <div class="row g-3">
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Creation Date:</label>
-                    <p id="lblLdate" class="form-control form-control-sm bg-light mb-0">@(Model.Ldate?.ToString("dd/MM/yyyy HH:mm"))</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Creation Date:</label>
+                        <div class="ua-field-input">
+                            <p id="lblLdate" class="form-control form-control-sm bg-light mb-0">@(Model.Ldate?.ToString("dd/MM/yyyy HH:mm"))</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-lg-6">
-                    <label class="form-label d-block">Last Update Date:</label>
-                    <p id="lblModifyDate" class="form-control form-control-sm bg-light mb-0">@(Model.ModifyDate?.ToString("dd/MM/yyyy HH:mm"))</p>
+                <div class="col-12 col-xl-6 ua-col-half">
+                    <div class="ua-field-row">
+                        <label class="form-label ua-field-label d-block">Last Update Date:</label>
+                        <div class="ua-field-input">
+                            <p id="lblModifyDate" class="form-control form-control-sm bg-light mb-0">@(Model.ModifyDate?.ToString("dd/MM/yyyy HH:mm"))</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

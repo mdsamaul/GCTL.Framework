@@ -56,4 +56,6 @@ public partial class CoreUserInfo
     public string CustomerId { get; set; }
 
     public string UserType { get; set; }
+
+    public string IsMobile { get; set; }
 }
