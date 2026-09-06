@@ -81,8 +81,6 @@
                     IsReadonly = true,
                     ReserveActionSlot = false,
                     ColumnClass = "col-lg-6",
-                    LabelInline=true,
-                    LabelColumnClass="text-end"
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -96,9 +94,6 @@
                     IsRequired = true,
                     ReserveActionSlot = false,
                     ColumnClass = "col-lg-6",
-                    LabelInline = true,
-                    LabelColumnClass = "text-end",
-                    LabelStyle="margin-left:100px;"
                 })
             </div>
 
@@ -110,9 +105,7 @@
                     LabelText = "Is Receiptable Expense",
                     FieldType = FieldType.Checkbox,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",
-                    LabelInline = true,
-                    LabelColumnClass = "text-end",                    
+                    ColumnClass = "col-lg-6",                   
                 })
 
                 @* ---------- Expense Head Name ---------- *@
@@ -123,10 +116,6 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Expense Head",
                     IsRequired = true,
-                    LabelInline = true,
-                    LabelColumnClass = "text-end",
-                    ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
                 })
             </div>
 
@@ -139,9 +128,6 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
-                    LabelInline = true,
-                    LabelColumnClass = "text-end",
-                    ColumnClass = "col-lg-6"
                 })
 
                 @* ---------- Amount ---------- *@
@@ -152,8 +138,6 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
                     ReserveActionSlot = false,
-                    LabelInline = true,
-                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
             </div>
@@ -168,8 +152,6 @@
                     Placeholder = "Serial No",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    LabelInline = true,
-                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
 
@@ -183,8 +165,6 @@
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    LabelInline = true,
-                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
             </div>
