@@ -156,7 +156,7 @@
             <input type="hidden" id="tc" name="tc" />
 
             @* ================= Row 1: Expense Head ID & Shipment Mode ================= *@
-            <div class="row g-3 mb-2">
+            <div class="row g-4 mb-2">
                 @* ---------- Expense Head ID (readonly) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -185,7 +185,7 @@
             </div>
 
             @* ================= Row 2: Is Receiptable & Expense Head Name ================= *@
-            <div class="row g-3 mb-2">
+            <div class="row g-4 mb-2">
                 @* ---------- Is Receiptable (Checkbox) ---------- *@
                 <div class="col-lg-3 col-md-3">
                     <label class="form-label" for="isReceiptable">Is Receiptable Expense</label>
@@ -215,7 +215,7 @@
             </div>
 
             @* ================= Row 3: Short Name & Amount ================= *@
-            <div class="row g-3 mb-2">
+            <div class="row g-4 mb-2">
                 @* ---------- Short Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -241,7 +241,7 @@
             </div>
 
             @* ================= Row 4: Serial No & Service Provided By ================= *@
-            <div class="row g-3 mb-2">
+            <div class="row g-4 mb-2">
                 @* ---------- Serial No ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -270,7 +270,7 @@
             </div>
 
             @* ---------- Creation & Modify Date ---------- *@
-            <div class="row g-3 mt-1" id="LdateModifyHide">
+            <div class="row g-4 mt-1" id="LdateModifyHide">
                 <div class="col-lg-3 col-md-3 mt-0" id="lDateContainer" style="display: none;">
                     <label class="form-label text-muted small mb-1">Creation Date</label>
                     <div id="displayLDate" class="text-secondary fw-semibold py-1"></div>

@@ -59,7 +59,7 @@
 
                 <div class="topnav-right">
                     <div class="user-profile-nav">
-                        <img src="@(ViewBag.LoginUserPhoto ?? "/images/UserIcon.png")" alt="User Photo" class="user-nav-avatar" />
+                        <img src="@(ViewBag.LoginUserPhoto ?? "/images/user-avatar.svg")" alt="User Photo" class="user-nav-avatar" onerror="this.onerror=null;this.src='/images/user-avatar.svg';" />
                         <span class="user-nav-welcome">Welcome @(ViewBag.LoginUser ?? User.Identity?.Name ?? "frabbi")</span>
                     </div>
 
