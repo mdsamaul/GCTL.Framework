@@ -5,48 +5,22 @@
 </div>
 
 <style>
-    .form-grid-layout {
-        display: grid;
-        grid-template-columns: max-content 1fr max-content 1fr;
-        column-gap: 5px;
-        row-gap: 5px;
-        align-items: center;
+    #expenseForm .form-label {
+        font-weight: 500;
+        margin-bottom: 4px;
+        text-align: left;
+        display: block;
+        color: #333;
+        font-size: 0.85rem;
     }
-    /* Flatten the bootstrap grid so children become grid items */
-    .form-grid-layout .form-group,
-    .form-grid-layout .col-lg-6,
-    .form-grid-layout .col-md-6,
-    .form-grid-layout .row.align-items-center {
-        display: contents;
+    #expenseForm .form-control,
+    #expenseForm .form-select {
+        border-radius: 4px;
     }
-    
-    /* Let col-4 and col-8 act as the actual grid cells */
-    .form-grid-layout .col-4 {
-        display: block !important;
-        width: auto !important;
-        max-width: none !important;
-        flex: none !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin: 0 !important;
-        text-align: right;
-    }
-    .form-grid-layout .col-8 {
-        display: block !important;
-        width: 100% !important;
-        max-width: none !important;
-        flex: none !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Additional alignments */
-    .form-grid-layout label.form-label {
-        margin-bottom: 0;
-    }
-    .form-grid-layout .form-check {
-        padding-left: 0 !important;
+    #expenseForm .field-validation {
+        font-size: 0.75rem;
+        display: block;
+        margin-top: 2px;
     }
 </style>
 
@@ -66,11 +40,11 @@
         })
     </div>
 
-    <div class="card-body px-5 mx-3">
-        <form id="expenseForm" class="form-grid-layout">
+    <div class="card-body px-4 py-3">
+        <form id="expenseForm">
             <input type="hidden" id="tc" name="tc" />
 
-            <div class="form-group row">
+            <div class="row g-3">
                 @* ---------- Expense Head ID (readonly) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -80,7 +54,7 @@
                     Placeholder = "Expense Head ID",
                     IsReadonly = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",
+                    ColumnClass = "col-lg-6 col-md-6",
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -93,20 +67,22 @@
                     SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",
+                    ColumnClass = "col-lg-6 col-md-6",
                 })
-            </div>
 
-            <div class="form-group row">
                 @* ---------- Is Receiptable (Checkbox) ---------- *@
-                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                {
-                    InputId = "isReceiptable",
-                    LabelText = "Is Receiptable Expense",
-                    FieldType = FieldType.Checkbox,
-                    ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",                   
-                })
+                <div class="col-lg-6 col-md-6">
+                    <label class="form-label" for="isReceiptable">Is Receiptable Expense</label>
+                    <div class="d-flex align-items-center" style="height: 31px;">
+                        <div class="form-check m-0 d-flex align-items-center">
+                            <input type="checkbox"
+                                   class="form-check-input m-0"
+                                   id="isReceiptable"
+                                   name="isReceiptable"
+                                   style="cursor: pointer; width: 1.2rem; height: 1.2rem;" />
+                        </div>
+                    </div>
+                </div>
 
                 @* ---------- Expense Head Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -116,10 +92,10 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Expense Head",
                     IsRequired = true,
+                    ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6 col-md-6",
                 })
-            </div>
 
-            <div class="form-group row">
                 @* ---------- Short Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -128,6 +104,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
+                    ColumnClass = "col-lg-6 col-md-6",
                 })
 
                 @* ---------- Amount ---------- *@
@@ -138,11 +115,9 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6 col-md-6"
                 })
-            </div>
 
-            <div class="form-group row">
                 @* ---------- Serial No ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -152,7 +127,7 @@
                     Placeholder = "Serial No",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6 col-md-6"
                 })
 
                 @* ---------- Service Provided By (Select) ---------- *@
@@ -165,38 +140,25 @@
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6 col-md-6"
                 })
             </div>
 
             @* ---------- Creation & Modify Date ---------- *@
-            <div class="form-group row" id="LdateModifyHide">
-                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                {
-                    ContainerId = "lDateContainer",
-                    InputId = "displayLDate",
-                    LabelText = "Creation Date",
-                    FieldType = FieldType.ReadonlyDisplay,
-                    ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",
-                    ShowOnInit = false
-                })
+            <div class="row g-3 mt-1" id="LdateModifyHide">
+                <div class="col-lg-6 col-md-6" id="lDateContainer" style="display: none;">
+                    <label class="form-label text-muted small mb-1">Creation Date</label>
+                    <div id="displayLDate" class="text-secondary fw-semibold py-1"></div>
+                </div>
 
-                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                {
-                    ContainerId = "modifyDateContainer",
-                    InputId = "displayModifyDate",
-                    LabelText = "Modify Date",
-                    FieldType = FieldType.ReadonlyDisplay,
-                    ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",
-                    ShowOnInit = false
-                })
+                <div class="col-lg-6 col-md-6" id="modifyDateContainer" style="display: none;">
+                    <label class="form-label text-muted small mb-1">Modify Date</label>
+                    <div id="displayModifyDate" class="text-secondary fw-semibold py-1"></div>
+                </div>
             </div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div class="" style="margin-top: 9px;">
+
+            <div class="row mt-3">
+                <div class="col-12 d-flex justify-content-end">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
                         SaveBtnClass = "saveBtn",
@@ -205,8 +167,9 @@
                         ShowFavorite = false,
                         ShowPrint = false,
                         IsPlain = true,
-                        ReserveActionSlot = true,
+                        ReserveActionSlot = false,
                     })
+                </div>
             </div>
 
         </form>
