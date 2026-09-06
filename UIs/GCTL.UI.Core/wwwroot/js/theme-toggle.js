@@ -42,24 +42,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------
     // Multi-Level Flyout Menu Interaction
     // -----------------------------------------------------------------
-    // On click/touch toggle flyouts
+    // On click/touch toggle flyouts (only when collapsed into rail mode)
     document.querySelectorAll('.rail-item.has-flyout > .rail-link').forEach(link => {
         link.addEventListener('click', function(e) {
-            const parentItem = this.closest('.rail-item');
-            const isOpen = parentItem.classList.contains('open');
+            if (sidebar && sidebar.classList.contains('collapsed')) {
+                e.preventDefault();
+                e.stopPropagation();
+                const parentItem = this.closest('.rail-item');
+                const isOpen = parentItem.classList.contains('open');
 
-            // Close other top-level flyouts
-            document.querySelectorAll('.rail-item.has-flyout').forEach(item => {
-                if (item !== parentItem) {
-                    item.classList.remove('open');
-                    item.querySelectorAll('.flyout-item.has-nested').forEach(nested => nested.classList.remove('open'));
+                // Close other top-level flyouts
+                document.querySelectorAll('.rail-item.has-flyout').forEach(item => {
+                    if (item !== parentItem) {
+                        item.classList.remove('open');
+                        item.querySelectorAll('.flyout-item.has-nested').forEach(nested => nested.classList.remove('open'));
+                    }
+                });
+
+                if (isOpen) {
+                    parentItem.classList.remove('open');
+                } else {
+                    parentItem.classList.add('open');
                 }
-            });
-
-            if (isOpen) {
-                parentItem.classList.remove('open');
-            } else {
-                parentItem.classList.add('open');
             }
         });
     });

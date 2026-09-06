@@ -83,20 +83,35 @@
         return "bi bi-circle-fill icon-dot";
     }
 }
-<ul class="sidebar-rail-menu">
+<ul class="sidebar-menu sidebar-rail-menu">
 @foreach (var item in Model)
 {
     var hasChildren = item.Children != null && item.Children.Any();
     var itemActive = IsItemActive(item);
     var directActive = IsDirectActive(item);
+    var arrowIcon = hasChildren && item.Children.Any(c => c.Children != null && c.Children.Any())
+        ? "bi bi-chevron-double-right"
+        : "bi bi-chevron-right";
 
-    <li class="rail-item @(hasChildren ? "has-flyout" : "") @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")" data-menu-id="@item.MenuId">
+    <li class="menu-item rail-item @(hasChildren ? "has-flyout" : "") @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")" data-menu-id="@item.MenuId">
         @if (hasChildren)
         {
-            <div class="rail-link @(directActive ? "active" : "")" role="button" tabindex="0">
-                <i class="@GetItemIcon(item) rail-icon"></i>
-                <span class="rail-text">@item.Title</span>
+            <button class="menu-link rail-link d-flex align-items-center w-100 @(directActive ? "active" : "")" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#children-@item.AutoId"
+                    aria-expanded="@(itemActive ? "true" : "false")"
+                    aria-controls="children-@item.AutoId">
+                <i class="@GetItemIcon(item) menu-item-icon rail-icon"></i>
+                <span class="menu-text rail-text">@item.Title</span>
+                <i class="@arrowIcon ms-auto menu-arrow"></i>
+            </button>
+
+            <!-- Downward accordion (visible when sidebar is expanded in initial state) -->
+            <div class="collapse @(itemActive ? "show" : "") accordion-submenu" id="children-@item.AutoId">
+                @await Html.PartialAsync("_MenuPartial", item.Children)
             </div>
+
+            <!-- Flyout popup submenus (visible when 3-bar is clicked into collapsed rail mode) -->
             <div class="rail-flyout shadow">
                 <ul class="flyout-list">
                     @foreach (var child in item.Children)
@@ -165,9 +180,9 @@
         }
         else
         {
-            <a class="rail-link @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
-                <i class="@GetItemIcon(item) rail-icon"></i>
-                <span class="rail-text">@item.Title</span>
+            <a class="menu-link rail-link d-flex align-items-center w-100 @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
+                <i class="@GetItemIcon(item) menu-item-icon rail-icon"></i>
+                <span class="menu-text rail-text">@item.Title</span>
             </a>
         }
     </li>

@@ -35,8 +35,8 @@
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
-    --sidebar-width-expanded: 88px;
-    --sidebar-width-collapsed: 0px;
+    --sidebar-width-expanded: 200px;
+    --sidebar-width-collapsed: 88px;
     --topnav-height: 52px;
 
     --glass-bg: rgba(255, 255, 255, 0.7);
@@ -192,29 +192,47 @@ textarea {
 .app-sidebar {
     width: var(--sidebar-width-expanded);
     height: calc(100vh - var(--topnav-height));
-    background-color: #f8fafc;
+    background-color: var(--bg-sidebar);
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     position: fixed;
     left: 0;
     top: var(--topnav-height);
-    overflow: visible !important;
+    overflow-y: auto;
+    overflow-x: hidden;
     border-right: 1px solid var(--border-color);
     padding-left: 0;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
     z-index: 1030;
 }
 
-#app-wrapper.sidebar-collapsed .app-sidebar,
 .app-sidebar.collapsed {
-    transform: translateX(-100%);
-    pointer-events: none;
-    opacity: 0;
+    width: var(--sidebar-width-collapsed);
+    overflow: visible !important;
 }
 
 .sidebar-header {
-    display: none;
+    color: var(--text-sidebar);
+    flex-shrink: 0;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border-color);
+    overflow: hidden;
+    white-space: nowrap;
+    background-color: var(--bg-sidebar-header);
+    transition: all 0.3s ease;
+}
+
+.app-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 0;
+}
+
+.app-sidebar.collapsed .sidebar-header .sidebar-brand-text {
+    display: none !important;
 }
 
 .sidebar-logo {
@@ -391,16 +409,50 @@ textarea {
 }
 
 .app-sidebar.collapsed .menu-link {
-    justify-content: center;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px 4px !important;
+    text-align: center !important;
+    border-radius: 0 !important;
+    border-left: 3.5px solid transparent !important;
+    gap: 3px !important;
+    width: 100% !important;
 }
 
-    .app-sidebar.collapsed .menu-link .menu-text {
-        display: none;
-    }
+.app-sidebar.collapsed .menu-link .menu-item-icon {
+    font-size: 1.25rem !important;
+    margin-bottom: 2px !important;
+    width: auto !important;
+    height: auto !important;
+}
 
-    .app-sidebar.collapsed .menu-link .menu-arrow {
-        display: none;
-    }
+.app-sidebar.collapsed .menu-link .menu-text {
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+    max-width: 80px !important;
+}
+
+.app-sidebar.collapsed .menu-link .menu-arrow {
+    display: none !important;
+}
+
+.app-sidebar.collapsed .accordion-submenu {
+    display: none !important;
+}
+
+.app-sidebar.collapsed .sidebar-menu-wrapper,
+.app-sidebar.collapsed .sidebar-menu-scroll {
+    overflow: visible !important;
+}
 
 .menu-item a:hover,
 .menu-item .menu-link:hover {
@@ -413,6 +465,10 @@ textarea {
     background-color: hsl(var(--primary-hsl) / 0.08) !important;
     color: var(--primary) !important;
     font-weight: 600;
+}
+
+.app-sidebar.collapsed .menu-item.active > .menu-link {
+    border-left: 3.5px solid #0b63ce !important;
 }
 
 /* Direct active child leaf link - 13% opacity (5% higher than parent) */
@@ -431,17 +487,10 @@ textarea {
     color: var(--primary) !important;
 }
 
-
 .menu-text {
     transition: opacity 0.2s ease, transform 0.2s ease;
     opacity: 1;
     font-size: 13px;
-}
-
-.app-sidebar.collapsed .menu-text {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateX(-15px);
 }
 
 /* Dark mode overrides */
@@ -490,8 +539,8 @@ textarea {
 }
 
 #app-wrapper.sidebar-collapsed .app-content-wrapper {
-    margin-left: 0;
-    width: 100%;
+    margin-left: var(--sidebar-width-collapsed);
+    width: calc(100% - var(--sidebar-width-collapsed));
 }
 
 /* -----------------------------------------------------------------
@@ -706,15 +755,15 @@ textarea {
 }
 
 /* -----------------------------------------------------------------
-   Rail Sidebar & Multi-Level Flyout Submenus
+   Sidebar Menu: Normal (Expanded) vs. Rail Flyout (Collapsed via 3-bar)
    ----------------------------------------------------------------- */
 .sidebar-rail-menu {
     list-style: none;
     margin: 0;
-    padding: 8px 0;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     width: 100%;
 }
 
@@ -723,67 +772,78 @@ textarea {
     width: 100%;
 }
 
-.rail-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 4px;
-    text-decoration: none;
+/* In normal expanded mode, flyouts are hidden and standard accordion is used */
+.app-sidebar:not(.collapsed) .rail-flyout {
+    display: none !important;
+}
+
+/* In collapsed mode (triggered by 3-bar click) - switches to Rail Design */
+.app-sidebar.collapsed .sidebar-rail-menu {
+    padding: 8px 0 !important;
+    gap: 4px !important;
+}
+
+.app-sidebar.collapsed .rail-link {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px 4px !important;
+    text-align: center !important;
+    border-radius: 0 !important;
+    border-left: 3.5px solid transparent !important;
+    gap: 3px !important;
+    width: 100% !important;
     color: #334155;
-    border-left: 3.5px solid transparent;
     transition: all 0.2s ease;
-    cursor: pointer;
-    user-select: none;
-    text-align: center;
 }
 
-.rail-icon {
-    font-size: 1.25rem;
-    margin-bottom: 4px;
-    color: #475569;
-    transition: color 0.2s ease;
+.app-sidebar.collapsed .rail-icon {
+    font-size: 1.25rem !important;
+    margin-bottom: 4px !important;
+    color: #475569 !important;
+    width: auto !important;
+    height: auto !important;
 }
 
-.rail-text {
-    font-size: 0.72rem;
-    font-weight: 500;
-    color: #334155;
-    text-align: center;
-    line-height: 1.2;
-    word-break: break-word;
-    max-width: 80px;
-    transition: color 0.2s ease;
+.app-sidebar.collapsed .rail-text {
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+    max-width: 80px !important;
 }
 
-.rail-item:hover > .rail-link,
-.rail-item.hovered > .rail-link {
-    background-color: rgba(11, 99, 206, 0.05);
-    color: #0b63ce;
+.app-sidebar.collapsed .rail-item:hover > .rail-link,
+.app-sidebar.collapsed .rail-item.hovered > .rail-link {
+    background-color: rgba(11, 99, 206, 0.05) !important;
+    color: #0b63ce !important;
 }
 
-.rail-item:hover > .rail-link .rail-icon,
-.rail-item.hovered > .rail-link .rail-icon,
-.rail-item:hover > .rail-link .rail-text,
-.rail-item.hovered > .rail-link .rail-text {
-    color: #0b63ce;
+.app-sidebar.collapsed .rail-item:hover > .rail-link .rail-icon,
+.app-sidebar.collapsed .rail-item.hovered > .rail-link .rail-icon,
+.app-sidebar.collapsed .rail-item:hover > .rail-link .rail-text,
+.app-sidebar.collapsed .rail-item.hovered > .rail-link .rail-text {
+    color: #0b63ce !important;
 }
 
-/* Active item (e.g. Approval or current page) */
-.rail-item.active > .rail-link {
-    border-left-color: #0b63ce;
-    background-color: rgba(11, 99, 206, 0.08);
-    color: #0b63ce;
+/* Active state in collapsed mode */
+.app-sidebar.collapsed .rail-item.active > .rail-link {
+    border-left: 3.5px solid #0b63ce !important;
+    background-color: rgba(11, 99, 206, 0.08) !important;
+    color: #0b63ce !important;
 }
 
-.rail-item.active > .rail-link .rail-icon,
-.rail-item.active > .rail-link .rail-text {
-    color: #0b63ce;
-    font-weight: 600;
+.app-sidebar.collapsed .rail-item.active > .rail-link .rail-icon,
+.app-sidebar.collapsed .rail-item.active > .rail-link .rail-text {
+    color: #0b63ce !important;
+    font-weight: 600 !important;
 }
 
-/* Flyout Level 1 */
-.rail-flyout {
+/* Collapsed Flyout Level 1 */
+.app-sidebar.collapsed .rail-flyout {
     position: absolute;
     left: 100%;
     top: 0;
@@ -798,9 +858,9 @@ textarea {
     animation: flyoutFadeIn 0.15s ease;
 }
 
-.rail-item.has-flyout:hover > .rail-flyout,
-.rail-item.has-flyout.open > .rail-flyout {
-    display: block;
+.app-sidebar.collapsed .rail-item.has-flyout:hover > .rail-flyout,
+.app-sidebar.collapsed .rail-item.has-flyout.open > .rail-flyout {
+    display: block !important;
 }
 
 .flyout-list {
@@ -862,9 +922,9 @@ textarea {
     animation: flyoutFadeIn 0.15s ease;
 }
 
-.flyout-item.has-nested:hover > .rail-flyout-nested,
-.flyout-item.has-nested.open > .rail-flyout-nested {
-    display: block;
+.app-sidebar.collapsed .flyout-item.has-nested:hover > .rail-flyout-nested,
+.app-sidebar.collapsed .flyout-item.has-nested.open > .rail-flyout-nested {
+    display: block !important;
 }
 
 @keyframes flyoutFadeIn {
