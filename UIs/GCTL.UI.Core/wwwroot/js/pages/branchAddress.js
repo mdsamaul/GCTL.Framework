@@ -42,6 +42,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'BranchAddress-grid' });
+            }
+
 
             loadTable();
             $('#LdateModifyHide').hide();
@@ -287,9 +291,9 @@
         //#region loadTable
 
         function loadTable() {
-            $.gctlGrid.initFromModel({
-                gridId: 'BranchAddress-grid'
-            })
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         //#endregion

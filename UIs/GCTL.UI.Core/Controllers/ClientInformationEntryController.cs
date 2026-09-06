@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.ClientInformationEntry;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -88,8 +88,6 @@ namespace GCTL.UI.Core.Controllers
             ClientInformationEntrySetupViewModel model = new ClientInformationEntrySetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "ClientID", "HRM_ClientInfo", 4);
 
-            ViewBag.CountryDD = new SelectList(countryRepository.All(), "CountryId", "CountryName");
-
             if (!string.IsNullOrEmpty(id))
             {
                 model = await clientInformationEntryService.GetByIdAsync(id);
@@ -102,6 +100,8 @@ namespace GCTL.UI.Core.Controllers
             {
                 model.ClientId = strMaxNO;
             }
+
+            ViewBag.CountryDD = new SelectList(countryRepository.All(), "CountryId", "CountryName", model.CountryId);
 
             return PartialView($"_{nameof(Setup)}", model);
         }

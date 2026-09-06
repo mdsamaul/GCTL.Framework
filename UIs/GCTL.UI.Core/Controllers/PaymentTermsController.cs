@@ -59,9 +59,9 @@ namespace GCTL.UI.Core.Controllers
             return strMaxNo;
         }
 
-        private void PopulateDropdowns()
+        private void PopulateDropdowns(string? selectedType = null)
         {
-            ViewBag.TypeDD = new SelectList(_paymentTypeRepository.All(), "PaymentTypeId", "PaymentType");
+            ViewBag.TypeDD = new SelectList(_paymentTypeRepository.All(), "PaymentTypeId", "PaymentType", selectedType);
         }
 
         #region Index
@@ -163,7 +163,6 @@ namespace GCTL.UI.Core.Controllers
         {
             var model = new PaymentTermsSetupViewModel();
             var nextCode = await GetNextCodeAsync();
-            PopulateDropdowns();
 
             if (!string.IsNullOrEmpty(id) && id != "0")
             {
@@ -181,6 +180,8 @@ namespace GCTL.UI.Core.Controllers
             {
                 model.PaymentTermsId = nextCode;
             }
+
+            PopulateDropdowns(model.Type);
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {

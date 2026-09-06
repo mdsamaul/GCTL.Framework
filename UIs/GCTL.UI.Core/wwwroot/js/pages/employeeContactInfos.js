@@ -1,526 +1,235 @@
-﻿(function ($) {
+(function ($) {
     $.employeeContactInfos = function (options) {
         var settings = $.extend({
             baseUrl: "/",
             formSelector: "#EmployeeContactInfos-form",
             formContainer: ".js-EmployeeContactInfos-form-container",
-            gridSelector: "#EmployeeContactInfos-grid",
-            gridContainer: ".js-EmployeeContactInfos-grid-container",
+            gridSelector: "#EmployeeContactInfosTable",
             editSelector: ".js-EmployeeContactInfos-edit",
             saveSelector: ".js-EmployeeContactInfos-save",
             selectAllSelector: "#EmployeeContactInfos-check-all",
             deleteSelector: ".js-EmployeeContactInfos-delete-confirm",
-            deleteModal: "#EmployeeContactInfos-delete-modal",
-            finalDeleteSelector: ".js-EmployeeContactInfos-delete",
             clearSelector: ".js-EmployeeContactInfos-clear",
-            topSelector: ".js-go",
-            decimalSelector: ".js-EmployeeContactInfos-decimalplaces",
-            maxDecimalPlace: 5,
-            showNagativeFormat: false,
-            availabilitySelector: ".js-EmployeeContactInfos-check-availability",
-            haseFile: false,
-            quickAddSelector: ".js-quick-add",
-            quickAddModal: "#quickAddModal",
             load: function () { }
         }, options);
 
         var baseControllerNameUrl = "/EmployeeContactInfos";
-        var testSave = baseControllerNameUrl + "/Setup";
-        var nextCodeULR = baseControllerNameUrl + "/GenerateNextCode";
-        var loadTableURL = baseControllerNameUrl + "/GetTableData";
+        var saveUrl = baseControllerNameUrl + "/Setup";
         var deleteURL = baseControllerNameUrl + "/Delete";
-        var getById = baseControllerNameUrl + "/Setup";
 
-        // ── State flags ──────────────────────────────────────────────────────────
-        var _pendingEmployeeRestore = null;
-        var _suppressEmployeeChange = false;
-
-        // ── Tooltip / overlay ────────────────────────────────────────────────────
-        $(document).ready(function () {
-            $('[data-toggle="tooltip"]').tooltip();
-        });
-
-        $(window).on("load", function () {
-            $("#customLoadingOverlay").fadeOut(300);
-        });
-
-        // ── Main Init ────────────────────────────────────────────────────────────
         $(function () {
             initialize();
 
-            // ── Edit Button ──────────────────────────────────────────────────────
-            $("body").on('click', settings.editSelector, function () {
-                var id = $(this).data('id');
-                var employeeId = $(this).data('employee-id');
-
-                $.ajax({
-                    url: getById,
-                    type: "GET",
-                    data: { id: id },
-                    success: function (result) {
-                        var $form = $(settings.formSelector);
-                        $form.html($(result).find(settings.formSelector).html());
-                        $form.attr('action', testSave);
-
-                        var branchId = $('#SelectedBranchCode').val() || "";
-                        var branchText = $('#SelectedBranchName').val() || "";
-                        var empId = $('#EmployeeId').val() || employeeId || "";
-                        var empText = $('#EmployeeId option:selected').text() || "";
-
-                        _pendingEmployeeRestore = { empId, empText, branchId, branchText };
-
-                        s2_InitSingle("#EmployeeId", "/GcFilters/employee", "Select Employee", null);
-                        s2_InitSingle("#BranchCode", "/GcFilters/branch", "Select Branch", "branch");
-
-                        if (branchId) {
-                            if ($('#BranchCode').find('option[value="' + branchId + '"]').length === 0) {
-                                $('#BranchCode').append(new Option(branchText, branchId, true, true));
-                            }
-                            $('#BranchCode').val(branchId).trigger('change.select2');
-                            setTimeout(function () { _restoreEmployee(); }, 300);
-                        } else {
-                            _restoreEmployee();
-                        }
-
-                        loadTableData(empId || employeeId);
-                        if (typeof initializeMultiselects === "function") initializeMultiselects('.gc-multiselect');
-                        if (typeof initInlineSearchSelect2 === "function") initInlineSearchSelect2('.gc-select2');
-                        ConvertToBangla();
-                    },
-                    error: function () {
-                        toastr.error('Failed Update.');
+            // ── Grid Initialization ──────────────────────────────────────────────
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({
+                    gridId: settings.gridSelector.substring(1),
+                    deleteUrl: deleteURL,
+                    onDeleteSuccess: function () {
+                        toastr.success("Deleted successfully");
+                        loadTable();
                     }
+                });
+            }
+
+            // ── Edit & Clear Button ──────────────────────────────────────────────
+            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+                
+                e.preventDefault();
+                let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
+                loadForm(url).then((data) => {
+                    console.log(data);
+                    console.info("Form Loaded Successfully");
+                    // Rebind ConvertToBangla after form loads
+                    ConvertToBangla();
+                }).catch((error) => {
+                    console.error("Failed to load form", error);
                 });
             });
 
-            // ── BranchCode Change ────────────────────────────────────────────────
-            $('body').on('change', '#BranchCode', function () {
-                if (_suppressEmployeeChange) return;
-
-                if (_pendingEmployeeRestore) {
-                    var restore = _pendingEmployeeRestore;
-                    _pendingEmployeeRestore = null;
-
-                    setTimeout(function () {
-                        if (restore.empId) {
-                            if ($('#EmployeeId').find('option[value="' + restore.empId + '"]').length === 0) {
-                                $('#EmployeeId').append(new Option(restore.empText, restore.empId, true, true));
-                            }
-                            $('#EmployeeId').val(restore.empId).trigger('change.select2');
-                        }
-                    }, 300);
-                }
-            });
-
-            // ── Restore Employee helper ──────────────────────────────────────────
-            function _restoreEmployee() {
-                if (!_pendingEmployeeRestore) return;
-
-                var restore = _pendingEmployeeRestore;
-                _pendingEmployeeRestore = null;
-
-                if (restore.empId) {
-                    if ($('#EmployeeId').find('option[value="' + restore.empId + '"]').length === 0) {
-                        $('#EmployeeId').append(new Option(restore.empText, restore.empId, true, true));
-                    }
-                    $('#EmployeeId').val(restore.empId).trigger('change.select2');
-                }
-            }
-
             // ── Save Button ──────────────────────────────────────────────────────
-            $("body").on('click', settings.saveSelector, function () {
-                if (!validation()) return;
-                $(settings.formSelector).submit();
+            $("body").on("click", settings.saveSelector, function () {
+                
+                var $form = $(settings.formSelector);
+                if ($form.valid && !$form.valid()) {
+                    return false;
+                }
+                $form.submit();
             });
 
             // ── Form Submit ──────────────────────────────────────────────────────
-            $("body").on('submit', settings.formSelector, function (e) {
+            $("body").on("submit", settings.formSelector, function (e) {
+                
                 e.preventDefault();
-
-                var formData = new FormData($(this)[0]);
-                var actionUrl = $(this).attr('action');
+                var $form = $(this);
+                var formData = new FormData($form[0]);
+                var actionUrl = $form.attr("action");
 
                 $.ajax({
-                    type: 'POST',
+                    type: "POST",
                     url: actionUrl,
                     data: formData,
                     contentType: false,
                     processData: false,
                     success: function (result) {
-                        if (result.noSavePermission || result.noUpdatePermission || result.isDuplicate) {
-                            toastr.error(result.message);
-                        } else if (result.isSuccess) {
-                            $(settings.gridContainer).html(result.html);
-                            initialize();
-                            toastr.success(result.message, 'Success');
-                            ResetForm();
+                        if (result.isSuccess === false) {
+                            toastr.error(result.message || "Failed to save data.");
+                        } else if (result.isSuccess === true) {
+                            toastr.success(result.message || "Saved Successfully", "Success");
+                            loadForm(saveUrl).then(() => {
+                                ConvertToBangla();
+                            });
+                            loadTable();
                         } else {
-                            $(settings.formSelector).html(result);
-                            initialize();
+                            // If it's returning HTML
+                            $(settings.formContainer).html(result);
+                            ConvertToBangla();
                         }
                     },
-                    error: function () {
-                        toastr.error('Failed Insert.');
+                    error: function (xhr) {
+                        toastr.error(xhr.responseJSON?.message || "Failed to save.");
                     }
                 });
             });
 
-            // ── EmployeeId Change ────────────────────────────────────────────────
-            $('body').on('change', '#EmployeeId', function () {
-                if (_suppressEmployeeChange) return;
-
-                var selectedEmployee = $(this).val();
-                loadTableData(selectedEmployee || null);
-
-                if (!selectedEmployee) {
-                    clearAllFields();
-                    return;
-                }
-
-                $.ajax({
-                    url: '/EmployeeContactInfos/GetContactInfoByEmployeeId',
-                    type: 'GET',
-                    data: { employeeId: selectedEmployee },
-                    success: function (response) {
-                        if (!response || !response.success) {
-                            clearAllFields();
-                            return;
-                        }
-
-                        var data = response.data || {};
-                        _suppressEmployeeChange = true;
-
-                        // Display-only
-                        $('#FullName').text(data.employeeName || '');
-                        $('#DesignationName').text(data.designationName || '');
-                        $('#DepartmentName').text(data.departmentName || '');
-
-                        // Hidden
-                        $('#AutoId').val(data.autoId > 0 ? data.autoId : '0');
-                        $('#EmpContactId').val(data.empContactId || '');
-
-                        // Select2
-                        s2SetValue('EmployeeId', data.employeeId, data.employeeName);
-                        s2SetValue('BranchCode', data.branchCode, data.coreBranchName);
-
-                        // Permanent Address
-                        $('#ParmanentAddress').val(data.parmanentAddress || '');
-                        $('#ParmanentAddressBangla').val(data.parmanentAddressBangla || '');
-                        $('#ParmanentPostOffice').val(data.parmanentPostOffice || '');
-                        $('#ParmanentThana').val(data.parmanentThana || '');
-                        $('#ParmanentPostCode').val(data.parmanentPostCode || '');
-                        $('#ParmanentPhone').val(data.parmanentPhone || '');
-                        s2SetValue('ParmanentDistrict', data.parmanentDistrict, data.parmanentDistrict);
-
-                        // Present Address
-                        $('#PresentAddress').val(data.presentAddress || '');
-                        $('#PresentAddressBangla').val(data.presentAddressBangla || '');
-                        $('#PresentPostOffice').val(data.presentPostOffice || '');
-                        $('#PresentThana').val(data.presentThana || '');
-                        $('#PresentPostCode').val(data.presentPostCode || '');
-                        $('#PresentMobile').val(data.presentMobile || '');
-                        $('#PresentPhone').val(data.presentPhone || '');
-                        $('#PresentFax').val(data.presentFax || '');
-                        $('#PresentEmail').val(data.presentEmail || '');
-                        s2SetValue('PresentDistrict', data.presentDistrict, data.presentDistrict);
-
-                        // Emergency Contact 1
-                        $('#EmContactName1').val(data.emContactName1 || '');
-                        $('#EmContactAddress1').val(data.emContactAddress1 || '');
-                        $('#EmContactMobile1').val(data.emContactMobile1 || '');
-                        $('#EmContactPhone1').val(data.emContactPhone1 || '');
-                        $('#EmContactFax1').val(data.emContactFax1 || '');
-                        $('#EmContactEmail').val(data.emContactEmail || '');
-                        s2SetValue('EmContactRelation1', data.emContactRelation1, data.emContactRelation1);
-
-                        // Emergency Contact 2
-                        $('#EmContactName2').val(data.emContactName2 || '');
-                        $('#EmContactAddress2').val(data.emContactAddress2 || '');
-                        $('#EmContactMobile2').val(data.emContactMobile2 || '');
-                        $('#EmContactPhone2').val(data.emContactPhone2 || '');
-                        $('#EmContactFax2').val(data.emContactFax2 || '');
-                        $('#EmContactEmai2').val(data.emContactEmai2 || '');
-                        s2SetValue('EmContactRelation2', data.emContactRelation2, data.emContactRelation2);
-
-                        if (data.autoId > 0) {
-                            $('#LdateModifyHide').show();
-                        } else {
-                            $('#LdateModifyHide').hide();
-                        }
-
-                        _suppressEmployeeChange = false;
-                    },
-                    error: function () {
-                        _suppressEmployeeChange = false;
-                        toastr.error('Failed to load employee contact info.');
-                    }
-                });
-            });
-
-            // ── Clear All Fields ─────────────────────────────────────────────────
-            function clearAllFields() {
-                $('#FullName').text('');
-                $('#DesignationName').text('');
-                $('#DepartmentName').text('');
-                $('#AutoId').val('0');
-                $('#EmpContactId').val('');
-                $('#LdateModifyHide').hide();
-
-                s2Clear('BranchCode');
-
-                $('#ParmanentAddress, #ParmanentAddressBangla, #ParmanentPostOffice').val('');
-                $('#ParmanentThana, #ParmanentPostCode, #ParmanentPhone').val('');
-                s2Clear('ParmanentDistrict');
-
-                $('#PresentAddress, #PresentAddressBangla, #PresentPostOffice').val('');
-                $('#PresentThana, #PresentPostCode, #PresentMobile').val('');
-                $('#PresentPhone, #PresentFax, #PresentEmail').val('');
-                s2Clear('PresentDistrict');
-
-                $('#EmContactName1, #EmContactAddress1, #EmContactMobile1').val('');
-                $('#EmContactPhone1, #EmContactFax1, #EmContactEmail').val('');
-                s2Clear('EmContactRelation1');
-
-                $('#EmContactName2, #EmContactAddress2, #EmContactMobile2').val('');
-                $('#EmContactPhone2, #EmContactFax2, #EmContactEmai2').val('');
-                s2Clear('EmContactRelation2');
+            // ── Delete Button Logic ──────────────────────────────────────────────
+            function getDeleteModal() {
+                var $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
             }
 
-            // ── Select2 Helpers ──────────────────────────────────────────────────
-            function s2SetValue(id, value, label) {
-                var $el = $('#' + id);
-                if (!value) {
-                    $el.val(null).trigger('change.select2');
-                    return;
-                }
-                var displayLabel = label || value;
-                if ($el.find('option[value="' + value + '"]').length === 0) {
-                    $el.append(new Option(displayLabel, value, true, true));
-                }
-                $el.val(value).trigger('change.select2');
-            }
+            var selectedItems = [];
 
-            function s2Clear(id) {
-                $('#' + id).val(null).trigger('change.select2');
-            }
-
-            // ── Scroll Top ───────────────────────────────────────────────────────
-            $("body").on("click", settings.topSelector, function (e) {
+            $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
-                $("html, body").animate({ scrollTop: 0 }, 500);
+                selectedItems = [];
+                if ($(this).data('id')) {
+                    selectedItems.push($(this).data('id'));
+                } else {
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
+                    });
+                }
+
+                if (selectedItems.length > 0) {
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
+                } else {
+                    toastr.info("Please select at least one item.");
+                }
             });
 
-            // ── Quick Add ────────────────────────────────────────────────────────
-            let loadUrl, target, reloadUrl, title, lastCode;
-
-            $("body").on("click", settings.quickAddSelector, function (e) {
+            $("body").on("click", ".js-gc-delete-confirm, .js-delete", function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                loadUrl = $(this).data("url");
-                target = $(this).data("target");
-                reloadUrl = $(this).data("reload-url");
-                title = $(this).data("title");
-
-                $(settings.quickAddModal + " .modal-title").html(title);
-                $(settings.quickAddModal + " .modal-body").empty();
-
-                $(settings.quickAddModal + " .modal-body").load(loadUrl, function () {
-                    $(settings.quickAddModal).modal("show");
-                    $("#header").hide();
-                    $(settings.quickAddModal + " .modal-body #header").hide();
-                    $("#left_menu").hide();
-                    $(settings.quickAddModal + " .modal-body #left_menu").hide();
-                    $("#main-content").toggleClass("collapse-main");
-                    $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
-                    $("body").removeClass("sidebar-mini");
-                });
-            });
-
-            $("body").on("click", ".js-modal-dismiss", function () {
-                $("body").removeClass("sidebar-mini").addClass("sidebar-mini");
-                $("#header").show();
-                $(settings.quickAddModal + " .modal-body #header").show();
-                $("#left_menu").show();
-                $(settings.quickAddModal + " .modal-body #left_menu").show();
-                $("#main-content").toggleClass("collapse-main");
-                $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
-
-                lastCode = $(settings.quickAddModal + " #lastCode").val();
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal).modal("hide");
-
-                $(target).empty();
-                $(target).append($('<option>', { value: '', text: `--Select ${title}--` }));
-
+                var $modal = getDeleteModal();
                 $.ajax({
-                    url: reloadUrl,
-                    method: "GET",
+                    url: deleteURL,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
                     success: function (response) {
-                        $.each(response, function (i, item) {
-                            $(target).append($('<option>', { value: item.code, text: item.name }));
-                        });
-                        $(target).val(lastCode);
+                        $modal.modal("hide");
+                        if (response.isSuccess || response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
                     }
                 });
             });
 
-            // ── Select All ───────────────────────────────────────────────────────
-            $("body").on('click', settings.selectAllSelector, function () {
-                $('.checkBox').prop('checked', $(this).prop('checked'));
-            });
+            // ── Fetch Employee Details ───────────────────────────────────────────
+            var _suppressEmployeeChange = false;
 
-            // ── Delete Confirm ───────────────────────────────────────────────────
-            $("body").on('click', settings.deleteSelector, function (e) {
-                e.preventDefault();
-                var selectedIds = [];
-
-                $('.checkBox:checked').each(function () {
-                    selectedIds.push($(this).val());
-                });
-
-                if (selectedIds.length === 0) {
-                    var deleteId = $(this).closest('tr').find('.checkBox').data('id') + "";
-                    if (deleteId) {
-                        selectedIds.push(deleteId);
-                    } else {
-                        toastr.error('Please select employee to delete.');
-                        return;
+            $("body").on('change', '#EmployeeId', function () {
+                
+                if (_suppressEmployeeChange) return;
+                var selectedEmployee = $(this).val();
+                if (!selectedEmployee) {
+                    if (window.setField) {
+                        window.setField('#FullName', '');
+                        window.setField('#DesignationName', '');
+                        window.setField('#DepartmentName', '');
                     }
+                    return;
                 }
 
-                $(settings.deleteModal + ' ' + settings.finalDeleteSelector).data('ids', selectedIds);
-                $(settings.deleteModal).modal('show');
-            });
-
-            // ── Final Delete ─────────────────────────────────────────────────────
-            $("body").on('click', settings.finalDeleteSelector, function (e) {
-                e.preventDefault();
-                var selectedIds = $(this).data('ids');
-
                 $.ajax({
-                    type: 'POST',
-                    url: deleteURL,
-                    contentType: 'application/json',
-                    data: JSON.stringify(selectedIds),
-                    success: function (result) {
-                        if (result.success) {
-                            loadTableData();
-                            GenerateNextCode();
-                            toastr.success(result.message);
-                            $('.checkBox').prop('checked', false);
-                        } else {
-                            toastr.error(result.message);
+                    url: '/OfficialInfo/GetEmployeeDetailsByCode',
+                    type: 'GET',
+                    data: { code: selectedEmployee },
+                    success: function (response) {
+                        if (response && response.data) {
+                            var data = response.data;                            
+                            if (window.setField) {
+                                window.setField('#FullName', data.EmployeeName || '');
+                                window.setField('#DesignationName', data.DesignationName || '');
+                                window.setField('#DepartmentName', data.DepartmentName || '');
+                            } else {
+                                $('#FullName').text(data.employeeName || '');
+                                $('#DesignationName').text(data.designationName || '');
+                                $('#DepartmentName').text(data.departmentName || '');
+                            }
                         }
-                        $(settings.deleteModal).modal('hide');
                     },
                     error: function () {
-                        toastr.error('An error occurred.');
-                        $(settings.deleteModal).modal('hide');
+                        console.error('Failed to fetch employee details.');
                     }
                 });
             });
 
-            // ── Availability Check ───────────────────────────────────────────────
-            $("body").on("keyup", settings.availabilitySelector, function () {
-                let code = $(".js-code").val();
-                let name = $(this).val();
+        });
 
+        // ── Load Form ────────────────────────────────────────────────────────────
+        function loadForm(url) {
+            return new Promise((resolve, reject) => {
                 $.ajax({
-                    url: settings.baseUrl + "/CheckAvailability",
-                    method: "POST",
-                    data: { code: code, name: name },
-                    success: function (response) {
-                        if (response.isSuccess) toastr.error(response.message);
+                    url: url,
+                    type: "GET",
+                    success: function (result) {
+                        $(settings.formContainer).html(result);
+                        console.log(result);
+                        $(settings.formSelector).attr("action", saveUrl);
+
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
+
+                        if ($.validator && $.validator.unobtrusive) {
+                            $.validator.unobtrusive.parse($(settings.formSelector));
+                        }
+                        resolve(result);
+                    },
+                    error: function (error) {
+                        toastr.error("Failed to load form.");
+                        reject(error);
                     }
                 });
             });
-        });
-
-        // ── Initialize ───────────────────────────────────────────────────────────
-        function initialize() {
-            loadTableData();
-            ConvertToBangla();
         }
 
-        // ── Reset Form ────────────────────────────────────────────────────────────
-        function ResetForm() {
-            _pendingEmployeeRestore = null;
-            _suppressEmployeeChange = false;
-
-            $(settings.formSelector)[0].reset();
-            $('#AutoId').val('0');
-            $('#EmpContactId').val('');
-            $('#LdateModifyHide').hide();
-
-            $('#ParmanentAddress, #ParmanentAddressBangla, #ParmanentPostOffice').val('');
-            $('#ParmanentThana, #ParmanentPostCode, #ParmanentPhone').val('');
-            $('#PresentAddress, #PresentAddressBangla, #PresentPostOffice').val('');
-            $('#PresentThana, #PresentPostCode, #PresentMobile').val('');
-            $('#PresentPhone, #PresentFax, #PresentEmail').val('');
-            $('#EmContactName1, #EmContactAddress1, #EmContactPhone1').val('');
-            $('#EmContactMobile1, #EmContactFax1, #EmContactEmail').val('');
-            $('#EmContactName2, #EmContactAddress2, #EmContactPhone2').val('');
-            $('#EmContactMobile2, #EmContactFax2, #EmContactEmai2').val('');
-
-            $('#BranchCode').val(null).trigger('change.select2');
-            $('#EmployeeId').val(null).trigger('change.select2');
-            $('#ParmanentDistrict').val(null).trigger('change.select2');
-            $('#PresentDistrict').val(null).trigger('change.select2');
-            $('#EmContactRelation1').val(null).trigger('change.select2');
-            $('#EmContactRelation2').val(null).trigger('change.select2');
-
-            $('#FullName').text('');
-            $('#DesignationName').text('');
-            $('#DepartmentName').text('');
-
-            $(settings.saveSelector).html('<i class="fas fa-save"></i> Save');
-            $('.text-danger').text('');
-            $(settings.formSelector).attr('action', testSave);
-            GenerateNextCode();
-        }
-
-        $("body").on('click', settings.clearSelector, function () {
-            ResetForm();
-            loadTableData();
-        });
-
-        // ── Validation ────────────────────────────────────────────────────────────
-        function validation() {
-            var employee = $('#EmployeeId').val();
-
-            if (!employee) {
-                toastr.info('Select Employee');
-                $('#EmployeeId').select2('open');
-                return false;
+        function loadTable() {
+            if ($.gctlGrid) {
+                $.gctlGrid.reload(settings.gridSelector.substring(1));
             }
-            return true;
         }
 
-        // ── Load Table ────────────────────────────────────────────────────────────
-        function loadTableData(id) {
-            $.ajax({
-                type: 'GET',
-                url: loadTableURL,
-                data: { employeeId: id },
-                success: function (data) {
-                    $(settings.gridContainer).html(data);
-                    dataTable();
-                },
-                error: function () {
-                    toastr.error('Failed Load Data');
-                }
-            });
-        }
-
-        function dataTable() {
-            $(settings.gridSelector).DataTable({
-                responsive: true,
-                pageLength: 10,
-                destroy: true,
-                lengthMenu: [10, 25, 50, 100]
-            });
+        function initialize() {
+            ConvertToBangla();
         }
 
         // ── ConvertToBangla ───────────────────────────────────────────────────────
@@ -586,26 +295,8 @@
             bindConvert("ParmanentAddress", "ParmanentAddressBangla");
             bindConvert("PresentAddress", "PresentAddressBangla");
         }
-
-        // ── GenerateNextCode ──────────────────────────────────────────────────────
-        function GenerateNextCode() {
-            $('#EmpContactId').val('');
-            $.ajax({
-                type: 'GET',
-                url: nextCodeULR,
-                success: function (result) {
-                    $('#EmpContactId').val(result);
-                },
-                error: function () {
-                    toastr.error('Failed Next Code');
-                }
-            });
-        }
     };
 
-    // ==============================
-    // Auto Initialize (এখানে কল করা হয়েছে)
-    // ==============================
     $(document).ready(function () {
         $.employeeContactInfos();
     });

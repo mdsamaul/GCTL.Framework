@@ -4,18 +4,14 @@
    "ContextNamespace": null,
    "FilterSchemas": false,
    "IncludeConnectionString": false,
-   "IrregularWords": null,
-   "MinimumProductVersion": "2.6.1604",
    "ModelNamespace": null,
    "OutputContextPath": null,
    "OutputPath": "Models",
-   "PluralRules": null,
    "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "GCTL.Data",
    "Schemas": null,
    "SelectedHandlebarsLanguage": 2,
    "SelectedToBeGenerated": 0,
-   "SingularRules": null,
    "T4TemplatePath": null,
    "Tables": [
       {
@@ -565,6 +561,38 @@
       {
          "Name": "[dbo].[VendorBranchInfo]",
          "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FullEmployeeDetailsGetByid]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[GetExpenseHeadReport]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[GetLedgerTree]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetAllCustomerDeliveryInfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetCustomerReportsInfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[sp_GetVoucherPreviewData]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[SP_HrmEmployee2_GetPagedList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[usp_GetHolidayList]",
+         "ObjectType": 1
       }
    ],
    "UiHint": null,
@@ -572,7 +600,6 @@
    "UseAsyncStoredProcedureCalls": true,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
-   "UseDatabaseNamesForRoutines": true,
    "UseDateOnlyTimeOnly": true,
    "UseDbContextSplitting": false,
    "UseDecimalDataAnnotationForSprocResult": true,
@@ -580,7 +607,6 @@
    "UseHandleBars": false,
    "UseHierarchyId": false,
    "UseInflector": true,
-   "UseInternalAccessModifiersForSprocsAndFunctions": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
    "UseNoDefaultConstructor": false,
@@ -592,7 +618,5 @@
    "UseSchemaFolders": false,
    "UseSchemaNamespaces": false,
    "UseSpatial": false,
-   "UseT4": false,
-   "UseT4Split": false,
-   "UseTypedTvpParameters": true
+   "UseT4": false
 }

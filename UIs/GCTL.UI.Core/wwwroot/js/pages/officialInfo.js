@@ -1,4 +1,4 @@
-﻿
+
 (function ($) {
     $.officialInfo = function (options) {
 
@@ -29,6 +29,8 @@
         // FLAG: prevents #EmployeeId change from firing during programmatic set
         var _suppressEmployeeChange = false;
 
+        var selectedItems = [];
+
         $(document).ready(function () {
             $('[data-toggle="tooltip"]').tooltip();
         });
@@ -49,15 +51,15 @@
             //    if (!selectedEmployee) return;
             //    fetchAndPopulateEmployee(selectedEmployee);
             //});
-            $('#EmployeeId').on('change', function () {
+            $('#EmployeeId').on('change', function () {                
                 if (_suppressEmployeeChange) return;
                 var selectedEmployee = $(this).val();
                 if (!selectedEmployee) {
-                    loadTableData(null); // employee clear হলে সব দেখাবে
+                    loadTableData(null); 
                     clear();
                     return;
                 }
-                loadTableData(selectedEmployee); // ✅ grid filter করবে
+                loadTableData(selectedEmployee); 
                 fetchAndPopulateEmployee(selectedEmployee);
             });
 
@@ -68,70 +70,16 @@
                     type: 'GET',
                     data: { code: employeeId },
                     success: function (response) {
+                        
                         if (!response) {
                             console.error('No response received.');
                             return;
                         }
 
                         var data = response.data || response || {};
-                      //  console.log('Employee details response:', data);
+                        
                         if (data) {
-                            _suppressEmployeeChange = true;
-
-                            // Text Inputs
-                            $('#AutoId').val(response.autoId || '0');
-                            $('#FullName').val(data.employeeName || '');
-                            $('#MobileNo').val(data.officialPhone || '');
-                            $('#Email').val(data.officialEmail || '');
-                            $('#PayId').val(data.payId || '');
-                            $('#AttendenceId').val(data.attendenceId || '');
-                            $('#DesignationName').val(data.designationName || '');
-                            $('#DepartmentName').val(data.departmentName || '');
-                            $('#ProbationPeriod').val(data.probationPeriod || '');
-                            $('#AppointmentLetterNo').val(data.appointmentLetterNo || '');
-                            $('#ConfirmationRefNo').val(data.confirmationRefNo || '');
-                            $('#JoiningSalary').val(data.joiningSalary || '');
-                           
-                            $('#ClientId').val(data.clientId || null);
-                            $('#ClientId').multiselect('refresh');
-                            
-                            // Select2 Dropdowns
-                            setSelect2('EmployeeId', data.employeeID, data.employeeName);
-                            setSelect2('OfficialInfoCompanyCode', data.companyCode, data.companyName);
-                            setSelect2('OfficialInfoBranchCode', data.branchCode, data.branchName);
-                            setSelect2('DepartmentCode', data.departmentCode, data.departmentName);
-                            setSelect2('DesignationCode', data.designationCode, data.designationName);
-                            setSelect2('EmpTypeCode', data.employeeTypeCode, data.employeeType);
-                            setSelect2('EmploymentNatureId', data.employmentNatureId, data.employmentNature);
-                            setSelect2('GradeCode', data.gradeCode, data.gradeNo);
-                            setSelect2('ShiftCode', data.shiftCode, data.shiftName);
-                            setSelect2('ReportingTo', data.immediateSupervisorID, data.immediateSupervisor);
-                            setSelect2('Hod', data.headOfDepartmentID, data.headOfDepartment);
-                            setSelect2('EmployeeStatus', data.employeeStatusId, data.employeeStatus);
-                            $('#IsLunchBilEligible').val(data.isLunchBilEligible).trigger('change');
-                            $('#IsOverTimeEligible').val(data.isOverTimeEligible).trigger('change');
-                            $('#IsExtraDutyEligible').val(data.isExtraDutyEligible).trigger('change');
-                            $('#IsGovtHolidayEligible').val(data.isGovtHolidayEligible).trigger('change');
-                            $('#IsAttendanceBonusEligible').val(data.isAttendanceBonusEligible).trigger('change');
-
-                            // Flatpickr Dates
-                            setFlatpickrById('JoiningDate', data.joiningDate);
-                            setFlatpickrById('ConfirmeDate', data.confirmationDate);
-                            setFlatpickrById('AppointmentLetterDate', data.appointmentLetterDate);
-                            setFlatpickrById('ContractEndDate', data.contractEndDate);
-
-                            // Update Save button label
-                            var autoId = parseInt(response.autoId) || 0;
-                            if (autoId > 0) {
-                                $(settings.saveSelector).html('<i class="fas fa-save"></i> Update');
-                            } else {
-                                $(settings.saveSelector).html('<i class="fas fa-save"></i> Save');
-                            }
-                            _suppressEmployeeChange = false;
-
-                            //if (response.isSuccess) {
-                            //    toastr.info(response.message);
-                            //}
+                            populateFormFromData(data, response.autoId);
                         }
                     },
                     error: function () {
@@ -142,48 +90,85 @@
                 });
             }
 
-            // ── setSelect2: sets value using change.select2 (no custom handler fire) ─
-           
-            function setSelect2(id, value, label) {
-                if (!value) return;
-                var $el = $('#' + id);
-
-                // এই fields এ "Name (ID)" format দেখাবে
-                var nameWithIdFields = ['EmployeeId', 'ReportingTo', 'Hod'];
-
-                var displayLabel = nameWithIdFields.includes(id)
-                    ? (label || value) + ' (' + value + ')'
-                    : (label || value);
-
-                // পুরনো option সরিয়ে নতুন করে add — Select2 cache fix
-                $el.find('option[value="' + value + '"]').remove();
-
-                var newOption = new Option(displayLabel, value, true, true);
-                $el.append(newOption);
-
-                $el.val(value).trigger('change.select2');
-            }
-            // ── Flatpickr helpers ──────────────────────────────────────────────────
-            function setFlatpickrById(id, dateStr) {
-                if (!dateStr) return;
-                var el = document.querySelector('#' + id);
-                if (!el) return;
-                var fp = el._flatpickr;
-                if (!fp) return;
-                fp.setDate(toFlatpickrFormat(dateStr), true);
-            }
-
-            function toFlatpickrFormat(dateStr) {
-                if (!dateStr) return '';
-                var parts = dateStr.split('/');
-                if (parts.length === 3) {
-                    return parts[1] + '-' + parts[0] + '-' + parts[2]; // DD/MM/YYYY -> MM-DD-YYYY
+            // ── Extract populate logic to a reusable function ──────────────────────
+            function populateFormFromData(data, autoIdParam) {
+                
+                function getProp(obj, propName) {
+                    if (!obj) return undefined;
+                    var key = Object.keys(obj).find(k => k.toLowerCase() === propName.toLowerCase());
+                    return key ? obj[key] : undefined;
                 }
-                return dateStr;
+
+                _suppressEmployeeChange = true;
+                console.log(data);
+                // Text Inputs
+                var autoId = autoIdParam || getProp(data, 'autoId') || '0';
+                window.setField('#AutoId', autoId);
+                
+                var firstName = getProp(data, 'firstName') || '';
+                var lastName = getProp(data, 'lastName') || '';
+                var fallbackName = (firstName + ' ' + lastName).trim();
+                window.setField('#FullName', getProp(data, 'employeeName') || getProp(data, 'name') || getProp(data, 'fullName') || fallbackName || '');
+                
+                window.setField('#MobileNo', getProp(data, 'officialPhone') || getProp(data, 'mobileNo') || '');
+                window.setField('#Email', getProp(data, 'officialEmail') || getProp(data, 'email') || '');
+                window.setField('#PayId', getProp(data, 'payId') || '');
+                window.setField('#AttendenceId', getProp(data, 'attendenceId') || '');
+                window.setField('#DesignationName', getProp(data, 'designationName') || '');
+                window.setField('#DepartmentName', getProp(data, 'departmentName') || '');
+                window.setField('#ProbationPeriod', getProp(data, 'probationPeriod') || '');
+                window.setField('#AppointmentLetterNo', getProp(data, 'appointmentLetterNo') || '');
+                window.setField('#ConfirmationRefNo', getProp(data, 'confirmationRefNo') || '');
+                window.setField('#JoiningSalary', getProp(data, 'joiningSalary') || '');
+                
+                if (getProp(data, 'clientId')) {
+                    window.setField('#ClientId', getProp(data, 'clientId'));
+                }
+                
+                // Select2 Dropdowns
+                window.setField('#EmployeeId', getProp(data, 'employeeId') || getProp(data, 'employeeID'));
+                window.setField('#OfficialInfoCompanyCode', getProp(data, 'officialInfoCompanyCode') || getProp(data, 'companyCode'));
+                window.setField('#OfficialInfoBranchCode', getProp(data, 'officialInfoBranchCode') || getProp(data, 'branchCode'));
+                window.setField('#DepartmentCode', getProp(data, 'departmentCode'));
+                window.setField('#DesignationCode', getProp(data, 'designationCode'));
+                window.setField('#EmpTypeCode', getProp(data, 'empTypeCode') || getProp(data, 'employeeTypeCode'));
+                window.setField('#EmploymentNatureId', getProp(data, 'employmentNatureId'));
+                window.setField('#GradeCode', getProp(data, 'gradeCode'));
+                window.setField('#ShiftCode', getProp(data, 'shiftCode'));
+                window.setField('#ReportingTo', getProp(data, 'reportingTo') || getProp(data, 'immediateSupervisorID') || getProp(data, 'immediateSupervisorId'));
+                window.setField('#Hod', getProp(data, 'hod') || getProp(data, 'headOfDepartmentID') || getProp(data, 'headOfDepartmentId'));
+                window.setField('#EmployeeStatus', getProp(data, 'employeeStatus') || getProp(data, 'employeeStatusId'));
+                
+                window.setField('#IsLunchBilEligible', getProp(data, 'isLunchBilEligible'));
+                window.setField('#IsOverTimeEligible', getProp(data, 'isOverTimeEligible'));
+                window.setField('#IsExtraDutyEligible', getProp(data, 'isExtraDutyEligible'));
+                window.setField('#IsGovtHolidayEligible', getProp(data, 'isGovtHolidayEligible'));
+                window.setField('#IsAttendanceBonusEligible', getProp(data, 'isAttendanceBonusEligible'));
+
+                // Dates
+                flatpickrHelper.setDate('#JoiningDate', getProp(data, 'joiningDate'));
+                flatpickrHelper.setDate('#ConfirmeDate', getProp(data, 'confirmeDate') || getProp(data, 'confirmationDate'));
+                flatpickrHelper.setDate('#AppointmentLetterDate', getProp(data, 'appointmentLetterDate'));
+                flatpickrHelper.setDate('#ContractEndDate', getProp(data, 'contractEndDate'));
+
+                // Update Save button label
+                autoId = parseInt(autoId) || 0;
+                if (autoId > 0) {
+                    $(settings.saveSelector).html('<i class="fas fa-save"></i> Update');
+                } else {
+                    $(settings.saveSelector).html('<i class="fas fa-save"></i> Save');
+                }
+                _suppressEmployeeChange = false;
             }
+
+            // ── Fetch Full Official Info ───────────────────────────────────────────
+            // (Removed fetchAndPopulateOfficialInfo because it only fetched partial grid data.
+            // Using fetchAndPopulateEmployee instead, which fetches the full JSON details).
+
+            // ── Helpers ────────────────────────────────────────────────────────────
 
             // ── EDIT button click ──────────────────────────────────────────────────
-            $(document).on('click', '.js-officialInfo-Edit-confirm', function () {
+            $(document).on('click', '.js-officialInfo-Edit-confirm, .js-grid-edit', function () {
                 var employeeId = $(this).attr('data-id');
                 console.log('Edit clicked, employeeId:', employeeId);
                 if (!employeeId) return;
@@ -201,9 +186,11 @@
 
                 _suppressEmployeeChange = false;
 
-                // Directly call populate — do NOT trigger 'change'
+                _suppressEmployeeChange = false;
+
+                // Directly call fetchAndPopulateEmployee to get full details (instead of partial grid data)
                 fetchAndPopulateEmployee(employeeId);
-                  loadTableData(employeeId); 
+                loadTableData(employeeId); 
                 // Scroll to form top
                 $('html, body').animate({
                     scrollTop: $(settings.formSelector).offset().top - 20
@@ -287,23 +274,23 @@
                 var designation = $('#DesignationCode').val();
 
                 if (!employee) {
-                    toastr.info('Select Employee');
-                    $('#EmployeeId').select2('open');
+                    toastr.warning('Please select an Employee');
+                    validateEmployeeDD();
                     return false;
                 }
                 if (!company) {
-                    toastr.info('Select Company');
-                    $('#OfficialInfoCompanyCode').select2('open');
+                    toastr.warning('Please select a Company');
+                    validateCompanyCodeDD();
                     return false;
                 }
                 if (!department) {
-                    toastr.info('Select Department');
-                    $('#DepartmentCode').select2('open');
+                    toastr.warning('Please select a Department');
+                    validateDepartmentCodeDD();
                     return false;
                 }
                 if (!designation) {
-                    toastr.info('Select Designation');
-                    $('#DesignationCode').select2('open');
+                    toastr.warning('Please select a Designation');
+                    validateDesignationCodeDD();
                     return false;
                 }
                 return true;
@@ -335,58 +322,69 @@
                     .css('border', (!val || val.trim() === '') ? '1px solid red' : '');
             }
 
-            // ── Select All ─────────────────────────────────────────────────────────
-            $("body").on('click', settings.selectAllSelector, function () {
-                $('.checkBox').prop('checked', $(this).prop('checked'));
-            });
 
             // ── Delete confirmation ────────────────────────────────────────────────
-            $("body").on('click', settings.deleteSelector, function (e) {
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
+
+            $("body").on("click", settings.deleteSelector + ", .js-grid-delete", function (e) {
                 e.preventDefault();
-                var selectedIds = [];
-
-                $('.checkBox:checked').each(function () {
-                    selectedIds.push($(this).val());
-                });
-
-                if (selectedIds.length === 0) {
-                    var deleteId = $(this).closest('tr').find('.checkBox').data('id') + "";
-                    if (deleteId) {
-                        selectedIds.push(deleteId);
+                selectedItems = [];
+                if ($(this).attr('data-id')) {
+                    selectedItems.push($(this).attr('data-id'));
+                } else {
+                    if (typeof getSelectedGridIds !== 'undefined') {
+                        selectedItems = getSelectedGridIds('officialInfoTable');
                     } else {
-                        toastr.error('Please select employee to delete.');
-                        return;
+                        $('.grid-row-checkbox:checked, .checkbox:checked').each(function () {
+                            var val = $(this).val();
+                            if (val) selectedItems.push(val);
+                        });
                     }
                 }
 
-                $(settings.deleteModal + ' ' + settings.finalDeleteSelector).data('ids', selectedIds);
-                $(settings.deleteModal).modal('show');
+                if (selectedItems.length > 0) {
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)? This process cannot be undone.");
+                    $modal.modal("show");
+                } else {
+                    toastr.info("Please select at least one item.");
+                }
             });
 
             // ── Final delete ───────────────────────────────────────────────────────
-            $("body").on('click', settings.finalDeleteSelector, function (e) {
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
                 e.preventDefault();
-                var selectedIds = $(this).data('ids');
+                e.stopImmediatePropagation();
 
+                var $modal = getDeleteModal();
                 $.ajax({
                     type: 'POST',
                     url: '/OfficialInfo/Delete',
                     contentType: 'application/json',
-                    data: JSON.stringify(selectedIds),
+                    data: JSON.stringify(selectedItems),
                     success: function (result) {
-                        if (result.isSuccess) {
+                        $modal.modal("hide");
+                        if (result.isSuccess || result.success) {
+                            toastr.success(result.message);
+                            selectedItems = [];
+                            $('.grid-row-checkbox, .checkbox, .grid-select-all').prop('checked', false);
                             var employeeId = $("#EmployeeId").val();
                             loadTableData(employeeId || null);
-                            toastr.success(result.message);
-                            $('.checkBox').prop('checked', false);
                         } else {
                             toastr.error(result.message, 'Error');
                         }
-                        $(settings.deleteModal).modal('hide');
                     },
-                    error: function () {
-                        toastr.error('An error occurred.');
-                        $(settings.deleteModal).modal('hide');
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "An error occurred.");
                     }
                 });
             });
@@ -399,8 +397,10 @@
             function clear() {
                 $('#officialInfo-form')[0].reset();
                 $('#AutoId').val('0');
-                $('#ClientId').multiselect('deselectAll', false);
-                $('#ClientId').multiselect('refresh');
+                $('#ClientId').val('');
+                if ($.fn.multiselect) {
+                    $('#ClientId').multiselect('refresh');
+                }
 
                 _suppressEmployeeChange = true;
                 $(".selectpickerOfficialInfo").val(null).trigger("change");
@@ -483,6 +483,11 @@
                 });
             });
 
+            // Initialize Custom DataTable from View Model
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'officialInfoTable' });
+            }
+
         }); 
 
         // ── Initialize Select2 ─────────────────────────────────────────────────────
@@ -507,31 +512,18 @@
 
         // ── Load grid ──────────────────────────────────────────────────────────────
         function loadTableData(employeeId) {
-            var url = gridUrl;
+            var url = settings.baseUrl + '/GetTableData';
             if (employeeId) {
-                url = gridUrl + '?employeeId=' + employeeId;
+                url += '?employeeId=' + employeeId;
             }
-            $.ajax({
-                type: 'GET',
-                url: url,
-                success: function (data) {
-                    $(settings.gridContainer).html(data);
-                    dataTable();
-                },
-                error: function () {
-                    toastr.error('Failed Load Data');
+            if ($.gctlGrid) {
+                var table = $.gctlGrid.getTable('officialInfoTable');
+                if (table) {
+                    table.ajax.url(url).load();
+                } else {
+                    $.gctlGrid.initFromModel({ gridId: 'officialInfoTable' });
                 }
-            });
-        }
-
-        function dataTable() {
-            $(settings.gridSelector).DataTable({
-                responsive: true,
-                pageLength: 10,
-                destroy: true,
-                lengthMenu: [10, 25, 50, 75, 100],
-                order: [[0, "DESC"]],
-            });
+            }
         }
 
     };

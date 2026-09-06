@@ -26,7 +26,7 @@
             LabelText = "Company ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-CompanyId-code",
             DefaultValue = Model?.CompanyId
@@ -42,7 +42,8 @@
             IsRequired = true,
             SelectItems = ViewBag.CompanyForDD as SelectList,
             CustomCssClass = "js-Type",
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false
         })
     </div>
 
@@ -59,7 +60,8 @@
             CustomCssClass = "js-CompanyName-check-duplicateName",
             ColumnClass = "col-lg-6",
             DefaultValue = Model.CompanyName,
-            AutoFocus = true
+            AutoFocus = true,
+            ReserveActionSlot = false
         })
 
         @* ---------- Short Name ---------- *@
@@ -70,6 +72,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.ShortName
         })
     </div>
@@ -83,6 +86,7 @@
             Placeholder = "Enter Address",
             IsRequired = true,
             ColumnClass = "col-lg-12",
+            ReserveActionSlot = false,
             DefaultValue = Model.CompanyAddress
         })
     </div>
@@ -95,6 +99,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Local Office Address",
             ColumnClass = "col-lg-12",
+            ReserveActionSlot = false,
             DefaultValue = Model.LocalOfficeAddress
         })
     </div>
@@ -108,6 +113,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Zip/Postal Code",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.ZipCode
         })
 
@@ -118,6 +124,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter City",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.City
         })
     </div>
@@ -131,6 +138,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter State",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.State
         })
 
@@ -143,7 +151,8 @@
             Placeholder = "-- Select Country --",
             SelectItems = ViewBag.CountryDD as SelectList,
             CustomCssClass = "js-Type",
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false
         })
     </div>
 
@@ -156,6 +165,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.Phone
         })
 
@@ -166,6 +176,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Fax",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.Fax
         })
     </div>
@@ -179,6 +190,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.Email
         })
 
@@ -189,6 +201,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Url",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.Url
         })
     </div>
@@ -201,6 +214,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Remarks",
             ColumnClass = "col-lg-12",
+            ReserveActionSlot = false,
             DefaultValue = Model.Remarks
         })
     </div>
@@ -246,8 +260,7 @@
             ShowFavorite = false,
             IsPlain = true,
             SaveBtnClass = "js-CompanyInfo-save",
-            ReserveActionSlot = true,
-            IsMarginRight = true
+            ReserveActionSlot = true
         })
     </div>
 </div>

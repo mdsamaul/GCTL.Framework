@@ -1,9 +1,9 @@
-@model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
-    ViewBag.Title = "Company Info";
-    Model.Breadcrumb = "Company Info";
+    ViewBag.Title = "Company Information";
+    Model.Breadcrumb = "Company Information";
 }
 
 <style>
@@ -75,7 +75,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/companies.js"></script>
     <script type="text/javascript">
         var options = {
@@ -84,4 +83,4 @@
 
         $.companies(options);
     </script>
-}
+}

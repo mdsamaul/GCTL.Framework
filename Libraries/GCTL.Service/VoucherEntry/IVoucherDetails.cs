@@ -6,7 +6,7 @@ namespace GCTL.Service.VoucherEntry
     {
 
         #region Get All Tmp Voucher Details
-        Task<List<VoucherEntryDetailsTempVM>> GetAllAsync(int? currentUser);
+        Task<List<VoucherEntryDetailsTempVM>> GetAllAsync(string? currentUser);
         #endregion
 
 

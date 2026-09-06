@@ -41,6 +41,12 @@
         labelClass += " " + Model.LabelCssClass;
     }
 
+    var useGridLayout = Model.UseGridLayout;
+    if (useGridLayout)
+    {
+        fullContainerStyle += "display: contents;";
+    }
+
     <div class="@wrapperClasses"
          id="@Model.ContainerId"
          style="@fullContainerStyle"
@@ -62,24 +68,44 @@
                 {
                     @if (Model.LabelInline)
                     {
-                        <div class="row align-items-center gx-2">
-                            <div class="col-@labelCol @Model.LabelColumnClass">
-                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
-                                    @if (!string.IsNullOrEmpty(Model.IconClass))
-                                    {
-                                        <i class="@Model.IconClass me-1"></i>
-                                    }
-                                    @Model.LabelText
-                                    @if (Model.IsRequired)
-                                    {
-                                        <sup class="text-danger required-star">*</sup>
-                                    }
-                                </label>
-                            </div>
-                            <div class="col-@fieldCol">
+                        if (useGridLayout)
+                        {
+                            <label class="@labelClass text-end" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                @if (!string.IsNullOrEmpty(Model.IconClass))
+                                {
+                                    <i class="@Model.IconClass me-1"></i>
+                                }
+                                @Model.LabelText
+                                @if (Model.IsRequired)
+                                {
+                                    <sup class="text-danger required-star">*</sup>
+                                }
+                            </label>
+                            <div class="custom-field-input-wrapper">
                                 <partial name="_DynamicField_InputWithGroup" model="Model" />
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="row align-items-center gx-2">
+                                <div class="col-@labelCol @Model.LabelColumnClass">
+                                    <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                        @if (!string.IsNullOrEmpty(Model.IconClass))
+                                        {
+                                            <i class="@Model.IconClass me-1"></i>
+                                        }
+                                        @Model.LabelText
+                                        @if (Model.IsRequired)
+                                        {
+                                            <sup class="text-danger required-star">*</sup>
+                                        }
+                                    </label>
+                                </div>
+                                <div class="col-@fieldCol">
+                                    <partial name="_DynamicField_InputWithGroup" model="Model" />
+                                </div>
+                            </div>
+                        }
                     }
                     else
                     {
@@ -840,22 +866,54 @@
                 @* ============ CHECKBOX ============ *@
                 else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Checkbox)
                 {
-                    <div class="form-check mt-4">
-                        <input type="checkbox"
-                               class="form-check-input @Model.JsEventClass"
-                               id="@Model.InputId"
-                               name="@Model.ResolvedInputName"
-                               checked="@Model.CheckedState"
-                               disabled="@Model.IsDisabled"
-                               style="@Model.InputStyle" />
-                        <label class="form-check-label @Model.LabelCssClass" for="@Model.InputId" style="@Model.LabelStyle">
-                            @Model.LabelText
-                            @if (Model.IsRequired)
-                            {
-                                <span class="text-danger fs-6 fw-medium">*</span>
-                            }
-                        </label>
-                    </div>
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                                    {
+                                        <i class="@Model.IconClass me-1"></i>
+                                    }
+                                    @Model.LabelText
+                                    @if (Model.IsRequired)
+                                    {
+                                        <sup class="text-danger required-star">*</sup>
+                                    }
+                                </label>
+                            </div>
+                            <div class="col-@fieldCol">
+                                <div class="form-check m-0 d-flex align-items-center">
+                                    <input type="checkbox"
+                                           class="form-check-input @Model.JsEventClass m-0"
+                                           id="@Model.InputId"
+                                           name="@Model.ResolvedInputName"
+                                           checked="@Model.CheckedState"
+                                           disabled="@Model.IsDisabled"
+                                           style="@Model.InputStyle; cursor:pointer;" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-check mt-4">
+                            <input type="checkbox"
+                                   class="form-check-input @Model.JsEventClass"
+                                   id="@Model.InputId"
+                                   name="@Model.ResolvedInputName"
+                                   checked="@Model.CheckedState"
+                                   disabled="@Model.IsDisabled"
+                                   style="@Model.InputStyle" />
+                            <label class="form-check-label @Model.LabelCssClass" for="@Model.InputId" style="@Model.LabelStyle">
+                                @Model.LabelText
+                                @if (Model.IsRequired)
+                                {
+                                    <span class="text-danger fs-6 fw-medium">*</span>
+                                }
+                            </label>
+                        </div>
+                    }
                 }
 
                 @* ============ RADIO ============ *@

@@ -42,6 +42,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'ExporterInfo-grid' });
+            }
+
 
             loadTable();
             loadSNCId();
@@ -270,22 +274,9 @@
         //#region loadTable
 
         function loadTable() {
-            $("#ExporterInfo-grid tbody").empty();
-            return $.gctlGrid.init({
-                gridSelector: '#ExporterInfo-grid',
-                ajaxUrl: settings.baseUrl + "/GetTableData",
-                checkAllSelector: "#js-ExporterInfo-checkall",
-                checkBoxClass: "checkBox",
-                columns: [
-                    $.gctlGrid.checkboxColumn("exporterId", "checkBox"),
-                    $.gctlGrid.editLinkColumn("exporterId", "js-ExporterInfo-edit"),
-                    { data: "exporterName", className: " text-middle" },
-                    { data: "exporterAddress", className: " text-middle" },
-                    { data: "phone", className: "text-center text-middle" },
-                    { data: "website", className: "text-center text-middle" },
-                    { data: "email", className: "text-center text-middle" }
-                ]
-            });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         //#endregion

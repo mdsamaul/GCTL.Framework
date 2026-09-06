@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -104,13 +104,20 @@ namespace GCTL.UI.Core.Controllers
             var model = await _employeeOfficialInfoService.GetByIdAsync(id) ?? new HrmEmployeeOfficialInfoSetupViewModel();
 
             var companies = await _companyRepository.AllAsync();
-            if(companies.Count() == 1)
+            if (string.IsNullOrEmpty(model.OfficialInfoCompanyCode))
             {
-                model.OfficialInfoCompanyCode = companies.FirstOrDefault().CompanyCode;
+                if(companies.Count() == 1)
+                {
+                    model.OfficialInfoCompanyCode = companies.FirstOrDefault().CompanyCode;
+                }
+                else
+                {
+                    model.OfficialInfoCompanyCode = LoginInfo?.CompanyCode ?? "001";
+                }
             }
 
             ViewBag.EmployeeDD = new SelectList(_employeeOfficialInfoService.EmployeeSelection(), "Code", "Name");
-            ViewBag.CompanyDD = new SelectList(_companyRepository.All(), "CompanyCode", "CompanyName");
+            ViewBag.CompanyDD = new SelectList(companies, "CompanyCode", "CompanyName", model.OfficialInfoCompanyCode);
             ViewBag.DepartmentDD = new SelectList(_departmentRepository.All(), "DepartmentCode", "DepartmentName");
             ViewBag.EmployeeNatureDD = new SelectList(_employmentNature.All(), "EmploymentNatureId", "EmploymentNature");
             ViewBag.ShiftDD = new SelectList(_shiftRepository.All(), "ShiftCode", "ShiftName");
@@ -326,6 +333,23 @@ namespace GCTL.UI.Core.Controllers
             }
 
             return PartialView("_Grid", data);
+        }
+
+        [HttpGet]       
+        public async Task<IActionResult> GetTableData(string employeeId = null)
+        {
+            List<HrmEmployeeOfficialInfoSetupViewModel> data;
+
+            if (!string.IsNullOrEmpty(employeeId))
+            {
+                data = await _employeeOfficialInfoService.GetByEmployeeAsync(employeeId);
+            }
+            else
+            {
+                data = await _employeeOfficialInfoService.GetAllAsync();
+            }
+
+            return Json(new { data = data });
         }
 
         #endregion

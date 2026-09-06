@@ -32,8 +32,8 @@ namespace GCTL.Service.PortName
              ICommonService commonService,
             IDeleteHistoryService deleteHistoryService
 
-            ) 
-            
+            )
+
     : base(portNamerepository)
         {
             this.portNamerepository = portNamerepository;
@@ -232,7 +232,7 @@ namespace GCTL.Service.PortName
 
         #endregion
 
-        #region Duplicate Check 
+        #region Duplicate Check
         public async Task<bool> IsExistByCodeAsync(string code)
         {
             return await portNamerepository.All().AnyAsync(x => x.PortNameId == code);
@@ -246,6 +246,11 @@ namespace GCTL.Service.PortName
         public async Task<bool> IsExistAsync(string name, string typeCode)
         {
             return await portNamerepository.All().AnyAsync(x => x.PortName == name && x.PortId != typeCode);
+        }
+
+        public async Task<bool> IsExistAsync(string name, string typeCode, string portId)
+        {
+            return await portNamerepository.All().AnyAsync(x => x.PortName == name && x.PortId == typeCode && x.PortNameId != portId);
         }
 
         #endregion

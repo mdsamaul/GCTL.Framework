@@ -383,37 +383,9 @@
 
         //#region loadTable
         function loadTable() {
-            if ($.gctlGrid && typeof $.gctlGrid.reload === 'function') {
-                $.gctlGrid.reload('SupplierInformation-grid');
-            } else if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
                 $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
-        }
-
-        function restoreCheckboxStates() {
-            $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`).each(function () {
-                const id = $(this).data('id') || $(this).val();
-                $(this).prop('checked', selectedItems.has(id));
-            });
-        }
-
-        function updateSelectedIds() {
-            const checkboxes = $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`);
-
-            checkboxes.each(function () {
-                const id = $(this).data('id') || $(this).val();
-                if ($(this).is(':checked')) {
-                    selectedItems.add(id);
-                } else {
-                    selectedItems.delete(id);
-                }
-            });
-        }
-
-        function updateCheckAllState() {
-            const total = $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`).length;
-            const checked = $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox:checked`).length;
-            $(settings.selectAllSelector).prop('checked', total > 0 && total === checked);
         }
 
         //#endregion

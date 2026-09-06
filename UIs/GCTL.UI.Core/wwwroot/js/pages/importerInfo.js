@@ -42,6 +42,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'ImporterInfo-grid' });
+            }
+
 
             loadTable();
             loadSNCId();
@@ -263,22 +267,9 @@
 
         //#region loadTable
         function loadTable() {
-            $("#ImporterInfo-grid tbody").empty();
-            return $.gctlGrid.init({
-                gridSelector: '#ImporterInfo-grid',
-                ajaxUrl: settings.baseUrl + "/GetTableData",
-                checkAllSelector: "#js-ImporterInfo-checkall",
-                checkBoxClass: "checkBox",
-                columns: [
-                    $.gctlGrid.checkboxColumn("importerId", "checkBox"),
-                    $.gctlGrid.editLinkColumn("importerId", "js-ImporterInfo-edit"),
-                    { data: "importerName", className: " text-middle" },
-                    { data: "importerAddress", className: " text-middle" },
-                    { data: "phone", className: "text-center text-middle" },
-                    { data: "website", className: "text-center text-middle" },
-                    { data: "email", className: "text-center text-middle" }
-                ]
-            });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         //#endregion

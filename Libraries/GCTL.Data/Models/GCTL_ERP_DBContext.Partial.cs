@@ -56,6 +56,12 @@ namespace GCTL.Data.Models
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
 
+            modelBuilder.Entity<HrmDefSex>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
             modelBuilder.Entity<SalesSupplierBankAccountTemp>(entity =>
             {
                 entity.Property(p => p.AutoId)
@@ -89,6 +95,12 @@ namespace GCTL.Data.Models
             modelBuilder.Entity<SalesDefPaymentType>(entity =>
             {
                 entity.Property(p => p.Tc)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
+
+            modelBuilder.Entity<SalesDefPaymentMode>(entity =>
+            {
+                entity.Property(p => p.AutoId)
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
 

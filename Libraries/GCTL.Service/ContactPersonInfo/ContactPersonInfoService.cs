@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.ContactPersonInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -109,7 +109,8 @@ namespace GCTL.Service.ContactPersonInfo
 
         public async Task<bool> SaveAsync(ContactPersonInfoSetupViewModel entityVM)
         {
-            var nextCode= commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 3, "CP");
+            var nextCode = commonService.GenerateNextCode("CPID", "Sales_ContactPerson", 5, "CP");
+            entityVM.Cpid = nextCode;
             await contactPersonrepository.BeginTransactionAsync();
             try
             {

@@ -1,6 +1,33 @@
 @using GCTL.UI.Core.ViewModels
 
-<div class="card shadow-sm rounded-2">
+<style>
+    .gc-ob-setup {
+        --gc-border: #dde2eb;
+    }
+
+    .gc-ob-setup .form-label {
+        font-size: .8rem;
+        font-weight: 600;
+        color: #4b5568;
+        margin-bottom: .2rem;
+    }
+
+    .gc-ob-setup .row > * {
+        margin-top: .15rem !important;
+        margin-bottom: .35rem !important;
+    }
+
+    /* When screen is < 1500px (and >= 900px), shrink inside form to 80% and center it */
+    @@media (min-width: 900px) and (max-width: 1499.98px) {
+        .gc-ob-setup #BlanceTypeForm {
+            width: 80% !important;
+            max-width: 80% !important;
+            margin: 0 auto !important;
+        }
+    }
+</style>
+
+<div class="card shadow-sm rounded-2 gc-ob-setup">
 
     @await Html.PartialAsync("_Toolbars", new ToobarModel
     {
@@ -33,151 +60,109 @@
         EnableFavorite = true
     })
 
-    <div class="card-body">
+    <div class="card-body px-2">
         <form id="BlanceTypeForm">
-                <input type="hidden" id="BlanceautoId" name="autoId" />
+            <input type="hidden" id="BlanceautoId" name="autoId" />
 
-                @* <fieldset class="border rounded-3 p-3 mb-3"> *@
-                    <div class="row g-3">
-
-                        @* 1. Company Code *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Select,
-                            InputId = "CompanyCode",
-                            InputName = "CompanyCode",
-                            LabelText = "Company",
-                            Placeholder = "-- Select Company --",
-                            IsRequired = true
-                        })
-
-                        @* 2. Branch Code *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Select,
-                            InputId = "BranchCode",
-                            InputName = "BranchCode",
-                            LabelText = "Branch",
-                            Placeholder = "-- Select Branch --",
-                            IsRequired = true
-                        })
-
-                    </div>
-
-                    <div class="row g-3 mt-1">
-
-                        @* 3. Account Head (Sub-Sidiary Ledger) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Select,
-                            InputId = "SubSusidiaryLedgerCodeNo",
-                            InputName = "SubSusidiaryLedgerCodeNo",
-                            LabelText = "Account Head",
-                            Placeholder = "-- Select Account Head --",
-                            IsRequired = true
-                        })
-
-                        @* 4. Opening Balance *@
-                        <div class="col-md-3">
-                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                            {
-                                IsVisible = true,
-                                ShowOnInit = true,
-                                ColumnClass = "",
-                                FieldType = FieldType.Number,
-                                InputId = "OpeningBalance",
-                                InputName = "OpeningBalance",
-                                LabelText = "Opening Balance",
-                                Placeholder = "Opening Balance",
-                                IsRequired = true
-                            })
-                        </div>
-
-                        @* 5. TrType *@
-                        <div class="col-md-3">
-                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                            {
-                                IsVisible = true,
-                                ShowOnInit = true,
-                                ColumnClass = "",
-                                FieldType = FieldType.Select,
-                                InputId = "TrType",
-                                InputName = "TrType",
-                                LabelText = "Select TrType",
-                                Placeholder = "-- Select --",
-                                SelectItems = new SelectList(new[]
-                                {
-                                    new { Value = "Dr", Text = "Debit" },
-                                    new { Value = "Cr", Text = "Credit" }
-                                }, "Value", "Text"),
-                                IsRequired = true
-                            })
-                        </div>
-
-                    </div>
-                @* </fieldset> *@
-
-                @* --- Entry & Update Date Section (Hidden by default; shown only on edit) --- *@
-                <div id="entryUpdateDateSection" class="d-none">
-                    <hr class="my-3 mx-1">
-
-                    <div class="row g-3">
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.ReadonlyDisplay,
-                            InputId = "BlancedisplayLDate",
-                            LabelText = "Entry Date:",
-                            LabelInline = true,
-                            LabelColWidth = 4,
-                            LabelColumnClass = "text-end",
-                            LabelStyle = "font-size:13px;",
-                            InputStyle = "font-size:13px;"
-                        })
-
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.ReadonlyDisplay,
-                            InputId = "BlancedisplayModifyDate",
-                            LabelText = "Last Update Date:",
-                            LabelInline = true,
-                            LabelColWidth = 4,
-                            LabelColumnClass = "text-end",
-                            LabelStyle = "font-size:13px;",
-                            InputStyle = "font-size:13px;"
-                        })
-                    </div>
+            <div class="row g-2">
+                @* 1. Company Code *@
+                <div class="col-12 col-md-6">
+                    <label for="CompanyCode" class="form-label">
+                        Company<span class="text-danger">*</span>
+                    </label>
+                    <select id="CompanyCode" name="CompanyCode"
+                            class="form-select form-select-sm custom-select-single"
+                            data-placeholder="-- Select Company --">
+                        <option value="">-- Select Company --</option>
+                    </select>
+                    <span class="text-danger small field-validation" id="CompanyCode-error"></span>
                 </div>
 
-                @* Bottom Save Button *@
+                @* 2. Branch Code *@
+                <div class="col-12 col-md-6">
+                    <label for="BranchCode" class="form-label">
+                        Branch<span class="text-danger">*</span>
+                    </label>
+                    <select id="BranchCode" name="BranchCode"
+                            class="form-select form-select-sm custom-select-single"
+                            data-placeholder="-- Select Branch --">
+                        <option value="">-- Select Branch --</option>
+                    </select>
+                    <span class="text-danger small field-validation" id="BranchCode-error"></span>
+                </div>
+
+                @* 3. Account Head (Sub-Sidiary Ledger) *@
                 <div class="col-12">
-                    @await Html.PartialAsync("_Toolbars", new ToobarModel
-                    {
-                        Title = "",
-                        ShowClear = false,
-                        ShowDelete = false,
-                        ShowPrint = false,
-                        ShowFavorite = false,
-                        IsPlain = true,
-                        ReserveActionSlot = true,
-                        IsMarginRight = true,
-                        SaveBtnType = "submit"
-                    })
+                    <label for="SubSusidiaryLedgerCodeNo" class="form-label">
+                        Account Head<span class="text-danger">*</span>
+                    </label>
+                    <select id="SubSusidiaryLedgerCodeNo" name="SubSusidiaryLedgerCodeNo"
+                            class="form-select form-select-sm custom-select-single"
+                            data-placeholder="-- Select Account Head --">
+                        <option value="">-- Select Account Head --</option>
+                    </select>
+                    <span class="text-danger small field-validation" id="SubSusidiaryLedgerCodeNo-error"></span>
                 </div>
+
+                @* 4. Opening Balance *@
+                <div class="col-12 col-md-6">
+                    <label for="OpeningBalance" class="form-label">
+                        Opening Balance<span class="text-danger">*</span>
+                    </label>
+                    <input type="number" step="any"
+                           id="OpeningBalance" name="OpeningBalance"
+                           class="form-control form-control-sm"
+                           placeholder="Opening Balance" />
+                    <span class="text-danger small field-validation" id="OpeningBalance-error"></span>
+                </div>
+
+                @* 5. TrType *@
+                <div class="col-12 col-md-6">
+                    <label for="TrType" class="form-label">
+                        Tr Type<span class="text-danger">*</span>
+                    </label>
+                    <select id="TrType" name="TrType"
+                            class="form-select form-select-sm custom-select-single"
+                            data-placeholder="-- Select --">
+                        <option value="">-- Select --</option>
+                        <option value="Dr">Debit</option>
+                        <option value="Cr">Credit</option>
+                    </select>
+                    <span class="text-danger small field-validation" id="TrType-error"></span>
+                </div>
+            </div>
+
+            @* --- Entry & Update Date Section (Hidden by default; shown only on edit) --- *@
+            <div id="entryUpdateDateSection" class="d-none">
+                <hr class="my-2" />
+
+                <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Entry Date:</label>
+                        <p id="BlancedisplayLDate" class="form-control form-control-sm bg-light mb-0" style="font-size:13px;"></p>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Last Update Date:</label>
+                        <p id="BlancedisplayModifyDate" class="form-control form-control-sm bg-light mb-0" style="font-size:13px;"></p>
+                    </div>
+                </div>
+            </div>
+
+            @* Bottom Save Button *@
+            <div class="col-12 mt-2">
+                @await Html.PartialAsync("_Toolbars", new ToobarModel
+                {
+                    Title = "",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowPrint = false,
+                    ShowFavorite = false,
+                    IsPlain = true,
+                    ReserveActionSlot = true,
+                    SaveBtnType = "submit"
+                })
+            </div>
 
         </form>
     </div>

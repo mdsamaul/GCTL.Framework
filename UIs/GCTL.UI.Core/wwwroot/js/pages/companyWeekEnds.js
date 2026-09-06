@@ -39,13 +39,14 @@
                 $('[data-toggle="tooltip"]').tooltip();
             });
 
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: 'companyWeekEndsTable' });
-            }
 
             var selectedItems = [];
 
             $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'companyWeekEndsTable' });
+            }
+
                 initialize();
 
                 // Save button click event
@@ -122,7 +123,7 @@
                 //
                 // Select all checkboxes
                 $("body").on('click', settings.selectAllSelector, function () {
-                    $('.checkbox').prop('checked', $(this).prop('checked'));
+                    $('.checkBox').prop('checked', $(this).prop('checked'));
                 });
                 $("body").on('click', settings.deleteSelector, function (e) {
                     e.preventDefault();
@@ -136,7 +137,7 @@
                         selectedIds.push(editCode); // Add the single ID to the array
                     } else {
                         // Otherwise, collect all selected checkboxes' IDs for bulk deletion
-                        $('.checkBox:checked').each(function () {
+                        $('.checkbox:checked').each(function () {
                             selectedIds.push($(this).val());
                         });
                     }
@@ -222,10 +223,9 @@
             // window.gctlRenderers = window.gctlRenderers || {};
             // window.gctlRenderers.formatDate = function (data) { return formatDate(data); };
             function loadTable() {
-
-                if ($.gctlGrid) {
-                    $.gctlGrid.initFromModel({
-                        gridId: 'companyWeekEndsTable'
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
                     });
                 }
                 // if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {

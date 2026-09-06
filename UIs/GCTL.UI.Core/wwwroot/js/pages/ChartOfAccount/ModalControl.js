@@ -1,12 +1,13 @@
-﻿let selectedModalControlLedger = [];
-let ModalcurrenControltPage = 1;
-let ModalControlpageSize = 10;
-let ModalControlcurrentSortColumn = 'SubControlLedgerCodeNo';
-let ModalControlcurrentSortDirection = 'desc';
-let ModalisEditMode = false;
+var selectedModalControlLedger = [];
+var ModalControlcurrentPage = 1;
+var ModalControlpageSize = 10;
+var ModalControlcurrentSortColumn = 'SubControlLedgerCodeNo';
+var ModalControlcurrentSortDirection = 'desc';
+var ModalisEditMode = false;
+var ModalControlemptySearch = '';
 
 // Helper: Bangladesh Local Date & Time Formatter
-function getBangladeshDateTime() {
+window.getBangladeshDateTime = window.getBangladeshDateTime || function() {
     return new Date().toLocaleString('en-GB', {
         day: '2-digit',
         month: '2-digit',
@@ -152,14 +153,22 @@ function ModalSaveOrUpdateControlLedger() {
             let method = autoID ? 'PUT' : 'POST';
             let successMessage = autoID ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
 
+            
             $.ajax({
                 url: url,
                 type: method,
                 contentType: 'application/json',
                 data: JSON.stringify(ControlLedgerData),
                 success: function (response) {
-                    if (response.success) {
-                        toastr.success(successMessage);
+                    if (response.isSuccess) {
+                        toastr.success(response.message);
+                        ModalLoadAllControlLedger();
+                        if ($.fn.DataTable.isDataTable('#modalControlLedgerTable')) {
+                            $('#modalControlLedgerTable').DataTable().ajax.reload(null, false);
+                        }
+                        if ($.fn.DataTable.isDataTable('#controlLedgerTable')) {
+                            $('#controlLedgerTable').DataTable().ajax.reload(null, false);
+                        }
 
                         ModalClearControlLedgerForm();
                         selectedModalControlLedger = [];
@@ -262,8 +271,8 @@ function ModalLoadAllControlLedger(page = 1, pageSize = ModalControlpageSize, so
                 $('#ModalControlpaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
                 $('#ModalControltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
 
-                ModalcurrenControltPage = currPage;
-                ModalControlgeneratePageButtons(ModalcurrenControltPage, totalPages);
+                ModalControlcurrentPage = currPage;
+                ModalControlgeneratePageButtons(ModalControlcurrentPage, totalPages);
             }
 
             ModalControlupdateCheckboxState();
@@ -352,7 +361,7 @@ function ModalDeleteControlLedger() {
             toastr.success(response.message || "Data Deleted Successfully.");
 
             ModalClearControlLedgerForm();
-            ModalLoadAllControlLedger(ModalcurrenControltPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
+            ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
             selectedModalControlLedger = [];
             $("#ModalControlselectAll").prop("checked", false);
 
@@ -479,9 +488,11 @@ $(document).on('click', '#ModalControlselectAll', function () {
 
 //#region Document Ready
 $(document).ready(function () {
+    console.log("Control Ledger Modal Page Loaded");
     ModalLoadGroupLedgerDropdown();
-    ModalLoadAllControlLedger();
     ModalControlbindCheckboxHandlers();
+    
+    // Grid loading is now handled by _CustomGrid (DataTables)
 
     $('#ModalControldisplayLDate').text(getBangladeshDateTime());
 
@@ -505,27 +516,27 @@ $(document).ready(function () {
     }, 500));
 
     $(document).on('click', '#ModalControlfirstPage', function () {
-        ModalcurrenControltPage = 1;
-        ModalLoadAllControlLedger(ModalcurrenControltPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
+        ModalControlcurrentPage = 1;
+        ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
     });
 
     $(document).on('click', '#ModalControlnextPage', function () {
-        ModalcurrenControltPage++;
-        ModalLoadAllControlLedger(ModalcurrenControltPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
+        ModalControlcurrentPage++;
+        ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
     });
 
     $(document).on('click', '#ModalControlprevPage', function () {
-        if (ModalcurrenControltPage > 1) {
-            ModalcurrenControltPage--;
-            ModalLoadAllControlLedger(ModalcurrenControltPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
+        if (ModalControlcurrentPage > 1) {
+            ModalControlcurrentPage--;
+            ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
         }
     });
 
     $(document).on('click', '#ModalControllastPage', function () {
         let lastPage = parseInt($('#ModalControlpageNavigation button').last().text());
         if (!isNaN(lastPage)) {
-            ModalcurrenControltPage = lastPage;
-            ModalLoadAllControlLedger(ModalcurrenControltPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
+            ModalControlcurrentPage = lastPage;
+            ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
         }
     });
 

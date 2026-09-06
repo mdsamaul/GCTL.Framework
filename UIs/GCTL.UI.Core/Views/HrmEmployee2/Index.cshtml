@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.HrmEmployees2.HrmEmployee2PageViewModel
+﻿@model GCTL.UI.Core.ViewModels.HrmEmployees2.HrmEmployee2PageViewModel
  @{
     ViewBag.Title = "Employee Information List";
     Model.PageTitle = ViewBag.Title;
@@ -85,7 +85,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/hrmEmployee2.js" asp-append-version="true"></script>
     <script type="text/javascript">
         window.gctlRenderers = window.gctlRenderers || {};

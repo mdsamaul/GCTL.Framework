@@ -42,12 +42,13 @@
         //#endregion
 
         $(() => {
-
-            loadTable();
-
             if ($.gctlGrid) {
                 $.gctlGrid.initFromModel({ gridId: 'supplierTypeTable' });
             }
+
+
+            loadTable();
+
 
             //#region editSelector & clearSelector
 
@@ -244,9 +245,7 @@
         //#region loadTable
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().ajax.reload();
-            } else if (window.loadGridPage) {
-                window.loadGridPage('supplierTypeGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 

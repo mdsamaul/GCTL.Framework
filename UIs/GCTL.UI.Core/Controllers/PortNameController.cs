@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PortName;
@@ -90,8 +90,6 @@ namespace GCTL.UI.Core.Controllers
             PortNameSetupViewModel model = new PortNameSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "PortNameId", "Sales_Def_PortName", 4);
 
-            ViewBag.PortTypeDD = new SelectList(portTyperepository.All(), "PortId", "PortType");
-
             if (!string.IsNullOrEmpty(id))
             {
 
@@ -107,13 +105,14 @@ namespace GCTL.UI.Core.Controllers
 
                 model.PortNameId = strMaxNO;
             }
+            ViewBag.PortTypeDD = new SelectList(portTyperepository.All(), "PortId", "PortType", model.PortId);
 
             return PartialView($"_{nameof(Setup)}", model);
         }
 
         #endregion
 
-        #region Post Update 
+        #region Post Update
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -122,7 +121,7 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (await portNameService.IsExistAsync(modelVM.PortName, modelVM.PortId))
+                if (await portNameService.IsExistAsync(modelVM.PortName, modelVM.PortId, modelVM.PortNameId))
                 {
                     return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                 }
@@ -216,7 +215,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 var list = await portNameService.GetAllAsync() ?? new List<PortNameSetupViewModel>();
-                return Json(new { data = list });             
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {

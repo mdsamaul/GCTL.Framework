@@ -25,7 +25,7 @@
                             ClearBtnClass = "js-PortType-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="PortType-form" asp-controller="PortType">
                             <div class="js-PortType-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -64,7 +64,6 @@
 
 <partial name="DeleteModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
 <script src="~/js/app.input.validation.js" defer></script>
 <script src="~/js/pages/portType.js" defer></script>
 <script type="text/javascript">

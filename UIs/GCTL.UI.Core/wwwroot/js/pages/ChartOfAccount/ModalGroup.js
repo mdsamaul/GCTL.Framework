@@ -1,8 +1,8 @@
-﻿let selectedModalGroupLedger = [];
-let ModalcurrentPage = 1;
-let ModalpageSize = 10;
-let ModalcurrentSortColumn = 'ControlLedgerCodeNo';
-let ModalcurrentSortDirection = 'desc';
+var selectedModalGroupLedger = [];
+var ModalcurrentPage = 1;
+var ModalpageSize = 10;
+var ModalcurrentSortColumn = 'ControlLedgerCodeNo';
+var ModalcurrentSortDirection = 'desc';
 console.log(`Global Call: ${selectedModalGroupLedger}`);
 
 
@@ -80,6 +80,13 @@ function ModalSaveOrUpdateGroupLedger() {
                 success: function (response) {
                     if (response.success) {
                         toastr.success(successMessage);
+                        ModalLoadGroupLedger();
+                        if ($.fn.DataTable.isDataTable('#modalGroupLedgerTable')) {
+                            $('#modalGroupLedgerTable').DataTable().ajax.reload(null, false);
+                        }
+                        if ($.fn.DataTable.isDataTable('#groupLedgerTable')) {
+                            $('#groupLedgerTable').DataTable().ajax.reload(null, false);
+                        }
 
                         //Custom Event For Update Group Ledger Dropdown in Control Ledger UI
                         //const event = new CustomEvent('ModalgroupLedgerUpdated', {
@@ -198,8 +205,8 @@ function ModalLoadGroupLedger(page = 1, ModalpageSize = 10, sortColumn = Modalcu
             $('#ModalpaginationInfo').text(`Page ${page} of ${Math.max(1, totalPages)}`);
             $('#ModaltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
 
-            currentPage = page;
-            ModalgeneratePageButtons(currentPage, totalPages);
+            ModalcurrentPage = page;
+            ModalgeneratePageButtons(ModalcurrentPage, totalPages);
             ModalupdateCheckboxState();
             ModalupdateSortIndicators();
         },
@@ -308,7 +315,7 @@ function ModalDeleteGroupLedger() {
 
             // Clear form, reload table, reset selection
             ModalClearGroupLedgerForm();
-            ModalLoadGroupLedger(currentPage, pageSize, currentSortColumn, currentSortDirection);
+            ModalLoadGroupLedger(ModalcurrentPage, ModalpageSize, ModalcurrentSortColumn, ModalcurrentSortDirection);
             selectedModalGroupLedger = [];
             $("#ModalselectAll").prop("checked", false);
 
@@ -319,7 +326,7 @@ function ModalDeleteGroupLedger() {
             loadGeneralLedgerData();
             ModalSubSidiaryForGeneralUI();
             LoadGroupLedgerDropdown();
-            LoadGroupLedger(1, pageSize, currentSortColumn, currentSortDirection, "");
+            LoadGroupLedger(1, 10, 'ControlLedgerCodeNo', 'desc', "");
             ModalLoadNextGroupLedgerCode();
             LoadNextGroupLedgerCode();
         },
@@ -458,9 +465,10 @@ function ModalbindCheckboxHandlers() {
 //#region Ready Part
 
 $(document).ready(function () {
-    console.log("Group Ledger Page Loaded");
+    console.log("Group Ledger Modal Page Loaded");
     ModalLoadNextGroupLedgerCode();
-    ModalLoadGroupLedger();
+    
+    // Grid loading is now handled by _CustomGrid (DataTables)
 
     // Set Entry Date
     $('#ModaldisplayLDate').text(getBangladeshDateTime());
