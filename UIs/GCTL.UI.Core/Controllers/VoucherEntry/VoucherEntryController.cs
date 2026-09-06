@@ -95,7 +95,7 @@ namespace GCTL_App.Controllers.VoucherEntry
         [Route("voucher-entry/{id}")]
         public async Task<IActionResult> Edit(int id, [FromBody] VoucherEntryVM model)
         {
-            try { 
+            try {
             if (model == null || id != model.autoId) return BadRequest(new { message = "Data Is Invalid." });
 
             var typeExists = await _service.IsExistAsync(id);
@@ -304,7 +304,7 @@ namespace GCTL_App.Controllers.VoucherEntry
                 var data = await _service.DeleteAsync(employeeId);
 
                     return Json(new { success = true, message = "Data Deleted Succssfully" });
-                
+
             }
             catch(Exception ex)
             {
@@ -351,7 +351,7 @@ namespace GCTL_App.Controllers.VoucherEntry
             var data = await _voucherReportService.GetVoucherPreviewDataAsync(idList);
 
             var pdfBytes = GenerateVoucherPdf(data);
-            return File(pdfBytes, "application/pdf"); 
+            return File(pdfBytes, "application/pdf");
         }
 
         #endregion
@@ -366,7 +366,7 @@ namespace GCTL_App.Controllers.VoucherEntry
             var data = await _voucherReportService.GetVoucherPreviewDataAsync(idList);
 
             var pdfBytes = GenerateVoucherPdf(data);
-            return File(pdfBytes, "application/pdf", "Voucher.pdf"); 
+            return File(pdfBytes, "application/pdf", "Voucher.pdf");
         }
 
         #endregion
@@ -585,7 +585,7 @@ namespace GCTL_App.Controllers.VoucherEntry
                 PdfFont companyfont = PdfFontFactory.CreateFont(StandardFonts.TIMES_BOLDITALIC);
                 // PdfFont addressfont = PdfFontFactory.CreateFont(StandardFonts.COURIER);
 
-                // Footer             
+                // Footer
                 var footerHandler = new PdfPrintDateHandler(font);
                 pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
 
@@ -613,8 +613,8 @@ namespace GCTL_App.Controllers.VoucherEntry
                         .SetTextAlignment(TextAlignment.CENTER)
                         .SetMarginBottom(10));
 
-                    float labelWidth = 30f; 
-                    float valueWidth = 70f; 
+                    float labelWidth = 30f;
+                    float valueWidth = 70f;
 
                     Table voucherDetailsTable = new Table(UnitValue.CreatePointArray(new float[] { labelWidth, valueWidth })).UseAllAvailableWidth();
                     voucherDetailsTable.SetBorder(iText.Layout.Borders.Border.NO_BORDER);
@@ -700,7 +700,7 @@ namespace GCTL_App.Controllers.VoucherEntry
                     table.AddCell(wordsCell);
 
                     document.Add(table);
-                 
+
                     document.Add(new Paragraph("\n \n"));
 
                     //Signature Block

@@ -1,4 +1,4 @@
-﻿namespace GCTL.UI.Core.ViewModels
+namespace GCTL.UI.Core.ViewModels
 {
     public class ToobarModel
     {
@@ -38,6 +38,34 @@
         public string ClearBtnType { get; set; } = "button";
         public string PrintBtnType { get; set; } = "button";
         public string FavtBtnType { get; set; } = "button";
+
+        // ================= Custom Styling & Spacing =================
+        public string CustomClass { get; set; } = "";
+        public string CssClass { get; set; } = "";
+        public string ClassName { get; set; } = "";
+        public string ContainerClass { get; set; } = "";
+
+        public string CustomStyle { get; set; } = "";
+        public string Style { get; set; } = "";
+
+        public string Padding { get; set; } = "";
+        public string CustomPadding { get; set; } = "";
+
+        public string Margin { get; set; } = "";
+        public string CustomMargin { get; set; } = "";
+
+        // ================= Section & Button Specific Customization =================
+        public string TitleClass { get; set; } = "";
+        public string TitleStyle { get; set; } = "";
+
+        public string ButtonGroupClass { get; set; } = "";
+        public string ButtonGroupStyle { get; set; } = "";
+
+        public string SaveBtnStyle { get; set; } = "";
+        public string DeleteBtnStyle { get; set; } = "";
+        public string ClearBtnStyle { get; set; } = "";
+        public string PrintBtnStyle { get; set; } = "";
+        public string FavtBtnStyle { get; set; } = "";
     }
 
     public class ToolbarButton

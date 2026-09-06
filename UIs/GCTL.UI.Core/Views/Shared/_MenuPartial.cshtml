@@ -83,7 +83,7 @@
         return "bi bi-circle-fill icon-dot";
     }
 }
-<ul class="sidebar-menu">
+<ul class="sidebar-menu sidebar-rail-menu">
 @foreach (var item in Model)
 {
     var hasChildren = item.Children != null && item.Children.Any();
@@ -93,27 +93,96 @@
         ? "bi bi-chevron-double-right"
         : "bi bi-chevron-right";
 
-    <li class="menu-item @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")">
+    <li class="menu-item rail-item @(hasChildren ? "has-flyout" : "") @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")" data-menu-id="@item.MenuId">
         @if (hasChildren)
         {
-            <button class="menu-link d-flex align-items-center w-100 @(directActive ? "active" : "")" type="button"
+            <button class="menu-link rail-link d-flex align-items-center w-100 @(directActive ? "active" : "")" type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#children-@item.AutoId"
                     aria-expanded="@(itemActive ? "true" : "false")"
                     aria-controls="children-@item.AutoId">
-                <i class="@GetItemIcon(item) menu-item-icon"></i>
-                <span class="menu-text">@item.Title</span>
+                <i class="@GetItemIcon(item) menu-item-icon rail-icon"></i>
+                <span class="menu-text rail-text">@item.Title</span>
                 <i class="@arrowIcon ms-auto menu-arrow"></i>
             </button>
-            <div class="collapse @(itemActive ? "show" : "")" id="children-@item.AutoId">
+
+            <!-- Downward accordion (visible when sidebar is expanded in initial state) -->
+            <div class="collapse @(itemActive ? "show" : "") accordion-submenu" id="children-@item.AutoId">
                 @await Html.PartialAsync("_MenuPartial", item.Children)
+            </div>
+
+            <!-- Flyout popup submenus (visible when 3-bar is clicked into collapsed rail mode) -->
+            <div class="rail-flyout shadow">
+                <ul class="flyout-list">
+                    @foreach (var child in item.Children)
+                    {
+                        var childHasChildren = child.Children != null && child.Children.Any();
+                        var childActive = IsItemActive(child);
+                        var childDirectActive = IsDirectActive(child);
+
+                        <li class="flyout-item @(childHasChildren ? "has-nested" : "") @(childActive ? "active" : "")">
+                            @if (childHasChildren)
+                            {
+                                <div class="flyout-link @(childDirectActive ? "active" : "")" role="button" tabindex="0">
+                                    <span class="flyout-text">- @child.Title</span>
+                                    <i class="bi bi-chevron-right flyout-arrow"></i>
+                                </div>
+                                <div class="rail-flyout-nested shadow">
+                                    <ul class="flyout-list">
+                                        @foreach (var subChild in child.Children)
+                                        {
+                                            var subChildHasChildren = subChild.Children != null && subChild.Children.Any();
+                                            var subActive = IsItemActive(subChild);
+                                            var subDirectActive = IsDirectActive(subChild);
+
+                                            <li class="flyout-item @(subChildHasChildren ? "has-nested" : "") @(subActive ? "active" : "")">
+                                                @if (subChildHasChildren)
+                                                {
+                                                    <div class="flyout-link @(subDirectActive ? "active" : "")" role="button" tabindex="0">
+                                                        <span class="flyout-text">-- @subChild.Title</span>
+                                                        <i class="bi bi-chevron-right flyout-arrow"></i>
+                                                    </div>
+                                                    <div class="rail-flyout-nested shadow">
+                                                        <ul class="flyout-list">
+                                                            @foreach (var leaf in subChild.Children)
+                                                            {
+                                                                var leafActive = IsDirectActive(leaf);
+                                                                <li class="flyout-item @(leafActive ? "active" : "")">
+                                                                    <a class="flyout-link @(leafActive ? "active" : "")" asp-controller="@leaf.ControllerName" asp-action="@leaf.ViewName">
+                                                                        <span class="flyout-text">--- @leaf.Title</span>
+                                                                    </a>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <a class="flyout-link @(subDirectActive ? "active" : "")" asp-controller="@subChild.ControllerName" asp-action="@subChild.ViewName">
+                                                        <span class="flyout-text">-- @subChild.Title</span>
+                                                    </a>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            else
+                            {
+                                <a class="flyout-link @(childDirectActive ? "active" : "")" asp-controller="@child.ControllerName" asp-action="@child.ViewName">
+                                    <span class="flyout-text">- @child.Title</span>
+                                </a>
+                            }
+                        </li>
+                    }
+                </ul>
             </div>
         }
         else
         {
-            <a class="menu-link d-flex align-items-center w-100 @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
-                <i class="@GetItemIcon(item) menu-item-icon"></i>
-                <span class="menu-text">@item.Title</span>
+            <a class="menu-link rail-link d-flex align-items-center w-100 @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
+                <i class="@GetItemIcon(item) menu-item-icon rail-icon"></i>
+                <span class="menu-text rail-text">@item.Title</span>
             </a>
         }
     </li>

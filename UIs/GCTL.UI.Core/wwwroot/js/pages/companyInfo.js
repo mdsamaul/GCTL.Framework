@@ -44,9 +44,9 @@
 
         $(() => {
             loadTable();
-            // if ($.gctlGrid) {
-            //     $.gctlGrid.initFromModel({ gridSelector: settings.gridSelector });
-            // }
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridSelector: settings.gridSelector });
+            }
 
             // if ($.gctlGrid) {
             //     $.gctlGrid.initFromModel({ gridId: 'CompanyInfo-grid' });

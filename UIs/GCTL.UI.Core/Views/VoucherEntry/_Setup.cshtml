@@ -7,17 +7,17 @@
     @* Main Information Section *@
     <fieldset class="border rounded-3 p-3 position-relative">
                     <legend class="float-none w-auto px-2 fw-bold"
-                            style="font-size: 15px; border: 1px solid #dee2e6; border-radius: 6px; background-color: #f8f9fa;">
+                            style="font-size: 14px; border: 0px solid #dee2e6; border-radius: 6px; background-color: #fff;">
                         Main Information
                     </legend>
-                    <div class="row g-3">
+                    <div class="row g-4">
 
                         @* Company *@
                         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6 mt-1",
+                            ColumnClass = "col-md-3 mt-1",
                             FieldType = FieldType.Select,
                             InputId = "CompanyCode",
                             InputName = "CompanyCode",
@@ -25,6 +25,7 @@
                             ReserveActionSlot = false,
                             Placeholder = "-- Select Company --",
                             IsRequired = true,
+                           
                             // LabelInline=true,
                             // LabelColumnClass="text-end"
                         })
@@ -34,7 +35,7 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6 mt-1",
+                            ColumnClass = "col-md-3 mt-1",
                             FieldType = FieldType.Select,
                             InputId = "BranchCode",
                             InputName = "BranchCode",
@@ -43,13 +44,13 @@
                             Placeholder = "-- Select Branch --",
                             IsRequired = true
                         })
-
+                        <div class="col-md-6"></div>
                         @* Voucher Type *@
                         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6 mt-1",
+                            ColumnClass = "col-md-3 mt-1",
                             FieldType = FieldType.Select,
                             InputId = "VoucherTypeCode",
                             InputName = "VoucherType_Code",
@@ -64,7 +65,7 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6 mt-1",
+                            ColumnClass = "col-md-3 mt-1",
                             FieldType = FieldType.Date,
                             InputId = "VoucherDate",
                             InputName = "VoucherDate",
@@ -72,13 +73,13 @@
                             LabelText = "Voucher Date",
                             IsRequired = true
                         })
-
+            <div class="col-md-6"></div>
                         @* Voucher No *@
                         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6 mt-1",
+                            ColumnClass = "col-md-3 mt-1",
                             FieldType = FieldType.Text,
                             InputId = "VoucherNo",
                             InputName = "VoucherNo",
@@ -88,13 +89,13 @@
                             IsRequired = true,
                             IsReadonly = true
                         })
-
+            <div class="col-md-6"></div>
                         @* Narration *@
                         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-12 mt-1",
+                            ColumnClass = "col-md-6 mt-1",
                             FieldType = FieldType.Textarea,
                             InputId = "Narration",
                             InputName = "Narration",
@@ -113,14 +114,14 @@
                 @* Details Information Section *@
                 <fieldset class="border rounded-3 p-3 position-relative mt-2">
                     <legend class="float-none w-auto px-2 fw-bold"
-                            style="font-size: 15px; border: 1px solid #dee2e6; border-radius: 6px; background-color: #f8f9fa;">
+                            style="font-size: 15px; border: 0px solid #dee2e6; border-radius: 6px; background-color: #fff;">
                         Details Information
                     </legend>
 
-                    <div class="row g-3">
+                    <div class="row g-4">
 
                         @* Tr. Type *@
-                        <div class="col-md-6 mt-1">
+                        <div class="col-md-3 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -141,28 +142,29 @@
                                 }, "Value", "Text")
                             })
                         </div>
-                        <div class="col-md-6 mt-1"></div>
+                        <div class="col-md-9 mt-1"></div>
 
                         @* Ledger Section (hidden by default) *@
-                        <div class="col-md-6 mt-1" style="display:none;">
+                        <div class="col-md-3 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Group Ledger :</span>
                                 <span class="ledger-value" id="GroupLedgerValue"></span>
                             </div>
                         </div>
-                        <div class="col-md-6 mt-1" style="display:none;">
+                        <div class="col-md-3 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Control Ledger :</span>
                                 <span class="ledger-value" id="ControlLedgerValue"></span>
                             </div>
                         </div>
-                        <div class="col-md-6 mt-1" style="display:none;">
+            @* <div class="col-md-6 mt-1"></div> *@
+                        <div class="col-md-3 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Sub-Control Ledger :</span>
                                 <span class="ledger-value" id="SubControlLedgerValue"></span>
                             </div>
                         </div>
-                        <div class="col-md-6 mt-1" style="display:none;">
+                        <div class="col-md-3 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Sub-Sidiary Ledger :</span>
                                 <span class="ledger-value" id="SubSidiaryLedgerValue"></span>
@@ -170,7 +172,7 @@
                         </div>
 
                         @* Account Head *@
-                        <div class="col-md-6 mt-1">
+                        <div class="col-md-3 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -186,10 +188,10 @@
                                 IsRequired = true
                             })
                         </div>
-                        <div class="col-md-6 mt-1"></div>
+                        <div class="col-md-9 mt-1"></div>
 
                         @* Description *@
-                        <div class="col-md-6 mt-1">
+                        <div class="col-md-3 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -206,7 +208,7 @@
                         </div>
 
                         @* Amount *@
-                        <div class="col-md-6 mt-1">
+                        <div class="col-md-3 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -221,9 +223,9 @@
                                 IsRequired = true
                             })
                         </div>
-
+            <div class="col-md-6 mt-1"></div>
                         @* Cheque No *@
-                        <div class="col-md-6 mt-1">
+                        <div class="col-md-3 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -239,7 +241,7 @@
                         </div>
 
                         @* Cheque Date *@
-                        <div class="col-md-6 mt-1">
+                        <div class="col-md-3 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
