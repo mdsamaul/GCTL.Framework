@@ -15,8 +15,8 @@
         </div>
     </div>
 
-    <div class="form-group row">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row g-2">
+        <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
 
         <input type="hidden" id="lastCode" />
         <input type="hidden" asp-for="Tc" />
@@ -32,7 +32,7 @@
             FieldType = FieldType.Text,
             IsReadonly = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             CustomCssClass = "js-ImporterId-code",
             DefaultValue = Model?.ImporterId
         })
@@ -45,12 +45,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Importer Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ImporterCode
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- Importer Name ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -60,7 +58,7 @@
             Placeholder = "Enter Importer Name",
             IsRequired = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ImporterName,
             AutoFocus = true
         })
@@ -73,12 +71,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Importer Address",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ImporterAddress
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- Country ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -88,7 +84,7 @@
             Placeholder = "-- Select Country --",
             SelectItems = ViewBag.CountryDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col"
         })
 
         @* ---------- City ---------- *@
@@ -99,12 +95,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter City",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.City
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- State/Province ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -113,7 +107,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter State/Province",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.StateOrProvince
         })
 
@@ -125,12 +119,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Zip Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ZipCode
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- Vat Reg. No. ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -139,7 +131,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Vat Reg. No.",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.VatRegNo
         })
 
@@ -151,12 +143,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Phone
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- Fax ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -165,7 +155,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Fax",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Fax
         })
 
@@ -177,12 +167,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Email
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- Website ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -191,7 +179,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Website",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Website
         })
 
@@ -203,12 +191,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Remarks",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Remarks
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- Contact Person 1 ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -217,7 +203,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Contact Person 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ContactPerson1
         })
 
@@ -229,12 +215,10 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Designation 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Designation1
         })
-    </div>
 
-    <div class="form-group row">
         @* ---------- Phone 1 ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -243,7 +227,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Phone1
         })
 
@@ -255,15 +239,63 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Email1
+        })
+
+        @* ---------- Contact Person 2 ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ContactPerson2",
+            LabelText = "Contact Person 2",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Contact Person 2",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
+            DefaultValue = Model?.ContactPerson2
+        })
+
+        @* ---------- Designation 2 ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Designation2",
+            LabelText = "Designation 2",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Designation 2",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
+            DefaultValue = Model?.Designation2
+        })
+
+        @* ---------- Phone 2 ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Phone2",
+            LabelText = "Phone 2",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Phone 2",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
+            DefaultValue = Model?.Phone2
+        })
+
+        @* ---------- Email 2 ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Email2",
+            LabelText = "Email 2",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Email 2",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
+            DefaultValue = Model?.Email2
         })
     </div>
 
     @if (Model.Tc > 0)
     {
-        <hr />
-        <div class="form-group row" id="LdateModifyHide">
+        <hr class="my-2" />
+        <div class="row g-2" id="LdateModifyHide">
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
@@ -271,7 +303,7 @@
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
                 ReserveActionSlot = false,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
                 ShowOnInit = Model.Ldate.HasValue,
                 DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy") : ""
             })
@@ -282,7 +314,7 @@
                 LabelText = "Last Update Date:",
                 FieldType = FieldType.ReadonlyDisplay,
                 ReserveActionSlot = false,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
                 ShowOnInit = Model.ModifyDate.HasValue,
                 DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy") : ""
             })
