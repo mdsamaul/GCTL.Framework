@@ -40,59 +40,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -----------------------------------------------------------------
-    // Multi-Level Flyout Menu Interaction
+    // Multi-Level Flyout Menu Interaction (Collapsed Rail Mode)
     // -----------------------------------------------------------------
-    // On click/touch toggle flyouts (only when collapsed into rail mode)
-    document.querySelectorAll('.rail-item.has-flyout > .rail-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (sidebar && sidebar.classList.contains('collapsed')) {
-                e.preventDefault();
-                e.stopPropagation();
-                const parentItem = this.closest('.rail-item');
-                const isOpen = parentItem.classList.contains('open');
+    document.addEventListener('click', (e) => {
+        const sidebarEl = document.getElementById('app-sidebar');
+        if (!sidebarEl) return;
+        const isCollapsed = sidebarEl.classList.contains('collapsed');
 
-                // Close other top-level flyouts
-                document.querySelectorAll('.rail-item.has-flyout').forEach(item => {
-                    if (item !== parentItem) {
-                        item.classList.remove('open');
-                        item.querySelectorAll('.flyout-item.has-nested').forEach(nested => nested.classList.remove('open'));
-                    }
-                });
-
-                if (isOpen) {
-                    parentItem.classList.remove('open');
-                } else {
-                    parentItem.classList.add('open');
-                }
-            }
-        });
-    });
-
-    document.querySelectorAll('.flyout-item.has-nested > .flyout-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+        // Level 1: Rail item click in collapsed mode
+        const railLink = e.target.closest('.rail-item.has-flyout > .rail-link');
+        if (railLink && isCollapsed) {
+            e.preventDefault();
             e.stopPropagation();
-            const parentItem = this.closest('.flyout-item');
-            const isOpen = parentItem.classList.contains('open');
+            const parentItem = railLink.closest('.rail-item');
+            const wasOpen = parentItem.classList.contains('open');
 
-            // Close sibling nested items
-            const siblingItems = parentItem.parentElement.querySelectorAll(':scope > .flyout-item.has-nested');
-            siblingItems.forEach(item => {
-                if (item !== parentItem) item.classList.remove('open');
+            // Close other top-level flyouts
+            sidebarEl.querySelectorAll('.rail-item.has-flyout').forEach(item => {
+                if (item !== parentItem) {
+                    item.classList.remove('open');
+                    item.querySelectorAll('.flyout-item.has-nested').forEach(nested => nested.classList.remove('open'));
+                }
             });
 
-            if (isOpen) {
+            if (wasOpen) {
                 parentItem.classList.remove('open');
             } else {
                 parentItem.classList.add('open');
             }
-        });
-    });
+            return;
+        }
 
-    // Close flyouts when clicking outside sidebar
-    document.addEventListener('click', (e) => {
+        // Level 2: Nested flyout item click in collapsed mode
+        const nestedLink = e.target.closest('.flyout-item.has-nested > .flyout-link');
+        if (nestedLink && isCollapsed) {
+            e.preventDefault();
+            e.stopPropagation();
+            const parentItem = nestedLink.closest('.flyout-item');
+            const wasOpen = parentItem.classList.contains('open');
+
+            const siblings = parentItem.parentElement ? parentItem.parentElement.querySelectorAll(':scope > .flyout-item.has-nested') : [];
+            siblings.forEach(sibling => {
+                if (sibling !== parentItem) {
+                    sibling.classList.remove('open');
+                }
+            });
+
+            if (wasOpen) {
+                parentItem.classList.remove('open');
+            } else {
+                parentItem.classList.add('open');
+            }
+            return;
+        }
+
+        // Click outside sidebar closes all open flyouts
         if (!e.target.closest('#app-sidebar')) {
-            document.querySelectorAll('.rail-item.has-flyout.open').forEach(item => item.classList.remove('open'));
-            document.querySelectorAll('.flyout-item.has-nested.open').forEach(item => item.classList.remove('open'));
+            sidebarEl.querySelectorAll('.rail-item.has-flyout.open').forEach(item => item.classList.remove('open'));
+            sidebarEl.querySelectorAll('.flyout-item.has-nested.open').forEach(item => item.classList.remove('open'));
         }
     });
 
