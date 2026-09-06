@@ -24,7 +24,7 @@
                     <div class="card-header px-2">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Transport Type",
+                            Title = "Transport Mode Type",
                             SaveBtnClass = "js-TransportModeType-save",
                             DeleteBtnClass = "js-TransportModeType-delete-confirm",
                             ClearBtnClass = "js-TransportModeType-clear"
@@ -71,6 +71,7 @@
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 <script src="~/js/app.input.validation.js" defer></script>

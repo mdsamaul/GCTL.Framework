@@ -334,6 +334,7 @@ namespace GCTL.Service.HrmEmployees2
 
         #region SaveAsync
 
+
         public async Task<bool> SaveAsync(HrmEmployee2SetUpViewModel entityVM, string CompanyCode)
         {
             await empRepository.BeginTransactionAsync();
