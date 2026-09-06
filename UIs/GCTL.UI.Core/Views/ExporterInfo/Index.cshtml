@@ -88,6 +88,80 @@
         box-shadow: none;
     }
 
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .ex-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .ex-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .ex-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .ex-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .ex-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .ex-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
 </style>
 
 <!-- Content Header (Page header) -->
@@ -97,8 +171,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 ex-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -119,8 +193,8 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-12 col-xxl-6 ex-layout-grid-col">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",

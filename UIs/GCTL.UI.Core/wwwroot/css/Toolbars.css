@@ -239,7 +239,7 @@
 .card > .toolbar-container,
 .card .toolbar-container {
     border: none !important;
-/*    border-bottom: 1px solid #dee2e6 !important;*/
+    border-bottom: 1px solid #dee2e6 !important;
     border-radius: 0 !important;
     border-top-left-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
     border-top-right-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;

@@ -15,16 +15,16 @@
         </div>
     </div>
 
-    <div class="row g-2">
-        <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="Tc" />
-        @* <input type="hidden" asp-for="Id" /> *@
-        <input type="hidden" asp-for="Ldate" />
-        <input type="hidden" asp-for="ModifyDate" />
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="Tc" />
+    @* <input type="hidden" asp-for="Id" /> *@
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
 
-        @* ---------- Importer ID (readonly) ---------- *@
+    @* ---------- Row 1: Importer ID & Importer Code ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ImporterId",
@@ -37,7 +37,6 @@
             DefaultValue = Model?.ImporterId
         })
 
-        @* ---------- Importer Code ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ImporterCode",
@@ -48,8 +47,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ImporterCode
         })
+    </div>
 
-        @* ---------- Importer Name ---------- *@
+    @* ---------- Row 2: Importer Name & Address ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ImporterName",
@@ -63,7 +64,6 @@
             AutoFocus = true
         })
 
-        @* ---------- Address ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ImporterAddress",
@@ -74,8 +74,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ImporterAddress
         })
+    </div>
 
-        @* ---------- Country ---------- *@
+    @* ---------- Row 3: Country & City ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "CountryId",
@@ -87,7 +89,6 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col"
         })
 
-        @* ---------- City ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "City",
@@ -98,8 +99,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.City
         })
+    </div>
 
-        @* ---------- State/Province ---------- *@
+    @* ---------- Row 4: State/Province & Zip Code ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "StateOrProvince",
@@ -111,7 +114,6 @@
             DefaultValue = Model?.StateOrProvince
         })
 
-        @* ---------- Zip Code ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ZipCode",
@@ -122,8 +124,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.ZipCode
         })
+    </div>
 
-        @* ---------- Vat Reg. No. ---------- *@
+    @* ---------- Row 5: Vat Reg. No. & Phone ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "VatRegNo",
@@ -135,7 +139,6 @@
             DefaultValue = Model?.VatRegNo
         })
 
-        @* ---------- Phone ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Phone",
@@ -146,8 +149,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Phone
         })
+    </div>
 
-        @* ---------- Fax ---------- *@
+    @* ---------- Row 6: Fax & Email ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Fax",
@@ -159,7 +164,6 @@
             DefaultValue = Model?.Fax
         })
 
-        @* ---------- Email ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Email",
@@ -170,8 +174,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Email
         })
+    </div>
 
-        @* ---------- Website ---------- *@
+    @* ---------- Row 7: Website & Remarks ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Website",
@@ -183,7 +189,6 @@
             DefaultValue = Model?.Website
         })
 
-        @* ---------- Remarks ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Remarks",
@@ -194,8 +199,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Remarks
         })
+    </div>
 
-        @* ---------- Contact Person 1 ---------- *@
+    @* ---------- Row 8: Contact Person 1 & Designation 1 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ContactPerson1",
@@ -207,7 +214,6 @@
             DefaultValue = Model?.ContactPerson1
         })
 
-        @* ---------- Designation 1 ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Designation1",
@@ -218,8 +224,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Designation1
         })
+    </div>
 
-        @* ---------- Phone 1 ---------- *@
+    @* ---------- Row 9: Phone 1 & Email 1 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Phone1",
@@ -231,7 +239,6 @@
             DefaultValue = Model?.Phone1
         })
 
-        @* ---------- Email 1 ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Email1",
@@ -242,8 +249,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Email1
         })
+    </div>
 
-        @* ---------- Contact Person 2 ---------- *@
+    @* ---------- Row 10: Contact Person 2 & Designation 2 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ContactPerson2",
@@ -255,7 +264,6 @@
             DefaultValue = Model?.ContactPerson2
         })
 
-        @* ---------- Designation 2 ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Designation2",
@@ -266,8 +274,10 @@
             ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 im-field-col",
             DefaultValue = Model?.Designation2
         })
+    </div>
 
-        @* ---------- Phone 2 ---------- *@
+    @* ---------- Row 11: Phone 2 & Email 2 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Phone2",
@@ -279,7 +289,6 @@
             DefaultValue = Model?.Phone2
         })
 
-        @* ---------- Email 2 ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Email2",
@@ -295,7 +304,7 @@
     @if (Model.Tc > 0)
     {
         <hr class="my-2" />
-        <div class="row g-2" id="LdateModifyHide">
+        <div class="row g-4 mb-1" id="LdateModifyHide">
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
@@ -324,8 +333,8 @@
 
 </div>
 
-<div class="row no-print" style="margin-top: 9px;">
-    <div class="col-12">
+<div class="row g-4 no-print" style="margin-top: 9px;">
+    <div class="col-12 col-md-6 col-xxl-12 im-toolbar-col">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
            Title = "",
@@ -335,7 +344,8 @@
            ShowFavorite = false,
            IsPlain = true,
            SaveBtnClass = "js-ImporterInfo-save",
-           ReserveActionSlot = true
+           ReserveActionSlot = true,
+           Style="border-bottom:0px !important;",
         })
     </div>
 </div>

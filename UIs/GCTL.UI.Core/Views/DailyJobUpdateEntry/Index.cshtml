@@ -125,7 +125,7 @@
         .sm-topshow {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: start;
             align-items: center;
             gap: 10px;
             padding-bottom: 10px;
@@ -429,7 +429,7 @@
 
                             <!-- Left -->
                             <div class="toolbar-left">
-                                <div class="input-group input-group-sm toolbar-showing">
+                                @* <div class="input-group input-group-sm toolbar-showing">
                                     <span class="input-group-text">Showing</span>
 
                                     <select class="form-select" id="pageSizeSelect">
@@ -439,7 +439,7 @@
                                         <option value="50">50</option>
                                         <option value="100">100</option>
                                     </select>
-                                </div>
+                                </div> *@
                             </div>
 
                             <!-- Right -->
@@ -477,10 +477,10 @@
                                 </div>
 
                                 <div class="toolbar-search">
-                                    <input class="form-control form-control-sm"
+                                    @* <input class="form-control form-control-sm"
                                            id="searchInput"
                                            type="text"
-                                           placeholder="Search">
+                                           placeholder="Search"> *@
                                 </div>
 
                             </div>
@@ -961,7 +961,8 @@
                             ShowFavorite = false,
                             IsPlain = true,
                             SaveBtnClass = "saveBtn",
-                            ReserveActionSlot = true
+                            ReserveActionSlot = true,
+           Style="border-bottom:0px !important;"
                         })
                     </div>
 
@@ -977,7 +978,7 @@
                 </div>
                 <div class="card-body p-1">
                     <div class="timeline" id="shipmentTimeline">
-                        <!-- জাভাস্ক্রিপ্ট dynamic ভাবে item গুলো এখানে বসাবে, .timeline-line লাগবে না -->
+
                     </div>
                 </div>
             </div>
@@ -993,7 +994,7 @@
                     <div class="toolbar pb-2">
 
                         <div class="toolbar-left">
-                            <div class="input-group input-group-sm toolbar-showing">
+                            @* <div class="input-group input-group-sm toolbar-showing">
                                 <span class="input-group-text">Showing</span>
                                 <select class="form-select" id="statusPageSizeSelect">
                                     <option>10</option>
@@ -1001,7 +1002,7 @@
                                     <option>50</option>
                                     <option>100</option>
                                 </select>
-                            </div>
+                            </div> *@
                         </div>
                         <div class="toolbar-right">
                             <span class="label-text">Filter By:</span>
@@ -1023,10 +1024,10 @@
                             </div>
 
                             <div class="toolbar-item toolbar-search">
-                                <input class="form-control form-control-sm"
+                                @* <input class="form-control form-control-sm"
                                        id="statusSearchInput"
                                        type="text"
-                                       placeholder="Search">
+                                       placeholder="Search"> *@
                             </div>
                         </div>
 

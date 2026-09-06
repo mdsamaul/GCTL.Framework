@@ -89,7 +89,7 @@
         }
 
     /* Responsive layout:
-       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width / 4 per row), Grid is on Bottom (100%)
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
        - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
     */
     @@media (max-width: 1600px) {
@@ -109,6 +109,11 @@
             flex: 0 0 25% !important;
             max-width: 25% !important;
         }
+
+        .im-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
     }
 
     @@media (min-width: 1600.02px) {
@@ -126,6 +131,11 @@
             flex: 0 0 50% !important;
             max-width: 50% !important;
         }
+
+        .im-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
     }
 
     @@media (max-width: 991.98px) {
@@ -133,10 +143,20 @@
             flex: 0 0 50% !important;
             max-width: 50% !important;
         }
+
+        .im-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
     }
 
     @@media (max-width: 575.98px) {
         .im-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .im-toolbar-col {
             flex: 0 0 100% !important;
             max-width: 100% !important;
         }
