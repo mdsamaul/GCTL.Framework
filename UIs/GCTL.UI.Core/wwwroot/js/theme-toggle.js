@@ -1,70 +1,13 @@
-// Theme and Sidebar Manager
+// Theme, Sidebar and Live Clock Manager
 
 document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------
-    // Theme Management (Always Light Mode - Dark & System commented out)
+    // Theme Management (Light Mode)
     // -----------------------------------------------------------------
-    const themeSelectButtons = document.querySelectorAll('[data-theme-value]');
-    const activeThemeIcon = document.getElementById('active-theme-icon');
-
-    // Force light mode always
-    const setTheme = theme => {
-        document.documentElement.setAttribute('data-theme', 'light');
-        updateThemeUI('light');
-    };
-
-    /*
-    const getStoredTheme = () => localStorage.getItem('theme') || 'system';
-    const setStoredTheme = theme => localStorage.setItem('theme', theme);
-
-    const getPreferredTheme = () => {
-        const storedTheme = getStoredTheme();
-        if (storedTheme !== 'system') {
-            return storedTheme;
-        }
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    };
-    */
-
-    const updateThemeUI = (theme) => {
-        // Remove active class from all buttons
-        themeSelectButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-theme-value') === 'light') {
-                btn.classList.add('active');
-            }
-        });
-
-        // Update the top-nav theme toggle icon
-        if (activeThemeIcon) {
-            activeThemeIcon.className = 'bi bi-sun-fill';
-        }
-    };
-
-    // Initialize theme to light always
-    setTheme('light');
-
-    /*
-    // Listen for theme buttons clicks (Dark/System disabled)
-    themeSelectButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const theme = btn.getAttribute('data-theme-value');
-            setStoredTheme(theme);
-            setTheme(theme);
-        });
-    });
-
-    // Listen for OS theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        const storedTheme = getStoredTheme();
-        if (storedTheme === 'system') {
-            setTheme('system');
-        }
-    });
-    */
+    document.documentElement.setAttribute('data-theme', 'light');
 
     // -----------------------------------------------------------------
-    // Collapsible Sidebar Management
+    // Collapsible Sidebar Management (3-bar Hamburger Toggle)
     // -----------------------------------------------------------------
     const sidebar = document.getElementById('app-sidebar');
     const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -83,12 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Initialize sidebar state
+    // Initialize sidebar state from localStorage (default to expanded)
     const isSidebarCollapsed = getStoredSidebarState();
     applySidebarState(isSidebarCollapsed);
 
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
+        sidebarToggle.addEventListener('click', (e) => {
+            e.preventDefault();
             const collapsed = !sidebar.classList.contains('collapsed');
             setStoredSidebarState(collapsed);
             applySidebarState(collapsed);
@@ -96,48 +40,159 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -----------------------------------------------------------------
-    // Live Clock (Center of Topnav)
+    // Multi-Level Flyout Menu Interaction (Collapsed Rail Mode)
     // -----------------------------------------------------------------
-    const clockElement = document.getElementById('topnav-clock');
-    if (clockElement) {
-        const updateClock = () => {
-            const now = new Date();
-            const options = { 
-                weekday: 'short', 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit',
-                hour12: true 
-            };
-            clockElement.textContent = now.toLocaleDateString('en-US', options);
-        };
-        updateClock();
-        setInterval(updateClock, 1000);
-    }
+    document.addEventListener('click', (e) => {
+        const sidebarEl = document.getElementById('app-sidebar');
+        if (!sidebarEl) return;
+        const isCollapsed = sidebarEl.classList.contains('collapsed');
 
-    // -----------------------------------------------------------------
-    // Sidebar Accordion (Same-Level Auto Collapse / Shrink)
-    // -----------------------------------------------------------------
-    document.addEventListener('show.bs.collapse', (e) => {
-        const targetCollapse = e.target;
-        if (!targetCollapse.closest('.sidebar-menu')) return;
+        // Level 1: Rail item click in collapsed mode
+        const railLink = e.target.closest('.rail-item.has-flyout > .rail-link');
+        if (railLink && isCollapsed) {
+            e.preventDefault();
+            e.stopPropagation();
+            const parentItem = railLink.closest('.rail-item');
+            const wasOpen = parentItem.classList.contains('open');
 
-        // Get the immediate parent <ul> containing this menu item
-        const parentUl = targetCollapse.closest('ul.sidebar-menu');
-        if (!parentUl) return;
+            // Close other top-level flyouts
+            sidebarEl.querySelectorAll('.rail-item.has-flyout').forEach(item => {
+                if (item !== parentItem) {
+                    item.classList.remove('open');
+                    item.querySelectorAll('.flyout-item.has-nested').forEach(nested => nested.classList.remove('open'));
+                }
+            });
 
-        // Find all sibling menu items at the exact same level
-        const siblingItems = Array.from(parentUl.children).filter(li => li.classList.contains('menu-item'));
-        siblingItems.forEach(li => {
-            const siblingCollapse = li.querySelector(':scope > .collapse.show');
-            if (siblingCollapse && siblingCollapse !== targetCollapse) {
-                const bsCollapse = bootstrap.Collapse.getInstance(siblingCollapse) || new bootstrap.Collapse(siblingCollapse, { toggle: false });
-                bsCollapse.hide();
+            if (wasOpen) {
+                parentItem.classList.remove('open');
+            } else {
+                parentItem.classList.add('open');
             }
-        });
+            return;
+        }
+
+        // Level 2: Nested flyout item click in collapsed mode
+        const nestedLink = e.target.closest('.flyout-item.has-nested > .flyout-link');
+        if (nestedLink && isCollapsed) {
+            e.preventDefault();
+            e.stopPropagation();
+            const parentItem = nestedLink.closest('.flyout-item');
+            const wasOpen = parentItem.classList.contains('open');
+
+            const siblings = parentItem.parentElement ? parentItem.parentElement.querySelectorAll(':scope > .flyout-item.has-nested') : [];
+            siblings.forEach(sibling => {
+                if (sibling !== parentItem) {
+                    sibling.classList.remove('open');
+                }
+            });
+
+            if (wasOpen) {
+                parentItem.classList.remove('open');
+            } else {
+                parentItem.classList.add('open');
+            }
+            return;
+        }
+
+        // Click outside sidebar closes all open flyouts
+        if (!e.target.closest('#app-sidebar')) {
+            sidebarEl.querySelectorAll('.rail-item.has-flyout.open').forEach(item => item.classList.remove('open'));
+            sidebarEl.querySelectorAll('.flyout-item.has-nested.open').forEach(item => item.classList.remove('open'));
+        }
     });
+
+    // -----------------------------------------------------------------
+    // Live Clocks (Dashboard vs. Other Pages Topnav Center)
+    // -----------------------------------------------------------------
+    const dashboardDateEl = document.getElementById('dashboard-date');
+    const dashboardTimeEl = document.getElementById('dashboard-time');
+    const topnavClockEl = document.getElementById('topnav-clock');
+
+    const updateClocks = () => {
+        const now = new Date();
+
+        // 1. Dashboard specific Date & Time
+        if (dashboardDateEl || dashboardTimeEl) {
+            if (dashboardDateEl) {
+                const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                dashboardDateEl.textContent = now.toLocaleDateString('en-US', dateOptions);
+            }
+            if (dashboardTimeEl) {
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+                dashboardTimeEl.textContent = now.toLocaleTimeString('en-US', timeOptions);
+            }
+        }
+
+        // 2. Other Pages Topnav Center Clock: "Sun, Sep 6, 2026, 09:35:52 AM"
+        if (topnavClockEl) {
+            const topnavOptions = {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            topnavClockEl.textContent = now.toLocaleDateString('en-US', topnavOptions);
+        }
+    };
+
+    updateClocks();
+    setInterval(updateClocks, 1000);
+
+    // -----------------------------------------------------------------
+    // Change Password Modal Handler
+    // -----------------------------------------------------------------
+    const btnChangePassword = document.getElementById('btnChangePassword');
+    const changePasswordModalEl = document.getElementById('changePasswordModal');
+
+    if (btnChangePassword && changePasswordModalEl) {
+        btnChangePassword.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modal = bootstrap.Modal.getOrCreateInstance(changePasswordModalEl);
+            modal.show();
+        });
+
+        const btnSavePassword = document.getElementById('btnSavePassword');
+        if (btnSavePassword) {
+            btnSavePassword.addEventListener('click', () => {
+                const currentPass = document.getElementById('currentPassword')?.value;
+                const newPass = document.getElementById('newPassword')?.value;
+                const confirmPass = document.getElementById('confirmPassword')?.value;
+
+                if (!currentPass || !newPass || !confirmPass) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.warning('Please fill in all password fields.');
+                    } else {
+                        alert('Please fill in all password fields.');
+                    }
+                    return;
+                }
+
+                if (newPass !== confirmPass) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('New password and confirmation do not match.');
+                    } else {
+                        alert('New password and confirmation do not match.');
+                    }
+                    return;
+                }
+
+                // Simulate password update
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Password changed successfully.');
+                } else {
+                    alert('Password changed successfully.');
+                }
+
+                document.getElementById('changePasswordForm')?.reset();
+                const modal = bootstrap.Modal.getInstance(changePasswordModalEl);
+                modal?.hide();
+            });
+        }
+    }
 });
+
 
