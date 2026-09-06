@@ -21,6 +21,93 @@
         box-shadow: none !important;
     }
 
+    /* Uniform Form Control Height (31px) across all inputs, dropdowns, and checkboxes */
+    #expenseForm .form-control,
+    #expenseForm .form-select,
+    #expenseForm .custom-dd-box,
+    #expenseForm .select2-container .select2-selection--single,
+    #expenseForm .form-control-height-wrap {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        box-sizing: border-box !important;
+        border-radius: 4px !important;
+        font-size: 0.8125rem !important;
+    }
+
+    #expenseForm .form-control {
+        padding: 0.25rem 0.5rem !important;
+        line-height: 1.5 !important;
+        border: 1px solid #ced4da !important;
+    }
+
+    #expenseForm .input-group {
+        height: 31px !important;
+        min-height: 31px !important;
+    }
+
+    #expenseForm .input-group > .custom-dd-wrapper {
+        flex: 1 1 auto;
+        width: 1%;
+        min-width: 0;
+    }
+
+    /* Custom Dropdown (.custom-dd-box) alignment & height parity */
+    #expenseForm .custom-dd-wrapper {
+        width: 100% !important;
+    }
+    #expenseForm .custom-dd-box {
+        padding: 0 0.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        background-color: #fff !important;
+        border: 1px solid #ced4da !important;
+    }
+    #expenseForm .custom-dd-input {
+        height: 29px !important;
+        line-height: 29px !important;
+        font-size: 0.8125rem !important;
+        padding: 0 2px !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+    #expenseForm .custom-dd-clear-icon,
+    #expenseForm .custom-dd-arrow {
+        height: 29px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
+    }
+
+    /* Select2 fallback alignment & height parity */
+    #expenseForm .select2-container {
+        width: 100% !important;
+    }
+    #expenseForm .select2-container .select2-selection--single {
+        padding: 0 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        border: 1px solid #ced4da !important;
+    }
+    #expenseForm .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 29px !important;
+        padding-left: 0 !important;
+        font-size: 0.8125rem !important;
+        color: #495057 !important;
+    }
+    #expenseForm .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 29px !important;
+        top: 0 !important;
+        right: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    #expenseForm .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        margin-top: 0 !important;
+    }
+
+    /* Uniform Label styling */
     #expenseForm .form-label {
         font-weight: 500;
         margin-bottom: 4px;
@@ -28,11 +115,19 @@
         display: block;
         color: #333;
         font-size: 0.85rem;
+        line-height: 1.2;
+        min-height: 18px;
     }
-    #expenseForm .form-control,
-    #expenseForm .form-select {
-        border-radius: 4px;
+
+    /* Checkbox Container Alignment in Row 2 */
+    #expenseForm .form-control-height-wrap {
+        display: flex !important;
+        align-items: center !important;
     }
+    #expenseForm .form-control-height-wrap .form-check {
+        padding-left: 0.25rem !important;
+    }
+
     #expenseForm .field-validation {
         font-size: 0.75rem;
         display: block;
@@ -60,7 +155,8 @@
         <form id="expenseForm">
             <input type="hidden" id="tc" name="tc" />
 
-            <div class="row g-3">
+            @* ================= Row 1: Expense Head ID & Shipment Mode ================= *@
+            <div class="row g-3 mb-2">
                 @* ---------- Expense Head ID (readonly) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -70,7 +166,7 @@
                     Placeholder = "Expense Head ID",
                     IsReadonly = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3 mt-0",
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -83,19 +179,23 @@
                     SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3 mt-0",
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
                 <div class="col-lg-6 col-md-6"></div>
+            </div>
+
+            @* ================= Row 2: Is Receiptable & Expense Head Name ================= *@
+            <div class="row g-3 mb-2">
                 @* ---------- Is Receiptable (Checkbox) ---------- *@
-                <div class="col-lg-3 col-md-3 mt-0 d-flex align-items-center">
+                <div class="col-lg-3 col-md-3">
                     <label class="form-label" for="isReceiptable">Is Receiptable Expense</label>
-                    <div class="d-flex align-items-center" style="height: 31px;">
-                        <div class="form-check m-0 d-flex align-items-center ps-2">
+                    <div class="form-control-height-wrap">
+                        <div class="form-check m-0 d-flex align-items-center">
                             <input type="checkbox"
                                    class="form-check-input m-0"
                                    id="isReceiptable"
                                    name="isReceiptable"
-                                   style="cursor: pointer; width: 1.2rem; height: 1.2rem;" />
+                                   style="cursor: pointer; width: 1.25rem; height: 1.25rem;" />
                         </div>
                     </div>
                 </div>
@@ -109,9 +209,13 @@
                     Placeholder = "Expense Head",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3 mt-0",
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
                 <div class="col-lg-6 col-md-6"></div>
+            </div>
+
+            @* ================= Row 3: Short Name & Amount ================= *@
+            <div class="row g-3 mb-2">
                 @* ---------- Short Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -120,7 +224,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3 mt-0",
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
 
                 @* ---------- Amount ---------- *@
@@ -131,9 +235,13 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3 mt-0"
+                    ColumnClass = "col-lg-3 col-md-3"
                 })
                 <div class="col-lg-6 col-md-6"></div>
+            </div>
+
+            @* ================= Row 4: Serial No & Service Provided By ================= *@
+            <div class="row g-3 mb-2">
                 @* ---------- Serial No ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -143,7 +251,7 @@
                     Placeholder = "Serial No",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3 mt-0"
+                    ColumnClass = "col-lg-3 col-md-3"
                 })
 
                 @* ---------- Service Provided By (Select) ---------- *@
@@ -156,10 +264,11 @@
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3 mt-0"
+                    ColumnClass = "col-lg-3 col-md-3"
                 })
+                <div class="col-lg-6 col-md-6"></div>
             </div>
-            <div class="col-lg-6 col-md-6"></div>
+
             @* ---------- Creation & Modify Date ---------- *@
             <div class="row g-3 mt-1" id="LdateModifyHide">
                 <div class="col-lg-3 col-md-3 mt-0" id="lDateContainer" style="display: none;">
@@ -184,7 +293,7 @@
                         ShowPrint = false,
                         IsPlain = true,
                         ReserveActionSlot = false,
-                        Style="padding-left:0px;"
+                        Style = "padding-left:0px;"
                     })
                 </div>
             </div>

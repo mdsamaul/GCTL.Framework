@@ -1527,6 +1527,37 @@ textarea {
     min-width: 0 !important;
     max-width: 100%;
 }
+
+/* Global input-group-sm parity for CustomDropdown */
+.input-group-sm > .custom-dd-wrapper,
+.input-group-sm .custom-dd-box {
+    height: 31px !important;
+    min-height: 31px !important;
+    max-height: 31px !important;
+    box-sizing: border-box !important;
+}
+.input-group-sm .custom-dd-box {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 8px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+}
+.input-group-sm .custom-dd-input {
+    height: 29px !important;
+    line-height: 29px !important;
+    padding: 0 2px !important;
+    margin: 0 !important;
+    border: none !important;
+}
+.input-group-sm .custom-dd-clear-icon,
+.input-group-sm .custom-dd-arrow {
+    height: 29px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
 /*
 .custom-dd-input::placeholder {
     color: #8a9bb8 !important;
