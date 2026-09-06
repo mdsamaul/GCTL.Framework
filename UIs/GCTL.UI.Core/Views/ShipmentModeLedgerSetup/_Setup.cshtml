@@ -15,16 +15,16 @@
         </div>
     </div>
 
-    <div class="form-group row">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="Tc" />
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="Ldate" />
-        <input type="hidden" asp-for="ModifyDate" />
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="Tc" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
 
-        @* ---------- Expense Type ID (readonly) ---------- *@
+    @* ---------- Row 1: ID & Shipment Mode ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ExpenseTypeId",
@@ -32,14 +32,11 @@
             FieldType = FieldType.Text,
             IsReadonly = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col",
             CustomCssClass = "js-ExpenseTypeId-code",
             DefaultValue = Model?.ExpenseTypeId
         })
-    </div>
 
-    <div class="form-group row">
-        @* ---------- Shipment Mode ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ExpenseType",
@@ -48,12 +45,12 @@
             Placeholder = "-- Select Shipment Mode --",
             SelectItems = ViewBag.ShipmentDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
         })
     </div>
 
-    <div class="form-group row">
-        @* ---------- Expense Ledger ---------- *@
+    @* ---------- Row 2: Expense Ledger & Revenue Ledger ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ExpenseLedgerCodeNo",
@@ -62,24 +59,23 @@
             Placeholder = "-- Select Expense Ledger --",
             SelectItems = ViewBag.ExpenseDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
         })
 
-        @* ---------- Revenue Ledger ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "RevenueLedgerCodeNo",
             LabelText = "Revenue Ledger",
             FieldType = FieldType.Select,
-            Placeholder = "-- Select Expense Ledger --",
+            Placeholder = "-- Select Revenue Ledger --",
             SelectItems = ViewBag.RevenueDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
         })
     </div>
 
-    <div class="form-group row">
-        @* ---------- Advance Ledger ---------- *@
+    @* ---------- Row 3: Advance Ledger ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "AdvanceLedgerCode",
@@ -88,44 +84,41 @@
             Placeholder = "-- Select Advance Ledger --",
             SelectItems = ViewBag.AdvanceDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6"
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
         })
     </div>
 
-    @if (Model.Tc > 0)
-    {
-        <hr id="sectionBreak" />
-        <div class="form-group row" id="LdateModifyHide">
+    <hr id="sectionBreak" style="display:none;" />
+    <div class="row g-4 mb-1" id="LdateModifyHide" style="display:none;">
 
-            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-            {
-                InputId = "displayLDate",
-                LabelText = "Creation Date:",
-                FieldType = FieldType.ReadonlyDisplay,
-                ReserveActionSlot = false,
-                ColumnClass = "col-lg-6",
-                ShowOnInit = Model.Ldate.HasValue,
-                DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : ""
-            })
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "creationDateSpan",
+            LabelText = "Creation Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col",
+            ShowOnInit = Model.Ldate.HasValue,
+            DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : ""
+        })
 
-            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-            {
-                InputId = "displayModifyDate",
-                LabelText = "Last Update Date:",
-                FieldType = FieldType.ReadonlyDisplay,
-                ReserveActionSlot = false,
-                ColumnClass = "col-lg-6",
-                ShowOnInit = Model.ModifyDate.HasValue,
-                DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : ""
-            })
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "modifyDateSpan",
+            LabelText = "Last Update Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col",
+            ShowOnInit = Model.ModifyDate.HasValue,
+            DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : ""
+        })
 
-        </div>
-    }
+    </div>
 
 </div>
 
-<div class="row no-print" style="margin-top: 9px;">
-    <div class="col-12">
+<div class="row g-4 no-print" style="margin-top: 9px;">
+    <div class="col-12 col-md-6 col-xxl-12 sml-toolbar-col">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
@@ -136,7 +129,7 @@
             IsPlain = true,
             SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
             ReserveActionSlot = true,
-           Style="border-bottom:0px !important;"
+            Style = "border-bottom:0px !important;"
         })
     </div>
 </div>

@@ -128,7 +128,7 @@
             //#region selectAllSelector & deleteSelector
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $("#clientInformationEntryTable input:checkbox.checkbox").prop('checked', $(this).prop('checked'));
+                $(`${settings.gridSelector} input:checkbox.checkbox`).prop('checked', $(this).prop('checked'));
             });
 
             $("body").on("click", settings.deleteSelector, function (e) {
@@ -137,7 +137,7 @@
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('#clientInformationEntryTable input:checkbox.checkbox:checked').each(function () {
+                    $(`${settings.gridSelector} input:checkbox.checkbox:checked`).each(function () {
                         var val = $(this).val();
                         if (val && !selectedItems.includes(val)) {
                             selectedItems.push(val);

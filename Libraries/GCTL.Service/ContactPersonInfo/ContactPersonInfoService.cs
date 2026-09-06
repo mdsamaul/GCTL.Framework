@@ -82,6 +82,10 @@ namespace GCTL.Service.ContactPersonInfo
         public async Task<ContactPersonInfoSetupViewModel> GetByIdAsync(string code)
         {
             var entity = await contactPersonrepository.GetByIdAsync(code);
+            if (entity == null && decimal.TryParse(code, out decimal autoId))
+            {
+                entity = await contactPersonrepository.All().FirstOrDefaultAsync(x => x.AutoId == autoId);
+            }
             if (entity == null) return null;
 
             ContactPersonInfoSetupViewModel entityVM = new ContactPersonInfoSetupViewModel

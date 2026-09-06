@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PortName;
@@ -81,6 +81,11 @@ namespace GCTL.Service.PortName
             var entity = await portNamerepository.GetByIdAsync(code);
 
             if (entity == null)
+            {
+                entity = await portNamerepository.All().FirstOrDefaultAsync(x => x.PortNameId == code || (x.PortNameId != null && x.PortNameId.Trim() == (code != null ? code.Trim() : "")));
+            }
+
+            if (entity == null)
                 return null;
 
             return new PortNameSetupViewModel
@@ -144,6 +149,10 @@ namespace GCTL.Service.PortName
             try
             {
                 var entity = await portNamerepository.GetByIdAsync(entityVM.PortNameId);
+                if (entity == null)
+                {
+                    entity = await portNamerepository.All().FirstOrDefaultAsync(x => x.PortNameId == entityVM.PortNameId || (x.PortNameId != null && x.PortNameId.Trim() == (entityVM.PortNameId != null ? entityVM.PortNameId.Trim() : "")));
+                }
                 if (entity == null)
                 {
                     await portNamerepository.RollbackTransactionAsync();

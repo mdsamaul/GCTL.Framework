@@ -143,55 +143,143 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on('click', '.doc-delete-entry-btn', function (e) {
+    function getDeleteModal() {
+        var $m = $("#sepdoc-delete-modal");
+        if ($m.length) return $m;
+        $m = $("#deleteModal");
+        if ($m.length) return $m;
+        return $("#gcDeleteModal");
+    }
+
+    function showDeleteModal($modal) {
+        if (window.bootstrap && bootstrap.Modal) {
+            var inst = bootstrap.Modal.getOrCreateInstance($modal[0]);
+            inst.show();
+        } else {
+            $modal.modal('show');
+        }
+    }
+
+    function hideDeleteModal($modal) {
+        if (window.bootstrap && bootstrap.Modal) {
+            var inst = bootstrap.Modal.getInstance($modal[0]);
+            if (inst) inst.hide();
+            else $modal.modal('hide');
+        } else {
+            $modal.modal('hide');
+        }
+    }
+
+    let pendingDeleteType = null; // 'jobs' or 'document'
+    let pendingDeleteIds = [];
+    let pendingDocTc = null;
+    let pendingOnSuccess = null;
+
+    $(document).on('click', '.doc-delete-entry-btn, .doc-delete-upload-btn', function (e) {
         e.preventDefault();
 
         // Check if this is the form delete button
         const isFormDelete = $(this).closest('.entry-only').length > 0;
+        const tc = $('#tc').val();
+        const jobNo = $('#jobNo').val();
+
+        pendingDeleteType = 'jobs';
+        pendingDeleteIds = [];
+        pendingDocTc = null;
+        pendingOnSuccess = null;
 
         if (isFormDelete) {
-            // Form থেকে ডিলিট
-            const tc = $('#tc').val();
-            const jobNo = $('#jobNo').val();
-
             if (!tc || tc === '0') {
                 toastr.warning('Please select a job first to delete');
                 return;
             }
 
-            if (!confirm(`Are you sure you want to delete Job No "${jobNo}"?`)) return;
-
-            deleteJobsByIds([tc], function () {
+            pendingDeleteIds = [tc];
+            pendingOnSuccess = function () {
                 clearForm(true);
-            });
+            };
         } else {
-            // Bottom grid থেকে multi-select delete
-            if (selectedBottomIds.length === 0) {
-                toastr.warning('Please select at least one record to delete');
+            // Check bottom grid selection first, fallback to form if active
+            if (selectedBottomIds.length > 0) {
+                pendingDeleteIds = [...selectedBottomIds];
+            } else if (tc && tc !== '0') {
+                pendingDeleteIds = [tc];
+                pendingOnSuccess = function () {
+                    clearForm(true);
+                };
+            } else {
+                toastr.info('Please select at least one item.');
                 return;
             }
-
-            if (!confirm(`Are you sure you want to delete ${selectedBottomIds.length} record(s)?`)) return;
-
-            deleteJobsByIds(selectedBottomIds);
         }
+
+        var $modal = getDeleteModal();
+        var msg = pendingDeleteIds.length > 1
+            ? `Are you sure you want to delete these ${pendingDeleteIds.length} item(s)? This process cannot be undone.`
+            : (jobNo && pendingDeleteIds[0] == tc ? `Are you sure you want to delete Job No "${jobNo}"? This process cannot be undone.` : 'Are you sure you want to delete these item(s)? This process cannot be undone.');
+
+        $modal.find('.title').html(msg);
+        showDeleteModal($modal);
     });
 
-    // Single trash icon থেকে delete
+    // Single trash icon delete
     $(document).on('click', '.single-delete-btn', function (e) {
         e.preventDefault();
         const id = $(this).data('id');
+        if (!id) return;
 
-        // Clear previous selection and add current ID
-        selectedBottomIds = [];
-        selectedBottomIds.push(String(id));
+        pendingDeleteType = 'jobs';
+        pendingDeleteIds = [String(id)];
+        pendingDocTc = null;
+        pendingOnSuccess = null;
 
-        if (!confirm('Are you sure you want to delete this record?')) {
-            selectedBottomIds = [];
+        var $modal = getDeleteModal();
+        $modal.find('.title').html('Are you sure you want to delete this record? This process cannot be undone.');
+        showDeleteModal($modal);
+    });
+
+    $(document).on('click', '.js-sepdoc-delete, #sepdoc-delete-modal .js-delete, #sepdoc-delete-modal .js-gc-delete-confirm', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        var $modal = getDeleteModal();
+        hideDeleteModal($modal);
+
+        if (pendingDeleteType === 'document' && pendingDocTc) {
+            const tc = pendingDocTc;
+            pendingDocTc = null;
+            pendingDeleteType = null;
+
+            $.ajax({
+                url: '/SepDocUpdate/DeleteDocument',
+                type: 'POST',
+                data: { tc: tc },
+                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        loadDocuments(currentJobNo);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Error occurred while deleting document');
+                }
+            });
             return;
         }
 
-        deleteJobsByIds([id]);
+        if (pendingDeleteType === 'jobs' && pendingDeleteIds.length > 0) {
+            const ids = [...pendingDeleteIds];
+            const onSuccess = pendingOnSuccess;
+            pendingDeleteIds = [];
+            pendingOnSuccess = null;
+            pendingDeleteType = null;
+
+            deleteJobsByIds(ids, onSuccess);
+        }
     });
 
     function deleteJobsByIds(ids, onSuccessExtra) {
@@ -205,6 +293,7 @@ $(document).ready(function () {
                 if (response.success) {
                     toastr.success(response.message);
                     selectedBottomIds = [];
+                    updateDeleteSelectedButton();
                     loadBottomJobs();
                     loadJobs();
                     if (typeof onSuccessExtra === 'function') onSuccessExtra();
@@ -592,24 +681,19 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on('click', '.delete-doc-btn', function () {
+    $(document).on('click', '.delete-doc-btn', function (e) {
+        e.preventDefault();
         const tc = $(this).data('tc');
-        if (!confirm('Delete this document?')) return;
+        if (!tc) return;
 
-        $.ajax({
-            url: '/SepDocUpdate/DeleteDocument',
-            type: 'POST',
-            data: { tc: tc },
-            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
-            success: function (response) {
-                if (response.success) {
-                    toastr.success(response.message);
-                    loadDocuments(currentJobNo);
-                } else {
-                    toastr.error(response.message);
-                }
-            }
-        });
+        pendingDeleteType = 'document';
+        pendingDeleteIds = [];
+        pendingDocTc = tc;
+        pendingOnSuccess = null;
+
+        var $modal = getDeleteModal();
+        $modal.find('.title').html('Are you sure you want to delete this document? This process cannot be undone.');
+        showDeleteModal($modal);
     });
 
     //#endregion

@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.TransportModeType.TransportModeTypeSetupViewModel
+@model GCTL.Core.ViewModels.TransportModeType.TransportModeTypeSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
@@ -10,16 +10,16 @@
         </div>
     </div>
 
-    <div class="form-group row">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="Tc" />
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="Ldate" />
-        <input type="hidden" asp-for="ModifyDate" />
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="Tc" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
 
-        @* ---------- Transport Mode ID (readonly) ---------- *@
+    @* ---------- Row 1: ID & Transport Mode ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "TransportModeId",
@@ -27,12 +27,11 @@
             FieldType = FieldType.Text,
             IsReadonly = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 tmt-field-col",
             CustomCssClass = "js-TransportModeId-code",
             DefaultValue = Model?.TransportModeId
         })
 
-        @* ---------- Transport Mode ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "TransportMode",
@@ -41,15 +40,15 @@
             Placeholder = "Enter Transport Mode",
             IsRequired = true,
             AutoFocus = true,
-           ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 tmt-field-col",
             CustomCssClass = "js-TransportMode-check-duplicateName",
             DefaultValue = Model?.TransportMode
         })
     </div>
 
-    <div class="form-group row">
-        @* ---------- Short Name ---------- *@
+    @* ---------- Row 2: Short Name ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ShortName",
@@ -57,22 +56,22 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
             ReserveActionSlot = false,
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 tmt-field-col",
             DefaultValue = Model?.ShortName
         })
     </div>
 
     @if (Model.Tc > 0)
     {
-        <hr />
-        <div class="form-group row" id="LdateModifyHide">
+        <hr class="my-2" />
+        <div class="row g-4 mb-1" id="LdateModifyHide">
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 InputId = "displayLDate",
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 tmt-field-col",
                 ShowOnInit = Model.Ldate.HasValue,
                 DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy") : ""
             })
@@ -82,7 +81,7 @@
                 InputId = "displayModifyDate",
                 LabelText = "Last Update Date:",
                 FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 tmt-field-col",
                 ShowOnInit = Model.ModifyDate.HasValue,
                 DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy") : ""
             })
@@ -92,8 +91,8 @@
 
 </div>
 
-<div class="row no-print" style="margin-top: 9px;">
-    <div class="col-12">
+<div class="row g-4 no-print" style="margin-top: 9px;">
+    <div class="col-12 tmt-toolbar-col">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
@@ -104,7 +103,7 @@
             IsPlain = true,
             SaveBtnClass = "js-TransportModeType-save",
             ReserveActionSlot = true,
-           Style="border-bottom:0px !important;"
+            Style = "border-bottom:0px !important;"
         })
     </div>
 </div>

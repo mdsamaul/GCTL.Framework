@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.PortName.PortNameSetupViewModel
+@model GCTL.Core.ViewModels.PortName.PortNameSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
@@ -10,29 +10,28 @@
         </div>
     </div>
 
-    <div class="form-group row">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="Tc" />
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="Ldate" />
-        <input type="hidden" asp-for="ModifyDate" />
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="Tc" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
 
-        @* ---------- ID (readonly) ---------- *@
+    @* ---------- Row 1: ID (readonly) & Port Type (Select + Quick Add) ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "PortNameId",
             LabelText = "ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
-            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
             CustomCssClass = "js-PortNameId-code",
             DefaultValue = Model?.PortNameId
         })
 
-        @* ---------- Port Type (Select + Quick Add) ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "PortId",
@@ -41,7 +40,8 @@
             Placeholder = "-- Select Port Type --",
             SelectItems = ViewBag.PortTypeDD as SelectList,
             IsRequired = true,
-            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
             ShowQuickAdd = true,
             QuickAddUrl = Url.Action("Index", "PortType"),
             QuickAddTarget = "#PortId",
@@ -50,9 +50,8 @@
         })
     </div>
 
-    <div class="form-group row">
-
-        @* ---------- Port Name ---------- *@
+    @* ---------- Row 2: Port Name & Short Name ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "PortName",
@@ -60,36 +59,37 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Port Name",
             IsRequired = true,
-            ColumnClass = "col-lg-6",
-            DefaultValue = Model.PortName,
-            AutoFocus = true
+            AutoFocus = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
+            DefaultValue = Model?.PortName
         })
 
-        @* ---------- Short Name ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ShortName",
             LabelText = "Short Name",
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
-            ColumnClass = "col-lg-6",
-            DefaultValue = Model.ShortName
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
+            DefaultValue = Model?.ShortName
         })
     </div>
 
     @if (Model.Tc > 0)
     {
-        <hr />
-        <div class="form-group row" id="LdateModifyHide">
+        <hr class="my-2" />
+        <div class="row g-4 mb-1" id="LdateModifyHide">
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 InputId = "displayLDate",
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 pn-field-col",
                 ShowOnInit = Model.Ldate.HasValue,
-                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
+                DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy") : ""
             })
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -97,9 +97,9 @@
                 InputId = "displayModifyDate",
                 LabelText = "Last Update Date:",
                 FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 pn-field-col",
                 ShowOnInit = Model.ModifyDate.HasValue,
-                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
+                DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy") : ""
             })
 
         </div>
@@ -107,8 +107,8 @@
 
 </div>
 
-<div class="row no-print" style="margin-top: 9px;">
-    <div class="col-12">
+<div class="row g-4 no-print" style="margin-top: 9px;">
+    <div class="col-12 pn-toolbar-col">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
@@ -119,7 +119,7 @@
             IsPlain = true,
             SaveBtnClass = "js-PortName-save",
             ReserveActionSlot = true,
-           Style="border-bottom:0px !important;"
+            Style = "border-bottom:0px !important;"
         })
     </div>
 </div>

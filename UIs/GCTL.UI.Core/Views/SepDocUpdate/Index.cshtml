@@ -283,7 +283,7 @@
     </ul>
 
     <div class="tab-content" id="sepDocTabContent">
-        <div class="entry-only px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded toolbar-doc show" style="display:none;">
+        <div class="entry-only px-1 pt-1 p-lg-4 pt-lg-2 pb-lg-0 bg-white shadow rounded toolbar-doc show" style="display:none;">
             <div class="mb-3">
                 <div id="jobSummary">
 
@@ -322,7 +322,7 @@
                     <div class="toolbar mb-4">
 
                         <!-- Left -->
-                        <div class="toolbar-left">
+                        @* <div class="toolbar-left">
                             <div class="input-group input-group-sm toolbar-showing">
                                 <span class="input-group-text">Showing</span>
 
@@ -334,7 +334,7 @@
                                     <option value="100">100</option>
                                 </select>
                             </div>
-                        </div>
+                        </div> *@
 
                         <!-- Right -->
                         <div class="toolbar-right">
@@ -371,10 +371,10 @@
                             </div>
 
                             <div class="toolbar-search">
-                                <input class="form-control form-control-sm"
+                                @* <input class="form-control form-control-sm"
                                        id="searchInput"
                                        type="text"
-                                       placeholder="Search">
+                                       placeholder="Search"> *@
                             </div>
 
                         </div>
@@ -408,7 +408,7 @@
 
         <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
         <div class="tab-pane fade show active" id="entryTabPane" role="tabpanel">
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+            <div class="px-1 pt-1 p-lg-4 pb-lg-0 pt-lg-2 bg-white shadow rounded">
                 <div class="row">
 
                     @* ---------- Shipment Mode (MultiSelect) — no button needed ---------- *@
@@ -1064,7 +1064,7 @@
                 <!-- Search and Page Size -->
                 <div class="toolbar pb-2">
 
-                    <div class="toolbar-left">
+                    @* <div class="toolbar-left">
                         <div class="input-group input-group-sm toolbar-showing">
                             <span class="input-group-text">Showing</span>
                             <select class="form-select" id="statusPageSizeSelect">
@@ -1074,7 +1074,7 @@
                                 <option>100</option>
                             </select>
                         </div>
-                    </div>
+                    </div> *@
                     <div class="toolbar-right">
                         <span class="label-text">Filter By:</span>
                         <div class="toolbar-item toolbar-customer">
@@ -1095,10 +1095,10 @@
                         </div>
 
                         <div class="toolbar-item toolbar-search">
-                            <input class="form-control form-control-sm"
+                            @* <input class="form-control form-control-sm"
                                    id="statusSearchInput"
                                    type="text"
-                                   placeholder="Search">
+                                   placeholder="Search"> *@
                         </div>
                     </div>
 
@@ -1232,6 +1232,8 @@
         </div>
     </div>
 </form>
+
+<partial name="DeleteModal" />
 
 @section Scripts {
     <script src="~/js/pages/sepdocumentation.js"></script>

@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PortType;
@@ -52,6 +52,7 @@ namespace GCTL.Service.PortType
                 Tc = entityVM.Tc,
                 PortId = entityVM.PortId,
                 PortType = entityVM.PortType,
+                ShortName = entityVM.ShortName,
                 Ldate = entityVM.Ldate,
                 ModifyDate = entityVM.ModifyDate,
                 Luser = entityVM.Luser,
@@ -70,6 +71,11 @@ namespace GCTL.Service.PortType
             var entity = await portTyperepository.GetByIdAsync(code);
 
             if (entity == null)
+            {
+                entity = await portTyperepository.All().FirstOrDefaultAsync(x => x.PortId == code || (x.PortId != null && x.PortId.Trim() == (code != null ? code.Trim() : "")));
+            }
+
+            if (entity == null)
                 return null;
 
             return new PortTypeSetupViewModel
@@ -77,6 +83,7 @@ namespace GCTL.Service.PortType
                 Tc = entity.Tc,
                 PortId = entity.PortId,
                 PortType = entity.PortType,
+                ShortName = entity.ShortName,
                 Ldate = entity.Ldate,
                 ModifyDate = entity.ModifyDate,
                 Luser = entity.Luser,
@@ -100,6 +107,7 @@ namespace GCTL.Service.PortType
                 {
                     PortId = strMaxNO,
                     PortType = entityVM.PortType,
+                    ShortName = entityVM.ShortName ?? string.Empty,
                     Luser = entityVM.Luser,
                     Lip = entityVM.Lip,
                     Lmac = entityVM.Lmac ?? string.Empty,
@@ -130,11 +138,16 @@ namespace GCTL.Service.PortType
                 var entity = await portTyperepository.GetByIdAsync(entityVM.PortId);
                 if (entity == null)
                 {
+                    entity = await portTyperepository.All().FirstOrDefaultAsync(x => x.PortId == entityVM.PortId || (x.PortId != null && x.PortId.Trim() == (entityVM.PortId != null ? entityVM.PortId.Trim() : "")));
+                }
+                if (entity == null)
+                {
                     await portTyperepository.RollbackTransactionAsync();
                     return false;
                 }
                 entity.PortId = entityVM.PortId;
                 entity.PortType = entityVM.PortType;
+                entity.ShortName = entityVM.ShortName;
                 entity.Luser = entityVM.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac;
