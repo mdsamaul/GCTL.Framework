@@ -229,6 +229,11 @@ namespace GCTL.Data.Models
                 entity.Property(p => p.AutoId)
                 .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
             });
+            modelBuilder.Entity<HrmDefEmpType>(entity =>
+            {
+                entity.Property(p => p.AutoId)
+                .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            });
         }
     }
 }

@@ -29,7 +29,7 @@
                         </h5>
                     </div>
 
-                    <div class="card-body js-PlaceOfLoading-form-container">
+                    <div class="card-body px-2 js-PlaceOfLoading-form-container">
 
                         @await Html.PartialAsync("_Setup", Model.Setup)
 
@@ -66,9 +66,9 @@
                         DefaultSortDirection = "desc",
                         Columns = new()
                         {
-                            new() { Data = "placeOfLoadingId", Header = "ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-PlaceOfLoading-edit" },
-                            new() { Data = "placeOfLoading", Header = "Place Of Loading", Width = "50%" },
-                            new() { Data = "shortName", Header = "Short Name", Width = "25%" }
+                            new() { Data = "placeOfLoadingId", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-PlaceOfLoading-edit" },
+                            new() { Data = "placeOfLoading", Header = "Place Of Loading", Width = "55%" },
+                            new() { Data = "shortName", Header = "Short Name", Width = "27%" }
                         }
                     })
 

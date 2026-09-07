@@ -67,16 +67,21 @@
 
 <partial name="DeleteModal" />
 
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/companyInfo.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.companyInfo === "function") {
-            var options = { baseUrl: '@Url.Action("", "CompanyInfo")' };
-            options.load = () => { };
-            $.companyInfo(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+@section Scripts {
+
+
+
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/companyInfo.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.companyInfo === "function") {
+                var options = { baseUrl: '@Url.Action("", "CompanyInfo")' };
+                options.load = () => { };
+                $.companyInfo(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}

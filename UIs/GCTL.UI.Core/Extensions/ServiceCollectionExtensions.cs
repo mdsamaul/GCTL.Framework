@@ -45,6 +45,7 @@ using GCTL.Service.ExporterInfo;
 using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
+using GCTL.Service.HrmDefEmpTypes;
 using GCTL.Service.HrmEmployees2;
 using GCTL.Service.ImporterInfo;
 using GCTL.Service.ManageNoticeEntries;
@@ -213,6 +214,7 @@ namespace GCTL.Framework.Extensions
 
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<ICfDefPlaceOfLoadingService, CfDefPlaceOfLoadingService>();
+            services.AddScoped<IHrmDefEmpTypeService, HrmDefEmpTypeService>();
 
             services.AddScoped<IUserService, UserService>();
 
