@@ -60,7 +60,7 @@
             }
 
     /* ==========================================================================
-       Control Ledger Form: Responsive 3-Column Equal Width & Quick-Add In-Gap Layout
+       Control, Sub-Control, Sub-Sidiary & General Ledger Forms: Responsive 3-Column Equal Width & Quick-Add In-Gap Layout
        Optimized for Desktop and Laptop (1362x768 / <= 1400px) Screens
        ========================================================================== */
     :root {
@@ -69,7 +69,10 @@
         --btn-width: 22px;
     }
 
-    .control-ledger-fields-row {
+    .control-ledger-fields-row,
+    .subcontrol-ledger-fields-row,
+    .subsidiary-ledger-fields-row,
+    .general-ledger-fields-row {
         --control-height: 31px;
         --gap-size: 24px;
         --btn-width: 22px;
@@ -83,7 +86,13 @@
 
     /* 3 Equal Columns: (100% - 2 * gap) / 3 -> Exactly 0 gap on right side! */
     .control-ledger-fields-row > [class*="col-"],
-    .control-ledger-fields-row > div {
+    .control-ledger-fields-row > div,
+    .subcontrol-ledger-fields-row > [class*="col-"],
+    .subcontrol-ledger-fields-row > div,
+    .subsidiary-ledger-fields-row > [class*="col-"],
+    .subsidiary-ledger-fields-row > div,
+    .general-ledger-fields-row > [class*="col-"],
+    .general-ledger-fields-row > div {
         flex: 0 0 calc((100% - (2 * var(--gap-size))) / 3) !important;
         max-width: calc((100% - (2 * var(--gap-size))) / 3) !important;
         width: calc((100% - (2 * var(--gap-size))) / 3) !important;
@@ -95,7 +104,10 @@
     }
 
     /* Labels styling */
-    .control-ledger-fields-row .form-label {
+    .control-ledger-fields-row .form-label,
+    .subcontrol-ledger-fields-row .form-label,
+    .subsidiary-ledger-fields-row .form-label,
+    .general-ledger-fields-row .form-label {
         margin-bottom: 4px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
@@ -104,7 +116,10 @@
     }
 
     /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
-    .control-ledger-fields-row .field-fixed-width {
+    .control-ledger-fields-row .field-fixed-width,
+    .subcontrol-ledger-fields-row .field-fixed-width,
+    .subsidiary-ledger-fields-row .field-fixed-width,
+    .general-ledger-fields-row .field-fixed-width {
         position: relative !important;
         width: 100% !important;
         display: flex !important;
@@ -112,7 +127,10 @@
         overflow: visible !important;
     }
 
-    .control-ledger-fields-row .field-fixed-width > .input-group {
+    .control-ledger-fields-row .field-fixed-width > .input-group,
+    .subcontrol-ledger-fields-row .field-fixed-width > .input-group,
+    .subsidiary-ledger-fields-row .field-fixed-width > .input-group,
+    .general-ledger-fields-row .field-fixed-width > .input-group {
         width: 100% !important;
         flex: 1 1 100% !important;
         min-width: 0 !important;
@@ -121,13 +139,40 @@
     /* Uniform height for ALL inputs, selects, custom dropdowns, input-groups, and buttons */
     .control-ledger-fields-row .form-control,
     .control-ledger-fields-row .form-select,
-    .control-ledger-fields-row input:not([type="hidden"]),
+    .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
     .control-ledger-fields-row select,
     .control-ledger-fields-row .custom-dd-box,
     .control-ledger-fields-row .custom-dd-wrapper,
     .control-ledger-fields-row .input-group,
     .control-ledger-fields-row .detached-action-btn,
-    .control-ledger-fields-row .js-quick-add {
+    .control-ledger-fields-row .js-quick-add,
+    .subcontrol-ledger-fields-row .form-control,
+    .subcontrol-ledger-fields-row .form-select,
+    .subcontrol-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subcontrol-ledger-fields-row select,
+    .subcontrol-ledger-fields-row .custom-dd-box,
+    .subcontrol-ledger-fields-row .custom-dd-wrapper,
+    .subcontrol-ledger-fields-row .input-group,
+    .subcontrol-ledger-fields-row .detached-action-btn,
+    .subcontrol-ledger-fields-row .js-quick-add,
+    .subsidiary-ledger-fields-row .form-control,
+    .subsidiary-ledger-fields-row .form-select,
+    .subsidiary-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subsidiary-ledger-fields-row select,
+    .subsidiary-ledger-fields-row .custom-dd-box,
+    .subsidiary-ledger-fields-row .custom-dd-wrapper,
+    .subsidiary-ledger-fields-row .input-group,
+    .subsidiary-ledger-fields-row .detached-action-btn,
+    .subsidiary-ledger-fields-row .js-quick-add,
+    .general-ledger-fields-row .form-control,
+    .general-ledger-fields-row .form-select,
+    .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .general-ledger-fields-row select,
+    .general-ledger-fields-row .custom-dd-box,
+    .general-ledger-fields-row .custom-dd-wrapper,
+    .general-ledger-fields-row .input-group,
+    .general-ledger-fields-row .detached-action-btn,
+    .general-ledger-fields-row .js-quick-add {
         height: var(--control-height) !important;
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
@@ -135,13 +180,22 @@
     }
 
     .control-ledger-fields-row .form-control,
-    .control-ledger-fields-row input:not([type="hidden"]) {
+    .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subcontrol-ledger-fields-row .form-control,
+    .subcontrol-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subsidiary-ledger-fields-row .form-control,
+    .subsidiary-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .general-ledger-fields-row .form-control,
+    .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]) {
         line-height: calc(var(--control-height) - 2px) !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
     }
 
-    .control-ledger-fields-row .custom-dd-box {
+    .control-ledger-fields-row .custom-dd-box,
+    .subcontrol-ledger-fields-row .custom-dd-box,
+    .subsidiary-ledger-fields-row .custom-dd-box,
+    .general-ledger-fields-row .custom-dd-box {
         display: flex !important;
         align-items: center !important;
         line-height: calc(var(--control-height) - 2px) !important;
@@ -149,14 +203,23 @@
         padding-bottom: 0 !important;
     }
 
-    .control-ledger-fields-row .custom-dd-input {
+    .control-ledger-fields-row .custom-dd-input,
+    .subcontrol-ledger-fields-row .custom-dd-input,
+    .subsidiary-ledger-fields-row .custom-dd-input,
+    .general-ledger-fields-row .custom-dd-input {
         height: calc(var(--control-height) - 4px) !important;
         line-height: calc(var(--control-height) - 4px) !important;
     }
 
-    /* Position the Quick-Add (+) button directly inside the column gap with zero overlap */
+    /* Position the Quick-Add (+) button directly inside the column gap with zero overlap and NO border */
     .control-ledger-fields-row .field-fixed-width > .detached-action-btn,
-    .control-ledger-fields-row .field-fixed-width > .js-quick-add {
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add {
         position: absolute !important;
         left: calc(100% + 1px) !important;
         top: 0 !important;
@@ -184,7 +247,13 @@
     }
 
     .control-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
-    .control-ledger-fields-row .field-fixed-width > .js-quick-add:hover {
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:hover,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add:hover,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add:hover,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:hover {
         border: 0 !important;
         border-color: transparent !important;
         box-shadow: none !important;
@@ -195,7 +264,19 @@
     .control-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
     .control-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
     .control-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
-    .control-ledger-fields-row .field-fixed-width > .js-quick-add:active {
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:active,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add:active,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add:active,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:active {
         border: 0 !important;
         border-color: transparent !important;
         box-shadow: none !important;
@@ -204,22 +285,59 @@
 
     /* Icon sizing for the + button */
     .control-ledger-fields-row .field-fixed-width > .detached-action-btn i,
-    .control-ledger-fields-row .field-fixed-width > .js-quick-add i {
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add i,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add i,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add i,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add i {
         font-size: 11px !important;
+    }
+
+    /* Checkbox field styling in General Ledger */
+    .general-ledger-fields-row .form-check {
+        display: flex !important;
+        align-items: center !important;
+        height: var(--control-height) !important;
+        margin-top: 20px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .general-ledger-fields-row .form-check-input {
+        width: 16px !important;
+        height: 16px !important;
+        min-height: 16px !important;
+        max-height: 16px !important;
+        margin-top: 0 !important;
+        margin-right: 8px !important;
+        cursor: pointer !important;
+    }
+
+    .general-ledger-fields-row .form-check-label {
+        font-size: 12.5px !important;
+        cursor: pointer !important;
+        margin-bottom: 0 !important;
     }
 
     /* ==========================================================================
        Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
        ========================================================================== */
     @@media (max-width: 1400px) {
-        .control-ledger-fields-row {
+        .control-ledger-fields-row,
+        .subcontrol-ledger-fields-row,
+        .subsidiary-ledger-fields-row,
+        .general-ledger-fields-row {
             --control-height: 28px !important;
             --gap-size: 22px !important;
             --btn-width: 20px !important;
             row-gap: 8px !important;
         }
 
-        .control-ledger-fields-row .form-label {
+        .control-ledger-fields-row .form-label,
+        .subcontrol-ledger-fields-row .form-label,
+        .subsidiary-ledger-fields-row .form-label,
+        .general-ledger-fields-row .form-label {
             font-size: 11.5px !important;
             margin-bottom: 2px !important;
             font-weight: 500 !important;
@@ -227,35 +345,79 @@
 
         .control-ledger-fields-row .form-control,
         .control-ledger-fields-row .form-select,
-        .control-ledger-fields-row input:not([type="hidden"]),
+        .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
         .control-ledger-fields-row select,
         .control-ledger-fields-row .custom-dd-box,
-        .control-ledger-fields-row .custom-dd-input {
+        .control-ledger-fields-row .custom-dd-input,
+        .subcontrol-ledger-fields-row .form-control,
+        .subcontrol-ledger-fields-row .form-select,
+        .subcontrol-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .subcontrol-ledger-fields-row select,
+        .subcontrol-ledger-fields-row .custom-dd-box,
+        .subcontrol-ledger-fields-row .custom-dd-input,
+        .subsidiary-ledger-fields-row .form-control,
+        .subsidiary-ledger-fields-row .form-select,
+        .subsidiary-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .subsidiary-ledger-fields-row select,
+        .subsidiary-ledger-fields-row .custom-dd-box,
+        .subsidiary-ledger-fields-row .custom-dd-input,
+        .general-ledger-fields-row .form-control,
+        .general-ledger-fields-row .form-select,
+        .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .general-ledger-fields-row select,
+        .general-ledger-fields-row .custom-dd-box,
+        .general-ledger-fields-row .custom-dd-input {
             font-size: 12px !important;
             padding-left: 6px !important;
             padding-right: 6px !important;
         }
 
         .control-ledger-fields-row .field-fixed-width > .detached-action-btn i,
-        .control-ledger-fields-row .field-fixed-width > .js-quick-add i {
+        .control-ledger-fields-row .field-fixed-width > .js-quick-add i,
+        .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add i,
+        .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add i,
+        .general-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .general-ledger-fields-row .field-fixed-width > .js-quick-add i {
             font-size: 10px !important;
         }
 
+        .general-ledger-fields-row .form-check {
+            margin-top: 18px !important;
+        }
+
+        .general-ledger-fields-row .form-check-label {
+            font-size: 11.5px !important;
+        }
+
         /* Compact card & fieldset for 768px vertical resolution */
-        #controlFormView .card-body {
+        #controlFormView .card-body,
+        #subcontrolFormView .card-body,
+        #subsidiaryFormView .card-body,
+        #generalFormView .card-body {
             padding: 8px 12px !important;
         }
 
-        #controlFormView fieldset {
+        #controlFormView fieldset,
+        #subcontrolFormView fieldset,
+        #subsidiaryFormView fieldset,
+        #generalFormView fieldset {
             padding: 8px 10px !important;
         }
 
-        #controlFormView hr {
+        #controlFormView hr,
+        #subcontrolFormView hr,
+        #subsidiaryFormView hr,
+        #generalFormView hr {
             margin-top: 6px !important;
             margin-bottom: 6px !important;
         }
 
-        #controlFormView .table-toolbar {
+        #controlFormView .table-toolbar,
+        #subcontrolFormView .table-toolbar,
+        #subsidiaryFormView .table-toolbar,
+        #generalFormView .table-toolbar {
             padding: 4px 8px !important;
         }
     }
@@ -263,34 +425,64 @@
     /* Mobile / Small Screens */
     @@media (max-width: 767.98px) {
         .control-ledger-fields-row > [class*="col-"],
-        .control-ledger-fields-row > div {
+        .control-ledger-fields-row > div,
+        .subcontrol-ledger-fields-row > [class*="col-"],
+        .subcontrol-ledger-fields-row > div,
+        .subsidiary-ledger-fields-row > [class*="col-"],
+        .subsidiary-ledger-fields-row > div,
+        .general-ledger-fields-row > [class*="col-"],
+        .general-ledger-fields-row > div {
             flex: 0 0 100% !important;
             max-width: 100% !important;
             width: 100% !important;
         }
 
-        .control-ledger-fields-row .field-fixed-width {
+        .control-ledger-fields-row .field-fixed-width,
+        .subcontrol-ledger-fields-row .field-fixed-width,
+        .subsidiary-ledger-fields-row .field-fixed-width,
+        .general-ledger-fields-row .field-fixed-width {
             gap: 8px !important;
         }
 
-        .control-ledger-fields-row .field-fixed-width > .input-group {
+        .control-ledger-fields-row .field-fixed-width > .input-group,
+        .subcontrol-ledger-fields-row .field-fixed-width > .input-group,
+        .subsidiary-ledger-fields-row .field-fixed-width > .input-group,
+        .general-ledger-fields-row .field-fixed-width > .input-group {
             flex: 1 1 auto !important;
             width: auto !important;
         }
 
         .control-ledger-fields-row .field-fixed-width > .detached-action-btn,
-        .control-ledger-fields-row .field-fixed-width > .js-quick-add {
+        .control-ledger-fields-row .field-fixed-width > .js-quick-add,
+        .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add,
+        .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add,
+        .general-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .general-ledger-fields-row .field-fixed-width > .js-quick-add {
             position: static !important;
             transform: none !important;
             width: 28px !important;
             min-width: 28px !important;
+            border: 0 !important;
         }
     }
 
-    /* Bottom Toolbar in Control Ledger: 0px border */
+    /* Bottom Toolbar in Control, Sub-Control, Sub-Sidiary & General Ledger: 0px border */
     #controlForm .toolbar-container,
+    #subcontrolForm .toolbar-container,
+    #subSidiaryForm .toolbar-container,
+    #subsidiaryForm .toolbar-container,
+    #generalLedgerForm .toolbar-container,
     #controlFormView .card-body .toolbar-container,
-    #controlForm .row.no-print .toolbar-container {
+    #subcontrolFormView .card-body .toolbar-container,
+    #subsidiaryFormView .card-body .toolbar-container,
+    #generalFormView .card-body .toolbar-container,
+    #controlForm .row.no-print .toolbar-container,
+    #subcontrolForm .row.no-print .toolbar-container,
+    #subSidiaryForm .row.no-print .toolbar-container,
+    #subsidiaryForm .row.no-print .toolbar-container,
+    #generalLedgerForm .row.no-print .toolbar-container {
         border: 0 !important;
         border-bottom: 0px !important;
         box-shadow: none !important;

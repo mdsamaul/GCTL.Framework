@@ -1,4 +1,319 @@
-﻿@using GCTL.UI.Core.ViewModels
+@using GCTL.UI.Core.ViewModels
+
+<style>
+    /* ==========================================================================
+       General Ledger Form: Responsive 3-Column Equal Width & Quick-Add In-Gap Layout
+       Optimized for Desktop and Laptop (1362x768 / <= 1400px) Screens
+       ========================================================================== */
+    :root {
+        --control-height: 31px;
+        --gap-size: 24px;
+        --btn-width: 22px;
+    }
+
+    .general-ledger-fields-row,
+    .control-ledger-fields-row {
+        --control-height: 31px;
+        --gap-size: 24px;
+        --btn-width: 22px;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        row-gap: 12px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* 3 Equal Columns: (100% - 2 * gap) / 3 -> Exactly 0 gap on right side! */
+    .general-ledger-fields-row > [class*="col-"],
+    .general-ledger-fields-row > div,
+    .control-ledger-fields-row > [class*="col-"],
+    .control-ledger-fields-row > div {
+        flex: 0 0 calc((100% - (2 * var(--gap-size))) / 3) !important;
+        max-width: calc((100% - (2 * var(--gap-size))) / 3) !important;
+        width: calc((100% - (2 * var(--gap-size))) / 3) !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        overflow: visible !important;
+    }
+
+    .general-ledger-fields-row .form-label,
+    .control-ledger-fields-row .form-label {
+        margin-bottom: 4px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+    }
+
+    .general-ledger-fields-row .field-fixed-width,
+    .control-ledger-fields-row .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        gap: 0 !important;
+        overflow: visible !important;
+    }
+
+    .general-ledger-fields-row .field-fixed-width > .input-group,
+    .control-ledger-fields-row .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Uniform height for inputs, selects, custom dropdowns, input-groups, and buttons */
+    .general-ledger-fields-row .form-control,
+    .general-ledger-fields-row .form-select,
+    .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .general-ledger-fields-row select,
+    .general-ledger-fields-row .custom-dd-box,
+    .general-ledger-fields-row .custom-dd-wrapper,
+    .general-ledger-fields-row .input-group,
+    .general-ledger-fields-row .detached-action-btn,
+    .general-ledger-fields-row .js-quick-add,
+    .control-ledger-fields-row .form-control,
+    .control-ledger-fields-row .form-select,
+    .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .control-ledger-fields-row select,
+    .control-ledger-fields-row .custom-dd-box,
+    .control-ledger-fields-row .custom-dd-wrapper,
+    .control-ledger-fields-row .input-group,
+    .control-ledger-fields-row .detached-action-btn,
+    .control-ledger-fields-row .js-quick-add {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        box-sizing: border-box !important;
+    }
+
+    .general-ledger-fields-row .form-control,
+    .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .control-ledger-fields-row .form-control,
+    .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]) {
+        line-height: calc(var(--control-height) - 2px) !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .general-ledger-fields-row .custom-dd-box,
+    .control-ledger-fields-row .custom-dd-box {
+        display: flex !important;
+        align-items: center !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .general-ledger-fields-row .custom-dd-input,
+    .control-ledger-fields-row .custom-dd-input {
+        height: calc(var(--control-height) - 4px) !important;
+        line-height: calc(var(--control-height) - 4px) !important;
+    }
+
+    /* Quick-Add (+) Button positioned directly inside the gap with zero overlap and NO border */
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add,
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 1px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        width: var(--btn-width) !important;
+        min-width: var(--btn-width) !important;
+        max-width: var(--btn-width) !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+    }
+
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:hover,
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:active,
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add i,
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Checkbox field styling in General Ledger */
+    .general-ledger-fields-row .form-check {
+        display: flex !important;
+        align-items: center !important;
+        height: var(--control-height) !important;
+        margin-top: 20px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .general-ledger-fields-row .form-check-input {
+        width: 16px !important;
+        height: 16px !important;
+        min-height: 16px !important;
+        max-height: 16px !important;
+        margin-top: 0 !important;
+        margin-right: 8px !important;
+        cursor: pointer !important;
+    }
+
+    .general-ledger-fields-row .form-check-label {
+        font-size: 12.5px !important;
+        cursor: pointer !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ==========================================================================
+       Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
+       ========================================================================== */
+    @@media (max-width: 1400px) {
+        .general-ledger-fields-row,
+        .control-ledger-fields-row {
+            --control-height: 28px !important;
+            --gap-size: 22px !important;
+            --btn-width: 20px !important;
+            row-gap: 8px !important;
+        }
+
+        .general-ledger-fields-row .form-label,
+        .control-ledger-fields-row .form-label {
+            font-size: 11.5px !important;
+            margin-bottom: 2px !important;
+            font-weight: 500 !important;
+        }
+
+        .general-ledger-fields-row .form-control,
+        .general-ledger-fields-row .form-select,
+        .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .general-ledger-fields-row select,
+        .general-ledger-fields-row .custom-dd-box,
+        .general-ledger-fields-row .custom-dd-input,
+        .control-ledger-fields-row .form-control,
+        .control-ledger-fields-row .form-select,
+        .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .control-ledger-fields-row select,
+        .control-ledger-fields-row .custom-dd-box,
+        .control-ledger-fields-row .custom-dd-input {
+            font-size: 12px !important;
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+
+        .general-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .general-ledger-fields-row .field-fixed-width > .js-quick-add i,
+        .control-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .control-ledger-fields-row .field-fixed-width > .js-quick-add i {
+            font-size: 10px !important;
+        }
+
+        .general-ledger-fields-row .form-check {
+            margin-top: 18px !important;
+        }
+
+        .general-ledger-fields-row .form-check-label {
+            font-size: 11.5px !important;
+        }
+
+        /* Compact card & fieldset for 768px vertical resolution */
+        #generalFormView .card-body {
+            padding: 8px 12px !important;
+        }
+
+        #generalFormView fieldset {
+            padding: 8px 10px !important;
+        }
+
+        #generalFormView hr {
+            margin-top: 6px !important;
+            margin-bottom: 6px !important;
+        }
+
+        #generalFormView .table-toolbar {
+            padding: 4px 8px !important;
+        }
+    }
+
+    /* Mobile / Small Screens */
+    @@media (max-width: 767.98px) {
+        .general-ledger-fields-row > [class*="col-"],
+        .general-ledger-fields-row > div,
+        .control-ledger-fields-row > [class*="col-"],
+        .control-ledger-fields-row > div {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        .general-ledger-fields-row .field-fixed-width,
+        .control-ledger-fields-row .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .general-ledger-fields-row .field-fixed-width > .input-group,
+        .control-ledger-fields-row .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .general-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .general-ledger-fields-row .field-fixed-width > .js-quick-add,
+        .control-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .control-ledger-fields-row .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+            border: 0 !important;
+        }
+    }
+
+    /* Bottom Toolbar in General Ledger: 0px border */
+    #generalLedgerForm .toolbar-container,
+    #generalFormView .card-body .toolbar-container,
+    #generalLedgerForm .row.no-print .toolbar-container {
+        border: 0 !important;
+        border-bottom: 0px !important;
+        box-shadow: none !important;
+    }
+</style>
 
 <div class="card shadow-sm rounded-2">
 
@@ -39,227 +354,278 @@
             <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="GeneralAutoID" name="autoId" />
 
-                @* --- Cascading Ledger Information Section --- *@
-                <fieldset class="border rounded-3 p-3 mb-3">
-                    <div class="row">
-                        @* 1. Group Ledger Code (Readonly) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
-                            InputId = "Generalgrlcode",
-                            InputName = "Generalgrlcode",
-                            LabelText = "Group Ledger Code",
-                            IsRequired = true,
-                            IsReadonly = true
-                        })
+                <div class="row general-ledger-fields-row control-ledger-fields-row">
+                    @* --- Row 1: Group Ledger (Code | Name + | Short Name) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "Generalgrlcode",
+                        InputName = "Generalgrlcode",
+                        LabelText = "Group Ledger Code",
+                        ReserveActionSlot = false,
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
 
-                        @* 2. Group Ledger Name (Quick Add Select) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.QuickAddSelect,
-                            InputId = "GeneralgrlName",
-                            InputName = "GeneralgrlName",
-                            LabelText = "Group Ledger Name",
-                            Placeholder = "-- Select Group Ledger --",
-                            IsRequired = true,
-                            ShowQuickAdd = true,
-                            QuickAddTarget = "#GRLModal",
-                            QuickAddTitle = "Add New Group Ledger"
-                        })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.QuickAddSelect,
+                        InputId = "GeneralgrlName",
+                        InputName = "GeneralgrlName",
+                        LabelText = "Group Ledger Name",
+                        Placeholder = "-- Select Group Ledger --",
+                        IsRequired = true,
+                        ShowQuickAdd = true,
+                        ReserveActionSlot = false,
+                        QuickAddTarget = "#GRLModal",
+                        QuickAddTitle = "Add New Group Ledger"
+                    })
 
-                        @* 3. Control Ledger Code (Readonly) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
-                            InputId = "GeneralCRLCode",
-                            InputName = "GeneralCRLCode",
-                            LabelText = "Control Ledger Code",
-                            IsRequired = true,
-                            IsReadonly = true
-                        })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralgrlshortName",
+                        InputName = "GeneralgrlshortName",
+                        LabelText = "Short Name",
+                        ReserveActionSlot = false,
+                        IsReadonly = true
+                    })
 
-                        @* 4. Control Ledger Name (Quick Add Select) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.QuickAddSelect,
-                            InputId = "GeneralCRLName",
-                            InputName = "GeneralCRLName",
-                            LabelText = "Control Ledger Name",
-                            Placeholder = "-- Select Control Ledger --",
-                            IsRequired = true,
-                            ShowQuickAdd = true,
-                            QuickAddTarget = "#UICRLModal",
-                            QuickAddTitle = "Add New Control Ledger"
-                        })
+                    @* --- Row 2: Control Ledger (Code | Name + | Short Name) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralCRLCode",
+                        InputName = "GeneralCRLCode",
+                        LabelText = "Control Ledger Code",
+                        ReserveActionSlot = false,
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
 
-                        @* 5. Sub-Control Ledger Code (Readonly) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
-                            InputId = "GeneralSCRLCode",
-                            InputName = "GeneralSCRLCode",
-                            LabelText = "Sub-Control Ledger Code",
-                            IsRequired = true,
-                            IsReadonly = true
-                        })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.QuickAddSelect,
+                        InputId = "GeneralCRLName",
+                        InputName = "GeneralCRLName",
+                        LabelText = "Control Ledger Name",
+                        Placeholder = "-- Select Control Ledger --",
+                        IsRequired = true,
+                        ShowQuickAdd = true,
+                        ReserveActionSlot = false,
+                        QuickAddTarget = "#UICRLModal",
+                        QuickAddTitle = "Add New Control Ledger"
+                    })
 
-                        @* 6. Sub-Control Ledger Name (Quick Add Select) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.QuickAddSelect,
-                            InputId = "GeneralSCRLName",
-                            InputName = "GeneralSCRLName",
-                            LabelText = "Sub-Control Ledger Name",
-                            Placeholder = "-- Select Sub-Control Ledger --",
-                            IsRequired = true,
-                            ShowQuickAdd = true,
-                            QuickAddTarget = "#SCRLModal",
-                            QuickAddTitle = "Add New Sub-Control Ledger"
-                        })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralCRLShortName",
+                        InputName = "GeneralCRLShortName",
+                        LabelText = "Short Name",
+                        ReserveActionSlot = false,
+                        IsReadonly = true
+                    })
 
-                        @* 7. Sub-Sidiary Ledger Code (Readonly) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
-                            InputId = "GeneralSSLCode",
-                            InputName = "SusidiaryLedgerCodeNo",
-                            LabelText = "Sub-Sidiary Ledger Code",
-                            IsRequired = true,
-                            IsReadonly = true
-                        })
+                    @* --- Row 3: Sub-Control Ledger (Code | Name + | Short Name) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralSCRLCode",
+                        InputName = "GeneralSCRLCode",
+                        LabelText = "Sub-Control Ledger Code",
+                        ReserveActionSlot = false,
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
 
-                        @* 8. Sub-Sidiary Ledger Name (Quick Add Select) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.QuickAddSelect,
-                            InputId = "GeneralSSLName",
-                            InputName = "GeneralSSLName",
-                            LabelText = "Sub-Sidiary Ledger Name",
-                            Placeholder = "-- Select Sub-Sidiary Ledger --",
-                            IsRequired = true,
-                            ShowQuickAdd = true,
-                            QuickAddTarget = "#SSLModal",
-                            QuickAddTitle = "Add New Sub-Sidiary Ledger"
-                        })
-                    </div>
-                </fieldset>
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.QuickAddSelect,
+                        InputId = "GeneralSCRLName",
+                        InputName = "GeneralSCRLName",
+                        LabelText = "Sub-Control Ledger Name",
+                        Placeholder = "-- Select Sub-Control Ledger --",
+                        IsRequired = true,
+                        ShowQuickAdd = true,
+                        ReserveActionSlot = false,
+                        QuickAddTarget = "#SCRLModal",
+                        QuickAddTitle = "Add New Sub-Control Ledger"
+                    })
 
-                @* --- General Ledger Detail Section --- *@
-                <fieldset class="border rounded-3 p-3 position-relative mb-3">
-                    <legend class="float-none w-auto px-2 fw-bold"
-                            style="font-size: 14px; border: 1px solid #dee2e6; border-radius: 6px; background-color: #f8f9fa;">
-                        General Ledger Info
-                    </legend>
-                    <div class="row g-3">
-                        @* 9. General Ledger Code (Readonly) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
-                            InputId = "GeneralLedgerCode",
-                            InputName = "GeneralLedgerCode",
-                            LabelText = "General Ledger Code",
-                            IsRequired = true,
-                            IsReadonly = true
-                        })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralSCRLShortname",
+                        InputName = "GeneralSCRLShortname",
+                        LabelText = "Short Name",
+                        ReserveActionSlot = false,
+                        IsReadonly = true
+                    })
 
-                        @* 10. General Ledger Name (Text Input) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
-                            InputId = "GeneralLName",
-                            InputName = "GeneralLedgerName",
-                            LabelText = "General Ledger Name",
-                            IsRequired = true,
-                            Placeholder = "General Ledger Name"
-                        })
+                    @* --- Row 4: Sub-Sidiary Ledger (Code | Name + | Short Name) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralSSLCode",
+                        InputName = "SusidiaryLedgerCodeNo",
+                        LabelText = "Sub-Sidiary Ledger Code",
+                        ReserveActionSlot = false,
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
 
-                        @* 11. Short Name (Optional) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
-                            InputId = "GeneralShortName",
-                            InputName = "GeneralShortName",
-                            LabelText = "Short Name",
-                            Placeholder = "Short Name"
-                        })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.QuickAddSelect,
+                        InputId = "GeneralSSLName",
+                        InputName = "GeneralSSLName",
+                        LabelText = "Sub-Sidiary Ledger Name",
+                        Placeholder = "-- Select Sub-Sidiary Ledger --",
+                        IsRequired = true,
+                        ShowQuickAdd = true,
+                        ReserveActionSlot = false,
+                        QuickAddTarget = "#SSLModal",
+                        QuickAddTitle = "Add New Sub-Sidiary Ledger"
+                    })
 
-                        @* 12. Cash Flow Type (Select) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Select,
-                            InputId = "CashFlowTypeID",
-                            InputName = "CashFlowTypeID",
-                            LabelText = "Cash Flow Type",
-                            Placeholder = "-- Select Cash Flow Type --"
-                        })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralSSLShortName",
+                        InputName = "GeneralSSLShortName",
+                        LabelText = "Short Name",
+                        ReserveActionSlot = false,
+                        IsReadonly = true
+                    })
+                </div>
 
-                        @* 13. Active Account (Checkbox) *@
-                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                        {
-                            IsVisible = true,
-                            ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Checkbox,
-                            InputId = "IsActive",
-                            InputName = "IsActive",
-                            LabelText = "Active Account"
-                        })
-                    </div>
-                </fieldset>
+                <hr class="my-3 mx-1">
+
+                <div class="row general-ledger-fields-row control-ledger-fields-row">
+                    @* --- Row 5: General Ledger (Code | Name | Short Name) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralLedgerCode",
+                        InputName = "GeneralLedgerCode",
+                        LabelText = "General Ledger Code",
+                        ReserveActionSlot = false,
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralLName",
+                        InputName = "GeneralLedgerName",
+                        LabelText = "General Ledger Name",
+                        ReserveActionSlot = false,
+                        IsRequired = true,
+                        Placeholder = "General Ledger Name"
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "GeneralShortName",
+                        InputName = "GeneralShortName",
+                        ReserveActionSlot = false,
+                        LabelText = "Short Name",
+                        Placeholder = "Short Name"
+                    })
+
+                    @* --- Row 6: Cash Flow & Active Account --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Select,
+                        InputId = "CashFlowTypeID",
+                        InputName = "CashFlowTypeID",
+                        LabelText = "Cash Flow Type",
+                        ReserveActionSlot = false,
+                        Placeholder = "-- Select Cash Flow Type --"
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Checkbox,
+                        InputId = "IsActive",
+                        InputName = "IsActive",
+                        LabelText = "Active Account"
+                    })
+
+                    <div class="col-md-4"></div>
+                </div>
 
                 <hr class="my-3 mx-1">
 
                 @* --- Entry & Update Date Section --- *@
-                <div class="row g-3">
+                <div class="row g-2 align-items-center">
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
                         IsVisible = true,
                         ShowOnInit = true,
                         ColumnClass = "col-md-6",
                         FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "EntryDate",
+                        InputId = "GeneralldisplayLDate",
                         LabelText = "Entry Date:",
                         LabelInline = true,
-                        LabelColWidth = 4,
+                        LabelColWidth = 5,
                         LabelColumnClass = "text-end",
-                        LabelStyle = "font-size:13px;",
-                        InputStyle = "font-size:13px;"
+                        LabelStyle = "font-size:12px; white-space: nowrap;",
+                        InputStyle = "font-size:12px; white-space: nowrap;"
                     })
 
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -268,32 +634,32 @@
                         ShowOnInit = true,
                         ColumnClass = "col-md-6",
                         FieldType = FieldType.ReadonlyDisplay,
-                        InputId = "UpdateDate",
+                        InputId = "GeneraldisplayModifyDate",
                         LabelText = "Last Update Date:",
                         LabelInline = true,
-                        LabelColWidth = 4,
+                        LabelColWidth = 5,
                         LabelColumnClass = "text-end",
-                        LabelStyle = "font-size:13px;",
-                        InputStyle = "font-size:13px;"
+                        LabelStyle = "font-size:12px; white-space: nowrap;",
+                        InputStyle = "font-size:12px; white-space: nowrap;"
                     })
                 </div>
 
                 @* Bottom Save Button *@
-                <div class="col-12">
-                    @await Html.PartialAsync("_Toolbars", new ToobarModel
-                    {
-                        Title = "",
-                        ShowClear = false,
-                        ShowDelete = false,
-                        ShowPrint = false,
-                        ShowFavorite = false,
-                        IsPlain = true,
-                        ReserveActionSlot = true,
-                        IsMarginRight = true,
-                        SaveBtnType = "submit",
-           Style="border-bottom:0px !important;"
-
-                    })
+                <div class="row no-print" style="margin-top: 9px;">
+                    <div class="col-12">
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
+                        {
+                            Title = "",
+                            ShowClear = false,
+                            ShowDelete = false,
+                            ShowPrint = false,
+                            ShowFavorite = false,
+                            IsPlain = true,
+                            ReserveActionSlot = false,
+                            SaveBtnType = "submit",
+                            Style = "border:0px !important; border-bottom:0px !important; box-shadow:none !important;"
+                        })
+                    </div>
                 </div>
 
             </fieldset>
