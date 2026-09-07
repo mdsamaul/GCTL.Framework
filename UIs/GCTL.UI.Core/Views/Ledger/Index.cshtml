@@ -98,21 +98,58 @@
         width: calc((100% - (2 * var(--gap-size))) / 3) !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
         box-sizing: border-box !important;
         position: relative !important;
         overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
     }
 
-    /* Labels styling */
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
     .control-ledger-fields-row .form-label,
     .subcontrol-ledger-fields-row .form-label,
     .subsidiary-ledger-fields-row .form-label,
     .general-ledger-fields-row .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
         margin-bottom: 4px !important;
+        padding: 0 !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Normalize the required star (*) so it never affects label height */
+    .control-ledger-fields-row .form-label .text-danger,
+    .control-ledger-fields-row .form-label sup,
+    .control-ledger-fields-row .form-label span,
+    .subcontrol-ledger-fields-row .form-label .text-danger,
+    .subcontrol-ledger-fields-row .form-label sup,
+    .subcontrol-ledger-fields-row .form-label span,
+    .subsidiary-ledger-fields-row .form-label .text-danger,
+    .subsidiary-ledger-fields-row .form-label sup,
+    .subsidiary-ledger-fields-row .form-label span,
+    .general-ledger-fields-row .form-label .text-danger,
+    .general-ledger-fields-row .form-label sup,
+    .general-ledger-fields-row .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
     }
 
     /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
@@ -122,9 +159,32 @@
     .general-ledger-fields-row .field-fixed-width {
         position: relative !important;
         width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
         display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
         gap: 0 !important;
         overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .control-ledger-fields-row .input-group,
+    .subcontrol-ledger-fields-row .input-group,
+    .subsidiary-ledger-fields-row .input-group,
+    .general-ledger-fields-row .input-group {
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        box-sizing: border-box !important;
     }
 
     .control-ledger-fields-row .field-fixed-width > .input-group,
@@ -143,7 +203,6 @@
     .control-ledger-fields-row select,
     .control-ledger-fields-row .custom-dd-box,
     .control-ledger-fields-row .custom-dd-wrapper,
-    .control-ledger-fields-row .input-group,
     .control-ledger-fields-row .detached-action-btn,
     .control-ledger-fields-row .js-quick-add,
     .subcontrol-ledger-fields-row .form-control,
@@ -152,7 +211,6 @@
     .subcontrol-ledger-fields-row select,
     .subcontrol-ledger-fields-row .custom-dd-box,
     .subcontrol-ledger-fields-row .custom-dd-wrapper,
-    .subcontrol-ledger-fields-row .input-group,
     .subcontrol-ledger-fields-row .detached-action-btn,
     .subcontrol-ledger-fields-row .js-quick-add,
     .subsidiary-ledger-fields-row .form-control,
@@ -161,7 +219,6 @@
     .subsidiary-ledger-fields-row select,
     .subsidiary-ledger-fields-row .custom-dd-box,
     .subsidiary-ledger-fields-row .custom-dd-wrapper,
-    .subsidiary-ledger-fields-row .input-group,
     .subsidiary-ledger-fields-row .detached-action-btn,
     .subsidiary-ledger-fields-row .js-quick-add,
     .general-ledger-fields-row .form-control,
@@ -170,13 +227,14 @@
     .general-ledger-fields-row select,
     .general-ledger-fields-row .custom-dd-box,
     .general-ledger-fields-row .custom-dd-wrapper,
-    .general-ledger-fields-row .input-group,
     .general-ledger-fields-row .detached-action-btn,
     .general-ledger-fields-row .js-quick-add {
         height: var(--control-height) !important;
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
+        margin: 0 !important;
         box-sizing: border-box !important;
+        vertical-align: top !important;
     }
 
     .control-ledger-fields-row .form-control,
@@ -190,6 +248,8 @@
         line-height: calc(var(--control-height) - 2px) !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     .control-ledger-fields-row .custom-dd-box,
@@ -201,6 +261,8 @@
         line-height: calc(var(--control-height) - 2px) !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     .control-ledger-fields-row .custom-dd-input,
@@ -209,6 +271,16 @@
     .general-ledger-fields-row .custom-dd-input {
         height: calc(var(--control-height) - 4px) !important;
         line-height: calc(var(--control-height) - 4px) !important;
+        margin: 0 !important;
+    }
+
+    .control-ledger-fields-row .field-validation:empty,
+    .subcontrol-ledger-fields-row .field-validation:empty,
+    .subsidiary-ledger-fields-row .field-validation:empty,
+    .general-ledger-fields-row .field-validation:empty {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* Position the Quick-Add (+) button directly inside the column gap with zero overlap and NO border */
@@ -244,6 +316,7 @@
         color: #495057 !important;
         border-radius: 4px !important;
         cursor: pointer !important;
+        box-sizing: border-box !important;
     }
 
     .control-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
@@ -300,7 +373,7 @@
         display: flex !important;
         align-items: center !important;
         height: var(--control-height) !important;
-        margin-top: 20px !important;
+        margin-top: 24px !important;
         margin-bottom: 0 !important;
     }
 
@@ -339,8 +412,35 @@
         .subsidiary-ledger-fields-row .form-label,
         .general-ledger-fields-row .form-label {
             font-size: 11.5px !important;
-            margin-bottom: 2px !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            line-height: 18px !important;
+            margin-bottom: 3px !important;
             font-weight: 500 !important;
+        }
+
+        .control-ledger-fields-row .form-label .text-danger,
+        .control-ledger-fields-row .form-label sup,
+        .control-ledger-fields-row .form-label span,
+        .subcontrol-ledger-fields-row .form-label .text-danger,
+        .subcontrol-ledger-fields-row .form-label sup,
+        .subcontrol-ledger-fields-row .form-label span,
+        .subsidiary-ledger-fields-row .form-label .text-danger,
+        .subsidiary-ledger-fields-row .form-label sup,
+        .subsidiary-ledger-fields-row .form-label span,
+        .general-ledger-fields-row .form-label .text-danger,
+        .general-ledger-fields-row .form-label sup,
+        .general-ledger-fields-row .form-label span {
+            font-size: 12px !important;
+        }
+
+        .general-ledger-fields-row .form-check {
+            margin-top: 21px !important;
+        }
+
+        .general-ledger-fields-row .form-check-label {
+            font-size: 11.5px !important;
         }
 
         .control-ledger-fields-row .form-control,

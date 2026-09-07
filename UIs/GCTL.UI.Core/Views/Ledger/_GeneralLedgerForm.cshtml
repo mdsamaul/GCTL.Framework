@@ -34,27 +34,79 @@
         width: calc((100% - (2 * var(--gap-size))) / 3) !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
         box-sizing: border-box !important;
         position: relative !important;
         overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
     }
 
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
     .general-ledger-fields-row .form-label,
     .control-ledger-fields-row .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
         margin-bottom: 4px !important;
+        padding: 0 !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .general-ledger-fields-row .form-label .text-danger,
+    .general-ledger-fields-row .form-label sup,
+    .general-ledger-fields-row .form-label span,
+    .control-ledger-fields-row .form-label .text-danger,
+    .control-ledger-fields-row .form-label sup,
+    .control-ledger-fields-row .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
     }
 
     .general-ledger-fields-row .field-fixed-width,
     .control-ledger-fields-row .field-fixed-width {
         position: relative !important;
         width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
         display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
         gap: 0 !important;
         overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .general-ledger-fields-row .input-group,
+    .control-ledger-fields-row .input-group {
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        box-sizing: border-box !important;
     }
 
     .general-ledger-fields-row .field-fixed-width > .input-group,
@@ -71,7 +123,6 @@
     .general-ledger-fields-row select,
     .general-ledger-fields-row .custom-dd-box,
     .general-ledger-fields-row .custom-dd-wrapper,
-    .general-ledger-fields-row .input-group,
     .general-ledger-fields-row .detached-action-btn,
     .general-ledger-fields-row .js-quick-add,
     .control-ledger-fields-row .form-control,
@@ -80,13 +131,14 @@
     .control-ledger-fields-row select,
     .control-ledger-fields-row .custom-dd-box,
     .control-ledger-fields-row .custom-dd-wrapper,
-    .control-ledger-fields-row .input-group,
     .control-ledger-fields-row .detached-action-btn,
     .control-ledger-fields-row .js-quick-add {
         height: var(--control-height) !important;
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
+        margin: 0 !important;
         box-sizing: border-box !important;
+        vertical-align: top !important;
     }
 
     .general-ledger-fields-row .form-control,
@@ -96,6 +148,8 @@
         line-height: calc(var(--control-height) - 2px) !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     .general-ledger-fields-row .custom-dd-box,
@@ -105,12 +159,22 @@
         line-height: calc(var(--control-height) - 2px) !important;
         padding-top: 0 !important;
         padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     .general-ledger-fields-row .custom-dd-input,
     .control-ledger-fields-row .custom-dd-input {
         height: calc(var(--control-height) - 4px) !important;
         line-height: calc(var(--control-height) - 4px) !important;
+        margin: 0 !important;
+    }
+
+    .general-ledger-fields-row .field-validation:empty,
+    .control-ledger-fields-row .field-validation:empty {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     /* Quick-Add (+) Button positioned directly inside the gap with zero overlap and NO border */
@@ -142,6 +206,7 @@
         color: #495057 !important;
         border-radius: 4px !important;
         cursor: pointer !important;
+        box-sizing: border-box !important;
     }
 
     .general-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
@@ -181,7 +246,7 @@
         display: flex !important;
         align-items: center !important;
         height: var(--control-height) !important;
-        margin-top: 20px !important;
+        margin-top: 24px !important;
         margin-bottom: 0 !important;
     }
 
@@ -216,8 +281,25 @@
         .general-ledger-fields-row .form-label,
         .control-ledger-fields-row .form-label {
             font-size: 11.5px !important;
-            margin-bottom: 2px !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            line-height: 18px !important;
+            margin-bottom: 3px !important;
             font-weight: 500 !important;
+        }
+
+        .general-ledger-fields-row .form-label .text-danger,
+        .general-ledger-fields-row .form-label sup,
+        .general-ledger-fields-row .form-label span,
+        .control-ledger-fields-row .form-label .text-danger,
+        .control-ledger-fields-row .form-label sup,
+        .control-ledger-fields-row .form-label span {
+            font-size: 12px !important;
+        }
+
+        .general-ledger-fields-row .form-check {
+            margin-top: 21px !important;
         }
 
         .general-ledger-fields-row .form-control,
