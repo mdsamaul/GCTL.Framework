@@ -168,11 +168,14 @@
                 CardWrapper = false,
                 Columns = new()
                 {
-                    new() { Data = "jobNo", Header = "Job No", Width = "15%", Align = "left" },
-                    new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "15%" },
-                    new() { Data = "jobDate", Header = "Job Date", Width = "15%" },
-                    new() { Data = "customerName", Header = "Customer Name", Width = "35%", Align = "left" },
-                    new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "20%" }
+                    new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },
+                    new() { Data = "jobDate", Header = "Job Date", Width = "8%", RenderFn = "formatDate" },
+                    new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "12%" },
+                    new() { Data = "customerName", Header = "Customer", Width = "18%", Align = "left" },
+                    new() { Data = "customerAddress", Header = "Address", Width = "27%", Align = "left" },
+                    new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "8%", RenderFn = "formatDate" },
+                    new() { Data = "invoice", Header = "Invoice No.", Width = "10%", Align = "left" },
+                    new() { Data = "beno", Header = "B/E No.", Width = "9%", Align = "left", IsWrapable = false }
                 }
             })
         </div>
@@ -723,8 +726,8 @@
             AjaxUrl = "/JobBillEntry/GetBillHistory",
             AjaxMethod = "POST",
             ServerSide = true,
-            UseRadio = true,
-            RadioName = "billSelect",
+            ShowCheckbox = true,
+            CheckAllId = "checkAllBills",
             CheckColumnData = "billNo",
             DefaultSortColumn = "billNo",
             DefaultSortDirection = "desc",
@@ -734,10 +737,15 @@
             CardWrapper = false,
             Columns = new()
             {
-                new() { Data = "billNo", Header = "Bill No", Width = "25%", Align = "left" },
-                new() { Data = "billDate", Header = "Bill Date", Width = "25%" },
-                new() { Data = "jobNo", Header = "Job No", Width = "25%", Align = "left" },
-                new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "25%" }
+                new() { Data = "billNo", Header = "Bill No", Align = "left", IsEditLink = true, EditSelectorClass = "bill-detail-link", IdField = "billNo" },
+                new() { Data = "billDate", Header = "Bill Date", RenderFn = "formatDate" },
+                new() { Data = "jobNo", Header = "Job No", Align = "left" },
+                new() { Data = "shipmentMode", Header = "Shipment Mode" },
+                new() { Data = "customer", Header = "Customer", Align = "left" },
+                new() { Data = "deliveryDate", Header = "Delivery Date", RenderFn = "formatDate" },
+                new() { Data = "hawb", Header = "HAWB", Align = "left" },
+                new() { Data = "beNo", Header = "BE No", Align = "left" },
+                new() { Data = "invoiceValue", Header = "Invoice Value", Align = "right" }
             }
         })
     </fieldset>

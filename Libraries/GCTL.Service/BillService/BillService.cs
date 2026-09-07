@@ -1,14 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.Accounts;
 using GCTL.Core.ViewModels.ClearAndF.BillEntry;
 using GCTL.Core.ViewModels.ClearAndF.Update;
 using GCTL.Data.Models;
+using GCTL.Service.Pagination;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.Service.BillService
 {
@@ -49,7 +51,7 @@ namespace GCTL.Service.BillService
             _cRepository = cRepository;
         }
 
-        public async Task<SepPagedResult<JobDto>> GetBillPagedAsync(int page, int pageSize, string? customerName, string? shipmentMode, string? dateFrom, string? dateTo, string? search)
+        public async Task<PaginationResponse<JobDto>> GetBillPagedAsync(PaginationRequest request, string? customerName, string? shipmentMode, string? dateFrom, string? dateTo)
         {
             try
             {
@@ -57,83 +59,74 @@ namespace GCTL.Service.BillService
                     .Where(s => !string.IsNullOrEmpty(s.JobNo))
                     .Select(s => s.JobNo);
 
-                var query = from d in _sepDocumentationRepository.All().AsNoTracking()
-                            where !billedJobNos.Contains(d.JobNo)
-                            join c in _customerRepository.All().AsNoTracking()
-                                on d.CustomerId equals c.CustomerId into customers
-                            from c in customers.DefaultIfEmpty()
-                            join s in _shipmentModeRepository.All().AsNoTracking()
-                                on d.ExpenseTypeId equals s.ExpenseTypeId into modes
-                            from s in modes.DefaultIfEmpty()
-                            select new
-                            {
-                                d.Tc,
-                                d.JobNo,
-                                ExpenseTypeId = d.ExpenseTypeId,
-                                ShipmentMode = s != null ? s.ExpenseType : string.Empty,
-                                d.Date,
-                                CustomerId = d.CustomerId,
-                                CustomerName = c != null ? c.CustomerName : string.Empty,
-                                d.DocReceivedDate
-                            };
+                var baseQuery = from d in _sepDocumentationRepository.All().AsNoTracking()
+                                where !billedJobNos.Contains(d.JobNo)
+                                join c in _customerRepository.All().AsNoTracking()
+                                    on d.CustomerId equals c.CustomerId into customers
+                                from c in customers.DefaultIfEmpty()
+                                join s in _shipmentModeRepository.All().AsNoTracking()
+                                    on d.ExpenseTypeId equals s.ExpenseTypeId into modes
+                                from s in modes.DefaultIfEmpty()
+                                select new
+                                {
+                                    Tc = d.Tc,
+                                    JobNo = d.JobNo ?? string.Empty,
+                                    ShipmentMode = s != null ? s.ExpenseType : string.Empty,
+                                    ExpenseTypeId = d.ExpenseTypeId,
+                                    Date = d.Date,
+                                    CustomerId = d.CustomerId,
+                                    CustomerName = c != null ? c.CustomerName : string.Empty,
+                                    CustomerAddress = c != null ? c.CustomerAddress : (d.CustomerAddress ?? string.Empty),
+                                    DocReceivedDate = d.DocReceivedDate,
+                                    Invoice = d.InvoiceNo ?? string.Empty,
+                                    Beno = d.Beno ?? string.Empty
+                                };
 
-                // Apply filters
+                // Apply custom dropdown / date filters
                 if (!string.IsNullOrWhiteSpace(customerName))
-                    query = query.Where(j => j.CustomerId == customerName);
+                    baseQuery = baseQuery.Where(j => j.CustomerId == customerName);
 
                 if (!string.IsNullOrWhiteSpace(shipmentMode))
-                    query = query.Where(j => j.ExpenseTypeId == shipmentMode);
+                    baseQuery = baseQuery.Where(j => j.ExpenseTypeId == shipmentMode);
 
                 if (DateTime.TryParse(dateFrom, out var fromDate))
-                    query = query.Where(j => j.Date >= fromDate);
+                    baseQuery = baseQuery.Where(j => j.Date >= fromDate);
 
                 if (DateTime.TryParse(dateTo, out var toDate))
                 {
                     var toDateEnd = toDate.Date.AddDays(1);
-                    query = query.Where(j => j.Date < toDateEnd);
+                    baseQuery = baseQuery.Where(j => j.Date < toDateEnd);
                 }
 
-                if (!string.IsNullOrWhiteSpace(search))
-                {
-                    var term = search.Trim();
-                    query = query.Where(j =>
-                        (j.JobNo != null && j.JobNo.Contains(term)) ||
-                        (j.CustomerName != null && j.CustomerName.Contains(term)) ||
-                        (j.ShipmentMode != null && j.ShipmentMode.Contains(term)));
-                }
-
-                var totalCount = await query.CountAsync();
-
-                var rawData = await query
-                    .OrderByDescending(j => j.Tc)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-
-                var data = rawData.Select(h => new JobDto
+                // Project into JobDto for PaginationService
+                var query = baseQuery.Select(h => new JobDto
                 {
                     Id = (int)h.Tc,
-                    JobNo = h.JobNo ?? string.Empty,
+                    JobNo = h.JobNo,
                     ShipmentMode = h.ShipmentMode,
-                    JobDate = h.Date.HasValue ? h.Date.Value.ToString("dd/MM/yyyy") : string.Empty,
+                    JobDate = h.Date,
                     CustomerName = h.CustomerName,
-                    DocReceivedDate = h.DocReceivedDate.HasValue ? h.DocReceivedDate.Value.ToString("dd/MM/yyyy") : string.Empty
-                }).ToList();
+                    CustomerAddress = h.CustomerAddress,
+                    DocReceivedDate = h.DocReceivedDate,
+                    Invoice = h.Invoice,
+                    Beno = h.Beno
+                });
 
-                return new SepPagedResult<JobDto>
+                if (string.IsNullOrEmpty(request.SortColumn))
                 {
-                    Data = data,
-                    TotalRecords = totalCount,
-                    FilteredRecords = totalCount
-                };
+                    request.SortColumn = nameof(JobDto.Id);
+                    request.SortOrder = "desc";
+                }
+
+                return await PaginationService<JobDto>.GetPaginatedData(query, request);
             }
             catch (Exception)
             {
-                return new SepPagedResult<JobDto>
+                return new PaginationResponse<JobDto>
                 {
                     Data = new List<JobDto>(),
-                    TotalRecords = 0,
-                    FilteredRecords = 0
+                    TotalCount = 0,
+                    FilteredCount = 0
                 };
             }
         }
@@ -197,60 +190,60 @@ namespace GCTL.Service.BillService
 
             return new BillEntryJobVM
             {
-                Id = (int)job.Tc,
-                JobNo = job.JobNo ?? string.Empty,
-                ShipmentMode = job.ExpenseTypeId ?? string.Empty,
-                ShipmentModeId = job.ExpenseTypeId,
-                IsCustomJobNo = job.IsCustomJobNo ?? string.Empty,
-                JobDate = job.Date.HasValue ? job.Date.Value.ToString("yyyy-MM-dd") : string.Empty,
-                CustomerId = job.CustomerId,
-                CustomerName = job.CustomerId ?? string.Empty,
-                CustomerDeliveryAddress = job.DeliveryLocationCode ?? string.Empty,
-                PortId = job.PortId,
-                DocsReceivedDate = job.DocReceivedDate.HasValue ? job.DocReceivedDate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                LcExpNo = job.ExpNo ?? string.Empty,
-                LcValue = job.Lcvalue,
-                IpEpNo = job.Ipno ?? string.Empty,
-                IpDate = job.Ipdate.HasValue ? job.Ipdate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                ImporterId = job.ImporterId,
-                InvoiceNo = job.InvoiceNo ?? string.Empty,
-                InvoiceDate = job.InvoiceDate.HasValue ? job.InvoiceDate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                BlNo = job.Beno ?? string.Empty,
-                BlDate = job.Bldate.HasValue ? job.Bldate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                BeNo = job.Beno ?? string.Empty,
-                BeDate = job.Bedate.HasValue ? job.Bedate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                ContainerNo = job.ContainerNo ?? string.Empty,
-                ContainerSize = job.ContainerSize ?? string.Empty,
-                LcaNo = job.Lcano ?? string.Empty,
-                DischargeDate = job.Dischargedate.HasValue ? job.Dischargedate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                MaterialDescription = job.MaterialDescription ?? string.Empty,
-                Quantity = job.Quntity1,
-                QuantityUnitId = job.Unit1,
-                Weight = job.Quntity2,
-                WeightUnitId = job.Unit2,
-                ForwarderId = job.NameOfFreightForwarder,
-                VesselRottNo = job.VesselRottNo ?? string.Empty,
-                Remarks = job.Remarks ?? string.Empty,
-                DocReceivedDate = job.DocReceivedDate.HasValue ? job.DocReceivedDate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                CreatedAt = job.Ldate,
-                UpdatedAt = job.ModifyDate ?? job.Ldate,
-                BillNo = job.BillNo ?? string.Empty,
-                BillDate = string.Empty,
-                CustomerAddress = job.CustomerAddress ?? string.Empty,
-                ExpDate = job.ExpDate.HasValue ? job.ExpDate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                LcNo = job.Lcno ?? string.Empty,
-                LcDate = job.Lcdate.HasValue ? job.Lcdate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                LcValCurrencyId = job.CurrencyId ?? string.Empty,
+                AgComm = job.MinimumAgencyCom,
+                Amount = null,
                 BdtRate = job.Bdtrate,
                 BdtTotal = (job.Lcvalue ?? 0m) * (job.Bdtrate ?? 0m),
+                BeDate = job.Bedate.HasValue ? job.Bedate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                BeNo = job.Beno ?? string.Empty,
+                BillDate = string.Empty,
+                BillNo = job.BillNo ?? string.Empty,
+                BlDate = job.Bldate.HasValue ? job.Bldate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                BlNo = job.Beno ?? string.Empty,
+                ConsoleNo = job.ConsoleNo ?? string.Empty,
+                ContainerNo = job.ContainerNo ?? string.Empty,
+                ContainerSize = job.ContainerSize ?? string.Empty,
+                CreatedAt = job.Ldate,
+                CustomerAddress = job.CustomerAddress ?? string.Empty,
+                CustomerDeliveryAddress = job.DeliveryLocationCode ?? string.Empty,
+                CustomerId = job.CustomerId,
+                CustomerName = job.CustomerId ?? string.Empty,
+                DestinationId = string.Empty,
+                DischargeDate = job.Dischargedate.HasValue ? job.Dischargedate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                DocReceivedDate = job.DocReceivedDate.HasValue ? job.DocReceivedDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                DocsReceivedDate = job.DocReceivedDate.HasValue ? job.DocReceivedDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                ExpDate = job.ExpDate.HasValue ? job.ExpDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                ForwarderId = job.NameOfFreightForwarder,
+                HeadId = string.Empty,
+                Id = (int)job.Tc,
+                ImporterId = job.ImporterId,
+                InvoiceDate = job.InvoiceDate.HasValue ? job.InvoiceDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                InvoiceNo = job.InvoiceNo ?? string.Empty,
                 InvoiceValue = job.InvoiceValue,
                 InvValCurrencyId = job.InvoiceCurrencyId ?? string.Empty,
-                ConsoleNo = job.ConsoleNo ?? string.Empty,
-                DestinationId = string.Empty,
-                AgComm = job.MinimumAgencyCom,
+                IpDate = job.Ipdate.HasValue ? job.Ipdate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                IpEpNo = job.Ipno ?? string.Empty,
+                IsCustomJobNo = job.IsCustomJobNo ?? string.Empty,
+                JobDate = job.Date.HasValue ? job.Date.Value.ToString("yyyy-MM-dd") : string.Empty,
+                JobNo = job.JobNo ?? string.Empty,
+                LcaNo = job.Lcano ?? string.Empty,
+                LcDate = job.Lcdate.HasValue ? job.Lcdate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                LcExpNo = job.ExpNo ?? string.Empty,
+                LcNo = job.Lcno ?? string.Empty,
+                LcValCurrencyId = job.CurrencyId ?? string.Empty,
+                LcValue = job.Lcvalue,
+                MaterialDescription = job.MaterialDescription ?? string.Empty,
                 OnInvVal = job.CommOnInvoiceValue,
-                Amount = null,
-                HeadId = string.Empty
+                PortId = job.PortId,
+                Quantity = job.Quntity1,
+                QuantityUnitId = job.Unit1,
+                Remarks = job.Remarks ?? string.Empty,
+                ShipmentMode = job.ExpenseTypeId ?? string.Empty,
+                ShipmentModeId = job.ExpenseTypeId,
+                UpdatedAt = job.ModifyDate ?? job.Ldate,
+                VesselRottNo = job.VesselRottNo ?? string.Empty,
+                Weight = job.Quntity2,
+                WeightUnitId = job.Unit2
             };
         }
 
@@ -274,16 +267,38 @@ namespace GCTL.Service.BillService
                         join st in _stRepository.All().AsNoTracking()
                             on fr.ServiceTypeId equals st.ServiceTypeId into serviceTypes
                         from st in serviceTypes.DefaultIfEmpty()
-                        select new ExpenseDetailDto
+                        select new
                         {
+                            ServiceTypeId = fr.ServiceTypeId ?? (eh != null ? eh.ServiceTypeId : string.Empty),
+                            IsReceiptable = eh != null ? eh.IsReceiptable : string.Empty,
+                            SerialNo = eh != null ? eh.SerialNo : string.Empty,
                             Head = eh != null ? eh.ExpenseHead : string.Empty,
-                            IsRec = eh != null ? (eh.IsReceiptable ?? string.Empty) : string.Empty,
+                            IsRec = eh != null
+                                    ? (eh.IsReceiptable == "Y" ? "Yes" : eh.IsReceiptable == "N" ? "No" : string.Empty)
+                                    : string.Empty,
                             ServiceType = st != null ? st.ServiceTypeName : string.Empty,
                             ConfirmAmt = fr.ActualAmount,
                             BillAmt = fr.ActualAmount
                         };
 
-            return await query.ToListAsync();
+            var list = await query.ToListAsync();
+
+            var orderedList = list
+                .OrderBy(x => x.ServiceTypeId ?? string.Empty)
+                .ThenByDescending(x => x.IsRec ?? string.Empty)
+                .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                .Select(x => new ExpenseDetailDto
+                {
+                    SerialNo = x.SerialNo,
+                    Head = x.Head,
+                    IsRec = x.IsRec,
+                    ServiceType = x.ServiceType,
+                    ConfirmAmt = x.ConfirmAmt ?? 0.00m,
+                    BillAmt = x.BillAmt
+                })
+                .ToList();
+
+            return orderedList;
         }
 
         public async Task<List<ChargeTableItemDto>> GetChargeTableDataAsync(decimal id)
@@ -305,20 +320,44 @@ namespace GCTL.Service.BillService
             }
 
             var query = from cwde in _cwcdeRepository.All().AsNoTracking()
-                        where cwde.CustomerId == job.CustomerId && cwde.ExpenseTypeId == job.ShipmentMode
+                            where cwde.CustomerId == job.CustomerId && cwde.ExpenseTypeId == job.ShipmentMode
+
                         join chc in _cRepository.All().AsNoTracking()
                             on cwde.Chcid equals chc.Chcid into gj
                         from subChc in gj.DefaultIfEmpty()
-                        select new ChargeTableItemDto
+
+                        select new
                         {
-                            IsRec = subChc != null ? (subChc.IsReceiptable ?? string.Empty) : string.Empty,
-                            Chc = subChc != null ? subChc.Chchead : string.Empty,
-                            Description = subChc != null ? subChc.ChcheadDescription : string.Empty,
+                            ExpenseTypeId = subChc.Chcid != null ? subChc.ExpenseTypeId : (cwde.ExpenseTypeId ?? string.Empty),
+                            IsRec =
+                            subChc.Chcid != null
+                                    ? (subChc.IsReceiptable == "Y" ? "Yes" : subChc.IsReceiptable == "N" ? "No" : string.Empty)
+                                    : string.Empty,
+                            SerialNo = subChc.Chcid != null ? (subChc.SerialNo ?? string.Empty) : string.Empty,
+                            Chc = subChc.Chcid != null ? (subChc.Chchead ?? string.Empty) : string.Empty,
+                            Description = subChc.Chcid != null ? (subChc.ChcheadDescription ?? string.Empty) : string.Empty,
                             BillAmt = cwde.BillAmount,
                             Tc = cwde.Tc
                         };
 
-            return await query.ToListAsync();
+            var list = await query.ToListAsync();
+
+            var orderedList = list
+                //.OrderBy(x => x.ExpenseTypeId ?? string.Empty)
+                .OrderByDescending(x => x.IsRec ?? string.Empty)
+                .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                .Select(x => new ChargeTableItemDto
+                {
+                    SerialNo = x.SerialNo,
+                    IsRec = x.IsRec,
+                    Chc = x.Chc,
+                    Description = x.Description,
+                    BillAmt = x.BillAmt,
+                    Tc = x.Tc
+                })
+                .ToList();
+
+            return orderedList;
         }
 
         public async Task<CommonReturnViewModel> AddCostAsync(AddCostRequestDto request, UserInfoViewModel? userInfo)
@@ -459,7 +498,7 @@ namespace GCTL.Service.BillService
             }
         }
 
-        public async Task<SepPagedResult<BillHistoryDto>> GetBillHistoryPagedAsync(int page, int pageSize, string? search)
+        public async Task<PaginationResponse<BillHistoryDto>> GetBillHistoryPagedAsync(PaginationRequest request)
         {
             try
             {
@@ -467,55 +506,183 @@ namespace GCTL.Service.BillService
                             join s in _shipmentModeRepository.All().AsNoTracking()
                                 on b.ExpenseTypeId equals s.ExpenseTypeId into modes
                             from s in modes.DefaultIfEmpty()
-                            select new
+                            join c in _customerRepository.All().AsNoTracking()
+                                on b.CustomerId equals c.CustomerId into customers
+                            from c in customers.DefaultIfEmpty()
+                            join d in _sepDocumentationRepository.All().AsNoTracking()
+                                on b.JobNo equals d.JobNo into docs
+                            from d in docs.DefaultIfEmpty()
+                            select new BillHistoryDto
                             {
-                                b.Tc,
-                                b.BillNo,
-                                b.BillDate,
-                                b.JobNo,
-                                ShipmentMode = s != null ? s.ExpenseType : string.Empty
+                                Tc = b.Tc,
+                                BillNo = b.BillNo ?? string.Empty,
+                                BillDate = b.BillDate,
+                                JobNo = b.JobNo ?? string.Empty,
+                                ShipmentMode = s != null ? s.ExpenseType : string.Empty,
+                                Customer = c != null ? c.CustomerName : (b.CustomerId ?? string.Empty),
+                                DeliveryDate = b.DeliveryDate.HasValue ? b.DeliveryDate : (d != null ? d.DateOfClearence : null),
+                                Hawb = d != null ? (d.Hawb ?? string.Empty) : string.Empty,
+                                BeNo = b.Beno ?? (d != null ? (d.Beno ?? string.Empty) : string.Empty),
+                                InvoiceValue = b.InvoiceValue ?? (d != null ? d.InvoiceValue : null)
                             };
 
-                if (!string.IsNullOrWhiteSpace(search))
+                if (string.IsNullOrEmpty(request.SortColumn))
                 {
-                    var term = search.Trim().ToLower();
-                    query = query.Where(x =>
-                        (x.BillNo != null && x.BillNo.ToLower().Contains(term)) ||
-                        (x.JobNo != null && x.JobNo.ToLower().Contains(term)) ||
-                        (x.ShipmentMode != null && x.ShipmentMode.ToLower().Contains(term)));
+                    request.SortColumn = nameof(BillHistoryDto.Tc);
+                    request.SortOrder = "desc";
                 }
 
-                var totalCount = await query.CountAsync();
-
-                var rawData = await query
-                    .OrderByDescending(x => x.Tc)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-
-                var data = rawData.Select(x => new BillHistoryDto
-                {
-                    Tc = x.Tc,
-                    BillNo = x.BillNo ?? string.Empty,
-                    BillDate = x.BillDate.HasValue ? x.BillDate.Value.ToString("dd/MM/yyyy") : string.Empty,
-                    JobNo = x.JobNo ?? string.Empty,
-                    ShipmentMode = x.ShipmentMode
-                }).ToList();
-
-                return new SepPagedResult<BillHistoryDto>
-                {
-                    Data = data,
-                    TotalRecords = totalCount,
-                    FilteredRecords = totalCount
-                };
+                return await PaginationService<BillHistoryDto>.GetPaginatedData(query, request);
             }
             catch (Exception)
             {
-                return new SepPagedResult<BillHistoryDto>
+                return new PaginationResponse<BillHistoryDto>
                 {
                     Data = new List<BillHistoryDto>(),
-                    TotalRecords = 0,
-                    FilteredRecords = 0
+                    TotalCount = 0,
+                    FilteredCount = 0
+                };
+            }
+        }
+
+        public async Task<BillEntryJobVM?> GetBillDetailAsync(string billNo)
+        {
+            if (string.IsNullOrWhiteSpace(billNo))
+                return null;
+
+            var bill = await _billEntryRepository.All().AsNoTracking()
+                .FirstOrDefaultAsync(b => b.BillNo == billNo);
+
+            if (bill == null)
+                return null;
+
+            GCTL.Data.Models.SepDocumentation? doc = null;
+            if (!string.IsNullOrEmpty(bill.JobNo))
+            {
+                doc = await _sepDocumentationRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(d => d.JobNo == bill.JobNo);
+            }
+
+            return new BillEntryJobVM
+            {
+                Id = (int)(doc?.Tc ?? bill.Tc),
+                BillNo = bill.BillNo ?? string.Empty,
+                BillDate = bill.BillDate.HasValue ? bill.BillDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                JobNo = bill.JobNo ?? (doc?.JobNo ?? string.Empty),
+                JobDate = doc?.Date.HasValue == true ? doc.Date.Value.ToString("yyyy-MM-dd") : string.Empty,
+                ShipmentMode = bill.ExpenseTypeId ?? (doc?.ExpenseTypeId ?? string.Empty),
+                ShipmentModeId = bill.ExpenseTypeId ?? doc?.ExpenseTypeId,
+                IsCustomJobNo = doc?.IsCustomJobNo ?? string.Empty,
+                CustomerId = bill.CustomerId ?? doc?.CustomerId,
+                CustomerName = bill.CustomerId ?? (doc?.CustomerId ?? string.Empty),
+                CustomerAddress = bill.Address ?? (doc?.CustomerAddress ?? string.Empty),
+                CustomerDeliveryAddress = doc?.DeliveryLocationCode ?? string.Empty,
+                PortId = doc?.PortId,
+                DocReceivedDate = bill.DocRecvDate.HasValue ? bill.DocRecvDate.Value.ToString("yyyy-MM-dd") : (doc?.DocReceivedDate.HasValue == true ? doc.DocReceivedDate.Value.ToString("yyyy-MM-dd") : string.Empty),
+                DocsReceivedDate = bill.DocRecvDate.HasValue ? bill.DocRecvDate.Value.ToString("yyyy-MM-dd") : (doc?.DocReceivedDate.HasValue == true ? doc.DocReceivedDate.Value.ToString("yyyy-MM-dd") : string.Empty),
+                ExpDate = doc?.ExpDate.HasValue == true ? doc.ExpDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                LcExpNo = doc?.ExpNo ?? string.Empty,
+                LcNo = doc?.Lcno ?? string.Empty,
+                LcDate = doc?.Lcdate.HasValue == true ? doc.Lcdate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                LcValCurrencyId = bill.LcurrencyId ?? (doc?.CurrencyId ?? string.Empty),
+                LcValue = bill.Lcvalue ?? doc?.Lcvalue,
+                BdtRate = doc?.Bdtrate,
+                BdtTotal = ((bill.Lcvalue ?? doc?.Lcvalue) ?? 0m) * (doc?.Bdtrate ?? 0m),
+                IpEpNo = bill.Ipno ?? (doc?.Ipno ?? string.Empty),
+                IpDate = bill.Ipdate.HasValue ? bill.Ipdate.Value.ToString("yyyy-MM-dd") : (doc?.Ipdate.HasValue == true ? doc.Ipdate.Value.ToString("yyyy-MM-dd") : string.Empty),
+                ImporterId = doc?.ImporterId,
+                InvoiceNo = bill.Invno ?? (doc?.InvoiceNo ?? string.Empty),
+                InvoiceDate = bill.Invdate.HasValue ? bill.Invdate.Value.ToString("yyyy-MM-dd") : (doc?.InvoiceDate.HasValue == true ? doc.InvoiceDate.Value.ToString("yyyy-MM-dd") : string.Empty),
+                InvoiceValue = bill.InvoiceValue ?? doc?.InvoiceValue,
+                InvValCurrencyId = bill.InvoiceCurrencyId ?? (doc?.InvoiceCurrencyId ?? string.Empty),
+                BlNo = bill.Blno ?? (doc?.Beno ?? string.Empty),
+                BlDate = bill.Bldate.HasValue ? bill.Bldate.Value.ToString("yyyy-MM-dd") : (doc?.Bldate.HasValue == true ? doc.Bldate.Value.ToString("yyyy-MM-dd") : string.Empty),
+                BeNo = bill.Beno ?? (doc?.Beno ?? string.Empty),
+                BeDate = bill.Bedate.HasValue ? bill.Bedate.Value.ToString("yyyy-MM-dd") : (doc?.Bedate.HasValue == true ? doc.Bedate.Value.ToString("yyyy-MM-dd") : string.Empty),
+                ContainerNo = bill.ContainerNo ?? (doc?.ContainerNo ?? string.Empty),
+                ContainerSize = doc?.ContainerSize ?? string.Empty,
+                LcaNo = doc?.Lcano ?? string.Empty,
+                DischargeDate = doc?.Dischargedate.HasValue == true ? doc.Dischargedate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                MaterialDescription = bill.MaterialDescription ?? (doc?.MaterialDescription ?? string.Empty),
+                Quantity = bill.Quantity ?? doc?.Quntity1,
+                QuantityUnitId = bill.QunitTypeId ?? doc?.Unit1,
+                Weight = bill.DocWeight ?? doc?.Quntity2,
+                WeightUnitId = bill.WunitTypeId ?? doc?.Unit2,
+                ForwarderId = doc?.NameOfFreightForwarder,
+                VesselRottNo = bill.Rotno ?? (doc?.VesselRottNo ?? string.Empty),
+                Remarks = bill.Remarks ?? (doc?.Remarks ?? string.Empty),
+                ConsoleNo = doc?.ConsoleNo ?? string.Empty,
+                DestinationId = bill.Destination ?? string.Empty,
+                AgComm = bill.MinimumAgencyCommission ?? doc?.MinimumAgencyCom,
+                OnInvVal = bill.OnInvoiceValue ?? doc?.CommOnInvoiceValue,
+                Amount = bill.BillAmount,
+                CreatedAt = bill.Ldate ?? doc?.Ldate,
+                UpdatedAt = bill.ModifyDate ?? doc?.ModifyDate
+            };
+        }
+
+        public async Task<CommonReturnViewModel> DeleteBillsAsync(List<string> billNos, UserInfoViewModel? userInfo)
+        {
+            if (billNos == null || !billNos.Any())
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = "No bills selected for deletion."
+                };
+            }
+
+            try
+            {
+                var billsToDelete = await _billEntryRepository.All()
+                    .Where(b => billNos.Contains(b.BillNo))
+                    .ToListAsync();
+
+                if (!billsToDelete.Any())
+                {
+                    return new CommonReturnViewModel
+                    {
+                        Success = false,
+                        Message = "No matching bills found to delete."
+                    };
+                }
+
+                var jobNos = billsToDelete
+                    .Where(b => !string.IsNullOrEmpty(b.JobNo))
+                    .Select(b => b.JobNo)
+                    .Distinct()
+                    .ToList();
+
+                if (jobNos.Any())
+                {
+                    var docsToReset = await _sepDocumentationRepository.All()
+                        .Where(d => jobNos.Contains(d.JobNo) && (billNos.Contains(d.BillNo) || d.BillNo != null))
+                        .ToListAsync();
+
+                    foreach (var doc in docsToReset)
+                    {
+                        doc.BillNo = null;
+                        await _sepDocumentationRepository.UpdateAsync(doc);
+                    }
+                }
+
+                foreach (var bill in billsToDelete)
+                {
+                    await _billEntryRepository.DeleteAsync(bill);
+                }
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = $"{billsToDelete.Count} bill(s) deleted successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = $"Error deleting bills: {ex.Message}"
                 };
             }
         }
