@@ -3,12 +3,39 @@ namespace GCTL.UI.Core.ViewModels
     public class ToobarModel
     {
         public string Title { get; set; } = "";
+        public bool ShowTitle { get; set; } = true;
 
         public bool ShowSave { get; set; } = true;
         public bool ShowDelete { get; set; } = true;
         public bool ShowClear { get; set; } = true;
         public bool ShowPrint { get; set; } = true;
         public bool ShowFavorite { get; set; } = true;
+
+        // ================= Extra / Custom Content Slots =================
+        public bool ShowExtraContent1 { get; set; } = false;
+        public bool ShowExtraContent2 { get; set; } = false;
+
+        public bool ShowExtraContent
+        {
+            get => ShowExtraContent1 || ShowExtraContent2;
+            set
+            {
+                ShowExtraContent1 = value;
+                ShowExtraContent2 = value;
+            }
+        }
+
+        // Aliases for convenience
+        public bool ShowCustomContent1 { get => ShowExtraContent1; set => ShowExtraContent1 = value; }
+        public bool ShowCustomContent2 { get => ShowExtraContent2; set => ShowExtraContent2 = value; }
+        public bool ShowCustomContent { get => ShowExtraContent; set => ShowExtraContent = value; }
+
+        public string ExtraContent1 { get; set; } = "";
+        public string ExtraContent2 { get; set; } = "";
+        public string ExtraContent1Class { get; set; } = "";
+        public string ExtraContent2Class { get; set; } = "";
+        public string ExtraContent1Style { get; set; } = "";
+        public string ExtraContent2Style { get; set; } = "";
 
         public bool EnableSave { get; set; } = true;
         public bool EnableDelete { get; set; } = true;
