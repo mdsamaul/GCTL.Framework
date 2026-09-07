@@ -15,10 +15,11 @@
             PrintBtnId = "btnDLPrint",
             PrintBtnClass = "js-salesdl-print",
             FavtBtnId = "btnDLFav",
-            FavtBtnClass = "js-salesdl-fav"
+            FavtBtnClass = "js-salesdl-fav",
+            ShowExtraContentLaptopOnly = true
         })
     </div>
-    <div class="card-body px-4 py-3">
+    <div class="card-body px-2">
         <form id="deliveryForm">
 
             @* ---------- Row 1: Customer Name & Delivery Code ---------- *@
@@ -33,7 +34,7 @@
                     IsRequired = true,
                     ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
                     ReserveActionSlot = false,
-                    CustomCssClass = "js-CustomerIdForDelivery"
+                    CustomCssClass = "js-CustomerIdForDelivery",
                 })
 
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -186,7 +187,10 @@
                         SaveBtnId = "btnSaveDL-bottom",
                         SaveBtnClass = "js-salesdl-save",
                         ReserveActionSlot = true,
-                        Style = "border-bottom:0px !important;"
+                        Style = "border-bottom:0px !important; padding-left:610px",
+                        ShowExtraContentLaptopOnly = true,
+                        ShowExtraContent1 = true,
+                        ShowExtraContent2 = false
                     })
                 </div>
             </div>

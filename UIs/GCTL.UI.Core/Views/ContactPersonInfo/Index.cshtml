@@ -98,7 +98,8 @@
                             Title = "Contact Person Info",
                             SaveBtnClass = "js-ContactPersonInfo-save",
                             DeleteBtnClass = "js-ContactPersonInfo-delete-confirm",
-                            ClearBtnClass = "js-ContactPersonInfo-clear"
+                            ClearBtnClass = "js-ContactPersonInfo-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
                     <div class="card-body px-2">
@@ -112,7 +113,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 cpi-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                 {
                     GridId = "ContactPersonInfo-grid",

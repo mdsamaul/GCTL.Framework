@@ -98,7 +98,8 @@
                             Title = "Supplier Company Info",
                             SaveBtnClass = "js-CompanyInfo-save",
                             DeleteBtnClass = "js-CompanyInfo-delete-confirm",
-                            ClearBtnClass = "js-CompanyInfo-clear"
+                            ClearBtnClass = "js-CompanyInfo-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
                     <div class="card-body px-2">
@@ -112,7 +113,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 ci-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                 {
                     GridId = "CompanyInfo-grid",
