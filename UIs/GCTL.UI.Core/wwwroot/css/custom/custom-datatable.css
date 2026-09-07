@@ -148,11 +148,13 @@ div.dt-container table.dataTable.enable-select-highlight tbody tr.selected-row:h
 
 
 /* Search Input with Magnifier Icon (BS5 border, No Shadow) */
-div.dt-container .dt-search {
+div.dt-container .dt-search,
+.dt-search {
     position: relative;
 }
 
-div.dt-container .dt-search input {
+div.dt-container .dt-search input,
+.dt-search input {
     font-size: 0.78rem;
     padding: 0.22rem 0.5rem 0.22rem 1.85rem !important;
     height: 28px;
@@ -163,11 +165,12 @@ div.dt-container .dt-search input {
     background-position: left 0.5rem center !important;
     background-size: 13px 13px !important;
     outline: none;
-    width: 200px;
+    width: 18vw !important;
     box-shadow: none !important;
 }
 
-div.dt-container .dt-search input:focus {
+div.dt-container .dt-search input:focus,
+.dt-search input:focus {
     border-color: #86b7fe !important;
     box-shadow: none !important;
     outline: none !important;

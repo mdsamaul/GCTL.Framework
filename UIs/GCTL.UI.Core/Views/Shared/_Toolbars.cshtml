@@ -156,7 +156,7 @@
         : (hasTitleSlot ? "justify-content-between" : "justify-content-end");
 
     var stickyClass = Model.IsPlain ? "" : "sticky-bar";
-    var cardDecorClass = Model.IsPlain ? "" : "bg-white rounded-top rounded-bottom-0 shadow-sm border";
+    var cardDecorClass = Model.IsPlain ? "is-plain" : "bg-white rounded-top rounded-bottom-0 shadow-sm border";
 
     var finalContainerClass = $"d-flex {justifyClass} align-items-center {defaultPadding} {containerPadding} {extraClass} {stickyClass} {cardDecorClass} flex-nowrap toolbar-container {customClasses} {paddingClass} {marginClass}".Replace("  ", " ").Trim();
 }

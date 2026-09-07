@@ -1,4 +1,4 @@
-﻿@using GCTL.UI.Core.ViewModels
+@using GCTL.UI.Core.ViewModels
 
 <div class="card shadow-sm rounded-2">
 
@@ -39,7 +39,7 @@
             <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="ModalSubCRLAutoID" name="autoId" />
 
-                <div class="row g-3">
+                <div class="row g-3 subcontrol-ledger-fields-row control-ledger-fields-row">
                     @* --- 1. Group Ledger Code (Readonly) --- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
@@ -165,7 +165,7 @@
                 <hr class="my-3 mx-1">
 
                 @* --- Entry & Update Date Section --- *@
-                <div class="row g-3">
+                <div class="row g-2 align-items-center">
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
                         IsVisible = true,
@@ -175,7 +175,9 @@
                         InputId = "ModalSubControldisplayLDate",
                         LabelText = "Entry Date :",
                         LabelInline = true,
-                        LabelColWidth = 4
+                        LabelColWidth = 5,
+                        LabelStyle = "font-size:12px; white-space: nowrap;",
+                        InputStyle = "font-size:12px; white-space: nowrap;"
                     })
 
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -187,7 +189,9 @@
                         InputId = "ModalSubControldisplayModifyDate",
                         LabelText = "Last Update Date :",
                         LabelInline = true,
-                        LabelColWidth = 4
+                        LabelColWidth = 5,
+                        LabelStyle = "font-size:12px; white-space: nowrap;",
+                        InputStyle = "font-size:12px; white-space: nowrap;"
                     })
                 </div>
 
