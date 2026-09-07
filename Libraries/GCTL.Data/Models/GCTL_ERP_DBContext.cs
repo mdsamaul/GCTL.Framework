@@ -1720,7 +1720,9 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.MenuId).HasMaxLength(50);
             entity.Property(e => e.MenuText).HasMaxLength(100);
-            entity.Property(e => e.OrderBy).HasDefaultValue(1);
+            entity.Property(e => e.OrderBy)
+                .HasDefaultValue(1)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_AccessCode_OrderBy");
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
@@ -2008,8 +2010,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.Property(e => e.ControllerName).HasMaxLength(100);
             entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.IsActive).HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_IsActive");
             entity.Property(e => e.MenuId).HasMaxLength(50);
-            entity.Property(e => e.OrderBy).HasDefaultValue(1);
+            entity.Property(e => e.OrderBy)
+                .HasDefaultValue(1)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_OrderBy");
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.TableName).HasMaxLength(50);
             entity.Property(e => e.Title)
@@ -2695,12 +2700,16 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Lmac)
                 .HasMaxLength(50)
                 .HasColumnName("LMAC");
-            entity.Property(e => e.LunchBreakHour).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.LunchBreakHour)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchBreakHour")
+                .HasColumnType("decimal(5, 2)");
             entity.Property(e => e.LunchInTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchInTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.LunchOutTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchOutTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.Luser)
                 .HasMaxLength(50)
@@ -2964,17 +2973,15 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmDefEmpType>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("HRM_Def_EmpType");
+            entity.HasKey(e => e.EmpTypeCode);
 
+            entity.ToTable("HRM_Def_EmpType");
+
+            entity.Property(e => e.EmpTypeCode).HasMaxLength(50);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
-            entity.Property(e => e.EmpTypeCode)
-                .IsRequired()
-                .HasMaxLength(50);
             entity.Property(e => e.EmpTypeName).HasMaxLength(100);
             entity.Property(e => e.EmpTypeShortName).HasMaxLength(50);
             entity.Property(e => e.Ldate)
@@ -2994,19 +3001,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmDefEmployeeStatus>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("HRM_Def_EmployeeStatus");
+            entity.HasKey(e => e.EmployeeStatusId);
 
+            entity.ToTable("HRM_Def_EmployeeStatus");
+
+            entity.Property(e => e.EmployeeStatusId).HasMaxLength(50);
             entity.Property(e => e.EmployeeStatus)
                 .IsRequired()
                 .HasMaxLength(50);
             entity.Property(e => e.EmployeeStatusCode)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)");
-            entity.Property(e => e.EmployeeStatusId)
-                .IsRequired()
-                .HasMaxLength(50);
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("LDate");

@@ -39,7 +39,6 @@
                 $('[data-toggle="tooltip"]').tooltip();
             });
 
-
             var selectedItems = [];
 
             $(() => {
@@ -55,8 +54,6 @@
                     validation();
                     $(settings.formSelector).submit();
                 });
-
-               
 
                 // Form submission event
                 $("body").on('submit', settings.formSelector, function (e) {
@@ -90,10 +87,7 @@
                     });
                 });
 
-               
-
                 //Orginall Code 
-
 
                 // Edit leave type
                 $("body").on('click', settings.editSelector, function () {
@@ -101,7 +95,6 @@
                     $.get(getById, { id: id }, function (result)
 
                     {
-
                         $(settings.formSelector).html($(result).find(settings.formSelector).html());
                        // EffectiveDatePicker();
                         $(settings.saveSelector).html('<i class="fas fa-edit"></i> Update');
@@ -113,14 +106,6 @@
                     });
                 });
 
-
-
-               
-                //
-
-               
-
-                //
                 // Select all checkboxes
                 $("body").on('click', settings.selectAllSelector, function () {
                     $('.checkBox').prop('checked', $(this).prop('checked'));
@@ -180,59 +165,20 @@
                     });
                 });
 
-                //
-
-
-
             });
-
-
-
 
             // Initialization function
             function initialize()
-            {
-              
-                
-               // EffectiveDatePicker();
+            {        
                 GenerateNextCode();
                 loadTable();
                 ResetForm();
                 setDate("#EffectiveDate", new Date());
             }
            
-
-            // Load leave types list
-            // function loadTableData()
-            // {
-            //     $.ajax({
-            //         type: 'GET',
-            //         url: loadTableURL,
-            //         success: function (data)
-            //         {
-            //             $(settings.gridContainer).html(data);
-            //             dataTable();
-
-            //         },
-            //         error: function ()
-            //         {
-            //             toastr.error('Failed Get Data .');
-            //         }
-            //     });
-            // }
-            // window.gctlRenderers = window.gctlRenderers || {};
-            // window.gctlRenderers.formatDate = function (data) { return formatDate(data); };
             function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().ajax.reload(null, false);
-            }
-                    });
-                }
-                // if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                //     $(settings.gridSelector).DataTable().ajax.reload();
-                // } else if (window.loadGridPage) {
-                //     window.loadGridPage('companyWeekEndsGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
-                // }
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);}  
             }
 
             // Data table initialization function
@@ -246,48 +192,6 @@
                 });
             }
 
-
-            // function EffectiveDatePicker()
-            // {
-            //     flatpickr("#EffectiveDate", CalendarService.createConfig({
-            //         defaultDate:'today',
-            //         dateFormat: "d-m-Y",
-            //         onChange: function (selectedDates) {
-            //             debugger;
-            //             if (selectedDates.length > 0) {
-            //                 var formattedInitialDate = flatpickr.formatDate(selectedDates[0], 'm/d/Y');
-
-            //                 // Save both the raw string and formatted version if needed
-            //                 $('#EffectiveDateHidden').val(formattedInitialDate);
-
-            //             }
-            //             else {
-            //                 $('#EffectiveDateHidden').val('');
-
-            //             }                        
-            //         }
-            //     }));
-
-
-            //     var initialDate = $("#EffectiveDate").val();
-            //     if (initialDate) {
-            //         var formattedInitialDate = flatpickr.formatDate(new Date(initialDate.split('-').reverse().join('-')), 'm/d/Y');
-            //         //var formattedInitialDate = $.datepicker.formatDate('mm/dd/yy', $("#EffectiveDate").datepicker('getDate'));
-            //         $('#EffectiveDateHidden').val(formattedInitialDate);
-            //     }
-
-            //     $(".datepicker").trigger("input");
-
-                
-            // }
-
-
-            
-
-
-
-            
-
             function GenerateNextCode()
             {
                 $("#CompanyWeekEndCode").val('');
@@ -296,7 +200,6 @@
                     url: nextCodeULR,
                     success: function (result)
                     {
-
                         $('#CompanyWeekEndCode').val(result);
                     },
                     error: function ()
@@ -306,14 +209,8 @@
                 });
             }
 
-
-
-
-
-
             function ResetForm()
             {
-
                 $(settings.formSelector)[0].reset();
                 $('#Id').val('');
                 $('#AutoId').val('');
@@ -329,14 +226,11 @@
 
             }
 
-
             // Clear form on click
             $(document).on('click', settings.clearSelector, function ()
             {
                 ResetForm();
             });
-
-
 
             // Validation function
             function validation()
@@ -357,9 +251,8 @@
                 return true; 
             }
 
-
-           
         }
+
     }(jQuery));
 
 
