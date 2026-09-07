@@ -180,7 +180,8 @@
                             Title = "Exporter Info",
                             SaveBtnClass = "js-ExporterInfo-save",
                             DeleteBtnClass = "js-ExporterInfo-delete-confirm",
-                            ClearBtnClass = "js-ExporterInfo-clear"
+                            ClearBtnClass = "js-ExporterInfo-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
                     <div class="card-body px-2">
@@ -194,7 +195,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 ex-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",

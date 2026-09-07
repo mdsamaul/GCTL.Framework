@@ -130,7 +130,7 @@
                             @await Html.PartialAsync("_Setup", Model ?? new SalesCustomerViewModel())
                         </div>
                     </div>
-                    <div class="col-12 col-xxl-6 ps-1 sc-layout-grid-col">
+                    <div class="col-10 col-xxl-6 ">
                         <div id="customer-list-container">
                             @await Html.PartialAsync("_Table")
                         </div>
@@ -145,7 +145,7 @@
                             @await Html.PartialAsync("_DLForm", new SalesDeliveryLocationViewModel())
                         </div>
                     </div>
-                    <div class="col-12 col-xxl-6 ps-1 sc-layout-grid-col">
+                    <div class="col-10 col-xxl-6">
                         <div id="delivery-list-container">
                             @await Html.PartialAsync("_DLTable")
                         </div>

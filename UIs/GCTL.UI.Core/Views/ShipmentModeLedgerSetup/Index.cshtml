@@ -98,7 +98,8 @@
                             Title = "Shipment Mode Ledger Setup",
                             SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
                             DeleteBtnClass = "js-ShipmentModeLedgerSetup-delete-confirm",
-                            ClearBtnClass = "js-ShipmentModeLedgerSetup-clear"
+                            ClearBtnClass = "js-ShipmentModeLedgerSetup-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
 
@@ -113,7 +114,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 sml-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ShipmentModeLedgerSetup-grid",

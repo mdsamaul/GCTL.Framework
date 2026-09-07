@@ -352,8 +352,7 @@ namespace GCTL.Service.BranchAddress
                 Designation = d != null ? d.DesignationName : "",
                 Phone = cp.ContactPersonMobile ?? "",
                 Email = cp.ContactPersonEmail ?? ""
-            }
-        ).ToListAsync();
+            }).ToListAsync();
 
                 return new CommonReturnViewModel
                 {

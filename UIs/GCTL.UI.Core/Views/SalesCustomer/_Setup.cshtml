@@ -15,10 +15,11 @@
             PrintBtnId = "salesCustomer-btnPrint",
             PrintBtnClass = "js-salescustomer-print",
             FavtBtnId = "salesCustomer-btnFav",
-            FavtBtnClass = "js-salescustomer-fav"
+            FavtBtnClass = "js-salescustomer-fav",
+            ShowExtraContentLaptopOnly = true
         })
     </div>
-    <div class="card-body px-4 py-3">
+    <div class="card-body px-2">
         <form id="customerForm">
 
             @* ---------- Row 1: Customer ID & Customer Code ---------- *@
@@ -381,10 +382,10 @@
                 <div class="col-12 col-md-6 col-xxl-12 sc-toolbar-col">
                     <div class="d-flex justify-content-between align-items-center w-100">
                         <div class="d-flex">
-                            <button type="button" class="btn btn-outline-secondary btn-sm me-2 rounded-pill shadow-none" id="previewBtn">
+                            <button type="button" class="btn toolbar-btn toolbar-btn-save me-2" id="previewBtn">
                                 <i class="fas fa-file-alt me-1"></i> Preview
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill shadow-none" id="listPreviewBtn">
+                            <button type="button" class="btn toolbar-btn toolbar-btn-save" id="listPreviewBtn">
                                 <i class="fas fa-list me-1"></i> List Preview
                             </button>
                         </div>
@@ -398,7 +399,11 @@
                             IsPlain = true,
                             SaveBtnId = "salesCustomer-btnSave-bottom",
                             SaveBtnClass = "js-salescustomer-save",
-                            ReserveActionSlot = false
+                            ReserveActionSlot = false,
+                            Style = "border-bottom:0px !important; padding-left:450px",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent1 = true,
+                            ShowExtraContent2 = false
                         })
                     </div>
                 </div>
