@@ -236,8 +236,7 @@
 
 .card-header .toolbar-container,
 .card-header.p-0 .toolbar-container,
-.card > .toolbar-container,
-.card .toolbar-container {
+.card > .toolbar-container {
     border: none !important;
     border-bottom: 1px solid #dee2e6 !important;
     border-radius: 0 !important;
@@ -248,6 +247,20 @@
     box-shadow: none !important;
     margin: 0 !important;
     width: 100% !important;
+}
+
+/* Toolbars inside card-body, plain toolbars, or with border-bottom:0px should have NO bottom border */
+.card .card-body .toolbar-container,
+.card-body .toolbar-container,
+.card .toolbar-container.is-plain,
+.toolbar-container.is-plain,
+.toolbar-container[style*="border-bottom:0px"],
+.toolbar-container[style*="border-bottom: 0px"],
+.card .toolbar-container[style*="border-bottom:0px"],
+.card .toolbar-container[style*="border-bottom: 0px"] {
+    border: none !important;
+    border-bottom: 0 !important;
+    box-shadow: none !important;
 }
 
 .card-header:has(.toolbar-container),
