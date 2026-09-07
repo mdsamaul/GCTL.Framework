@@ -168,7 +168,6 @@ namespace GCTL.UI.Core.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
 
-
         public async Task<IActionResult> Setup(HrmEmployee2SetUpViewModel modelVM)
         {
             try

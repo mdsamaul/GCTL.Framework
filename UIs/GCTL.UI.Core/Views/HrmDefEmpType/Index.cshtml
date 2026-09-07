@@ -1,0 +1,96 @@
+﻿@model GCTL.UI.Core.ViewModels.HrmDefEmpTypes.HrmDefEmpTypePageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Employee Type";
+    Model.Breadcrumb = "Employee Type";
+}
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .bg-light {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #fff !important;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Employee Type",
+                            SaveBtnClass = "js-HrmDefEmpType-save",
+                            DeleteBtnClass = "js-HrmDefEmpType-delete-confirm",
+                            ClearBtnClass = "js-HrmDefEmpType-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+                        <form asp-action="Setup" method="post" id="HrmDefEmpType-form" asp-controller="HrmDefEmpType">
+                            <div class="js-HrmDefEmpType-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GridModel
+                {
+                    GridId = "HrmDefEmpType-grid",
+                    AjaxUrl = "/HrmDefEmpType/GetTableData",
+                    AjaxMethod = "GET",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "tc",
+                    CheckAllId = "js-HrmDefEmpType-checkall",
+                    DefaultSortColumn = "empTypeCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new List<GridColumn>
+                    {
+                        new() { Data = "empTypeCode", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-HrmDefEmpType-edit", IdField = "tc" },
+                        new() { Data = "empTypeName", Header = "Employee Type", Width = "44%"},
+                        new() { Data = "empTypeShortName", Header = "Short Name", Width = "22%"},
+                        new() { Data = "banglaEmployeeType", Header = "Bangla Name", Width = "26%"}
+                    }
+                })
+            </div>
+
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/hrmDefEmpType.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.hrmDefEmpType === "function") {
+            var options = { baseUrl: '@Url.Action("", "HrmDefEmpType")' };
+            options.load = () => { };
+            $.hrmDefEmpType(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>

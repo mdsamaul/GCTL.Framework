@@ -43,7 +43,7 @@ namespace GCTL.Data.Models
             _context = context;
         }
 
-        public virtual async Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string EmployeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -57,8 +57,8 @@ namespace GCTL.Data.Models
                 new SqlParameter
                 {
                     ParameterName = "EmployeeCode",
-                    Size = 100,
-                    Value = EmployeeCode ?? Convert.DBNull,
+                    Size = 50,
+                    Value = employeeCode ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.NVarChar,
                 },
                 parameterreturnValue,
@@ -70,7 +70,7 @@ namespace GCTL.Data.Models
             return _;
         }
 
-        public virtual async Task<List<GetExpenseHeadReportResult>> GetExpenseHeadReportAsync(string ExpenseTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<GetExpenseHeadReportResult>> GetExpenseHeadReportAsync(string expenseTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -84,8 +84,8 @@ namespace GCTL.Data.Models
                 new SqlParameter
                 {
                     ParameterName = "ExpenseTypeId",
-                    Size = 100,
-                    Value = ExpenseTypeId ?? Convert.DBNull,
+                    Size = 50,
+                    Value = expenseTypeId ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.NVarChar,
                 },
                 parameterreturnValue,
@@ -157,7 +157,7 @@ namespace GCTL.Data.Models
             return _;
         }
 
-        public virtual async Task<List<sp_GetVoucherPreviewDataResult>> sp_GetVoucherPreviewDataAsync(string Ids, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<sp_GetVoucherPreviewDataResult>> sp_GetVoucherPreviewDataAsync(string ids, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -172,7 +172,7 @@ namespace GCTL.Data.Models
                 {
                     ParameterName = "Ids",
                     Size = -1,
-                    Value = Ids ?? Convert.DBNull,
+                    Value = ids ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.NVarChar,
                 },
                 parameterreturnValue,
@@ -184,7 +184,7 @@ namespace GCTL.Data.Models
             return _;
         }
 
-        public virtual async Task<List<SP_HrmEmployee2_GetPagedListResult>> SP_HrmEmployee2_GetPagedListAsync(int? PageNumber, int? PageSize, string SortColumn, string SortDirection, string SearchValue, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<SP_HrmEmployee2_GetPagedListResult>> SP_HrmEmployee2_GetPagedListAsync(int? pageNumber, int? pageSize, string sortColumn, string sortDirection, string searchValue, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -198,34 +198,34 @@ namespace GCTL.Data.Models
                 new SqlParameter
                 {
                     ParameterName = "PageNumber",
-                    Value = PageNumber ?? Convert.DBNull,
+                    Value = pageNumber ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.Int,
                 },
                 new SqlParameter
                 {
                     ParameterName = "PageSize",
-                    Value = PageSize ?? Convert.DBNull,
+                    Value = pageSize ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.Int,
                 },
                 new SqlParameter
                 {
                     ParameterName = "SortColumn",
-                    Size = 100,
-                    Value = SortColumn ?? Convert.DBNull,
+                    Size = 50,
+                    Value = sortColumn ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.NVarChar,
                 },
                 new SqlParameter
                 {
                     ParameterName = "SortDirection",
-                    Size = 8,
-                    Value = SortDirection ?? Convert.DBNull,
+                    Size = 4,
+                    Value = sortDirection ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.NVarChar,
                 },
                 new SqlParameter
                 {
                     ParameterName = "SearchValue",
-                    Size = 400,
-                    Value = SearchValue ?? Convert.DBNull,
+                    Size = 200,
+                    Value = searchValue ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.NVarChar,
                 },
                 parameterreturnValue,
@@ -237,7 +237,7 @@ namespace GCTL.Data.Models
             return _;
         }
 
-        public virtual async Task<List<usp_GetHolidayListResult>> usp_GetHolidayListAsync(int? Year, int? Month, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<usp_GetHolidayListResult>> usp_GetHolidayListAsync(int? year, int? month, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
             {
@@ -251,13 +251,13 @@ namespace GCTL.Data.Models
                 new SqlParameter
                 {
                     ParameterName = "Year",
-                    Value = Year ?? Convert.DBNull,
+                    Value = year ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.Int,
                 },
                 new SqlParameter
                 {
                     ParameterName = "Month",
-                    Value = Month ?? Convert.DBNull,
+                    Value = month ?? Convert.DBNull,
                     SqlDbType = System.Data.SqlDbType.Int,
                 },
                 parameterreturnValue,

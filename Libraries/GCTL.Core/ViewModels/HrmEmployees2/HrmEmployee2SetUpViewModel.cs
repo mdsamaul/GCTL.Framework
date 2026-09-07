@@ -64,6 +64,7 @@ namespace GCTL.Core.ViewModels.HrmEmployees2
         public string PhotoUrl { get; set; } = string.Empty;
         public string DigitalSignatureUrl { get; set; } = string.Empty;
         public bool IsEditMode { get; set; }
+       
         public IList<HrmEmployeePhotoSetupViewModel>? HrmEmployeePhotoSetupVM { get; set; } = new List<HrmEmployeePhotoSetupViewModel>();
 
     }
