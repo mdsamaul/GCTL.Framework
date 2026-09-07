@@ -136,6 +136,10 @@
             flex: 0 0 100% !important;
             max-width: 100% !important;
         }
+
+        .im-layout-form-col .toolbar-extra-content {
+            display: none !important;
+        }
     }
 
     @@media (max-width: 991.98px) {
@@ -179,7 +183,9 @@
                             Title = "Importer Info",
                             SaveBtnClass = "js-ImporterInfo-save",
                             DeleteBtnClass = "js-ImporterInfo-delete-confirm",
-                            ClearBtnClass = "js-ImporterInfo-clear"
+                            ClearBtnClass = "js-ImporterInfo-clear",
+                            ShowExtraContent = true,
+                            ShowExtraContentLaptopOnly=true
                         })
                     </div>
                     <div class="card-body px-2">
@@ -193,7 +199,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 im-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ImporterInfo-grid",

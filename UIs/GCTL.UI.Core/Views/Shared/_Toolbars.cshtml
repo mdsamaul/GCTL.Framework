@@ -270,17 +270,21 @@
         }
 
     </div>
-
+@{
+    var extraLaptopClass = Model.ShowExtraContentLaptopOnly ? "toolbar-extra-laptop-only" : "";
+    var extra1Class = string.Join(" ", new[] { "toolbar-extra-content toolbar-extra-content-1", Model.ExtraContent1Class, extraLaptopClass }.Where(c => !string.IsNullOrWhiteSpace(c)));
+    var extra2Class = string.Join(" ", new[] { "toolbar-extra-content toolbar-extra-content-2", Model.ExtraContent2Class, extraLaptopClass }.Where(c => !string.IsNullOrWhiteSpace(c)));
+}
     @if (Model.ShowExtraContent1)
     {
-        <div class="@Model.ExtraContent1Class" style="@Model.ExtraContent1Style">
+        <div class="@extra1Class" style="@Model.ExtraContent1Style">
             @Html.Raw(string.IsNullOrWhiteSpace(Model.ExtraContent1) ? "" : Model.ExtraContent1)
         </div>
     }
 
     @if (Model.ShowExtraContent2)
     {
-        <div class="@Model.ExtraContent2Class" style="@Model.ExtraContent2Style">
+        <div class="@extra2Class" style="@Model.ExtraContent2Style">
             @Html.Raw(string.IsNullOrWhiteSpace(Model.ExtraContent2) ? "" : Model.ExtraContent2)
         </div>
     }

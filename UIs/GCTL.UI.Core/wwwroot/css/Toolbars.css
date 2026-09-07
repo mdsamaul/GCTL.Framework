@@ -257,3 +257,11 @@
     background-color: transparent !important;
 }
 
+/* Responsive Extra Content: Show on Laptop (<= 1600px), Hide on Big Screen (> 1600px) */
+@media (min-width: 1600.02px) {
+    .toolbar-extra-laptop-only {
+        display: none !important;
+    }
+}
+
+
