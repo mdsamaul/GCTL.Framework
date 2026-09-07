@@ -30,6 +30,20 @@ namespace GCTL.UI.Core.ViewModels
         public bool ShowCustomContent2 { get => ShowExtraContent2; set => ShowExtraContent2 = value; }
         public bool ShowCustomContent { get => ShowExtraContent; set => ShowExtraContent = value; }
 
+        public bool ShowExtraContentLaptopOnly
+        {
+            get => _showExtraContentLaptopOnly;
+            set
+            {
+                _showExtraContentLaptopOnly = value;
+                if (value)
+                {
+                    ShowExtraContent = true;
+                }
+            }
+        }
+        private bool _showExtraContentLaptopOnly = false;
+
         public string ExtraContent1 { get; set; } = "";
         public string ExtraContent2 { get; set; } = "";
         public string ExtraContent1Class { get; set; } = "";
