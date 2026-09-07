@@ -1,4 +1,5 @@
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.ClearAndF.BillEntry;
 using GCTL.Data.Models;
 using GCTL.Service.BillService;
@@ -85,25 +86,51 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetJobs(int page = 1, int pageSize = 5, int? start = null, int? length = null, int? draw = null, string? customerName = null, string? shipmentMode = null, string? dateFrom = null, string? dateTo = null, string? search = null, string? searchTerm = null)
+        public async Task<IActionResult> GetJobs(
+            int? draw = null,
+            int pageNumber = 1,
+            int pageSize = 5,
+            int? page = null,
+            int? start = null,
+            int? length = null,
+            string? searchTerm = null,
+            string? search = null,
+            string? sortColumn = null,
+            string? sortOrder = null,
+            string? customerName = null,
+            string? shipmentMode = null,
+            string? dateFrom = null,
+            string? dateTo = null)
         {
             if (length.HasValue && length.Value > 0)
             {
                 pageSize = length.Value;
-                page = (start ?? 0) / pageSize + 1;
+                pageNumber = (start ?? 0) / pageSize + 1;
+            }
+            else if (page.HasValue && page.Value > 0)
+            {
+                pageNumber = page.Value;
             }
 
-            var searchQuery = !string.IsNullOrWhiteSpace(searchTerm) ? searchTerm : search;
-            var result = await _billService.GetBillPagedAsync(page, pageSize, customerName, shipmentMode, dateFrom, dateTo, searchQuery);
+            var request = new PaginationRequest
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? searchTerm : search,
+                SortColumn = sortColumn,
+                SortOrder = sortOrder
+            };
+
+            var result = await _billService.GetBillPagedAsync(request, customerName, shipmentMode, dateFrom, dateTo);
 
             return Json(new
             {
                 draw = draw,
                 data = result.Data,
-                recordsTotal = result.TotalRecords,
-                recordsFiltered = result.FilteredRecords,
-                totalRecords = result.TotalRecords,
-                filteredRecords = result.FilteredRecords
+                recordsTotal = result.TotalCount,
+                recordsFiltered = result.FilteredCount,
+                totalRecords = result.TotalCount,
+                filteredRecords = result.FilteredCount
             });
         }
 
@@ -179,26 +206,66 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetBillHistory(int draw = 1, int page = 1, int pageSize = 10, int? start = null, int? length = null, string? search = null, string? searchTerm = null)
+        public async Task<IActionResult> GetBillHistory(
+            int? draw = null,
+            int pageNumber = 1,
+            int pageSize = 10,
+            int? page = null,
+            int? start = null,
+            int? length = null,
+            string? searchTerm = null,
+            string? search = null,
+            string? sortColumn = null,
+            string? sortOrder = null)
         {
             if (length.HasValue && length.Value > 0)
             {
                 pageSize = length.Value;
-                page = (start ?? 0) / pageSize + 1;
+                pageNumber = (start ?? 0) / pageSize + 1;
+            }
+            else if (page.HasValue && page.Value > 0)
+            {
+                pageNumber = page.Value;
             }
 
-            var query = !string.IsNullOrWhiteSpace(searchTerm) ? searchTerm : search;
-            var result = await _billService.GetBillHistoryPagedAsync(page, pageSize, query);
+            var request = new PaginationRequest
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? searchTerm : search,
+                SortColumn = sortColumn,
+                SortOrder = sortOrder
+            };
+
+            var result = await _billService.GetBillHistoryPagedAsync(request);
 
             return Json(new
             {
                 draw = draw,
                 data = result.Data,
-                recordsTotal = result.TotalRecords,
-                recordsFiltered = result.FilteredRecords,
-                totalRecords = result.TotalRecords,
-                filteredRecords = result.FilteredRecords
+                recordsTotal = result.TotalCount,
+                recordsFiltered = result.FilteredCount,
+                totalRecords = result.TotalCount,
+                filteredRecords = result.FilteredCount
             });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBillDetail(string billNo)
+        {
+            var bill = await _billService.GetBillDetailAsync(billNo);
+            if (bill == null)
+            {
+                return Json(new { success = false, message = "Bill not found" });
+            }
+            return Json(bill);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteBills([FromBody] List<string> billNos)
+        {
+            var result = await _billService.DeleteBillsAsync(billNos, LoginInfo);
+            return Json(new { success = result.Success, message = result.Message });
         }
     }
 }

@@ -108,10 +108,86 @@ $(document).ready(function () {
         });
     }
 
-    // Radio selection on BillHistoryTable
-    $(document).on('change', 'input[name="billSelect"]', function () {
-        const billNo = $(this).val();
-        console.log('Selected bill:', billNo);
+    // Click on Bill No link in BillHistoryTable to populate the form
+    $(document).on('click', '.bill-detail-link', function (e) {
+        e.preventDefault();
+        const billNo = $(this).data('id') || $(this).text().trim();
+        if (!billNo) return;
+
+        $.ajax({
+            url: '/JobBillEntry/GetBillDetail',
+            type: 'GET',
+            data: { billNo: billNo },
+            success: function (response) {
+                if (response && response.success === false) {
+                    toastr.warning(response.message || "Bill not found.");
+                    return;
+                }
+                clearForm();
+                populateForm(response);
+
+                if (response.id) {
+                    PopulateExpDetailsTable(response.id);
+                    populateChargeTblFunc(response.id);
+                }
+                toastr.info("Loaded Bill: " + billNo);
+            },
+            error: function () {
+                toastr.error("Error loading bill details.");
+            }
+        });
+    });
+
+    // Delete selected bills using top toolbar delete button
+    $('#deleteBillEntryBtn').on('click', function (e) {
+        e.preventDefault();
+
+        var selectedBills = [];
+        $('#BillHistoryTable tbody input[type="checkbox"]:checked').each(function () {
+            var val = $(this).val() || $(this).data('id');
+            if (val) {
+                selectedBills.push(String(val));
+            }
+        });
+
+        if (selectedBills.length === 0) {
+            toastr.warning("Please select at least one bill to delete.");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete the selected " + selectedBills.length + " bill(s)?")) {
+            return;
+        }
+
+        $.ajax({
+            url: '/JobBillEntry/DeleteBills',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(selectedBills),
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message || "Selected bill(s) deleted successfully.");
+
+                    var currentBillNo = $('#billNo').val();
+                    if (currentBillNo && selectedBills.indexOf(currentBillNo) !== -1) {
+                        clearForm();
+                    }
+
+                    if (billHistoryGrid) {
+                        billHistoryGrid.ajax.reload();
+                    }
+                    if (jobGrid) {
+                        jobGrid.ajax.reload();
+                    }
+                } else {
+                    toastr.error(response.message || "Failed to delete bills.");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+                toastr.error("An error occurred while deleting bills.");
+            }
+        });
     });
     //#endregion
 
@@ -426,7 +502,7 @@ function populateBottomForm(data) {
 
 
 function populateForm(data) {
-
+    console.log(data);
     $('#sdId').val(data.id || '');
 
     // New ones
@@ -524,7 +600,7 @@ function populateChargeTable(data) {
     $.each(data, function (index, item) {
         var row = `
                 <tr>
-                    <td class="text-center">${index + 1}</td>
+                    <td class="text-center">${item.serialNo || (index + 1)}</td>
                     <td class="text-center">${item.isRec}</td>
                     <td class="text-start ps-2">${item.chc}</td>
                     <td class="text-start ps-2">${item.description}</td>
@@ -572,7 +648,7 @@ function populateExpenseTable(data) {
     $.each(data, function (i, item) {
         var row = `
                 <tr>
-                    <td class="text-center">${i + 1}</td>
+                    <td class="text-center">${item.serialNo || (i + 1)}</td>
                     <td class="text-start ps-2">${item.head}</td>
                     <td class="text-center">${item.isRec}</td>
                     <td class="text-center">${item.serviceType}</td>
@@ -598,7 +674,6 @@ function populateExpenseTable(data) {
 
 function populateChargeTblFunc(jobId) {
 
-    debugger
 
     $.ajax({
         url: '/JobBillEntry/GetChrgTblData',

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GCTL.Core.DataTables;
 
 namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
 {
@@ -70,6 +71,7 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
 
     public class ExpenseDetailDto
     {
+        public string? SerialNo { get; set; } = string.Empty;
         public string Head { get; set; } = string.Empty;
         public string IsRec { get; set; } = string.Empty;
         public string ServiceType { get; set; } = string.Empty;
@@ -79,6 +81,7 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
 
     public class ChargeTableItemDto
     {
+        public string? SerialNo { get; set; } = string.Empty;
         public string IsRec { get; set; } = string.Empty;
         public string Chc { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
@@ -98,10 +101,24 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
     public class BillHistoryDto
     {
         public decimal Tc { get; set; }
+        [Searchable]
         public string BillNo { get; set; } = string.Empty;
-        public string BillDate { get; set; } = string.Empty;
+        [Searchable]
+        public DateTime? BillDate { get; set; }
+        [Searchable]
         public string JobNo { get; set; } = string.Empty;
+        [Searchable]
         public string ShipmentMode { get; set; } = string.Empty;
+        [Searchable]
+        public string Customer { get; set; } = string.Empty;
+        [Searchable]
+        public DateTime? DeliveryDate { get; set; }
+        [Searchable]
+        public string Hawb { get; set; } = string.Empty;
+        [Searchable]
+        public string BeNo { get; set; } = string.Empty;
+        [Searchable]
+        public decimal? InvoiceValue { get; set; }
     }
 }
 
