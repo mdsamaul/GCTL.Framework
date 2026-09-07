@@ -148,8 +148,9 @@
     var finalContainerStyle = (containerStyle + " " + customStyles).Trim();
     var defaultPadding = string.IsNullOrWhiteSpace(paddingClass) && string.IsNullOrWhiteSpace(paddingStyle) ? (Model.IsPlain ? "" : "px-1 py-1") : "";
 
+    var showTitle = Model.ShowTitle;
     var hasTitle = !string.IsNullOrWhiteSpace(Model.Title);
-    var hasTitleSlot = hasTitle || Model.ReserveActionSlot;
+    var hasTitleSlot = showTitle || hasTitle || Model.ReserveActionSlot;
     var justifyClass = customClasses.Contains("justify-content-") 
         ? "" 
         : (hasTitleSlot ? "justify-content-between" : "justify-content-end");
@@ -163,7 +164,7 @@
 <div class="@finalContainerClass"
      style="@finalContainerStyle">
 
-    @if (hasTitle)
+    @if (showTitle)
     {
         <div class="d-flex align-items-center py-1 ps-2 toolbar-title-wrap @Model.TitleClass" style="@Model.TitleStyle">
             <span class="fw-normal text-dark m-0 toolbar-title">
@@ -269,4 +270,18 @@
         }
 
     </div>
+
+    @if (Model.ShowExtraContent1)
+    {
+        <div class="@Model.ExtraContent1Class" style="@Model.ExtraContent1Style">
+            @Html.Raw(string.IsNullOrWhiteSpace(Model.ExtraContent1) ? "" : Model.ExtraContent1)
+        </div>
+    }
+
+    @if (Model.ShowExtraContent2)
+    {
+        <div class="@Model.ExtraContent2Class" style="@Model.ExtraContent2Style">
+            @Html.Raw(string.IsNullOrWhiteSpace(Model.ExtraContent2) ? "" : Model.ExtraContent2)
+        </div>
+    }
 </div>

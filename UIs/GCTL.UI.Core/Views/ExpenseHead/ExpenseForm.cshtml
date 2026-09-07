@@ -147,7 +147,8 @@
             ExcelBtnClass = "export-excel",
             PdfBtnClass = "export-pdf",
             FavtBtnClass = "favBtn",
-            ReserveActionSlot = false
+            ReserveActionSlot = false,
+            ShowExtraContent= true,
         })
     </div>
 
@@ -282,10 +283,11 @@
                 </div>
             </div>
 
-            <div class="row mt-3">
-                <div class="col-6 d-flex justify-content-end">
+            <div class="row">
+                <div class="col-12 d-flex justify-content-end">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
+                        Title="",
                         SaveBtnClass = "saveBtn",
                         ShowClear = false,
                         ShowDelete = false,
@@ -293,7 +295,8 @@
                         ShowPrint = false,
                         IsPlain = true,
                         ReserveActionSlot = false,
-                        Style = "padding-left:0px; border-bottom:0px !important;",
+                        Style = "padding-left:70px; border-bottom:0px !important;",
+                        ShowExtraContent1=true
                     })
                 </div>
             </div>
