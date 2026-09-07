@@ -167,5 +167,22 @@
                 })
             </div>
         </form>
+
+        <div class="row no-print" style="margin-top: 9px;">
+            <div class="col-12">
+                @await Html.PartialAsync("_Toolbars", new ToobarModel
+                {
+                    Title = "",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowPrint = false,
+                    ShowFavorite = false,
+                    IsPlain = true,
+                    SaveBtnClass = "js-vouchertype-save VoucherSaveBtn",
+                    ReserveActionSlot = true,
+                    Style = "border-bottom:0px !important;"
+                })
+            </div>
+        </div>
     </div>
 </div>

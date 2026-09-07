@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.transportModeType = function (options) {
 
         //#region Default options
@@ -130,20 +130,19 @@
             //#region selectAllSelector & deleteSelector
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(`${settings.gridSelector} input:checkbox.checkbox`).prop('checked', $(this).prop('checked'));
             });
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                    $(`${settings.gridSelector} input:checkbox.checkbox:checked`).each(function () {
+                        var val = $(this).val();
+                        if (val && !selectedItems.includes(val)) {
+                            selectedItems.push(val);
                         }
                     });
                 }
@@ -354,4 +353,4 @@
 
     }
 
-}(jQuery));
+}(typeof jQuery !== "undefined" ? jQuery : window.$));

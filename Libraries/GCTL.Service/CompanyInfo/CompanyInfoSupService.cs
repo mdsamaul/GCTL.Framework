@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.CompanyInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -81,7 +81,11 @@ namespace GCTL.Service.CompanyInfo
 
         public async Task<CompanyInfoSetupViewModel> GetByIdAsync(string code)
         {
-            var entity = await companyInforepository.GetByIdAsync(Convert.ToInt32(code));
+            var entity = await companyInforepository.All().FirstOrDefaultAsync(x => x.CompanyId == code);
+            if (entity == null && int.TryParse(code, out int tc))
+            {
+                entity = await companyInforepository.GetByIdAsync(tc);
+            }
             if (entity == null) return null;
 
             CompanyInfoSetupViewModel entityVM = new CompanyInfoSetupViewModel();

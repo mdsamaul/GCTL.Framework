@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.ClientInformationEntry.ClientInformationEntryPageViewModel
+@model GCTL.UI.Core.ViewModels.ClientInformationEntry.ClientInformationEntryPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -7,6 +7,80 @@
 }
 
 <style>
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .cie-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .cie-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .cie-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .cie-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .cie-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cie-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cie-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cie-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .cie-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cie-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .cie-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .cie-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
     .btn-plus {
         flex-shrink: 0;
         width: 30px;
@@ -55,8 +129,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 cie-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -77,11 +151,11 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-12 col-xxl-6 cie-layout-grid-col">
                 @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                 {
-                    GridId = "clientInformationEntryTable",
+                    GridId = "ClientInformationEntry-grid",
                     AjaxUrl = "/ClientInformationEntry/GetTableData",
                     AjaxMethod = "GET",
                     ServerSide = false,
@@ -92,11 +166,11 @@
                     DefaultSortDirection = "desc",
                     Columns = new()
                     {
-                        new() { Data = "clientId", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-ClientInformationEntry-edit" },
+                        new() { Data = "clientId", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-ClientInformationEntry-edit", IdField = "clientId" },
                         new() { Data = "clientName", Header = "Client Name", Width = "30%", Align = "left"},
-                        new() { Data = "phone", Header = "Phone", Width = "13%"},
-                        new() { Data = "email", Header = "Email", Width = "20%"},
-                        new() { Data = "clientAddress", Header = "Address", Width = "31%"}
+                        new() { Data = "phone", Header = "Phone", Width = "13%", Align = "left"},
+                        new() { Data = "email", Header = "Email", Width = "20%", Align = "left"},
+                        new() { Data = "clientAddress", Header = "Address", Width = "31%", Align = "left"}
                     }
                 })
             </div>
@@ -110,16 +184,18 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/clientInformationEntry.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.clientInformationEntry === "function") {
-            var options = { baseUrl: '@Url.Action("", "ClientInformationEntry")' };
-            options.load = () => { };
-            $.clientInformationEntry(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+@section Scripts {
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/clientInformationEntry.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.clientInformationEntry === "function") {
+                var options = { baseUrl: '@Url.Action("", "ClientInformationEntry")' };
+                options.load = () => { };
+                $.clientInformationEntry(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}

@@ -207,7 +207,7 @@ function populateForm(item) {
     $("#shortName").val(item.shortName || "");
     $("#amount").val(item.amount && item.amount != 0 ? item.amount : "");
     $("#serialNo").val(item.serialNo || "");
-    $("#isReceiptable").prop("checked", item.isReceiptable === "Y");
+    $("#isReceiptable").prop("checked", item.isReceiptable === "Y" || item.isReceiptable === "Yes" || item.isReceiptable === "YES");
 
     let serviceTypeVal = (item.serviceTypeID || item.serviceTypeId || "").trim();
     let expenseTypeVal = (item.expenseTypeID || item.expenseTypeId || "").trim();

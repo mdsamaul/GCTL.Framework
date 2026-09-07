@@ -12,7 +12,7 @@
     }
     .card-header .toolbar-container {
         border: 0 !important;
-        border-bottom: 1px solid #dee2e6 !important;
+        /* border-bottom: 1px solid #dee2e6 !important; */
         border-radius: 0 !important;
         border-top-left-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
         border-top-right-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
@@ -156,7 +156,7 @@
             <input type="hidden" id="tc" name="tc" />
 
             @* ================= Row 1: Expense Head ID & Shipment Mode ================= *@
-            <div class="row g-4 mb-2">
+            <div class="row g-4 mb-1">
                 @* ---------- Expense Head ID (readonly) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -185,9 +185,9 @@
             </div>
 
             @* ================= Row 2: Is Receiptable & Expense Head Name ================= *@
-            <div class="row g-4 mb-2">
+            <div class="row g-4 mb-1">
                 @* ---------- Is Receiptable (Checkbox) ---------- *@
-                <div class="col-lg-3 col-md-3">
+                <div class="col-lg-3 col-md-3 d-flex align-items-center">
                     <label class="form-label" for="isReceiptable">Is Receiptable Expense</label>
                     <div class="form-control-height-wrap">
                         <div class="form-check m-0 d-flex align-items-center">
@@ -215,7 +215,7 @@
             </div>
 
             @* ================= Row 3: Short Name & Amount ================= *@
-            <div class="row g-4 mb-2">
+            <div class="row g-4 mb-1">
                 @* ---------- Short Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -241,7 +241,7 @@
             </div>
 
             @* ================= Row 4: Serial No & Service Provided By ================= *@
-            <div class="row g-4 mb-2">
+            <div class="row g-4 mb-1">
                 @* ---------- Serial No ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -293,7 +293,7 @@
                         ShowPrint = false,
                         IsPlain = true,
                         ReserveActionSlot = false,
-                        Style = "padding-left:0px;"
+                        Style = "padding-left:0px; border-bottom:0px !important;",
                     })
                 </div>
             </div>

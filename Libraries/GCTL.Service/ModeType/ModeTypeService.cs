@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportModeType;
@@ -69,6 +69,10 @@ namespace GCTL.Service.ModeType
         public async Task<TransportModeTypeSetupViewModel> GetByIdAsync(string code)
         {
             var entity = await modeTyperepository.GetByIdAsync(code);
+            if (entity == null && int.TryParse(code, out int tc))
+            {
+                entity = await modeTyperepository.All().FirstOrDefaultAsync(x => x.Tc == tc);
+            }
 
             if (entity == null)
                 return null;

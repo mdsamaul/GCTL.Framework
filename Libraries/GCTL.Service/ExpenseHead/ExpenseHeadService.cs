@@ -122,7 +122,7 @@ namespace GCTL.Service.ExpenseHead
                             ShortName = eh.ShortName,
                             Amount = eh.Amount,
                             SerialNo = eh.SerialNo,
-                            IsReceiptable = eh.IsReceiptable,
+                            IsReceiptable = (eh.IsReceiptable == "Y" || eh.IsReceiptable == "Yes" || eh.IsReceiptable == "YES") ? "Yes" : "No",
                             ExpenseTypeID = eh.ExpenseTypeId,
                             Ldate = eh.Ldate,
                             ModifyDate = eh.ModifyDate,
@@ -135,7 +135,10 @@ namespace GCTL.Service.ExpenseHead
                 query = query.Where(x => x.ExpenseTypeID == expenseType);
 
             if (!string.IsNullOrEmpty(isReceiptable))
-                query = query.Where(x => x.IsReceiptable == isReceiptable);
+            {
+                var target = (isReceiptable.Equals("Y", StringComparison.OrdinalIgnoreCase) || isReceiptable.Equals("Yes", StringComparison.OrdinalIgnoreCase)) ? "Yes" : "No";
+                query = query.Where(x => x.IsReceiptable == target);
+            }
 
             if (!string.IsNullOrEmpty(serviceType))
                 query = query.Where(x => x.ServiceTypeID == serviceType);
@@ -172,6 +175,15 @@ namespace GCTL.Service.ExpenseHead
 
             var result = await PaginationService<ExpenseHeadVM>.GetPaginatedData(query, request);
             result.TotalCount = totalUnfilteredCount;
+
+            if (result.Data != null)
+            {
+                foreach (var item in result.Data)
+                {
+                    item.IsReceiptable = (item.IsReceiptable == "Y" || item.IsReceiptable == "Yes" || item.IsReceiptable == "YES") ? "Yes" : "No";
+                }
+            }
+
             return result;
         }
 
