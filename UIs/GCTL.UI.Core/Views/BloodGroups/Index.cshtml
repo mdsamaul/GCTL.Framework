@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.BloodGroups.BloodGroupPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.BloodGroups.BloodGroupPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -31,7 +31,7 @@
                             ClearBtnClass = "js-bloodgroup-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="bloodgroup-form" asp-controller="BloodGroups">
                             <div class="js-bloodgroup-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -58,7 +58,7 @@
                     {
                         new() { Data = "bloodGroupCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-bloodgroup-edit" },
                         new() { Data = "bloodGroup", Header = "Blood Group", Width = "50%"},
-                        new() { Data = "banglaBloodGroup", Header = "Blood Group (বাংলা)", Width = "40%", Align = "center" }
+                        new() { Data = "banglaBloodGroup", Header = "Blood Group (à¦¬à¦¾à¦‚à¦²à¦¾)", Width = "40%", Align = "center" }
                     }
                 })
             </div>
@@ -76,7 +76,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/bloodGroups.js"></script>
     <script type="text/javascript">
         var options = {

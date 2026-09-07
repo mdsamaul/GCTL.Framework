@@ -14,37 +14,57 @@ $(document).ready(function () {
         entrySections.forEach(x => x.classList.remove('show'));
     });
 
-    //#region Populate Top Table (Summary Grid)
+    //#region Initialize Grids
+    
+    function getFilters(isBottom) {
+        if (isBottom) {
+            return {
+                customerId: $('#customerLoadGridFilter').val(),
+                dateFrom: $('#dateLoadGridFrom').val(),
+                dateTo: $('#dateLoadGridTo').val(),
+                searchTerm: $('#statusSearchInput').val()
+            };
+        } else {
+            return {
+                customerId: $('#customerFilter').val() || $('#customerFilterSm').val(),
+                shipmentMode: $('#shipmentModeFilter').val() || $('#shipmentModeFilterSm').val(),
+                dateFrom: $('#dateFrom').val() || $('#dateFromSm').val(),
+                dateTo: $('#dateTo').val() || $('#dateToSm').val(),
+                searchTerm: $('#searchInput').val()
+            };
+        }
+    }
 
-    let currentPage = 1;
-    let pageSize = 5;
-    let filteredRecords = 0;
+    var topGrid = $.gctlGrid.initFromModel({
+        gridId: "JobSettingsTable",
+        ajaxData: function(d) {
+            $.extend(d, getFilters(false));
+        }
+    });
 
-    $('#pageSizeSelect').val(pageSize);
-    loadJobs();
+    var bottomGrid = $.gctlGrid.initFromModel({
+        gridId: "jobListTable",
+        ajaxData: function(d) {
+            $.extend(d, getFilters(true));
+        }
+    });
 
     let searchTimer;
-
     $(document).on('keyup', '#searchInput', function () {
         clearTimeout(searchTimer);
         searchTimer = setTimeout(function () {
-            currentPage = 1;
-            loadJobs();
+            if (topGrid) topGrid.ajax.reload();
         }, 300);
     });
 
     $(document).on('change', '#customerFilter,#shipmentModeFilter,#dateFrom,#dateTo,#pageSizeSelect', function () {
-        currentPage = 1;
-        pageSize = parseInt($('#pageSizeSelect').val());
         syncFiltersFromLarge();
-        loadJobs();
+        if (topGrid) topGrid.ajax.reload();
     });
 
     $(document).on('change', '#customerFilterSm,#shipmentModeFilterSm,#dateFromSm,#dateToSm', function () {
-        currentPage = 1;
-        pageSize = parseInt($('#pageSizeSelect').val());
         syncFiltersFromSmall();
-        loadJobs();
+        if (topGrid) topGrid.ajax.reload();
     });
 
     function syncFiltersFromLarge() {
@@ -61,311 +81,39 @@ $(document).ready(function () {
         $('#dateTo').val($('#dateToSm').val());
     }
 
-    $(document).on('click', '#paginationPrev', function () {
-        if (currentPage > 1) {
-            currentPage--;
-            loadJobs();
-        }
-    });
-
-    $(document).on('click', '#paginationNext', function () {
-        if (currentPage < Math.ceil(filteredRecords / pageSize)) {
-            currentPage++;
-            loadJobs();
-        }
-    });
-
-    $(document).on('click', '#paginationNumbers .page-link', function (e) {
-        e.preventDefault();
-        currentPage = parseInt($(this).data('page'));
-        loadJobs();
-    });
-
-    function loadJobs() {
-        const filters = {
-            page: currentPage,
-            pageSize: pageSize,
-            customerId: $('#customerFilter').val() || $('#customerFilterSm').val(),
-            shipmentMode: $('#shipmentModeFilter').val() || $('#shipmentModeFilterSm').val(),
-            dateFrom: $('#dateFrom').val() || $('#dateFromSm').val(),
-            dateTo: $('#dateTo').val() || $('#dateToSm').val(),
-            search: $('#searchInput').val()
-        };
-
-        $.ajax({
-            url: '/SepDocUpdate/GetJobs',
-            type: 'GET',
-            data: filters,
-            success: function (response) {
-                renderJobTable(response.data);
-                filteredRecords = response.filteredRecords;
-
-                $('#dataListInfo').text(
-                    `Showing ${(currentPage - 1) * pageSize + 1} to ${Math.min(currentPage * pageSize, filteredRecords)} of ${filteredRecords} entries`
-                );
-
-                renderPagination(Math.ceil(filteredRecords / pageSize));
-            },
-            error: function () {
-                toastr.error('Error loading jobs');
-            }
-        });
-    }
-
-    function renderJobTable(data) {
-        let rows = '';
-
-        if (!data || data.length === 0) {
-            rows = `<tr><td colspan="5" class="text-center">No records found</td></tr>`;
-        } else {
-            data.forEach(function (j) {
-                rows += `
-                <tr>
-                    <td class="ps-2">
-                        <a href="#" class="text-primary fw-semibold job-detail-link" data-id="${j.tc}">
-                            ${j.jobNo}
-                        </a>
-                    </td>
-                    <td>${j.shipmentMode ?? ''}</td>
-                    <td class="text-center">${j.jobDateFormatted ?? '-'}</td>
-                    <td>${j.customerName ?? ''}</td>
-                    <td class="text-center">${j.docReceivedDateFormatted ?? '-'}</td>
-                </tr>`;
-            });
-        }
-
-        $('#job-settings-table').html(rows);
-    }
-
-    function renderPagination(totalPages) {
-        let html = '';
-
-        if (totalPages <= 7) {
-            for (let i = 1; i <= totalPages; i++) {
-                html += `
-            <li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
-            </li>`;
-            }
-        } else {
-            html += `
-        <li class="page-item ${currentPage === 1 ? 'active' : ''}">
-            <a class="page-link" href="#" data-page="1">1</a>
-        </li>`;
-
-            if (currentPage > 4) {
-                html += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
-            }
-
-            let start = Math.max(2, currentPage - 1);
-            let end = Math.min(totalPages - 1, currentPage + 1);
-
-            for (let i = start; i <= end; i++) {
-                html += `
-            <li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
-            </li>`;
-            }
-
-            if (currentPage < totalPages - 3) {
-                html += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
-            }
-
-            html += `
-        <li class="page-item ${currentPage === totalPages ? 'active' : ''}">
-            <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
-        </li>`;
-        }
-
-        $('#paginationNumbers').html(html);
-        $('#paginationPrev').prop('disabled', currentPage === 1);
-        $('#paginationNext').prop('disabled', currentPage >= totalPages || totalPages === 0);
-    }
-
-    //#endregion
-
-    //#region Bottom Job List Grid (jobListTable) - Load
-
-    let bottomCurrentPage = 1;
-    let bottomPageSize = 10;
-    let bottomFilteredRecords = 0;
-    let selectedBottomIds = [];
-
-    $('#statusPageSizeSelect').val(bottomPageSize);
-    loadBottomJobs();
-
     let bottomSearchTimer;
-
     $(document).on('keyup', '#statusSearchInput', function () {
         clearTimeout(bottomSearchTimer);
         bottomSearchTimer = setTimeout(function () {
-            bottomCurrentPage = 1;
-            loadBottomJobs();
+            if (bottomGrid) bottomGrid.ajax.reload();
         }, 300);
     });
 
     $(document).on('change', '#customerLoadGridFilter,#dateLoadGridFrom,#dateLoadGridTo,#statusPageSizeSelect', function () {
-        bottomCurrentPage = 1;
-        bottomPageSize = parseInt($('#statusPageSizeSelect').val());
-        loadBottomJobs();
+        if (bottomGrid) bottomGrid.ajax.reload();
     });
-
-    $(document).on('click', '#paginationPrevBottom', function () {
-        if (bottomCurrentPage > 1) {
-            bottomCurrentPage--;
-            loadBottomJobs();
-        }
-    });
-
-    $(document).on('click', '#paginationNextBottom', function () {
-        if (bottomCurrentPage < Math.ceil(bottomFilteredRecords / bottomPageSize)) {
-            bottomCurrentPage++;
-            loadBottomJobs();
-        }
-    });
-
-    $(document).on('click', '#paginationNumbersBottom .page-link', function (e) {
-        e.preventDefault();
-        bottomCurrentPage = parseInt($(this).data('page'));
-        loadBottomJobs();
-    });
-
-    function loadBottomJobs() {
-        const filters = {
-            page: bottomCurrentPage,
-            pageSize: bottomPageSize,
-            customerId: $('#customerLoadGridFilter').val(),
-            dateFrom: $('#dateLoadGridFrom').val(),
-            dateTo: $('#dateLoadGridTo').val(),
-            search: $('#statusSearchInput').val()
-        };
-
-        $.ajax({
-            url: '/SepDocUpdate/GetJobs',
-            type: 'GET',
-            data: filters,
-            success: function (response) {
-                renderBottomJobTable(response.data);
-                bottomFilteredRecords = response.filteredRecords;
-
-                $('#dataListInfoBottom').text(
-                    `Showing ${(bottomCurrentPage - 1) * bottomPageSize + 1} to ${Math.min(bottomCurrentPage * bottomPageSize, bottomFilteredRecords)} of ${bottomFilteredRecords} entries`
-                );
-
-                renderBottomPagination(Math.ceil(bottomFilteredRecords / bottomPageSize));
-
-                selectedBottomIds = [];
-                $('#selectAllJobs').prop('checked', false);
-                updateDeleteSelectedButton();
-            },
-            error: function () {
-                toastr.error('Error loading jobs');
-            }
-        });
-    }
-
-    function renderBottomJobTable(data) {
-        let rows = '';
-
-        if (!data || data.length === 0) {
-            rows = `<tr><td colspan="10" class="text-center">No records found</td></tr>`;
-        } else {
-            data.forEach(function (j) {
-                rows += `
-                <tr>
-                    <td class="text-center">
-                        <input type="checkbox" class="job-row-checkbox" data-id="${j.tc}" />
-                    </td>
-                    <td>
-                        <a href="#" class="text-primary fw-semibold job-detail-link" data-id="${j.tc}">
-                            ${j.jobNo ?? ''}
-                        </a>
-                    </td>
-                    <td class="text-center">${j.jobDateFormatted ?? '-'}</td>
-                    <td>${j.customerName ?? ''}</td>
-                    <td>${j.customerAddress ?? ''}</td>
-                    <td>${j.shipmentMode ?? ''}</td>
-                    <td class="text-center">${j.docReceivedDateFormatted ?? '-'}</td>
-                    <td class="text-center">${j.lcValue ?? ''}</td>
-                    <td class="text-center">${j.jobStatus ?? ''}</td>
-                   
-                </tr>`;
-            });
-        }
-
-        $('#job-list-body').html(rows);
-    }
-
-    function renderBottomPagination(totalPages) {
-        let html = '';
-
-        if (totalPages <= 7) {
-            for (let i = 1; i <= totalPages; i++) {
-                html += `
-                <li class="page-item ${i === bottomCurrentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                </li>`;
-            }
-        } else {
-            html += `<li class="page-item ${bottomCurrentPage === 1 ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="1">1</a></li>`;
-
-            if (bottomCurrentPage > 4) {
-                html += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
-            }
-
-            let start = Math.max(2, bottomCurrentPage - 1);
-            let end = Math.min(totalPages - 1, bottomCurrentPage + 1);
-
-            for (let i = start; i <= end; i++) {
-                html += `
-                <li class="page-item ${i === bottomCurrentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                </li>`;
-            }
-
-            if (bottomCurrentPage < totalPages - 3) {
-                html += `<li class="page-item disabled"><a class="page-link">...</a></li>`;
-            }
-
-            html += `<li class="page-item ${bottomCurrentPage === totalPages ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
-        }
-
-        $('#paginationNumbersBottom').html(html);
-        $('#paginationPrevBottom').prop('disabled', bottomCurrentPage === 1);
-        $('#paginationNextBottom').prop('disabled', bottomCurrentPage >= totalPages || totalPages === 0);
-    }
 
     //#endregion
+
     //#region Bottom Grid Selection + Delete (Single + Multi via checkbox)
 
-    $(document).on('click', '#selectAllJobs', function () {
-        const checked = $(this).is(':checked');
-        $('.job-row-checkbox').prop('checked', checked);
+    let selectedBottomIds = [];
 
+    $('#jobListTable').on('draw.dt', function () {
         selectedBottomIds = [];
-        if (checked) {
-            $('.job-row-checkbox').each(function () {
-                selectedBottomIds.push(String($(this).data('id')));
-            });
-        }
         updateDeleteSelectedButton();
     });
 
-    $(document).on('change', '.job-row-checkbox', function () {
-        const id = String($(this).data('id'));
+    $(document).on('change', '#jobListTable tbody .form-check-input', function () {
+        const id = String($(this).val());
+        if (!id || id === 'on') return;
+
         const checked = $(this).is(':checked');
 
         if (checked) {
             if (!selectedBottomIds.includes(id)) selectedBottomIds.push(id);
         } else {
             selectedBottomIds = selectedBottomIds.filter(x => x !== id);
-            $('#selectAllJobs').prop('checked', false);
-        }
-
-        if (selectedBottomIds.length > 0 && $('.job-row-checkbox:checked').length === $('.job-row-checkbox').length) {
-            $('#selectAllJobs').prop('checked', true);
         }
 
         updateDeleteSelectedButton();

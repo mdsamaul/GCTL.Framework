@@ -4,6 +4,52 @@
     <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
 </div>
 
+<style>
+    .form-grid-layout {
+        display: grid;
+        grid-template-columns: max-content 1fr max-content 1fr;
+        column-gap: 5px;
+        row-gap: 5px;
+        align-items: center;
+    }
+    /* Flatten the bootstrap grid so children become grid items */
+    .form-grid-layout .form-group,
+    .form-grid-layout .col-lg-6,
+    .form-grid-layout .col-md-6,
+    .form-grid-layout .row.align-items-center {
+        display: contents;
+    }
+    
+    /* Let col-4 and col-8 act as the actual grid cells */
+    .form-grid-layout .col-4 {
+        display: block !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin: 0 !important;
+        text-align: right;
+    }
+    .form-grid-layout .col-8 {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        flex: none !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Additional alignments */
+    .form-grid-layout label.form-label {
+        margin-bottom: 0;
+    }
+    .form-grid-layout .form-check {
+        padding-left: 0 !important;
+    }
+</style>
+
 <div class="card rounded shadow-sm">
     <div class="card-header p-0">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
@@ -20,8 +66,8 @@
         })
     </div>
 
-    <div class="card-body px-4 py-3">
-        <form id="expenseForm">
+    <div class="card-body px-5 mx-3">
+        <form id="expenseForm" class="form-grid-layout">
             <input type="hidden" id="tc" name="tc" />
 
             <div class="form-group row">
@@ -34,7 +80,9 @@
                     Placeholder = "Expense Head ID",
                     IsReadonly = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6",
+                    LabelInline=true,
+                    LabelColumnClass="text-end"
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -47,7 +95,10 @@
                     SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6",
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
+                    LabelStyle="margin-left:100px;"
                 })
             </div>
 
@@ -56,10 +107,12 @@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "isReceiptable",
-                    LabelText = "Is Receiptable Expense?",
+                    LabelText = "Is Receiptable Expense",
                     FieldType = FieldType.Checkbox,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-6",
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",                    
                 })
 
                 @* ---------- Expense Head Name ---------- *@
@@ -70,6 +123,8 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Expense Head",
                     IsRequired = true,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ReserveActionSlot = false,
                     ColumnClass = "col-lg-6"
                 })
@@ -84,6 +139,8 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
 
@@ -95,6 +152,8 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
             </div>
@@ -109,6 +168,8 @@
                     Placeholder = "Serial No",
                     IsRequired = true,
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
 
@@ -122,6 +183,8 @@
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
+                    LabelInline = true,
+                    LabelColumnClass = "text-end",
                     ColumnClass = "col-lg-6"
                 })
             </div>
@@ -150,9 +213,10 @@
                     ShowOnInit = false
                 })
             </div>
-
-            <div class="row no-print" style="margin-top: 9px;">
-                <div class="col-12">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div class="" style="margin-top: 9px;">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
                         SaveBtnClass = "saveBtn",
@@ -163,7 +227,6 @@
                         IsPlain = true,
                         ReserveActionSlot = true,
                     })
-                </div>
             </div>
 
         </form>

@@ -17,7 +17,7 @@ namespace GCTL.UI.Core.Controllers
         private string strMaxNO = string.Empty;
 
         public CustomerTypeController(
-            ICustomerTypeService customerTypeService, 
+            ICustomerTypeService customerTypeService,
             ICommonService commonService
             )
         {
@@ -76,51 +76,6 @@ namespace GCTL.UI.Core.Controllers
                 var list = await _customerTypeService.GetAllAsync() ?? new List<CustomerTypeSetupViewModel>();
                 model.CustomerTypeList = list;
 
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    list = list.Where(x => (x.CustomerTypeId != null && x.CustomerTypeId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.CustomerType != null && x.CustomerType.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-                               .ToList();
-                }
-
-                int totalRecords = list.Count;
-                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-                model.DynamicGrid = GridBuilder.BuildGrid(
-                    data: pagedList,
-                    totalRecords: totalRecords,
-                    currentPage: page,
-                    pageSize: pageSize,
-                    headers: new List<string> { "Code", "Payment Type Name", "Short Name" },
-                    rowMapper: item => new Dictionary<string, object?>
-                    {
-                        { "CustomerTypeId", item.CustomerTypeId },
-                        { "Customer Type Name", item.CustomerType },
-                        { "Short Name", item.ShortName }
-                    },
-                    ajaxUrl: Url.Action("GetTableData", "CustomerType") ?? "/CustomerType/GetTableData",
-                    primaryKey: "CustomerTypeId",
-                    hasCheckbox: true,
-                    actionUrlPattern: "/CustomerType/Setup/{id}",
-                    gridId: "customerTypeGridContainer",
-                    editClass: "js-customertype-edit",
-                    columnAlignments: new Dictionary<string, string>
-                    {
-                        { "CustomerTypeId", "center" },
-                        { "Customer Type Name", "left" },
-                        { "Short Name", "left" }
-                    },
-                    searchTerm: searchTerm,
-                    columnWidths: new Dictionary<string, string>
-                    {
-                        { "SelectAll", "120px" },
-                        { "Code", "100px" },
-                        { "Customer Type Name", "auto" },
-                        { "Short Name", "150px" }
-                    }
-                );
-
                 model.Setup = new CustomerTypeSetupViewModel
                 {
                     CustomerTypeId = await GetNextCodeAsync()
@@ -177,41 +132,6 @@ namespace GCTL.UI.Core.Controllers
             };
 
             var list = await _customerTypeService.GetAllAsync() ?? new List<CustomerTypeSetupViewModel>();
-            int totalRecords = list.Count;
-            var pagedList = list.Take(10).ToList();
-
-            pageModel.DynamicGrid = GridBuilder.BuildGrid(
-                data: pagedList,
-                totalRecords: totalRecords,
-                currentPage: 1,
-                pageSize: 10,
-                headers: new List<string> { "Code", "Customer Type Name", "Short Name" },
-                rowMapper: item => new Dictionary<string, object?>
-                {
-                    { "CustomerTypeId", item.CustomerTypeId },
-                    { "Customer Type Name", item.CustomerType },
-                    { "Short Name", item.ShortName }
-                },
-                ajaxUrl: Url.Action("GetTableData", "CustomerType") ?? "/CustomerType/GetTableData",
-                primaryKey: "CustomerTypeId",
-                hasCheckbox: true,
-                actionUrlPattern: "/CustomerType/Setup/{id}",
-                gridId: "customerTypeGridContainer",
-                editClass: "js-customertype-edit",
-                columnAlignments: new Dictionary<string, string>
-                {
-                    { "CustomerTypeId", "center" },
-                    { "Customer Type Name", "left" },
-                    { "Short Name", "left" }
-                },
-                columnWidths: new Dictionary<string, string>
-                {
-                    { "SelectAll", "120px" },
-                    { "Code", "100px" },
-                    { "Customer Type Name", "auto" },
-                    { "Short Name", "150px" }
-                }
-            );
 
             return View("Index", pageModel);
         }
@@ -226,12 +146,9 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (modelVM.AutoId == 0 || modelVM.AutoId == null || modelVM.AutoId == 0)
+                if (await _customerTypeService.IsExistAsync(modelVM.CustomerType, modelVM.CustomerTypeId))
                 {
-                    if (await _customerTypeService.IsExistAsync(modelVM.CustomerType, modelVM.CustomerTypeId))
-                    {
-                        return Json(new { isSuccess = false, message = "Customer Type Name already exists.", isDuplicate = true });
-                    }
+                    return Json(new { isSuccess = false, message = "Customer Type Name already exists.", isDuplicate = true });
                 }
 
                 if (!ModelState.IsValid)

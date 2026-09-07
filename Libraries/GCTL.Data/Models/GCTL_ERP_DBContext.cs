@@ -615,16 +615,16 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntry>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Acc_VoucherEntry");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.ApprovedBy).HasMaxLength(50);
-            entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
+            entity.ToTable("Acc_VoucherEntry");
+
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
+            entity.Property(e => e.ApprovedBy).HasMaxLength(50);
+            entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
             entity.Property(e => e.BranchCode).HasMaxLength(50);
             entity.Property(e => e.CompanyCode).HasMaxLength(50);
             entity.Property(e => e.CostCenterCodeNo)
@@ -674,17 +674,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntryDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Acc_VoucherEntryDetails");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.AccCode)
-                .IsRequired()
-                .HasMaxLength(50);
+            entity.ToTable("Acc_VoucherEntryDetails");
+
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
+            entity.Property(e => e.AccCode)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.BankName).HasMaxLength(100);
             entity.Property(e => e.Branch).HasMaxLength(100);
             entity.Property(e => e.ChequeDate).HasColumnType("datetime");
@@ -724,17 +724,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntryDetailsTemp>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("Acc_VoucherEntryDetailsTemp");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.AccCode)
-                .IsRequired()
-                .HasMaxLength(50);
+            entity.ToTable("Acc_VoucherEntryDetailsTemp");
+
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
+            entity.Property(e => e.AccCode)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.ChequeDate).HasColumnType("datetime");
             entity.Property(e => e.ChequeNo)
                 .IsRequired()
@@ -1720,9 +1720,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.MenuId).HasMaxLength(50);
             entity.Property(e => e.MenuText).HasMaxLength(100);
-            entity.Property(e => e.OrderBy)
-                .HasDefaultValue(1)
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_AccessCode_OrderBy");
+            entity.Property(e => e.OrderBy).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
@@ -2010,11 +2008,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.Property(e => e.ControllerName).HasMaxLength(100);
             entity.Property(e => e.Icon).HasMaxLength(50);
-            entity.Property(e => e.IsActive).HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_IsActive");
             entity.Property(e => e.MenuId).HasMaxLength(50);
-            entity.Property(e => e.OrderBy)
-                .HasDefaultValue(1)
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_OrderBy");
+            entity.Property(e => e.OrderBy).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.TableName).HasMaxLength(50);
             entity.Property(e => e.Title)
@@ -2146,6 +2141,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("FactoryID");
             entity.Property(e => e.FirstName).HasMaxLength(100);
+            entity.Property(e => e.IsMobile).HasMaxLength(10);
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
@@ -2699,16 +2695,12 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Lmac)
                 .HasMaxLength(50)
                 .HasColumnName("LMAC");
-            entity.Property(e => e.LunchBreakHour)
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchBreakHour")
-                .HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.LunchBreakHour).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.LunchInTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchInTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.LunchOutTime)
                 .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchOutTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.Luser)
                 .HasMaxLength(50)

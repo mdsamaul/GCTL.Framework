@@ -1,0 +1,636 @@
+@model GCTL.Core.ViewModels.EmployeeContactInfos.EmployeeContactInfosSetupViewModel
+@using GCTL.UI.Core.ViewModels
+
+                            <div style="padding-top: 10px;">
+
+                                @* <input type="text" asp-for="Id" /> *@
+                                <input type="hidden" asp-for="Ldate" />
+                                <input type="hidden" asp-for="ModifyDate" />
+                                <input type="hidden" asp-for="EmpContactId" />
+                                <input type="hidden" asp-for="AutoId" />
+                                <input type="hidden" id="SelectedBranchCode" value="@ViewBag.SelectedBranchCode" />
+                                <input type="hidden" id="SelectedBranchName" value="@ViewBag.SelectedBranchName" />
+
+                                <!-- ==================== HEADER ==================== -->
+                                <div class="card" style="background: linear-gradient(to right, #f7fcff, #ffffff) !important;">
+                                    <div class="card-body">
+
+                                        <!-- Row 1: Company + Branch -->
+                                        <div class="form-group row">
+                                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                            {
+                                                InputId = "CompanyCode",
+                                                LabelText = "Company",
+                                                FieldType = FieldType.Select,
+                                                Placeholder = "Select Company",
+                                                IsRequired = true,
+                                                ColumnClass = "col-lg-5",
+                                                LabelInline = true,
+                                                LabelColWidth = 4,
+                                                LabelColumnClass = "text-end",
+                                                LabelCssClass = "fw-semibold",
+                                                SelectItems = ViewBag.CoreCompanyDD as SelectList,
+                                                DefaultValue = Model.CompanyCode,
+                                                ReserveActionSlot = true
+                                            })
+
+                                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                            {
+                                                InputId = "BranchCode",
+                                                LabelText = "Branch",
+                                                FieldType = FieldType.Select,
+                                                Placeholder = "Select Branch",
+                                                IsRequired = true,
+                                                ColumnClass = "col-lg-5",
+                                                LabelInline = true,
+                                                LabelColWidth = 4,
+                                                LabelColumnClass = "text-end",
+                                                LabelCssClass = "fw-semibold",
+                                                SelectItems = ViewBag.CoreBranchDD as SelectList,
+                                                DefaultValue = Model.BranchCode,
+                                                ReserveActionSlot = true
+                                            })
+                                        </div>
+
+                                        <!-- Row 2: Employee Id + Employee Name -->
+                                        <div class="form-group row mt-2">
+                                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                            {
+                                                InputId = "EmployeeId",
+                                                LabelText = "Employee Id",
+                                                FieldType = FieldType.Select,
+                                                Placeholder = "Select Employee",
+                                                IsRequired = true,
+                                                ColumnClass = "col-lg-5",
+                                                LabelInline = true,
+                                                LabelColWidth = 4,
+                                                LabelColumnClass = "text-end",
+                                                LabelCssClass = "fw-semibold",
+                                                SelectItems = ViewBag.EmployeeDD as SelectList,
+                                                DefaultValue = Model.EmployeeId,
+                                                ReserveActionSlot = true
+                                            })
+
+                                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                            {
+                                                InputId = "FullName",
+                                                LabelText = "Employee Name:",
+                                                FieldType = FieldType.ReadonlyDisplay,
+                                                ColumnClass = "col-lg-5",
+                                                LabelInline = true,                 // ← এটা
+                                                LabelColWidth = 4,
+                                                LabelColumnClass = "text-end",      // ← এটা
+                                                LabelCssClass = "form-label mb-0 fw-semibold",
+                                                DefaultValue = Model.EmployeeName
+                                            })
+                                        </div>
+
+                                        <!-- Row 3: Designation + Department -->
+                                        <div class="form-group row mt-2">
+                                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                            {
+                                                InputId = "DesignationName",
+                                                LabelText = "Designation:",
+                                                FieldType = FieldType.ReadonlyDisplay,
+                                                ColumnClass = "col-lg-5",
+                                                LabelInline = true,                 // ← এটা
+                                                LabelColWidth = 4,
+                                                LabelColumnClass = "text-end",
+                                                LabelCssClass = "form-label mb-0 fw-semibold",
+                                                DefaultValue = Model.DesignationName
+                                            })
+
+                                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                            {
+                                                InputId = "DepartmentName",
+                                                LabelText = "Department:",
+                                                FieldType = FieldType.ReadonlyDisplay,
+                                                ColumnClass = "col-lg-5",
+                                                LabelInline = true,                 // ← এটা
+                                                LabelColWidth = 4,
+                                                LabelColumnClass = "text-end",
+                                                LabelCssClass = "form-label mb-0 fw-semibold",
+                                                DefaultValue = Model.DepartmentName
+                                            })
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- ==================== PERMANENT ADDRESS ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
+                                    <div style="position:absolute;  width:auto; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                        <h5 style="margin:0;"><small>Permanent Address</small></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ParmanentAddress",
+                                            LabelText = "Address",
+                                            FieldType = FieldType.Textarea,
+                                            Placeholder = "Enter Address",
+                                            ColumnClass = "col-lg-4",
+                                            Rows = 1,
+                                            AutoFocus = true,
+                                            DefaultValue = Model.ParmanentAddress,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ParmanentAddressBangla",
+                                            LabelText = "Address (বাংলা)",
+                                            FieldType = FieldType.Textarea,
+                                            Placeholder = "Enter Address (বাংলা)",
+                                            ColumnClass = "col-lg-4",
+                                            Rows = 1,
+                                            DefaultValue = Model.ParmanentAddressBangla,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ParmanentPostOffice",
+                                            LabelText = "Post Office",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Post Office",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.ParmanentPostOffice,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ParmanentThana",
+                                            LabelText = "Thana",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Thana",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.ParmanentThana,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ParmanentPostCode",
+                                            LabelText = "PostCode",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter PostCode",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.ParmanentPostCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ParmanentDistrict",
+                                            LabelText = "District",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "Select District",
+                                            ColumnClass = "col-lg-4",
+                                            SelectItems = ViewBag.DistrictDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "Districts"),
+                                            QuickAddTarget = "#ParmanentDistrict",
+                                            QuickAddReloadUrl = Url.Action("GetDistrictsSelections", "Cascading"),
+                                            QuickAddTitle = "Districts",
+                                            DefaultValue = Model.ParmanentDistrict,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ParmanentPhone",
+                                            LabelText = "Phone",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Phone",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "phone-validationx",
+                                            DefaultValue = Model.ParmanentPhone,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+                                </div>
+
+                                <!-- ==================== PRESENT ADDRESS ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
+                                    <div style="position:absolute; width:auto; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                        <h5 style="margin:0;"><small>Present Address</small></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentAddress",
+                                            LabelText = "Address",
+                                            FieldType = FieldType.Textarea,
+                                            Placeholder = "Enter Address",
+                                            ColumnClass = "col-lg-4",
+                                            Rows = 1,
+                                            DefaultValue = Model.PresentAddress,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentAddressBangla",
+                                            LabelText = "Address (বাংলা)",
+                                            FieldType = FieldType.Textarea,
+                                            Placeholder = "Enter Address (বাংলা)",
+                                            ColumnClass = "col-lg-4",
+                                            Rows = 1,
+                                            DefaultValue = Model.PresentAddressBangla,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentPostOffice",
+                                            LabelText = "Post Office",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Post Office",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.PresentPostOffice,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentThana",
+                                            LabelText = "Thana",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Thana",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.PresentThana,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentPostCode",
+                                            LabelText = "PostCode",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter PostCode",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.PresentPostCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentDistrict",
+                                            LabelText = "District",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "Select District",
+                                            ColumnClass = "col-lg-4",
+                                            SelectItems = ViewBag.PresentDistrictDD as SelectList,
+                                            DefaultValue = Model.PresentDistrict,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentMobile",
+                                            LabelText = "Mobile",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Mobile",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "phone-validationx",
+                                            DefaultValue = Model.PresentMobile,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentPhone",
+                                            LabelText = "Phone",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Phone",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "phone-validationx",
+                                            DefaultValue = Model.PresentPhone,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentFax",
+                                            LabelText = "Fax",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Fax",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.PresentFax,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PresentEmail",
+                                            LabelText = "Email",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Email",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.PresentEmail,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+                                </div>
+
+                                <!-- ==================== EMERGENCY CONTACT-1 ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
+                                    <div style="position:absolute;  width:auto; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                        <h5 style="margin:0;"><small>Emergency Contact-1</small></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactName1",
+                                            LabelText = "Name",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Name",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "js-branch-check-availability",
+                                            DefaultValue = Model.EmContactName1,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactRelation1",
+                                            LabelText = "Relationship",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "Select Relationship",
+                                            ColumnClass = "col-lg-4",
+                                            SelectItems = ViewBag.Relationship1DD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "Relationships"),
+                                            QuickAddTarget = "#EmContactRelation1",
+                                            QuickAddReloadUrl = Url.Action("GetRelationship", "Cascading"),
+                                            QuickAddTitle = "Relationship",
+                                            DefaultValue = Model.EmContactRelation1,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactAddress1",
+                                            LabelText = "Address",
+                                            FieldType = FieldType.Textarea,
+                                            Placeholder = "Enter Address",
+                                            ColumnClass = "col-lg-4",
+                                            Rows = 1,
+                                            DefaultValue = Model.EmContactAddress1,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactMobile1",
+                                            LabelText = "Mobile",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Mobile",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "phone-validationx",
+                                            DefaultValue = Model.EmContactMobile1,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactPhone1",
+                                            LabelText = "Phone",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Phone",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "phone-validationx",
+                                            DefaultValue = Model.EmContactPhone1,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactFax1",
+                                            LabelText = "Fax",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Fax",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.EmContactFax1,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactEmail",
+                                            LabelText = "Email",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Email",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.EmContactEmail,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+                                </div>
+
+                                <!-- ==================== EMERGENCY CONTACT-2 ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
+                                    <div style="position:absolute;  width:auto; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                        <h5 style="margin:0;"><small>Emergency Contact-2</small></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactName2",
+                                            LabelText = "Name",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Name",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "js-branch-check-availability",
+                                            DefaultValue = Model.EmContactName2,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactRelation2",
+                                            LabelText = "Relationship",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "Select Relationship",
+                                            ColumnClass = "col-lg-4",
+                                            SelectItems = ViewBag.Relationship2DD as SelectList,
+                                            DefaultValue = Model.EmContactRelation2,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactAddress2",
+                                            LabelText = "Address",
+                                            FieldType = FieldType.Textarea,
+                                            Placeholder = "Enter Address",
+                                            ColumnClass = "col-lg-4",
+                                            Rows = 1,
+                                            DefaultValue = Model.EmContactAddress2,
+                                            ReserveActionSlot = true
+                                            
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactMobile2",
+                                            LabelText = "Mobile",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Mobile",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "phone-validationx",
+                                            DefaultValue = Model.EmContactMobile2,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactPhone2",
+                                            LabelText = "Phone",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Phone",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "phone-validationx",
+                                            DefaultValue = Model.EmContactPhone2,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactFax2",
+                                            LabelText = "Fax",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Fax",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.EmContactFax2,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmContactEmai2",
+                                            LabelText = "Email",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Email",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.EmContactEmai2,
+                                            ReserveActionSlot = true
+                                        })
+
+                                    </div>
+                                </div>
+
+                                @if (Model.AutoId > 0)
+                                {
+                                    <hr />
+                                    <div class="form-group row" id="LdateModifyHide">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "displayLDate",
+                                            LabelText = "Creation Date:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            ShowOnInit = Model.Ldate.HasValue,
+                                            DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt")
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "displayModifyDate",
+                                            LabelText = "Last Update Date:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            ShowOnInit = Model.ModifyDate.HasValue,
+                                            DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")
+                                        })
+
+                                    </div>
+                                }
+
+                                <div class="form-group row">
+                                    <div class="col-12 d-flex">
+                                        <div class="col-6">
+                                            <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle">
+                                                <i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List
+                                            </a>
+                                        </div>
+
+                                        <div class="col-6">
+                                            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                                            {
+                                                Title = "",
+                                                SaveBtnClass = "js-EmployeeContactInfos-save",
+                                                ShowClear = false,
+                                                ShowDelete = false,
+                                                ShowFavorite = false,
+                                                ShowPrint = false,
+                                                IsPlain = true,
+                                                ReserveActionSlot = true
+                                            })
+                                        </div>
+                                        @* <div style="height: 20px;"></div>
+                                       
+                                        <button type="button" class="btn btn-default btn-common js-EmployeeContactInfos-save btn-circle float-right">
+                                            <i class="fas fa-save"></i>
+                                            @if (ViewBag.IsEditMode != null && (bool)ViewBag.IsEditMode)
+                                            {
+                                                <text>Update</text>
+                                            }
+                                            else
+                                            {
+                                                <text>Save</text>
+                                            }
+                                        </button> *@
+                                    </div>
+                                </div>
+
+                            </div>

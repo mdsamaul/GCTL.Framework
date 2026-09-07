@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.Departments.DepartmentPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.Departments.DepartmentPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -31,7 +31,7 @@
                             ClearBtnClass = "js-department-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="department-form" asp-controller="Departments">
                             <div class="js-department-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -59,7 +59,7 @@
                         new() { Data = "departmentCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-department-edit" },
                         new() { Data = "departmentName", Header = "Department Name", Width = "40%", Align = "left" },
                         new() { Data = "departmentShortName", Header = "Short Name", Width = "20%", Align = "center" },
-                        new() { Data = "banglaDepartment", Header = "Department (বাংলা)", Width = "30%"}
+                        new() { Data = "banglaDepartment", Header = "Department (à¦¬à¦¾à¦‚à¦²à¦¾)", Width = "30%"}
                     }
                 })
             </div>
@@ -71,7 +71,6 @@
 </section>
 <partial name="DeleteModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
 <script src="~/js/app.input.validation.js" defer></script>
 <script src="~/js/pages/departments.js" defer></script>
 <script type="text/javascript">

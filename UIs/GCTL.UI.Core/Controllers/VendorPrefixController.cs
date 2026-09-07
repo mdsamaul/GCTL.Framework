@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.VendorPrefix;
 using GCTL.Service.Common;
@@ -206,7 +206,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 var list = await vendorPrefixService.GetAllAsync();
-                return Json(list);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {

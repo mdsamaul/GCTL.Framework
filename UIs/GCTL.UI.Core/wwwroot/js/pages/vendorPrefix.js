@@ -42,6 +42,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'VendorPrefix-grid' });
+            }
+
 
             loadTable();
 
@@ -299,9 +303,9 @@
 
         //#region loadTable
         function loadTable() {
-            $.gctlGrid.initFromModel({
-                gridId: 'VendorPrefix-grid'
-            })
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         //#endregion

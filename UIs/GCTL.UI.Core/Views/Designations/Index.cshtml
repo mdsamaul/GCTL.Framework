@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.Designations.DesignationPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.Designations.DesignationPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -31,7 +31,7 @@
                             ClearBtnClass = "js-designation-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="designation-form" asp-controller="Designations">
                             <div class="js-designation-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -59,7 +59,7 @@
                         new() { Data = "designationCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-designation-edit" },
                         new() { Data = "designationName", Header = "Designation Name", Width = "35%", Align = "left" },
                         new() { Data = "designationShortName", Header = "Short Name", Width = "20%", Align = "center" },
-                        new() { Data = "banglaDesignation", Header = "Designation (বাংলা)", Width = "30%"}
+                        new() { Data = "banglaDesignation", Header = "Designation (à¦¬à¦¾à¦‚à¦²à¦¾)", Width = "30%"}
                     }
                 })
             </div>
@@ -71,7 +71,6 @@
 </section>
 <partial name="DeleteModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
 <script src="~/js/app.input.validation.js" defer></script>
 <script src="~/js/pages/designations.js" defer></script>
 <script type="text/javascript">

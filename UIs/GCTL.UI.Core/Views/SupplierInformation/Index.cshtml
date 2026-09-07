@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.SupplierInformation.SupplierInformationPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.SupplierInformation.SupplierInformationPageViewModel
 
 <!-- Content Header (Page header) -->
 @{
@@ -6,27 +6,6 @@
     ViewBag.Title = "Supplier Information";
     Model.Breadcrumb = "Supplier Information";
 }
-
-@*
-<section class="content-header" style="padding-bottom: 0;">
-    <div class="container-fluid">
-        <div class="calloutx callout-info" style="height: 30px;">
-            <div class="row">
-                <div class="col-md-8 row">
-                    <ol class="breadcrumb float-sm-right">
-                    </ol>
-                </div>
-                <div class="col-md-4">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="/Dashboard">Home</a></li>
-                        <li class="breadcrumb-item"><a href="/SupplierInformation">Supplier Information</a></li>
-                        <li class="breadcrumb-item active"></li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-</section> *@
 
 <section class="content px-0">
     <div class="container-fluid px-0">
@@ -72,7 +51,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/supplierInformation.js"></script>
     <script type="text/javascript">
         var options = {

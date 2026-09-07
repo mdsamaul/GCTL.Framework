@@ -1,4 +1,5 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Data.Models;
@@ -72,16 +73,24 @@ namespace GCTL.Service.VoucherEntry
         #region Checking Debit & Credit Amount Is Equal or Not
         public async Task<bool> IsDebitCreditEqualAsync(string userId)
         {
-            var tmpdetails = await _tmpDetails.All()
+            try
+            {
+                var tmpdetails = await _tmpDetails.All()
                                 .Where(d => d.Luser == userId)
                                 .ToListAsync();
 
-            decimal totalDebit = tmpdetails.Sum(d => d.DebitAmount ?? 0);
-            decimal totalCredit = tmpdetails.Sum(d => d.CreditAmount ?? 0);
+                decimal totalDebit = tmpdetails.Sum(d => d.DebitAmount ?? 0);
+                decimal totalCredit = tmpdetails.Sum(d => d.CreditAmount ?? 0);
 
-            if (totalDebit != totalCredit) return false;
+                if (totalDebit != totalCredit) return false;
 
-            return true;
+                return true;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         #endregion
@@ -184,7 +193,6 @@ namespace GCTL.Service.VoucherEntry
                 {
                     return false;
                 }
-
                 //Debit & Credit Validation 
                 bool Isequal = await IsDebitCreditEqualAsync(model.Luser.ToString());
                 if (!Isequal) return false;
@@ -206,22 +214,59 @@ namespace GCTL.Service.VoucherEntry
                 entity.Luser = model.Luser.ToString();
 
                 var tmpDetails = await _tmpDetails.All().Where(d => d.Luser == model.Luser.ToString()).ToListAsync();
+                var existingDetails = await _voucherDetails.All().Where(d => d.VoucherEntryCodeNo == entity.VoucherEntryCodeNo).ToListAsync();
 
                 foreach(var data in tmpDetails)
                 {
-                    var detail =await _voucherDetails.All().Where(d => d.VoucherEntryDetailsCodeNo == data.VoucherEntryDetailsCodeNo).FirstOrDefaultAsync();
+                    var detail = !string.IsNullOrEmpty(data.VoucherEntryDetailsCodeNo)
+                                 ? existingDetails.FirstOrDefault(d => d.VoucherEntryDetailsCodeNo == data.VoucherEntryDetailsCodeNo)
+                                 : null;
 
-                    detail.TrType = data.TrType;
-                    detail.AccCode = data.AccCode;
-                    detail.Description = data.Description;
-                    detail.DebitAmount = data.DebitAmount;
-                    detail.CreditAmount = data.CreditAmount;
-                    detail.ChequeNo = data.ChequeNo;
-                    detail.ChequeDate = data.ChequeDate;
-                    detail.Luser = model.Luser.ToString();
-                    detail.ModifyDate = DateTime.Now;
+                    if (detail != null)
+                    {
+                        detail.TrType = data.TrType;
+                        detail.AccCode = data.AccCode;
+                        detail.Description = data.Description;
+                        detail.DebitAmount = data.DebitAmount;
+                        detail.CreditAmount = data.CreditAmount;
+                        detail.ChequeNo = data.ChequeNo;
+                        detail.ChequeDate = data.ChequeDate;
+                        detail.Luser = model.Luser.ToString();
+                        detail.ModifyDate = DateTime.Now;
 
-                    await _voucherDetails.UpdateAsync(detail);
+                        await _voucherDetails.UpdateAsync(detail);
+                        existingDetails.Remove(detail);
+                    }
+                    else
+                    {
+                        var newcode = await GetLastVoucherDetailsCodeAsync();
+                        var newDetail = new AccVoucherEntryDetail
+                        {
+                            VoucherEntryCodeNo = entity.VoucherEntryCodeNo,
+                            VoucherEntryDetailsCodeNo = newcode,
+                            AccCode = data.AccCode,
+                            TrType = data.TrType,
+                            Description = data.Description,
+                            DebitAmount = data.DebitAmount,
+                            CreditAmount = data.CreditAmount,
+                            ChequeNo = data.ChequeNo,
+                            ChequeDate = data.ChequeDate,
+                            Luser = model.Luser.ToString(),
+                            VoucherEntryAutoId = entity.AutoId,
+                            BankName = "",
+                            Branch = "",
+                            Ldate = DateTime.Now,
+                            Lip = GetLocalIP(),
+                            Lmac = GetMacAddress()
+                        };
+
+                        await _voucherDetails.AddAsync(newDetail);
+                    }
+                }
+
+                if (existingDetails.Any())
+                {
+                    await _voucherDetails.DeleteRangeAsync(existingDetails);
                 }
 
                 await _tmpDetails.DeleteRangeAsync(tmpDetails);
@@ -370,56 +415,135 @@ namespace GCTL.Service.VoucherEntry
         #endregion
 
         #region Get All Voucher Entry
-        public async Task<PaginationService<VoucherEntryVM, VoucherEntryVM>.PaginationResult<VoucherEntryVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherDate", string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null)
+        //public async Task<PaginationService<VoucherEntryVM, VoucherEntryVM>.PaginationResult<VoucherEntryVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherDate", string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null)
+        //{
+        //    //var query =
+        //                //from main in _repository.All()
+        //                //join branch in _branch.All()
+        //                //    on main.BranchCode equals branch.BranchCode
+        //                //select new VoucherEntryVM
+        //                //{
+        //                //    autoId = main.AutoId,
+        //                //    VoucherNo = main.VoucherNo,
+        //                //    VoucherDate = main.VoucherDate,
+        //                //    Narration = main.Narration,
+        //                //    InvoiceNo = main.InvoiceNo,
+        //                //    BranchName = branch.BranchName,
+
+        //                //    Amount = _voucherDetails.All()
+        //                //        .Where(d => d.VoucherEntryCodeNo == main.VoucherEntryCodeNo)
+        //                //        .Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault()
+        //                //};
+
+        //    var query = from main in _repository.All().AsNoTracking()
+        //                join branch in _branch.All().AsNoTracking()
+        //                   on main.BranchCode equals branch.BranchCode
+        //                select new VoucherEntryVM
+        //                {
+        //                    autoId = main.AutoId,
+        //                    VoucherEntryCodeNo = main.VoucherEntryCodeNo,
+        //                    VoucherNo = main.VoucherNo,
+        //                    VoucherDate = main.VoucherDate,
+        //                    Narration = main.Narration,
+        //                    InvoiceNo = main.InvoiceNo,
+        //                    BranchName = branch.BranchName
+        //                };
+
+        //    if (startDate.HasValue && endDate.HasValue)
+        //    {
+        //        query = query.Where(x => x.VoucherDate >= startDate.Value && x.VoucherDate <= endDate.Value);
+        //    }
+        //    else if (startDate.HasValue)
+        //    {
+        //        query = query.Where(x => x.VoucherDate >= startDate.Value);
+        //    }
+        //    else if (endDate.HasValue)
+        //    {
+        //        query = query.Where(x => x.VoucherDate <= endDate.Value);
+        //    }
+
+
+        //    if (pageSize == -1)
+        //    {
+        //        pageSize = await query.CountAsync();
+        //        pageNumber = 1;
+        //    }
+
+        //    // PaginationService
+        //    var paginatedResult = await PaginationService<VoucherEntryVM, VoucherEntryVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder, term => sc =>
+        //                EF.Functions.Like(sc.VoucherNo ?? "", $"%{term}%") ||
+        //                EF.Functions.Like(sc.BranchName ?? "", $"%{term}%") ||
+        //                EF.Functions.Like(sc.Narration ?? "", $"%{term}%"),
+        //            ob => ob
+        //     );
+
+        //    // Populate Amount for the current page only to avoid SQL timeouts on the Count/Sort query
+        //    if (paginatedResult.Data != null && paginatedResult.Data.Any())
+        //    {
+        //        var voucherCodes = paginatedResult.Data.Select(x => x.VoucherEntryCodeNo).Where(c => c != null).ToList();
+
+        //        var amounts = await _voucherDetails.All().AsNoTracking()
+        //            .Where(d => voucherCodes.Contains(d.VoucherEntryCodeNo))
+        //            .Select(d => new { d.VoucherEntryCodeNo, d.DebitAmount, d.CreditAmount, d.AutoId })
+        //            .ToListAsync();
+
+        //        var groupedAmounts = amounts
+        //            .GroupBy(d => d.VoucherEntryCodeNo)
+        //            .ToDictionary(g => g.Key, g => g.OrderBy(d => d.AutoId).Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault());
+
+        //        foreach (var item in paginatedResult.Data)
+        //        {
+        //            if (item.VoucherEntryCodeNo != null && groupedAmounts.TryGetValue(item.VoucherEntryCodeNo, out var amt))
+        //            {
+        //                item.Amount = amt;
+        //            }
+        //        }
+        //    }
+
+        //    return paginatedResult;
+        //}
+        public async Task<PaginationService<VoucherEntryVM, VoucherEntryVM>.PaginationResult<VoucherEntryVM>> GetPaginatedAsync(
+    int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherDate",
+    string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null)
         {
-            //var query =
-                        //from main in _repository.All()
-                        //join branch in _branch.All()
-                        //    on main.BranchCode equals branch.BranchCode
-                        //select new VoucherEntryVM
-                        //{
-                        //    autoId = main.AutoId,
-                        //    VoucherNo = main.VoucherNo,
-                        //    VoucherDate = main.VoucherDate,
-                        //    Narration = main.Narration,
-                        //    InvoiceNo = main.InvoiceNo,
-                        //    BranchName = branch.BranchName,
+            // Resolve matching branch codes ONCE, from the small branch table (no join on main table)
+            List<string> matchedBranchCodes = new();
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                matchedBranchCodes = await _branch.All().AsNoTracking()
+                    .Where(b => EF.Functions.Like(b.BranchName ?? "", $"%{searchTerm}%"))
+                    .Select(b => b.BranchCode)
+                    .ToListAsync();
+            }
 
-                        //    Amount = _voucherDetails.All()
-                        //        .Where(d => d.VoucherEntryCodeNo == main.VoucherEntryCodeNo)
-                        //        .Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault()
-                        //};
-
-            var query = from main in _repository.All()
-                        join detail in _voucherDetails.All()
-                            on main.VoucherEntryCodeNo equals detail.VoucherEntryCodeNo into detailsGroup
-                        join branch in _branch.All()
-                           on main.BranchCode equals branch.BranchCode
-                        select new VoucherEntryVM
-                        {
-                            autoId = main.AutoId,
-                            VoucherNo = main.VoucherNo,
-                            VoucherDate = main.VoucherDate,
-                            Narration = main.Narration,
-                            InvoiceNo = main.InvoiceNo,
-                            BranchName = branch.BranchName,
-                            //BranchName = detailsGroup.FirstOrDefault() != null ? detailsGroup.FirstOrDefault().Branch : "",
-                            Amount = detailsGroup.Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault()
-                        };
+            // Query ONLY the main table — no join — so filter/sort/count can use indexes
+            var query = _repository.All().AsNoTracking()
+                .Select(main => new VoucherEntryVM
+                {
+                    autoId = main.AutoId,
+                    VoucherEntryCodeNo = main.VoucherEntryCodeNo,
+                    VoucherNo = main.VoucherNo,
+                    VoucherDate = main.VoucherDate,
+                    VoucherDateDisplay = main.VoucherDate.ToString("dd/MM/yyyy"),
+                    Narration = main.Narration,
+                    InvoiceNo = main.InvoiceNo,
+                    BranchCode = main.BranchCode   // add this field to VM if missing
+                });
 
             if (startDate.HasValue && endDate.HasValue)
-            {
                 query = query.Where(x => x.VoucherDate >= startDate.Value && x.VoucherDate <= endDate.Value);
-            }
             else if (startDate.HasValue)
-            {
                 query = query.Where(x => x.VoucherDate >= startDate.Value);
-            }
             else if (endDate.HasValue)
-            {
                 query = query.Where(x => x.VoucherDate <= endDate.Value);
-            }
 
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(x =>
+                    EF.Functions.Like(x.VoucherNo ?? "", $"%{searchTerm}%") ||
+                    EF.Functions.Like(x.Narration ?? "", $"%{searchTerm}%") ||
+                    matchedBranchCodes.Contains(x.BranchCode));
+            }
 
             if (pageSize == -1)
             {
@@ -427,17 +551,45 @@ namespace GCTL.Service.VoucherEntry
                 pageNumber = 1;
             }
 
-            // PaginationService
-            var paginatedResult = await PaginationService<VoucherEntryVM, VoucherEntryVM>.GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder, term => sc =>
-                        EF.Functions.Like(sc.VoucherNo ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.BranchName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.Narration ?? "", $"%{term}%"),
-                    ob => ob
-             );
+            // Pass a no-op searchPredicate since filtering is already applied above
+            var paginatedResult = await PaginationService<VoucherEntryVM, VoucherEntryVM>.GetPaginatedData(
+                query, pageNumber, pageSize, "", sortColumn, sortOrder,
+                term => sc => true,
+                ob => ob
+            );
+
+            if (paginatedResult.Data != null && paginatedResult.Data.Any())
+            {
+                var voucherCodes = paginatedResult.Data.Select(x => x.VoucherEntryCodeNo).Where(c => c != null).ToList();
+                var branchCodes = paginatedResult.Data.Select(x => x.BranchCode).Distinct().ToList();
+
+                // Branch names — cache this dictionary (IMemoryCache, sliding 30 min) since branch data barely changes
+                var branchMap = await _branch.All().AsNoTracking()
+                    .Where(b => branchCodes.Contains(b.BranchCode))
+                    .ToDictionaryAsync(b => b.BranchCode, b => b.BranchName);
+
+                var amounts = await _voucherDetails.All().AsNoTracking()
+                    .Where(d => voucherCodes.Contains(d.VoucherEntryCodeNo))
+                    .Select(d => new { d.VoucherEntryCodeNo, d.DebitAmount, d.CreditAmount, d.AutoId })
+                    .ToListAsync();
+
+                var groupedAmounts = amounts
+                    .GroupBy(d => d.VoucherEntryCodeNo)
+                    .ToDictionary(g => g.Key, g => g.OrderBy(d => d.AutoId)
+                        .Select(d => d.DebitAmount > 0 ? d.DebitAmount : d.CreditAmount).FirstOrDefault());
+
+                foreach (var item in paginatedResult.Data)
+                {
+                    if (item.BranchCode != null && branchMap.TryGetValue(item.BranchCode, out var bname))
+                        item.BranchName = bname;
+
+                    if (item.VoucherEntryCodeNo != null && groupedAmounts.TryGetValue(item.VoucherEntryCodeNo, out var amt))
+                        item.Amount = amt;
+                }
+            }
 
             return paginatedResult;
         }
-
         #endregion
 
         #region Get Master Voucher Information with specific Master ID
@@ -455,7 +607,7 @@ namespace GCTL.Service.VoucherEntry
                                   VoucherDate = main.VoucherDate,
                                   Narration = main.Narration,
                                   VoucherType_Code = main.VoucherTypeCode,
-                                  LDate = main.Ldate,
+                                  Ldate = main.Ldate,
                                   ModifyDate = main.ModifyDate
                               }).FirstOrDefaultAsync();
 
@@ -464,6 +616,27 @@ namespace GCTL.Service.VoucherEntry
         #endregion
 
         #region Get Details Voucher Information with specific VoucherEntryAutoId
+        //public async Task<List<VoucherDetailsVM>> GetDetailsByVoucherIdAsync(decimal? voucherEntryAutoId)
+        //{
+        //    var data = await (from details in _voucherDetails.All()
+        //                      join gnrlL in _generalLedger.All()
+        //                        on details.AccCode equals gnrlL.SubSusidiaryLedgerCodeNo into gnLjoin
+        //                      from gnrl in gnLjoin.DefaultIfEmpty()
+        //                      where details.VoucherEntryAutoId == voucherEntryAutoId
+        //                      select new VoucherDetailsVM
+        //                      {
+        //                          autoId = details.AutoId,
+        //                          AccCode = details.AccCode,
+        //                          Description = details.Description,
+        //                          DebitAmount = details.DebitAmount,
+        //                          CreditAmount = details.CreditAmount,
+        //                          AccountHeadName = gnrl.SubSubsidiaryLedgerName,
+        //                          TrType = details.TrType,
+        //                          VoucherEntryDetailsCodeNo = details.VoucherEntryDetailsCodeNo,
+        //                      }).ToListAsync();
+
+        //    return data;
+        //}
         public async Task<List<VoucherDetailsVM>> GetDetailsByVoucherIdAsync(decimal? voucherEntryAutoId)
         {
             var data = await (from details in _voucherDetails.All()
@@ -481,6 +654,9 @@ namespace GCTL.Service.VoucherEntry
                                   AccountHeadName = gnrl.SubSubsidiaryLedgerName,
                                   TrType = details.TrType,
                                   VoucherEntryDetailsCodeNo = details.VoucherEntryDetailsCodeNo,
+                                  VoucherEntryNo = details.VoucherEntryCodeNo,
+                                  ChequeNo = details.ChequeNo,
+                                  ChequeDate = details.ChequeDate.Value
                               }).ToListAsync();
 
             return data;
@@ -489,30 +665,38 @@ namespace GCTL.Service.VoucherEntry
 
         #region When Edit Button Clicked then Details table data Copied to Tmp Table
 
-        public async Task<bool> DetailsCopiedToTmp(decimal id, int? currenUserID)
+        public async Task<bool> DetailsCopiedToTmp(decimal id, string? currenUserID)
         {
-            var orginaDetailsData = await GetDetailsByVoucherIdAsync(id);
-
-            //Details table Data Copied to Tmp table
-            foreach (var tmpdata in orginaDetailsData)
+            try
             {
-                var tmp = new AccVoucherEntryDetailsTemp
-                {
-                    VoucherEntryDetailsCodeNo = tmpdata.VoucherEntryDetailsCodeNo,
-                    VoucherEntryCodeNo = tmpdata.VoucherEntryNo ?? "",
-                    TrType = tmpdata.TrType,
-                    AccCode = tmpdata.AccCode,
-                    Description = tmpdata.Description,
-                    DebitAmount = tmpdata.DebitAmount,
-                    CreditAmount = tmpdata.CreditAmount,
-                    ChequeNo = tmpdata.ChequeNo ?? "",
-                    ChequeDate = tmpdata.ChequeDate,
-                    Luser = currenUserID.ToString()
-                };
-                await _tmpDetails.AddAsync(tmp);
-            }
+                var orginaDetailsData = await GetDetailsByVoucherIdAsync(id);
 
-            return true;
+                //Details table Data Copied to Tmp table
+                foreach (var tmpdata in orginaDetailsData)
+                {
+                    var tmp = new AccVoucherEntryDetailsTemp
+                    {
+                        VoucherEntryDetailsCodeNo = tmpdata.VoucherEntryDetailsCodeNo,
+                        VoucherEntryCodeNo = tmpdata.VoucherEntryNo ?? "",
+                        TrType = tmpdata.TrType,
+                        AccCode = tmpdata.AccCode,
+                        Description = tmpdata.Description,
+                        DebitAmount = tmpdata.DebitAmount,
+                        CreditAmount = tmpdata.CreditAmount,
+                        ChequeNo = tmpdata.ChequeNo ?? "",
+                        ChequeDate = tmpdata.ChequeDate,
+                        Luser = currenUserID.ToString()
+                    };
+                    await _tmpDetails.AddAsync(tmp);
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         #endregion

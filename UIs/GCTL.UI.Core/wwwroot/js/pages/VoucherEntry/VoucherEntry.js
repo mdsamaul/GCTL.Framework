@@ -1,4 +1,4 @@
-﻿
+
 // Pagination & Table State
 let VoucherEntrycurrentPage = 1;
 let VoucherEntrypageSize = parseInt($('#VoucherEntrypageSize').val()) || 5;
@@ -12,36 +12,31 @@ let selectedVoucher = []; // Selected voucher IDs
 //#region Ready Part
 
 $(document).ready(function () {
-
+    setDate("#VoucherDate", new Date());
+    setDate("#StartDate", new Date());
+    setDate("#EndDate", new Date());
     LoadVoucherTypeDropdown();
     LoadAccountHeadDropdown();
     VoucherEntryCompanyDropdown();
     VoucherEntryBranchDropdown();
 
     LoadVoucherEntriesTable();
-    initVoucherDatePicker();
     DeleteWithUser();
 
     // Set Entry Date
     $('#EntryDate').text(getBangladeshDateTime());
 
     //Handle Save Or Update Button Handle
-    $(document).on("click", ".VoucherEntrysaveBtn", function (e) {
+    $(document).on("click", ".js-VoucherEntry-save", function (e) {
         e.preventDefault();
         SaveVoucherEntry();
     });
 
-    //// Handle Delete Button
-    $(document).on("click", ".VoucherEntrydeleteBtn", function (e) {
-        e.preventDefault();
-        BulkDeleteSelectedVouchers();
-        DeleteWithUser();
 
-    });
 
     //// Handle Clear button
-    $(document).on("click", ".VoucherEntryresetBtn", function () {
-        console.log("Clerar Button Clicked")
+    $(document).on("click", ".js-VoucherEntry-clear", function () {
+        console.log("Clear Button Clicked")
         ClearVoucherEntryForm();
         DeleteWithUser();
 
@@ -293,11 +288,16 @@ function VoucherEntryCompanyDropdown() {
             //     width: '100%',
             //     allowClear: true,
             // });
-            window.reinitCustomDropdownById('CompanyCode');
-            if (response.data.length === 1) {
-                $company.val(response.data[0].id).trigger('change');
+            if (response.data.length > 0) {
+                $company.val(response.data[0].id);
             }
+            
             $company.prop("disabled", true);
+            window.reinitCustomDropdownById('CompanyCode');
+            
+            if (response.data.length > 0) {
+                $company.trigger('change');
+            }
         },
         error: function (xhr, status, error) {
             console.error('Failed to load Company:', error);
@@ -348,13 +348,7 @@ function VoucherEntryBranchDropdown(companyCode, callback) {
 
 
 
-            // trigger callback if provided
             if (callback) callback();
-
-           // enableSelect2ArrowNavigation("#BranchCode");
-
-            //$branch.select2('open');
-            $branch.select2('focus');
 
         },
         error: function (xhr, status, error) {
@@ -369,18 +363,18 @@ function VoucherEntryBranchDropdown(companyCode, callback) {
 
 //#region Voucher Type Current Date
 
-function initVoucherDatePicker() {
-    return flatpickr("#VoucherDate", {
-        dateFormat: "d-m-Y",
-        defaultDate: "today",
-        allowInput: true,
-        altInput: true,
-        altFormat: "d-m-Y",
-        locale: {
-            firstDayOfWeek: 5
-        }
-    });
-}
+// function initVoucherDatePicker() {
+//     return flatpickr("#VoucherDate", {
+//         dateFormat: "d-m-Y",
+//         defaultDate: "today",
+//         allowInput: true,
+//         altInput: true,
+//         altFormat: "d-m-Y",
+//         locale: {
+//             firstDayOfWeek: 5
+//         }
+//     });
+// }
 
 
 //#endregion
@@ -388,30 +382,14 @@ function initVoucherDatePicker() {
 
 //#region Table Search Start Date
 
-flatpickr("#StartDate", {
-    dateFormat: "d-m-Y",
-    allowInput: true,
-    altInput: true,
-    altFormat: "d-m-Y",
-    locale: {
-        firstDayOfWeek: 5
-    }
-});
+// setDate("#StartDate", new Date()); // initialized in document.ready
 
 //#endregion
 
 
 //#region  Table Search End Date
 
-flatpickr("#EndDate", {
-    dateFormat: "d-m-Y",
-    allowInput: true,
-    altInput: true,
-    altFormat: "d-m-Y",
-    locale: {
-        firstDayOfWeek: 5
-    }
-});
+// setDate("#EndDate", new Date()); // initialized in document.ready
 
 //#endregion
 
@@ -541,7 +519,7 @@ function SaveVoucherEntry() {
         CompanyCode: $('#CompanyCode').val(),
         BranchCode: $('#BranchCode').val(),
         VoucherType_Code: $('#VoucherTypeCode').val(),
-        VoucherDate: new Date($('#VoucherDate').val().split('-').reverse().join('-')).toISOString(),
+        VoucherDate: $('#VoucherDate').val(),
         Narration: $('#Narration').val(),
         VoucherNo: $('#VoucherNo').val()
     };
@@ -574,7 +552,9 @@ function SaveVoucherEntry() {
                     if (response.success) {
                         toastr.success(response.message || (ajaxType === 'POST' ? "Data Saved Successfully!" : "Data Updated Successfully!"));
                         ClearVoucherEntryForm();
-                        LoadTmpVoucherDetailsTable();
+                        if (window.GctlGrid) {
+                            window.GctlGrid.reload('VoucherEntryTempGrid');
+                        }
                         LoadVoucherEntriesTable();
                     } else {
                         toastr.error(response.message || failMessage);
@@ -597,12 +577,15 @@ function SaveVoucherEntry() {
 
 //#region  Main Information Section Clear
 function ClearVoucherEntryForm() {
+    
     isEditModeVoucher = false; 
 
     $("#VoucherEntryAutoID").val("");
-    $('#CompanyCode').val('').trigger('change');
-    $('#BranchCode').val('').trigger('change');
-    $('#VoucherTypeCode').val('').trigger('change');
+    // $('#CompanyCode').val('').trigger('change');
+    // $('#BranchCode').val('').trigger('change');
+    // $('#VoucherTypeCode').val('').trigger('change');
+    setSelect('#BranchCode', "", false);
+    setSelect('#VoucherTypeCode', "", false);
     $('#Narration').val(''); 
     $('#VoucherNo').val('');
     $('#EntryDate').text('');
@@ -612,8 +595,7 @@ function ClearVoucherEntryForm() {
     $('#table-search').val('');
 
     VoucherEntryCompanyDropdown();
-    initVoucherDatePicker();
-
+    setDate("#VoucherDate", new Date());
     // Set Entry Date
     $('#EntryDate').text(getBangladeshDateTime());
 
@@ -661,135 +643,76 @@ function ClearVoucherEntryForm() {
 //#endregion
 
 
-//#region Load Voucher Entries Table
-function LoadVoucherEntriesTable(page = 1, pageSize = VoucherEntrypageSize, sortColumn = VoucherEntrySortColumn, sortOrder = VoucherEntrySortOrder, searchTerm = VoucherEntrySearchTerm)
-{
-    const startDateVal = $('#StartDate').val();
-    const endDateVal = $('#EndDate').val();
-
-    // Convert from "dd-mm-yyyy" → "yyyy-MM-dd"
-    const startDate = startDateVal ? startDateVal.split('-').reverse().join('-') : null;
-    const endDate = endDateVal ? endDateVal.split('-').reverse().join('-') : null;
-
-    $.ajax({
-        url: '/entry-voucher-list',
-        type: 'GET',
-        data: { pageNumber: page, pageSize, sortColumn, sortOrder, searchTerm, startDate, endDate },
-        success: function (response) {
-            const data = response.Data || response.data || [];
-            const pagination = response.PaginationInfo || response.paginationInfo || {};
-            const totalRecords = response.TotalCount || response.totalCount || data.length;
-
-            renderVoucherTable(data);
-            renderPagination(pagination, totalRecords);
-
-            // Update global page and checkboxes
-            VoucherEntrycurrentPage = pagination.CurrentPage ?? pagination.currentPage ?? 1;
-
-        },
-        error: function (xhr, status, error) {
-            console.error('Error fetching voucher entries:', error);
-            $('#VoucherEntrytable').html(`<tr><td colspan="7" class="text-center">Failed to load data</td></tr>`);
+function LoadVoucherEntriesTable() {
+    if ($.fn.DataTable.isDataTable('#voucherEntryTable')) {
+        if (window.GctlGrid) {
+            window.GctlGrid.reload('voucherEntryTable');
         }
-    });
+    } else {
+        if (window.GctlGrid) {
+            window.GctlGrid.initFromModel({ gridId: 'voucherEntryTable' });
+        }
+    }
 }
 //#endregion 
 
 
-//#region Render Table Rows
 
-function renderVoucherTable(data) {
-    if (!data || data.length === 0) {
-        $('#VoucherEntrytable').html(`<tr><td colspan="7" class="text-center">No Voucher Found</td></tr>`);
-        return;
-    }
-
-    const rows = data.map(item => `
-        <tr>
-            <td class="text-center">
-                <input type="checkbox" class="form-check-input voucher-checkbox" data-autoid="${item.autoId}" style="width:12px; height:12px;">
-            </td>
-            <td class="text-center">
-                <button type="button" class="voucher-no-btn btn btn-transfer tooltip-btn" data-autoid="${item.autoId}" data-tooltip="Edit">
-                    <i class="fas fa-edit me-2"></i> ${item.voucherNo}
-                </button>
-            </td>
-            <td class="text-center">
-                ${item.voucherDate ? new Date(item.voucherDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
-            </td>
-            <td>${item.narration || ''}</td>
-            <td>${item.branchName || ''}</td>
-            <td class="text-end">${item.amount ?? 0}</td>
-            <td>${item.invoiceNo || ''}</td>
-        </tr>
-    `).join('');
-
-    $('#VoucherEntrytable').html(rows);
-
-    VoucherbindCheckboxHandlers();
-    VoucherupdateCheckboxState();
-}
-//#endregion
-
-
-//#region Render Pagination
-
-function renderPagination(pagination, totalRecords) {
-    const currentPage = pagination.CurrentPage ?? pagination.currentPage ?? 1;
-    const totalPages = pagination.TotalPages ?? pagination.totalPages ?? 1;
-    const startItem = pagination.StartItem ?? pagination.startItem ?? 1;
-    const endItem = pagination.EndItem ?? pagination.endItem ?? 1;
-
-    $('#Entrypaginationtext').text(`Showing ${startItem} to ${endItem} of ${totalRecords} entries`);
-
-    let buttons = '';
-    buttons += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
-                </li>`;
-
-    for (let i = 1; i <= totalPages; i++) {
-        buttons += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                    </li>`;
-    }
-
-    buttons += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
-                </li>`;
-
-    $('#paginationbutton').html(buttons);
-}
-
-//#endregion
-
-
-//#region Sorting Handler
-$(document).on('click', '.VoucherEntrySortable', function () {
-    const column = $(this).data('column');
-
-    if (VoucherEntrySortColumn === column) {
-        VoucherEntrySortOrder = (VoucherEntrySortOrder === 'asc') ? 'desc' : 'asc';
-    } else {
-        VoucherEntrySortColumn = column;
-        VoucherEntrySortOrder = 'asc';
-    }
-
-    // active column indication
-    $('.VoucherEntrysortable').removeClass('sorting-asc sorting-desc');
-    $(this).addClass(VoucherEntrySortOrder === 'asc' ? 'sorting-asc' : 'sorting-desc');
-
-    // reload table
-    LoadVoucherEntriesTable(VoucherEntrycurrentPage, VoucherEntrypageSize, VoucherEntrySortColumn, VoucherEntrySortOrder, VoucherEntrySearchTerm);
-});
-//#endregion
 
 
 //#region Click Handler for Edit Information
 
-$(document).on('click', '.voucher-no-btn', function () {
+$(document).on("click", ".js-VoucherEntry-delete-confirm", function (e) {
+    e.preventDefault();
+    
+    let ids = [];
+    var $checked = $('#voucherEntryTable tbody input[type="checkbox"]:checked');
+    if ($checked.length > 0) {
+        ids = $checked.map(function() { return $(this).val(); }).get();
+    }
+    if (!ids || ids.length === 0) {
+        ids = selectedVoucher;
+    }
+    ids = ids.map(x => parseInt(x)).filter(x => !isNaN(x));
 
-    const autoId = $(this).data('autoid');
+    if (ids.length === 0) {
+        toastr.warning("No voucher selected to delete!");
+        return;
+    }
 
+    // Open Modal
+    var $modal = $("#deleteModal");
+    if ($modal.length) {
+        $modal.modal('show');
+    }
+});
+
+// Confirm Delete Click
+$(document).on("click", "#deleteModal .js-delete, #deleteModal .js-gc-delete-confirm", function (e) {
+    e.preventDefault();
+    
+    // Ensure we only try to delete if we actually have selection
+    let ids = [];
+    var $checked = $('#voucherEntryTable tbody input[type="checkbox"]:checked');
+    if ($checked.length > 0) {
+        ids = $checked.map(function() { return $(this).val(); }).get();
+    }
+    if (!ids || ids.length === 0) {
+        ids = selectedVoucher;
+    }
+    ids = ids.map(x => parseInt(x)).filter(x => !isNaN(x));
+    
+    if (ids.length > 0) {
+        BulkDeleteSelectedVouchers();
+        DeleteWithUser();
+        $("#deleteModal").modal('hide');
+    }
+});
+
+$(document).on('click', '.voucher-no-btn, .js-VoucherEntry-edit', function (e) {
+    e.preventDefault();
+    const autoId = $(this).data('autoid') || $(this).data('id');
+    
     DetailsCopiedToTmptable(autoId);
 
     $.ajax({
@@ -809,7 +732,7 @@ $(document).on('click', '.voucher-no-btn', function () {
 
                 // Call functions
                 fillMainVoucherInfo(main);
-                LoadTmpVoucherDetailsTable();   // Load Tmp table Data
+                //LoadTmpVoucherDetailsTable();   // Load Tmp table Data
                 //renderVoucherDetailsTable(details);
 
                 selectedVoucher = [autoId];
@@ -840,17 +763,33 @@ function fillMainVoucherInfo(main) {
 
     //I am setting the Voucher Type but I don't want to fire the event
     $('#VoucherEntryAutoID').val(main.autoId || 0);
-    $('#VoucherTypeCode') .val(main.voucherType_Code).trigger('change.select2', [true]); 
+
+    if (typeof setSelect === "function") {
+        setSelect('#VoucherTypeCode', main.voucherType_Code, false);
+        setSelect('#BranchCode', main.branchCode, false);
+    } else {
+        $('#VoucherTypeCode').val(main.voucherType_Code).trigger('change.select2', [true]); 
+        $('#BranchCode').val(main.branchCode).trigger('change.select2');
+    }
+    
     $('#VoucherNo').val(main.voucherNo);
     $('#Narration').val(main.narration);
-    $('#BranchCode').val(main.branchCode).trigger('change.select2');
 
     // datepicker handle
-    const fp = flatpickr("#VoucherDate", { dateFormat: "d-m-Y", allowInput: true });
     if (main.voucherDate) {
-        fp.setDate(new Date(main.voucherDate), true);
+        if (typeof setDate === "function") {
+            setDate("#VoucherDate", new Date(main.voucherDate));
+        } else {
+            const fp = document.querySelector("#VoucherDate")._flatpickr;
+            if (fp) fp.setDate(new Date(main.voucherDate), true);
+        }
     } else {
-        fp.clear();
+        if (typeof setDate === "function") {
+            setDate("#VoucherDate", "");
+        } else {
+            const fp = document.querySelector("#VoucherDate")._flatpickr;
+            if (fp) fp.clear();
+        }
     }
 
     if (main.lDate) {
@@ -891,7 +830,17 @@ function fillMainVoucherInfo(main) {
 //#region Master & Details Table Data Delete
 function BulkDeleteSelectedVouchers() {
     // Collect selected row IDs
-    const ids = selectedVoucher.map(x => parseInt(x)).filter(x => !isNaN(x));
+    let ids = [];
+    var $checked = $('#voucherEntryTable tbody input[type="checkbox"]:checked');
+    if ($checked.length > 0) {
+        ids = $checked.map(function() { return $(this).val(); }).get();
+    }
+    
+    if (!ids || ids.length === 0) {
+        ids = selectedVoucher;
+    }
+    
+    ids = ids.map(x => parseInt(x)).filter(x => !isNaN(x));
 
 
     if (ids.length === 0) {
@@ -914,7 +863,11 @@ function BulkDeleteSelectedVouchers() {
                 selectedVoucher = []; 
                 $("#VoucherEntrySelectAll").prop("checked", false);
 
-                LoadVoucherEntriesTable(VoucherEntrycurrentPage); // Refresh table
+                if (window.GctlGrid) {
+                    window.GctlGrid.reload('voucherEntryTable');
+                } else {
+                    LoadVoucherEntriesTable(VoucherEntrycurrentPage); // Refresh table
+                }
             } else {
                 toastr.error(response.message || "Failed to delete selected vouchers!");
             }
@@ -1030,6 +983,9 @@ function DetailsCopiedToTmptable(voucherId) {
         success: function (response) {
             if (response.success) {
                 console.log("Copied Succesfully");
+                if (window.GctlGrid) {
+                    window.GctlGrid.reload('VoucherEntryTempGrid');
+                }
             }
             else {
                 toastr.error(response.message || "Failed to copy details to temp table");
@@ -1047,7 +1003,7 @@ function DeleteWithUser() {
         type: 'DELETE',
         success: function (response) {
             console.log("Data Delete with User ID");
-            LoadTmpVoucherDetailsTable();
+            //LoadTmpVoucherDetailsTable();
         },
         error: function (xhr, status, error) {
             console.log("Failed Deleted With USerID",error);

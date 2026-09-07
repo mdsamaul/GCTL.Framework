@@ -31,7 +31,7 @@
                             ClearBtnClass = "js-TransportType-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="TransportType-form" asp-controller="TransportType">
                             <div class="js-TransportType-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -46,17 +46,17 @@
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "TransportType-grid",
-                    AjaxUrl = "/TransportType/GetAll",
-                    AjaxMethod = "POST",
+                    AjaxUrl = "/TransportType/GetTableData",
+                    AjaxMethod = "GET",
                     ServerSide = false,
                     ShowCheckbox = true,
-                    CheckColumnData = "tc",
+                    CheckColumnData = "vehicleTypeId",
                     CheckAllId = "js-TransportType-checkall",
                     DefaultSortColumn = "vehicleTypeId",
                     DefaultSortDirection = "desc",
                     Columns = new List<GridColumn>
                     {
-                        new() { Data = "vehicleTypeId", Header = "ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-TransportType-edit", IdField = "tc" },
+                        new() { Data = "vehicleTypeId", Header = "ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-TransportType-edit", IdField = "vehicleTypeId" },
                         new() { Data = "vehicleType", Header = "Transport Type", Width = "50%", Align = "left" },
                         new() { Data = "shortName", Header = "Short Name", Width = "35%", Align = "left" }
                     }
@@ -72,7 +72,6 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
 <script src="~/js/app.input.validation.js" defer></script>
 <script src="~/js/pages/transportType.js" defer></script>
 <script type="text/javascript">
@@ -86,5 +85,7 @@
         }
     })();
 </script>
+@*
+ *@
 
 

@@ -42,6 +42,8 @@
                 $.gctlGrid.initFromModel({ gridId: 'bankAccountInfoTable' });
             }
 
+
+
             // Cascading Branch filter when Bank changes
             $("body").on("change", "#BankId", function () {
                 var bankId = $(this).val();
@@ -212,9 +214,7 @@
 
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().ajax.reload();
-            } else if (window.loadGridPage) {
-                window.loadGridPage('bankAccountInfoGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 

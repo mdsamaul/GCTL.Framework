@@ -28,7 +28,7 @@ namespace GCTL.Service.CustomerType
             IDeleteHistoryService deleteHistoryService
 
             )
-            
+
     : base(customerTyperepository)
         {
             this.customerTyperepository = customerTyperepository;
@@ -90,48 +90,49 @@ namespace GCTL.Service.CustomerType
             await customerTyperepository.BeginTransactionAsync();
             try
             {
-                bool isNew = string.IsNullOrWhiteSpace(entityVM.CustomerTypeId);
-                SalesDefCustomerType entity;
+                //bool isNew = await IsExistByCodeAsync(entityVM.CustomerTypeId);
+                //bool isNew = string.IsNullOrWhiteSpace(entityVM.CustomerTypeId);
+                //SalesDefCustomerType entity;
 
-                if (isNew)
+                //if (!isNew)
+                //{
+                commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 3);
+
+                SalesDefCustomerType entity = new SalesDefCustomerType
                 {
-                    commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 3);
+                    CustomerTypeId = strMaxNO,
+                    CustomerType = entityVM.CustomerType,
+                    ShortName = entityVM.ShortName ?? string.Empty,
+                    EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty,
+                    CompanyId = entityVM.CompanyId ?? string.Empty,
+                    Luser = entityVM.Luser,
+                    Lip = entityVM.Lip,
+                    Lmac = entityVM.Lmac ?? string.Empty,
+                    Ldate = DateTime.Now
+                };
 
-                    entity = new SalesDefCustomerType
-                    {
-                        CustomerTypeId = strMaxNO,
-                        CustomerType = entityVM.CustomerType,
-                        ShortName = entityVM.ShortName ?? string.Empty,
-                        EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty,
-                        CompanyId = entityVM.CompanyId ?? string.Empty,
-                        Luser = entityVM.Luser,
-                        Lip = entityVM.Lip,
-                        Lmac = entityVM.Lmac ?? string.Empty,
-                        Ldate = DateTime.Now
-                    };
+                await customerTyperepository.AddAsync(entity);
+                //}
+                //else
+                //{
+                //    entity = await customerTyperepository.GetByIdAsync(entityVM.CustomerTypeId);
+                //    if (entity == null)
+                //    {
+                //        await customerTyperepository.RollbackTransactionAsync();
+                //        return false;
+                //    }
 
-                    await customerTyperepository.AddAsync(entity);
-                }
-                else
-                {
-                    entity = await customerTyperepository.GetByIdAsync(entityVM.CustomerTypeId);
-                    if (entity == null)
-                    {
-                        await customerTyperepository.RollbackTransactionAsync();
-                        return false;
-                    }
+                //    entity.CustomerType = entityVM.CustomerType;
+                //    entity.ShortName = entityVM.ShortName ?? string.Empty;
+                //    entity.EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty;
+                //    entity.CompanyId = entityVM.CompanyId ?? string.Empty;
+                //    entity.Luser = entityVM.Luser;
+                //    entity.Lip = entityVM.Lip;
+                //    entity.Lmac = entityVM.Lmac ?? string.Empty;
+                //    entity.Ldate = DateTime.Now;
 
-                    entity.CustomerType = entityVM.CustomerType;
-                    entity.ShortName = entityVM.ShortName ?? string.Empty;
-                    entity.EmployeeId = entityVM.UserInfoEmployeeId ?? string.Empty;
-                    entity.CompanyId = entityVM.CompanyId ?? string.Empty;
-                    entity.Luser = entityVM.Luser;
-                    entity.Lip = entityVM.Lip;
-                    entity.Lmac = entityVM.Lmac ?? string.Empty;
-                    entity.Ldate = DateTime.Now;
-
-                    await customerTyperepository.UpdateAsync(entity);
-                }
+                //    await customerTyperepository.UpdateAsync(entity);
+                //}
 
                 await customerTyperepository.CommitTransactionAsync();
                 return true;
@@ -239,7 +240,7 @@ namespace GCTL.Service.CustomerType
 
         #endregion
 
-        #region Duplicate Check 
+        #region Duplicate Check
 
         public async Task<bool> IsExistByCodeAsync(string code)
         {

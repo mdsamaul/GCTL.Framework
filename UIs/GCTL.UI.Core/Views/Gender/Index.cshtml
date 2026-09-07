@@ -6,15 +6,6 @@
     Model.Breadcrumb = "Gender Info";
 }
 
-<style>
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
-
-<!-- Content Header (Page header) -->
-<partial name="_PageHeader" model="Model" />
-
 <section class="content consistent-look">
     <div class="">
         <div class="row g-2">
@@ -31,7 +22,7 @@
                             ClearBtnClass = "js-Sex-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="Sex-form" asp-controller="Gender">
                             <div class="js-Sex-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -75,7 +66,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/gender.js"></script>
     <script type="text/javascript">
         var options = {

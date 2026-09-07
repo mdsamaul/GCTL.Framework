@@ -101,6 +101,7 @@ namespace GCTL.Service.EmployeeContactInfos
 
                               select new EmployeeContactInfosSetupViewModel
                               {
+                                  AutoId = emp.AutoId,
                                   EmployeeId = emp.EmployeeId,
                                   EmployeeName = hrmEmp != null ? $"{hrmEmp.FirstName} {hrmEmp.LastName}" : "",
                                   DistrictName = HrmDef != null ? HrmDef.District : "",
@@ -176,6 +177,17 @@ namespace GCTL.Service.EmployeeContactInfos
 
         public async Task<EmployeeContactInfosSetupViewModel> GetByIdAsync(string id)
         {
+            // Validate ID
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return null;
+            }
+
+            // Convert ID safely
+            if (!int.TryParse(id, out int autoId))
+            {
+                return null;
+            }
             var data = await (from emp in employeeContactInfoRepository.All().AsNoTracking()
 
                               join Hrmemp in coreBranchRepository.All().AsNoTracking()
@@ -219,7 +231,7 @@ namespace GCTL.Service.EmployeeContactInfos
                               on ofEmp.DepartmentCode equals dept.DepartmentCode into eduDeptJoin
                               from dept in eduDeptJoin.DefaultIfEmpty()
 
-                              where emp.EmpContactId == id
+                              where emp.AutoId == autoId
 
                               select new EmployeeContactInfosSetupViewModel
                               {
@@ -357,8 +369,7 @@ namespace GCTL.Service.EmployeeContactInfos
                     await employeeContactInfoRepository.RollbackTransactionAsync();
                     return false;
                 }
-                entity.AutoId = (decimal)entityVM.AutoId;
-                entity.EmpContactId = entityVM.EmpContactId ?? string.Empty;
+
                 entity.EmployeeId = entityVM.EmployeeId ?? string.Empty;
                 entity.CompanyCode = entityVM.CompanyCode ?? string.Empty;
                 entity.BranchCode = entityVM.BranchCode ?? string.Empty;
@@ -437,7 +448,22 @@ namespace GCTL.Service.EmployeeContactInfos
 
         public async Task<bool> DeleteTab(List<string> ids, DeleteHistoryViewModel model)
         {
-            var entity = await employeeContactInfoRepository.All().Where(x => ids.Contains(x.EmpContactId)).ToListAsync();
+            var autoIds = new List<decimal>();
+
+            foreach (var id in ids)
+            {
+                if (decimal.TryParse(id, out var autoId))
+                {
+                    autoIds.Add(autoId);
+                }
+            }
+
+            if (!autoIds.Any())
+            {
+                return false;
+            }
+
+            var entity = await employeeContactInfoRepository.All().Where(x => autoIds.Contains(x.AutoId)).ToListAsync();
 
             if (!entity.Any())
             {

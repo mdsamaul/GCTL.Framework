@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.BranchAddress.BranchAddressPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.BranchAddress.BranchAddressPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -113,7 +113,7 @@
                     {
                         @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
                     }
-                    <div class="card-body px-4 py-3" style="padding-left: 50px !important;">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="BranchAddress-form" asp-controller="BranchAddress">
                             <div class="js-BranchAddress-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -137,10 +137,10 @@
                     DefaultSortColumn = "vendorBranchId",
                     Columns = new()
                     {
-                        new() { Data = "vendorBranchId", IsEditLink = true, EditSelectorClass = "js-BranchAddress-edit", Header = "ID", Width = "10%" },
-                        new() { Data = "name", Header = "Vendor Name", Width = "25%", Align = "left" },
+                        new() { Data = "vendorBranchId", IsEditLink = true, EditSelectorClass = "js-BranchAddress-edit", Header = "ID", Width = "6%" },
+                        new() { Data = "name", Header = "Vendor Name", Width = "26%", Align = "left" },
                         new() { Data = "locationAddress", Header = "Address", Width = "28%", Align = "left" },
-                        new() { Data = "contactPersonName", Header = "Contact Person", Width = "22%", Align = "left" },
+                        new() { Data = "contactPersonName", Header = "Contact Person", Width = "25%", Align = "left" },
                         new() { Data = "phone", Header = "Phone", Width = "15%" }
                     }
                 })
@@ -159,7 +159,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/branchAddress.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {

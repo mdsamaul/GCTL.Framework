@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.PaymentTerms.PaymentTermsPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.PaymentTerms.PaymentTermsPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -25,7 +25,7 @@
                             ClearBtnClass = "js-paymentterms-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="paymentterms-form" asp-controller="PaymentTerms">
                             <div class="js-paymentterms-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -50,9 +50,9 @@
                     DefaultSortDirection = "desc",
                     Columns = new()
                     {
-                        new() { Data = "paymentTermsId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-paymentterms-edit" },
-                        new() { Data = "paymentTermsName", Header = "Payment Terms Name", Width = "35%"},
-                        new() { Data = "paymentType", Header = "Type", Width = "20%", Align = "left" },
+                        new() { Data = "paymentTermsId", Header = "ID", Width = "7%", IsEditLink = true, EditSelectorClass = "js-paymentterms-edit" },
+                        new() { Data = "paymentTermsName", Header = "Payment Terms Name", Width = "38%"},
+                        new() { Data = "paymentType", Header = "Type", Width = "20%"},
                         new() { Data = "percentise", Header = "Percentage", Width = "15%", Align = "center" },
                         new() { Data = "creditDays", Header = "Credit Days", Width = "15%", Align = "center" }
                     }
@@ -68,7 +68,6 @@
 <partial name="DeleteModal" />
 
 @section Scripts {
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/paymentTerms.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function () {

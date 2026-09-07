@@ -234,10 +234,12 @@ namespace GCTL.Service.Pagination
             // Sorting based on the column and direction
             if (!string.IsNullOrEmpty(sortColumn))
             {
-                var propertyInfo = typeof(TEntity).GetProperty(sortColumn);
+                var propertyInfo = typeof(TEntity).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                                                  .FirstOrDefault(p => p.Name.Equals(sortColumn, StringComparison.OrdinalIgnoreCase));
                 if (propertyInfo != null)
                 {
-                    query = sortOrder.ToLower() == "asc" ? query.OrderBy(e => EF.Property<object>(e, sortColumn)) : query.OrderByDescending(e => EF.Property<object>(e, sortColumn));
+                    string actualSortColumn = propertyInfo.Name;
+                    query = sortOrder.ToLower() == "asc" ? query.OrderBy(e => EF.Property<object>(e, actualSortColumn)) : query.OrderByDescending(e => EF.Property<object>(e, actualSortColumn));
                 }
             }
 

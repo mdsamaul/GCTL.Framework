@@ -109,7 +109,7 @@
                             ClearBtnClass = "js-ExporterInfo-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="ExporterInfo-form" asp-controller="ExporterInfo">
                             <div class="js-ExporterInfo-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -124,8 +124,8 @@
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",
-                    AjaxUrl = "/ExporterInfo/GetAll",
-                    AjaxMethod = "POST",
+                    AjaxUrl = "/ExporterInfo/GetTableData",
+                    AjaxMethod = "GET",
                     ServerSide = false,
                     ShowCheckbox = true,
                     CheckColumnData = "tc",
@@ -135,11 +135,11 @@
                     Columns = new List<GridColumn>
                     {
                         new() { Data = "exporterId", Header = "Exporter Id", Width = "12%", IsEditLink = true, EditSelectorClass = "js-ExporterInfo-edit", IdField = "tc" },
-                        new() { Data = "exporterName", Header = "Name", Width = "23%", Align = "left" },
-                        new() { Data = "exporterAddress", Header = "Address", Width = "17%", Align = "left" },
-                        new() { Data = "phone", Header = "Phone", Width = "17%", Align = "left" },
+                        new() { Data = "exporterName", Header = "Name", Width = "24%", Align = "left" },
+                        new() { Data = "exporterAddress", Header = "Address", Width = "20%", Align = "left" },
+                        new() { Data = "phone", Header = "Phone", Width = "12%", Align = "left" },
                         new() { Data = "website", Header = "Website", Width = "15%", Align = "left" },
-                        new() { Data = "email", Header = "Email", Width = "16%", Align = "left" }
+                        new() { Data = "email", Header = "Email", Width = "17%", Align = "left" }
                     }
                 })
             </div>
@@ -152,8 +152,7 @@
 
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
-
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+@section Scripts{
 <script src="~/js/app.input.validation.js" defer></script>
 <script src="~/js/pages/exporterInfo.js" defer></script>
 <script type="text/javascript">
@@ -167,3 +166,4 @@
         }
     })();
 </script>
+}

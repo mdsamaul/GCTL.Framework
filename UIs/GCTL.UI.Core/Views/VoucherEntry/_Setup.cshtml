@@ -1,46 +1,11 @@
-﻿@using GCTL.UI.Core.ViewModels
+@using GCTL.UI.Core.ViewModels
 
-<div class="card shadow-sm rounded-2">
+<div style="padding-top: 10px;">
 
-    @await Html.PartialAsync("_Toolbars", new ToobarModel
-    {
-        Title = "Voucher Entry",
-        ShowSave = true,
-        SaveBtnId = "VoucherEntrysaveBtn",
-        SaveBtnClass = "js-Voucher-save VoucherEntrysaveBtn",
-        EnableSave = true,
+    <input type="hidden" id="VoucherEntryAutoID" name="autoId" />
 
-        ShowDelete = true,
-        DeleteBtnId = "VoucherEntrydeleteBtn",
-        DeleteBtnClass = "js-Voucher-delete-confirm VoucherEntrydeleteBtn",
-        EnableDelete = true,
-
-        ShowClear = true,
-        ClearBtnId = "btnClear",
-        ClearBtnClass = "js-Voucher-clear VoucherEntryresetBtn",
-        EnableClear = true,
-
-        ShowPrint = true,
-        PrintBtnId = "btnPrint",
-        PrintBtnClass = "printBtn",
-        ExcelBtnClass = "export-excel",
-        PdfBtnClass = "export-pdf",
-        EnablePrint = true,
-
-        ShowFavorite = true,
-        FavtBtnId = "btnFav",
-        FavtBtnClass = "VoucherEntryfavBtn",
-        EnableFavorite = true
-    })
-
-    <div class="card-body">
-        <form id="VoucherEntryForm">
-            <fieldset style="border:1px solid #ccc; padding:5px; border-radius:5px;">
-
-                <input type="hidden" id="VoucherEntryAutoID" name="autoId" />
-
-                @* Main Information Section *@
-                <fieldset class="border rounded-3 p-3 position-relative">
+    @* Main Information Section *@
+    <fieldset class="border rounded-3 p-3 position-relative">
                     <legend class="float-none w-auto px-2 fw-bold"
                             style="font-size: 15px; border: 1px solid #dee2e6; border-radius: 6px; background-color: #f8f9fa;">
                         Main Information
@@ -52,13 +17,16 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6",
+                            ColumnClass = "col-md-6 mt-1",
                             FieldType = FieldType.Select,
                             InputId = "CompanyCode",
                             InputName = "CompanyCode",
                             LabelText = "Company",
+                            ReserveActionSlot = false,
                             Placeholder = "-- Select Company --",
-                            IsRequired = true
+                            IsRequired = true,
+                            // LabelInline=true,
+                            // LabelColumnClass="text-end"
                         })
 
                         @* Branch *@
@@ -66,10 +34,11 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6",
+                            ColumnClass = "col-md-6 mt-1",
                             FieldType = FieldType.Select,
                             InputId = "BranchCode",
                             InputName = "BranchCode",
+                            ReserveActionSlot = false,
                             LabelText = "Branch",
                             Placeholder = "-- Select Branch --",
                             IsRequired = true
@@ -80,10 +49,11 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6",
+                            ColumnClass = "col-md-6 mt-1",
                             FieldType = FieldType.Select,
                             InputId = "VoucherTypeCode",
                             InputName = "VoucherType_Code",
+                            ReserveActionSlot = false,
                             LabelText = "Voucher Type",
                             Placeholder = "-- Select Voucher Type --",
                             IsRequired = true
@@ -94,12 +64,12 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6",
-                            FieldType = FieldType.Text,
+                            ColumnClass = "col-md-6 mt-1",
+                            FieldType = FieldType.Date,
                             InputId = "VoucherDate",
                             InputName = "VoucherDate",
+                            ReserveActionSlot = false,
                             LabelText = "Voucher Date",
-                            Placeholder = "Voucher Date",
                             IsRequired = true
                         })
 
@@ -108,10 +78,11 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-6",
+                            ColumnClass = "col-md-6 mt-1",
                             FieldType = FieldType.Text,
                             InputId = "VoucherNo",
                             InputName = "VoucherNo",
+                            ReserveActionSlot = false,
                             LabelText = "Voucher No",
                             Placeholder = "Voucher No",
                             IsRequired = true,
@@ -123,11 +94,12 @@
                         {
                             IsVisible = true,
                             ShowOnInit = true,
-                            ColumnClass = "col-md-12",
+                            ColumnClass = "col-md-12 mt-1",
                             FieldType = FieldType.Textarea,
                             InputId = "Narration",
                             InputName = "Narration",
                             LabelText = "Narration",
+                            ReserveActionSlot = false,
                             Placeholder = "Narration",
                             IsRequired = true,
                             Rows = 2
@@ -148,42 +120,49 @@
                     <div class="row g-3">
 
                         @* Tr. Type *@
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
                                 ShowOnInit = true,
                                 ColumnClass = "",
+                                JsEventClass = "custom-select-single",
                                 FieldType = FieldType.Select,
                                 InputId = "TrType",
+                                ReserveActionSlot = false,
                                 InputName = "TrType",
                                 LabelText = "Select Tr. Type",
                                 Placeholder = "Select Tr. Type",
-                                IsRequired = true
+                                IsRequired = true,
+                                SelectItems = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>
+                                {
+                                    new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Text = "Dr", Value = "Dr" },
+                                    new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Text = "Cr", Value = "Cr" }
+                                }, "Value", "Text")
                             })
                         </div>
-                        <div class="col-md-6"></div>
+                        <div class="col-md-6 mt-1"></div>
 
                         @* Ledger Section (hidden by default) *@
-                        <div class="col-md-6" style="display:none;">
+                        <div class="col-md-6 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Group Ledger :</span>
                                 <span class="ledger-value" id="GroupLedgerValue"></span>
                             </div>
                         </div>
-                        <div class="col-md-6" style="display:none;">
+                        <div class="col-md-6 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Control Ledger :</span>
                                 <span class="ledger-value" id="ControlLedgerValue"></span>
                             </div>
                         </div>
-                        <div class="col-md-6" style="display:none;">
+                        <div class="col-md-6 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Sub-Control Ledger :</span>
                                 <span class="ledger-value" id="SubControlLedgerValue"></span>
                             </div>
                         </div>
-                        <div class="col-md-6" style="display:none;">
+                        <div class="col-md-6 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Sub-Sidiary Ledger :</span>
                                 <span class="ledger-value" id="SubSidiaryLedgerValue"></span>
@@ -191,13 +170,15 @@
                         </div>
 
                         @* Account Head *@
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
                                 ShowOnInit = true,
                                 ColumnClass = "",
+                                JsEventClass = "custom-select-single",
                                 FieldType = FieldType.Select,
+                                ReserveActionSlot = false,
                                 InputId = "AccCode",
                                 InputName = "AccCode",
                                 LabelText = "Account Head",
@@ -205,10 +186,10 @@
                                 IsRequired = true
                             })
                         </div>
-                        <div class="col-md-6"></div>
+                        <div class="col-md-6 mt-1"></div>
 
                         @* Description *@
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -216,6 +197,7 @@
                                 ColumnClass = "",
                                 FieldType = FieldType.Text,
                                 InputId = "Description",
+                                ReserveActionSlot = false,
                                 InputName = "Description",
                                 LabelText = "Description",
                                 Placeholder = "Description",
@@ -224,7 +206,7 @@
                         </div>
 
                         @* Amount *@
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -233,6 +215,7 @@
                                 FieldType = FieldType.Number,
                                 InputId = "Amount",
                                 InputName = "Amount",
+                                ReserveActionSlot = false,
                                 LabelText = "Amount",
                                 Placeholder = "Amount",
                                 IsRequired = true
@@ -240,7 +223,7 @@
                         </div>
 
                         @* Cheque No *@
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
@@ -248,6 +231,7 @@
                                 ColumnClass = "",
                                 FieldType = FieldType.Text,
                                 InputId = "ChequeNo",
+                                ReserveActionSlot = false,
                                 InputName = "ChequeNo",
                                 LabelText = "Cheque No",
                                 Placeholder = "Enter Cheque No"
@@ -255,22 +239,24 @@
                         </div>
 
                         @* Cheque Date *@
-                        <div class="col-md-6">
+                        <div class="col-md-6 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 IsVisible = true,
                                 ShowOnInit = true,
                                 ColumnClass = "",
                                 FieldType = FieldType.Date,
+                                ReserveActionSlot = false,
                                 InputId = "ChequeDate",
+                                Placeholder="dd/mm/yyyy",
                                 InputName = "ChequeDate",
                                 LabelText = "Cheque Date"
                             })
                         </div>
 
                         @* Details Button Group *@
-                        <div class="row">
-                            <div class="col-12">
+                        <div class="row pe-0">
+                            <div class="col-12 pe-0">
                                 <div class="details-icon-group">
                                     <button type="button" id="AddDetails" data-tooltip="Add" class="icon-btn add">
                                         <i class="fas fa-plus"></i>
@@ -288,34 +274,36 @@
                         </div>
 
                         @* Details Table *@
-                        <div class="row">
-                            <div class="col-12 table-responsive">
-                                <table class="table table-bordered table-striped voucher-entry-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 5%; text-align:center;">Select</th>
-                                            <th style="width: 15%; text-align:center;" data-column="AccCode">Acc. Code</th>
-                                            <th style="width: 30%; text-align:center;" data-column="AccountHeadName">Account Head</th>
-                                            <th style="width: 20%; text-align:center;" data-column="Description">Description</th>
-                                            <th style="width: 15%; text-align:center;" data-column="DebitAmount">Debit</th>
-                                            <th style="width: 15%; text-align:center;" data-column="CreditAmount">Credit</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="4" class="text-end fw-bold">Total</td>
-                                            <td class="fw-bold">0.00</td>
-                                            <td class="fw-bold">0.00</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <small class="text-muted"></small>
+                        <div class="row pe-0">
+                            <div class="col-12 table-responsive pe-0">
+                                @await Html.PartialAsync("_CustomGrid", new GridModel
+                                {
+                                    GridId = "VoucherEntryTempGrid",
+                                    AjaxUrl = Url.Action("GetAllTmpVoucherDetails", "VoucherDetails") ?? "/VoucherDetails/all-tmp-voucher-details",
+                                    ServerSide = false,
+                                    ShowCheckbox = true,
+                                    ShowActionMenu = false,
+                                    CheckColumnData = "autoId",
+                                    Columns = new List<GridColumn>
+                                    {
+                                        new GridColumn { Data = "accCode", Header = "Acc. Code", Align = "center", Width = "15%", IsEditLink = true, IdField = "autoId", EditSelectorClass = "js-grid-edit" },
+                                        new GridColumn { Data = "accountHead", Header = "Account Head", Width = "20%" },
+                                        new GridColumn { Data = "description", Header = "Description", Width = "20%" },
+                                        new GridColumn { Data = "debitAmount", Header = "Debit", Align = "right", Width = "15%" },
+                                        new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "15%" },
+                                        new GridColumn { Data = "autoId", Header = "Action", Align = "center", Width = "20%", RenderFn = "voucherActionButtons", Sortable = false, Searchable = false }
+                                    }
+                                })
+                                <div class="row mt-2 mx-0" style="background-color: #f8f9fa; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+                                    <div class="col-md-6 offset-md-1 text-end fw-bold">Total :</div>
+                                    <div class="col-md-2 text-end fw-bold" id="TotalDrValue">0.00</div>
+                                    <div class="col-md-2 text-end fw-bold" id="TotalCrValue">0.00</div>
+                                </div>
                             </div>
                         </div>
 
                     </div>
                 </fieldset>
-
                 <hr class="my-4 mx-2">
 
                 @* Entry / Update Date Section *@
@@ -324,12 +312,13 @@
                     {
                         IsVisible = true,
                         ShowOnInit = true,
-                        ColumnClass = "col-md-6",
+                        ColumnClass = "col-md-6 mt-1",
                         FieldType = FieldType.ReadonlyDisplay,
                         InputId = "EntryDate",
                         LabelText = "Entry Date:",
                         LabelInline = true,
                         LabelColWidth = 4,
+                        ReserveActionSlot = false,
                         LabelColumnClass = "text-end",
                         LabelStyle = "font-size:13px;",
                         InputStyle = "font-size:13px;"
@@ -339,11 +328,12 @@
                     {
                         IsVisible = true,
                         ShowOnInit = true,
-                        ColumnClass = "col-md-6",
+                        ColumnClass = "col-md-6 mt-1",
                         FieldType = FieldType.ReadonlyDisplay,
                         InputId = "UpdateDate",
                         LabelText = "Last Update Date:",
                         LabelInline = true,
+                        ReserveActionSlot = false,
                         LabelColWidth = 4,
                         LabelColumnClass = "text-end",
                         LabelStyle = "font-size:13px;",
@@ -357,6 +347,7 @@
                     {
                         Title = "",
                         ShowClear = false,
+            SaveBtnClass = "js-VoucherEntry-save",
                         ShowDelete = false,
                         ShowPrint = false,
                         ShowFavorite = false,
@@ -367,7 +358,5 @@
                     })
                 </div>
 
-            </fieldset>
-        </form>
     </div>
 </div>

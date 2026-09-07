@@ -42,6 +42,10 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'TransportModeType-grid' });
+            }
+
 
             loadTable();
 
@@ -299,19 +303,9 @@
 
         //#region loadTable
         function loadTable() {
-            $("#TransportModeType-grid tbody").empty();
-            return $.gctlGrid.init({
-                gridSelector: '#TransportModeType-grid',
-                ajaxUrl: settings.baseUrl + "/GetTableData",
-                checkAllSelector: "#js-TransportModeType-checkall",
-                checkBoxClass: "checkBox",
-                columns: [
-                    $.gctlGrid.checkboxColumn("transportModeId", "checkBox"),
-                    $.gctlGrid.editLinkColumn("transportModeId", "js-TransportModeType-edit"),
-                    { data: "transportMode", className: "text-center text-middle" },
-                    { data: "shortName", className: "text-center text-middle" },
-                ]
-            });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         //#endregion

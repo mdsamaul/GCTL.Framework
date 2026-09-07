@@ -67,7 +67,7 @@
                             ClearBtnClass = "js-ClientInformationEntry-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="ClientInformationEntry-form" asp-controller="ClientInformationEntry">
                             <div class="js-ClientInformationEntry-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -93,10 +93,10 @@
                     Columns = new()
                     {
                         new() { Data = "clientId", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-ClientInformationEntry-edit" },
-                        new() { Data = "clientName", Header = "Client Name", Width = "30%"},
-                        new() { Data = "phone", Header = "Phone", Width = "14%"},
+                        new() { Data = "clientName", Header = "Client Name", Width = "30%", Align = "left"},
+                        new() { Data = "phone", Header = "Phone", Width = "13%"},
                         new() { Data = "email", Header = "Email", Width = "20%"},
-                        new() { Data = "clientAddress", Header = "Address", Width = "30%"}
+                        new() { Data = "clientAddress", Header = "Address", Width = "31%"}
                     }
                 })
             </div>
@@ -110,7 +110,6 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
 <script src="~/js/app.input.validation.js" defer></script>
 <script src="~/js/pages/clientInformationEntry.js" defer></script>
 <script type="text/javascript">

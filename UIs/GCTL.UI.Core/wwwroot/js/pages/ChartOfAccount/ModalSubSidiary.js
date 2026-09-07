@@ -1,17 +1,17 @@
-﻿let selectedModalSubSidiaryLedger = [];
-let ModalcurrenSubSidiarytPage = 1;
-let ModalSubSidiarypageSize = 10;
-let ModalSubSidiarycurrentSortColumn = 'SusidiaryLedgerCodeNo';
-let ModalSubSidiarycurrentSortDirection = 'desc';
-let ModalisEditModeSubSidiary = false;
+var selectedModalSubSidiaryLedger = [];
+var ModalcurrenSubSidiarytPage = 1;
+var ModalSubSidiarypageSize = 10;
+var ModalSubSidiarycurrentSortColumn = 'SubSidiaryLedgerCodeNo';
+var ModalSubSidiarycurrentSortDirection = 'desc';
+var ModalisEditModeSubSidiary = false;
 
 // Selected dropdown values (used for reload, pagination, sorting)
-let ModalselectedGroupCodeSSL = "";
-let ModalselectedControlCodeSSL = "";
-let ModalselectedSubControlCodeSSL = "";
+var ModalselectedGroupCodeSSL = "";
+var ModalselectedControlCodeSSL = "";
+var ModalselectedSubControlCodeSSL = "";
 
 // Helper: Bangladesh Local Date & Time Formatter
-function getBangladeshDateTime() {
+window.getBangladeshDateTime = window.getBangladeshDateTime || function() {
     return new Date().toLocaleString('en-GB', {
         day: '2-digit',
         month: '2-digit',
