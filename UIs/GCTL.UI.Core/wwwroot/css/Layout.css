@@ -1,4 +1,4 @@
-﻿.choices.is-disabled .choices__inner, .choices.is-disabled .choices__input {
+.choices.is-disabled .choices__inner, .choices.is-disabled .choices__input {
     background: #eff2f6 !important
 }
 
@@ -99,7 +99,7 @@ select.form-control-sm:disabled {
 }
 
 .dropdown-item {
-    font-size: .750rem;
+    font-size: 12.5px;
 }
 
     .dropdown-item:hover {
@@ -118,13 +118,13 @@ table.dataTable.table-sm > thead > tr > th {
 }
 .form-control-sm,
 .form-select-sm {
-    font-size: 0.82rem;
+    font-size: 13px;
 }
 
 label , .form-label {
-    font-size: 0.75rem !important;
-    font-weight: 450 !important;
-    color: #000 !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
     margin-bottom: 2px !important;
 }
 

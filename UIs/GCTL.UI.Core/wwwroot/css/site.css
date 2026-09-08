@@ -81,7 +81,7 @@ body {
     margin: 0;
     font-family: 'Nunito', sans-serif !important;
     font-style: normal;
-    font-size: 16px;
+    font-size: 14px;
     background-color: var(--bg-app);
     color: var(--text-main);
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -113,14 +113,21 @@ textarea {
 /* Responsive Font Sizing & Sidebar Width: for screen resolutions 1400px and below */
 @media (max-width: 1400px) {
     :root {
-        --sidebar-width-expanded: 190px;
+        --sidebar-width-expanded: 200px;
         --sidebar-width-collapsed: 60px;
     }
 
     html,
-    body,
-    p, span, div, a, label, table, th, td, button {
+    body {
+        font-size: 13.5px;
+    }
+
+    p, span, div, a, table, th, td, button {
         font-size: 13px;
+    }
+
+    label, .form-label {
+        font-size: 12px !important;
     }
 
     .app-sidebar > .sidebar-menu {
@@ -295,8 +302,8 @@ textarea {
 
 .sidebar-menu-scroll {
     flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
     .sidebar-logo i {
@@ -338,10 +345,9 @@ textarea {
 
 .app-sidebar > .sidebar-menu,
 .sidebar-menu-scroll > .sidebar-menu {
-    flex: 1 1 0;
-    padding: 16px 8px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 1 1 auto;
+    padding: 10px 8px 40px 8px;
+    overflow: visible !important;
 }
 
 .sidebar-footer {
@@ -499,6 +505,49 @@ textarea {
     display: none !important;
 }
 
+/* -----------------------------------------------------------------
+   Left Menu Hierarchy & Submenu Indentation (Tree Guide Line)
+   ----------------------------------------------------------------- */
+.app-sidebar:not(.collapsed) .accordion-submenu {
+    margin-left: 14px;
+    padding-left: 6px;
+    border-left: 1.5px solid #e2e8f0;
+    margin-top: 2px;
+    margin-bottom: 3px;
+}
+
+.app-sidebar:not(.collapsed) .menu-item.active > .accordion-submenu {
+    border-left-color: #cbd5e1;
+}
+
+/* 2nd Level Child (Nested Submenu) */
+.app-sidebar:not(.collapsed) .accordion-submenu .accordion-submenu {
+    margin-left: 10px;
+    padding-left: 6px;
+    border-left: 1.5px dashed #cbd5e1;
+}
+
+/* Child Menu Item Link Styling */
+.app-sidebar:not(.collapsed) .accordion-submenu .menu-link {
+    padding: 5px 8px !important;
+    font-size: 12.5px;
+    gap: 8px;
+    border-radius: 5px;
+    color: #475569;
+}
+
+.app-sidebar:not(.collapsed) .accordion-submenu .menu-link:hover {
+    color: #0b63ce !important;
+    background-color: rgba(11, 99, 206, 0.06) !important;
+}
+
+.app-sidebar:not(.collapsed) .accordion-submenu .menu-link .menu-item-icon {
+    font-size: 0.5rem !important;
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
+}
+
 .app-sidebar.collapsed .sidebar-menu-wrapper,
 .app-sidebar.collapsed .sidebar-menu-scroll {
     overflow: visible !important;
@@ -521,20 +570,26 @@ textarea {
     border-left: 3.5px solid #0b63ce !important;
 }
 
-/* Direct active child leaf link - 13% opacity (5% higher than parent) */
+/* Direct active child leaf link (বর্তমানে যে পেজে আছেন - একদম স্পষ্ট হাইলাইট) */
 .menu-item .menu-link.active,
-.menu-item.direct-active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.13) !important;
-    color: var(--primary) !important;
-    font-weight: 600;
+.menu-item.direct-active > .menu-link,
+.accordion-submenu .menu-item.direct-active > .menu-link {
+    background-color: #e8f1fd !important;
+    color: #0b63ce !important;
+    font-weight: 600 !important;
+    border-left: 3.5px solid #0b63ce !important;
+    border-radius: 0 6px 6px 0 !important;
+    padding-left: 8px !important;
     box-shadow: none !important;
 }
 
 .menu-item .menu-link.active i,
 .menu-item.direct-active > .menu-link i,
+.accordion-submenu .menu-item.direct-active > .menu-link i,
 .menu-item .menu-link.active .menu-arrow,
 .menu-item.direct-active > .menu-link .menu-arrow {
-    color: var(--primary) !important;
+    color: #0b63ce !important;
+    opacity: 1 !important;
 }
 
 .menu-text {
@@ -544,6 +599,14 @@ textarea {
 }
 
 /* Dark mode overrides */
+:root[data-theme="dark"] .accordion-submenu {
+    border-left-color: #1f2937;
+}
+
+:root[data-theme="dark"] .accordion-submenu .menu-link {
+    color: var(--text-sidebar);
+}
+
 :root[data-theme="dark"] .menu-item a,
 :root[data-theme="dark"] .menu-item .menu-link {
     color: var(--text-sidebar);
@@ -556,9 +619,11 @@ textarea {
 }
 
 :root[data-theme="dark"] .menu-item .menu-link.active,
-:root[data-theme="dark"] .menu-item.direct-active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.2) !important;
-    color: var(--primary) !important;
+:root[data-theme="dark"] .menu-item.direct-active > .menu-link,
+:root[data-theme="dark"] .accordion-submenu .menu-item.direct-active > .menu-link {
+    background-color: rgba(37, 99, 235, 0.22) !important;
+    color: #60a5fa !important;
+    border-left-color: #3b82f6 !important;
 }
 
 
