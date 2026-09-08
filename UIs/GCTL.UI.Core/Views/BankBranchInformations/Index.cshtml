@@ -102,7 +102,7 @@
                             ClearBtnClass = "js-bankbranchinformation-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="bankbranchinformation-form" asp-controller="BankBranchInformations">
                             <div class="js-bankbranchinformation-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -145,17 +145,17 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/bankBranchInformations.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.bankBranchInformations === "function") {
-            var options = { baseUrl: '@Url.Action("", "BankBranchInformations")' };
-            options.load = () => { };
-            $.bankBranchInformations(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/bankBranchInformations.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.bankBranchInformations === "function") {
+                var options = { baseUrl: '@Url.Action("", "BankBranchInformations")' };
+                options.load = () => { };
+                $.bankBranchInformations(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+

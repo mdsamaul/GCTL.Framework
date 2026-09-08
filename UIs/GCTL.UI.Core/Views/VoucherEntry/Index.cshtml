@@ -1,4 +1,8 @@
-﻿<style>
+﻿@{
+    ViewBag.Title = "Voucher Entry";
+}
+
+<style>
     .form-floating .selectLabel {
         font-size: 14px !important;
     }
@@ -43,15 +47,14 @@
     }
 
     .row.border {
-        border: 1px solid #ddd; /* Light border color */
-        border-radius: 5px; /* Optional: rounded corners for the border */
+        border: 1px solid #ddd;
+        border-radius: 5px;
         padding: 10px;
     }
 
     .btn-sm {
-        margin-top: 8px; /* tweak as needed for exact vertical match */
+        margin-top: 8px;
     }
-
 
     .ledger-row {
         display: flex;
@@ -60,7 +63,7 @@
     }
 
     .ledger-label {
-        width: 170px; /* fixed width for label so all colons align */
+        width: 170px;
         text-align: right;
         padding-right: 10px;
         font-weight: bold;
@@ -73,19 +76,19 @@
     .details-icon-group {
         display: flex;
         justify-content: flex-end;
-        gap: 15px; /* Space between icons */
-        margin-top: 10px; /* Space from Cheque Date field */
-        margin-bottom: 20px; /* Space before the table starts */
+        gap: 15px;
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
 
         .details-icon-group i {
             font-size: 30px;
             cursor: pointer;
-            color: #6c757d; /* Default icon color */
+            color: #6c757d;
         }
-    /* Style for the table to match the look */
+
     .voucher-entry-table thead th {
-        background-color: #f8f9fa; /* Light background for header */
+        background-color: #f8f9fa;
         font-size: 13px;
         padding: 8px;
     }
@@ -117,7 +120,7 @@
     }
 
     .tmp-details {
-        display: inline-flex; /* inline-flex keeps button inline */
+        display: inline-flex;
     }
 
     .details-icon-group {
@@ -125,7 +128,6 @@
         gap: 10px;
     }
 
-    /* Details button style */
     .icon-btn {
         width: 38px;
         height: 38px;
@@ -137,20 +139,18 @@
         cursor: pointer;
         box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         transition: 0.2s;
+        position: relative;
     }
 
-        /* Hover */
         .icon-btn:hover {
             background: #e3e3e3;
             transform: translateY(-2px);
         }
 
-        /* Active */
         .icon-btn:active {
             transform: scale(0.95);
         }
 
-        /* Specific colors */
         .icon-btn.add {
             color: #1B873F;
         }
@@ -162,12 +162,7 @@
         .icon-btn.refresh {
             color: #0A6BE7;
         }
-/* Details button Tooltrip */
-    .icon-btn {
-        position: relative;
-    }
 
-        /* Tooltip box */
         .icon-btn::after {
             content: attr(data-tooltip);
             position: absolute;
@@ -186,7 +181,6 @@
             z-index: 99;
         }
 
-        /* Tooltip arrow */
         .icon-btn::before {
             content: "";
             position: absolute;
@@ -201,17 +195,15 @@
             z-index: 98;
         }
 
-        /* Show tooltip on hover */
         .icon-btn:hover::after,
         .icon-btn:hover::before {
             opacity: 1;
         }
-/* main grid button tooltrip */
+
     .tooltip-btn {
         position: relative;
     }
 
-        /* Tooltip box */
         .tooltip-btn::after {
             content: attr(data-tooltip);
             position: absolute;
@@ -230,7 +222,6 @@
             z-index: 999999;
         }
 
-        /* Tooltip arrow */
         .tooltip-btn::before {
             content: "";
             position: absolute;
@@ -245,38 +236,91 @@
             z-index: 999999;
         }
 
-        /* Hover effect */
         .tooltip-btn:hover::after,
         .tooltip-btn:hover::before {
             opacity: 1;
         }
 
     #Narration {
-        resize: none; /* User cannot resize */
+        resize: none;
     }
-
-
 </style>
 
-<div class="row">
-    <div class="col-md-12">
-        <div id="VoucherFormView">
-            @await Html.PartialAsync("~/Views/VoucherEntry/_VoucherEntryForm.cshtml")
-        </div>
-    </div>
+<!-- Content Header (Page header) -->
 
-    <div class="col-md-12 mt-3">
-        <div id="VoucherListView">
-            @await Html.PartialAsync("~/Views/VoucherEntry/_VoucherEntryList.cshtml")
+<section class="content consistent-look container-fuild" style="
+    margin-left: 0px;
+    padding-left: 0px;
+    ">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Top Setup Form Column -->
+            <div class="col-md-12">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Voucher Entry",
+                            SaveBtnClass = "js-VoucherEntry-save",
+                            DeleteBtnClass = "js-VoucherEntry-delete-confirm",
+                            ClearBtnClass = "js-VoucherEntry-clear",
+                            ShowPrint = true,
+                            PrintBtnId = "btnPrint",
+                            PrintBtnClass = "printBtn",
+                            ExcelBtnClass = "export-excel",
+                            PdfBtnClass = "export-pdf",
+                            EnablePrint = true
+                        })
+                    </div>
+                    <div class="card-body px-4 py-3">
+                        <form asp-action="Setup" method="post" id="VoucherEntry-form" asp-controller="VoucherEntry">
+                            <div class="js-VoucherEntry-form-container">
+                                <partial name="_Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Table Grid Column -->
+            <div class="col-md-12">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "voucherEntryTable",
+                    AjaxUrl = "/VoucherEntry/GetTableData",
+                    AjaxMethod = "POST",
+                    ServerSide = true,
+                    ShowCheckbox = true,
+                    CheckColumnData = "autoId",
+                    CheckAllId = "VoucherEntry-check-all",
+                    DefaultSortColumn = "VoucherDate",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "voucherNo", Header = "Voucher No.", Width = "15%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId" },
+                        new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "7%"},
+                        new() { Data = "narration", Header = "Narration", Width = "33%"},
+                        new() { Data = "branchName", Header = "Branch", Width = "16%"},
+                        new() { Data = "amount", Header = "Amount", Width = "13%"},
+                        new() { Data = "invoiceNo", Header = "Invoice No", Width = "16%"}
+                    }
+                })
+            </div>
+
         </div>
+
+        <partial name="_BottomNavigation" />
     </div>
-</div>
+</section>
+
+<partial name="DeleteModal" />
 
 @section Scripts {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-    <script src="~/js/pages/VoucherEntry/VoucherEntry.js"></script>
-    <script src="~/js/pages/VoucherEntry/DetailsVoucher.js"></script>
-
+    <script src="~/js/app.input.validation.js" asp-append-version="true"></script>
+    <script src="~/js/pages/VoucherEntry/VoucherEntry.js" asp-append-version="true"></script>
+    <script src="~/js/pages/VoucherEntry/DetailsVoucher.js" asp-append-version="true"></script>
+    <script>
+        // No plugin initialization needed; VoucherEntry.js binds globally on ready.
+    </script>
 }

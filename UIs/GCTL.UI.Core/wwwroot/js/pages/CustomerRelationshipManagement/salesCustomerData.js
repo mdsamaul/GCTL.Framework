@@ -19,7 +19,7 @@ function setupEventListeners() {
     $("#salesCustomer-resetBtn").on('click', resetCustomerForm);
 
     // Save Button
-    $('#salesCustomer-btnSave').on('click', saveCustomer);
+    $('#salesCustomer-btnSave, #salesCustomer-btnSave-bottom, .js-salescustomer-save').on('click', saveCustomer);
 
     // Delete Button (Triggers modal)
     $('#salesCustomer-btnDelete, #salesCustomer-btnBulkDelete').on('click', function (e) {

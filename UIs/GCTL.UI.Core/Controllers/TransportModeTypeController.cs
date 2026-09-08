@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.TransportModeType;
 using GCTL.Service.Common;
@@ -204,13 +204,12 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                var list = await modeTypeService.GetAllAsync();
-                return Json(list);
-                //return PartialView("_Grid", list);
+                var list = await modeTypeService.GetAllAsync() ?? new List<TransportModeTypeSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<TransportModeTypeSetupViewModel>(), error = ex.Message });
             }
         }
 

@@ -5,15 +5,6 @@
 }
 
 <style>
-    .dataTables_scrollBody > table > thead > tr > th {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    .dataTables_filter {
-        margin-right: 0;
-    }
-
     #accessListTable_wrapper .dataTables_filter {
         float: none;
         text-align: left;
@@ -131,7 +122,7 @@
     .menuTableWrapper thead th {
         background: #f8f9fb;
         font-size: .78rem;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         letter-spacing: .4px;
         color: #6c757d;
         border-bottom: 2px solid #eef0f2;
@@ -157,13 +148,6 @@
         .access-id-btn:hover {
             text-decoration: underline !important;
         }
-
-    #accessListTable thead th {
-        background: #f8f9fb;
-        font-size: .78rem;
-        text-transform: uppercase;
-        color: #6c757d;
-    }
 </style>
 
 <section class="container-fluid col-md-12">
@@ -272,8 +256,6 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card gc-card">
-                <div class="card-body p-1 pt-1">
                     <div class="js-accesscode-grid-container">
                         @await Html.PartialAsync("_CustomGrid", new GridModel
                         {
@@ -285,12 +267,10 @@
                             CheckColumnData = "accessCodeId",
                             Columns = new()
                             {
-                                new() { Data = "accessCodeId", Header = "ID", Width = "30%", IsEditLink = true, EditSelectorClass = "access-id-btn", Align = "center" },
+                                new() { Data = "accessCodeId", Header = "Id", Width = "30%", IsEditLink = true, EditSelectorClass = "access-id-btn", Align = "center" },
                                 new() { Data = "accessCodeName", Header = "Name", Width = "70%", Align = "left" }
                             }
                         })
-                    </div>
-                </div>
             </div>
         </div>
     </div>

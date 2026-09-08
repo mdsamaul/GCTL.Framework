@@ -1,4 +1,5 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Service.OpeningBalance;
 using GCTL.Service.VoucherEntry;
@@ -52,7 +53,7 @@ namespace GCTL_App.Controllers.VoucherEntry
         [Route("check-debit-credit")]
         public async Task<IActionResult> CheckDebitCredit()
         {
-           string ? currentUserId = LoginInfo?.EmployeeId;
+           string ? currentUserId = LoginInfo?.Username;
 
             var isValid = await _service.IsDebitCreditEqualAsync(currentUserId.ToString());
 
@@ -75,6 +76,7 @@ namespace GCTL_App.Controllers.VoucherEntry
             {
                 if (model == null)  return BadRequest(new { message = "Voucher Code No  is Required." });
 
+                model.ToAudit(LoginInfo);
                 var result = await _service.SaveAsync(model);
 
 
@@ -93,13 +95,13 @@ namespace GCTL_App.Controllers.VoucherEntry
         [Route("voucher-entry/{id}")]
         public async Task<IActionResult> Edit(int id, [FromBody] VoucherEntryVM model)
         {
-            try { 
+            try {
             if (model == null || id != model.autoId) return BadRequest(new { message = "Data Is Invalid." });
 
             var typeExists = await _service.IsExistAsync(id);
             if (!typeExists)
                 return NotFound(new { message = $"Voucher Entry with ID {id} Not Found." });
-
+                model.ToAudit(LoginInfo);
             var result = await _service.UpdateAsync(model);
 
             if (!result)
@@ -136,6 +138,27 @@ namespace GCTL_App.Controllers.VoucherEntry
 
 
         #region Get All Voucher Entry
+
+        [HttpPost]
+        [Route("VoucherEntry/GetTableData")]
+        public async Task<IActionResult> GetTableData(int pageNumber = 1, int pageSize = 10, string sortColumn = "VoucherDate", string sortOrder = "desc", string searchTerm = "")
+        {
+            try
+            {
+                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder, null, null);
+
+                if (result.Data == null || !result.Data.Any())
+                {
+                    return Ok(new { data = new List<VoucherEntryVM>(), recordsTotal = 0, recordsFiltered = 0 });
+                }
+
+                return Ok(new { data = result.Data, recordsTotal = result.TotalCount, recordsFiltered = result.TotalCount });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { data = new List<VoucherEntryVM>(), recordsTotal = 0, recordsFiltered = 0, message = "An Error Occurred.", error = ex.Message });
+            }
+        }
 
         [HttpGet]
         [Route("entry-voucher-list")]
@@ -223,12 +246,12 @@ namespace GCTL_App.Controllers.VoucherEntry
         [HttpPost("details-copied-tmptable/{id}")]
         public async Task<IActionResult> CopyDetailsToTmp([FromRoute] decimal id)
         {
-            string currentUserId = LoginInfo?.EmployeeId;
+            string currentUserId = LoginInfo?.Username;
 
             int.TryParse(currentUserId, out int employeeId);
             try
             {
-                var success = await _service.DetailsCopiedToTmp(id, employeeId);
+                var success = await _service.DetailsCopiedToTmp(id, currentUserId);
 
                 if (success)
                     return Ok(new { success = true, message = "Details copied to temp table successfully" });
@@ -281,7 +304,7 @@ namespace GCTL_App.Controllers.VoucherEntry
                 var data = await _service.DeleteAsync(employeeId);
 
                     return Json(new { success = true, message = "Data Deleted Succssfully" });
-                
+
             }
             catch(Exception ex)
             {
@@ -328,7 +351,7 @@ namespace GCTL_App.Controllers.VoucherEntry
             var data = await _voucherReportService.GetVoucherPreviewDataAsync(idList);
 
             var pdfBytes = GenerateVoucherPdf(data);
-            return File(pdfBytes, "application/pdf"); 
+            return File(pdfBytes, "application/pdf");
         }
 
         #endregion
@@ -343,7 +366,7 @@ namespace GCTL_App.Controllers.VoucherEntry
             var data = await _voucherReportService.GetVoucherPreviewDataAsync(idList);
 
             var pdfBytes = GenerateVoucherPdf(data);
-            return File(pdfBytes, "application/pdf", "Voucher.pdf"); 
+            return File(pdfBytes, "application/pdf", "Voucher.pdf");
         }
 
         #endregion
@@ -562,7 +585,7 @@ namespace GCTL_App.Controllers.VoucherEntry
                 PdfFont companyfont = PdfFontFactory.CreateFont(StandardFonts.TIMES_BOLDITALIC);
                 // PdfFont addressfont = PdfFontFactory.CreateFont(StandardFonts.COURIER);
 
-                // Footer             
+                // Footer
                 var footerHandler = new PdfPrintDateHandler(font);
                 pdf.AddEventHandler(PdfDocumentEvent.END_PAGE, footerHandler);
 
@@ -590,8 +613,8 @@ namespace GCTL_App.Controllers.VoucherEntry
                         .SetTextAlignment(TextAlignment.CENTER)
                         .SetMarginBottom(10));
 
-                    float labelWidth = 30f; 
-                    float valueWidth = 70f; 
+                    float labelWidth = 30f;
+                    float valueWidth = 70f;
 
                     Table voucherDetailsTable = new Table(UnitValue.CreatePointArray(new float[] { labelWidth, valueWidth })).UseAllAvailableWidth();
                     voucherDetailsTable.SetBorder(iText.Layout.Borders.Border.NO_BORDER);
@@ -677,7 +700,7 @@ namespace GCTL_App.Controllers.VoucherEntry
                     table.AddCell(wordsCell);
 
                     document.Add(table);
-                 
+
                     document.Add(new Paragraph("\n \n"));
 
                     //Signature Block

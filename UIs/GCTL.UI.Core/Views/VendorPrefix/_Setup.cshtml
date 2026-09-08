@@ -26,7 +26,7 @@
             LabelText = "ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-VendorPrifixId-code",
             DefaultValue = Model?.VendorPrifixId
@@ -44,6 +44,7 @@
             Placeholder = "Enter Prifix Name",
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             CustomCssClass = "js-PrifixName-check-duplicateName",
             DefaultValue = Model.PrifixName,
             AutoFocus = true
@@ -57,6 +58,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.ShortName
         })
     </div>
@@ -103,7 +105,7 @@
             IsPlain = true,
             SaveBtnClass = "js-VendorPrefix-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
+           Style="border-bottom:0px !important;"
         })
     </div>
 </div>

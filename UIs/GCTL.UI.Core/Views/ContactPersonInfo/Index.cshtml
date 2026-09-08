@@ -1,10 +1,86 @@
-﻿@model GCTL.UI.Core.ViewModels.ContactPersonInfo.ContactPersonInfoPageViewModel
+@model GCTL.UI.Core.ViewModels.ContactPersonInfo.ContactPersonInfoPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
     ViewBag.Title = "Contact Person Info";
     Model.Breadcrumb = "Contact Person Info";
 }
+
+<style>
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .cpi-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .cpi-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .cpi-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .cpi-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .cpi-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cpi-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cpi-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cpi-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .cpi-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .cpi-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .cpi-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .cpi-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
 
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
@@ -13,8 +89,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 cpi-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -22,10 +98,11 @@
                             Title = "Contact Person Info",
                             SaveBtnClass = "js-ContactPersonInfo-save",
                             DeleteBtnClass = "js-ContactPersonInfo-delete-confirm",
-                            ClearBtnClass = "js-ContactPersonInfo-clear"
+                            ClearBtnClass = "js-ContactPersonInfo-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="ContactPersonInfo-form" asp-controller="ContactPersonInfo">
                             <div class="js-ContactPersonInfo-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -35,11 +112,11 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                 {
-                    GridId = "contactPersonInfoTable",
+                    GridId = "ContactPersonInfo-grid",
                     AjaxUrl = "/ContactPersonInfo/GetTableData",
                     AjaxMethod = "GET",
                     ServerSide = false,
@@ -50,11 +127,11 @@
                     DefaultSortDirection = "desc",
                     Columns = new()
                     {
-                        new() { Data = "cpid", Header = "ID", Width = "11%", IsEditLink = true, EditSelectorClass = "js-ContactPersonInfo-edit" },
-                        new() { Data = "contactPersonName", Header = "Name", Width = "30%"},
-                        new() { Data = "designationName", Header = "Designation", Width = "21%"},
-                        new() { Data = "contactPersonMobile", Header = "Phone", Width = "18%"},
-                        new() { Data = "contactPersonEmail", Header = "Email", Width = "20%"}
+                        new() { Data = "cpid", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-ContactPersonInfo-edit", IdField = "cpid" },
+                        new() { Data = "contactPersonName", Header = "Name", Width = "30%", Align = "left"},
+                        new() { Data = "designationName", Header = "Designation", Width = "28%", Align = "left"},
+                        new() { Data = "contactPersonMobile", Header = "Phone", Width = "12%", Align = "left"},
+                        new() { Data = "contactPersonEmail", Header = "Email", Width = "20%", Align = "left"}
                     }
                 })
             </div>
@@ -67,17 +144,18 @@
 
 <partial name="DeleteModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/contactPersonInfo.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.contactPersonInfo === "function") {
-            var options = { baseUrl: '@Url.Action("", "ContactPersonInfo")' };
-            options.load = () => { };
-            $.contactPersonInfo(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+@section Scripts {
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/contactPersonInfo.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.contactPersonInfo === "function") {
+                var options = { baseUrl: '@Url.Action("", "ContactPersonInfo")' };
+                options.load = () => { };
+                $.contactPersonInfo(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}

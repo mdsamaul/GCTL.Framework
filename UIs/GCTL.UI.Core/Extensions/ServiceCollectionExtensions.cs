@@ -4,6 +4,7 @@ using GCTL.Core.Interfaces.Services;
 using GCTL.Data.Context;
 using GCTL.Data.Models;
 using GCTL.Service.AdmissionTypes;
+using GCTL.Service.BillService;
 using GCTL.Service.BankBranchInformations;
 using GCTL.Service.BankInformations;
 using GCTL.Service.BloodGroups;
@@ -44,6 +45,7 @@ using GCTL.Service.ExporterInfo;
 using GCTL.Service.Gender;
 using GCTL.Service.HolidayLIst;
 using GCTL.Service.HRMCompanyWeekEnds;
+using GCTL.Service.HrmDefEmpTypes;
 using GCTL.Service.HrmEmployees2;
 using GCTL.Service.ImporterInfo;
 using GCTL.Service.ManageNoticeEntries;
@@ -205,12 +207,14 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IMenuTabService, MenuTabService>();
 
             //services.AddScoped<IJobService, JobService>();
+            services.AddScoped<IBillService, BillService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
 
             services.AddScoped<IPermissionService, PermissionService>();
             services.AddScoped<ICfDefPlaceOfLoadingService, CfDefPlaceOfLoadingService>();
+            services.AddScoped<IHrmDefEmpTypeService, HrmDefEmpTypeService>();
 
             services.AddScoped<IUserService, UserService>();
 

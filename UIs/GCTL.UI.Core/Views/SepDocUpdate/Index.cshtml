@@ -224,6 +224,82 @@
             border-radius: 10px 10px 0 0;
             border-bottom: 2px solid #ffffff !important;
         }
+
+    /* ================= Dual Input Group (gap-2 & 50%-50% Equal Width) ================= */
+    .dual-input-group {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 0.5rem !important; /* gap-2 (8px) */
+    }
+
+    .dual-input-group > * {
+        margin-left: 0 !important;
+    }
+
+    .dual-input-group > select[style*="display: none"],
+    .dual-input-group > select.custom-select-single[style*="display: none"],
+    .dual-input-group > select.select2-hidden-accessible {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        flex: 0 0 0% !important;
+    }
+
+    /* Left Input: 50% width */
+    .dual-input-group > input:first-child,
+    .dual-input-group > select:first-child,
+    .dual-input-group > .form-control:first-child {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    /* Right Input / Select / Dropdown: 50% width */
+    .dual-input-group > input:nth-child(2),
+    .dual-input-group > input:last-child,
+    .dual-input-group > select:nth-child(2),
+    .dual-input-group > .custom-dd-wrapper,
+    .dual-input-group > select + .custom-dd-wrapper,
+    .dual-input-group > .select2-container,
+    .dual-input-group > select + .select2-container,
+    .dual-input-group > .select2 {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    .dual-input-group > .custom-dd-wrapper,
+    .dual-input-group > select + .custom-dd-wrapper {
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+    }
+
+    .dual-input-group > .custom-dd-wrapper .custom-dd-box,
+    .dual-input-group > select + .custom-dd-wrapper .custom-dd-box {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+    }
+
+    .dual-input-group .select2-container,
+    .dual-input-group .select2-container *,
+    .dual-input-group select + .select2-container,
+    .dual-input-group select + .select2-container *,
+    .dual-input-group .select2-selection,
+    .dual-input-group .select2-selection--single,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+    }
 </style>
 @* <partial name="_PageHeader" model="Model" /> *@
 <!-- Toolbar Entry -->
@@ -283,7 +359,7 @@
     </ul>
 
     <div class="tab-content" id="sepDocTabContent">
-        <div class="entry-only px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded toolbar-doc show" style="display:none;">
+        <div class="entry-only px-1 pt-1 p-lg-4 pt-lg-2 pb-lg-0 bg-white shadow rounded toolbar-doc show" style="display:none;">
             <div class="mb-3">
                 <div id="jobSummary">
 
@@ -322,7 +398,7 @@
                     <div class="toolbar mb-4">
 
                         <!-- Left -->
-                        <div class="toolbar-left">
+                        @* <div class="toolbar-left">
                             <div class="input-group input-group-sm toolbar-showing">
                                 <span class="input-group-text">Showing</span>
 
@@ -334,7 +410,7 @@
                                     <option value="100">100</option>
                                 </select>
                             </div>
-                        </div>
+                        </div> *@
 
                         <!-- Right -->
                         <div class="toolbar-right">
@@ -371,43 +447,35 @@
                             </div>
 
                             <div class="toolbar-search">
-                                <input class="form-control form-control-sm"
+                                @* <input class="form-control form-control-sm"
                                        id="searchInput"
                                        type="text"
-                                       placeholder="Search">
+                                       placeholder="Search"> *@
                             </div>
 
                         </div>
 
                     </div>
-                    <div class="table-responsive ms-n1 ps-1 scrollbar">
-                        <table class="table table-bordered table-sm table-responsive-sm fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobSettingsTable">
-                            <thead>
-                                <tr>
-                                    <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo">Job No</th>
-                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="ShipmentMode">Shipment Mode</th>
-                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="JobDate">Job Date</th>
-                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="CustomerName">Customer Name</th>
-                                    <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="DocReceivedDate">Doc Received Date</th>
-
-                                </tr>
-                            </thead>
-                            <tbody class="list" id="job-settings-table">
-                                <!-- Table rows will be populated here dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
-                        <div class="d-flex">
-                            <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="dataListInfo"></p>
-                        </div>
-                        <div class="d-flex">
-                            <button class="page-link" id="paginationPrev"><span class="fas fa-chevron-left"></span></button>
-                            <ul class="mb-0 pagination" id="paginationNumbers"></ul>
-                            <button class="page-link pe-0" id="paginationNext"><span class="fas fa-chevron-right"></span></button>
-                        </div>
-                    </div>
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                    {
+                        GridId = "JobSettingsTable",
+                        AjaxUrl = "/SepDocUpdate/GetJobs",
+                        AjaxMethod = "POST",
+                        ServerSide = true,
+                        ShowCheckbox = false,
+                        ShowActionMenu = false,
+                        ShowRowNumbers = false,
+                        DefaultSortColumn = "JobNo",
+                        DefaultSortDirection = "desc",
+                        Columns = new()
+                        {
+                            new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-detail-link", IdField = "tc" },
+                            new() { Data = "shipmentMode", Header = "Shipment Mode" },
+                            new() { Data = "jobDateFormatted", Header = "Job Date" },
+                            new() { Data = "customerName", Header = "Customer Name" },
+                            new() { Data = "docReceivedDateFormatted", Header = "Doc Received Date" }
+                        }
+                    })
 
                 </div>
 
@@ -416,7 +484,7 @@
 
         <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
         <div class="tab-pane fade show active" id="entryTabPane" role="tabpanel">
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+            <div class="px-1 pt-1 p-lg-4 pb-lg-0 pt-lg-2 bg-white shadow rounded">
                 <div class="row">
 
                     @* ---------- Shipment Mode (MultiSelect) — no button needed ---------- *@
@@ -844,10 +912,10 @@
                         Placeholder = "Select Place of Loading",
                         SelectItems = ViewBag.PlaceOfLoading as SelectList,
                         ShowQuickAdd = true,
-                        QuickAddUrl = Url.Action("Index", "Companies"),
-                        QuickAddTarget = "#CompanyCode",
-                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
-                        QuickAddTitle = "Company"
+                        QuickAddUrl = Url.Action("Index", "CfDefPlaceOfLoading"),
+                        QuickAddTarget = "#placeOfLoadingId",
+                        QuickAddReloadUrl = Url.Action("GetplaceOfLoading", "Cascading"),
+                        QuickAddTitle = "Place of Loading"
                     })
 
                     @* ---------- ETD Date (shared Sea+Air) — no button needed ---------- *@
@@ -1050,7 +1118,8 @@
                     ShowFavorite = false,
                     ShowPrint = false,
                     IsPlain = true,
-                    ReserveActionSlot=true
+                    ReserveActionSlot=true,
+           Style="border-bottom:0px !important;"
                 })
 
             </div>
@@ -1071,7 +1140,7 @@
                 <!-- Search and Page Size -->
                 <div class="toolbar pb-2">
 
-                    <div class="toolbar-left">
+                    @* <div class="toolbar-left">
                         <div class="input-group input-group-sm toolbar-showing">
                             <span class="input-group-text">Showing</span>
                             <select class="form-select" id="statusPageSizeSelect">
@@ -1081,7 +1150,7 @@
                                 <option>100</option>
                             </select>
                         </div>
-                    </div>
+                    </div> *@
                     <div class="toolbar-right">
                         <span class="label-text">Filter By:</span>
                         <div class="toolbar-item toolbar-customer">
@@ -1102,42 +1171,40 @@
                         </div>
 
                         <div class="toolbar-item toolbar-search">
-                            <input class="form-control form-control-sm"
+                            @* <input class="form-control form-control-sm"
                                    id="statusSearchInput"
                                    type="text"
-                                   placeholder="Search">
+                                   placeholder="Search"> *@
                         </div>
                     </div>
 
                 </div>
 
-                <div class="table-responsive scrollbar">
-                    <table class="table table-bordered table-sm fs-9 mb-0 table-sm" id="jobListTable">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="selectAllJobs" /></th>
-                                <th>Job No</th>
-                                <th>Job Date</th>
-                                <th>Customer</th>
-                                <th>Customer Address</th>
-                                <th>Shipment Mode</th>
-                                <th>Doc Received Date</th>
-                                <th>LC Value</th>
-                                <th>Job Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="job-list-body"></tbody>
-                    </table>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center py-3">
-                    <p class="mb-0" id="dataListInfoBottom"></p>
-                    <div class="d-flex">
-                        <button type="button" class="page-link" id="paginationPrevBottom">&laquo;</button>
-                        <ul class="mb-0 pagination" id="paginationNumbersBottom"></ul>
-                        <button type="button" class="page-link" id="paginationNextBottom">&raquo;</button>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "jobListTable",
+                    AjaxUrl = "/SepDocUpdate/GetJobs",
+                    AjaxMethod = "POST",
+                    ServerSide = true,
+                    ShowCheckbox = true,
+                    CheckColumnData = "tc",
+                    CheckAllId = "selectAllJobs",
+                    ShowActionMenu = false,
+                    ShowRowNumbers = false,
+                    DefaultSortColumn = "JobNo",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-detail-link", IdField = "tc" },
+                        new() { Data = "jobDateFormatted", Header = "Job Date", Align = "center" },
+                        new() { Data = "customerName", Header = "Customer", Align = "left" },
+                        new() { Data = "customerAddress", Header = "Customer Address", Align = "left" },
+                        new() { Data = "shipmentMode", Header = "Shipment Mode", Align = "left" },
+                        new() { Data = "docReceivedDateFormatted", Header = "Doc Received Date", Align = "center" },
+                        new() { Data = "lcValue", Header = "LC Value", Align = "center" },
+                        new() { Data = "jobStatus", Header = "Job Status", Align = "center" }
+                    }
+                })
             </div>
         </div>
 
@@ -1233,13 +1300,16 @@
                         ShowDelete = false,
                         ShowFavorite = false,
                         ShowPrint = false,
-                        IsPlain = true
+                        IsPlain = true,
+           Style="border-bottom:0px !important;"
                     })
                 </div>
             </div>
         </div>
     </div>
 </form>
+
+<partial name="DeleteModal" />
 
 @section Scripts {
     <script src="~/js/pages/sepdocumentation.js"></script>

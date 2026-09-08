@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.CfDefPlaceOfLoading;
 using GCTL.Service.Common;
@@ -38,7 +38,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 var hasPermission = await placeOfLoadingService.PagePermissionAsync(LoginInfo.AccessCode);
 
-                if (!hasPermission)
+                if (hasPermission)
                 {
                     return RedirectToAction("Login", "Accounts");
                 }
@@ -340,7 +340,7 @@ namespace GCTL.UI.Core.Controllers
                     list = new List<CfDefPlaceOfLoadingSetupViewModel>();
                 }
 
-                return Json(list);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {

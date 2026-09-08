@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.PaymentModes.PaymentModePageViewModel
+﻿@model GCTL.UI.Core.ViewModels.PaymentModes.PaymentModePageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -25,7 +25,7 @@
                             ClearBtnClass = "js-paymentmodes-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="paymentmodes-form" asp-controller="PaymentModes">
                             <div class="js-paymentmodes-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -66,7 +66,6 @@
 <partial name="DeleteModal" />
 
 @section Scripts {
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/paymentModes.js" asp-append-version="true"></script>
     <script>
         $(document).ready(function () {

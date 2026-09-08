@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.ImporterInfo;
@@ -219,7 +219,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 var list = await importerInfoService.GetAllAsync();
-                return Json(list);
+                return Json(new { data = list });
                 //return PartialView("_Grid", list);
             }
             catch (Exception ex)

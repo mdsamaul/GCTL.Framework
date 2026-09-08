@@ -1,12 +1,10 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.CompanyInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.PortName;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.CompanyInfo;
-using GCTL.Service.PortName;
 using GCTL.UI.Core.ViewModels.CompanyInfo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -96,9 +94,6 @@ namespace GCTL.UI.Core.Controllers
             CompanyInfoSetupViewModel model = new CompanyInfoSetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "CompanyID", "Inv_Def_CompanyInfo", 3);
 
-            ViewBag.CompanyForDD = new SelectList(companyforrep.All(), "CompanyForId", "CompanyForName");
-            ViewBag.CountryDD = new SelectList(cadefcountry.All(), "CountryId", "CountryName");
-
             if (!string.IsNullOrEmpty(id))
             {
 
@@ -114,6 +109,9 @@ namespace GCTL.UI.Core.Controllers
 
                 model.CompanyId = strMaxNO;
             }
+
+            ViewBag.CompanyForDD = new SelectList(companyforrep.All(), "CompanyForId", "CompanyForName", model.CompanyForId);
+            ViewBag.CountryDD = new SelectList(cadefcountry.All(), "CountryId", "CountryName", model.CountryId);
 
             return PartialView($"_{nameof(Setup)}", model);
         }

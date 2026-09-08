@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.EmployeeContactInfos.EmployeeContactInfosPageViewModel
+@model GCTL.UI.Core.ViewModels.EmployeeContactInfos.EmployeeContactInfosPageViewModel
 
 @{
     ViewBag.Title = "Employee Contact List";
@@ -14,27 +14,6 @@
 
 <partial name="_PageHeader" model="Model" />
 
-@* "@Url.Action("Setup", "EmployeeContactInfos")" *@
-<!-- Content Header (Page header) -->
-@* <section class="content-header" style="padding-bottom: 0;">
-    <div class="container-fluid">
-        <div class="calloutx callout-info" style="height: 35px;">
-            <div class="row mb-2">
-                <div class="col-md-8 row">
-                    <ol class="breadcrumb float-sm-right">
-                        <li><a href="@Url.Action("Setup", "EmployeeContactInfos")" class="linkbutton1 btn btn-sm btn-success" style="font-size:13px; text-decoration: none;"> <i class="fa fa-plus"></i> Create </a></li>
-                    </ol>
-                </div>
-                <div class="col-md-4">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="/Dashboard">Home</a></li>
-                        <li class="breadcrumb-item active">Employee Contact Info</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div><!-- /.container-fluid -->
-</section> *@
 
 <section class="content">
     <div class="container-fluid">
@@ -49,7 +28,7 @@
 
                         <div class="js-EmployeeContactInfos-grid-container">
 
-                            @await Html.PartialAsync("_Grid", Model.ListTableData)
+                            @await Html.PartialAsync("Setup", Model.ListTableData)
 
                         </div>
 
@@ -67,7 +46,7 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <script src="~/js/pages/employeeContactInfos.js"></script>
+    <script src="~/js/pages/employeeContactInfos.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "EmployeeContactInfos")'

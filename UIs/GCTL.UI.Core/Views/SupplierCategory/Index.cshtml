@@ -25,7 +25,7 @@
                             ClearBtnClass = "js-SupplierCategory-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="SupplierCategory-form" asp-controller="SupplierCategory">
                             <div class="js-SupplierCategory-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -64,17 +64,17 @@
 
 <partial name="DeleteModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/supplierCategory.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.supplierCategory === "function") {
-            var options = { baseUrl: '@Url.Action("", "SupplierCategory")' };
-            options.load = () => { };
-            $.supplierCategory(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/supplierCategory.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.supplierCategory === "function") {
+                var options = { baseUrl: '@Url.Action("", "SupplierCategory")' };
+                options.load = () => { };
+                $.supplierCategory(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+

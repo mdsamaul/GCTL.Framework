@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.branchesTypeInfo = function (options) {
         // Default options
         var settings = $.extend({
@@ -33,7 +33,7 @@
         });
 
         $(() => {
-            loadBranches(settings.baseUrl, settings.gridSelector);
+            initGrid();
             initialize();
 
             $('body').on('click', `${settings.editSelector},${settings.clearSelector}`, function (e) {
@@ -41,14 +41,14 @@
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                let url = saveUrl + "/" + $(this).data("id") ?? "";
+                let url = saveUrl + "/" + ($(this).data("id") || "");
                 loadForm(url);
 
                 var id = $(this).data('id');
                 $(settings.deleteSelector).data('id', id);
 
                 $("html, body").animate({ scrollTop: 0 }, 500);
-            })
+            });
 
             $('body').on('click', settings.saveSelector, function () {
 
@@ -77,11 +77,11 @@
                             loadForm(saveUrl)
                                 .then((data) => {
                                     $("#CompanyCode").val(CompanyCode);
-                                    loadBranches(settings.baseUrl, settings.gridSelector);
+                                    reloadGrid();
                                 })
                                 .catch((error) => {
-                                    console.log(error)
-                                })
+                                    console.log(error);
+                                });
 
                             toastr.success(response.message);
                         }
@@ -90,7 +90,7 @@
                             console.log(response);
                         }
                     }
-                }
+                };
                 if (settings.haseFile) {
                     options.processData = false;
                     options.contentType = false;
@@ -98,37 +98,28 @@
                 $.ajax(options);
             });
 
-            $('body').on('click', settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
-            });
-
             $('body').on('click', settings.deleteSelector, function (e) {
-                
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
+                    $('#branch-grid tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
                     });
                 }
 
                 if (selectedItems.length > 0) {
                     GcDelete.confirm("Are you sure to delete?", function () {
                         $.ajax({
-                            url: deleteUrl + "/" + selectedItems,
+                            url: deleteUrl + "/" + selectedItems.join(','),
                             method: "POST",
                             success: function (response) {
-                                console.log(response);
                                 if (response.success) {
                                     toastr.success(response.message);
                                     selectedItems = [];
-                                    loadBranches(settings.baseUrl, settings.gridSelector);
+                                    reloadGrid();
                                     loadForm(saveUrl);
                                 }
                                 else {
@@ -138,7 +129,6 @@
                                     if (!response.success) {
                                         toastr.error(response.message, 'Error');
                                     }
-                                    console.log(response);
                                 }
                             }
                         });
@@ -168,7 +158,6 @@
                     method: "POST",
                     data: { code: code, name: name },
                     success: function (response) {
-                        console.log(response);
                         if (response.isSuccess) {
                             toastr.error(response.message);
                         }
@@ -178,77 +167,24 @@
         });
 
         $("body").on("change", "#CompanyCode", function () {            
-            var companyCode = $("#CompanyCode").val();
-            loadBranches(settings.baseUrl, settings.gridSelector);
+            reloadGrid();
         });
 
-        function loadBranches(baseUrl, gridSelector) {
-            var CompanyCode = $("#CompanyCode").val();
-            var dataTable = $(gridSelector).DataTable({
-                ajax: {
-                    url: baseUrl + "/grid",
-                    type: "GET",
-                    data: { CompanyCode: CompanyCode },
-                    datatype: "json"
-                },
-                columnDefs: [
-                    { targets: [0], orderable: false }
-                ],
-                columns: [
-                    {
-                        "data": "branchCode",
-                        "className": "text-center",
-                        "render": function (data) {
-                            return `<input type="checkbox" class="checkBox" value="${data}" />`;
-                        },
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:8%');
-                        }
-                    },
-                    {
-                        "data": "branchCode",
-                        "className": "text-center",
-                        "render": function (data) {
-                            return `<a class='btn js-branch-edit' data-id2="${data}" data-id='${data}'>${data}</a>`;
-                        },
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:10%');
-                        }
-                    },
-                    {
-                        "data": "branchName",
-                        "className": "text-center",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:20%');
-                        }
-                    },
-                    {
-                        "data": "address",
-                        "className": "text-center",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:27%');
-                        }
-                    },
-                    {
-                        "data": "phone",
-                        "className": "text-center",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:15%');
-                        }
-                    },
-                    {
-                        "data": "companyName",
-                        "className": "text-center",
-                        "createdCell": function (td) {
-                            $(td).attr('style', 'width:20%');
-                        }
+        function initGrid() {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({
+                    gridId: 'branch-grid',
+                    ajaxData: function (d) {
+                        d.CompanyCode = $("#CompanyCode").val() || "";
                     }
-                ],
-                lengthChange: true,
-                pageLength: 10,
-                order: [[1, "desc"]],
-                destroy: true
-            });
+                });
+            }
+        }
+
+        function reloadGrid() {
+            if ($.gctlGrid) {
+                $.gctlGrid.reload('branch-grid');
+            }
         }
 
         function loadForm(url) {

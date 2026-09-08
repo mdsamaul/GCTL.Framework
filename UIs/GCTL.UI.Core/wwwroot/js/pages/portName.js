@@ -1,5 +1,7 @@
-﻿
+
 (function ($) {
+    if (!$) return;
+
     $.portName = function (options) {
 
         //#region Default options
@@ -43,6 +45,9 @@
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'PortName-grid' });
+            }
 
             loadTable();
 
@@ -73,8 +78,6 @@
             //#region Save
 
             $("body").on("click", settings.saveSelector, function () {
-                // debugger
-
                 var self = this;
                 validation();
                 var $valid = $(settings.formSelector).valid();
@@ -95,17 +98,14 @@
                     method: "POST",
                     data: data,
                     success: function (response) {
-
                         if (response.isSuccess) {
                             toastr.success(response.message);
-
 
                             var $modalAncestor = $(self).closest(".modal");
                             if ($modalAncestor.length && window.GcModal) {
                                 GcModal.markSuccess($modalAncestor, response.lastCode);
                                 GcModal.close($modalAncestor);
                             } else {
-                                // normal page এ থাকলে আগের মতোই form reload করো
                                 loadForm(saveUrl).then(() => {
                                     loadTable();
                                 });
@@ -113,27 +113,9 @@
                         } else {
                             toastr.error(response.message);
                         }
-
-                        // if (response.isSuccess) {
-                        //     loadForm(saveUrl)
-
-                        //         .then((data) => {
-                        //             loadTable();
-                        //             $(settings.lastCodeSelector).val(response.lastCode);
-                        //             // alert("The last code has been updated to: " + response.lastCode);
-                        //         })
-                        //         .catch((error) => {
-                        //             console.log(error)
-                        //         })
-
-                        //     toastr.success(response.message);
-                        // }
-                        // else {
-                        //     toastr.error(response.message);
-                        //     console.log(response);
-                        // }
                     }
-                }
+                };
+
                 if (settings.haseFile) {
                     options.processData = false;
                     options.contentType = false;
@@ -146,20 +128,19 @@
             //#region selectAllSelector & deleteSelector
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(`${settings.gridSelector} input:checkbox.checkbox`).prop('checked', $(this).prop('checked'));
             });
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkbox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                    $(`${settings.gridSelector} input:checkbox.checkbox:checked`).each(function () {
+                        var val = $(this).val();
+                        if (val && !selectedItems.includes(val)) {
+                            selectedItems.push(val);
                         }
                     });
                 }
@@ -176,7 +157,6 @@
             //#region Delete & deleteModal
 
             $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-
                 var source = $(event.relatedTarget);
                 var id = source.data("ids");
 
@@ -227,7 +207,6 @@
                 e.preventDefault();
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
-
 
             $("body").on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
@@ -319,10 +298,8 @@
 
         //#region loadTable
         function loadTable() {
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({
-                    gridId: 'portNameTable'
-                });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 
@@ -341,44 +318,44 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        window.initCustomDropdowns(settings.formContainer, true);
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
 
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
-                })
-            })
+                });
+            });
         }
 
         //#endregion
 
-      //  #region validation
+        //#region validation
 
-                function validation() {
+        function validation() {
+            var buy = $('#PortId').val();
+            var sty = $('#PortName').val();
 
-                    var buy = $('#PortId').val();
-                    var sty = $('#PortName').val();
+            if (!buy) {
+                toastr.info('select Port Type');
+                $('#PortId').select2('open');
+                return false;
+            }
 
-                    if (!buy) {
-                        toastr.info('select Port Type');
-                        $('#PortId').select2('open');
-                        return false;
-                    }
+            if (!sty) {
+                toastr.info('Enter Port Name');
+                $('#PortName').trigger('focus');
+                return false;
+            }
 
-                    if (!sty) {
-                        toastr.info('Enter Port Name');
-                        $('#PortName').trigger('focus');
-                        return false;
-                    }
+            return true;
+        }
 
-                    return true;
-                }
+        //#endregion
 
-                //#endregion
+    };
 
-
-    }
-
-}(jQuery));
+}(typeof jQuery !== "undefined" ? jQuery : window.$));

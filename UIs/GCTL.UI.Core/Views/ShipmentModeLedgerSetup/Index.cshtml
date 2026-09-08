@@ -6,6 +6,82 @@
     Model.Breadcrumb = "Shipment Mode Ledger Setup";
 }
 
+<style>
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .sml-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .sml-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .sml-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .sml-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .sml-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sml-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sml-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sml-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .sml-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sml-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .sml-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .sml-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
+
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
@@ -13,8 +89,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 sml-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -22,11 +98,12 @@
                             Title = "Shipment Mode Ledger Setup",
                             SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
                             DeleteBtnClass = "js-ShipmentModeLedgerSetup-delete-confirm",
-                            ClearBtnClass = "js-ShipmentModeLedgerSetup-clear"
+                            ClearBtnClass = "js-ShipmentModeLedgerSetup-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
 
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="ShipmentModeLedgerSetup-form" asp-controller="ShipmentModeLedgerSetup">
                             <div class="js-ShipmentModeLedgerSetup-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -36,8 +113,8 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ShipmentModeLedgerSetup-grid",
@@ -50,11 +127,11 @@
                     DefaultSortColumn = "expenseTypeId",
                     Columns = new()
                     {
-                        new() { Data = "expenseTypeId", IsEditLink = true, EditSelectorClass = "js-ShipmentModeLedgerSetup-edit", Header = "ID", Width = "10%" },
+                        new() { Data = "expenseTypeId", IsEditLink = true, EditSelectorClass = "js-ShipmentModeLedgerSetup-edit", Header = "ID", Width = "6%" },
                         new() { Data = "expenseType", Header = "Shipment Mode", Width = "22%", Align = "left" },
                         new() { Data = "expenseLedgerCodeNo", Header = "Expense Ledger", Width = "22%", Align = "left" },
                         new() { Data = "revenueLedgerCodeNo", Header = "Revenue Ledger", Width = "22%", Align = "left" },
-                        new() { Data = "advanceLedgerCode", Header = "Advance Ledger", Width = "24%", Align = "left" }
+                        new() { Data = "advanceLedgerCode", Header = "Advance Ledger", Width = "26%", Align = "left" }
                     }
                 })
             </div>
@@ -71,7 +148,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/shipmentModeLedgerSetup.js" asp-append-version="true"></script>
     <script type="text/javascript">
         var options = {

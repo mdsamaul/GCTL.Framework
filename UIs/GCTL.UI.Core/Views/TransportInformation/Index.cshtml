@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.TransportInformation.TransportInformationPageViewModel
+@model GCTL.UI.Core.ViewModels.TransportInformation.TransportInformationPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -95,8 +95,8 @@
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid px-0">
+        <div class="row g-2">
 
             <div class="col-md-6 pe-1">
                 <div class="card">
@@ -129,17 +129,23 @@
                             @await Html.PartialAsync("_CustomGrid", new GridModel
                             {
                                 GridId = "TransportInformation-grid",
+                                AjaxUrl = "/TransportInformation/GetTableData",
+                                AjaxMethod = "GET",
+                                ServerSide = false,
                                 CheckAllId = "js-TransportInformation-checkall",
+                                CheckColumnData = "vehicleId",
+                                DefaultSortColumn = "vehicleId",
+                                DefaultSortDirection = "desc",
                                 Columns = new List<GridColumn>
                                 {
-                                    new() { Header = "ID", Width="10%"  },
-                                    new() { Header = "Transport No.",Width="23%" },
-                                    new() { Header = "Transport Type" ,Width="32%" },
-                                    new() { Header = "Port Name",Width="20%" }
+                                    new() { Data = "vehicleId", Header = "ID", Width="10%", IsEditLink = true, EditSelectorClass = "js-TransportInformation-edit", IdField = "vehicleId" },
+                                    new() { Data = "vehicleNo", Header = "Transport No.", Width="25%", Align = "left" },
+                                    new() { Data = "vehicleType", Header = "Transport Type", Width="35%", Align = "left" },
+                                    new() { Data = "portName", Header = "Port Name", Width="30%", Align = "left" }
                                 },
-                                ShowCheckbox = true,   // ← add this
+                                ShowCheckbox = true,
                                 Bordered = true,
-                                Striped =true
+                                Striped = true
                             })
 
                         </div>
@@ -151,6 +157,7 @@
     </div>
 </section>
 <partial name="DeleteModal" />
+<partial name="QuickAddModal" />
 
 @section Scripts {
     @{

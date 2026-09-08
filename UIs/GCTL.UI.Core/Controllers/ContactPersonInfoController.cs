@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.ContactPersonInfo;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -95,10 +95,10 @@ namespace GCTL.UI.Core.Controllers
             }
             else
             {
-                model.Cpid = strMaxNO;
+                model.Cpid = nextCode;
             }
 
-            ViewBag.DesignationDD = new SelectList(designationrepository.All(), "DesignationCode", "DesignationName");
+            ViewBag.DesignationDD = new SelectList(designationrepository.All(), "DesignationCode", "DesignationName", model.DesignationCode);
 
             return PartialView($"_{nameof(Setup)}", model);
         }
@@ -130,7 +130,7 @@ namespace GCTL.UI.Core.Controllers
 
                 modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
                 modelVM.CompanyCode = LoginInfo.CompanyCode;
-                if (modelVM.AutoId == 0)
+                if (!modelVM.AutoId.HasValue || modelVM.AutoId.Value == 0)
                 {
                     var hasSavePermission = await contactPersonInfoService.SavePermissionAsync(LoginInfo.AccessCode);
                     if (hasSavePermission)

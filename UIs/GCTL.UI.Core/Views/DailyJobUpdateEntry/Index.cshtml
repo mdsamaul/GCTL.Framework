@@ -125,7 +125,7 @@
         .sm-topshow {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: start;
             align-items: center;
             gap: 10px;
             padding-bottom: 10px;
@@ -429,7 +429,7 @@
 
                             <!-- Left -->
                             <div class="toolbar-left">
-                                <div class="input-group input-group-sm toolbar-showing">
+                                @* <div class="input-group input-group-sm toolbar-showing">
                                     <span class="input-group-text">Showing</span>
 
                                     <select class="form-select" id="pageSizeSelect">
@@ -439,7 +439,7 @@
                                         <option value="50">50</option>
                                         <option value="100">100</option>
                                     </select>
-                                </div>
+                                </div> *@
                             </div>
 
                             <!-- Right -->
@@ -477,43 +477,35 @@
                                 </div>
 
                                 <div class="toolbar-search">
-                                    <input class="form-control form-control-sm"
+                                    @* <input class="form-control form-control-sm"
                                            id="searchInput"
                                            type="text"
-                                           placeholder="Search">
+                                           placeholder="Search"> *@
                                 </div>
 
                             </div>
 
                         </div>
-                        <div class="table-responsive ms-n1 ps-1 scrollbar">
-                            <table class="table table-bordered table-sm table-responsive-sm fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobSettingsTable">
-                                <thead>
-                                    <tr>
-                                        <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo" style="width: 1%; white-space: nowrap;">Job No</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="ShipmentMode">Shipment Mode</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="JobDate">Job Date</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="CustomerName">Customer Name</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="DocReceivedDate">Doc Received Date</th>
-
-                                    </tr>
-                                </thead>
-                                <tbody class="list" id="job-settings-table">
-                                    <!-- Table rows will be populated here dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
-                            <div class="d-flex">
-                                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="dataListInfo"></p>
-                            </div>
-                            <div class="d-flex">
-                                <button class="page-link" id="paginationPrev"><span class="fas fa-chevron-left"></span></button>
-                                <ul class="mb-0 pagination" id="paginationNumbers"></ul>
-                                <button class="page-link pe-0" id="paginationNext"><span class="fas fa-chevron-right"></span></button>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                        {
+                            GridId = "JobSettingsTable",
+                            AjaxUrl = "/DailyJobUpdateEntry/GetJobs",
+                            AjaxMethod = "POST",
+                            ServerSide = true,
+                            ShowCheckbox = false,
+                            ShowActionMenu = false,
+                            ShowRowNumbers = false,
+                            DefaultSortColumn = "JobNo",
+                            DefaultSortDirection = "desc",
+                            Columns = new()
+                            {
+                                new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-detail-link", IdField = "id" },
+                                new() { Data = "shipmentMode", Header = "Shipment Mode", Align = "left" },
+                                new() { Data = "jobDateFormatted", Header = "Job Date", Align = "center" },
+                                new() { Data = "customerName", Header = "Customer Name", Align = "left" },
+                                new() { Data = "docReceivedDateFormatted", Header = "Doc Received Date", Align = "center" }
+                            }
+                        })
 
                     </div>
 
@@ -969,7 +961,8 @@
                             ShowFavorite = false,
                             IsPlain = true,
                             SaveBtnClass = "saveBtn",
-                            ReserveActionSlot = true
+                            ReserveActionSlot = true,
+           Style="border-bottom:0px !important;"
                         })
                     </div>
 
@@ -985,7 +978,7 @@
                 </div>
                 <div class="card-body p-1">
                     <div class="timeline" id="shipmentTimeline">
-                        <!-- জাভাস্ক্রিপ্ট dynamic ভাবে item গুলো এখানে বসাবে, .timeline-line লাগবে না -->
+
                     </div>
                 </div>
             </div>
@@ -1001,7 +994,7 @@
                     <div class="toolbar pb-2">
 
                         <div class="toolbar-left">
-                            <div class="input-group input-group-sm toolbar-showing">
+                            @* <div class="input-group input-group-sm toolbar-showing">
                                 <span class="input-group-text">Showing</span>
                                 <select class="form-select" id="statusPageSizeSelect">
                                     <option>10</option>
@@ -1009,7 +1002,7 @@
                                     <option>50</option>
                                     <option>100</option>
                                 </select>
-                            </div>
+                            </div> *@
                         </div>
                         <div class="toolbar-right">
                             <span class="label-text">Filter By:</span>
@@ -1031,53 +1024,35 @@
                             </div>
 
                             <div class="toolbar-item toolbar-search">
-                                <input class="form-control form-control-sm"
+                                @* <input class="form-control form-control-sm"
                                        id="statusSearchInput"
                                        type="text"
-                                       placeholder="Search">
+                                       placeholder="Search"> *@
                             </div>
                         </div>
 
                     </div>
-                    <!-- Table -->
-                    <div class="table-responsive ms-n1 ps-1 scrollbar">
-                        <table class="table table-sm table-bordered fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobStatusTable">
-                            <thead>
-                                <tr>
-                                    <th class="sort white-space-nowrap align-middle text-center ps-0" style="width:110px" scope="col" data-sort="Status">
-                                        <input type="checkbox" id="checkAll" class="form-check-input" />  Select All
-                                    </th>
-                                    <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ID">ID</th>
-                                    <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="JobNo">Job No</th>
-                                    <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ShipmentStatus">Shipment Status</th>
-                                    <th class="sort white-space-nowrap align-middle text-center ps-2 text-end" scope="col" data-sort="DateTime">Date Time</th>
-
-                                </tr>
-                            </thead>
-                            <tbody class="list" id="jobStatusTableBody">
-                                <!-- Rows populated via AJAX -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
-                        <div class="d-flex">
-                            <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="statusDataListInfo"></p>
-                        </div>
-                        @* <div class="d-flex">
-                                <button class="page-link" id="statusPaginationPrev"><span class="fas fa-chevron-left"></span></button>
-                                <ul class="mb-0 pagination" id="statusPaginationNumbers"></ul>
-                                <button class="page-link pe-0" id="statusPaginationNext"><span class="fas fa-chevron-right"></span></button>
-                            </div> *@
-                        <div class="d-flex">
-                            <button class="page-link" id="paginationFirst"><span class="bi bi-chevron-bar-left"></span></button>
-                            <button class="page-link" id="paginationPrev"><span class="bi bi-chevron-left"></span></button>
-                            <ul class="mb-0 pagination" id="paginationNumbers"></ul>
-                            <button class="page-link pe-0" id="paginationNext"><span class="bi bi-chevron-right"></span></button>
-                            <button class="page-link pe-0" id="paginationLast"><span class="bi bi-chevron-bar-right"></span></button>
-                        </div>
-                </div>
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                    {
+                        GridId = "JobStatusTable",
+                        AjaxUrl = "/DailyJobUpdateEntry/GetJobStatuses",
+                        AjaxMethod = "POST",
+                        ServerSide = true,
+                        ShowCheckbox = true,
+                        CheckColumnData = "id",
+                        CheckAllId = "checkAll",
+                        ShowActionMenu = false,
+                        ShowRowNumbers = false,
+                        DefaultSortColumn = "JobNo",
+                        DefaultSortDirection = "desc",
+                        Columns = new()
+                        {
+                            new() { Data = "jobUpdateCode", Header = "ID", Align = "center" },
+                            new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-no-link", IdField = "id", DataAttributes = new List<string> { "jobno" } },
+                            new() { Data = "shipmentStatus", Header = "Shipment Status", Align = "left" },
+                            new() { Data = "dateTimeText", Header = "Date Time", Align = "center" }
+                        }
+                    })
             </div>
         </div>
         <partial name="_BottomNavigation" />
@@ -1085,5 +1060,5 @@
 </section>
 
 @section Scripts {
-    <script src="~/js/pages/DailyJobUpdateEntry.js"></script>
+    <script src="~/js/pages/DailyJobUpdateEntry.js" asp-append-version="true"></script>
 }

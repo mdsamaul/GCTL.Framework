@@ -4,8 +4,139 @@
     <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
 </div>
 
+<style>
+    /* Card Header Toolbar: single bottom border line, no double line, no bottom rounded */
+    .card-header {
+        border-bottom: 0 !important;
+        background-color: transparent !important;
+    }
+    .card-header .toolbar-container {
+        border: 0 !important;
+        /* border-bottom: 1px solid #dee2e6 !important; */
+        border-radius: 0 !important;
+        border-top-left-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
+        border-top-right-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* Uniform Form Control Height (31px) across all inputs, dropdowns, and checkboxes */
+    #expenseForm .form-control,
+    #expenseForm .form-select,
+    #expenseForm .custom-dd-box,
+    #expenseForm .select2-container .select2-selection--single,
+    #expenseForm .form-control-height-wrap {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        box-sizing: border-box !important;
+        border-radius: 4px !important;
+        font-size: 0.8125rem !important;
+    }
+
+    #expenseForm .form-control {
+        padding: 0.25rem 0.5rem !important;
+        line-height: 1.5 !important;
+        border: 1px solid #ced4da !important;
+    }
+
+    #expenseForm .input-group {
+        height: 31px !important;
+        min-height: 31px !important;
+    }
+
+    #expenseForm .input-group > .custom-dd-wrapper {
+        flex: 1 1 auto;
+        width: 1%;
+        min-width: 0;
+    }
+
+    /* Custom Dropdown (.custom-dd-box) alignment & height parity */
+    #expenseForm .custom-dd-wrapper {
+        width: 100% !important;
+    }
+    #expenseForm .custom-dd-box {
+        padding: 0 0.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        background-color: #fff !important;
+        border: 1px solid #ced4da !important;
+    }
+    #expenseForm .custom-dd-input {
+        height: 29px !important;
+        line-height: 29px !important;
+        font-size: 0.8125rem !important;
+        padding: 0 2px !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+    #expenseForm .custom-dd-clear-icon,
+    #expenseForm .custom-dd-arrow {
+        height: 29px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
+    }
+
+    /* Select2 fallback alignment & height parity */
+    #expenseForm .select2-container {
+        width: 100% !important;
+    }
+    #expenseForm .select2-container .select2-selection--single {
+        padding: 0 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        border: 1px solid #ced4da !important;
+    }
+    #expenseForm .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 29px !important;
+        padding-left: 0 !important;
+        font-size: 0.8125rem !important;
+        color: #495057 !important;
+    }
+    #expenseForm .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 29px !important;
+        top: 0 !important;
+        right: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    #expenseForm .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        margin-top: 0 !important;
+    }
+
+    /* Uniform Label styling */
+    #expenseForm .form-label {
+        font-weight: 500;
+        margin-bottom: 4px;
+        text-align: left;
+        display: block;
+        color: #333;
+        font-size: 0.85rem;
+        line-height: 1.2;
+        min-height: 18px;
+    }
+
+    /* Checkbox Container Alignment in Row 2 */
+    #expenseForm .form-control-height-wrap {
+        display: flex !important;
+        align-items: center !important;
+    }
+    #expenseForm .form-control-height-wrap .form-check {
+        padding-left: 0.25rem !important;
+    }
+
+    #expenseForm .field-validation {
+        font-size: 0.75rem;
+        display: block;
+        margin-top: 2px;
+    }
+</style>
+
 <div class="card rounded shadow-sm">
-    <div class="card-header p-0">
+    <div class="card-header p-0 border-0">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "Expense Head Info",
@@ -16,15 +147,17 @@
             ExcelBtnClass = "export-excel",
             PdfBtnClass = "export-pdf",
             FavtBtnClass = "favBtn",
-            ReserveActionSlot = false
+            ReserveActionSlot = false,
+            ShowExtraContent= true,
         })
     </div>
 
-    <div class="card-body px-4 py-3">
+    <div class="card-body px-3 py-3">
         <form id="expenseForm">
             <input type="hidden" id="tc" name="tc" />
 
-            <div class="form-group row">
+            @* ================= Row 1: Expense Head ID & Shipment Mode ================= *@
+            <div class="row g-4 mb-1">
                 @* ---------- Expense Head ID (readonly) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -34,7 +167,7 @@
                     Placeholder = "Expense Head ID",
                     IsReadonly = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -47,20 +180,26 @@
                     SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
+                <div class="col-lg-6 col-md-6"></div>
             </div>
 
-            <div class="form-group row">
+            @* ================= Row 2: Is Receiptable & Expense Head Name ================= *@
+            <div class="row g-4 mb-1">
                 @* ---------- Is Receiptable (Checkbox) ---------- *@
-                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                {
-                    InputId = "isReceiptable",
-                    LabelText = "Is Receiptable Expense?",
-                    FieldType = FieldType.Checkbox,
-                    ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
-                })
+                <div class="col-lg-3 col-md-3 d-flex align-items-center">
+                    <label class="form-label" for="isReceiptable">Is Receiptable Expense</label>
+                    <div class="form-control-height-wrap">
+                        <div class="form-check m-0 d-flex align-items-center">
+                            <input type="checkbox"
+                                   class="form-check-input m-0"
+                                   id="isReceiptable"
+                                   name="isReceiptable"
+                                   style="cursor: pointer; width: 1.25rem; height: 1.25rem;" />
+                        </div>
+                    </div>
+                </div>
 
                 @* ---------- Expense Head Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -71,11 +210,13 @@
                     Placeholder = "Expense Head",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
+                <div class="col-lg-6 col-md-6"></div>
             </div>
 
-            <div class="form-group row">
+            @* ================= Row 3: Short Name & Amount ================= *@
+            <div class="row g-4 mb-1">
                 @* ---------- Short Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -84,7 +225,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-3 col-md-3",
                 })
 
                 @* ---------- Amount ---------- *@
@@ -95,11 +236,13 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-3 col-md-3"
                 })
+                <div class="col-lg-6 col-md-6"></div>
             </div>
 
-            <div class="form-group row">
+            @* ================= Row 4: Serial No & Service Provided By ================= *@
+            <div class="row g-4 mb-1">
                 @* ---------- Serial No ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
@@ -109,7 +252,7 @@
                     Placeholder = "Serial No",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-3 col-md-3"
                 })
 
                 @* ---------- Service Provided By (Select) ---------- *@
@@ -122,46 +265,38 @@
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6"
+                    ColumnClass = "col-lg-3 col-md-3"
                 })
+                <div class="col-lg-6 col-md-6"></div>
             </div>
 
             @* ---------- Creation & Modify Date ---------- *@
-            <div class="form-group row" id="LdateModifyHide">
-                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                {
-                    ContainerId = "lDateContainer",
-                    InputId = "displayLDate",
-                    LabelText = "Creation Date",
-                    FieldType = FieldType.ReadonlyDisplay,
-                    ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",
-                    ShowOnInit = false
-                })
+            <div class="row g-4 mt-1" id="LdateModifyHide">
+                <div class="col-lg-3 col-md-3 mt-0" id="lDateContainer" style="display: none;">
+                    <label class="form-label text-muted small mb-1">Creation Date</label>
+                    <div id="displayLDate" class="text-secondary fw-semibold py-1"></div>
+                </div>
 
-                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-                {
-                    ContainerId = "modifyDateContainer",
-                    InputId = "displayModifyDate",
-                    LabelText = "Modify Date",
-                    FieldType = FieldType.ReadonlyDisplay,
-                    ReserveActionSlot = false,
-                    ColumnClass = "col-lg-6",
-                    ShowOnInit = false
-                })
+                <div class="col-lg-3 col-md-3 mt-0" id="modifyDateContainer" style="display: none;">
+                    <label class="form-label text-muted small mb-1">Modify Date</label>
+                    <div id="displayModifyDate" class="text-secondary fw-semibold py-1"></div>
+                </div>
             </div>
 
-            <div class="row no-print" style="margin-top: 9px;">
-                <div class="col-12">
+            <div class="row">
+                <div class="col-12 d-flex justify-content-end">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
+                        Title="",
                         SaveBtnClass = "saveBtn",
                         ShowClear = false,
                         ShowDelete = false,
                         ShowFavorite = false,
                         ShowPrint = false,
                         IsPlain = true,
-                        ReserveActionSlot = true,
+                        ReserveActionSlot = false,
+                        Style = "padding-left:70px; border-bottom:0px !important;",
+                        ShowExtraContent1=true
                     })
                 </div>
             </div>

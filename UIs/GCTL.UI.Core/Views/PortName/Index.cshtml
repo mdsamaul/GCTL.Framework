@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.PortName.PortNamePageViewModel
+@model GCTL.UI.Core.ViewModels.PortName.PortNamePageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -7,6 +7,31 @@
 }
 
 <style>
+    /* Side-by-side flex layout for all screens:
+       - Left: Setup Form (50% width)
+       - Right: Table Grid (50% width)
+       - Form Inputs: 2 per row (50% each inside form card)
+    */
+    .pn-layout-form-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .pn-layout-grid-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .pn-field-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
+    .pn-toolbar-col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
     .bg-light {
         background-color: #fff !important;
         color: #000 !important;
@@ -56,6 +81,10 @@
         .port-select-wrap .select2-container {
             width: 100% !important;
         }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -65,8 +94,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Left Setup Form Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 pn-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -77,7 +106,7 @@
                             ClearBtnClass = "js-PortName-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="PortName-form" asp-controller="PortName">
                             <div class="js-PortName-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -87,27 +116,29 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
-                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
-                {
-                    GridId = "portNameTable",
-                    AjaxUrl = "/PortName/GetTableData",
-                    AjaxMethod = "GET",
-                    ServerSide = false,
-                    ShowCheckbox = true,
-                    CheckColumnData = "portNameId",
-                    CheckAllId = "PortName-check-all",
-                    DefaultSortColumn = "portNameId",
-                    DefaultSortDirection = "desc",
-                    Columns = new()
+            <!-- Right Table Grid Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 pn-layout-grid-col">
+                <div class="js-PortName-grid-container">
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                     {
-                        new() { Data = "portNameId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-PortName-edit" },
-                        new() { Data = "portType", Header = "Port Type", Width = "25%"},
-                        new() { Data = "portName", Header = "Port Name", Width = "40%"},
-                        new() { Data = "shortName", Header = "Short Name", Width = "25%"}
-                    }
-                })
+                        GridId = "PortName-grid",
+                        AjaxUrl = "/PortName/GetTableData",
+                        AjaxMethod = "GET",
+                        ServerSide = false,
+                        ShowCheckbox = true,
+                        CheckColumnData = "portNameId",
+                        CheckAllId = "PortName-check-all",
+                        DefaultSortColumn = "portNameId",
+                        DefaultSortDirection = "desc",
+                        Columns = new()
+                        {
+                            new() { Data = "portNameId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-PortName-edit", IdField = "portNameId" },
+                            new() { Data = "portType", Header = "Port Type", Width = "25%", Align = "left"},
+                            new() { Data = "portName", Header = "Port Name", Width = "40%", Align = "left"},
+                            new() { Data = "shortName", Header = "Short Name", Width = "25%", Align = "left"}
+                        }
+                    })
+                </div>
             </div>
 
         </div>
@@ -118,17 +149,18 @@
 
 <partial name="DeleteModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/portName.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.portName === "function") {
-            var options = { baseUrl: '@Url.Action("", "PortName")' };
-            options.load = () => { };
-            $.portName(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+@section Scripts {
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/portName.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.portName === "function") {
+                var options = { baseUrl: '@Url.Action("", "PortName")' };
+                options.load = () => { };
+                $.portName(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}

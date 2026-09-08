@@ -82,7 +82,7 @@
     var containerPadding = Model.IsPlain ? "" : "";
     var buttonGroupPadding = Model.IsPlain ? "pe-0" : "pe-1";
     var containerStyle = Model.IsMarginRight ? "padding-right: clamp(12px, 3.5%, 38px) !important;" : "";
-    var extraClass = Model.ReserveActionSlot ? "pe-0" : "pe-3";
+    var extraClass = Model.IsPlain ? "" : (Model.ReserveActionSlot ? "pe-0" : "pe-3");
 
     // Dynamic Button Types with default fallback to "button"
     var saveBtnType = string.IsNullOrWhiteSpace(Model.SaveBtnType) ? "button" : Model.SaveBtnType;
@@ -90,25 +90,102 @@
     var clearBtnType = string.IsNullOrWhiteSpace(Model.ClearBtnType) ? "button" : Model.ClearBtnType;
     var printBtnType = string.IsNullOrWhiteSpace(Model.PrintBtnType) ? "button" : Model.PrintBtnType;
     var favtBtnType = string.IsNullOrWhiteSpace(Model.FavtBtnType) ? "button" : Model.FavtBtnType;
+
+    // Custom class handling (CustomClass, CssClass, ClassName, ContainerClass)
+    var customClasses = string.Join(" ", new[] {
+        Model.CustomClass,
+        Model.CssClass,
+        Model.ClassName,
+        Model.ContainerClass
+    }.Where(c => !string.IsNullOrWhiteSpace(c)));
+
+    // Custom padding handling: can be Bootstrap class (e.g. "p-0", "px-3") or CSS value (e.g. "0", "10px", "5px 15px")
+    var paddingClass = "";
+    var paddingStyle = "";
+    var rawPadding = !string.IsNullOrWhiteSpace(Model.CustomPadding) ? Model.CustomPadding : Model.Padding;
+    if (!string.IsNullOrWhiteSpace(rawPadding))
+    {
+        rawPadding = rawPadding.Trim();
+        if (rawPadding.Contains(":") || rawPadding.Contains("px") || rawPadding.Contains("rem") || rawPadding.Contains("%") || rawPadding.Contains("em") || rawPadding == "0" || char.IsDigit(rawPadding[0]))
+        {
+            paddingStyle = rawPadding.StartsWith("padding", StringComparison.OrdinalIgnoreCase)
+                ? (rawPadding.EndsWith(";") ? rawPadding : rawPadding + ";")
+                : $"padding: {rawPadding};";
+        }
+        else
+        {
+            paddingClass = rawPadding;
+        }
+    }
+
+    // Custom margin handling: can be Bootstrap class (e.g. "m-0", "mt-2") or CSS value (e.g. "0", "0 auto", "10px")
+    var marginClass = "";
+    var marginStyle = "";
+    var rawMargin = !string.IsNullOrWhiteSpace(Model.CustomMargin) ? Model.CustomMargin : Model.Margin;
+    if (!string.IsNullOrWhiteSpace(rawMargin))
+    {
+        rawMargin = rawMargin.Trim();
+        if (rawMargin.Contains(":") || rawMargin.Contains("px") || rawMargin.Contains("rem") || rawMargin.Contains("%") || rawMargin.Contains("em") || rawMargin == "0" || char.IsDigit(rawMargin[0]))
+        {
+            marginStyle = rawMargin.StartsWith("margin", StringComparison.OrdinalIgnoreCase)
+                ? (rawMargin.EndsWith(";") ? rawMargin : rawMargin + ";")
+                : $"margin: {rawMargin};";
+        }
+        else
+        {
+            marginClass = rawMargin;
+        }
+    }
+
+    // Custom style handling (CustomStyle, Style)
+    var customStyles = string.Join(" ", new[] {
+        Model.CustomStyle,
+        Model.Style,
+        paddingStyle,
+        marginStyle
+    }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
+    var finalContainerStyle = (containerStyle + " " + customStyles).Trim();
+    var defaultPadding = string.IsNullOrWhiteSpace(paddingClass) && string.IsNullOrWhiteSpace(paddingStyle) ? (Model.IsPlain ? "" : "px-1 py-1") : "";
+
+    var showTitle = Model.ShowTitle;
+    var hasTitle = !string.IsNullOrWhiteSpace(Model.Title);
+    var hasTitleSlot = showTitle || hasTitle || Model.ReserveActionSlot;
+    var justifyClass = customClasses.Contains("justify-content-") 
+        ? "" 
+        : (hasTitleSlot ? "justify-content-between" : "justify-content-end");
+
+    var stickyClass = Model.IsPlain ? "" : "sticky-bar";
+    var cardDecorClass = Model.IsPlain ? "is-plain" : "bg-white rounded-top rounded-bottom-0 shadow-sm border";
+
+    var finalContainerClass = $"d-flex {justifyClass} align-items-center {defaultPadding} {containerPadding} {extraClass} {stickyClass} {cardDecorClass} flex-nowrap toolbar-container {customClasses} {paddingClass} {marginClass}".Replace("  ", " ").Trim();
 }
 
-<div class="d-flex justify-content-between align-items-center px-1 py-1 @containerPadding @extraClass sticky-bar @(Model.IsPlain ? "" : "bg-white rounded shadow-sm border") flex-nowrap toolbar-container"
-     style="@containerStyle">
+<div class="@finalContainerClass"
+     style="@finalContainerStyle">
 
-    <div class="d-flex align-items-center py-1 ps-2 toolbar-title-wrap">
-        <span class="fw-normal text-dark m-0 toolbar-title">
-            @Model.Title
-        </span>
-    </div>
+    @if (showTitle)
+    {
+        <div class="d-flex align-items-center py-1 ps-2 toolbar-title-wrap @Model.TitleClass" style="@Model.TitleStyle">
+            <span class="fw-normal text-dark m-0 toolbar-title">
+                @Model.Title
+            </span>
+        </div>
+    }
+    else if (hasTitleSlot)
+    {
+        <div class="d-flex align-items-center py-1 ps-2 toolbar-title-wrap @Model.TitleClass" style="@Model.TitleStyle"></div>
+    }
 
-    <div class="d-flex align-items-center gap-1 @buttonGroupPadding toolbar-btn-group flex-nowrap">
+    <div class="d-flex align-items-center gap-1 @buttonGroupPadding toolbar-btn-group flex-nowrap @Model.ButtonGroupClass" style="@Model.ButtonGroupStyle">
 
         @if (Model.ShowSave)
         {
             <button type="@saveBtnType"
                     id="@Model.SaveBtnId"
                     class="btn toolbar-btn toolbar-btn-save @Model.SaveBtnClass"
-                    disabled="@(!Model.EnableSave)">
+                    disabled="@(!Model.EnableSave)"
+                    style="@Model.SaveBtnStyle">
                 <i class="fas fa-save"></i>
                 <span>Save</span>
             </button>
@@ -119,7 +196,8 @@
             <button type="@deleteBtnType"
                     id="@Model.DeleteBtnId"
                     class="btn toolbar-btn toolbar-btn-delete @Model.DeleteBtnClass"
-                    disabled="@(!Model.EnableDelete)">
+                    disabled="@(!Model.EnableDelete)"
+                    style="@Model.DeleteBtnStyle">
                 <i class="fas fa-trash-alt"></i>
                 <span>Delete</span>
             </button>
@@ -130,7 +208,8 @@
             <button type="@clearBtnType"
                     id="@Model.ClearBtnId"
                     class="btn toolbar-btn toolbar-btn-clear @Model.ClearBtnClass"
-                    disabled="@(!Model.EnableClear)">
+                    disabled="@(!Model.EnableClear)"
+                    style="@Model.ClearBtnStyle">
                 <i class="fas fa-redo"></i>
                 <span>Clear</span>
             </button>
@@ -145,7 +224,8 @@
                         class="btn toolbar-btn toolbar-btn-print dropdown-toggle @Model.PrintBtnClass"
                         data-bs-toggle="dropdown"
                         aria-expanded="false"
-                        disabled="@(!Model.EnablePrint)">
+                        disabled="@(!Model.EnablePrint)"
+                        style="@Model.PrintBtnStyle">
                     <i class="fas fa-download"></i>
                     <span>Export</span>
                 </button>
@@ -182,11 +262,30 @@
             <button type="@favtBtnType"
                     id="@Model.FavtBtnId"
                     class="btn toolbar-btn toolbar-btn-fav @Model.FavtBtnClass"
-                    disabled="@(!Model.EnableFavorite)">
+                    disabled="@(!Model.EnableFavorite)"
+                    style="@Model.FavtBtnStyle">
                 <i class="fas fa-star"></i>
                 <span>Favorite</span>
             </button>
         }
 
     </div>
+@{
+    var extraLaptopClass = Model.ShowExtraContentLaptopOnly ? "toolbar-extra-laptop-only" : "";
+    var extra1Class = string.Join(" ", new[] { "toolbar-extra-content toolbar-extra-content-1", Model.ExtraContent1Class, extraLaptopClass }.Where(c => !string.IsNullOrWhiteSpace(c)));
+    var extra2Class = string.Join(" ", new[] { "toolbar-extra-content toolbar-extra-content-2", Model.ExtraContent2Class, extraLaptopClass }.Where(c => !string.IsNullOrWhiteSpace(c)));
+}
+    @if (Model.ShowExtraContent1)
+    {
+        <div class="@extra1Class" style="@Model.ExtraContent1Style">
+            @Html.Raw(string.IsNullOrWhiteSpace(Model.ExtraContent1) ? "" : Model.ExtraContent1)
+        </div>
+    }
+
+    @if (Model.ShowExtraContent2)
+    {
+        <div class="@extra2Class" style="@Model.ExtraContent2Style">
+            @Html.Raw(string.IsNullOrWhiteSpace(Model.ExtraContent2) ? "" : Model.ExtraContent2)
+        </div>
+    }
 </div>

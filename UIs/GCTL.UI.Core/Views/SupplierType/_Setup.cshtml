@@ -26,7 +26,7 @@
             LabelText = "ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-SupplierTypeId-code",
             DefaultValue = Model?.SupplierTypeId
@@ -41,6 +41,7 @@
             Placeholder = "Enter Supplier Type Name",
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             CustomCssClass = "js-SupplierTypeName-check-duplicateName",
             DefaultValue = Model.SupplierTypeName,
             AutoFocus = true
@@ -89,7 +90,7 @@
             IsPlain = true,
             SaveBtnClass = "js-SupplierType-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
+           Style="border-bottom:0px !important;"
         })
     </div>
 </div>

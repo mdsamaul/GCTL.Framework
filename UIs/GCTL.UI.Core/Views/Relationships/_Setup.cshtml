@@ -26,7 +26,7 @@
             LabelText = "Relationship Code",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-RelationshipCode-code",
             DefaultValue = Model?.RelationshipCode
@@ -42,6 +42,7 @@
             IsRequired = true,
             CustomCssClass = "js-Relationship-check-duplicateName",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.Relationship,
             AutoFocus = true
         })
@@ -57,6 +58,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter ShortName",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model.ShortName
         })
     </div>
@@ -101,7 +103,8 @@
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "js-Relationships-save"
+            SaveBtnClass = "js-Relationships-save",
+           Style="border-bottom:0px !important;"
         })
     </div>
 </div>

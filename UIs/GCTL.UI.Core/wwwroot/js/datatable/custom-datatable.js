@@ -228,6 +228,9 @@
             }
 
             var config = $table.data('grid-config');
+            if (typeof config === 'string') {
+                try { config = JSON.parse(config); } catch (e) { console.error("Invalid grid config JSON", e); return null; }
+            }
             if (!config) {
                 return null;
             }
@@ -237,7 +240,8 @@
             var nonOrderableCols = [];
 
             // 1. Sub-Row Expander Column
-            if (config.hasSubRow) {
+            var hasSubRow = config.hasSubRow !== undefined ? config.hasSubRow : config.HasSubRow;
+            if (hasSubRow) {
                 var subRowIdx = columns.length;
                 columns.push({
                     data: null,
@@ -254,7 +258,8 @@
             }
 
             // 2. Row Number Column (#)
-            if (config.showRowNumbers) {
+            var showRowNumbers = config.showRowNumbers !== undefined ? config.showRowNumbers : config.ShowRowNumbers;
+            if (showRowNumbers) {
                 var rowNumIdx = columns.length;
                 columns.push({
                     data: null,
@@ -271,18 +276,20 @@
             }
 
             // 3. Selection Column (Checkbox / Radio)
-            var hasSelectCol = config.showCheckbox || config.useRadio;
+            var showCheckbox = config.showCheckbox !== undefined ? config.showCheckbox : config.ShowCheckbox;
+            var useRadio = config.useRadio !== undefined ? config.useRadio : config.UseRadio;
+            var hasSelectCol = showCheckbox || useRadio;
             if (hasSelectCol) {
                 var selectColIdx = columns.length;
                 columns.push({
-                    data: config.useRadio ? null : config.checkColumnData,
+                    data: useRadio ? null : config.checkColumnData,
                     className: "text-center",
                     orderable: false,
                     searchable: false,
                     width: "3%",
                     render: function (data, type, row) {
                         var cls = config.checkboxClass || 'form-check-input checkbox m-0 shadow-none';
-                        return config.useRadio
+                        return useRadio
                             ? '<input type="radio" class="' + cls + '" name="' +
                             (config.radioName || 'rowSelect') + '" value="' +
                             (row[config.checkColumnData] != null ? row[config.checkColumnData] : '') + '">'
@@ -295,30 +302,41 @@
             }
 
             // 4. Data Columns
-            var visibleCols = (config.columns || []).filter(function (c) {
-                return c.visible !== false;
+            var confCols = config.columns || config.Columns || [];
+            var visibleCols = confCols.filter(function (c) {
+                var isVisible = c.visible !== undefined ? c.visible : c.Visible;
+                return isVisible !== false;
             });
 
             var defaultSortIdx = -1;
 
             visibleCols.forEach(function (c, i) {
                 var colIdx = columns.length;
-                if (config.defaultSortColumn && (c.data === config.defaultSortColumn || c.sortField === config.defaultSortColumn)) {
+                var defaultSortCol = config.defaultSortColumn || config.DefaultSortColumn;
+                var colData = c.data !== undefined ? c.data : c.Data;
+                var colSortField = c.sortField !== undefined ? c.sortField : c.SortField;
+                var isEditLink = c.isEditLink !== undefined ? c.isEditLink : c.IsEditLink;
+                var isTruncate = c.isTruncate !== undefined ? c.isTruncate : c.IsTruncate;
+                var isCopyable = c.isCopyable !== undefined ? c.isCopyable : c.IsCopyable;
+                
+                if (defaultSortCol && (colData === defaultSortCol || colSortField === defaultSortCol)) {
                     defaultSortIdx = colIdx;
                 }
 
                 var renderFn;
 
-                if (c.isEditLink) {
+                if (isEditLink) {
                     renderFn = function (data, type, row) {
-                        var editClass = c.editSelectorClass || 'edit-link';
-                        var label = c.editLabel != null ? c.editLabel : (data != null ? data : '');
-                        var idValField = c.idField || c.data;
+                        var editClass = c.editSelectorClass || c.EditSelectorClass || 'edit-link';
+                        var cEditLabel = c.editLabel !== undefined ? c.editLabel : c.EditLabel;
+                        var label = cEditLabel != null ? cEditLabel : (data != null ? data : '');
+                        var idValField = c.idField || c.IdField || colData;
                         var idVal = row && row[idValField] != null ? row[idValField] : (data != null ? data : '');
 
                         var extraAttrs = '';
-                        if (c.dataAttributes && Array.isArray(c.dataAttributes)) {
-                            c.dataAttributes.forEach(function (attrField) {
+                        var dAttrs = c.dataAttributes || c.DataAttributes;
+                        if (dAttrs && Array.isArray(dAttrs)) {
+                            dAttrs.forEach(function (attrField) {
                                 var kebabAttr = attrField.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
                                 var attrVal = row && row[attrField] != null ? row[attrField] : '';
                                 extraAttrs += ' data-' + kebabAttr + '="' + attrVal + '"';
@@ -327,7 +345,7 @@
 
                         var linkHtml = '<a class="custom-grid-link ' + editClass + '" data-id="' + idVal + '"' + extraAttrs + '>' + label + '</a>';
 
-                        if (c.isCopyable) {
+                        if (isCopyable) {
                             linkHtml += '<span class="position-relative copy-wrapper ms-1">' +
                                 '<i class="bi bi-copy btn-copy-code" data-copy-text="' + idVal + '" title="Copy"></i>' +
                                 '<span class="copy-tooltip">Copied!</span>' +
@@ -336,40 +354,48 @@
 
                         return linkHtml;
                     };
-                } else if (c.isTruncate) {
+                } else if (isTruncate) {
                     renderFn = function (data) {
                         var text = data != null ? data : '';
                         return '<span class="cell-truncate target-text" title="' + text + '">' + text + '</span>';
                     };
-                } else if (c.renderFn && window.gctlRenderers && window.gctlRenderers[c.renderFn]) {
-                    renderFn = window.gctlRenderers[c.renderFn];
                 } else {
-                    renderFn = function (data) {
-                        var text = data != null ? data : '';
-                        var html = '<span class="target-text">' + text + '</span>';
-                        if (c.isCopyable && text) {
-                            html += '<span class="position-relative copy-wrapper ms-1">' +
-                                '<i class="bi bi-copy btn-copy-code" data-copy-text="' + text + '" title="Copy"></i>' +
-                                '<span class="copy-tooltip">Copied!</span>' +
-                                '</span>';
-                        }
-                        return html;
-                    };
+                    var cRenderFn = c.renderFn || c.RenderFn;
+                    if (cRenderFn && window.gctlRenderers && window.gctlRenderers[cRenderFn]) {
+                        renderFn = window.gctlRenderers[cRenderFn];
+                    } else {
+                        renderFn = function (data) {
+                            var text = data != null ? data : '';
+                            var html = '<span class="target-text">' + text + '</span>';
+                            if (isCopyable && text) {
+                                html += '<span class="position-relative copy-wrapper ms-1">' +
+                                    '<i class="bi bi-copy btn-copy-code" data-copy-text="' + text + '" title="Copy"></i>' +
+                                    '<span class="copy-tooltip">Copied!</span>' +
+                                    '</span>';
+                            }
+                            return html;
+                        };
+                    }
                 }
 
+                var cssClass = c.cssClass || c.CssClass;
+                var sortable = c.sortable !== undefined ? c.sortable : c.Sortable;
+                var searchable = c.searchable !== undefined ? c.searchable : c.Searchable;
+
                 columns.push({
-                    data: c.data,
-                    className: c.cssClass || "text-center",
-                    orderable: c.sortable !== false,
-                    searchable: c.searchable !== false,
+                    data: colData,
+                    className: cssClass || "text-center",
+                    orderable: sortable !== false,
+                    searchable: searchable !== false,
                     render: renderFn
                 });
 
-                sortFieldMap.push(c.sortField || c.data);
+                sortFieldMap.push(colSortField || colData);
             });
 
             // 5. Action Menu Column (3-dots)
-            if (config.showActionMenu) {
+            var showActionMenu = config.showActionMenu !== undefined ? config.showActionMenu : config.ShowActionMenu;
+            if (showActionMenu) {
                 var actionIdx = columns.length;
                 columns.push({
                     data: null,
@@ -378,14 +404,12 @@
                     searchable: false,
                     width: "6%",
                     render: function (data, type, row) {
-                        var id = row[config.checkColumnData] || '';
-                        return '<div class="dropdown">' +
-                            '<button class="btn-action-menu" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>' +
-                            '<ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:0.72rem;">' +
-                            '<li><a class="dropdown-item py-1 js-grid-edit" data-id="' + id + '"><i class="bi bi-pencil me-1 text-primary"></i> Edit</a></li>' +
-                            '<li><hr class="dropdown-divider my-1"></li>' +
-                            '<li><a class="dropdown-item py-1 text-danger js-grid-delete" data-id="' + id + '"><i class="bi bi-trash me-1"></i> Delete</a></li>' +
-                            '</ul></div>';
+                        var checkCol = config.checkColumnData || config.CheckColumnData;
+                        var id = (checkCol && row[checkCol]) ? row[checkCol] : '';
+                        return '<div class="d-flex justify-content-center gap-2">' +
+                            '<a href="javascript:void(0)" class="text-primary js-grid-edit" data-id="' + id + '" title="Edit" style="font-size: 1.1rem;"><i class="bi bi-pencil-square"></i></a>' +
+                            '<a href="javascript:void(0)" class="text-danger js-grid-delete" data-id="' + id + '" title="Delete" style="font-size: 1.1rem;"><i class="bi bi-trash"></i></a>' +
+                            '</div>';
                     }
                 });
                 sortFieldMap.push(null);
@@ -409,6 +433,7 @@
                 ajaxUrl: config.ajaxUrl,
                 ajaxType: config.ajaxMethod || "GET",
                 serverSide: !!config.serverSide,
+                ajaxData: overrides.ajaxData,
                 columns: columns,
                 checkBoxClass: config.checkboxClass || 'form-check-input checkbox m-0 shadow-none',
                 checkAllSelector: (config.showCheckbox && !config.disableCheckAll && config.checkAllId)

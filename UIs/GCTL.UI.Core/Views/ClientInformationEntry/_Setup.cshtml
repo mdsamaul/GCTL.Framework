@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.ClientInformationEntry.ClientInformationEntrySetupViewModel
+@model GCTL.Core.ViewModels.ClientInformationEntry.ClientInformationEntrySetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
@@ -10,32 +10,28 @@
         </div>
     </div>
 
-    <div class="form-group row">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="AutoId" />
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="Ldate" />
-        <input type="hidden" asp-for="ModifyDate" />
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="AutoId" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
 
-        @* ---------- Client ID (readonly) ---------- *@
+    @* ---------- Row 1: Client ID & Client Name ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ClientId",
             LabelText = "Client ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
-            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
             CustomCssClass = "js-CompanyId-code",
             DefaultValue = Model?.ClientId
         })
-    </div>
 
-    <div class="form-group row">
-
-        @* ---------- Client Name ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ClientName",
@@ -44,39 +40,40 @@
             Placeholder = "Enter Client Name",
             IsRequired = true,
             CustomCssClass = "js-ClientName-check-duplicateName",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.ClientName,
             AutoFocus = true
         })
+    </div>
 
-        @* ---------- Short Name ---------- *@
+    @* ---------- Row 2: Short Name & Address ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ShortName",
             LabelText = "Short Name",
             FieldType = FieldType.Text,
             Placeholder = "Enter Short Name",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.ShortName
         })
-    </div>
 
-    <div class="form-group row">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ClientAddress",
             LabelText = "Address",
             FieldType = FieldType.Text,
             Placeholder = "Enter Address",
-            ColumnClass = "col-lg-12",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.ClientAddress
         })
     </div>
 
-    <div class="form-group row">
-
-        @* ---------- Country (Select + Quick Add) ---------- *@
-
+    @* ---------- Row 3: Country & City ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "CountryId",
@@ -84,46 +81,32 @@
             FieldType = FieldType.Select,
             Placeholder = "-- Select Country --",
             SelectItems = ViewBag.CountryDD as SelectList,
-            ReserveActionSlot = true,
-            ColumnClass = "col-lg-6"
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
         })
 
-        @* @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-        {
-            InputId = "CountryId",
-            LabelText = "Country",
-            FieldType = FieldType.Select,
-            Placeholder = "Select Country",
-            SelectItems = ViewBag.CountryDD as SelectList,
-            ColumnClass = "col-lg-6",
-            ShowQuickAdd = true,
-            QuickAddUrl = Url.Action("Index", "Country"),
-            QuickAddTarget = "#CountryId",
-            QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
-            QuickAddTitle = "Country"
-        }) *@
-
-        @* ---------- City ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "City",
             LabelText = "City",
             FieldType = FieldType.Text,
             Placeholder = "Enter City",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.City
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 4: State/Province & Zip Code ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "State",
             LabelText = "State/Province",
             FieldType = FieldType.Text,
             Placeholder = "Enter State",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.State
         })
 
@@ -133,20 +116,22 @@
             LabelText = "Zip Code",
             FieldType = FieldType.Text,
             Placeholder = "Enter Zip Code",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.ZipCode
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 5: Phone & Fax ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Phone",
             LabelText = "Phone",
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Phone
         })
 
@@ -156,20 +141,22 @@
             LabelText = "Fax",
             FieldType = FieldType.Text,
             Placeholder = "Enter Fax",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Fax
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 6: Email & Url ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Email",
             LabelText = "Email",
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Email
         })
 
@@ -179,20 +166,22 @@
             LabelText = "Url",
             FieldType = FieldType.Text,
             Placeholder = "Enter Url",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Url
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 7: Bin & Vat Reg No. ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Bin",
             LabelText = "Bin",
             FieldType = FieldType.Text,
             Placeholder = "Enter Bin",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Bin
         })
 
@@ -202,33 +191,36 @@
             LabelText = "Vat Reg No.",
             FieldType = FieldType.Text,
             Placeholder = "Enter Vat Reg No.",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Vat
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 8: Tin ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Tin",
             LabelText = "Tin",
             FieldType = FieldType.Text,
             Placeholder = "Enter Tin",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Tin
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 9: Contact Person 1 & Designation 1 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ContatPerson1",
             LabelText = "Contact Person 1",
             FieldType = FieldType.Text,
             Placeholder = "Enter Contact Person 1",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.ContatPerson1
         })
 
@@ -238,20 +230,22 @@
             LabelText = "Designation",
             FieldType = FieldType.Text,
             Placeholder = "Enter Designation",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Designation1
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 10: Phone 1 & Email 1 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Phone1",
             LabelText = "Phone",
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Phone1
         })
 
@@ -261,20 +255,22 @@
             LabelText = "Email",
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Email1
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 11: Contact Person 2 & Designation 2 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ContatPerson2",
             LabelText = "Contact Person 2",
             FieldType = FieldType.Text,
             Placeholder = "Enter Contact Person 2",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.ContatPerson2
         })
 
@@ -284,20 +280,22 @@
             LabelText = "Designation",
             FieldType = FieldType.Text,
             Placeholder = "Enter Designation",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Designation2
         })
     </div>
 
-    <div class="form-group row">
-
+    @* ---------- Row 12: Phone 2 & Email 2 ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Phone2",
             LabelText = "Phone",
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Phone2
         })
 
@@ -307,22 +305,23 @@
             LabelText = "Email",
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
-            ColumnClass = "col-lg-6",
+            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
+            ReserveActionSlot = false,
             DefaultValue = Model.Email2
         })
     </div>
 
     @if (Model.AutoId > 0)
     {
-        <hr />
-        <div class="form-group row" id="LdateModifyHide">
+        <hr class="my-2" />
+        <div class="row g-4 mb-1" id="LdateModifyHide">
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 InputId = "displayLDate",
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
                 ShowOnInit = Model.Ldate.HasValue,
                 DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt")
             })
@@ -332,7 +331,7 @@
                 InputId = "displayModifyDate",
                 LabelText = "Last Update Date:",
                 FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
+                ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 cie-field-col",
                 ShowOnInit = Model.ModifyDate.HasValue,
                 DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")
             })
@@ -342,8 +341,8 @@
 
 </div>
 
-<div class="row no-print" style="margin-top: 9px;">
-    <div class="col-12">
+<div class="row g-4 no-print" style="margin-top: 9px;">
+    <div class="col-12 col-md-6 col-xxl-12 cie-toolbar-col">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
@@ -354,7 +353,10 @@
             IsPlain = true,
             SaveBtnClass = "js-ClientInformationEntry-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
+            Style = "border-bottom:0px !important; padding-left:605px",
+            ShowExtraContentLaptopOnly = true,
+            ShowExtraContent1 = true,
+            ShowExtraContent2 = false
         })
     </div>
 </div>

@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.contactPersonInfo = function (options) {
 
         //#region Default options
@@ -42,6 +42,10 @@
         //#endregion
       
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'ContactPersonInfo-grid' });
+            }
+
 
             loadSNCId();
             select2DD();
@@ -139,20 +143,19 @@
             //#region selectAllSelector & deleteSelector
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(`${settings.gridSelector} input:checkbox.checkbox`).prop('checked', $(this).prop('checked'));
             });
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                    $(`${settings.gridSelector} input:checkbox.checkbox:checked`).each(function () {
+                        var val = $(this).val();
+                        if (val && !selectedItems.includes(val)) {
+                            selectedItems.push(val);
                         }
                     });
                 }
@@ -257,10 +260,8 @@
         //#region loadTable
 
         function loadTable() {
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({
-                    gridId: 'contactPersonInfoTable'
-                });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 
@@ -278,7 +279,9 @@
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
-                        select2DD();
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
                         //loadSNCId(); 
                         resolve(data)
                     },
@@ -342,4 +345,4 @@
 
     }
 
-}(jQuery));
+}(typeof jQuery !== "undefined" ? jQuery : window.$));

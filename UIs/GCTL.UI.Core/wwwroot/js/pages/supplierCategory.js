@@ -39,13 +39,14 @@
             $('[data-toggle="tooltip"]').tooltip();
         });
 
-        if ($.gctlGrid) {
-            $.gctlGrid.initFromModel({ gridId: 'supplierCategoryTable' });
-        }
 
         //#endregion
 
         $(() => {
+            if ($.gctlGrid) {
+            $.gctlGrid.initFromModel({ gridId: 'supplierCategoryTable' });
+        }
+
 
             loadTable();
 
@@ -244,9 +245,7 @@
         //#region loadTable
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().ajax.reload();
-            } else if (window.loadGridPage) {
-                window.loadGridPage('supplierCategoryGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 

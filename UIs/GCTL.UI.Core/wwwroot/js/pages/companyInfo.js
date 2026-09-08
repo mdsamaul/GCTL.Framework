@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.companyInfo = function (options) {
 
         //#region Default options
@@ -43,8 +43,17 @@
         //#endregion
 
         $(() => {
+            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridSelector: settings.gridSelector });
+            }
 
-            select2DD();
+            // if ($.gctlGrid) {
+            //     $.gctlGrid.initFromModel({ gridId: 'CompanyInfo-grid' });
+            // }
+
+
+           // select2DD();
             loadTable();
             enterKeyNavigation();
 
@@ -136,20 +145,19 @@
             //#region selectAllSelector & deleteSelector
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(`${settings.gridSelector} input:checkbox.checkbox`).prop('checked', $(this).prop('checked'));
             });
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkbox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                    $(`${settings.gridSelector} input:checkbox.checkbox:checked`).each(function () {
+                        var val = $(this).val();
+                        if (val && !selectedItems.includes(val)) {
+                            selectedItems.push(val);
                         }
                     });
                 }
@@ -278,10 +286,8 @@
 
         //#region loadTable
         function loadTable() {
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({
-                    gridId: 'companyInfoTable'
-                });
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 
@@ -300,7 +306,9 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        select2DD();
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
                         resolve(data)
                     },
                     error: function (error) {

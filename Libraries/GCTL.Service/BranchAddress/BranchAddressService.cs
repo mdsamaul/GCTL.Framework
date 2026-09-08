@@ -334,6 +334,8 @@ namespace GCTL.Service.BranchAddress
         }
         #endregion
 
+        #region GetContactPersonsForTable
+
         public async Task<CommonReturnViewModel> GetContactPersonsForTableAsync()
         {
             try
@@ -350,8 +352,7 @@ namespace GCTL.Service.BranchAddress
                 Designation = d != null ? d.DesignationName : "",
                 Phone = cp.ContactPersonMobile ?? "",
                 Email = cp.ContactPersonEmail ?? ""
-            }
-        ).ToListAsync();
+            }).ToListAsync();
 
                 return new CommonReturnViewModel
                 {
@@ -370,7 +371,7 @@ namespace GCTL.Service.BranchAddress
             }
         }
 
-       
+        #endregion
 
     }
 }

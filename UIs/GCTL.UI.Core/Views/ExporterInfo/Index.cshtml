@@ -88,6 +88,80 @@
         box-shadow: none;
     }
 
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .ex-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .ex-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .ex-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .ex-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .ex-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .ex-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .ex-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
 </style>
 
 <!-- Content Header (Page header) -->
@@ -97,8 +171,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 ex-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -106,10 +180,11 @@
                             Title = "Exporter Info",
                             SaveBtnClass = "js-ExporterInfo-save",
                             DeleteBtnClass = "js-ExporterInfo-delete-confirm",
-                            ClearBtnClass = "js-ExporterInfo-clear"
+                            ClearBtnClass = "js-ExporterInfo-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="ExporterInfo-form" asp-controller="ExporterInfo">
                             <div class="js-ExporterInfo-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -119,13 +194,13 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",
-                    AjaxUrl = "/ExporterInfo/GetAll",
-                    AjaxMethod = "POST",
+                    AjaxUrl = "/ExporterInfo/GetTableData",
+                    AjaxMethod = "GET",
                     ServerSide = false,
                     ShowCheckbox = true,
                     CheckColumnData = "tc",
@@ -135,11 +210,11 @@
                     Columns = new List<GridColumn>
                     {
                         new() { Data = "exporterId", Header = "Exporter Id", Width = "12%", IsEditLink = true, EditSelectorClass = "js-ExporterInfo-edit", IdField = "tc" },
-                        new() { Data = "exporterName", Header = "Name", Width = "23%", Align = "left" },
-                        new() { Data = "exporterAddress", Header = "Address", Width = "17%", Align = "left" },
-                        new() { Data = "phone", Header = "Phone", Width = "17%", Align = "left" },
+                        new() { Data = "exporterName", Header = "Name", Width = "24%", Align = "left" },
+                        new() { Data = "exporterAddress", Header = "Address", Width = "20%", Align = "left" },
+                        new() { Data = "phone", Header = "Phone", Width = "12%", Align = "left" },
                         new() { Data = "website", Header = "Website", Width = "15%", Align = "left" },
-                        new() { Data = "email", Header = "Email", Width = "16%", Align = "left" }
+                        new() { Data = "email", Header = "Email", Width = "17%", Align = "left" }
                     }
                 })
             </div>
@@ -152,8 +227,7 @@
 
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
-
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
+@section Scripts{
 <script src="~/js/app.input.validation.js" defer></script>
 <script src="~/js/pages/exporterInfo.js" defer></script>
 <script type="text/javascript">
@@ -167,3 +241,4 @@
         }
     })();
 </script>
+}

@@ -133,9 +133,13 @@ namespace GCTL.Service.ShipmentMode
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
+            var shipmentStatus = (model.ShipmentStatus ?? "").Trim().ToLower();
+            var transportModeTypeId = (model.TransportModeTypeId ?? "").Trim();
+
             return await _repository.All()
                 .AnyAsync(pm =>
-                    pm.ShipmentStatus.Trim().ToLower() == model.ShipmentStatus.Trim().ToLower()
+                    pm.ShipmentStatus.Trim().ToLower() == shipmentStatus
+                    && (pm.TransportModeTypeId ?? "").Trim() == transportModeTypeId
                     && pm.AutoId != model.AutoId
                 );
         }

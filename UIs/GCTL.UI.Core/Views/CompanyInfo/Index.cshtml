@@ -1,10 +1,86 @@
-﻿@model GCTL.UI.Core.ViewModels.CompanyInfo.CompanyInfoPageViewModel
+@model GCTL.UI.Core.ViewModels.CompanyInfo.CompanyInfoPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
-    ViewBag.Title = "Company Info";
-    Model.Breadcrumb = "Company Info";
+    ViewBag.Title = "Company Information";
+    Model.Breadcrumb = "Company Information";
 }
+
+<style>
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .ci-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .ci-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .ci-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .ci-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .ci-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ci-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ci-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ci-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .ci-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ci-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .ci-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .ci-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
 
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
@@ -13,19 +89,20 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 ci-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Company Info",
+                            Title = "Supplier Company Info",
                             SaveBtnClass = "js-CompanyInfo-save",
                             DeleteBtnClass = "js-CompanyInfo-delete-confirm",
-                            ClearBtnClass = "js-CompanyInfo-clear"
+                            ClearBtnClass = "js-CompanyInfo-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="CompanyInfo-form" asp-controller="CompanyInfo">
                             <div class="js-CompanyInfo-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -35,11 +112,11 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                 {
-                    GridId = "companyInfoTable",
+                    GridId = "CompanyInfo-grid",
                     AjaxUrl = "/CompanyInfo/GetTableData",
                     AjaxMethod = "GET",
                     ServerSide = false,
@@ -50,11 +127,11 @@
                     DefaultSortDirection = "desc",
                     Columns = new()
                     {
-                        new() { Data = "companyId", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-CompanyInfo-edit" },
-                        new() { Data = "companyName", Header = "Company Name", Width = "23%"},
-                        new() { Data = "shortName", Header = "Short Name", Width = "12%"},
-                        new() { Data = "companyAddress", Header = "Address", Width = "40%"},
-                        new() { Data = "companyForName", Header = "Company For", Width = "19%"}
+                        new() { Data = "companyId", Header = "ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-CompanyInfo-edit", IdField = "companyId" },
+                        new() { Data = "companyName", Header = "Company Name", Width = "23%", Align = "left"},
+                        new() { Data = "shortName", Header = "Short Name", Width = "11%", Align = "left"},
+                        new() { Data = "companyAddress", Header = "Address", Width = "38%", Align = "left"},
+                        new() { Data = "companyForName", Header = "Company For", Width = "22%", Align = "left"}
                     }
                 })
             </div>
@@ -67,17 +144,18 @@
 
 <partial name="DeleteModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/companyInfo.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.companyInfo === "function") {
-            var options = { baseUrl: '@Url.Action("", "CompanyInfo")' };
-            options.load = () => { };
-            $.companyInfo(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+@section Scripts {
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/companyInfo.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.companyInfo === "function") {
+                var options = { baseUrl: '@Url.Action("", "CompanyInfo")' };
+                options.load = () => { };
+                $.companyInfo(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}

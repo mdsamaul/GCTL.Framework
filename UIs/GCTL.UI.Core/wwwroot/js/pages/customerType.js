@@ -3,7 +3,7 @@
         // Default options
         var settings = $.extend({
             baseUrl: "/CustomerType",
-            formSelector: "#customertype-form",
+            formSelector: "#customerType-form",
             formContainer: ".js-customertype-form-container",
             gridSelector: "#customerTypeTable",
             gridContainer: ".js-customertype-grid-container",
@@ -36,6 +36,8 @@
                 $.gctlGrid.initFromModel({ gridId: 'customerTypeTable' });
             }
 
+
+
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -56,7 +58,7 @@
 
             // Save
             $("body").on("click", settings.saveSelector, function () {
-                deb
+
                 if (!validation()) return false;
                 // var $valid = $(settings.formSelector).valid();
                 // if (!$valid) {
@@ -180,9 +182,7 @@
 
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().ajax.reload();
-            } else if (window.loadGridPage) {
-                window.loadGridPage('customerTypeGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 

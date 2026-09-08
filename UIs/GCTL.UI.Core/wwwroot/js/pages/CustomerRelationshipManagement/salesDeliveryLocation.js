@@ -54,7 +54,7 @@ function setupDLEventListeners() {
         resetDLForm({ resetCustomer: true, keepEdit: false });
     });
 
-    $('#btnSaveDL').on('click', saveDeliveryLocation);
+    $('#btnSaveDL, #btnSaveDL-bottom, .js-salesdl-save').on('click', saveDeliveryLocation);
 }
 
 function showFooterDl() {

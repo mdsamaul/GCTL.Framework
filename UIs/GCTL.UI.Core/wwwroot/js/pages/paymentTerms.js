@@ -35,10 +35,12 @@
         });
 
         $(() => {
-            select2DD();
             if ($.gctlGrid) {
                 $.gctlGrid.initFromModel({ gridId: 'paymentTermsTable' });
             }
+
+            select2DD();
+
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -227,9 +229,7 @@
 
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().ajax.reload();
-            } else if (window.loadGridPage) {
-                window.loadGridPage('paymentTermsGridContainer', settings.baseUrl + "/GetTableData", 1, 10);
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
 
@@ -274,8 +274,10 @@
         }
 
         function select2DD() {
-            if ($.fn.select2) {
-                $('.selectpickers').select2({
+            if (window.initCustomDropdowns) {
+                window.initCustomDropdowns(settings.formContainer, true);
+            } else if ($.fn.select2) {
+                $('#Type, .selectpickers, .custom-select-single').select2({
                     language: {
                         noResults: function () { return "No results found"; }
                     },

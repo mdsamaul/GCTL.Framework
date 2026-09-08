@@ -88,6 +88,83 @@
             box-shadow: none;
         }
 
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .im-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .im-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .im-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .im-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .im-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .im-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .im-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .im-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .im-layout-form-col .toolbar-extra-content {
+            display: none !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .im-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .im-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .im-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .im-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -97,8 +174,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 im-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -106,10 +183,12 @@
                             Title = "Importer Info",
                             SaveBtnClass = "js-ImporterInfo-save",
                             DeleteBtnClass = "js-ImporterInfo-delete-confirm",
-                            ClearBtnClass = "js-ImporterInfo-clear"
+                            ClearBtnClass = "js-ImporterInfo-clear",
+                            ShowExtraContent = true,
+                            ShowExtraContentLaptopOnly=true
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="ImporterInfo-form" asp-controller="ImporterInfo">
                             <div class="js-ImporterInfo-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -119,13 +198,13 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ImporterInfo-grid",
-                    AjaxUrl = "/ImporterInfo/GetAll",
-                    AjaxMethod = "POST",
+                    AjaxUrl = "/ImporterInfo/GetTableData",
+                    AjaxMethod = "GET",
                     ServerSide = false,
                     ShowCheckbox = true,
                     CheckColumnData = "tc",
@@ -135,11 +214,11 @@
                     Columns = new List<GridColumn>
                     {
                         new() { Data = "importerId", Header = "Importer Id", Width = "12%", IsEditLink = true, EditSelectorClass = "js-ImporterInfo-edit", IdField = "tc" },
-                        new() { Data = "importerName", Header = "Name", Width = "23%", Align = "left" },
-                        new() { Data = "importerAddress", Header = "Address", Width = "17%", Align = "left" },
-                        new() { Data = "phone", Header = "Phone", Width = "17%", Align = "left" },
+                        new() { Data = "importerName", Header = "Name", Width = "24%", Align = "left" },
+                        new() { Data = "importerAddress", Header = "Address", Width = "20%", Align = "left" },
+                        new() { Data = "phone", Header = "Phone", Width = "12%", Align = "left" },
                         new() { Data = "website", Header = "Website", Width = "15%", Align = "left" },
-                        new() { Data = "email", Header = "Email", Width = "16%", Align = "left" }
+                        new() { Data = "email", Header = "Email", Width = "17%", Align = "left" }
                     }
                 })
             </div>
@@ -153,17 +232,18 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-<script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/importerInfo.js" defer></script>
-<script type="text/javascript">
-    (function waitForJQuery() {
-        if (window.jQuery && typeof $.importerInfo === "function") {
-            var options = { baseUrl: '@Url.Action("", "ImporterInfo")' };
-            options.load = () => { };
-            $.importerInfo(options);
-        } else {
-            setTimeout(waitForJQuery, 30);
-        }
-    })();
-</script>
+@section Scripts{
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/importerInfo.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.importerInfo === "function") {
+                var options = { baseUrl: '@Url.Action("", "ImporterInfo")' };
+                options.load = () => { };
+                $.importerInfo(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}

@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.CfDefPlaceOfLoading.CfDefPlaceOfLoadingPageViewModel
+@model GCTL.UI.Core.ViewModels.CfDefPlaceOfLoading.CfDefPlaceOfLoadingPageViewModel
 
 
 <div id="PlaceOfLoading-page">
@@ -29,7 +29,7 @@
                         </h5>
                     </div>
 
-                    <div class="card-body js-PlaceOfLoading-form-container">
+                    <div class="card-body px-2 js-PlaceOfLoading-form-container">
 
                         @await Html.PartialAsync("_Setup", Model.Setup)
 
@@ -43,21 +43,38 @@
 
         <div class="col-lg-6">
 
-            <div class="card">
+            @* <div class="card">
 
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        Place Of Loading List
+                        
                     </h5>
-                </div>
+                </div> *@
 
                 <div class="card-body js-PlaceOfLoading-grid-container">
 
-                    @await Html.PartialAsync("_Grid", Model.PlaceOfLoadingList)
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                    {
+                        GridId = "PlaceOfLoading-grid",
+                        AjaxUrl = "/CfDefPlaceOfLoading/GetTableData",
+                        AjaxMethod = "GET",
+                        ServerSide = false,
+                        ShowCheckbox = true,
+                        CheckColumnData = "placeOfLoadingId",
+                        CheckAllId = "PlaceOfLoading-check-all",
+                        DefaultSortColumn = "placeOfLoadingId",
+                        DefaultSortDirection = "desc",
+                        Columns = new()
+                        {
+                            new() { Data = "placeOfLoadingId", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-PlaceOfLoading-edit" },
+                            new() { Data = "placeOfLoading", Header = "Place Of Loading", Width = "55%" },
+                            new() { Data = "shortName", Header = "Short Name", Width = "27%" }
+                        }
+                    })
 
                 </div>
 
-            </div>
+            @* </div> *@
 
         </div>
 
@@ -65,15 +82,16 @@
 
 </div>
 
-@await Html.PartialAsync("_DeleteModal") 
-@section Scripts
-{
-    <script src="~/js/pages/placeofloading.js"></script>
-    <script>
-        $(function () {
-            $.placeOfLoading({
-                baseUrl: '/CfDefPlaceOfLoading'
-            });
-        });
-    </script>
-}
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/placeofloading.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.placeOfLoading === "function") {
+            var options = { baseUrl: '@Url.Action("", "CfDefPlaceOfLoading")' };
+            options.load = () => { };
+            $.placeOfLoading(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>

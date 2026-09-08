@@ -1,4 +1,4 @@
-@model GCTL.UI.Core.ViewModels.Religions.ReligionPageViewModel
+﻿@model GCTL.UI.Core.ViewModels.Religions.ReligionPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -31,7 +31,7 @@
                             ClearBtnClass = "js-religion-clear"
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="religion-form" asp-controller="Religions">
                             <div class="js-religion-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
@@ -76,7 +76,6 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/pages/religions.js"></script>
     <script type="text/javascript">
         var options = {

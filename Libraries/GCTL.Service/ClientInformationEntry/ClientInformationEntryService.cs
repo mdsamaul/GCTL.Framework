@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.ClientInformationEntry;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
@@ -73,6 +73,10 @@ namespace GCTL.Service.ClientInformationEntry
         public async Task<ClientInformationEntrySetupViewModel> GetByIdAsync(string code)
         {
             var entity = await clientInformationRepository.GetByIdAsync(code);
+            if (entity == null && decimal.TryParse(code, out decimal autoId))
+            {
+                entity = await clientInformationRepository.All().FirstOrDefaultAsync(x => x.AutoId == autoId);
+            }
             if (entity == null) return null;
 
             ClientInformationEntrySetupViewModel entityVM = new ClientInformationEntrySetupViewModel();

@@ -42,6 +42,7 @@
             SelectItems = ViewBag.TypeDD as SelectList,
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model?.Type
         })
     </div>
@@ -56,6 +57,7 @@
             Placeholder = "Enter Percentage",
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model?.Percentise
         })
 
@@ -67,6 +69,7 @@
             FieldType = FieldType.Number,
             Placeholder = "Enter Credit Days",
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             DefaultValue = Model?.CreditDays?.ToString()
         })
     </div>
@@ -81,6 +84,7 @@
             Placeholder = "Calculated Payment Terms Name",
             IsReadonly = true,
             ColumnClass = "col-lg-12",
+            ReserveActionSlot = false,
             DefaultValue = Model?.PaymentTermsName
         })
     </div>
@@ -126,6 +130,7 @@
             IsPlain = true,
             SaveBtnClass = "js-paymentterms-save",
             ReserveActionSlot = true,
+           Style="border-bottom:0px !important;"
         })
     </div>
 </div>

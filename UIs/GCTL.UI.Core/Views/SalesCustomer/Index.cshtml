@@ -31,6 +31,80 @@
         max-width: 1600px !important;
         width: 95% !important;
     }
+
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .sc-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .sc-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .sc-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .sc-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .sc-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .sc-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
 </style>
 
 @model SalesCustomerViewModel
@@ -51,12 +125,12 @@
         <div class="tab-content" id="customerTabsContent">
             <div class="tab-pane fade show active" id="customer-info" role="tabpanel" aria-labelledby="customer-info-tab">
                 <div class="row mt-3">
-                    <div class="col-md-6 pe-1">
+                    <div class="col-12 col-xxl-6 pe-1 sc-layout-form-col">
                         <div id="customer-form-container">
                             @await Html.PartialAsync("_Setup", Model ?? new SalesCustomerViewModel())
                         </div>
                     </div>
-                    <div class="col-md-6 ps-1">
+                    <div class="col-10 col-xxl-6 ">
                         <div id="customer-list-container">
                             @await Html.PartialAsync("_Table")
                         </div>
@@ -66,12 +140,12 @@
 
             <div class="tab-pane fade" id="delivery-address" role="tabpanel" aria-labelledby="delivery-address-tab">
                 <div class="row mt-3">
-                    <div class="col-md-6 pe-1">
+                    <div class="col-12 col-xxl-6 pe-1 sc-layout-form-col">
                         <div id="delivery-form-container">
                             @await Html.PartialAsync("_DLForm", new SalesDeliveryLocationViewModel())
                         </div>
                     </div>
-                    <div class="col-md-6 ps-1">
+                    <div class="col-10 col-xxl-6">
                         <div id="delivery-list-container">
                             @await Html.PartialAsync("_DLTable")
                         </div>
@@ -113,7 +187,6 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <script src="~/js/datatable/custom-datatable.js" asp-append-version="true"></script>
     <script src="~/js/app.input.validation.js" defer></script>
     <script src="~/js/pages/CustomerRelationshipManagement/salesCustomerData.js" defer></script>
     <script src="~/js/pages/customerrelationshipmanagement/salesDeliveryLocation.js" defer></script>

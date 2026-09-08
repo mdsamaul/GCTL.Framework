@@ -26,7 +26,7 @@
             LabelText = "ID",
             FieldType = FieldType.Text,
             IsReadonly = true,
-            ReserveActionSlot = true,
+            ReserveActionSlot = false,
             ColumnClass = "col-lg-6",
             CustomCssClass = "js-SupplierCategoryId-code",
             DefaultValue = Model?.SupplierCategoryId
@@ -41,6 +41,7 @@
             Placeholder = "Enter Supplier Category",
             IsRequired = true,
             ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
             CustomCssClass = "js-Color-SupplierCategory-duplicateName",
             DefaultValue = Model.SupplierCategory,
             AutoFocus = true
@@ -89,7 +90,7 @@
             IsPlain = true,
             SaveBtnClass = "js-SupplierCategory-save",
             ReserveActionSlot = true,
-            IsMarginRight = true
+           Style="border-bottom:0px !important;"
         })
     </div>
 </div>

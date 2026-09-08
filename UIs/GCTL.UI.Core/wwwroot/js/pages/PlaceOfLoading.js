@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
 
     $.placeOfLoading = function (options) {
 
@@ -14,7 +14,7 @@
             gridSelector: "#PlaceOfLoading-grid",
             gridContainer: ".js-PlaceOfLoading-grid-container",
 
-            editSelector: ".js-PlaceOfLoading-edit",
+            editSelector: ".js-PlaceOfLoading-edit, .js-grid-edit",
             saveSelector: ".js-PlaceOfLoading-save",
 
             selectAllSelector: "#PlaceOfLoading-check-all",
@@ -71,7 +71,11 @@
         });
 
         $(() => {
-            loadTable();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'PlaceOfLoading-grid' });
+            }
+
+
             bindEventHandlers();
         });
 
@@ -196,16 +200,7 @@
 
             //#endregion
 
-            //#region Select All
 
-            $("body").on("click",
-                settings.selectAllSelector,
-                function () {
-                    const isChecked = $(this).prop("checked");
-                    $(".checkBox").prop("checked", isChecked);
-                });
-
-            //#endregion
 
             //#region Delete Button (single row OR multi checkbox selection)
 
@@ -543,48 +538,9 @@
         //#region loadTable
 
         function loadTable() {
-
-            if ($.fn.DataTable.isDataTable(settings.gridSelector)) {
-                $(settings.gridSelector).DataTable().destroy();
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
-
-            $(settings.gridSelector + " tbody").empty();
-
-            $.gctlGrid.init({
-
-                gridSelector: settings.gridSelector,
-                ajaxUrl: settings.baseUrl + "/GetTableData",
-                checkAllSelector: settings.selectAllSelector,
-                checkBoxClass: "checkBox",
-
-                columns: [
-
-                    $.gctlGrid.checkboxColumn(
-                        "placeOfLoadingId",
-                        "checkBox"
-                    ),
-
-                    $.gctlGrid.editLinkColumn(
-                        "placeOfLoadingId",
-                        "js-PlaceOfLoading-edit"
-                    ),
-
-                    {
-                        data: "placeOfLoading",
-                        className: "text-left text-middle"
-                    },
-
-                    {
-                        data: "shortName",
-                        className: "text-center text-middle"
-                    }
-
-                ],
-
-                order: [[1, "desc"]]
-
-            });
-
         }
 
         //#endregion

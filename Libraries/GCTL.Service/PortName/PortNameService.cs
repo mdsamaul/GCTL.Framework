@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PortName;
@@ -32,8 +32,8 @@ namespace GCTL.Service.PortName
              ICommonService commonService,
             IDeleteHistoryService deleteHistoryService
 
-            ) 
-            
+            )
+
     : base(portNamerepository)
         {
             this.portNamerepository = portNamerepository;
@@ -79,6 +79,11 @@ namespace GCTL.Service.PortName
         public async Task<PortNameSetupViewModel> GetByIdAsync(string code)
         {
             var entity = await portNamerepository.GetByIdAsync(code);
+
+            if (entity == null)
+            {
+                entity = await portNamerepository.All().FirstOrDefaultAsync(x => x.PortNameId == code || (x.PortNameId != null && x.PortNameId.Trim() == (code != null ? code.Trim() : "")));
+            }
 
             if (entity == null)
                 return null;
@@ -144,6 +149,10 @@ namespace GCTL.Service.PortName
             try
             {
                 var entity = await portNamerepository.GetByIdAsync(entityVM.PortNameId);
+                if (entity == null)
+                {
+                    entity = await portNamerepository.All().FirstOrDefaultAsync(x => x.PortNameId == entityVM.PortNameId || (x.PortNameId != null && x.PortNameId.Trim() == (entityVM.PortNameId != null ? entityVM.PortNameId.Trim() : "")));
+                }
                 if (entity == null)
                 {
                     await portNamerepository.RollbackTransactionAsync();
@@ -232,7 +241,7 @@ namespace GCTL.Service.PortName
 
         #endregion
 
-        #region Duplicate Check 
+        #region Duplicate Check
         public async Task<bool> IsExistByCodeAsync(string code)
         {
             return await portNamerepository.All().AnyAsync(x => x.PortNameId == code);
@@ -246,6 +255,11 @@ namespace GCTL.Service.PortName
         public async Task<bool> IsExistAsync(string name, string typeCode)
         {
             return await portNamerepository.All().AnyAsync(x => x.PortName == name && x.PortId != typeCode);
+        }
+
+        public async Task<bool> IsExistAsync(string name, string typeCode, string portId)
+        {
+            return await portNamerepository.All().AnyAsync(x => x.PortName == name && x.PortId == typeCode && x.PortNameId != portId);
         }
 
         #endregion
