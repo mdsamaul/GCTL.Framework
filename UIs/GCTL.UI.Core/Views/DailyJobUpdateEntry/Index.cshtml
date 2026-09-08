@@ -376,6 +376,465 @@
         color: #6c757d;
         margin-bottom: 2px;
     }
+
+    /* ================= Form Fields Row & Layout (Ledger, VendorInfo & SepDocUpdate Standard) ================= */
+    .daily-job-fields-row,
+    .daily-job-form-card .row {
+        --control-height: 30px;
+        --gap-size: 36px;
+        --btn-width: 20px;
+        --bs-gutter-x: var(--gap-size) !important;
+        row-gap: 12px !important;
+    }
+
+    .daily-job-form-card,
+    .daily-job-fields-row,
+    .daily-job-form-card .row,
+    .daily-job-fields-row > div,
+    .daily-job-form-card .row > div {
+        overflow: visible !important;
+    }
+
+    /* Form Card Container: Symmetrical left & right margins (compensates for Column 3 quick-add button) */
+    .daily-job-form-card {
+        padding-left: 24px !important;
+        padding-right: 48px !important;
+        padding-top: 12px !important;
+        padding-bottom: 8px !important;
+    }
+
+    /* Uniform Label Styling & Baseline Alignment */
+    .daily-job-fields-row .form-label,
+    .daily-job-form-card .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        margin-bottom: 4px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .form-label .text-danger,
+    .daily-job-fields-row .form-label sup,
+    .daily-job-fields-row .form-label span,
+    .daily-job-form-card .form-label .text-danger,
+    .daily-job-form-card .form-label sup,
+    .daily-job-form-card .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure input/select container inside field-fixed-width takes 100% of the column width */
+    .daily-job-fields-row .field-fixed-width,
+    .daily-job-form-card .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .input-group,
+    .daily-job-form-card .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .input-group,
+    .daily-job-form-card .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Hide invisible placeholder buttons completely so non-quick-add fields expand to 100% */
+    .daily-job-fields-row .field-fixed-width > .invisible-placeholder-btn,
+    .daily-job-form-card .field-fixed-width > .invisible-placeholder-btn {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+    }
+
+    /* Uniform height & 100% width for all inputs, selects, custom datepickers, and input-groups */
+    .daily-job-fields-row .form-control:not(textarea),
+    .daily-job-fields-row .form-select,
+    .daily-job-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(textarea),
+    .daily-job-fields-row select,
+    .daily-job-fields-row .input-group-text,
+    .daily-job-fields-row .custom-datepicker,
+    .daily-job-form-card .form-control:not(textarea),
+    .daily-job-form-card .form-select,
+    .daily-job-form-card input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(textarea),
+    .daily-job-form-card select,
+    .daily-job-form-card .input-group-text,
+    .daily-job-form-card .custom-datepicker {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        font-size: 0.82rem !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .form-control,
+    .daily-job-fields-row .form-select,
+    .daily-job-fields-row select,
+    .daily-job-fields-row .select2-container,
+    .daily-job-fields-row .input-group .select2-container,
+    .daily-job-form-card .form-control,
+    .daily-job-form-card .form-select,
+    .daily-job-form-card select,
+    .daily-job-form-card .select2-container,
+    .daily-job-form-card .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* Textareas take 100% width with row-matching or natural multiline height */
+    .daily-job-fields-row textarea,
+    .daily-job-fields-row .field-fixed-width > textarea,
+    .daily-job-form-card textarea,
+    .daily-job-form-card .field-fixed-width > textarea {
+        min-height: var(--control-height) !important;
+        height: var(--control-height);
+        line-height: 1.3 !important;
+        padding: 4px 8px !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+        font-size: 0.82rem !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row textarea:not([rows="1"]),
+    .daily-job-fields-row .field-fixed-width > textarea:not([rows="1"]),
+    .daily-job-form-card textarea:not([rows="1"]),
+    .daily-job-form-card .field-fixed-width > textarea:not([rows="1"]) {
+        min-height: 56px !important;
+        height: auto !important;
+    }
+
+    /* Select2 dropdown height and arrow alignment */
+    .daily-job-fields-row .select2-container .select2-selection--single,
+    .daily-job-form-card .select2-container .select2-selection--single {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        display: flex !important;
+        align-items: center !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .select2-container .select2-selection--single .select2-selection__rendered,
+    .daily-job-form-card .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--control-height) - 2px) !important;
+        padding-left: 8px !important;
+        padding-right: 20px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .daily-job-fields-row .select2-container .select2-selection--single .select2-selection__arrow,
+    .daily-job-form-card .select2-container .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--control-height) - 2px) !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    /* Checkbox Alignment */
+    .daily-job-fields-row .form-check,
+    .daily-job-form-card .form-check {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-height: var(--control-height) !important;
+        margin-top: 24px !important;
+        margin-bottom: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .daily-job-fields-row .form-check .form-check-input,
+    .daily-job-form-card .form-check .form-check-input {
+        margin: 0 !important;
+        float: none !important;
+        width: 16px !important;
+        height: 16px !important;
+        cursor: pointer !important;
+    }
+
+    .daily-job-fields-row .form-check .form-check-label,
+    .daily-job-form-card .form-check .form-check-label {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear 12px right gap and NO border */
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+    .daily-job-fields-row .field-fixed-width > .js-quick-add,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+    .daily-job-form-card .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        width: var(--btn-width) !important;
+        min-width: var(--btn-width) !important;
+        max-width: var(--btn-width) !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):hover,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add:hover,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):hover,
+    .daily-job-form-card .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):focus,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add:focus,
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):active,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add:active,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):focus,
+    .daily-job-form-card .field-fixed-width > .js-quick-add:focus,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):active,
+    .daily-job-form-card .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn i,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add i,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn i,
+    .daily-job-form-card .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* ================= Dual Input Group (gap-2 & 50%-50% Equal Width) ================= */
+    .daily-job-fields-row .dual-input-group,
+    .daily-job-form-card .dual-input-group {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        gap: 0.5rem !important; /* gap-2 (8px) */
+    }
+
+    .daily-job-fields-row .dual-input-group > *,
+    .daily-job-form-card .dual-input-group > * {
+        margin-left: 0 !important;
+    }
+
+    .daily-job-fields-row .dual-input-group > select[style*="display: none"],
+    .daily-job-fields-row .dual-input-group > select.custom-select-single[style*="display: none"],
+    .daily-job-fields-row .dual-input-group > select.select2-hidden-accessible,
+    .daily-job-form-card .dual-input-group > select[style*="display: none"],
+    .daily-job-form-card .dual-input-group > select.custom-select-single[style*="display: none"],
+    .daily-job-form-card .dual-input-group > select.select2-hidden-accessible {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        flex: 0 0 0% !important;
+    }
+
+    /* Left Input: 50% width */
+    .daily-job-fields-row .dual-input-group > input:first-child,
+    .daily-job-fields-row .dual-input-group > select:first-child,
+    .daily-job-fields-row .dual-input-group > .form-control:first-child,
+    .daily-job-form-card .dual-input-group > input:first-child,
+    .daily-job-form-card .dual-input-group > select:first-child,
+    .daily-job-form-card .dual-input-group > .form-control:first-child {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    /* Right Input / Select / Dropdown: 50% width */
+    .daily-job-fields-row .dual-input-group > input:nth-child(2),
+    .daily-job-fields-row .dual-input-group > input:last-child,
+    .daily-job-fields-row .dual-input-group > select:nth-child(2),
+    .daily-job-fields-row .dual-input-group > .custom-dd-wrapper,
+    .daily-job-fields-row .dual-input-group > select + .custom-dd-wrapper,
+    .daily-job-fields-row .dual-input-group > .select2-container,
+    .daily-job-fields-row .dual-input-group > select + .select2-container,
+    .daily-job-fields-row .dual-input-group > .select2,
+    .daily-job-form-card .dual-input-group > input:nth-child(2),
+    .daily-job-form-card .dual-input-group > input:last-child,
+    .daily-job-form-card .dual-input-group > select:nth-child(2),
+    .daily-job-form-card .dual-input-group > .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > select + .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > .select2-container,
+    .daily-job-form-card .dual-input-group > select + .select2-container,
+    .daily-job-form-card .dual-input-group > .select2 {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        margin-left: 0 !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    .daily-job-fields-row .dual-input-group > .custom-dd-wrapper,
+    .daily-job-fields-row .dual-input-group > select + .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > select + .custom-dd-wrapper {
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+    }
+
+    .daily-job-fields-row .dual-input-group > .custom-dd-wrapper .custom-dd-box,
+    .daily-job-fields-row .dual-input-group > select + .custom-dd-wrapper .custom-dd-box,
+    .daily-job-form-card .dual-input-group > .custom-dd-wrapper .custom-dd-box,
+    .daily-job-form-card .dual-input-group > select + .custom-dd-wrapper .custom-dd-box {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+    }
+
+    .daily-job-fields-row .dual-input-group .select2-container,
+    .daily-job-fields-row .dual-input-group .select2-container *,
+    .daily-job-fields-row .dual-input-group select + .select2-container,
+    .daily-job-fields-row .dual-input-group select + .select2-container *,
+    .daily-job-fields-row .dual-input-group .select2-selection,
+    .daily-job-fields-row .dual-input-group .select2-selection--single,
+    .daily-job-fields-row .dual-input-group .select2-container--bootstrap-5 .select2-selection,
+    .daily-job-form-card .dual-input-group .select2-container,
+    .daily-job-form-card .dual-input-group .select2-container *,
+    .daily-job-form-card .dual-input-group select + .select2-container,
+    .daily-job-form-card .dual-input-group select + .select2-container *,
+    .daily-job-form-card .dual-input-group .select2-selection,
+    .daily-job-form-card .dual-input-group .select2-selection--single,
+    .daily-job-form-card .dual-input-group .select2-container--bootstrap-5 .select2-selection {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+    }
+
+    /* ==========================================================================
+       Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
+       ========================================================================== */
+    @@media (max-width: 1400px) {
+        .daily-job-fields-row,
+        .daily-job-form-card .row {
+            --control-height: 28px !important;
+            --gap-size: 34px !important;
+            --btn-width: 18px !important;
+            row-gap: 10px !important;
+        }
+
+        .daily-job-fields-row .form-label,
+        .daily-job-form-card .form-label {
+            font-size: 11.5px !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            margin-bottom: 3px !important;
+        }
+
+        .daily-job-fields-row .form-check,
+        .daily-job-form-card .form-check {
+            min-height: 28px !important;
+            margin-top: 21px !important;
+        }
+
+        .daily-job-form-card {
+            padding-left: 20px !important;
+            padding-right: 42px !important;
+        }
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .daily-job-form-card {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        .daily-job-fields-row,
+        .daily-job-form-card .row {
+            --bs-gutter-x: 16px !important;
+        }
+
+        .daily-job-fields-row .field-fixed-width,
+        .daily-job-form-card .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .daily-job-fields-row .field-fixed-width > .input-group,
+        .daily-job-form-card .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .daily-job-fields-row .field-fixed-width > .js-quick-add,
+        .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .daily-job-form-card .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+            border: 1px solid #ced4da !important;
+            background: #f8f9fa !important;
+        }
+    }
 </style>
 
 
@@ -509,8 +968,8 @@
 
                     </div>
 
-                    <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
-                        <div class="row">
+                    <div class="pt-2 pb-0 bg-white shadow rounded daily-job-form-card">
+                        <div class="row daily-job-fields-row">
                             @* ---------- Shipment Mode (Select with QuickAdd) ---------- *@
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
@@ -949,7 +1408,7 @@
                             })
                         </div>
 
-                        <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
+                        <div class="border-bottom border-2 my-2"></div>
                         @await Html.PartialAsync("_Setup", Model.Setup)
 
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel

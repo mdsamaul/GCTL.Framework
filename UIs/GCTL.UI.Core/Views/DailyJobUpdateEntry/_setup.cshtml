@@ -1,6 +1,6 @@
-﻿@model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel
+@model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel
 <form asp-action="Create" method="post" id="shipmentForm">
-    <div class="row pb-2">
+    <div class="row pb-2 daily-job-fields-row">
         @Html.AntiForgeryToken()
 
         <input type="hidden" asp-for="JobNo" id="jobNoHidden" value="" />
@@ -105,7 +105,7 @@
         })
 
         @* ---------- Highlighted Section: Shipment Status, Date & Time, Remarks ---------- *@
-        <div style="display: flex; background: #FFFFE0; align-content: center; align-items: center; padding: 12px; margin: 12px 0;">
+        <div class="col-12" style="display: flex; background: #FFFFE0; align-content: center; align-items: center; padding: 12px; margin: 12px 0;">
 
             @* ---------- Shipment Status (Select) ---------- *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel

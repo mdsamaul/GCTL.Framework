@@ -241,6 +241,13 @@
         overflow: visible !important;
     }
 
+    /* Form Card Container: Symmetrical left & right margins (compensates for Column 3 quick-add button) */
+    .sep-doc-form-card,
+    #entryTabPane > div:first-child {
+        padding-left: 24px !important;
+        padding-right: 48px !important;
+    }
+
     /* Uniform Label Styling & Baseline Alignment */
     .sep-doc-fields-row .form-label {
         display: flex !important;
@@ -558,10 +565,21 @@
             min-height: 28px !important;
             margin-top: 21px !important;
         }
+
+        .sep-doc-form-card,
+        #entryTabPane > div:first-child {
+            padding-left: 20px !important;
+            padding-right: 42px !important;
+        }
     }
 
     /* Small / Mobile Screens fallback */
     @@media (max-width: 767.98px) {
+        .sep-doc-form-card,
+        #entryTabPane > div:first-child {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
         .sep-doc-fields-row {
             --bs-gutter-x: 16px !important;
         }
@@ -769,7 +787,7 @@
 
         <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
         <div class="tab-pane fade show active" id="entryTabPane" role="tabpanel">
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 pt-lg-2 bg-white shadow rounded">
+            <div class="py-2 bg-white shadow rounded sep-doc-form-card">
                 <div class="row sep-doc-fields-row">
 
                     @* ---------- Shipment Mode (MultiSelect) — no button needed ---------- *@
@@ -1392,7 +1410,7 @@
 
                 </div>
 
-                <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
+                <div class="border-bottom border-2 my-2"></div>
 
                 @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                 {
@@ -1403,10 +1421,9 @@
                     ShowFavorite = false,
                     ShowPrint = false,
                     IsPlain = true,
-                    ReserveActionSlot=true,
-           Style="border-bottom:0px !important;"
+                    ReserveActionSlot = true,
+                    Style = "border-bottom:0px !important;"
                 })
-
             </div>
 
             <!-- ==================== Grid of saved jobs ==================== -->
@@ -1495,7 +1512,7 @@
 
         <!-- ==================== TAB 2: Document Upload Info ==================== -->
         <div class="tab-pane fade" id="uploadTabPane" role="tabpanel">
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+            <div class="pt-2 pb-0 bg-white shadow rounded sep-doc-form-card">
                 <div class="card mb-3">
                     <div class="card-header bg-light fw-bold">Main Information</div>
                     <div class="card-body">
@@ -1576,19 +1593,19 @@
                     })
                 </div>
 
-                <div class="mt-3">
-                    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                    {
-                        Title = "",
-                        SaveBtnClass = "doc-seve-upload-btn",
-                        ShowClear = false,
-                        ShowDelete = false,
-                        ShowFavorite = false,
-                        ShowPrint = false,
-                        IsPlain = true,
-           Style="border-bottom:0px !important;"
-                    })
-                </div>
+                <div class="border-bottom border-2 my-2"></div>
+
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "",
+                    SaveBtnClass = "doc-seve-upload-btn",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true,
+                    Style = "border-bottom:0px !important;"
+                })
             </div>
         </div>
     </div>
