@@ -48,7 +48,7 @@ div.dt-container table.dataTable,
 .custom-grid-table {
     width: 100% !important;
     margin-bottom: 0 !important;
-    font-size: 0.75rem;
+    font-size: 12.5px;
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -58,12 +58,12 @@ div.dt-container table.dataTable thead th,
 .custom-grid-table thead th {
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
     color: #1e293b !important;
-    font-size: 0.76rem !important;
+    font-size: 12.5px !important;
     font-weight: 600 !important;
     text-align: center !important;
     vertical-align: middle !important;
     white-space: nowrap;
-    padding: 0.25rem 0.4rem !important;
+    padding: 0.35rem 0.5rem !important;
     border-bottom: 2px solid #cbd5e1 !important;
     border-right: 1px solid #dee2e6;
     user-select: none;
@@ -78,9 +78,9 @@ div.dt-container table.dataTable thead th:last-child,
 div.dt-container table.dataTable tbody td,
 .custom-grid-table tbody td {
     vertical-align: middle !important;
-    padding: 0.2rem 0.4rem !important;
-    font-size: 0.75rem;
-    line-height: 1.35;
+    padding: 0.3rem 0.5rem !important;
+    font-size: 12.5px;
+    line-height: 1.4;
     color: #334155;
     border-right: 1px solid #dee2e6;
     border-bottom: 1px solid #dee2e6;
@@ -204,8 +204,8 @@ div.dt-container table.dataTable select,
     border: 1px solid #dee2e6 !important;
     border-radius: 4px;
     box-shadow: none !important;
-    font-size: 0.75rem;
-    padding: 0.15rem 0.35rem;
+    font-size: 12.5px;
+    padding: 0.2rem 0.4rem;
 }
 
 div.dt-container table.dataTable input:not([type="checkbox"]):not([type="radio"]):focus,
@@ -233,7 +233,7 @@ div.dt-container table.dataTable .form-check-input:focus,
 /* Pagination & Info */
 div.dt-container .dt-info,
 div.dt-container .dt-paging {
-    font-size: 0.75rem;
+    font-size: 12px;
     color: #64748b;
 }
 
@@ -243,8 +243,8 @@ div.dt-container .pagination {
 }
 
 div.dt-container .pagination .page-link {
-    font-size: 0.75rem;
-    padding: 0.15rem 0.45rem;
+    font-size: 12px;
+    padding: 0.2rem 0.5rem;
     min-width: 26px;
     height: 26px;
     display: inline-flex;

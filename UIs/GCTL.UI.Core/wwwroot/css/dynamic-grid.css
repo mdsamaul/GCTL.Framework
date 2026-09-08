@@ -6,10 +6,10 @@
 
 :root {
     /* Standardized Typography Tokens */
-    --ratio-font-header: 0.8125rem; /* 13px */
-    --ratio-font-body: 0.875rem;   /* 14px */
-    --ratio-font-label: 0.8125rem;  /* 13px */
-    --ratio-font-input: 0.875rem;   /* 14px */
+    --ratio-font-header: 12.5px; /* 12.5px */
+    --ratio-font-body: 12.5px;   /* 12.5px */
+    --ratio-font-label: 12px;    /* 12px */
+    --ratio-font-input: 13px;    /* 13px */
 
     /* Standardized Spacing & Padding Tokens */
     --ratio-card-padding-x: 1rem;     /* 16px */

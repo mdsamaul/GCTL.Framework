@@ -113,15 +113,20 @@ select.form-control-sm:disabled {
 
 table.dataTable.table-sm > tbody > tr > td,
 table.dataTable.table-sm > thead > tr > th {
-    padding-top: 0.1rem;
-    padding-bottom: 0.1rem;
-}
-.form-control-sm,
-.form-select-sm {
-    font-size: 13px;
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+    font-size: 12.5px;
 }
 
-label , .form-label {
+.form-control,
+.form-select,
+.form-control-sm,
+.form-select-sm {
+    font-size: 13px !important;
+    font-family: 'Nunito', sans-serif !important;
+}
+
+label, .form-label {
     font-size: 12px !important;
     font-weight: 500 !important;
     color: #1e293b !important;
@@ -131,43 +136,49 @@ label , .form-label {
 .js-quick-add {
     border-color: #ced4da !important;
 }
-.form-control::placeholder {
-    color: #8a9bb8 !important;
-    font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
+
+.form-control::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: #94a3b8 !important;
+    font-style: normal !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 12.5px !important;
     opacity: 1 !important;
 }
 
-.form-control::-webkit-input-placeholder {
-    color: #8a9bb8 !important;
-    font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
+.form-control::-webkit-input-placeholder,
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    color: #94a3b8 !important;
+    font-style: normal !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 12.5px !important;
 }
 
-.form-control::-moz-placeholder {
-    color: #8a9bb8 !important;
-    font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
+.form-control::-moz-placeholder,
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+    color: #94a3b8 !important;
+    font-style: normal !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 12.5px !important;
     opacity: 1 !important;
 }
 
+.form-control:-ms-input-placeholder,
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    color: #94a3b8 !important;
+    font-style: normal !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 12.5px !important;
+}
 
-.form-control:-ms-input-placeholder {
-    color: #8a9bb8 !important;
-    font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
-
-    table.dataTable.table-sm > tbody > tr > td,
-    table.dataTable.table-sm > thead > tr > th {
-        padding-top: 0.1rem;
-        padding-bottom: 0.1rem;
-    }
-
-    div.dt-layout-end,
-    div.dt-layout-full,
-    div.dt-layout-start {
-        padding: 0;
-    }
+div.dt-layout-end,
+div.dt-layout-full,
+div.dt-layout-start {
+    padding: 0;
 }
 
 
