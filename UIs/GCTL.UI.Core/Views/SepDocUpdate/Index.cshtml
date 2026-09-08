@@ -224,6 +224,82 @@
             border-radius: 10px 10px 0 0;
             border-bottom: 2px solid #ffffff !important;
         }
+
+    /* ================= Dual Input Group (gap-2 & 50%-50% Equal Width) ================= */
+    .dual-input-group {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 0.5rem !important; /* gap-2 (8px) */
+    }
+
+    .dual-input-group > * {
+        margin-left: 0 !important;
+    }
+
+    .dual-input-group > select[style*="display: none"],
+    .dual-input-group > select.custom-select-single[style*="display: none"],
+    .dual-input-group > select.select2-hidden-accessible {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        flex: 0 0 0% !important;
+    }
+
+    /* Left Input: 50% width */
+    .dual-input-group > input:first-child,
+    .dual-input-group > select:first-child,
+    .dual-input-group > .form-control:first-child {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    /* Right Input / Select / Dropdown: 50% width */
+    .dual-input-group > input:nth-child(2),
+    .dual-input-group > input:last-child,
+    .dual-input-group > select:nth-child(2),
+    .dual-input-group > .custom-dd-wrapper,
+    .dual-input-group > select + .custom-dd-wrapper,
+    .dual-input-group > .select2-container,
+    .dual-input-group > select + .select2-container,
+    .dual-input-group > .select2 {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    .dual-input-group > .custom-dd-wrapper,
+    .dual-input-group > select + .custom-dd-wrapper {
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+    }
+
+    .dual-input-group > .custom-dd-wrapper .custom-dd-box,
+    .dual-input-group > select + .custom-dd-wrapper .custom-dd-box {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+    }
+
+    .dual-input-group .select2-container,
+    .dual-input-group .select2-container *,
+    .dual-input-group select + .select2-container,
+    .dual-input-group select + .select2-container *,
+    .dual-input-group .select2-selection,
+    .dual-input-group .select2-selection--single,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+    }
 </style>
 @* <partial name="_PageHeader" model="Model" /> *@
 <!-- Toolbar Entry -->
