@@ -213,7 +213,6 @@ namespace GCTL.Service.ClientInformationEntry
                 entity.Luser = entityVM.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac;
-               // entity.ModifyDate = DateTime.Now;
 
                 await clientInformationRepository.UpdateAsync(entity);
                 await clientInformationRepository.CommitTransactionAsync();
