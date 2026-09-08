@@ -264,8 +264,8 @@
 
 </div>
 
-<div class="row g-4 no-print" style="margin-top: 9px;">
-    <div class="col-12 col-md-6 col-xxl-12 ven-toolbar-col">
+<div class="row g-4 no-print">
+    <div class="col-12 ">
         @await Html.PartialAsync("_Toolbars", new ToobarModel
         {
             Title = "",
@@ -276,10 +276,11 @@
             IsPlain = true,
             SaveBtnClass = "js-VendorInfo-save",
             ReserveActionSlot = true,
-            Style = "border-bottom:0px !important;",
             ShowExtraContentLaptopOnly = true,
             ShowExtraContent1 = true,
-            ShowExtraContent2 = false
+            ShowExtraContent2 = false,
+            Style = "border-bottom:0px !important; padding-left:140px",
+           
         })
     </div>
 </div>

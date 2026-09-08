@@ -394,9 +394,9 @@
         EnableFavorite = true
     })
 
-    <div class="card-body">
+    <div class="card-body p-0">
         <form id="subcontrolForm">
-            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
+            <fieldset style="padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="SubCRLAutoID" name="autoId" />
 
                 <div class="row subcontrol-ledger-fields-row control-ledger-fields-row">
@@ -425,7 +425,7 @@
                         InputId = "groupName",
                         InputName = "groupName",
                         LabelText = "Group Ledger Name",
-                        Placeholder = "-- Select Group Ledger --",
+                        Placeholder = "Select Group Ledger",
                         IsRequired = true,
                         ShowQuickAdd = true,
                         ReserveActionSlot=false,
@@ -472,7 +472,7 @@
                         InputId = "ConRLName",
                         InputName = "CRLName",
                         LabelText = "Control Ledger Name",
-                        Placeholder = "-- Select Control Ledger --",
+                        Placeholder = "Select Control Ledger",
                         IsRequired = true,
                         ShowQuickAdd = true,
                         ReserveActionSlot=false,
@@ -575,7 +575,7 @@
                 </div>
 
                 @* Bottom Save Button *@
-                <div class="row no-print" style="margin-top: 9px;">
+                <div class="row no-print">
                     <div class="col-12">
                         @await Html.PartialAsync("_Toolbars", new ToobarModel
                         {

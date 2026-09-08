@@ -145,7 +145,7 @@
 }
 
 .toolbar-btn {
-    font-size: clamp(0.55rem, 1.4vw, 0.85rem);
+    font-size: clamp(0.55rem, 1.4vw, 13px);
     padding: clamp(2px, 0.4vw, 6px) clamp(4px, 0.8vw, 12px);
     white-space: nowrap;
     display: inline-flex;
@@ -161,7 +161,7 @@
 /* 1300px range fix - shrink everything so left title text is not cut */
 @media (max-width: 1400px) {
     .toolbar-title {
-        font-size: 0.72rem;
+        font-size: 13px;
         max-width: 90px;
     }
         
@@ -175,24 +175,24 @@
     }
 
     .toolbar-btn {
-        font-size: 0.68rem;
+        font-size: 13px;
         padding: 3px 8px;
         gap: 2px;
     }
 
         .toolbar-btn i {
-            font-size: 0.65rem;
+            font-size: 13px;
         }
 }
 
 @media (max-width: 992px) {
     .toolbar-title {
         max-width: 70px;
-        font-size: 0.68rem;
+        font-size: 13px;
     }
 
     .toolbar-btn {
-        font-size: 0.62rem;
+        font-size: 13px;
         padding: 3px 4px;
     }
 }
@@ -207,7 +207,7 @@
     }
 
     .toolbar-title {
-        font-size: 0.65rem;
+        font-size: 13px;
         max-width: 50px;
     }
 }
@@ -224,7 +224,7 @@
     }
 
         .toolbar-btn i {
-            font-size: 0.7rem;
+            font-size: 13px;
         }
 }
 

@@ -155,7 +155,7 @@ div.dt-container .dt-search,
 
 div.dt-container .dt-search input,
 .dt-search input {
-    font-size: 0.78rem;
+    font-size: 13px;
     padding: 0.22rem 0.5rem 0.22rem 1.85rem !important;
     height: 28px;
     border: 1px solid #dee2e6 !important;
@@ -178,7 +178,7 @@ div.dt-container .dt-search input:focus,
 
 /* Page Length Dropdown (BS5 border, Fixed right padding, No Shadow) */
 div.dt-container .dt-length select {
-    font-size: 0.78rem;
+    font-size: 13px;
     padding: 0.1rem 1.35rem 0.1rem 0.4rem !important;
     min-width: 52px;
     height: 28px;
@@ -277,7 +277,7 @@ mark.search-highlight {
 .tabular-number {
     font-variant-numeric: tabular-nums;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.73rem;
+    font-size: 13px;
 }
 
 /* Text Truncate with Ellipsis */
@@ -294,7 +294,7 @@ mark.search-highlight {
 .btn-copy-code {
     opacity: 0;
     color: #94a3b8;
-    font-size: 0.65rem;
+    font-size: 13px;
     margin-left: 4px;
     cursor: pointer;
     transition: opacity 0.15s;
@@ -316,7 +316,7 @@ tr:hover .btn-copy-code {
     transform: translateX(-50%);
     background: #1e293b;
     color: #ffffff;
-    font-size: 0.62rem;
+    font-size: 13px;
     padding: 2px 6px;
     border-radius: 3px;
     white-space: nowrap;
@@ -354,7 +354,7 @@ tr:hover .btn-copy-code {
 .btn-expand-row {
     cursor: pointer;
     color: #64748b;
-    font-size: 0.7rem;
+    font-size: 13px;
     transition: transform 0.15s ease-in-out;
     display: inline-block;
 }
@@ -369,7 +369,7 @@ tr:hover .btn-copy-code {
     border: 1px solid #e2e8f0;
     border-radius: 4px;
     padding: 8px 12px;
-    font-size: 0.72rem;
+    font-size: 13px;
     text-align: left;
 }
 
@@ -380,7 +380,7 @@ tr:hover .btn-copy-code {
     color: #64748b;
     padding: 0 4px;
     border-radius: 3px;
-    font-size: 0.8rem;
+    font-size: 13px;
     cursor: pointer;
     line-height: 1;
 }

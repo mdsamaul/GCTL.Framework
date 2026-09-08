@@ -395,9 +395,9 @@
         EnableFavorite = true
     })
 
-    <div class="card-body">
+    <div class="card-body p-0">
         <form id="subSidiaryForm">
-            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
+            <fieldset style="padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="forsidiaryAutoID" name="autoId" />
 
                 <div class="row subsidiary-ledger-fields-row control-ledger-fields-row">
@@ -426,7 +426,7 @@
                         InputId = "forsidiarygroupName",
                         InputName = "forsidiarygroupName",
                         LabelText = "Group Ledger Name",
-                        Placeholder = "-- Select Group Ledger --",
+                        Placeholder = "Select Group Ledger",
                         IsRequired = true,
                         ShowQuickAdd = true,
                         ReserveActionSlot = false,
@@ -474,7 +474,7 @@
                         InputName = "CRLName",
                         LabelText = "Control Ledger Name",
                         ReserveActionSlot = false,
-                        Placeholder = "-- Select Control Ledger --",
+                        Placeholder = "Select Control Ledger",
                         IsRequired = true,
                         ShowQuickAdd = true,
                         QuickAddTarget = "#UICRLModal",
@@ -520,7 +520,7 @@
                         InputId = "forsidiaryGeneralLedgerName",
                         InputName = "forsidiaryGeneralLedgerName",
                         LabelText = "Sub-Control Ledger Name",
-                        Placeholder = "-- Select Sub-Control Ledger --",
+                        Placeholder = "Select Sub-Control Ledger",
                         IsRequired = true,
                         ReserveActionSlot = false,
                         ShowQuickAdd = true,
@@ -623,7 +623,7 @@
                 </div>
 
                 @* Bottom Save Button *@
-                <div class="row no-print" style="margin-top: 9px;">
+                <div class="row no-print">
                     <div class="col-12">
                         @await Html.PartialAsync("_Toolbars", new ToobarModel
                         {

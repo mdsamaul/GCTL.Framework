@@ -32,7 +32,7 @@
         max-height: 31px !important;
         box-sizing: border-box !important;
         border-radius: 4px !important;
-        font-size: 0.8125rem !important;
+        font-size: 13px !important;
     }
 
     #expenseForm .form-control {
@@ -66,7 +66,7 @@
     #expenseForm .custom-dd-input {
         height: 29px !important;
         line-height: 29px !important;
-        font-size: 0.8125rem !important;
+        font-size: 13px !important;
         padding: 0 2px !important;
         margin: 0 !important;
         border: none !important;
@@ -93,7 +93,7 @@
     #expenseForm .select2-container--default .select2-selection--single .select2-selection__rendered {
         line-height: 29px !important;
         padding-left: 0 !important;
-        font-size: 0.8125rem !important;
+        font-size: 13px !important;
         color: #495057 !important;
     }
     #expenseForm .select2-container--default .select2-selection--single .select2-selection__arrow {
@@ -114,7 +114,7 @@
         text-align: left;
         display: block;
         color: #333;
-        font-size: 0.85rem;
+        font-size: 13px;
         line-height: 1.2;
         min-height: 18px;
     }
@@ -129,9 +129,19 @@
     }
 
     #expenseForm .field-validation {
-        font-size: 0.75rem;
+        font-size: 13px;
         display: block;
         margin-top: 2px;
+    }
+
+    /* Responsive Toolbar Padding */
+    .expense-toolbar-responsive {
+        padding-left: 25px !important;
+    }
+    @@media (max-width: 1400px) {
+        .expense-toolbar-responsive {
+            padding-left: 165px !important;
+        }
     }
 </style>
 
@@ -295,7 +305,8 @@
                         ShowPrint = false,
                         IsPlain = true,
                         ReserveActionSlot = false,
-                        Style = "padding-left:70px; border-bottom:0px !important;",
+                        CssClass = "expense-toolbar-responsive",
+                        Style = "border-bottom:0px !important;",
                         ShowExtraContent1=true
                     })
                 </div>
