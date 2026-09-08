@@ -1,12 +1,10 @@
 let selectedControlLedger = [];
-let currenControltPage = 1;
-let ControlpageSize = 10;
-let ControlcurrentSortColumn = 'SubControlLedgerCodeNo';
-let ControlcurrentSortDirection = 'desc';
+let isControlLedgerDeletePending = false;
+let controlLedgerPendingDeleteIds = [];
 let isEditMode = false;
 let selectedGroupCodeCL = "";
 
-// Helper: Bangladesh Local Date & Time Formatter
+//#region Helper: Bangladesh Local Date & Time Formatter
 function getBangladeshDateTime() {
     return new Date().toLocaleString('en-GB', {
         day: '2-digit',
@@ -17,6 +15,7 @@ function getBangladeshDateTime() {
         hour12: true
     }).replace(',', '').toUpperCase();
 }
+//#endregion
 
 //#region Error Border Cleanup (Native / Custom Dropdown)
 document.addEventListener('change', function (e) {
@@ -33,7 +32,7 @@ window.addEventListener('groupLedgerUpdated', function (e) {
     $('#GroupLedgerCodeNo').val('');
     $('#GroupLedgerShortName').val('');
     $('#SubControlLedgerCodeNo').val('');
-    LoadAllControlLedger();
+    reloadControlLedgerTable();
 });
 //#endregion
 
@@ -56,10 +55,8 @@ function LoadGroupLedgerDropdown(selectedId = null) {
                 $select.val(selectedId);
             }
 
-            // Standard Plugin Reinitialization
             window.reinitCustomDropdownById('GLName');
 
-            // Dropdown Change Event
             $select.off('change').on('change', function () {
                 const selectedGroupCode = $(this).val();
                 selectedGroupCodeCL = selectedGroupCode || "";
@@ -71,7 +68,6 @@ function LoadGroupLedgerDropdown(selectedId = null) {
                     $('#GroupLedgerCodeNo').val('');
                     $('#GroupLedgerShortName').val('');
                     $('#SubControlLedgerCodeNo').val('');
-                    LoadAllControlLedger(1, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, "", "");
                     return;
                 }
 
@@ -88,15 +84,12 @@ function LoadGroupLedgerDropdown(selectedId = null) {
                             $.ajax({
                                 url: '/next-control-ledger-code',
                                 type: 'GET',
-                                // data: { groupcode: data.controlLedgerCodeNo },
-                                data: { groupLedgerCode: data.controlLedgerCodeNo },
+                                data: { groupledgercode: data.controlLedgerCodeNo },
                                 success: function (nextCode) {
                                     $('#SubControlLedgerCodeNo').val(nextCode);
                                 }
                             });
                         }
-
-                        LoadAllControlLedger(1, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, "", selectedGroupCodeCL);
                     }
                 });
             });
@@ -108,15 +101,61 @@ function LoadGroupLedgerDropdown(selectedId = null) {
 }
 //#endregion
 
+//#region Table Reload Helper
+function reloadControlLedgerTable() {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#controlLedgerTable')) {
+        $('#controlLedgerTable').DataTable().ajax.reload(null, false);
+    }
+}
+
+// Backward-compatible wrapper
+function LoadAllControlLedger() {
+    reloadControlLedgerTable();
+}
+//#endregion
+
+//#region Selection Helpers
+function getSelectedControlLedgerIds() {
+    let ids = [...selectedControlLedger];
+
+    $('#controlLedgerTable tbody input[type="checkbox"]:checked').each(function () {
+        const rawVal = $(this).val() || $(this).data('id');
+        const numVal = parseFloat(rawVal);
+        if (!isNaN(numVal) && !ids.includes(numVal)) {
+            ids.push(numVal);
+        }
+    });
+
+    // Fallback: If no checkbox selected in grid, check if form is currently editing a record
+    if (ids.length === 0) {
+        const formAutoId = parseFloat($('#controlAutoId').val() || $('#controlForm [name="autoId"]').val());
+        if (!isNaN(formAutoId) && formAutoId > 0) {
+            ids.push(formAutoId);
+        }
+    }
+
+    return ids;
+}
+
+function updateControlLedgerCheckAllState() {
+    const $checkboxes = $('#controlLedgerTable tbody input[type="checkbox"]');
+    const total = $checkboxes.length;
+    const checked = $checkboxes.filter(':checked').length;
+    $('#controlledger-check-all').prop('checked', total > 0 && total === checked);
+}
+//#endregion
+
 //#region Save Or Update Control Ledger
 function SaveOrUpdateControlLedger() {
-    let autoID = $('#autoId').val();
+    let autoID = $('#controlAutoId').val() || $('#controlForm [name="autoId"]').val();
+    let parsedAutoId = autoID ? parseFloat(autoID) : 0;
+
     let ControlLedgerData = {
-        autoId: autoID ? parseInt(autoID) : 0,
+        autoId: parsedAutoId,
         ControlLedgerCodeNo: $("#GroupLedgerCodeNo").val(),
         SubControlLedgerCodeNo: $("#SubControlLedgerCodeNo").val(),
-        SubControlLedgerName: $("#SubControlLedgerName").val(),
-        ShortName: $("#ControlShortName").val(),
+        SubControlLedgerName: ($("#SubControlLedgerName").val() || '').trim(),
+        ShortName: ($("#ControlShortName").val() || '').trim(),
         GroupLedgerName: $("#GLName").val()
     };
 
@@ -130,7 +169,7 @@ function SaveOrUpdateControlLedger() {
 
     if (!ControlLedgerData.SubControlLedgerName) {
         toastr.error("Please Enter Control Ledger Name.");
-        $('#SubControlLedgerName').addClass('border-error');
+        $('#SubControlLedgerName').addClass('border-error').focus();
         return false;
     } else {
         $('#SubControlLedgerName').removeClass('border-error');
@@ -144,13 +183,13 @@ function SaveOrUpdateControlLedger() {
         data: JSON.stringify(ControlLedgerData),
         success: function (dupResponse) {
             if (dupResponse.isDuplicate) {
-                toastr.error(dupResponse.message);
+                toastr.error(dupResponse.message || "Data Already Exists.");
                 return;
             }
 
-            let url = autoID ? `/control-ledger/${autoID}` : '/control-ledger';
-            let method = autoID ? 'PUT' : 'POST';
-            let successMessage = autoID ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
+            let url = parsedAutoId > 0 ? `/control-ledger/${parsedAutoId}` : '/control-ledger';
+            let method = parsedAutoId > 0 ? 'PUT' : 'POST';
+            let successMessage = parsedAutoId > 0 ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
 
             $.ajax({
                 url: url,
@@ -166,6 +205,7 @@ function SaveOrUpdateControlLedger() {
 
                         ClearControlLedgerForm();
                         selectedControlLedger = [];
+                        reloadControlLedgerTable();
 
                         if (typeof ModalLoadAllControlLedger === "function") {
                             ModalLoadAllControlLedger();
@@ -175,7 +215,7 @@ function SaveOrUpdateControlLedger() {
                     }
                 },
                 error: function (xhr, status, error) {
-                    toastr.error("Error Saving Control Ledger.");
+                    toastr.error(xhr.responseJSON?.message || "Error Saving Control Ledger.");
                     console.error('Save Error:', error);
                 }
             });
@@ -192,9 +232,8 @@ function SaveOrUpdateControlLedger() {
 function ClearControlLedgerForm() {
     isEditMode = false;
 
-    $("#autoId").val("");
+    $("#controlAutoId, #controlForm [name='autoId']").val("");
 
-    // Standard Clear for custom dropdowns
     window.clearAllCustomDropdowns('#controlForm');
 
     $("#GroupLedgerCodeNo, #GroupLedgerShortName").val("");
@@ -207,90 +246,27 @@ function ClearControlLedgerForm() {
     $('#ControlUpdateDate').text('');
     $('#ControlEntryDate').text(getBangladeshDateTime());
 
-    $(".control-checkbox").prop("checked", false);
-    $("#ControlselectAll").prop("checked", false);
-    $('#ControlsearchInput').val('');
+    // Reset button text
+    $('.js-ControlLedger-save span').text('Save');
 
+    // Reset selections
     selectedControlLedger = [];
-    currenControltPage = 1;
+    $('#controlLedgerTable tbody input[type="checkbox"]').prop('checked', false);
+    $('#controlLedgerTable tbody tr').removeClass('selected-row');
+    $('#controlledger-check-all').prop('checked', false);
+
     selectedGroupCodeCL = "";
-
     LoadGroupLedgerDropdown();
-    LoadAllControlLedger(1, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, '', '');
-}
-//#endregion
-
-//#region Load All Control Ledger Data
-function LoadAllControlLedger(page = 1, pageSize = ControlpageSize, sortColumn = ControlcurrentSortColumn, sortDirection = ControlcurrentSortDirection, searchTerm = "", groupCode = "") {
-    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#controlLedgerTable')) {
-        $('#controlLedgerTable').DataTable().ajax.reload(null, false);
-        return;
-    }
-    $.ajax({
-        url: '/control-ledger-list',
-        type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: pageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection,
-            groupLedgerCode: groupCode
-        },
-        success: function (response) {
-            let rows = '';
-            if (response.data && response.data.length > 0) {
-                response.data.forEach(function (item) {
-                    rows += `<tr>
-                        <td class="text-center">
-                            <input type="checkbox" class="form-check-input form-check-input-sm control-checkbox"
-                                data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none control-ledger" data-autoid="${item.autoId}">
-                                ${item.subControlLedgerCodeNo}
-                            </button>
-                        </td>
-                        <td>${item.subControlLedgerName || ''}</td>
-                        <td>${item.shortName || ''}</td>
-                    </tr>`;
-                });
-            } else {
-                rows = `<tr><td colspan="4" class="text-center text-muted">No records found</td></tr>`;
-            }
-            $('#controlTblBody').html(rows);
-
-            if (response.paginationInfo) {
-                let currPage = response.paginationInfo.currentPage;
-                let totalPages = response.paginationInfo.totalPages;
-                let totalRecords = response.totalCount || 0;
-                let startIndex = response.paginationInfo.startItem || 0;
-                let endIndex = response.paginationInfo.endItem || 0;
-
-                $('#ControlpaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-                $('#ControlpaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
-                $('#ControltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
-
-                currenControltPage = currPage;
-                ControlgeneratePageButtons(currenControltPage, totalPages);
-            }
-
-            ControlupdateCheckboxState();
-            ControlupdateSortIndicators();
-        },
-        error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
-        }
-    });
 }
 //#endregion
 
 //#region Populate Data For Edit
 $(document).on('click', '.js-controlledger-edit, .control-ledger', function (e) {
     e.preventDefault();
-    const id = parseInt($(this).data('id') || $(this).data('autoid'));
-    if (!id) return;
+    const rawId = $(this).data('id') || $(this).data('autoid');
+    if (!rawId) return;
 
+    const id = parseFloat(rawId);
     isEditMode = true;
     selectedControlLedger = [id];
 
@@ -299,7 +275,7 @@ $(document).on('click', '.js-controlledger-edit, .control-ledger', function (e) 
         type: 'GET',
         success: function (data) {
             if (data) {
-                $('#autoId').val(id);
+                $('#controlAutoId').val(data.autoId || id);
                 $('#GroupLedgerCodeNo').val(data.controlLedgerCodeNo || '');
                 $('#GroupLedgerShortName').val(data.groupLedgerShortName || '');
                 $('#SubControlLedgerCodeNo').val(data.subControlLedgerCodeNo || '');
@@ -330,11 +306,27 @@ $(document).on('click', '.js-controlledger-edit, .control-ledger', function (e) 
                     $('#ControlUpdateDate').text('');
                 }
 
-                $('.control-checkbox').prop('checked', false);
-                $("#ControlselectAll").prop('checked', false);
-                $(`.control-checkbox[data-autoid="${id}"]`).prop('checked', true);
+                // Switch save button text to Update
+                $('.js-ControlLedger-save span').text('Update');
 
-                ControlupdateCheckboxState();
+                // Sync checkboxes in grid
+                $('#controlLedgerTable tbody input[type="checkbox"]').each(function () {
+                    const rowVal = parseFloat($(this).val() || $(this).data('id'));
+                    if (rowVal === id) {
+                        $(this).prop('checked', true);
+                        $(this).closest('tr').addClass('selected-row');
+                    } else {
+                        $(this).prop('checked', false);
+                        $(this).closest('tr').removeClass('selected-row');
+                    }
+                });
+                updateControlLedgerCheckAllState();
+
+                // Focus and scroll
+                $('#SubControlLedgerName').focus();
+                if ($('#controlForm').length) {
+                    $('html, body').animate({ scrollTop: $('#controlForm').offset().top - 80 }, 300);
+                }
             }
         },
         error: function (xhr, status, error) {
@@ -345,220 +337,183 @@ $(document).on('click', '.js-controlledger-edit, .control-ledger', function (e) 
 });
 //#endregion
 
-//#region Delete Control Ledger
-function DeleteControlLedger() {
-    const ids = selectedControlLedger.map(x => parseInt(x)).filter(x => !isNaN(x));
+//#region Checkbox Selection Handlers
+// Individual row checkbox
+$(document).on('change', '#controlLedgerTable tbody input[type="checkbox"]', function () {
+    const val = parseFloat($(this).val() || $(this).data('id'));
+    if (isNaN(val)) return;
 
-    if (!ids.length) {
+    if ($(this).prop('checked')) {
+        if (!selectedControlLedger.includes(val)) {
+            selectedControlLedger.push(val);
+        }
+        $(this).closest('tr').addClass('selected-row');
+    } else {
+        selectedControlLedger = selectedControlLedger.filter(x => x !== val);
+        $(this).closest('tr').removeClass('selected-row');
+    }
+
+    updateControlLedgerCheckAllState();
+});
+
+// Master Checkbox
+$(document).on('change', '#controlledger-check-all', function () {
+    const isChecked = $(this).prop('checked');
+    $('#controlLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id'));
+        if (isNaN(val)) return;
+
+        if (isChecked) {
+            if (!selectedControlLedger.includes(val)) {
+                selectedControlLedger.push(val);
+            }
+            $(this).prop('checked', true).closest('tr').addClass('selected-row');
+        } else {
+            selectedControlLedger = selectedControlLedger.filter(x => x !== val);
+            $(this).prop('checked', false).closest('tr').removeClass('selected-row');
+        }
+    });
+});
+
+// DataTables Draw Event
+$(document).on('draw.dt', '#controlLedgerTable', function () {
+    $('#controlLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id'));
+        if (selectedControlLedger.includes(val)) {
+            $(this).prop('checked', true);
+            $(this).closest('tr').addClass('selected-row');
+        }
+    });
+    updateControlLedgerCheckAllState();
+});
+//#endregion
+
+//#region Delete Control Ledger
+function DeleteControlLedger(ids) {
+    if (!ids || !ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
 
     $.ajax({
         url: '/control-ledger-all-delete',
-        type: 'DELETE',
+        type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
+            if (response.isSuccess === false || response.success === false) {
+                toastr.error(response.message || "Failed to delete.");
+                return;
+            }
+
             toastr.success(response.message || "Data Deleted Successfully.");
+
             ClearControlLedgerForm();
-            LoadAllControlLedger(currenControltPage, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection);
+            selectedControlLedger = [];
+            reloadControlLedgerTable();
 
             if (typeof ModalLoadAllControlLedger === "function") {
                 ModalLoadAllControlLedger();
             }
         },
         error: function (xhr, status, error) {
-            toastr.error("Error Occurred During Deletion.");
+            toastr.error(xhr.responseJSON?.message || "Error Occurred During Deletion.");
             console.error("Delete Error:", error);
         }
     });
 }
-//#endregion
 
-//#region Checkbox & Sorting Helpers
-$(document).on('click', '#ControlselectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.control-checkbox:visible').prop('checked', isChecked);
+// Toolbar Delete Button
+$(document).on("click", "#ControldeleteBtn, .js-ControlLedger-delete-confirm", function (e) {
+    const isControlBtn = $(this).hasClass('js-ControlLedger-delete-confirm') ||
+                         $(this).closest('#control-tab-pane, #controlForm').length > 0;
+    if (!isControlBtn) return;
 
-    $('.control-checkbox:visible').each(function () {
-        const id = parseInt($(this).data('autoid'));
-        const index = selectedControlLedger.indexOf(id);
-        if (isChecked && index === -1) {
-            selectedControlLedger.push(id);
-        } else if (!isChecked && index !== -1) {
-            selectedControlLedger.splice(index, 1);
+    e.preventDefault();
+    e.stopPropagation();
+
+    const ids = getSelectedControlLedgerIds();
+    if (!ids.length) {
+        toastr.warning("Please select at least one record to delete.");
+        return;
+    }
+
+    controlLedgerPendingDeleteIds = ids;
+    isControlLedgerDeletePending = true;
+
+    if ($('#gcDeleteModal').length) {
+        const itemText = ids.length > 1 ? `these ${ids.length} items` : 'this item';
+        $('#gcDeleteModal .title').text(`Are you sure you want to delete ${itemText}? This process cannot be undone.`);
+        $('#gcDeleteModal').modal('show');
+    } else {
+        if (confirm(`Are you sure you want to delete ${ids.length > 1 ? 'these ' + ids.length + ' items' : 'this item'}?`)) {
+            DeleteControlLedger(ids);
         }
-    });
+    }
 });
 
-function ControlbindCheckboxHandlers() {
-    $(document).off('click', '.control-checkbox').on('click', '.control-checkbox', function () {
-        const id = parseInt($(this).data('autoid'));
-        const isChecked = $(this).prop('checked');
-
-        if (isChecked) {
-            if (!selectedControlLedger.includes(id)) selectedControlLedger.push(id);
-        } else {
-            const index = selectedControlLedger.indexOf(id);
-            if (index !== -1) selectedControlLedger.splice(index, 1);
-        }
-
-        const allChecked = $('.control-checkbox:visible').length > 0 &&
-            $('.control-checkbox:visible:not(:checked)').length === 0;
-        $('#ControlselectAll').prop('checked', allChecked);
-    });
-}
-
-function ControlupdateCheckboxState() {
-    $('.control-checkbox').each(function () {
-        const ID = parseInt($(this).data('autoid'));
-        $(this).prop('checked', selectedControlLedger.includes(ID));
-    });
-    const allChecked = $('.control-checkbox:visible').length > 0 &&
-        $('.control-checkbox:visible:not(:checked)').length === 0;
-    $('#ControlselectAll').prop('checked', allChecked);
-}
-
-function ControlupdateSortIndicators() {
-    $('.Controlsortable').removeClass('sort-asc sort-desc');
-    $('.Controlsortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
-
-    const header = $(`.Controlsortable[data-column="${ControlcurrentSortColumn}"]`);
-    header.addClass(ControlcurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-
-    const icon = header.find('.sort-icon');
-    icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(ControlcurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-}
-
-function ControlgeneratePageButtons(currentPage, totalPages) {
-    const navigationDiv = $('#ControlpageNavigation');
-    navigationDiv.empty();
-
-    function createButton(page) {
-        const btn = $('<button type="button">')
-            .addClass('btn btn-sm mx-1')
-            .text(page)
-            .click(() => LoadAllControlLedger(
-                page,
-                ControlpageSize,
-                ControlcurrentSortColumn,
-                ControlcurrentSortDirection,
-                $('#ControlsearchInput').val().trim(),
-                selectedGroupCodeCL
-            ));
-
-        if (page === currentPage) {
-            btn.addClass('btn-primary');
-        } else {
-            btn.addClass('btn-outline-primary');
-        }
-        return btn;
+// Confirmation Button inside #gcDeleteModal
+$(document).on("click", "#gcDeleteModal .js-gc-delete-confirm, #gcDeleteModal .js-delete", function (e) {
+    if (isControlLedgerDeletePending && controlLedgerPendingDeleteIds.length > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const idsToDelete = [...controlLedgerPendingDeleteIds];
+        isControlLedgerDeletePending = false;
+        controlLedgerPendingDeleteIds = [];
+        $('#gcDeleteModal').modal('hide');
+        DeleteControlLedger(idsToDelete);
     }
+});
 
-    if (totalPages <= 1) return;
-
-    navigationDiv.append(createButton(1));
-
-    if (currentPage > 2) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    if (currentPage > 1 && currentPage < totalPages) {
-        navigationDiv.append(createButton(currentPage));
-    }
-
-    if (currentPage < totalPages - 1) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    navigationDiv.append(createButton(totalPages));
-}
-
-function Controldebounce(func, delay) {
-    let timer;
-    return function () {
-        const context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
+// Reset pending on modal hide
+$(document).on('hidden.bs.modal', '#gcDeleteModal', function () {
+    isControlLedgerDeletePending = false;
+    controlLedgerPendingDeleteIds = [];
+});
 //#endregion
 
-//#region Document Ready
+//#region Ready Part
 $(document).ready(function () {
     LoadGroupLedgerDropdown();
-    LoadAllControlLedger();
-    ControlbindCheckboxHandlers();
-
     $('#ControlEntryDate').text(getBangladeshDateTime());
 
+    // Form submit / Save button
     $(document).on("submit", "#controlForm", function (e) {
-        debugger
         e.preventDefault();
         SaveOrUpdateControlLedger();
     });
+
     $(document).on("click", ".js-ControlLedger-save", function (e) {
-        
         e.preventDefault();
         SaveOrUpdateControlLedger();
     });
 
-    $(document).on("click", "#ControldeleteBtn, .js-ControlLedger-delete-confirm", function (e) {
-        e.preventDefault();
-        DeleteControlLedger();
-    });
-
+    // Clear button
     $(document).on("click", "#btnClear, .ControlresetBtn, .js-ControlLedger-clear", function (e) {
+        const isControlReset = $(this).hasClass('js-ControlLedger-clear') ||
+                               $(this).closest('#control-tab-pane, #controlForm').length > 0;
+        if (!isControlReset) return;
         e.preventDefault();
         ClearControlLedgerForm();
     });
 
-    $(document).on('input', '.ControlsearchInput', Controldebounce(function () {
-        const searchValue = $(this).val().trim();
-        LoadAllControlLedger(1, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, searchValue, selectedGroupCodeCL);
-    }, 500));
-
-    $(document).on('click', '#ControlfirstPage', function () {
-        currenControltPage = 1;
-        LoadAllControlLedger(currenControltPage, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, "", selectedGroupCodeCL);
-    });
-
-    $(document).on('click', '#ControlnextPage', function () {
-        currenControltPage++;
-        LoadAllControlLedger(currenControltPage, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, "", selectedGroupCodeCL);
-    });
-
-    $(document).on('click', '#ControlprevPage', function () {
-        if (currenControltPage > 1) {
-            currenControltPage--;
-            LoadAllControlLedger(currenControltPage, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, "", selectedGroupCodeCL);
+    // Print button
+    $(document).on("click", ".printBtn", function (e) {
+        if ($(this).closest('#control-tab-pane, #controlForm').length > 0) {
+            e.preventDefault();
+            if (typeof printForm === 'function') {
+                printForm();
+            } else {
+                window.print();
+            }
         }
     });
 
-    $(document).on('click', '#ControllastPage', function () {
-        let lastPage = parseInt($('#ControlpageNavigation button').last().text());
-        if (!isNaN(lastPage)) {
-            currenControltPage = lastPage;
-            LoadAllControlLedger(currenControltPage, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, "", selectedGroupCodeCL);
+    // Favorite button
+    $(document).on("click", ".confavBtn", function () {
+        if ($(this).closest('#control-tab-pane, #controlForm').length > 0 && typeof toggleFavorite === 'function') {
+            toggleFavorite();
         }
-    });
-
-    $(document).on('change', '.ControlListpageSize', function () {
-        ControlpageSize = parseInt($(this).val());
-        LoadAllControlLedger(1, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection);
-    });
-
-    $(document).on('click', '.Controlsortable', function () {
-        const column = $(this).data('column');
-        if (column === ControlcurrentSortColumn) {
-            ControlcurrentSortDirection = (ControlcurrentSortDirection === 'desc') ? 'asc' : 'desc';
-        } else {
-            ControlcurrentSortColumn = column;
-            ControlcurrentSortDirection = 'desc';
-        }
-        LoadAllControlLedger(1, ControlpageSize, ControlcurrentSortColumn, ControlcurrentSortDirection, $('#ControlsearchInput').val().trim(), selectedGroupCodeCL);
     });
 });
 //#endregion

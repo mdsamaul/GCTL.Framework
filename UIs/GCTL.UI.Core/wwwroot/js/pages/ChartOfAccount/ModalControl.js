@@ -1,13 +1,10 @@
 var selectedModalControlLedger = [];
-var ModalControlcurrentPage = 1;
-var ModalControlpageSize = 10;
-var ModalControlcurrentSortColumn = 'SubControlLedgerCodeNo';
-var ModalControlcurrentSortDirection = 'desc';
+var isModalControlDeletePending = false;
+var modalControlPendingDeleteIds = [];
 var ModalisEditMode = false;
-var ModalControlemptySearch = '';
 
-// Helper: Bangladesh Local Date & Time Formatter
-window.getBangladeshDateTime = window.getBangladeshDateTime || function() {
+//#region Helper: Bangladesh Local Date & Time Formatter
+window.getBangladeshDateTime = window.getBangladeshDateTime || function () {
     return new Date().toLocaleString('en-GB', {
         day: '2-digit',
         month: '2-digit',
@@ -16,9 +13,10 @@ window.getBangladeshDateTime = window.getBangladeshDateTime || function() {
         minute: '2-digit',
         hour12: true
     }).replace(',', '').toUpperCase();
-}
+};
+//#endregion
 
-//#region Error Border Cleanup (Native / Custom Dropdown)
+//#region Error Border Cleanup
 document.addEventListener('change', function (e) {
     if (e.target && $(e.target).hasClass('form-select')) {
         $(e.target).removeClass('border-error');
@@ -29,14 +27,11 @@ document.addEventListener('change', function (e) {
 
 //#region Custom Event Listener For Group Ledger Dropdown Updated
 window.addEventListener('groupLedgerUpdated', function (e) {
-    const newControlLedgerCodeNo = e.detail.newControlLedgerCodeNo;
-    console.log("Updated Group Ledger Code:", newControlLedgerCodeNo);
-
     ModalLoadGroupLedgerDropdown();
     $('#ModalGroupLedgerCodeNo').val('');
     $('#ModalGroupLedgerShortName').val('');
     $('#ModalSubControlLedgerCodeNo').val('');
-    ModalLoadAllControlLedger();
+    reloadModalControlTable();
 });
 //#endregion
 
@@ -70,7 +65,6 @@ function ModalLoadGroupLedgerDropdown(selectedId = null) {
                     $('#ModalGroupLedgerCodeNo').val('');
                     $('#ModalGroupLedgerShortName').val('');
                     $('#ModalSubControlLedgerCodeNo').val('');
-                    ModalLoadAllControlLedger(1, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection, "", "");
                     return;
                 }
 
@@ -93,8 +87,6 @@ function ModalLoadGroupLedgerDropdown(selectedId = null) {
                                 }
                             });
                         }
-
-                        ModalLoadAllControlLedger(1, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection, "", data.controlLedgerCodeNo);
                     },
                     error: function () {
                         console.error("Failed to fetch Group Ledger info For Modal Control Ledger UI");
@@ -103,25 +95,69 @@ function ModalLoadGroupLedgerDropdown(selectedId = null) {
             });
         },
         error: function () {
-            console.error("Failed to load Group Ledger dropdown For Modal Control Ledger UI");
+            console.error("Failed to load Group Ledger dropdown for Modal Control Ledger UI");
         }
     });
 }
 //#endregion
 
-//#region Save Or Update Control Ledger
+//#region Table Reload Helper
+function reloadModalControlTable() {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#modalControlLedgerTable')) {
+        $('#modalControlLedgerTable').DataTable().ajax.reload(null, false);
+    }
+}
+
+function ModalLoadAllControlLedger() {
+    reloadModalControlTable();
+}
+//#endregion
+
+//#region Selection Helpers
+function getSelectedModalControlIds() {
+    let ids = [...selectedModalControlLedger];
+
+    $('#modalControlLedgerTable tbody input[type="checkbox"]:checked').each(function () {
+        const rawVal = $(this).val() || $(this).data('id');
+        const numVal = parseFloat(rawVal);
+        if (!isNaN(numVal) && !ids.includes(numVal)) {
+            ids.push(numVal);
+        }
+    });
+
+    if (ids.length === 0) {
+        const formAutoId = parseFloat($('#ModalautoId').val());
+        if (!isNaN(formAutoId) && formAutoId > 0) {
+            ids.push(formAutoId);
+        }
+    }
+
+    return ids;
+}
+
+function updateModalControlCheckAllState() {
+    const $checkboxes = $('#modalControlLedgerTable tbody input[type="checkbox"]');
+    const total = $checkboxes.length;
+    const checked = $checkboxes.filter(':checked').length;
+    $('#modal-controlledger-check-all').prop('checked', total > 0 && total === checked);
+}
+//#endregion
+
+//#region Save Or Update Modal Control Ledger
 function ModalSaveOrUpdateControlLedger() {
     let autoID = $('#ModalautoId').val();
+    let parsedAutoId = autoID ? parseFloat(autoID) : 0;
+
     let ControlLedgerData = {
-        autoId: autoID ? parseInt(autoID) : 0,
+        autoId: parsedAutoId,
         ControlLedgerCodeNo: $("#ModalGroupLedgerCodeNo").val(),
         SubControlLedgerCodeNo: $("#ModalSubControlLedgerCodeNo").val(),
-        SubControlLedgerName: $("#ModalSubControlLedgerName").val(),
-        ShortName: $("#ModalControlShortName").val(),
+        SubControlLedgerName: ($("#ModalSubControlLedgerName").val() || '').trim(),
+        ShortName: ($("#ModalControlShortName").val() || '').trim(),
         GroupLedgerName: $("#ModalGLName").val()
     };
 
-    // Validations
+    // Client Validations
     if (!ControlLedgerData.GroupLedgerName) {
         toastr.error("Please Select a Group Ledger.");
         $('#ModalGLName').addClass('border-error');
@@ -130,8 +166,8 @@ function ModalSaveOrUpdateControlLedger() {
     }
 
     if (!ControlLedgerData.SubControlLedgerName) {
-        toastr.error("Please Enter Control Ledger.");
-        $('#ModalSubControlLedgerName').addClass('border-error');
+        toastr.error("Please Enter Control Ledger Name.");
+        $('#ModalSubControlLedgerName').addClass('border-error').focus();
         return false;
     } else {
         $('#ModalSubControlLedgerName').removeClass('border-error');
@@ -145,35 +181,30 @@ function ModalSaveOrUpdateControlLedger() {
         data: JSON.stringify(ControlLedgerData),
         success: function (dupResponse) {
             if (dupResponse.isDuplicate) {
-                toastr.error(dupResponse.message);
+                toastr.error(dupResponse.message || "Data Already Exists.");
                 return;
             }
 
-            let url = autoID ? `/control-ledger/${autoID}` : '/control-ledger';
-            let method = autoID ? 'PUT' : 'POST';
-            let successMessage = autoID ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
+            let url = parsedAutoId > 0 ? `/control-ledger/${parsedAutoId}` : '/control-ledger';
+            let method = parsedAutoId > 0 ? 'PUT' : 'POST';
+            let successMessage = parsedAutoId > 0 ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
 
-            
             $.ajax({
                 url: url,
                 type: method,
                 contentType: 'application/json',
                 data: JSON.stringify(ControlLedgerData),
                 success: function (response) {
-                    if (response.isSuccess) {
-                        toastr.success(response.message);
-                        ModalLoadAllControlLedger();
-                        if ($.fn.DataTable.isDataTable('#modalControlLedgerTable')) {
-                            $('#modalControlLedgerTable').DataTable().ajax.reload(null, false);
-                        }
-                        if ($.fn.DataTable.isDataTable('#controlLedgerTable')) {
-                            $('#controlLedgerTable').DataTable().ajax.reload(null, false);
-                        }
+                    if (response.success) {
+                        toastr.success(successMessage);
+
+                        const event = new CustomEvent('ControlLedgerUpdated', { detail: { newControlLedgerCodeNo: response.subControlLedgerCodeNo } });
+                        window.dispatchEvent(event);
 
                         ModalClearControlLedgerForm();
                         selectedModalControlLedger = [];
+                        reloadModalControlTable();
 
-                        // Reload parent/main control table if exists
                         if (typeof LoadAllControlLedger === "function") {
                             LoadAllControlLedger();
                         }
@@ -182,28 +213,28 @@ function ModalSaveOrUpdateControlLedger() {
                     }
                 },
                 error: function (xhr, status, error) {
-                    toastr.error("Error Saving Control Ledger.");
-                    console.error('Error Saving Control Ledger :', error);
+                    toastr.error(xhr.responseJSON?.message || "Error Saving Control Ledger.");
+                    console.error('Save Error:', error);
                 }
             });
         },
         error: function (xhr, status, error) {
             toastr.error("Server error occurred during duplicate check!");
-            console.error('Error checking duplicate:', error);
+            console.error('Duplicate Check Error:', error);
         }
     });
 }
 //#endregion
 
-//#region Control Ledger Clear
+//#region Clear Modal Form
 function ModalClearControlLedgerForm() {
     ModalisEditMode = false;
 
     $("#ModalautoId").val("");
+    window.clearAllCustomDropdowns('#ModalcontrolForm');
+
     $("#ModalGroupLedgerCodeNo, #ModalGroupLedgerShortName").val("");
     $("#ModalSubControlLedgerCodeNo, #ModalSubControlLedgerName, #ModalControlShortName").val("");
-
-    window.clearAllCustomDropdowns('#ModalcontrolForm');
 
     $(".form-control, .form-select").removeClass("is-invalid is-valid border-error");
     $(".custom-dd-wrapper").removeClass("border-error");
@@ -212,84 +243,24 @@ function ModalClearControlLedgerForm() {
     $('#ModalControldisplayModifyDate').text('');
     $('#ModalControldisplayLDate').text(getBangladeshDateTime());
 
-    $(".Modalcontrol-checkbox").prop("checked", false);
-    $("#ModalControlselectAll").prop("checked", false);
-    $('#ModalControlsearchInput').val('');
+    $('.js-ModalControl-save span').text('Save');
 
     selectedModalControlLedger = [];
-    ModalcurrenControltPage = 1;
+    $('#modalControlLedgerTable tbody input[type="checkbox"]').prop('checked', false);
+    $('#modalControlLedgerTable tbody tr').removeClass('selected-row');
+    $('#modal-controlledger-check-all').prop('checked', false);
 
     ModalLoadGroupLedgerDropdown();
-    ModalLoadAllControlLedger(1, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection, "", "");
-}
-//#endregion
-
-//#region Load All Control Ledger Data
-function ModalLoadAllControlLedger(page = 1, pageSize = ModalControlpageSize, sortColumn = ModalControlcurrentSortColumn, sortDirection = ModalControlcurrentSortDirection, searchTerm = "", groupCode = "") {
-    $.ajax({
-        url: '/control-ledger-list',
-        type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: pageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection,
-            groupLedgerCode: groupCode
-        },
-        success: function (response) {
-            let rows = '';
-            if (response.data && response.data.length > 0) {
-                response.data.forEach(function (item) {
-                    rows += `<tr>
-                        <td class="text-center">
-                            <input type="checkbox" class="form-check-input form-check-input-sm Modalcontrol-checkbox"
-                                data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none Modalcontrol-ledger" data-autoid="${item.autoId}">
-                                ${item.subControlLedgerCodeNo}
-                            </button>
-                        </td>
-                        <td>${item.subControlLedgerName || ''}</td>
-                        <td>${item.shortName || ''}</td>
-                    </tr>`;
-                });
-            } else {
-                rows = `<tr><td colspan="4" class="text-center text-muted">No records found</td></tr>`;
-            }
-            $('#ModalcontrolTblBody').html(rows);
-
-            if (response.paginationInfo) {
-                let currPage = response.paginationInfo.currentPage;
-                let totalPages = response.paginationInfo.totalPages;
-                let totalRecords = response.totalCount || 0;
-                let startIndex = response.paginationInfo.startItem || 0;
-                let endIndex = response.paginationInfo.endItem || 0;
-
-                $('#ModalControlpaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-                $('#ModalControlpaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
-                $('#ModalControltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
-
-                ModalControlcurrentPage = currPage;
-                ModalControlgeneratePageButtons(ModalControlcurrentPage, totalPages);
-            }
-
-            ModalControlupdateCheckboxState();
-            ModalControlupdateSortIndicators();
-        },
-        error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
-        }
-    });
 }
 //#endregion
 
 //#region Populate Data For Edit
-$(document).on('click', '.Modalcontrol-ledger', function () {
-    const id = parseInt($(this).data('autoid'));
-    if (!id) return;
+$(document).on('click', '.js-modal-controlledger-edit, .Modalcontrol-ledger', function (e) {
+    e.preventDefault();
+    const rawId = $(this).data('id') || $(this).data('autoid');
+    if (!rawId) return;
 
+    const id = parseFloat(rawId);
     ModalisEditMode = true;
     selectedModalControlLedger = [id];
 
@@ -297,43 +268,53 @@ $(document).on('click', '.Modalcontrol-ledger', function () {
         url: `/control-ledger/details/${id}`,
         type: 'GET',
         success: function (data) {
-            $('#ModalautoId').val(id);
-            $('#ModalGroupLedgerCodeNo').val(data.controlLedgerCodeNo || '');
-            $('#ModalGroupLedgerShortName').val(data.groupLedgerShortName || '');
-            $('#ModalSubControlLedgerCodeNo').val(data.subControlLedgerCodeNo || '');
-            $('#ModalSubControlLedgerName').val(data.subControlLedgerName || '');
-            $('#ModalControlShortName').val(data.shortName || '');
+            if (data) {
+                $('#ModalautoId').val(data.autoId || id);
+                $('#ModalGroupLedgerCodeNo').val(data.controlLedgerCodeNo || '');
+                $('#ModalGroupLedgerShortName').val(data.groupLedgerShortName || '');
+                $('#ModalSubControlLedgerCodeNo').val(data.subControlLedgerCodeNo || '');
+                $('#ModalSubControlLedgerName').val(data.subControlLedgerName || '');
+                $('#ModalControlShortName').val(data.shortName || '');
 
-            // Group Ledger Dropdown
-            $('#ModalGLName').val(data.controlLedgerCodeNo);
-            window.reinitCustomDropdownById('ModalGLName');
+                // Dropdown Sync
+                $('#ModalGLName').val(data.controlLedgerCodeNo);
+                window.reinitCustomDropdownById('ModalGLName');
 
-            // Dates
-            if (data.lDate) {
-                let entryDate = new Date(data.lDate).toLocaleString('en-GB', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: 'numeric', minute: '2-digit', hour12: true
-                }).replace(',', '');
-                $('#ModalControldisplayLDate').text(entryDate.toUpperCase());
-            } else {
-                $('#ModalControldisplayLDate').text('');
+                if (data.lDate) {
+                    let entryDate = new Date(data.lDate).toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                    }).replace(',', '');
+                    $('#ModalControldisplayLDate').text(entryDate.toUpperCase());
+                } else {
+                    $('#ModalControldisplayLDate').text('');
+                }
+
+                if (data.modifyDate) {
+                    let updateDate = new Date(data.modifyDate).toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                    }).replace(',', '');
+                    $('#ModalControldisplayModifyDate').text(updateDate.toUpperCase());
+                } else {
+                    $('#ModalControldisplayModifyDate').text('');
+                }
+
+                $('.js-ModalControl-save span').text('Update');
+
+                // Sync checkboxes
+                $('#modalControlLedgerTable tbody input[type="checkbox"]').each(function () {
+                    const rowVal = parseFloat($(this).val() || $(this).data('id'));
+                    if (rowVal === id) {
+                        $(this).prop('checked', true).closest('tr').addClass('selected-row');
+                    } else {
+                        $(this).prop('checked', false).closest('tr').removeClass('selected-row');
+                    }
+                });
+                updateModalControlCheckAllState();
+
+                $('#ModalSubControlLedgerName').focus();
             }
-
-            if (data.modifyDate) {
-                let updateDate = new Date(data.modifyDate).toLocaleString('en-GB', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: 'numeric', minute: '2-digit', hour12: true
-                }).replace(',', '');
-                $('#ModalControldisplayModifyDate').text(updateDate.toUpperCase());
-            } else {
-                $('#ModalControldisplayModifyDate').text('');
-            }
-
-            $('.Modalcontrol-checkbox').prop('checked', false);
-            $(`.Modalcontrol-checkbox[data-autoid="${id}"]`).prop('checked', true);
-            $("#ModalControlselectAll").prop('checked', false);
-
-            ModalControlupdateCheckboxState();
         },
         error: function (xhr, status, error) {
             toastr.error("Failed To Fetch Control Ledger Details.");
@@ -343,217 +324,156 @@ $(document).on('click', '.Modalcontrol-ledger', function () {
 });
 //#endregion
 
-//#region Delete Control Ledger
-function ModalDeleteControlLedger() {
-    const ids = selectedModalControlLedger.map(x => parseInt(x)).filter(x => !isNaN(x));
+//#region Checkbox Selection Handlers
+// Row checkbox
+$(document).on('change', '#modalControlLedgerTable tbody input[type="checkbox"]', function () {
+    const val = parseFloat($(this).val() || $(this).data('id'));
+    if (isNaN(val)) return;
 
-    if (!ids.length) {
+    if ($(this).prop('checked')) {
+        if (!selectedModalControlLedger.includes(val)) {
+            selectedModalControlLedger.push(val);
+        }
+        $(this).closest('tr').addClass('selected-row');
+    } else {
+        selectedModalControlLedger = selectedModalControlLedger.filter(x => x !== val);
+        $(this).closest('tr').removeClass('selected-row');
+    }
+
+    updateModalControlCheckAllState();
+});
+
+// Master Checkbox
+$(document).on('change', '#modal-controlledger-check-all', function () {
+    const isChecked = $(this).prop('checked');
+    $('#modalControlLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id'));
+        if (isNaN(val)) return;
+
+        if (isChecked) {
+            if (!selectedModalControlLedger.includes(val)) {
+                selectedModalControlLedger.push(val);
+            }
+            $(this).prop('checked', true).closest('tr').addClass('selected-row');
+        } else {
+            selectedModalControlLedger = selectedModalControlLedger.filter(x => x !== val);
+            $(this).prop('checked', false).closest('tr').removeClass('selected-row');
+        }
+    });
+});
+
+// DataTables Draw Event
+$(document).on('draw.dt', '#modalControlLedgerTable', function () {
+    $('#modalControlLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id'));
+        if (selectedModalControlLedger.includes(val)) {
+            $(this).prop('checked', true);
+            $(this).closest('tr').addClass('selected-row');
+        }
+    });
+    updateModalControlCheckAllState();
+});
+//#endregion
+
+//#region Delete Modal Control Ledger
+function ModalDeleteControlLedger(ids) {
+    if (!ids || !ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
 
     $.ajax({
         url: '/control-ledger-all-delete',
-        type: 'DELETE',
+        type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
+            if (response.isSuccess === false || response.success === false) {
+                toastr.error(response.message || "Failed to delete.");
+                return;
+            }
+
             toastr.success(response.message || "Data Deleted Successfully.");
 
             ModalClearControlLedgerForm();
-            ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
             selectedModalControlLedger = [];
-            $("#ModalControlselectAll").prop("checked", false);
+            reloadModalControlTable();
 
             if (typeof LoadAllControlLedger === "function") {
                 LoadAllControlLedger();
             }
         },
         error: function (xhr, status, error) {
-            toastr.error("Error Occurred During Deletion.");
+            toastr.error(xhr.responseJSON?.message || "Error Occurred During Deletion.");
             console.error("Delete Error:", error);
         }
     });
 }
-//#endregion
 
-//#region Pagination & Checkbox Helpers
-function ModalControlupdateSortIndicators() {
-    $('.ModalControlsortable').removeClass('sort-asc sort-desc');
-    $('.ModalControlsortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+// Delete Button in Modal Toolbar
+$(document).on("click", "#ModalControldeleteBtn, .js-ModalControl-delete-confirm", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-    const header = $(`.ModalControlsortable[data-column="${ModalControlcurrentSortColumn}"]`);
-    header.addClass(ModalControlcurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+    const ids = getSelectedModalControlIds();
+    if (!ids.length) {
+        toastr.warning("Please select at least one record to delete.");
+        return;
+    }
 
-    const icon = header.find('.sort-icon');
-    icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(ModalControlcurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-}
+    modalControlPendingDeleteIds = ids;
+    isModalControlDeletePending = true;
 
-function ModalControlgeneratePageButtons(currentPage, totalPages) {
-    const navigationDiv = $('#ModalControlpageNavigation');
-    navigationDiv.empty();
-
-    function createButton(page) {
-        const btn = $('<button type="button">')
-            .addClass('btn btn-sm mx-1')
-            .text(page)
-            .click(() => ModalLoadAllControlLedger(
-                page,
-                ModalControlpageSize,
-                ModalControlcurrentSortColumn,
-                ModalControlcurrentSortDirection,
-                $('#ModalControlsearchInput').val().trim()
-            ));
-
-        if (page === currentPage) {
-            btn.addClass('btn-primary');
-        } else {
-            btn.addClass('btn-outline-primary');
+    if ($('#gcDeleteModal').length) {
+        const itemText = ids.length > 1 ? `these ${ids.length} items` : 'this item';
+        $('#gcDeleteModal .title').text(`Are you sure you want to delete ${itemText}? This process cannot be undone.`);
+        $('#gcDeleteModal').modal('show');
+    } else {
+        if (confirm(`Are you sure you want to delete ${ids.length > 1 ? 'these ' + ids.length + ' items' : 'this item'}?`)) {
+            ModalDeleteControlLedger(ids);
         }
-        return btn;
     }
+});
 
-    if (totalPages <= 1) return;
-
-    navigationDiv.append(createButton(1));
-
-    if (currentPage > 2) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
+// Confirm button inside #gcDeleteModal
+$(document).on("click", "#gcDeleteModal .js-gc-delete-confirm, #gcDeleteModal .js-delete", function (e) {
+    if (isModalControlDeletePending && modalControlPendingDeleteIds.length > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const idsToDelete = [...modalControlPendingDeleteIds];
+        isModalControlDeletePending = false;
+        modalControlPendingDeleteIds = [];
+        $('#gcDeleteModal').modal('hide');
+        ModalDeleteControlLedger(idsToDelete);
     }
+});
 
-    if (currentPage > 1 && currentPage < totalPages) {
-        navigationDiv.append(createButton(currentPage));
-    }
-
-    if (currentPage < totalPages - 1) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    navigationDiv.append(createButton(totalPages));
-}
-
-function ModalControlupdateCheckboxState() {
-    $('.Modalcontrol-checkbox').each(function () {
-        const ID = parseInt($(this).data('autoid'));
-        $(this).prop('checked', selectedModalControlLedger.includes(ID));
-    });
-    const allChecked = $('.Modalcontrol-checkbox:visible').length > 0 &&
-        $('.Modalcontrol-checkbox:visible:not(:checked)').length === 0;
-    $('#ModalControlselectAll').prop('checked', allChecked);
-}
-
-function ModalControldebounce(func, delay) {
-    let timer;
-    return function () {
-        const context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-function ModalControlbindCheckboxHandlers() {
-    $(document).off('click', '.Modalcontrol-checkbox').on('click', '.Modalcontrol-checkbox', function () {
-        const id = parseInt($(this).data('autoid'));
-        const isChecked = $(this).prop('checked');
-
-        if (isChecked) {
-            if (!selectedModalControlLedger.includes(id)) selectedModalControlLedger.push(id);
-        } else {
-            const index = selectedModalControlLedger.indexOf(id);
-            if (index !== -1) selectedModalControlLedger.splice(index, 1);
-        }
-
-        const allChecked = $('.Modalcontrol-checkbox:visible').length > 0 &&
-            $('.Modalcontrol-checkbox:visible:not(:checked)').length === 0;
-        $('#ModalControlselectAll').prop('checked', allChecked);
-    });
-}
-
-$(document).on('click', '#ModalControlselectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.Modalcontrol-checkbox:visible').prop('checked', isChecked);
-
-    $('.Modalcontrol-checkbox:visible').each(function () {
-        const id = parseInt($(this).data('autoid'));
-        const index = selectedModalControlLedger.indexOf(id);
-        if (isChecked && index === -1) {
-            selectedModalControlLedger.push(id);
-        } else if (!isChecked && index !== -1) {
-            selectedModalControlLedger.splice(index, 1);
-        }
-    });
+$(document).on('hidden.bs.modal', '#gcDeleteModal', function () {
+    isModalControlDeletePending = false;
+    modalControlPendingDeleteIds = [];
 });
 //#endregion
 
-//#region Document Ready
+//#region Ready Part
 $(document).ready(function () {
-    console.log("Control Ledger Modal Page Loaded");
     ModalLoadGroupLedgerDropdown();
-    ModalControlbindCheckboxHandlers();
-    
-    // Grid loading is now handled by _CustomGrid (DataTables)
-
     $('#ModalControldisplayLDate').text(getBangladeshDateTime());
 
+    // Save Handlers
     $(document).on("submit", "#ModalcontrolForm", function (e) {
         e.preventDefault();
         ModalSaveOrUpdateControlLedger();
     });
 
-    $(document).on("click", "#ModalControldeleteBtn, .js-ModalControl-delete-confirm", function (e) {
+    $(document).on("click", ".js-ModalControl-save", function (e) {
         e.preventDefault();
-        ModalDeleteControlLedger();
+        ModalSaveOrUpdateControlLedger();
     });
 
-    $(document).on("click", ".ModalControlresetBtn, .js-ModalControl-clear", function () {
+    // Clear Handler
+    $(document).on("click", ".js-ModalControl-clear, .ModalControlresetBtn", function (e) {
+        e.preventDefault();
         ModalClearControlLedgerForm();
-    });
-
-    $(document).on('input', '.ModalControlsearchInput', ModalControldebounce(function () {
-        const searchValue = $(this).val().trim();
-        ModalLoadAllControlLedger(1, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection, searchValue);
-    }, 500));
-
-    $(document).on('click', '#ModalControlfirstPage', function () {
-        ModalControlcurrentPage = 1;
-        ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
-    });
-
-    $(document).on('click', '#ModalControlnextPage', function () {
-        ModalControlcurrentPage++;
-        ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
-    });
-
-    $(document).on('click', '#ModalControlprevPage', function () {
-        if (ModalControlcurrentPage > 1) {
-            ModalControlcurrentPage--;
-            ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
-        }
-    });
-
-    $(document).on('click', '#ModalControllastPage', function () {
-        let lastPage = parseInt($('#ModalControlpageNavigation button').last().text());
-        if (!isNaN(lastPage)) {
-            ModalControlcurrentPage = lastPage;
-            ModalLoadAllControlLedger(ModalControlcurrentPage, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
-        }
-    });
-
-    $(document).on('change', '.ModalControlListpageSize', function () {
-        ModalControlpageSize = parseInt($(this).val());
-        ModalLoadAllControlLedger(1, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection);
-    });
-
-    $(document).on('click', '.ModalControlsortable', function () {
-        const column = $(this).data('column');
-        if (column === ModalControlcurrentSortColumn) {
-            ModalControlcurrentSortDirection = (ModalControlcurrentSortDirection === 'desc') ? 'asc' : 'desc';
-        } else {
-            ModalControlcurrentSortColumn = column;
-            ModalControlcurrentSortDirection = 'desc';
-        }
-        ModalLoadAllControlLedger(1, ModalControlpageSize, ModalControlcurrentSortColumn, ModalControlcurrentSortDirection, $('#ModalControlsearchInput').val().trim());
     });
 });
 //#endregion
