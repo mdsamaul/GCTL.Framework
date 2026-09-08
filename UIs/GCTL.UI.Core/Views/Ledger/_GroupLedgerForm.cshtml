@@ -1,4 +1,4 @@
-﻿@using GCTL.UI.Core.ViewModels
+@using GCTL.UI.Core.ViewModels
 
 <div class="card shadow-sm rounded-2">
 
@@ -39,7 +39,7 @@
             <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="autoId" name="autoId" />
 
-                <div class="row">
+                <div class="row control-ledger-fields-row">
                     @* --- 1. Group Ledger Code (Readonly) --- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                     {
