@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Data.Models;
@@ -88,12 +88,17 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
         public async Task<List<GeneralLedgerVM>> GetAllAsync()
         {
             var entity = await _repository.All().ToListAsync();
+            var cashFlows = await _cashFlow.All().ToDictionaryAsync(c => c.CashFlowTypeId, c => c.CashFlowTypeName);
 
             var result = entity.Select(model => new GeneralLedgerVM
             {
+                autoId = model.AutoId,
                 SubSusidiaryLedgerCodeNo = model.SubSusidiaryLedgerCodeNo,
                 SubSubsidiaryLedgerName = model.SubSubsidiaryLedgerName,
-                ShortName = model.ShortName
+                ShortName = model.ShortName,
+                CashFlowTypeID = model.CashFlowTypeId,
+                CashFlowTypeName = (!string.IsNullOrEmpty(model.CashFlowTypeId) && cashFlows.ContainsKey(model.CashFlowTypeId)) ? cashFlows[model.CashFlowTypeId] : "",
+                IsActive = model.IsActive == "Y" ? "Yes" : (model.IsActive == "N" ? "No" : model.IsActive)
             }).ToList();
 
             return result;
@@ -139,6 +144,26 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
                                   GeneralSSLShortName = subsidi.ShortName
 
                               }).FirstOrDefaultAsync();
+
+            if (data == null)
+            {
+                var general = await _repository.GetByIdAsync((decimal)id);
+                if (general != null)
+                {
+                    data = new GeneralLedgerVM
+                    {
+                        autoId = general.AutoId,
+                        SubsidiaryLedgerCodeNo = general.SubsidiaryLedgerCodeNo,
+                        SubSusidiaryLedgerCodeNo = general.SubSusidiaryLedgerCodeNo,
+                        SubSubsidiaryLedgerName = general.SubSubsidiaryLedgerName,
+                        ShortName = general.ShortName,
+                        CashFlowTypeID = general.CashFlowTypeId,
+                        IsActive = general.IsActive,
+                        LDate = general.Ldate,
+                        ModifyDate = general.ModifyDate
+                    };
+                }
+            }
 
             return data;
         }
