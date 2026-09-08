@@ -43,24 +43,26 @@
 
             <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                @await Html.PartialAsync("_CustomGrid", new GridModel
-                {
-                    GridId = "TransportType-grid",
-                    AjaxUrl = "/TransportType/GetTableData",
-                    AjaxMethod = "GET",
-                    ServerSide = false,
-                    ShowCheckbox = true,
-                    CheckColumnData = "vehicleTypeId",
-                    CheckAllId = "js-TransportType-checkall",
-                    DefaultSortColumn = "vehicleTypeId",
-                    DefaultSortDirection = "desc",
-                    Columns = new List<GridColumn>
+                <div class="js-TransportType-grid-container">
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
                     {
-                        new() { Data = "vehicleTypeId", Header = "ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-TransportType-edit", IdField = "vehicleTypeId" },
-                        new() { Data = "vehicleType", Header = "Transport Type", Width = "50%", Align = "left" },
-                        new() { Data = "shortName", Header = "Short Name", Width = "35%", Align = "left" }
-                    }
-                })
+                        GridId = "TransportType-grid",
+                        AjaxUrl = "/TransportType/GetTableData",
+                        AjaxMethod = "GET",
+                        ServerSide = false,
+                        ShowCheckbox = true,
+                        CheckColumnData = "vehicleTypeId",
+                        CheckAllId = "js-TransportType-checkall",
+                        DefaultSortColumn = "vehicleTypeId",
+                        DefaultSortDirection = "desc",
+                        Columns = new List<GridColumn>
+                        {
+                            new() { Data = "vehicleTypeId", Header = "ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-TransportType-edit", IdField = "vehicleTypeId" },
+                            new() { Data = "vehicleType", Header = "Transport Type", Width = "50%", Align = "left" },
+                            new() { Data = "shortName", Header = "Short Name", Width = "35%", Align = "left" }
+                        }
+                    })
+                </div>
             </div>
 
         </div>
@@ -72,8 +74,7 @@
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
-<script src="~/js/app.input.validation.js" defer></script>
-<script src="~/js/pages/transportType.js" defer></script>
+<script src="~/js/pages/transportType.js" asp-append-version="true" defer></script>
 <script type="text/javascript">
     (function waitForJQuery() {
         if (window.jQuery && typeof $.transportType === "function") {
@@ -85,7 +86,5 @@
         }
     })();
 </script>
-@*
- *@
 
 

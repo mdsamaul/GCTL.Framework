@@ -500,7 +500,7 @@ $(document).ready(function () {
         SaveOrUpdateControlLedger();
     });
     $(document).on("click", ".js-ControlLedger-save", function (e) {
-        debugger
+        
         e.preventDefault();
         SaveOrUpdateControlLedger();
     });

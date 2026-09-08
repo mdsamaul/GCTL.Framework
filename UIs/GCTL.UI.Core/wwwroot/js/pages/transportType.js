@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.transportType = function (options) {
 
         //#region Default options
@@ -41,17 +41,44 @@
 
         //#endregion
 
-        $(() => {
+        function initGrid() {
             if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: 'TransportType-grid' });
+                if (!$.fn.DataTable || !$.fn.DataTable.isDataTable(settings.gridSelector)) {
+                    $.gctlGrid.initFromModel({ gridId: 'TransportType-grid' });
+                }
             }
+        }
 
+        function adjustGridColumns() {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                var dt = $(settings.gridSelector).DataTable();
+                dt.columns.adjust();
+                if (dt.responsive) {
+                    dt.responsive.recalc();
+                }
+            }
+        }
 
-            loadTable();
+        // Initialize grid immediately
+        initGrid();
+
+        // Also adjust columns when inside a modal once shown
+        var $modalAncestor = $(settings.gridSelector).closest(".modal");
+        if ($modalAncestor.length) {
+            $modalAncestor.off("shown.bs.modal.transportType gc-modal:loaded.transportType")
+                          .on("shown.bs.modal.transportType gc-modal:loaded.transportType", function () {
+                initGrid();
+                setTimeout(adjustGridColumns, 50);
+            });
+        }
+
+        $(() => {
+            initGrid();
 
             //#region editSelector & clearSelector
 
-            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+            $("body").off("click", `${settings.editSelector},${settings.clearSelector}`)
+                     .on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
@@ -75,7 +102,8 @@
 
             //#region Save
 
-            $("body").on("click", settings.saveSelector, function () {
+            $("body").off("click", settings.saveSelector)
+                     .on("click", settings.saveSelector, function () {
 
                 var self = this;
                 validation();
@@ -129,12 +157,14 @@
 
             //#region selectAllSelector & deleteSelector
 
-            $("body").on("click", settings.selectAllSelector, function () {
+            $("body").off("click", settings.selectAllSelector)
+                     .on("click", settings.selectAllSelector, function () {
                 $(".checkBox").prop('checked',
                     $(this).prop('checked'));
             });
 
-            $("body").on("click", settings.deleteSelector, function (e) {
+            $("body").off("click", settings.deleteSelector)
+                     .on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
@@ -159,7 +189,7 @@
 
             //#region Delete & deleteModal
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
+            $("body").off('show.bs.modal', settings.deleteModal).on('show.bs.modal', settings.deleteModal, function (event) {
 
                 var source = $(event.relatedTarget);
                 var id = source.data("ids");
@@ -170,7 +200,7 @@
                 var modal = $(this);
                 $(modal).find('.title').html(title);
 
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
+                $("body").off("click", settings.finalDeleteSelector).on("click", settings.finalDeleteSelector, function (e) {
                     e.stopPropagation();
                     e.preventDefault();
                     e.stopImmediatePropagation();
@@ -207,13 +237,13 @@
 
             //#region topSelector & decimalSelector
 
-            $("body").on("click", settings.topSelector, function (e) {
+            $("body").off("click", settings.topSelector).on("click", settings.topSelector, function (e) {
                 e.preventDefault();
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
 
-            $("body").on("keyup", settings.decimalSelector, function () {
+            $("body").off("keyup", settings.decimalSelector).on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
@@ -222,7 +252,7 @@
 
             //#region availabilitySelector
 
-            $("body").on("keyup", settings.availabilitySelector, function () {
+            $("body").off("keyup", settings.availabilitySelector).on("keyup", settings.availabilitySelector, function () {
                 var self = $(this);
                 let code = $(".js-VehicleTypeId-code").val();
                 let name = self.val();
@@ -242,69 +272,14 @@
 
             //#endregion
 
-            //#region Modal & quickAddSelector
-
-            $("body").on("click", settings.quickAddSelector, function (e) {
-                e.stopPropagation();
-                e.preventDefault();
-                e.stopImmediatePropagation();
-
-                loadUrl = $(this).data("url");
-                target = $(this).data("target");
-                reloadUrl = $(this).data("reload-url");
-                title = $(this).data("title");
-
-                $(settings.quickAddModal + " .modal-title").html(title);
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal + " .modal-body").load(loadUrl, function () {
-                    $(settings.quickAddModal).modal("show");
-                    $("#header").hide();
-                    $(settings.quickAddModal + " .modal-body #header").hide();
-                    $("#left_menu").hide();
-                    $(settings.quickAddModal + " .modal-body #left_menu").hide();
-                    $("#main-content").toggleClass("collapse-main");
-                    $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
-                    $("body").removeClass("sidebar-mini");
-                });
-            });
-
-            $("body").on("click", ".js-modal-dismiss", function () {
-                $("body").removeClass("sidebar-mini").addClass("sidebar-mini");
-                $("#header").show();
-                $(settings.quickAddModal + " .modal-body #header").show();
-                $("#left_menu").show();
-                $(settings.quickAddModal + " .modal-body #left_menu").show();
-                $("#main-content").toggleClass("collapse-main");
-                $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
-
-                lastCode = $(settings.quickAddModal + " #lastCode").val();
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal).modal("hide");
-
-                $(target).empty("");
-                $(target).append($('<option>', { value: '', text: `--Select ${title}--` }));
-                $.ajax({
-                    url: reloadUrl,
-                    method: "GET",
-                    success: function (response) {
-                        console.log(response);
-                        $.each(response, function (i, item) {
-                            $(target).append($('<option>', { value: item.code, text: item.name }));
-                        });
-                        $(target).val(lastCode);
-                        console.log("Testttt", lastCode);
-                    }
-                });
-            });
-
-            //#endregion
-
         });
 
         //#region loadTable
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
                 $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            } else {
+                initGrid();
             }
         }
 
