@@ -1,28 +1,41 @@
 let selectedSubSidiaryLedger = [];
-let currenSubSidiarytPage = 1;
-let SubSidiarypageSize = 10;
-let SubSidiarycurrentSortColumn = 'SusidiaryLedgerCodeNo';
-let SubSidiarycurrentSortDirection = 'desc';
+let isSubSidiaryLedgerDeletePending = false;
+let subSidiaryLedgerPendingDeleteIds = [];
 let isEditModeSubSidiary = false;
 
-// Selected dropdown values (used for reload, pagination, sorting)
+// Selected dropdown values
 let selectedGroupCodeSSL = "";
 let selectedControlCodeSSL = "";
 let selectedSubControlCodeSSL = "";
 
-// Helper: Bangladesh Local Date & Time Formatter
+//#region Helper: Bangladesh Time & Date Formatter
 function getBangladeshDateTime() {
-    return new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    }).replace(',', '').toUpperCase();
-}
+    let now = new Date();
+    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    let bdOffset = 6 * 60 * 60 * 1000;
+    let bdTime = new Date(utc + bdOffset);
 
-//#region Error Border Cleanup (Native / Custom Dropdown)
+    let day = bdTime.getDate().toString().padStart(2, '0');
+    let month = (bdTime.getMonth() + 1).toString().padStart(2, '0');
+    let year = bdTime.getFullYear();
+
+    let hours = bdTime.getHours();
+    let minutes = bdTime.getMinutes().toString().padStart(2, '0');
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+}
+//#endregion
+
+//#region Validation Error Border
+$(document).on('input', '.form-control', function () {
+    if ($(this).val().trim() !== '') {
+        $(this).removeClass('border-error');
+    }
+});
+
 document.addEventListener('change', function (e) {
     if (e.target && $(e.target).hasClass('form-select')) {
         $(e.target).removeClass('border-error');
@@ -31,20 +44,35 @@ document.addEventListener('change', function (e) {
 });
 //#endregion
 
-//#region Custom Event Listener For Group Ledger Dropdown Updated
+//#region Custom Event Listeners
 window.addEventListener('groupLedgerUpdated', function (e) {
     ForSubSidiGRLDropdown();
-    $("#forsidiarygroupcode").val("");
-    $("#forsidiarygroupshortName").val("");
+    $('#forsidiarygroupcode, #forsidiarygroupshortName').val('');
+    $('#forsidiaryControlCode, #forsidiaryCLShortName').val('');
+    $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
+    $('#SusidiaryLedgerCodeNo').val('');
+    reloadSubSidiaryLedgerTable();
+});
 
-    $("#forsidiaryControlCode").val("");
-    $("#forsidiaryCLShortName").val("");
+window.addEventListener('ControlLedgerUpdated', function (e) {
+    const currentGroupCode = $('#forsidiarygroupName').val();
+    if (currentGroupCode) {
+        getControlLedger(currentGroupCode);
+    }
+    $('#forsidiaryControlCode, #forsidiaryCLShortName').val('');
+    $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
+    $('#SusidiaryLedgerCodeNo').val('');
+    reloadSubSidiaryLedgerTable();
+});
 
-    $("#forsidiaryGeneralLedgerCodeNo").val("");
-    $("#forsidiarySubCRLshortName").val("");
-
-    $("#SusidiaryLedgerCodeNo").val("");
-    SubSididiarLedgerAll();
+window.addEventListener('SubcontrolLedgerUpdated', function (e) {
+    const currentControlCode = $('#forsidiaryControlName').val();
+    if (currentControlCode) {
+        getSubControllerLedger(currentControlCode);
+    }
+    $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
+    $('#SusidiaryLedgerCodeNo').val('');
+    reloadSubSidiaryLedgerTable();
 });
 //#endregion
 
@@ -78,19 +106,32 @@ function ForSubSidiGRLDropdown(selectedId = null) {
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
                 if (!selectedGroupCode) {
-                    $('#forsidiarygroupcode').val('');
-                    $('#forsidiarygroupshortName').val('');
-
-                    // Control & Sub-Control Clear
-                    window.clearCustomDropdownById('forsidiaryControlName');
+                    $('#forsidiarygroupcode, #forsidiarygroupshortName').val('');
                     $('#forsidiaryControlCode, #forsidiaryCLShortName').val('');
+                    $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
+                    $('#SusidiaryLedgerCodeNo').val('');
 
-                    window.clearCustomDropdownById('forsidiaryGeneralLedgerName');
-                    $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName, #SusidiaryLedgerCodeNo').val('');
+                    let $ctrl = $('#forsidiaryControlName');
+                    $ctrl.find('option:not(:first)').remove();
+                    $ctrl.val('');
+                    window.reinitCustomDropdownById('forsidiaryControlName');
 
-                    SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", "", "", "");
+                    let $subctrl = $('#forsidiaryGeneralLedgerName');
+                    $subctrl.find('option:not(:first)').remove();
+                    $subctrl.val('');
+                    window.reinitCustomDropdownById('forsidiaryGeneralLedgerName');
                     return;
                 }
+
+                // Clear downstream fields
+                $('#forsidiaryControlCode, #forsidiaryCLShortName').val('');
+                $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
+                $('#SusidiaryLedgerCodeNo').val('');
+
+                let $subctrl = $('#forsidiaryGeneralLedgerName');
+                $subctrl.find('option:not(:first)').remove();
+                $subctrl.val('');
+                window.reinitCustomDropdownById('forsidiaryGeneralLedgerName');
 
                 // Load Control Ledger Dropdown
                 getControlLedger(selectedGroupCode);
@@ -103,13 +144,12 @@ function ForSubSidiGRLDropdown(selectedId = null) {
                     success: function (data) {
                         $('#forsidiarygroupcode').val(data.controlLedgerCodeNo || '');
                         $('#forsidiarygroupshortName').val(data.shortName || '');
-                        SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, "", "");
                     }
                 });
             });
         },
         error: function () {
-            console.error("Failed to fetch Group Ledger dropdown");
+            console.error("Failed to fetch Group Ledger dropdown for Sub-Sidiary.");
         }
     });
 }
@@ -134,8 +174,6 @@ function getControlLedger(selectedGroupCode, selectedId = null) {
                 $dropdown.val(selectedId);
             }
 
-            window.reinitCustomDropdownById('forsidiaryControlName');
-
             $dropdown.off('change').on('change', function () {
                 const selectedControlCode = $(this).val();
                 selectedControlCodeSSL = selectedControlCode || "";
@@ -144,13 +182,19 @@ function getControlLedger(selectedGroupCode, selectedId = null) {
 
                 if (!selectedControlCode) {
                     $('#forsidiaryControlCode, #forsidiaryCLShortName').val('');
+                    $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
+                    $('#SusidiaryLedgerCodeNo').val('');
 
-                    window.clearCustomDropdownById('forsidiaryGeneralLedgerName');
-                    $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName, #SusidiaryLedgerCodeNo').val('');
-
-                    SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, "", "");
+                    let $subctrl = $('#forsidiaryGeneralLedgerName');
+                    $subctrl.find('option:not(:first)').remove();
+                    $subctrl.val('');
+                    window.reinitCustomDropdownById('forsidiaryGeneralLedgerName');
                     return;
                 }
+
+                // Clear downstream fields
+                $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
+                $('#SusidiaryLedgerCodeNo').val('');
 
                 // Load Sub-Control Dropdown
                 getSubControllerLedger(selectedControlCode);
@@ -158,9 +202,11 @@ function getControlLedger(selectedGroupCode, selectedId = null) {
                 // Fetch Control Info
                 GetControlLedgerInfo(selectedControlCode);
             });
+
+            window.reinitCustomDropdownById('forsidiaryControlName');
         },
         error: function () {
-            console.error("Failed to fetch Control Ledger dropdown");
+            console.error("Failed to fetch Control Ledger dropdown for Sub-Sidiary.");
         }
     });
 }
@@ -169,11 +215,10 @@ function GetControlLedgerInfo(selectedControlCode) {
     $.ajax({
         url: '/forSubsidiary-control-ledger-info',
         type: 'GET',
-        data: { contrlcode: selectedControlCode },
+        data: { contrlcode: selectedControlCode, controlcode: selectedControlCode },
         success: function (controlInfo) {
             $('#forsidiaryControlCode').val(controlInfo.subControlLedgerCodeNo || '');
             $('#forsidiaryCLShortName').val(controlInfo.shortName || '');
-            SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, selectedControlCodeSSL, "");
         }
     });
 }
@@ -198,8 +243,6 @@ function getSubControllerLedger(selectedControlCode, selectedId = null) {
                 $dropdown.val(selectedId);
             }
 
-            window.reinitCustomDropdownById('forsidiaryGeneralLedgerName');
-
             $dropdown.off('change').on('change', function () {
                 const selectedSubControlCode = $(this).val();
                 selectedSubControlCodeSSL = selectedSubControlCode || "";
@@ -208,16 +251,17 @@ function getSubControllerLedger(selectedControlCode, selectedId = null) {
 
                 if (!selectedSubControlCode) {
                     $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName, #SusidiaryLedgerCodeNo').val('');
-                    SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, selectedControlCodeSSL, "");
                     return;
                 }
 
-                // Fetch Sub-Control Info
+                // Fetch Sub-Control Info & Next Code
                 GetSubcontrolInfo(selectedSubControlCode);
             });
+
+            window.reinitCustomDropdownById('forsidiaryGeneralLedgerName');
         },
         error: function () {
-            console.error("Failed to fetch Sub-Control Ledger dropdown");
+            console.error("Failed to fetch Sub-Control Ledger dropdown for Sub-Sidiary.");
         }
     });
 }
@@ -226,7 +270,7 @@ function GetSubcontrolInfo(selectedSubControlCode) {
     $.ajax({
         url: '/forsudsidiary-subcontrol-ledger-info',
         type: 'GET',
-        data: { subcontrlcode: selectedSubControlCode },
+        data: { subcontrlcode: selectedSubControlCode, subcontrolcode: selectedSubControlCode },
         success: function (subControlInfo) {
             $('#forsidiaryGeneralLedgerCodeNo').val(subControlInfo.generalLedgerCodeNo || '');
             $('#forsidiarySubCRLshortName').val(subControlInfo.shortName || '');
@@ -241,111 +285,84 @@ function GetSubcontrolInfo(selectedSubControlCode) {
                     }
                 });
             }
-
-            SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL);
         }
     });
 }
-
 //#endregion
 
-//#region Load All Sub-Sidiary Ledger Data
-function SubSididiarLedgerAll(page = 1, pageSize = SubSidiarypageSize, sortColumn = SubSidiarycurrentSortColumn, sortDirection = SubSidiarycurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "", subcontrolLedgerCode = "") {
+//#region Table Reload Helper
+function reloadSubSidiaryLedgerTable() {
     if ($.fn.DataTable && $.fn.DataTable.isDataTable('#subSidiaryLedgerTable')) {
         $('#subSidiaryLedgerTable').DataTable().ajax.reload(null, false);
-        return;
     }
-    $.ajax({
-        url: '/subsidiary-ledger-list',
-        type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: pageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection,
-            groupLedgerCode: groupLedgerCode,
-            controlLedgerCode: controlLedgerCode,
-            subcontrolLedgerCode: subcontrolLedgerCode
-        },
-        success: function (response) {
-            let rows = '';
-            if (response.data && response.data.length > 0) {
-                response.data.forEach(function (item) {
-                    rows += `<tr>
-                        <td class="text-center">
-                            <input type="checkbox" class="form-check-input form-check-input-sm Subsidiary-checkbox"
-                                data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none subsidiary-ledger" data-autoid="${item.autoId}">
-                                ${item.susidiaryLedgerCodeNo}
-                            </button>
-                        </td>
-                        <td>${item.subsidiaryLedgerName || ''}</td>
-                        <td>${item.shortName || ''}</td>
-                    </tr>`;
-                });
-            } else {
-                rows = `<tr><td colspan="4" class="text-center text-muted">No records found</td></tr>`;
-            }
-            $('#SubSidiarytblBody').html(rows);
+}
 
-            if (response.paginationInfo) {
-                let currPage = response.paginationInfo.currentPage;
-                let totalPages = response.paginationInfo.totalPages;
-                let totalRecords = response.totalCount || 0;
-                let startIndex = response.paginationInfo.startItem || 0;
-                let endIndex = response.paginationInfo.endItem || 0;
+function SubSididiarLedgerAll() {
+    reloadSubSidiaryLedgerTable();
+}
+//#endregion
 
-                $('#SubSidiarypaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-                $('#SubSidiarypaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
-                $('#SubSidiarytotalRecordsInfo').text(`Total Records: ${totalRecords}`);
+//#region Selection Helpers
+function getSelectedSubSidiaryLedgerIds() {
+    let ids = [...selectedSubSidiaryLedger];
 
-                currenSubSidiarytPage = currPage;
-                SubSidiarygeneratePageButtons(currenSubSidiarytPage, totalPages);
-            }
-
-            SubSidiaryupdateCheckboxState();
-            SubSidiaryupdateSortIndicators();
-        },
-        error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
+    $('#subSidiaryLedgerTable tbody input[type="checkbox"]:checked').each(function () {
+        const rawVal = $(this).val() || $(this).data('id') || $(this).data('autoid');
+        const numVal = parseFloat(rawVal);
+        if (!isNaN(numVal) && !ids.includes(numVal)) {
+            ids.push(numVal);
         }
     });
+
+    if (ids.length === 0) {
+        const formAutoId = parseFloat($('#forsidiaryAutoID').val());
+        if (!isNaN(formAutoId) && formAutoId > 0) {
+            ids.push(formAutoId);
+        }
+    }
+
+    return ids;
+}
+
+function updateSubSidiaryCheckAllState() {
+    const $checkboxes = $('#subSidiaryLedgerTable tbody input[type="checkbox"]');
+    const total = $checkboxes.length;
+    const checked = $checkboxes.filter(':checked').length;
+    $('#subsidiaryledger-check-all').prop('checked', total > 0 && total === checked);
 }
 //#endregion
 
 //#region Save Or Update Sub-Sidiary Ledger
 function SubSidiaryLedgerSaveOrUpdate() {
     let autoID = $('#forsidiaryAutoID').val();
+    let parsedAutoId = autoID ? parseFloat(autoID) : 0;
 
     let SubSidiaryLedgerData = {
-        autoId: autoID ? parseInt(autoID) : 0,
-        GeneralLedgerCodeNo: $("#forsidiaryGeneralLedgerCodeNo").val(),
+        autoId: parsedAutoId,
+        GLCode: $("#forsidiarygroupcode").val() || $("#forsidiarygroupName").val(),
+        CRLCode: $("#forsidiaryControlCode").val() || $("#forsidiaryControlName").val(),
+        GeneralLedgerCodeNo: $("#forsidiaryGeneralLedgerCodeNo").val() || $("#forsidiaryGeneralLedgerName").val(),
         SusidiaryLedgerCodeNo: $("#SusidiaryLedgerCodeNo").val(),
-        SubsidiaryLedgerName: $("#SubsidiaryLedgerName").val(),
-        ShortName: $("#forsidiaryshortName").val(),
-        CRLCode: $("#forsidiaryControlName").val(),
-        GLCode: $("#forsidiarygroupName").val()
+        SubsidiaryLedgerName: ($("#SubsidiaryLedgerName").val() || '').trim(),
+        ShortName: ($("#forsidiaryshortName").val() || '').trim()
     };
 
     // Validations
-    if (!SubSidiaryLedgerData.GLCode) {
+    if (!$("#forsidiarygroupName").val()) {
         toastr.error("Please Select a Group Ledger.");
         $('#forsidiarygroupName').addClass('border-error');
         $('#forsidiarygroupName').siblings('.custom-dd-wrapper').addClass('border-error');
         return false;
     }
 
-    if (!SubSidiaryLedgerData.CRLCode) {
+    if (!$("#forsidiaryControlName").val()) {
         toastr.error("Please Select a Control Ledger.");
         $('#forsidiaryControlName').addClass('border-error');
         $('#forsidiaryControlName').siblings('.custom-dd-wrapper').addClass('border-error');
         return false;
     }
 
-    if (!SubSidiaryLedgerData.GeneralLedgerCodeNo) {
+    if (!$("#forsidiaryGeneralLedgerName").val()) {
         toastr.error("Please Select a Sub-Control Ledger.");
         $('#forsidiaryGeneralLedgerName').addClass('border-error');
         $('#forsidiaryGeneralLedgerName').siblings('.custom-dd-wrapper').addClass('border-error');
@@ -354,7 +371,7 @@ function SubSidiaryLedgerSaveOrUpdate() {
 
     if (!SubSidiaryLedgerData.SubsidiaryLedgerName) {
         toastr.error("Please Enter Sub-Sidiary Ledger Name.");
-        $('#SubsidiaryLedgerName').addClass('border-error');
+        $('#SubsidiaryLedgerName').addClass('border-error').focus();
         return false;
     } else {
         $('#SubsidiaryLedgerName').removeClass('border-error');
@@ -368,13 +385,13 @@ function SubSidiaryLedgerSaveOrUpdate() {
         data: JSON.stringify(SubSidiaryLedgerData),
         success: function (dupResponse) {
             if (dupResponse.isDuplicate) {
-                toastr.error(dupResponse.message);
+                toastr.error(dupResponse.message || "Data Already Exists.");
                 return;
             }
 
-            let url = autoID ? `/subsidiary-ledger/${autoID}` : '/subsidiary-ledger';
-            let method = autoID ? 'PUT' : 'POST';
-            let successMessage = autoID ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
+            let url = parsedAutoId > 0 ? `/subsidiary-ledger/${parsedAutoId}` : '/subsidiary-ledger';
+            let method = parsedAutoId > 0 ? 'PUT' : 'POST';
+            let successMessage = parsedAutoId > 0 ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
 
             $.ajax({
                 url: url,
@@ -390,6 +407,7 @@ function SubSidiaryLedgerSaveOrUpdate() {
 
                         SubSidiaryLedgerFormClear();
                         selectedSubSidiaryLedger = [];
+                        reloadSubSidiaryLedgerTable();
 
                         if (typeof ModalSubSididiarLedgerAll === "function") {
                             ModalSubSididiarLedgerAll();
@@ -399,7 +417,7 @@ function SubSidiaryLedgerSaveOrUpdate() {
                     }
                 },
                 error: function (xhr, status, error) {
-                    toastr.error("Error Saving Sub-Sidiary Ledger.");
+                    toastr.error(xhr.responseJSON?.message || "Error Saving Sub-Sidiary Ledger.");
                     console.error('Error Saving Sub-Sidiary Ledger :', error);
                 }
             });
@@ -412,21 +430,69 @@ function SubSidiaryLedgerSaveOrUpdate() {
 }
 //#endregion
 
+//#region Clear Form
+function SubSidiaryLedgerFormClear() {
+    isEditModeSubSidiary = false;
+
+    $("#forsidiaryAutoID").val("");
+
+    window.clearAllCustomDropdowns('#subSidiaryForm');
+
+    $("#forsidiarygroupcode, #forsidiarygroupshortName").val("");
+    $("#forsidiaryControlCode, #forsidiaryCLShortName").val("");
+    $("#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName").val("");
+    $("#SusidiaryLedgerCodeNo, #SubsidiaryLedgerName, #forsidiaryshortName").val("");
+
+    $(".form-control, .form-select").removeClass("is-invalid is-valid border-error");
+    $(".custom-dd-wrapper").removeClass("border-error");
+    $(".invalid-feedback, .valid-feedback").remove();
+
+    $('#UpdateDate, #SubSidiarydisplayModifyDate').text('');
+    $('#EntryDate, #SubSidiaryldisplayLDate').text(getBangladeshDateTime());
+
+    // Reset button text
+    $('.js-SubSidiary-save span').text('Save');
+
+    // Reset selections
+    selectedSubSidiaryLedger = [];
+    $('#subSidiaryLedgerTable tbody input[type="checkbox"]').prop('checked', false);
+    $('#subSidiaryLedgerTable tbody tr').removeClass('selected-row');
+    $('#subsidiaryledger-check-all').prop('checked', false);
+
+    selectedGroupCodeSSL = "";
+    selectedControlCodeSSL = "";
+    selectedSubControlCodeSSL = "";
+
+    let $ctrlSelect = $('#forsidiaryControlName');
+    $ctrlSelect.find('option:not(:first)').remove();
+    $ctrlSelect.val('');
+    window.reinitCustomDropdownById('forsidiaryControlName');
+
+    let $subctrlSelect = $('#forsidiaryGeneralLedgerName');
+    $subctrlSelect.find('option:not(:first)').remove();
+    $subctrlSelect.val('');
+    window.reinitCustomDropdownById('forsidiaryGeneralLedgerName');
+
+    ForSubSidiGRLDropdown();
+}
+//#endregion
+
 //#region Populate Data For Edit
 $(document).on('click', '.js-subsidiaryledger-edit, .subsidiary-ledger', function (e) {
     e.preventDefault();
-    const autoId = parseInt($(this).data('id') || $(this).data('autoid'));
-    if (!autoId) return;
+    const rawId = $(this).data('id') || $(this).data('autoid');
+    if (!rawId) return;
 
+    const id = parseFloat(rawId);
     isEditModeSubSidiary = true;
-    selectedSubSidiaryLedger = [autoId];
+    selectedSubSidiaryLedger = [id];
 
     $.ajax({
-        url: `/subsidiary-ledger/details/${autoId}`,
+        url: `/subsidiary-ledger/details/${id}`,
         type: 'GET',
         success: function (response) {
             if (response) {
-                $('#forsidiaryAutoID').val(response.autoId);
+                $('#forsidiaryAutoID').val(response.autoId || id);
                 $('#SusidiaryLedgerCodeNo').val(response.susidiaryLedgerCodeNo || '');
                 $('#SubsidiaryLedgerName').val(response.subsidiaryLedgerName || '');
                 $('#forsidiaryshortName').val(response.shortName || '');
@@ -457,9 +523,9 @@ $(document).on('click', '.js-subsidiaryledger-edit, .subsidiary-ledger', functio
                         day: '2-digit', month: '2-digit', year: 'numeric',
                         hour: 'numeric', minute: '2-digit', hour12: true
                     }).replace(',', '');
-                    $('#SubSidiaryldisplayLDate').text(entryDate.toUpperCase());
+                    $('#EntryDate, #SubSidiaryldisplayLDate').text(entryDate.toUpperCase());
                 } else {
-                    $('#SubSidiaryldisplayLDate').text('');
+                    $('#EntryDate, #SubSidiaryldisplayLDate').text('');
                 }
 
                 if (response.modifyDate) {
@@ -467,16 +533,32 @@ $(document).on('click', '.js-subsidiaryledger-edit, .subsidiary-ledger', functio
                         day: '2-digit', month: '2-digit', year: 'numeric',
                         hour: 'numeric', minute: '2-digit', hour12: true
                     }).replace(',', '');
-                    $('#SubSidiarydisplayModifyDate').text(updateDate.toUpperCase());
+                    $('#UpdateDate, #SubSidiarydisplayModifyDate').text(updateDate.toUpperCase());
                 } else {
-                    $('#SubSidiarydisplayModifyDate').text('');
+                    $('#UpdateDate, #SubSidiarydisplayModifyDate').text('');
                 }
 
-                $('.Subsidiary-checkbox').prop('checked', false);
-                $(`.Subsidiary-checkbox[data-autoid="${autoId}"]`).prop('checked', true);
-                $("#SubSidiaryselectAll").prop('checked', false);
+                // Switch save button to Update
+                $('.js-SubSidiary-save span').text('Update');
 
-                SubSidiaryupdateCheckboxState();
+                // Sync checkboxes in grid
+                $('#subSidiaryLedgerTable tbody input[type="checkbox"]').each(function () {
+                    const rowVal = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+                    if (rowVal === id) {
+                        $(this).prop('checked', true);
+                        $(this).closest('tr').addClass('selected-row');
+                    } else {
+                        $(this).prop('checked', false);
+                        $(this).closest('tr').removeClass('selected-row');
+                    }
+                });
+                updateSubSidiaryCheckAllState();
+
+                // Focus and scroll
+                $('#SubsidiaryLedgerName').focus();
+                if ($('#subSidiaryForm').length) {
+                    $('html, body').animate({ scrollTop: $('#subSidiaryForm').offset().top - 80 }, 300);
+                }
             } else {
                 toastr.error("Sub-Sidiary Ledger not found!");
             }
@@ -489,252 +571,185 @@ $(document).on('click', '.js-subsidiaryledger-edit, .subsidiary-ledger', functio
 });
 //#endregion
 
-//#region Clear Form
-function SubSidiaryLedgerFormClear() {
-    isEditModeSubSidiary = false;
+//#region Checkbox Selection Handlers
+// Individual row checkbox
+$(document).on('change', '#subSidiaryLedgerTable tbody input[type="checkbox"]', function () {
+    const val = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+    if (isNaN(val)) return;
 
-    $("#forsidiaryAutoID").val("");
+    if ($(this).prop('checked')) {
+        if (!selectedSubSidiaryLedger.includes(val)) {
+            selectedSubSidiaryLedger.push(val);
+        }
+        $(this).closest('tr').addClass('selected-row');
+    } else {
+        selectedSubSidiaryLedger = selectedSubSidiaryLedger.filter(x => x !== val);
+        $(this).closest('tr').removeClass('selected-row');
+    }
 
-    // Clear all custom dropdowns
-    window.clearAllCustomDropdowns('#subSidiaryForm');
+    updateSubSidiaryCheckAllState();
+});
 
-    $("#forsidiarygroupcode, #forsidiarygroupshortName").val("");
-    $("#forsidiaryControlCode, #forsidiaryCLShortName").val("");
-    $("#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName").val("");
-    $("#SusidiaryLedgerCodeNo, #SubsidiaryLedgerName, #forsidiaryshortName").val("");
+// Master Checkbox
+$(document).on('change', '#subsidiaryledger-check-all', function () {
+    const isChecked = $(this).prop('checked');
+    $('#subSidiaryLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+        if (isNaN(val)) return;
 
-    $(".form-control, .form-select").removeClass("is-invalid is-valid border-error");
-    $(".custom-dd-wrapper").removeClass("border-error");
-    $(".invalid-feedback, .valid-feedback").remove();
+        if (isChecked) {
+            if (!selectedSubSidiaryLedger.includes(val)) {
+                selectedSubSidiaryLedger.push(val);
+            }
+            $(this).prop('checked', true).closest('tr').addClass('selected-row');
+        } else {
+            selectedSubSidiaryLedger = selectedSubSidiaryLedger.filter(x => x !== val);
+            $(this).prop('checked', false).closest('tr').removeClass('selected-row');
+        }
+    });
+});
 
-    $('#SubSidiarydisplayModifyDate').text('');
-    $('#SubSidiaryldisplayLDate').text(getBangladeshDateTime());
-
-    $(".Subsidiary-checkbox").prop("checked", false);
-    $("#SubSidiaryselectAll").prop("checked", false);
-    $('#SubSidiarysearchInput').val('');
-
-    selectedSubSidiaryLedger = [];
-    currenSubSidiarytPage = 1;
-    selectedGroupCodeSSL = "";
-    selectedControlCodeSSL = "";
-    selectedSubControlCodeSSL = "";
-
-    ForSubSidiGRLDropdown();
-    SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", "", "", "");
-}
+// DataTables Draw Event
+$(document).on('draw.dt', '#subSidiaryLedgerTable', function () {
+    $('#subSidiaryLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+        if (selectedSubSidiaryLedger.includes(val)) {
+            $(this).prop('checked', true);
+            $(this).closest('tr').addClass('selected-row');
+        }
+    });
+    updateSubSidiaryCheckAllState();
+});
 //#endregion
 
 //#region Delete Sub-Sidiary Ledger
-function SubSidiaryLedgerDelete() {
-    const ids = selectedSubSidiaryLedger.map(x => parseInt(x)).filter(x => !isNaN(x));
-
-    if (!ids.length) {
+function SubSidiaryLedgerDelete(ids) {
+    if (!ids || !ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
 
     $.ajax({
         url: '/subsidiary-ledger-all-delete',
-        type: 'DELETE',
+        type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
+            if (response.isSuccess === false || response.success === false) {
+                toastr.error(response.message || "Failed to delete.");
+                return;
+            }
+
             toastr.success(response.message || "Data Deleted Successfully.");
 
             const event = new CustomEvent('SubSidiaryLedgerUpdated', { detail: { newSubSidiaryLedgerCodeNo: response.susidiaryLedgerCodeNo } });
             window.dispatchEvent(event);
 
             SubSidiaryLedgerFormClear();
-            SubSididiarLedgerAll(currenSubSidiarytPage, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection);
             selectedSubSidiaryLedger = [];
-            $("#SubSidiaryselectAll").prop("checked", false);
+            reloadSubSidiaryLedgerTable();
 
             if (typeof ModalSubSididiarLedgerAll === "function") {
                 ModalSubSididiarLedgerAll();
             }
         },
         error: function (xhr, status, error) {
-            toastr.error("Error Occurred During Deletion.");
+            toastr.error(xhr.responseJSON?.message || "Error Occurred During Deletion.");
             console.error("Delete Error:", error);
         }
     });
 }
-//#endregion
 
-//#region Pagination & Checkbox Helpers
-function SubSidiaryupdateSortIndicators() {
-    $('.SubSidiarysortable').removeClass('sort-asc sort-desc');
-    $('.SubSidiarysortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+// Toolbar Delete Button
+$(document).on("click", "#SubSidiarydeleteBtn, .js-SubSidiary-delete-confirm", function (e) {
+    const isSubSidiaryBtn = $(this).hasClass('js-SubSidiary-delete-confirm') ||
+                            $(this).closest('#subsidiary-tab-pane, #subSidiaryForm').length > 0;
+    if (!isSubSidiaryBtn) return;
 
-    const header = $(`.SubSidiarysortable[data-column="${SubSidiarycurrentSortColumn}"]`);
-    header.addClass(SubSidiarycurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+    e.preventDefault();
+    e.stopPropagation();
 
-    const icon = header.find('.sort-icon');
-    icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(SubSidiarycurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-}
+    const ids = getSelectedSubSidiaryLedgerIds();
+    if (!ids.length) {
+        toastr.warning("Please select at least one record to delete.");
+        return;
+    }
 
-function SubSidiarygeneratePageButtons(currentPage, totalPages) {
-    const navigationDiv = $('#SubSidiarypageNavigation');
-    navigationDiv.empty();
+    subSidiaryLedgerPendingDeleteIds = ids;
+    isSubSidiaryLedgerDeletePending = true;
 
-    function createButton(page) {
-        const btn = $('<button type="button">')
-            .addClass('btn btn-sm mx-1')
-            .text(page)
-            .click(() => SubSididiarLedgerAll(page, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, $('#SubSidiarysearchInput').val().trim(), selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL));
-
-        if (page === currentPage) {
-            btn.addClass('btn-primary');
-        } else {
-            btn.addClass('btn-outline-primary');
+    if ($('#gcDeleteModal').length) {
+        const itemText = ids.length > 1 ? `these ${ids.length} items` : 'this item';
+        $('#gcDeleteModal .title').text(`Are you sure you want to delete ${itemText}? This process cannot be undone.`);
+        $('#gcDeleteModal').modal('show');
+    } else {
+        if (confirm(`Are you sure you want to delete ${ids.length > 1 ? 'these ' + ids.length + ' items' : 'this item'}?`)) {
+            SubSidiaryLedgerDelete(ids);
         }
-        return btn;
     }
+});
 
-    if (totalPages <= 1) return;
-
-    navigationDiv.append(createButton(1));
-
-    if (currentPage > 2) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
+// Confirmation Button inside #gcDeleteModal
+$(document).on("click", "#gcDeleteModal .js-gc-delete-confirm, #gcDeleteModal .js-delete", function (e) {
+    if (isSubSidiaryLedgerDeletePending && subSidiaryLedgerPendingDeleteIds.length > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const idsToDelete = [...subSidiaryLedgerPendingDeleteIds];
+        isSubSidiaryLedgerDeletePending = false;
+        subSidiaryLedgerPendingDeleteIds = [];
+        $('#gcDeleteModal').modal('hide');
+        SubSidiaryLedgerDelete(idsToDelete);
     }
+});
 
-    if (currentPage > 1 && currentPage < totalPages) {
-        navigationDiv.append(createButton(currentPage));
-    }
-
-    if (currentPage < totalPages - 1) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    navigationDiv.append(createButton(totalPages));
-}
-
-function SubSidiaryupdateCheckboxState() {
-    $('.Subsidiary-checkbox').each(function () {
-        const ID = parseInt($(this).data('autoid'));
-        $(this).prop('checked', selectedSubSidiaryLedger.includes(ID));
-    });
-    const allChecked = $('.Subsidiary-checkbox:visible').length > 0 &&
-        $('.Subsidiary-checkbox:visible:not(:checked)').length === 0;
-    $('#SubSidiaryselectAll').prop('checked', allChecked);
-}
-
-function SubSidiarydebounce(func, delay) {
-    let timer;
-    return function () {
-        const context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-function SubSidiarybindCheckboxHandlers() {
-    $(document).off('click', '.Subsidiary-checkbox').on('click', '.Subsidiary-checkbox', function () {
-        const id = parseInt($(this).data('autoid'));
-        const isChecked = $(this).prop('checked');
-
-        if (isChecked) {
-            if (!selectedSubSidiaryLedger.includes(id)) selectedSubSidiaryLedger.push(id);
-        } else {
-            const index = selectedSubSidiaryLedger.indexOf(id);
-            if (index !== -1) selectedSubSidiaryLedger.splice(index, 1);
-        }
-
-        const allChecked = $('.Subsidiary-checkbox:visible').length > 0 &&
-            $('.Subsidiary-checkbox:visible:not(:checked)').length === 0;
-        $('#SubSidiaryselectAll').prop('checked', allChecked);
-    });
-}
-
-$(document).on('click', '#SubSidiaryselectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.Subsidiary-checkbox:visible').prop('checked', isChecked);
-
-    $('.Subsidiary-checkbox:visible').each(function () {
-        const id = parseInt($(this).data('autoid'));
-        const index = selectedSubSidiaryLedger.indexOf(id);
-        if (isChecked && index === -1) {
-            selectedSubSidiaryLedger.push(id);
-        } else if (!isChecked && index !== -1) {
-            selectedSubSidiaryLedger.splice(index, 1);
-        }
-    });
+$(document).on('hidden.bs.modal', '#gcDeleteModal', function () {
+    isSubSidiaryLedgerDeletePending = false;
+    subSidiaryLedgerPendingDeleteIds = [];
 });
 //#endregion
 
 //#region Document Ready
 $(document).ready(function () {
     ForSubSidiGRLDropdown();
-    SubSididiarLedgerAll();
-    SubSidiarybindCheckboxHandlers();
+    $('#EntryDate, #SubSidiaryldisplayLDate').text(getBangladeshDateTime());
 
-    $('#SubSidiaryldisplayLDate').text(getBangladeshDateTime());
-
+    // Save Button Handlers
     $(document).on("submit", "#subSidiaryForm", function (e) {
         e.preventDefault();
         SubSidiaryLedgerSaveOrUpdate();
     });
+
     $(document).on("click", ".js-SubSidiary-save", function (e) {
         e.preventDefault();
         SubSidiaryLedgerSaveOrUpdate();
     });
 
-    $(document).on("click", "#SubSidiarydeleteBtn, .js-SubSidiary-delete-confirm", function (e) {
+    // Clear Button Handler
+    $(document).on("click", ".SubSidiaryresetBtn, .js-SubSidiary-clear", function (e) {
+        const isSubSidiaryReset = $(this).hasClass('js-SubSidiary-clear') ||
+                                  $(this).closest('#subsidiary-tab-pane, #subSidiaryForm').length > 0;
+        if (!isSubSidiaryReset) return;
         e.preventDefault();
-        SubSidiaryLedgerDelete();
-    });
-
-    $(document).on("click", ".SubSidiaryresetBtn, .js-SubSidiary-clear", function () {
         SubSidiaryLedgerFormClear();
     });
 
-    $(document).on('input', '.SubSidiarysearchInput', SubSidiarydebounce(function () {
-        const searchValue = $(this).val().trim();
-        SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, searchValue, selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL);
-    }, 500));
-
-    $(document).on('click', '#SubSidiaryfirstPage', function () {
-        currenSubSidiarytPage = 1;
-        SubSididiarLedgerAll(currenSubSidiarytPage, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL);
-    });
-
-    $(document).on('click', '#SubSidiarynextPage', function () {
-        currenSubSidiarytPage++;
-        SubSididiarLedgerAll(currenSubSidiarytPage, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL);
-    });
-
-    $(document).on('click', '#SubSidiaryprevPage', function () {
-        if (currenSubSidiarytPage > 1) {
-            currenSubSidiarytPage--;
-            SubSididiarLedgerAll(currenSubSidiarytPage, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL);
+    // Print Button
+    $(document).on("click", ".printBtn", function (e) {
+        if ($(this).closest('#subsidiary-tab-pane, #subSidiaryForm').length > 0) {
+            e.preventDefault();
+            if (typeof printForm === 'function') {
+                printForm();
+            } else {
+                window.print();
+            }
         }
     });
 
-    $(document).on('click', '#SubSidiarylastPage', function () {
-        let lastPage = parseInt($('#SubSidiarypageNavigation button').last().text());
-        if (!isNaN(lastPage)) {
-            currenSubSidiarytPage = lastPage;
-            SubSididiarLedgerAll(currenSubSidiarytPage, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, "", selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL);
+    // Favorite Button
+    $(document).on("click", ".subSidiaryfavBtn", function () {
+        if ($(this).closest('#subsidiary-tab-pane, #subSidiaryForm').length > 0 && typeof toggleFavorite === 'function') {
+            toggleFavorite();
         }
-    });
-
-    $(document).on('change', '.SubSidiarypageSize', function () {
-        SubSidiarypageSize = parseInt($(this).val());
-        SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection);
-    });
-
-    $(document).on('click', '.SubSidiarysortable', function () {
-        const column = $(this).data('column');
-        if (column === SubSidiarycurrentSortColumn) {
-            SubSidiarycurrentSortDirection = (SubSidiarycurrentSortDirection === 'desc') ? 'asc' : 'desc';
-        } else {
-            SubSidiarycurrentSortColumn = column;
-            SubSidiarycurrentSortDirection = 'desc';
-        }
-        SubSididiarLedgerAll(1, SubSidiarypageSize, SubSidiarycurrentSortColumn, SubSidiarycurrentSortDirection, $('#SubSidiarysearchInput').val().trim(), selectedGroupCodeSSL, selectedControlCodeSSL, selectedSubControlCodeSSL);
     });
 });
 //#endregion

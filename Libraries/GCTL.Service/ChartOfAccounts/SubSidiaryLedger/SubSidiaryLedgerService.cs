@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Data.Models;
@@ -88,6 +88,7 @@ namespace GCTL.Service.ChartOfAccounts.SubSidiaryLedger
 
             var result = entity.Select(model => new SubsidiaryLedgerVM
             {
+                autoId = model.AutoId,
                 SusidiaryLedgerCodeNo = model.SusidiaryLedgerCodeNo,
                 SubsidiaryLedgerName = model.SubsidiaryLedgerName,
                 ShortName = model.ShortName
