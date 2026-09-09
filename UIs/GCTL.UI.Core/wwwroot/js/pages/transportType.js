@@ -93,7 +93,7 @@
 
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
-                $(settings.deleteSelector).data('id', id);
+                         $(settings.deleteSelector).data('data-id', id);
                 $("html, body").animate({ scrollTop: 0 }, 500);
 
             });
@@ -157,25 +157,37 @@
 
             //#region selectAllSelector & deleteSelector
 
-            $("body").off("click", settings.selectAllSelector)
-                     .on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+            $("body").off("click", `${settings.selectAllSelector}, #js-TransportType-checkall`)
+                     .on("click", `${settings.selectAllSelector}, #js-TransportType-checkall`, function () {
+                var isChecked = $(this).prop('checked');
+                $(settings.gridSelector).find("tbody input[type='checkbox']").prop('checked', isChecked);
             });
 
             $("body").off("click", settings.deleteSelector)
                      .on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
-                if ($(this).data('id')) {
-                    selectedItems.push($(this).data('id'));
-                } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                selectedItems = [];
+
+                // 1. Collect from checked checkboxes in table
+                $(settings.gridSelector).find("tbody input[type='checkbox']:checked, tbody .checkbox:checked, tbody .form-check-input:checked").each(function () {
+                    var val = $(this).val();
+                    if (val && !selectedItems.includes(val)) {
+                        selectedItems.push(val);
+                    }
+                });
+
+                // 2. Active form item fallback
+                if (selectedItems.length === 0) {
+                    var btnId = $(this).data('id');
+                    if (btnId) {
+                        selectedItems.push(btnId);
+                    } else {
+                        var formId = $("#VehicleTypeId").val();
+                        var tcVal = parseInt($("#Tc").val() || $("#tc").val()) || 0;
+                        if (formId && tcVal > 0) {
+                            selectedItems.push(formId);
                         }
-                    });
+                    }
                 }
 
                 if (selectedItems.length > 0) {
@@ -189,48 +201,46 @@
 
             //#region Delete & deleteModal
 
-            $("body").off('show.bs.modal', settings.deleteModal).on('show.bs.modal', settings.deleteModal, function (event) {
+            $("body").off("click", settings.finalDeleteSelector)
+                     .on("click", settings.finalDeleteSelector, function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-                var source = $(event.relatedTarget);
-                var id = source.data("ids");
+                if (!selectedItems || selectedItems.length === 0) {
+                    $(settings.deleteModal).modal("hide");
+                    return;
+                }
 
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
+                // Delete AJAX
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $(settings.deleteModal).modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
 
-                $("body").off("click", settings.finalDeleteSelector).on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(selectedItems),
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-
-                                loadTable();
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                toastr.error(response.message);
-                                console.log(response);
-                            }
+                            loadTable();
+                            loadForm(saveUrl);
+                            $(`${settings.selectAllSelector}, #js-TransportType-checkall`).prop('checked', false);
+                        } else {
+                            toastr.error(response.message);
                         }
-                    });
+                    },
+                    error: function (xhr) {
+                        $(settings.deleteModal).modal("hide");
+                        var msg = "Failed to delete.";
+                        try {
+                            var res = JSON.parse(xhr.responseText);
+                            if (res.message) msg = res.message;
+                        } catch (ex) {}
+                        toastr.error(msg);
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             //#endregion
@@ -298,7 +308,9 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        window.initCustomDropdowns(settings.formContainer, true);
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
 
                         resolve(data)
                     },
