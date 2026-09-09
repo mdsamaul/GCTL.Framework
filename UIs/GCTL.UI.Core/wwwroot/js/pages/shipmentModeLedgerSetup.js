@@ -124,7 +124,7 @@
 
             $("body").on("click", settings.saveSelector, function () {
                 //debugger
-                validation();
+                // validation();
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
                     return false;

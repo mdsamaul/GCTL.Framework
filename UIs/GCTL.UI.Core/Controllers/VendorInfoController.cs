@@ -206,6 +206,10 @@ namespace GCTL.UI.Core.Controllers
                     var hasUpdatePermission = await vendorInfoService.UpdatePermissionAsync(LoginInfo.AccessCode);
                     if (hasUpdatePermission)
                     {
+                        if (await vendorInfoService.IsExistAsync(modelVM.Name, modelVM.VendorId))
+                        {
+                            return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                        }
                         await vendorInfoService.UpdateAsync(modelVM);
                         return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.VendorId });
                     }

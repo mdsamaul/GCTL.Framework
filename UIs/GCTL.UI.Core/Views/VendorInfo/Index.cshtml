@@ -325,13 +325,13 @@
                         AjaxUrl = "/VendorInfo/GetTableData",
                         AjaxMethod = "GET",
                         ServerSide = false,
-                        CheckAllId = "js-VendorInfo-checkall",
-                        CheckColumnData = "tc",
+                        CheckAllId = "VendorInfo-check-all",
+                        CheckColumnData = "vendorId",
                         DefaultSortColumn = "vendorId",
                         DefaultSortDirection = "desc",
                         Columns = new List<GridColumn>
                         {
-                            new() { Data = "vendorId", Header = "ID", Width = "12%", IsEditLink = true, EditSelectorClass = "js-VendorInfo-edit", IdField = "tc" },
+                            new() { Data = "vendorId", Header = "ID", Width = "12%", IsEditLink = true, EditSelectorClass = "js-VendorInfo-edit", IdField = "vendorId" },
                             new() { Data = "name", Header = "Name", Width = "25%", Align = "left" },
                             new() { Data = "address", Header = "Address", Width = "25%", Align = "left" },
                             new() { Data = "phone", Header = "Phone", Width = "12%", Align = "left" },
