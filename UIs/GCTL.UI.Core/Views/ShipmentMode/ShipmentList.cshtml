@@ -3,20 +3,24 @@
 @await Html.PartialAsync("_CustomGrid", new GridModel
 {
     GridId = "shipmentModeTable",
-    AjaxUrl = "get-grid-data",
+    AjaxUrl = "/get-grid-data",
     AjaxMethod = "POST",
     ServerSide = true,
     ShowCheckbox = true,
-    CheckColumnData = "expenseTypeID",
+    CheckColumnData = "tc",
     CheckAllId = "selectAllShipmentMode",
     CheckboxClass = "js-shipmentmode-check",
+    DefaultSortColumn = "ExpenseTypeID",
+    DefaultSortDirection = "desc",
     ShowSearchBox = true,
     ShowPagination = true,
+    Bordered = true,
+    Striped = true,
     Columns = new List<GridColumn>
     {
-        new() { Data = "expenseTypeID", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-shipmentmode-edit", IdField = "expenseTypeID", Align = "center", SortField = "ExpenseTypeID" },
-        new() { Data = "expenseType", Header = "Shipment Mode", Width = "40%", Align = "left", SortField = "ExpenseType" },
-        new() { Data = "shortName", Header = "Short Name", Width = "20%", Align = "left", SortField = "ShortName" },
-        new() { Data = "transportModeType", Header = "Transport Mode", Width = "22%", SortField = "transportModeType" }
+        new() { Data = "expenseTypeID", Header = "ID", Width = "12%", IsEditLink = true, EditSelectorClass = "js-shipmentmode-edit", IdField = "tc", Align = "center", SortField = "ExpenseTypeID" },
+        new() { Data = "expenseType", Header = "Shipment Mode", Width = "38%", Align = "left", SortField = "ExpenseType" },
+        new() { Data = "shortName", Header = "Short Name", Width = "25%", Align = "left", SortField = "ShortName" },
+        new() { Data = "transportModeType", Header = "Transport Mode", Width = "25%", Align = "left", SortField = "transportModeType" }
     }
 })

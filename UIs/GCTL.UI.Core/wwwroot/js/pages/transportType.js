@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.transportType = function (options) {
 
         //#region Default options
@@ -41,17 +41,44 @@
 
         //#endregion
 
-        $(() => {
+        function initGrid() {
             if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: 'TransportType-grid' });
+                if (!$.fn.DataTable || !$.fn.DataTable.isDataTable(settings.gridSelector)) {
+                    $.gctlGrid.initFromModel({ gridId: 'TransportType-grid' });
+                }
             }
+        }
 
+        function adjustGridColumns() {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                var dt = $(settings.gridSelector).DataTable();
+                dt.columns.adjust();
+                if (dt.responsive) {
+                    dt.responsive.recalc();
+                }
+            }
+        }
 
-            loadTable();
+        // Initialize grid immediately
+        initGrid();
+
+        // Also adjust columns when inside a modal once shown
+        var $modalAncestor = $(settings.gridSelector).closest(".modal");
+        if ($modalAncestor.length) {
+            $modalAncestor.off("shown.bs.modal.transportType gc-modal:loaded.transportType")
+                          .on("shown.bs.modal.transportType gc-modal:loaded.transportType", function () {
+                initGrid();
+                setTimeout(adjustGridColumns, 50);
+            });
+        }
+
+        $(() => {
+            initGrid();
 
             //#region editSelector & clearSelector
 
-            $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
+            $("body").off("click", `${settings.editSelector},${settings.clearSelector}`)
+                     .on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
@@ -66,7 +93,7 @@
 
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
-                $(settings.deleteSelector).data('id', id);
+                         $(settings.deleteSelector).data('data-id', id);
                 $("html, body").animate({ scrollTop: 0 }, 500);
 
             });
@@ -75,7 +102,8 @@
 
             //#region Save
 
-            $("body").on("click", settings.saveSelector, function () {
+            $("body").off("click", settings.saveSelector)
+                     .on("click", settings.saveSelector, function () {
 
                 var self = this;
                 validation();
@@ -129,23 +157,37 @@
 
             //#region selectAllSelector & deleteSelector
 
-            $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+            $("body").off("click", `${settings.selectAllSelector}, #js-TransportType-checkall`)
+                     .on("click", `${settings.selectAllSelector}, #js-TransportType-checkall`, function () {
+                var isChecked = $(this).prop('checked');
+                $(settings.gridSelector).find("tbody input[type='checkbox']").prop('checked', isChecked);
             });
 
-            $("body").on("click", settings.deleteSelector, function (e) {
+            $("body").off("click", settings.deleteSelector)
+                     .on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
-                if ($(this).data('id')) {
-                    selectedItems.push($(this).data('id'));
-                } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                selectedItems = [];
+
+                // 1. Collect from checked checkboxes in table
+                $(settings.gridSelector).find("tbody input[type='checkbox']:checked, tbody .checkbox:checked, tbody .form-check-input:checked").each(function () {
+                    var val = $(this).val();
+                    if (val && !selectedItems.includes(val)) {
+                        selectedItems.push(val);
+                    }
+                });
+
+                // 2. Active form item fallback
+                if (selectedItems.length === 0) {
+                    var btnId = $(this).data('id');
+                    if (btnId) {
+                        selectedItems.push(btnId);
+                    } else {
+                        var formId = $("#VehicleTypeId").val();
+                        var tcVal = parseInt($("#Tc").val() || $("#tc").val()) || 0;
+                        if (formId && tcVal > 0) {
+                            selectedItems.push(formId);
                         }
-                    });
+                    }
                 }
 
                 if (selectedItems.length > 0) {
@@ -159,61 +201,59 @@
 
             //#region Delete & deleteModal
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
+            $("body").off("click", settings.finalDeleteSelector)
+                     .on("click", settings.finalDeleteSelector, function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-                var source = $(event.relatedTarget);
-                var id = source.data("ids");
+                if (!selectedItems || selectedItems.length === 0) {
+                    $(settings.deleteModal).modal("hide");
+                    return;
+                }
 
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
+                // Delete AJAX
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $(settings.deleteModal).modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
 
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(selectedItems),
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-
-                                loadTable();
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                toastr.error(response.message);
-                                console.log(response);
-                            }
+                            loadTable();
+                            loadForm(saveUrl);
+                            $(`${settings.selectAllSelector}, #js-TransportType-checkall`).prop('checked', false);
+                        } else {
+                            toastr.error(response.message);
                         }
-                    });
+                    },
+                    error: function (xhr) {
+                        $(settings.deleteModal).modal("hide");
+                        var msg = "Failed to delete.";
+                        try {
+                            var res = JSON.parse(xhr.responseText);
+                            if (res.message) msg = res.message;
+                        } catch (ex) {}
+                        toastr.error(msg);
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             //#endregion
 
             //#region topSelector & decimalSelector
 
-            $("body").on("click", settings.topSelector, function (e) {
+            $("body").off("click", settings.topSelector).on("click", settings.topSelector, function (e) {
                 e.preventDefault();
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
 
-            $("body").on("keyup", settings.decimalSelector, function () {
+            $("body").off("keyup", settings.decimalSelector).on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
@@ -222,7 +262,7 @@
 
             //#region availabilitySelector
 
-            $("body").on("keyup", settings.availabilitySelector, function () {
+            $("body").off("keyup", settings.availabilitySelector).on("keyup", settings.availabilitySelector, function () {
                 var self = $(this);
                 let code = $(".js-VehicleTypeId-code").val();
                 let name = self.val();
@@ -242,69 +282,14 @@
 
             //#endregion
 
-            //#region Modal & quickAddSelector
-
-            $("body").on("click", settings.quickAddSelector, function (e) {
-                e.stopPropagation();
-                e.preventDefault();
-                e.stopImmediatePropagation();
-
-                loadUrl = $(this).data("url");
-                target = $(this).data("target");
-                reloadUrl = $(this).data("reload-url");
-                title = $(this).data("title");
-
-                $(settings.quickAddModal + " .modal-title").html(title);
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal + " .modal-body").load(loadUrl, function () {
-                    $(settings.quickAddModal).modal("show");
-                    $("#header").hide();
-                    $(settings.quickAddModal + " .modal-body #header").hide();
-                    $("#left_menu").hide();
-                    $(settings.quickAddModal + " .modal-body #left_menu").hide();
-                    $("#main-content").toggleClass("collapse-main");
-                    $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
-                    $("body").removeClass("sidebar-mini");
-                });
-            });
-
-            $("body").on("click", ".js-modal-dismiss", function () {
-                $("body").removeClass("sidebar-mini").addClass("sidebar-mini");
-                $("#header").show();
-                $(settings.quickAddModal + " .modal-body #header").show();
-                $("#left_menu").show();
-                $(settings.quickAddModal + " .modal-body #left_menu").show();
-                $("#main-content").toggleClass("collapse-main");
-                $(settings.quickAddModal + " .modal-body #main-content").toggleClass("collapse-main");
-
-                lastCode = $(settings.quickAddModal + " #lastCode").val();
-                $(settings.quickAddModal + " .modal-body").empty();
-                $(settings.quickAddModal).modal("hide");
-
-                $(target).empty("");
-                $(target).append($('<option>', { value: '', text: `--Select ${title}--` }));
-                $.ajax({
-                    url: reloadUrl,
-                    method: "GET",
-                    success: function (response) {
-                        console.log(response);
-                        $.each(response, function (i, item) {
-                            $(target).append($('<option>', { value: item.code, text: item.name }));
-                        });
-                        $(target).val(lastCode);
-                        console.log("Testttt", lastCode);
-                    }
-                });
-            });
-
-            //#endregion
-
         });
 
         //#region loadTable
         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
                 $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            } else {
+                initGrid();
             }
         }
 
@@ -323,7 +308,9 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        window.initCustomDropdowns(settings.formContainer, true);
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
 
                         resolve(data)
                     },

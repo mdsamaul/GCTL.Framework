@@ -81,7 +81,7 @@ body {
     margin: 0;
     font-family: 'Nunito', sans-serif !important;
     font-style: normal;
-    font-size: 16px;
+    font-size: 13px; /* Changed from 14px to 13px (10pt) */
     background-color: var(--bg-app);
     color: var(--text-main);
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -110,17 +110,33 @@ textarea {
     font-style: normal;
 }
 
+/* Force 13px (10pt) on inputs, dropdowns, placeholders, and grids */
+input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .grid-container, label, .form-label {
+    font-size: 13px !important;
+}
+
+::placeholder {
+    font-size: 13px !important;
+}
+
 /* Responsive Font Sizing & Sidebar Width: for screen resolutions 1400px and below */
 @media (max-width: 1400px) {
     :root {
-        --sidebar-width-expanded: 190px;
+        --sidebar-width-expanded: 200px;
         --sidebar-width-collapsed: 60px;
     }
 
     html,
-    body,
-    p, span, div, a, label, table, th, td, button {
+    body {
         font-size: 13px;
+    }
+
+    p, span, div, a, table, th, td, button {
+        font-size: 13px;
+    }
+
+    label, .form-label {
+        font-size: 13px !important;
     }
 
     .app-sidebar > .sidebar-menu {
@@ -138,7 +154,7 @@ textarea {
     }
 
     .menu-item-icon {
-        font-size: 0.85rem !important;
+        font-size: 13px !important;
     }
 }
 
@@ -260,7 +276,7 @@ textarea {
 }
 
 .sidebar-header .sidebar-brand-text {
-    font-size: 0.68rem;
+    font-size: 13px;
     font-weight: 700;
     color: #1e293b;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -295,8 +311,8 @@ textarea {
 
 .sidebar-menu-scroll {
     flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
     .sidebar-logo i {
@@ -306,7 +322,7 @@ textarea {
     }
 
     .sidebar-logo .sidebar-brand-text {
-        font-size: 0.85rem;
+        font-size: 13px;
         line-height: 1;
     }
 
@@ -314,7 +330,7 @@ textarea {
 .navbar .nav-link,
 .navbar .navbar-text,
 .navbar .btn {
-    font-size: 0.85rem;
+    font-size: 13px;
 }
 
 .sidebar-brand-text {
@@ -338,10 +354,9 @@ textarea {
 
 .app-sidebar > .sidebar-menu,
 .sidebar-menu-scroll > .sidebar-menu {
-    flex: 1 1 0;
-    padding: 16px 8px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 1 1 auto;
+    padding: 10px 8px 40px 8px;
+    overflow: visible !important;
 }
 
 .sidebar-footer {
@@ -435,7 +450,7 @@ textarea {
 
     .menu-item a i,
     .menu-item .menu-link i {
-        font-size: 0.9rem;
+        font-size: 13px;
         width: 18px;
         height: 18px;
         display: inline-flex;
@@ -445,7 +460,7 @@ textarea {
     }
 
 .icon-dot {
-    font-size: 0.35rem !important;
+    font-size: 13px !important;
     opacity: 0.7;
 }
 
@@ -483,7 +498,7 @@ textarea {
     opacity: 1 !important;
     transform: none !important;
     pointer-events: auto !important;
-    font-size: 0.72rem !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
     text-align: center !important;
     line-height: 1.2 !important;
@@ -497,6 +512,49 @@ textarea {
 
 .app-sidebar.collapsed .accordion-submenu {
     display: none !important;
+}
+
+/* -----------------------------------------------------------------
+   Left Menu Hierarchy & Submenu Indentation (Tree Guide Line)
+   ----------------------------------------------------------------- */
+.app-sidebar:not(.collapsed) .accordion-submenu {
+    margin-left: 14px;
+    padding-left: 6px;
+    border-left: 1.5px solid #e2e8f0;
+    margin-top: 2px;
+    margin-bottom: 3px;
+}
+
+.app-sidebar:not(.collapsed) .menu-item.active > .accordion-submenu {
+    border-left-color: #cbd5e1;
+}
+
+/* 2nd Level Child (Nested Submenu) */
+.app-sidebar:not(.collapsed) .accordion-submenu .accordion-submenu {
+    margin-left: 10px;
+    padding-left: 6px;
+    border-left: 1.5px dashed #cbd5e1;
+}
+
+/* Child Menu Item Link Styling */
+.app-sidebar:not(.collapsed) .accordion-submenu .menu-link {
+    padding: 5px 8px !important;
+    font-size: 12.5px;
+    gap: 8px;
+    border-radius: 5px;
+    color: #475569;
+}
+
+.app-sidebar:not(.collapsed) .accordion-submenu .menu-link:hover {
+    color: #0b63ce !important;
+    background-color: rgba(11, 99, 206, 0.06) !important;
+}
+
+.app-sidebar:not(.collapsed) .accordion-submenu .menu-link .menu-item-icon {
+    font-size: 13px !important;
+    width: 14px;
+    height: 14px;
+    opacity: 0.7;
 }
 
 .app-sidebar.collapsed .sidebar-menu-wrapper,
@@ -521,20 +579,26 @@ textarea {
     border-left: 3.5px solid #0b63ce !important;
 }
 
-/* Direct active child leaf link - 13% opacity (5% higher than parent) */
+/* Direct active child leaf link (বর্তমানে যে পেজে আছেন - একদম স্পষ্ট হাইলাইট) */
 .menu-item .menu-link.active,
-.menu-item.direct-active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.13) !important;
-    color: var(--primary) !important;
-    font-weight: 600;
+.menu-item.direct-active > .menu-link,
+.accordion-submenu .menu-item.direct-active > .menu-link {
+    background-color: #e8f1fd !important;
+    color: #0b63ce !important;
+    font-weight: 600 !important;
+    border-left: 3.5px solid #0b63ce !important;
+    border-radius: 0 6px 6px 0 !important;
+    padding-left: 8px !important;
     box-shadow: none !important;
 }
 
 .menu-item .menu-link.active i,
 .menu-item.direct-active > .menu-link i,
+.accordion-submenu .menu-item.direct-active > .menu-link i,
 .menu-item .menu-link.active .menu-arrow,
 .menu-item.direct-active > .menu-link .menu-arrow {
-    color: var(--primary) !important;
+    color: #0b63ce !important;
+    opacity: 1 !important;
 }
 
 .menu-text {
@@ -544,6 +608,14 @@ textarea {
 }
 
 /* Dark mode overrides */
+:root[data-theme="dark"] .accordion-submenu {
+    border-left-color: #1f2937;
+}
+
+:root[data-theme="dark"] .accordion-submenu .menu-link {
+    color: var(--text-sidebar);
+}
+
 :root[data-theme="dark"] .menu-item a,
 :root[data-theme="dark"] .menu-item .menu-link {
     color: var(--text-sidebar);
@@ -556,9 +628,11 @@ textarea {
 }
 
 :root[data-theme="dark"] .menu-item .menu-link.active,
-:root[data-theme="dark"] .menu-item.direct-active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.2) !important;
-    color: var(--primary) !important;
+:root[data-theme="dark"] .menu-item.direct-active > .menu-link,
+:root[data-theme="dark"] .accordion-submenu .menu-item.direct-active > .menu-link {
+    background-color: rgba(37, 99, 235, 0.22) !important;
+    color: #60a5fa !important;
+    border-left-color: #3b82f6 !important;
 }
 
 
@@ -632,7 +706,7 @@ textarea {
 }
 
 .topnav-brand .brand-subtitle {
-    font-size: 0.65rem;
+    font-size: 13px;
     color: #64748b;
     font-weight: 500;
     letter-spacing: 0.2px;
@@ -669,7 +743,7 @@ textarea {
     border: 1px solid #cbd5e1;
     background-color: #f8fafc;
     color: #1e293b;
-    font-size: 0.85rem;
+    font-size: 13px;
     outline: none;
     transition: border-color 0.2s, background-color 0.2s;
 }
@@ -692,7 +766,7 @@ textarea {
     transform: translateY(-50%);
     color: #64748b;
     pointer-events: none;
-    font-size: 0.85rem;
+    font-size: 13px;
 }
 
 /* Center Clock Pill on Other Pages */
@@ -707,7 +781,7 @@ textarea {
     color: #ffffff;
     padding: 5px 16px;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     font-family: 'Outfit', sans-serif;
     letter-spacing: 0.3px;
@@ -719,7 +793,7 @@ textarea {
     color: #2563eb;
     padding: 5px 16px;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     font-family: 'Outfit', sans-serif !important;
     letter-spacing: 0.3px;
@@ -753,21 +827,21 @@ textarea {
 
 .user-nav-welcome {
     color: #1e293b;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
 }
 
 .topnav-nav-divider {
     color: #cbd5e1;
-    font-size: 0.85rem;
+    font-size: 13px;
     user-select: none;
 }
 
 .topnav-nav-link {
     color: #334155 !important;
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 500;
     display: inline-flex;
     align-items: center;
@@ -778,7 +852,7 @@ textarea {
 
 .topnav-nav-link i {
     color: #0b63ce;
-    font-size: 0.95rem;
+    font-size: 13px;
 }
 
 .topnav-nav-link:hover {
@@ -797,7 +871,7 @@ textarea {
     background: #ffffff;
     border: 1px solid #dcdfe3;
     border-radius: 4px;
-    font-size: 0.750rem;
+    font-size: 13px;
     font-weight: 600;
     color: #dc3545;
     cursor: pointer;
@@ -839,7 +913,7 @@ textarea {
 
 .btn-topnav-logout i {
     color: #dc3545;
-    font-size: 0.85rem;
+    font-size: 13px;
     transition: color 0.25s ease;
 }
 
@@ -905,7 +979,7 @@ textarea {
 }
 
 .app-sidebar.collapsed .rail-text {
-    font-size: 0.72rem !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
     color: #334155 !important;
     text-align: center !important;
@@ -979,7 +1053,7 @@ textarea {
     align-items: center;
     justify-content: space-between;
     padding: 8px 16px;
-    font-size: 0.82rem;
+    font-size: 13px;
     font-weight: 500;
     color: #334155;
     text-decoration: none;
@@ -1001,7 +1075,7 @@ textarea {
 }
 
 .flyout-arrow {
-    font-size: 0.7rem;
+    font-size: 13px;
     color: #94a3b8;
     margin-left: 8px;
 }
@@ -1092,7 +1166,7 @@ textarea {
 }
 
 .metric-label {
-    font-size: 0.85rem;
+    font-size: 13px;
     color: var(--text-muted);
     font-weight: 500;
 }
@@ -1167,7 +1241,7 @@ textarea {
 }
 
 .timeline-time {
-    font-size: 0.75rem;
+    font-size: 13px;
     color: var(--text-muted);
     font-weight: 500;
 }
@@ -1276,7 +1350,7 @@ textarea {
 .auth-visual-copy p {
     color: rgba(255, 255, 255, 0.85);
     max-width: 320px;
-    font-size: 0.98rem;
+    font-size: 13px;
     line-height: 1.7;
 }
 
@@ -1414,7 +1488,7 @@ textarea {
 .form-group-animated input:focus~label,
 .form-group-animated input:not(:placeholder-shown)~label {
     top: 12px;
-    font-size: 0.75rem;
+    font-size: 13px;
     color: var(--primary);
 }
 
@@ -1553,7 +1627,7 @@ textarea {
 
 .dummy-chart-label {
     margin-top: 8px;
-    font-size: 0.75rem;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-muted);
 }
@@ -1654,7 +1728,7 @@ input[type="tel"],
 input[type="url"],
 textarea,
 select {
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
 }
 
@@ -1667,7 +1741,7 @@ input::placeholder,
 textarea::placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1680,7 +1754,7 @@ input::-webkit-input-placeholder,
 textarea::-webkit-input-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1693,7 +1767,7 @@ input::-moz-placeholder,
 textarea::-moz-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1706,7 +1780,7 @@ input:-ms-input-placeholder,
 textarea:-ms-input-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1716,7 +1790,7 @@ select.form-control option[value=""],
 select option[value=""] {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
 }
 
 /* Webkit Date & Time Input Specific Alignment */
@@ -1729,7 +1803,7 @@ input[type="date"]::-webkit-datetime-edit-year-field,
 input[type="datetime-local"]::-webkit-datetime-edit,
 input[type="month"]::-webkit-datetime-edit,
 input[type="time"]::-webkit-datetime-edit {
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
 }
 

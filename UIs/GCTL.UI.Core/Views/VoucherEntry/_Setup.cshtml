@@ -157,7 +157,7 @@
                                 <span class="ledger-value" id="ControlLedgerValue"></span>
                             </div>
                         </div>
-            @* <div class="col-md-6 mt-1"></div> *@
+                             <div class="col-md-6 mt-1"></div>
                         <div class="col-md-3 mt-1" style="display:none;">
                             <div class="ledger-row">
                                 <span class="ledger-label">Sub-Control Ledger :</span>
@@ -170,7 +170,7 @@
                                 <span class="ledger-value" id="SubSidiaryLedgerValue"></span>
                             </div>
                         </div>
-
+                            <div class="col-md-6 mt-1"></div>
                         @* Account Head *@
                         <div class="col-md-3 mt-1">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -257,7 +257,7 @@
                         </div>
 
                         @* Details Button Group *@
-                        <div class="row pe-0">
+                        @* <div class="row pe-0">
                             <div class="col-12 pe-0">
                                 <div class="details-icon-group">
                                     <button type="button" id="AddDetails" data-tooltip="Add" class="icon-btn add">
@@ -273,8 +273,32 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </div> *@
+                       <div class="row pe-0">
+                            <div class="col-12 pe-0">
+                                <div class="details-icon-group">
 
+                                    <!-- Add -->
+                                    <button type="button" id="AddDetails" data-tooltip="Add" class="icon-btn add">
+                                        <i class="bi bi-journal-plus default-icon"></i>
+                                    </button>
+
+                                    <!-- Cancel -->
+                                    <button type="button" id="CancelDetails" data-tooltip="Cancel" class="icon-btn cancel">
+                                        <i class="bi bi-journal-minus default-icon"></i>
+                                    </button>
+
+                                    <!-- Refresh -->
+                                    <button type="button" id="RefreshDetails" data-tooltip="Refresh" class="icon-btn refresh">
+                                        <span class="icon-stack">
+                                            <i class="bi bi-journal journal-base"></i>
+                                            <i class="bi bi-arrow-repeat refresh-icon"></i>
+                                        </span>
+                                    </button>
+
+                                </div>
+                            </div>
+                        </div>
                         @* Details Table *@
                         <div class="row pe-0">
                             <div class="col-12 table-responsive pe-0">
@@ -355,7 +379,7 @@
                         ShowFavorite = false,
                         IsPlain = true,
                         ReserveActionSlot = true,
-                        IsMarginRight = true,
+                        IsMarginRight = false,
                         SaveBtnType = "submit",
            Style="border-bottom:0px !important;"
                     })

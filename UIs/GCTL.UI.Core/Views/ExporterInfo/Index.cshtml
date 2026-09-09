@@ -24,68 +24,159 @@
         background-color: #fff !important;
     }
 
-    /* Plus Button Style */
-    .btn-plus {
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        padding: 0 10px;
-        transition: background-color 0.2s ease, color 0.2s ease;
+    /* ==========================================================================
+       Exporter Info Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Chart Of Account - Control Ledger pattern
+       ========================================================================== */
+    .ex-field-col {
+        position: relative !important;
     }
 
-    .btn-plus:hover {
-        background-color: #0d6efd; /* Bootstrap blue */
-        color: #ffffff;
-        border-color: #0d6efd;
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .ex-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
     }
 
-    .btn-plus:focus {
-        outline: none;
-        box-shadow: none;
+    .ex-field-col .form-label .text-danger,
+    .ex-field-col .form-label sup,
+    .ex-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
     }
 
-    /* Country wrapper */
-    .con-input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .ex-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
-    .con-select-wrap {
-        flex: 1;
-        min-width: 0; /* flex child shrink fix */
+    .ex-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
-     /* Select2 container full width */
-     .con-select-wrap .select2-container {
-         width: 100% !important;
-     }
-
-    /* Plus button */
-    .btn-plus {
-        flex-shrink: 0;
-        width: 30px;
-        height: 30px;
-        padding: 0;
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease, color 0.2s ease;
+    .ex-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
     }
 
-    .btn-plus:hover {
-        background-color: #0d6efd;
-        color: #ffffff;
-        border-color: #0d6efd;
+    /* Full width for all inputs and select2 containers */
+    .ex-field-col .form-control,
+    .ex-field-col .form-select,
+    .ex-field-col select,
+    .ex-field-col .select2-container,
+    .ex-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
     }
 
-    .btn-plus:focus {
-        outline: none;
-        box-shadow: none;
+    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
+    .ex-layout-form-col .card-body {
+        padding: 12px 18px !important;
+    }
+
+    .ex-layout-form-col .card-body .row,
+    .ex-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
+    .ex-field-col .field-fixed-width > .detached-action-btn,
+    .ex-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
+        min-height: 28px !important;
+        max-height: 34px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .ex-field-col .field-fixed-width > .detached-action-btn:hover,
+    .ex-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .ex-field-col .field-fixed-width > .detached-action-btn:focus,
+    .ex-field-col .field-fixed-width > .js-quick-add:focus,
+    .ex-field-col .field-fixed-width > .detached-action-btn:active,
+    .ex-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .ex-field-col .field-fixed-width > .detached-action-btn i,
+    .ex-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .ex-field-col .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .ex-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .ex-field-col .field-fixed-width > .detached-action-btn,
+        .ex-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
     }
 
     /* Responsive layout:
@@ -195,7 +286,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-10 col-xxl-6">
+            <div class="col-12 col-xxl-6 ex-layout-grid-col">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",
@@ -203,13 +294,13 @@
                     AjaxMethod = "GET",
                     ServerSide = false,
                     ShowCheckbox = true,
-                    CheckColumnData = "tc",
-                    CheckAllId = "js-ExporterInfo-checkall",
+                    CheckColumnData = "exporterId",
+                    CheckAllId = "ExporterInfo-check-all",
                     DefaultSortColumn = "exporterId",
                     DefaultSortDirection = "desc",
                     Columns = new List<GridColumn>
                     {
-                        new() { Data = "exporterId", Header = "Exporter Id", Width = "12%", IsEditLink = true, EditSelectorClass = "js-ExporterInfo-edit", IdField = "tc" },
+                        new() { Data = "exporterId", Header = "Exporter Id", Width = "12%", IsEditLink = true, EditSelectorClass = "js-ExporterInfo-edit", IdField = "exporterId" },
                         new() { Data = "exporterName", Header = "Name", Width = "24%", Align = "left" },
                         new() { Data = "exporterAddress", Header = "Address", Width = "20%", Align = "left" },
                         new() { Data = "phone", Header = "Phone", Width = "12%", Align = "left" },

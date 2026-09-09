@@ -1,7 +1,8 @@
-﻿@model GCTL.Core.ViewModels.TransportInformation.TransportInformationSetupViewModel
+@model GCTL.Core.ViewModels.TransportInformation.TransportInformationSetupViewModel
 @using GCTL.UI.Core.ViewModels
+@using Microsoft.AspNetCore.Mvc.Rendering
 
-<div style="padding-top: 10px;">
+<div class="ti-form-centered-wrapper" style="padding-top: 10px;">
     <div class="row">
         <div class="col-lg-6">
             <span id="message"></span>
@@ -10,32 +11,27 @@
         </div>
     </div>
 
-    <div class="form-group row">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="Tc" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
 
-        <input type="hidden" id="lastCode" />
-        <input type="hidden" asp-for="Tc" />
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="Ldate" />
-        <input type="hidden" asp-for="ModifyDate" />
-
-        @* ---------- Vehicle ID (readonly) ---------- *@
+    @* ---------- Row 1: ID & Transport Type ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "VehicleId",
             LabelText = "ID",
             FieldType = FieldType.Text,
+            Placeholder = "Enter ID",
             IsReadonly = true,
-            ReserveActionSlot = true,
-            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 ti-field-col",
             CustomCssClass = "js-VehicleId-code",
-
-            DefaultValue= Model?.VehicleId
-
-
+            DefaultValue = Model?.VehicleId
         })
 
-        @* ---------- Transport Type (Select + Quick Add) ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "VehicleTypeId",
@@ -44,7 +40,8 @@
             Placeholder = "Select Transport Type",
             SelectItems = ViewBag.VehicleDD as SelectList,
             IsRequired = true,
-            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 ti-field-col",
             ShowQuickAdd = true,
             QuickAddUrl = Url.Action("Index", "TransportType"),
             QuickAddTarget = "#VehicleTypeId",
@@ -53,9 +50,8 @@
         })
     </div>
 
-    <div class="form-group row">
-
-        @* ---------- Transport No. ---------- *@
+    @* ---------- Row 2: Transport No. & Port Name ---------- *@
+    <div class="row g-4 mb-1">
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "VehicleNo",
@@ -63,12 +59,12 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Transport No.",
             IsRequired = true,
-            ReserveActionSlot = true,
-            ColumnClass = "col-lg-6",
-            DefaultValue=Model.VehicleNo
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 ti-field-col",
+            DefaultValue = Model?.VehicleNo,
+            AutoFocus = true
         })
 
-        @* ---------- Port Name (Select + Quick Add) ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "PortNameId",
@@ -76,7 +72,8 @@
             FieldType = FieldType.Select,
             Placeholder = "Select Port Name",
             SelectItems = ViewBag.PortNameDD as SelectList,
-            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 ti-field-col",
             ShowQuickAdd = true,
             QuickAddUrl = Url.Action("Index", "PortName"),
             QuickAddTarget = "#PortNameId",
@@ -85,50 +82,50 @@
         })
     </div>
 
-    @if (Model.Tc > 0)
-    {
-        <hr />
-        <div class="form-group row" id="LdateModifyHide">
-
-            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-            {
-                InputId = "displayLDate",
-                LabelText = "Creation Date:",
-                FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
-                ShowOnInit = Model.Ldate.HasValue,
-                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
-            })
-
-            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-            {
-                InputId = "displayModifyDate",
-                LabelText = "Last Update Date:",
-                FieldType = FieldType.ReadonlyDisplay,
-                ColumnClass = "col-lg-6",
-                ShowOnInit = Model.ModifyDate.HasValue,
-                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
-            })
-
-        </div>
-    }
-
-</div>
-
-<div class="row no-print" style="margin-top: 9px;">
-    <div class="col-12">
-        @await Html.PartialAsync("_Toolbars", new ToobarModel
+    @* ---------- Creation Date & Last Update Date ---------- *@
+    <hr class="my-2" id="sectionBreak" style="@(Model?.Tc > 0 ? "" : "display:none;")" />
+    <div class="row g-4 mb-1" id="LdateModifyHide" style="@(Model?.Tc > 0 ? "" : "display:none;")">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
-            Title = "",
-            ShowClear = false,
-            ShowDelete = false,
-            ShowPrint = false,
-            ShowFavorite = false,
-            IsPlain = true,
-            SaveBtnClass = "js-TransportInformation-save",
-            ReserveActionSlot = true,
-           Style="border-bottom:0px !important;"
-            // IsMarginRight = true
+            InputId = "displayLDate",
+            LabelText = "Creation Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 ti-field-col",
+            ShowOnInit = Model?.Ldate.HasValue ?? false,
+            DefaultValue = Model?.Ldate?.ToString("dd/MM/yyyy hh:mm tt")
         })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "displayModifyDate",
+            LabelText = "Last Update Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 ti-field-col",
+            ShowOnInit = Model?.ModifyDate.HasValue ?? false,
+            DefaultValue = Model?.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")
+        })
+    </div>
+
+    @* ---------- Bottom Toolbar matching VendorInfo & ShipmentMode ---------- *@
+    <div class="row g-4 no-print mt-1">
+        <div class="col-12 d-flex justify-content-center">
+            @await Html.PartialAsync("_Toolbars", new ToobarModel
+            {
+                Title = "",
+                ShowClear = false,
+                ShowDelete = false,
+                ShowPrint = false,
+                ShowFavorite = false,
+                IsPlain = true,
+                SaveBtnClass = "js-TransportInformation-save saveBtn",
+                ReserveActionSlot = true,
+                ShowExtraContentLaptopOnly = true,
+                ShowExtraContent1 = true,
+                ShowExtraContent2 = false,
+                Style = "border-bottom:0px !important;"
+            })
+        </div>
     </div>
 </div>

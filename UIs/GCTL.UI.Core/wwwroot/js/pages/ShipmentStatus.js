@@ -16,11 +16,17 @@ function clearShipmentStatusForm() {
         $('#shipmentStatusForm')[0].reset();
     }
     $('#shipmentStatus').removeClass('error-border');
-    $('#statusModifyDateContainer').hide();
-    $('#statusLDateContainer').hide();
+    $('#statusSectionBreak').hide();
+    $('#statusLdateModifyHide').hide();
     $('#shipmentStatusForm input[name="autoId"], #autoId').val(0);
     $('#selectAllShipmentStatus').prop('checked', false);
     $('.js-shipmentstatus-check').prop('checked', false);
+
+    if (typeof setSelect === "function") {
+        setSelect('#statusTransportModeTypeId', '', false);
+    } else {
+        $('#statusTransportModeTypeId').val('').trigger('change');
+    }
 
     getNextShipmentStatusId();
 
@@ -103,26 +109,33 @@ function saveOrUpdateShipmentStatus() {
     });
 }
 
-function deleteSelectedShipmentStatuses() {
-    let selectedIds = [];
+var selectedShipmentStatusIds = [];
+
+function promptDeleteShipmentStatuses() {
+    selectedShipmentStatusIds = [];
     $("#shipmentStatusTable .js-shipmentstatus-check:checked").each(function () {
         let val = parseInt($(this).val());
-        if (val) selectedIds.push(val);
+        if (val) selectedShipmentStatusIds.push(val);
     });
 
-    if (selectedIds.length === 0) {
+    if (selectedShipmentStatusIds.length === 0) {
         let currentAutoId = parseInt($('#shipmentStatusForm input[name="autoId"]').val()) || parseInt($('#autoId').val()) || 0;
         if (currentAutoId > 0) {
-            selectedIds.push(currentAutoId);
+            selectedShipmentStatusIds.push(currentAutoId);
         }
     }
 
-    if (selectedIds.length === 0) {
-        toastr.warning("Please select at least one item to delete.");
+    if (selectedShipmentStatusIds.length === 0) {
+        toastr.info("Please select at least one item to delete.");
         return;
     }
 
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} record(s)?`)) {
+    $('#ShipmentStatus-delete-modal').modal('show');
+}
+
+function executeDeleteShipmentStatuses() {
+    if (!selectedShipmentStatusIds || selectedShipmentStatusIds.length === 0) {
+        $('#ShipmentStatus-delete-modal').modal('hide');
         return;
     }
 
@@ -130,8 +143,9 @@ function deleteSelectedShipmentStatuses() {
         url: '/shipment-status-multi',
         type: 'DELETE',
         contentType: 'application/json',
-        data: JSON.stringify(selectedIds),
+        data: JSON.stringify(selectedShipmentStatusIds),
         success: function (response) {
+            $('#ShipmentStatus-delete-modal').modal('hide');
             $('#selectAllShipmentStatus').prop('checked', false);
             clearShipmentStatusForm();
             if ($.gctlGrid) {
@@ -139,12 +153,14 @@ function deleteSelectedShipmentStatuses() {
             }
 
             if (response.isSuccess) {
-                toastr.success(response.message);
+                toastr.success(response.message || "Data Deleted Successfully.");
             } else {
-                toastr.error(response.message);
+                toastr.error(response.message || "Failed to delete.");
             }
+            selectedShipmentStatusIds = [];
         },
         error: function (xhr) {
+            $('#ShipmentStatus-delete-modal').modal('hide');
             let msg = "An error occurred while deleting shipment statuses!";
             try {
                 const res = JSON.parse(xhr.responseText);
@@ -152,6 +168,7 @@ function deleteSelectedShipmentStatuses() {
             } catch { }
             toastr.error(msg);
             console.error('Error deleting shipment statuses:', xhr);
+            selectedShipmentStatusIds = [];
         }
     });
 }
@@ -162,7 +179,7 @@ function populateShipmentStatusForm(data) {
     $('#shipmentStatusForm input[name="shipmentStatusId"], #shipmentStatusId').val(data.shipmentStatusId || data.ShipmentStatusId);
     $('#shipmentStatusForm input[name="shipmentStatus"], #shipmentStatus').val(data.shipmentStatus || data.ShipmentStatus);
     $('#shipmentStatusForm input[name="statusShortName"], #statusShortName').val(data.shortName || data.ShortName || "");
-    
+
     let transportModeVal = (data.transportModeTypeId || data.TransportModeTypeId || "").trim();
     if (typeof setSelect === "function") {
         setSelect('#statusTransportModeTypeId', transportModeVal, false);
@@ -170,22 +187,37 @@ function populateShipmentStatusForm(data) {
         $('#statusTransportModeTypeId').val(transportModeVal).trigger('change');
     }
 
+    let hasDate = false;
     let lDateVal = data.ldate || data.lDate || data.Ldate;
     if (lDateVal) {
-        const formattedLDate = new Date(lDateVal).toLocaleDateString('en-GB');
+        const formattedLDate = new Date(lDateVal).toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true
+        });
         $('#statusDisplayLDate').text(formattedLDate);
-        $('#statusLDateContainer').show();
+        hasDate = true;
     } else {
-        $('#statusLDateContainer').hide();
+        $('#statusDisplayLDate').text('');
     }
 
     let modDateVal = data.modifyDate || data.ModifyDate;
     if (modDateVal) {
-        const formattedModifyDate = new Date(modDateVal).toLocaleDateString('en-GB');
+        const formattedModifyDate = new Date(modDateVal).toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true
+        });
         $('#statusDisplayModifyDate').text(formattedModifyDate);
-        $('#statusModifyDateContainer').show();
+        hasDate = true;
     } else {
-        $('#statusModifyDateContainer').hide();
+        $('#statusDisplayModifyDate').text('');
+    }
+
+    if (hasDate) {
+        $('#statusSectionBreak').show();
+        $('#statusLdateModifyHide').show();
+    } else {
+        $('#statusSectionBreak').hide();
+        $('#statusLdateModifyHide').hide();
     }
 }
 
@@ -210,18 +242,26 @@ $(document).ready(function () {
         });
     });
 
-    // Toolbar buttons
-    $(document).on("click", ".saveShipmentStatusBtn", function (e) {
+    // Save
+    $(document).on("click", ".saveShipmentStatusBtn, .js-shipmentstatus-save", function (e) {
         e.preventDefault();
         saveOrUpdateShipmentStatus();
     });
 
-    $(document).on("click", ".deleteShipmentStatusBtn", function (e) {
+    // Delete prompt
+    $(document).on("click", ".deleteShipmentStatusBtn, .js-shipmentstatus-delete-confirm", function (e) {
         e.preventDefault();
-        deleteSelectedShipmentStatuses();
+        promptDeleteShipmentStatuses();
     });
 
-    $(document).on("click", ".clearShipmentStatusBtn", function (e) {
+    // Delete execute from modal
+    $(document).on("click", ".js-shipmentstatus-delete", function (e) {
+        e.preventDefault();
+        executeDeleteShipmentStatuses();
+    });
+
+    // Clear
+    $(document).on("click", ".clearShipmentStatusBtn, .js-shipmentstatus-clear", function (e) {
         e.preventDefault();
         clearShipmentStatusForm();
     });

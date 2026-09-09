@@ -6,16 +6,16 @@
 
 :root {
     /* Standardized Typography Tokens */
-    --ratio-font-header: 0.8125rem; /* 13px */
-    --ratio-font-body: 0.875rem;   /* 14px */
-    --ratio-font-label: 0.8125rem;  /* 13px */
-    --ratio-font-input: 0.875rem;   /* 14px */
+    --ratio-font-header: 12.5px; /* 12.5px */
+    --ratio-font-body: 12.5px;   /* 12.5px */
+    --ratio-font-label: 12px;    /* 12px */
+    --ratio-font-input: 13px;    /* 13px */
 
     /* Standardized Spacing & Padding Tokens */
     --ratio-card-padding-x: 1rem;     /* 16px */
     --ratio-header-padding-y: 0.625rem;/* 10px */
     --ratio-cell-padding-y: 0.45rem;   /* 7px */
-    --ratio-cell-padding-x: 0.85rem;   /* 13px */
+    --ratio-cell-padding-x: 13px;   /* 13px */
     --ratio-form-gap: 0.75rem;        /* 12px */
 }
 
@@ -69,7 +69,7 @@
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: clamp(0.7rem, 0.75vw, 0.85rem) !important;
+    font-size: clamp(0.7rem, 0.75vw, 13px) !important;
     border-radius: 0.375rem !important;
     flex-shrink: 0 !important;
     transition: all 0.15s ease-in-out;
@@ -81,7 +81,7 @@
         height: 26px !important;
         min-width: 26px !important;
         width: 26px !important;
-        font-size: 0.75rem !important;
+        font-size: 13px !important;
     }
 }
 
@@ -189,7 +189,7 @@
 }
 
 .toolbar-title {
-    font-size: clamp(0.82rem, 0.85vw, 0.95rem) !important;
+    font-size: 1.1rem !important;
     font-weight: 600;
     white-space: nowrap !important;
     overflow: visible !important;
@@ -205,7 +205,7 @@
 .js-Sex-save,
 .js-Sex-delete-confirm,
 .js-Sex-clear {
-    font-size: clamp(0.72rem, 0.65vw, 0.8125rem) !important;
+    font-size: clamp(0.72rem, 0.65vw, 13px) !important;
     font-weight: 600;
     padding: clamp(0.25rem, 0.35vw, 0.375rem) clamp(0.35rem, 0.5vw, 0.75rem) !important;
     height: 34px !important;
@@ -222,11 +222,11 @@
     .js-Sex-delete-confirm,
     .js-Sex-clear {
         padding: 0.25rem 0.45rem !important;
-        font-size: 0.75rem !important;
+        font-size: 13px !important;
     }
 
     .toolbar-btn i {
-        font-size: 0.75rem;
+        font-size: 13px;
     }
 
     .card-header.dynamic-grid-header {
@@ -342,7 +342,7 @@ a.page-link,
 #paginationLast {
     border-radius: 0.375rem !important;
     color: #475569 !important;
-    font-size: 0.8125rem !important; /* 13px */
+    font-size: 13px !important; /* 13px */
     font-weight: 600 !important;
     border: 1px solid #e2e8f0 !important;
     padding: 0.3rem 0.65rem !important;
@@ -430,7 +430,7 @@ table thead th,
 #JobSettingsTable thead th,
 .dyn-tableDrag thead th,
 .table-bordered thead th {
-    font-size: 0.875rem; /* 14px default */
+    font-size: 13px; /* 14px default */
     font-weight: 700 !important;
     color: #475569 !important;
     padding: 0.4rem 0.65rem !important;
@@ -446,7 +446,7 @@ table tbody td,
 #JobSettingsTable tbody td,
 .dyn-tableDrag tbody td,
 .table-bordered tbody td {
-    font-size: 0.875rem; /* 14px default */
+    font-size: 13px; /* 14px default */
     padding: 0.35rem 0.65rem !important;
     vertical-align: middle !important;
     color: #334155 !important;
@@ -466,7 +466,7 @@ table tbody td,
     #JobSettingsTable tbody td,
     .dyn-tableDrag tbody td,
     .table-bordered tbody td {
-        font-size: 12px !important;
+        font-size: 13px !important;
     }
 }
 

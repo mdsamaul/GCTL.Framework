@@ -1,4 +1,4 @@
-﻿(function (window, $) {
+(function (window, $) {
     'use strict';
     var DEFAULTS = {
         displayFormat: 'd/m/Y',
@@ -72,6 +72,7 @@
         }, 50);
     }
     function addClearButton(fpInstance) {
+        if (!fpInstance || !fpInstance.calendarContainer) return;
         if (fpInstance.calendarContainer.querySelector('.custom-fp-clear-btn')) return;
         var footer = document.createElement('div');
         footer.className = 'custom-fp-footer';
