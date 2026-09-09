@@ -1,4 +1,4 @@
-﻿(function (window, $) {
+(function (window, $) {
     'use strict';
     var DEFAULTS = {
         displayFormat: 'd/m/Y',
@@ -243,9 +243,16 @@
             onReady: function (selectedDates, dateStr, fpInstance) {
                 hideEmptyTrailingRow(fpInstance);
                 addClearButton(fpInstance);
+                if ($el.is('[readonly]') || $el.is(':disabled')) {
+                    fpInstance._customDisabled = true;
+                    if (fpInstance.altInput) {
+                        fpInstance.altInput.readOnly = $el.is('[readonly]');
+                        fpInstance.altInput.disabled = $el.is(':disabled');
+                    }
+                }
             },
             onOpen: function (selectedDates, dateStr, fpInstance) {
-                if (fpInstance._customDisabled) {
+                if (fpInstance._customDisabled || $el.is('[readonly]') || $el.is(':disabled')) {
                     fpInstance.close();
                     return;
                 }
@@ -256,6 +263,13 @@
                 if (activeTooltip) { activeTooltip.remove(); activeTooltip = null; }
             }
         });
+        if ($el.is('[readonly]') || $el.is(':disabled')) {
+            fp._customDisabled = true;
+            if (fp.altInput) {
+                fp.altInput.readOnly = $el.is('[readonly]');
+                fp.altInput.disabled = $el.is(':disabled');
+            }
+        }
         $el.data('customFpInstance', fp);
     }
     function initAll(selector) {

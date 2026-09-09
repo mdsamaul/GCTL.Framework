@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using System.Globalization;
+
 namespace GCTL.Service.BillService
 {
     public class BillService : IBillService
@@ -26,6 +28,8 @@ namespace GCTL.Service.BillService
         private readonly IRepository<CustomerWiseCostingDetailsEntry> _cwcdeRepository;
         private readonly IRepository<CustomerWiseCostingEntry> _cwcRepository;
         private readonly IRepository<CustomerHandilingCharge> _cRepository;
+        private readonly IRepository<CfBillEntryDetail> _billDetailRepository;
+        private readonly IRepository<CfBillEntryDetailsChchead> _billChcRepository;
 
         public BillService(
             IRepository<GCTL.Data.Models.SepDocumentation> sepDocumentationRepository,
@@ -37,7 +41,9 @@ namespace GCTL.Service.BillService
             IRepository<GCTL.Data.Models.CoreServiceType> stRepository,
             IRepository<CustomerWiseCostingDetailsEntry> cwcdeRepository,
             IRepository<CustomerWiseCostingEntry> cwcRepository,
-            IRepository<CustomerHandilingCharge> cRepository)
+            IRepository<CustomerHandilingCharge> cRepository,
+            IRepository<CfBillEntryDetail> billDetailRepository,
+            IRepository<CfBillEntryDetailsChchead> billChcRepository)
         {
             _sepDocumentationRepository = sepDocumentationRepository;
             _billEntryRepository = billEntryRepository;
@@ -49,6 +55,8 @@ namespace GCTL.Service.BillService
             _cwcdeRepository = cwcdeRepository;
             _cwcRepository = cwcRepository;
             _cRepository = cRepository;
+            _billDetailRepository = billDetailRepository;
+            _billChcRepository = billChcRepository;
         }
 
         public async Task<PaginationResponse<JobDto>> GetBillPagedAsync(PaginationRequest request, string? customerName, string? shipmentMode, string? dateFrom, string? dateTo)
@@ -89,10 +97,11 @@ namespace GCTL.Service.BillService
                 if (!string.IsNullOrWhiteSpace(shipmentMode))
                     baseQuery = baseQuery.Where(j => j.ExpenseTypeId == shipmentMode);
 
-                if (DateTime.TryParse(dateFrom, out var fromDate))
+                var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "d-M-yyyy", "dd-MM-yyyy" };
+                if (!string.IsNullOrWhiteSpace(dateFrom) && DateTime.TryParseExact(dateFrom.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var fromDate))
                     baseQuery = baseQuery.Where(j => j.Date >= fromDate);
 
-                if (DateTime.TryParse(dateTo, out var toDate))
+                if (!string.IsNullOrWhiteSpace(dateTo) && DateTime.TryParseExact(dateTo.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var toDate))
                 {
                     var toDateEnd = toDate.Date.AddDays(1);
                     baseQuery = baseQuery.Where(j => j.Date < toDateEnd);
@@ -199,7 +208,7 @@ namespace GCTL.Service.BillService
                 BillDate = string.Empty,
                 BillNo = job.BillNo ?? string.Empty,
                 BlDate = job.Bldate.HasValue ? job.Bldate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                BlNo = job.Beno ?? string.Empty,
+                BlNo = string.Empty,
                 ConsoleNo = job.ConsoleNo ?? string.Empty,
                 ContainerNo = job.ContainerNo ?? string.Empty,
                 ContainerSize = job.ContainerSize ?? string.Empty,
@@ -251,12 +260,54 @@ namespace GCTL.Service.BillService
         {
             var job = await _sepDocumentationRepository.All()
                 .Where(e => e.Tc == id)
-                .Select(h => new { h.Tc, h.JobNo })
+                .Select(h => new { h.Tc, h.JobNo, h.BillNo })
                 .FirstOrDefaultAsync();
 
             if (job == null || string.IsNullOrEmpty(job.JobNo))
             {
                 return new List<ExpenseDetailDto>();
+            }
+
+            // If bill already saved, check if child expense details exist for this BillNo
+            if (!string.IsNullOrEmpty(job.BillNo))
+            {
+                var savedDetails = await _billDetailRepository.All().AsNoTracking()
+                    .Where(d => d.BillNo == job.BillNo)
+                    .ToListAsync();
+
+                if (savedDetails.Any())
+                {
+                    var expHeadDict = await _expHeadRepository.All().AsNoTracking()
+                        .ToDictionaryAsync(h => h.ExpenseHeadId, h => h);
+                    var stDict = await _stRepository.All().AsNoTracking()
+                        .ToDictionaryAsync(s => s.ServiceTypeId, s => s.ServiceTypeName);
+
+                    var savedList = new List<ExpenseDetailDto>();
+                    int seq = 1;
+                    foreach (var d in savedDetails)
+                    {
+                        expHeadDict.TryGetValue(d.ExpenseHeadId ?? string.Empty, out var eh);
+                        string stName = string.Empty;
+                        if (eh != null && !string.IsNullOrEmpty(eh.ServiceTypeId))
+                        {
+                            stDict.TryGetValue(eh.ServiceTypeId, out stName);
+                        }
+
+                        savedList.Add(new ExpenseDetailDto
+                        {
+                            ExpenseHeadId = d.ExpenseHeadId,
+                            SerialNo = eh?.SerialNo ?? (seq++).ToString(),
+                            Head = d.BillHead ?? eh?.ExpenseHead ?? string.Empty,
+                            IsRec = eh != null ? (eh.IsReceiptable == "Y" ? "Yes" : eh.IsReceiptable == "N" ? "No" : string.Empty) : string.Empty,
+                            ServiceType = stName ?? string.Empty,
+                            ConfirmAmt = d.ActualAmount ?? 0m,
+                            BillAmt = d.ExpenseBillAmount ?? d.ActualAmount ?? 0m,
+                            Include = true
+                        });
+                    }
+
+                    return savedList;
+                }
             }
 
             var query = from fr in _ofrdRepository.All().AsNoTracking()
@@ -271,6 +322,7 @@ namespace GCTL.Service.BillService
                         {
                             ServiceTypeId = fr.ServiceTypeId ?? (eh != null ? eh.ServiceTypeId : string.Empty),
                             IsReceiptable = eh != null ? eh.IsReceiptable : string.Empty,
+                            ExpenseHeadId = fr.ExpenseHeadId ?? (eh != null ? eh.ExpenseHeadId : string.Empty),
                             SerialNo = eh != null ? eh.SerialNo : string.Empty,
                             Head = eh != null ? eh.ExpenseHead : string.Empty,
                             IsRec = eh != null
@@ -289,12 +341,14 @@ namespace GCTL.Service.BillService
                 .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
                 .Select(x => new ExpenseDetailDto
                 {
+                    ExpenseHeadId = x.ExpenseHeadId,
                     SerialNo = x.SerialNo,
                     Head = x.Head,
                     IsRec = x.IsRec,
                     ServiceType = x.ServiceType,
                     ConfirmAmt = x.ConfirmAmt ?? 0.00m,
-                    BillAmt = x.BillAmt
+                    BillAmt = x.BillAmt,
+                    Include = true
                 })
                 .ToList();
 
@@ -309,6 +363,7 @@ namespace GCTL.Service.BillService
                 {
                     h.Tc,
                     h.JobNo,
+                    h.BillNo,
                     CustomerId = h.CustomerId,
                     ShipmentMode = h.ExpenseTypeId
                 })
@@ -317,6 +372,30 @@ namespace GCTL.Service.BillService
             if (job == null || string.IsNullOrEmpty(job.JobNo))
             {
                 return new List<ChargeTableItemDto>();
+            }
+
+            // If bill already saved, check if child CHC details exist for this BillNo
+            if (!string.IsNullOrEmpty(job.BillNo))
+            {
+                var savedChcs = await _billChcRepository.All().AsNoTracking()
+                    .Where(c => c.BillNo == job.BillNo)
+                    .ToListAsync();
+
+                if (savedChcs.Any())
+                {
+                    int seq = 1;
+                    return savedChcs.Select(c => new ChargeTableItemDto
+                    {
+                        Chcid = c.Chcid,
+                        SerialNo = (seq++).ToString(),
+                        IsRec = c.IsReceiptable == "Y" ? "Yes" : (c.IsReceiptable == "N" ? "No" : (c.IsReceiptable ?? string.Empty)),
+                        Chc = c.BillHead ?? string.Empty,
+                        Description = c.ChcheadDescription ?? string.Empty,
+                        BillAmt = c.BillAmount,
+                        Tc = c.Tc,
+                        Include = true
+                    }).ToList();
+                }
             }
 
             var query = from cwde in _cwcdeRepository.All().AsNoTracking()
@@ -328,6 +407,7 @@ namespace GCTL.Service.BillService
 
                         select new
                         {
+                            Chcid = cwde.Chcid ?? (subChc.Chcid != null ? subChc.Chcid : string.Empty),
                             ExpenseTypeId = subChc.Chcid != null ? subChc.ExpenseTypeId : (cwde.ExpenseTypeId ?? string.Empty),
                             IsRec =
                             subChc.Chcid != null
@@ -348,12 +428,14 @@ namespace GCTL.Service.BillService
                 .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
                 .Select(x => new ChargeTableItemDto
                 {
+                    Chcid = x.Chcid,
                     SerialNo = x.SerialNo,
                     IsRec = x.IsRec,
                     Chc = x.Chc,
                     Description = x.Description,
                     BillAmt = x.BillAmt,
-                    Tc = x.Tc
+                    Tc = x.Tc,
+                    Include = true
                 })
                 .ToList();
 
@@ -595,7 +677,7 @@ namespace GCTL.Service.BillService
                 InvoiceDate = bill.Invdate.HasValue ? bill.Invdate.Value.ToString("yyyy-MM-dd") : (doc?.InvoiceDate.HasValue == true ? doc.InvoiceDate.Value.ToString("yyyy-MM-dd") : string.Empty),
                 InvoiceValue = bill.InvoiceValue ?? doc?.InvoiceValue,
                 InvValCurrencyId = bill.InvoiceCurrencyId ?? (doc?.InvoiceCurrencyId ?? string.Empty),
-                BlNo = bill.Blno ?? (doc?.Beno ?? string.Empty),
+                BlNo = bill.Blno ?? string.Empty,
                 BlDate = bill.Bldate.HasValue ? bill.Bldate.Value.ToString("yyyy-MM-dd") : (doc?.Bldate.HasValue == true ? doc.Bldate.Value.ToString("yyyy-MM-dd") : string.Empty),
                 BeNo = bill.Beno ?? (doc?.Beno ?? string.Empty),
                 BeDate = bill.Bedate.HasValue ? bill.Bedate.Value.ToString("yyyy-MM-dd") : (doc?.Bedate.HasValue == true ? doc.Bedate.Value.ToString("yyyy-MM-dd") : string.Empty),
@@ -616,9 +698,241 @@ namespace GCTL.Service.BillService
                 AgComm = bill.MinimumAgencyCommission ?? doc?.MinimumAgencyCom,
                 OnInvVal = bill.OnInvoiceValue ?? doc?.CommOnInvoiceValue,
                 Amount = bill.BillAmount,
+                SpecialDiscount = bill.SpecialDiscount,
                 CreatedAt = bill.Ldate ?? doc?.Ldate,
                 UpdatedAt = bill.ModifyDate ?? doc?.ModifyDate
             };
+        }
+
+        public async Task<CommonReturnViewModel> SaveBillAsync(SaveBillRequestDto request, UserInfoViewModel? userInfo)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.JobNo))
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = "Job No is required."
+                };
+            }
+
+            await _billEntryRepository.BeginTransactionAsync();
+
+            try
+            {
+                var doc = await _sepDocumentationRepository.All()
+                    .FirstOrDefaultAsync(d => d.JobNo == request.JobNo);
+
+                if (doc == null)
+                {
+                    await _billEntryRepository.RollbackTransactionAsync();
+                    return new CommonReturnViewModel
+                    {
+                        Success = false,
+                        Message = $"Job '{request.JobNo}' not found."
+                    };
+                }
+
+                var now = DateTime.Now;
+                string username = userInfo?.Username ?? "System";
+                string empId = !string.IsNullOrEmpty(userInfo?.EmployeeId) ? userInfo.EmployeeId : username;
+                string companyCode = !string.IsNullOrEmpty(userInfo?.CompanyCode) ? userInfo.CompanyCode : "GCTL";
+                string ip = userInfo?.IPAddress ?? string.Empty;
+                string mac = userInfo?.MacAddress ?? string.Empty;
+
+                DateTime? billDate = null;
+                if (!string.IsNullOrWhiteSpace(request.BillDate))
+                {
+                    string[] formats = { "yyyy-MM-dd", "dd/MM/yyyy", "d/M/yyyy", "dd-MM-yyyy", "d-M-yyyy" };
+                    if (DateTime.TryParseExact(request.BillDate.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
+                    {
+                        billDate = parsedDate;
+                    }
+                    else if (DateTime.TryParse(request.BillDate, out var fallbackDate))
+                    {
+                        billDate = fallbackDate;
+                    }
+                }
+                billDate ??= now;
+
+                string billNo = request.BillNo?.Trim() ?? string.Empty;
+
+                CfBillEntry? bill = null;
+                if (!string.IsNullOrWhiteSpace(billNo))
+                {
+                    bill = await _billEntryRepository.All()
+                        .FirstOrDefaultAsync(b => b.BillNo == billNo);
+                }
+
+                if (bill == null)
+                {
+                    // Generate new BillNo if not provided or doesn't exist
+                    if (string.IsNullOrWhiteSpace(billNo))
+                    {
+                        var maxBillNo = await _billEntryRepository.All()
+                            .Where(b => b.BillNo != null)
+                            .Select(b => b.BillNo)
+                            .OrderByDescending(b => b)
+                            .FirstOrDefaultAsync();
+
+                        long nextSeq = 1;
+                        if (!string.IsNullOrEmpty(maxBillNo))
+                        {
+                            var digits = new string(maxBillNo.Where(char.IsDigit).ToArray());
+                            if (long.TryParse(digits, out long parsedNum))
+                            {
+                                nextSeq = parsedNum + 1;
+                            }
+                        }
+                        billNo = $"BILL-{now:yyyyMMdd}-{nextSeq:D4}";
+                    }
+
+                    bill = new CfBillEntry
+                    {
+                        BillNo = billNo,
+                        BillDate = billDate,
+                        JobNo = doc.JobNo,
+                        ExpenseTypeId = doc.ExpenseTypeId,
+                        CustomerId = !string.IsNullOrWhiteSpace(request.CustomerId) ? request.CustomerId : doc.CustomerId,
+                        Address = doc.CustomerAddress,
+                        MaterialDescription = doc.MaterialDescription,
+                        Blno = doc.BillNo ?? string.Empty,
+                        Bldate = doc.Bldate,
+                        Beno = doc.Beno,
+                        Bedate = doc.Bedate,
+                        Invno = doc.InvoiceNo,
+                        Invdate = doc.InvoiceDate,
+                        Ipno = doc.Ipno,
+                        Ipdate = doc.Ipdate,
+                        DocRecvDate = doc.DocReceivedDate,
+                        CompanyCode = companyCode,
+                        EmployeeId = empId,
+                        MinimumAgencyCommission = request.AgComm,
+                        OnInvoiceValue = request.OnInvVal,
+                        Remarks = request.Remarks,
+                        ContainerNo = doc.ContainerNo,
+                        Quantity = doc.Quntity1,
+                        QunitTypeId = doc.Unit1,
+                        DocWeight = doc.Quntity2,
+                        WunitTypeId = doc.Unit2,
+                        Lcvalue = doc.Lcvalue,
+                        LcurrencyId = doc.CurrencyId,
+                        Destination = request.DestinationId,
+                        BillAmount = request.Amount,
+                        SpecialDiscount = request.SpecialDiscount,
+                        InvoiceCurrencyId = doc.InvoiceCurrencyId,
+                        InvoiceValue = doc.InvoiceValue,
+                        Rotno = doc.VesselRottNo,
+                        Luser = username,
+                        Ldate = now,
+                        Lip = ip,
+                        Lmac = mac
+                    };
+
+                    await _billEntryRepository.AddAsync(bill);
+                }
+                else
+                {
+                    // Update existing
+                    bill.BillDate = billDate;
+                    bill.Remarks = request.Remarks;
+                    bill.Destination = request.DestinationId;
+                    bill.MinimumAgencyCommission = request.AgComm;
+                    bill.OnInvoiceValue = request.OnInvVal;
+                    bill.BillAmount = request.Amount;
+                    bill.SpecialDiscount = request.SpecialDiscount;
+                    bill.ModifyDate = now;
+                    bill.Luser = username;
+                    bill.Lip = ip;
+                    bill.Lmac = mac;
+
+                    await _billEntryRepository.UpdateAsync(bill);
+                }
+
+                // Update SepDocumentation.BillNo
+                doc.BillNo = billNo;
+                await _sepDocumentationRepository.UpdateAsync(doc);
+
+                // Clear existing child records for this BillNo
+                var existingChcs = await _billChcRepository.All()
+                    .Where(c => c.BillNo == billNo)
+                    .ToListAsync();
+                if (existingChcs.Any())
+                {
+                    await _billChcRepository.DeleteRangeAsync(existingChcs);
+                }
+
+                var existingDetails = await _billDetailRepository.All()
+                    .Where(d => d.BillNo == billNo)
+                    .ToListAsync();
+                if (existingDetails.Any())
+                {
+                    await _billDetailRepository.DeleteRangeAsync(existingDetails);
+                }
+
+                // Insert Custom Handling Charges
+                if (request.ChcItems != null && request.ChcItems.Any())
+                {
+                    var chcEntities = request.ChcItems.Select(item => new CfBillEntryDetailsChchead
+                    {
+                        BillNo = billNo,
+                        JobNo = doc.JobNo,
+                        Chcid = item.Chcid ?? string.Empty,
+                        BillHead = item.BillHead,
+                        ChcheadDescription = item.Description,
+                        BillAmount = item.BillAmount,
+                        IsReceiptable = item.IsReceiptable,
+                        CompanyCode = companyCode,
+                        EmployeeId = empId,
+                        Luser = username,
+                        Ldate = now,
+                        Lip = ip,
+                        Lmac = mac
+                    }).ToList();
+
+                    await _billChcRepository.AddRangeAsync(chcEntities);
+                }
+
+                // Insert Expense Details
+                if (request.ExpenseItems != null && request.ExpenseItems.Any())
+                {
+                    int detailSeq = 1;
+                    var detailEntities = request.ExpenseItems.Select(item => new CfBillEntryDetail
+                    {
+                        BillDetailsId = (detailSeq++).ToString("D4"),
+                        BillNo = billNo,
+                        ExpenseHeadId = item.ExpenseHeadId ?? string.Empty,
+                        BillHead = item.BillHead,
+                        ActualAmount = item.ConfirmAmt,
+                        ExpenseBillAmount = item.BillAmt,
+                        CompanyCode = companyCode,
+                        EmployeeId = empId,
+                        Luser = username,
+                        Ldate = now,
+                        Lip = ip,
+                        Lmac = mac
+                    }).ToList();
+
+                    await _billDetailRepository.AddRangeAsync(detailEntities);
+                }
+
+                await _billEntryRepository.CommitTransactionAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = "Bill saved successfully.",
+                    Data = billNo
+                };
+            }
+            catch (Exception ex)
+            {
+                await _billEntryRepository.RollbackTransactionAsync();
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = $"Error saving bill: {ex.Message}"
+                };
+            }
         }
 
         public async Task<CommonReturnViewModel> DeleteBillsAsync(List<string> billNos, UserInfoViewModel? userInfo)
@@ -664,6 +978,23 @@ namespace GCTL.Service.BillService
                         doc.BillNo = null;
                         await _sepDocumentationRepository.UpdateAsync(doc);
                     }
+                }
+
+                // Delete child records for all deleted bills
+                var childChcs = await _billChcRepository.All()
+                    .Where(c => billNos.Contains(c.BillNo))
+                    .ToListAsync();
+                if (childChcs.Any())
+                {
+                    await _billChcRepository.DeleteRangeAsync(childChcs);
+                }
+
+                var childDetails = await _billDetailRepository.All()
+                    .Where(d => billNos.Contains(d.BillNo))
+                    .ToListAsync();
+                if (childDetails.Any())
+                {
+                    await _billDetailRepository.DeleteRangeAsync(childDetails);
                 }
 
                 foreach (var bill in billsToDelete)
