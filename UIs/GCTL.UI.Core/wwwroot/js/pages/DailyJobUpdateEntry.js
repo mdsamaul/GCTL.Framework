@@ -215,8 +215,7 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
                     clearForm();
-                    statusCurrentPage = 1;  // Reset to first page
-                    loadJobStatuses();
+                    statusCurrentPage = 1;  
                     toastr.success(response.message || "Shipment saved successfully!");
                 }
                 else {
