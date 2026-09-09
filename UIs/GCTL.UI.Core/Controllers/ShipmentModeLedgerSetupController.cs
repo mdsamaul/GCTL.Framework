@@ -138,9 +138,19 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (await _service.IsExistAsync(modelVM.ExpenseType, modelVM.ExpenseTypeId))
+                bool isUpdate = (modelVM.Tc.HasValue && modelVM.Tc.Value > 0)
+                    || (!string.IsNullOrWhiteSpace(modelVM.ExpenseTypeId) && await _service.IsExistByCodeAsync(modelVM.ExpenseTypeId));
+
+                if (!string.IsNullOrWhiteSpace(modelVM.ExpenseType))
                 {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    bool isDuplicate = isUpdate
+                        ? await _service.IsExistAsync(modelVM.ExpenseType, modelVM.ExpenseTypeId ?? string.Empty)
+                        : await _service.IsExistAsync(modelVM.ExpenseType);
+
+                    if (isDuplicate)
+                    {
+                        return Json(new { isSuccess = false, message = "Shipment Mode already exists!", isDuplicate = true });
+                    }
                 }
 
                 if (!ModelState.IsValid)
@@ -148,8 +158,6 @@ namespace GCTL.UI.Core.Controllers
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }
-
-                bool isUpdate = !string.IsNullOrEmpty(modelVM.ExpenseTypeId);
 
                 modelVM.ToAudit(LoginInfo, isUpdate);
 
@@ -186,7 +194,7 @@ namespace GCTL.UI.Core.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error:{ex.Message}");
-                return RedirectToAction("Login", "Accounts");
+                return Json(new { isSuccess = false, message = "An unexpected error occurred: " + ex.Message });
             }
         }
 
@@ -233,7 +241,7 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 var list = await _service.GetAllAsync();
-                return Json(list);
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
