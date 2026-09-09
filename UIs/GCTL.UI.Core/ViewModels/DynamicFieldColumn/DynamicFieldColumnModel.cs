@@ -116,22 +116,29 @@ namespace GCTL.UI.Core.ViewModels
         public string CustomStyle { get; set; } = string.Empty; 
         public string LabelStyle { get; set; } = string.Empty;  
         public string InputStyle { get; set; } = string.Empty; 
+        public string InputCssClass { get; set; } = string.Empty;
         public string ResolvedInputCss
         {
             get
             {
+                string baseClass;
                 if (CustomAttributes != null && CustomAttributes.TryGetValue("table-view", out var tv) && tv == "true")
                 {
-                    return "form-select form-select-sm custom-table-dropdown";
+                    baseClass = "form-select form-select-sm custom-table-dropdown";
+                }
+                else if (FieldType == FieldType.MultiSelect || IsMultiple)
+                    baseClass = "form-select form-select-sm custom-select-multi";
+                else if (FieldType == FieldType.Select || FieldType == FieldType.QuickAddSelect)
+                    baseClass = "form-select form-select-sm custom-select-single";
+                else
+                    baseClass = "form-control form-control-sm";
+
+                if (!string.IsNullOrWhiteSpace(InputCssClass))
+                {
+                    baseClass += " " + InputCssClass.Trim();
                 }
 
-                if (FieldType == FieldType.MultiSelect || IsMultiple)
-                    return "form-select form-select-sm custom-select-multi";
-
-                if (FieldType == FieldType.Select || FieldType == FieldType.QuickAddSelect)
-                    return "form-select form-select-sm custom-select-single";
-
-                return "form-control form-control-sm";
+                return baseClass;
             }
         }
         

@@ -161,7 +161,7 @@
 /* 1300px range fix - shrink everything so left title text is not cut */
 @media (max-width: 1400px) {
     .toolbar-title {
-        font-size: 13px;
+        font-size: 15px;
         max-width: 90px;
     }
         

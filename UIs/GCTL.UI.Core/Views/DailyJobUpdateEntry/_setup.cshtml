@@ -128,18 +128,20 @@
                 InputId = "dateField",
                 LabelText = "Date & Time",
                 FieldType = FieldType.DualInput,
-                Placeholder = "Date",
+                Placeholder = "dd/mm/yyyy",
                 ColumnClass = "col-lg-4 col-md-6",
                 CustomCssClass = "flex-fill",
                 CustomAttributes = new Dictionary<string, string> { { "style", "padding-left:12px;" } },
                 IsRequired = false,
                 ReserveActionSlot = true,
+                InputCssClass = "custom-datepicker",
                 SecondField = new DynamicFieldColumnModel
                 {
                     InputId = "timeField",
                     Placeholder = "Time",
                     FieldType = FieldType.Text,
-                    IsRequired = false,                   
+                    IsRequired = false,
+                    InputCssClass = "custom-timepicker",
                     
                 }
             })
