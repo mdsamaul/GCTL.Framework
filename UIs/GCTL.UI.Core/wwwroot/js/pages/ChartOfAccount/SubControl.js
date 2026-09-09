@@ -1,26 +1,38 @@
 let selectedSubControlLedger = [];
-let currenSubControltPage = 1;
-let SubControlpageSize = 10;
-let SubControlcurrentSortColumn = 'GeneralLedgerCodeNo';
-let SubControlcurrentSortDirection = 'desc';
+let isSubControlLedgerDeletePending = false;
+let subControlLedgerPendingDeleteIds = [];
 let isEditModeSubControl = false;
-
 let selectedGroupLedgerCodeForSubControl = "";
 let selectedControlLedgerCodeForSubControl = "";
 
-// Helper: Bangladesh Local Date & Time Formatter
+//#region Helper: Bangladesh Time & Date Formatter
 function getBangladeshDateTime() {
-    return new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    }).replace(',', '').toUpperCase();
-}
+    let now = new Date();
+    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    let bdOffset = 6 * 60 * 60 * 1000;
+    let bdTime = new Date(utc + bdOffset);
 
-//#region Error Border Cleanup (Native / Custom Dropdown)
+    let day = bdTime.getDate().toString().padStart(2, '0');
+    let month = (bdTime.getMonth() + 1).toString().padStart(2, '0');
+    let year = bdTime.getFullYear();
+
+    let hours = bdTime.getHours();
+    let minutes = bdTime.getMinutes().toString().padStart(2, '0');
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+}
+//#endregion
+
+//#region Validation Error Border
+$(document).on('input', '.form-control', function () {
+    if ($(this).val().trim() !== '') {
+        $(this).removeClass('border-error');
+    }
+});
+
 document.addEventListener('change', function (e) {
     if (e.target && $(e.target).hasClass('form-select')) {
         $(e.target).removeClass('border-error');
@@ -29,128 +41,121 @@ document.addEventListener('change', function (e) {
 });
 //#endregion
 
-//#region Custom Event Listener For Group Ledger Dropdown Updated
+//#region Custom Event Listeners
 window.addEventListener('groupLedgerUpdated', function (e) {
     LoadDropdownGRLCRL();
-    $('#groupcode').val('');
-    $('#groupshortName').val('');
-    $('#ConRLCode').val('');
-    $('#CLShortName').val('');
+    $('#groupcode, #groupshortName').val('');
+    $('#ConRLCode, #CLShortName').val('');
     $('#GeneralLedgerCodeNo').val('');
-    LoadSubControlLedgerAll();
+    reloadSubControlLedgerTable();
+});
+
+window.addEventListener('ControlLedgerUpdated', function (e) {
+    const currentGroupCode = $('#groupName').val();
+    if (currentGroupCode) {
+        LoadControlLedgerDropdown(currentGroupCode);
+    }
+    $('#ConRLCode, #CLShortName').val('');
+    $('#GeneralLedgerCodeNo').val('');
+    reloadSubControlLedgerTable();
 });
 //#endregion
 
-//#region Group and Control Ledger Dropdown For Sub-Control Ledger UI
-
-// 1. Group Ledger Dropdown
+//#region Dropdown Loaders
 function LoadDropdownGRLCRL(selectedId = null) {
     $.ajax({
-        url: "/group-ledger-dropdown-forsubcontrol",
+        url: "/group-ledger-dropdown",
         type: "GET",
         success: function (response) {
-            let $gldropdown = $("#groupName");
-            $gldropdown.find('option:not(:first)').remove();
+            let $select = $('#groupName');
+            $select.find('option:not(:first)').remove();
 
             if (response && response.data) {
                 $.each(response.data, function (index, item) {
-                    $gldropdown.append($('<option></option>').val(item.id).text(item.name));
+                    $select.append($('<option></option>').val(item.id).text(item.name));
                 });
             }
 
             if (selectedId) {
-                $gldropdown.val(selectedId);
+                $select.val(selectedId);
             }
 
-            // Plugin Reinitialization
             window.reinitCustomDropdownById('groupName');
 
-            // Group Ledger change event
-            $gldropdown.off('change').on('change', function () {
-                let selectedGroupCode = $(this).val();
+            $select.off('change').on('change', function () {
+                const selectedGroupCode = $(this).val();
                 selectedGroupLedgerCodeForSubControl = selectedGroupCode || "";
 
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
-                // Reset fields if no group selected
                 if (!selectedGroupCode) {
                     $('#groupcode, #groupshortName').val('');
-
-                    // Clear Control Dropdown via Plugin Helper
-                    window.clearCustomDropdownById('ConRLName');
-                    $('#ConRLCode, #CLShortName, #GeneralLedgerCodeNo').val('');
-
-                    LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", "", "");
+                    $('#ConRLCode, #CLShortName').val('');
+                    $('#GeneralLedgerCodeNo').val('');
+                    let $controlSelect = $('#ConRLName');
+                    $controlSelect.find('option:not(:first)').remove();
+                    $controlSelect.val('');
+                    window.reinitCustomDropdownById('ConRLName');
                     return;
                 }
 
-                // Load group info
+                // Fetch Group Ledger details
                 $.ajax({
-                    url: '/group-ledger-info-forsubcontrol',
+                    url: '/group-ledger-info',
                     type: 'GET',
                     data: { groupcode: selectedGroupCode },
                     success: function (data) {
                         $('#groupcode').val(data.controlLedgerCodeNo || '');
                         $('#groupshortName').val(data.shortName || '');
+                        LoadControlLedgerDropdown(selectedGroupCode);
                     }
                 });
-
-                // Load Control Ledger under selected Group
-                LoadControlLedgerDropdown(selectedGroupCode);
             });
         },
-        error: function (xhr, status, error) {
-            console.error("Failed to load Group Ledger dropdown:", error);
+        error: function () {
+            console.error("Failed to load Group Ledger dropdown.");
         }
     });
 }
 
-// 2. Control Ledger Dropdown
-function LoadControlLedgerDropdown(selectedGroupCode, selectedId = null) {
+function LoadControlLedgerDropdown(groupCode, selectedControlCode = null) {
     $.ajax({
-        url: '/control-ledger-dropdown',
-        type: 'GET',
-        data: { groupcode: selectedGroupCode },
+        url: "/control-ledger-dropdown",
+        type: "GET",
+        data: { groupcode: groupCode },
         success: function (response) {
-            let $crldropdown = $('#ConRLName');
-            $crldropdown.find('option:not(:first)').remove();
+            let $select = $('#ConRLName');
+            $select.find('option:not(:first)').remove();
 
             if (response && response.data) {
                 $.each(response.data, function (index, item) {
-                    $crldropdown.append($('<option></option>').val(item.id).text(item.name));
+                    $select.append($('<option></option>').val(item.id).text(item.name));
                 });
             }
 
-            if (selectedId) {
-                $crldropdown.val(selectedId);
+            if (selectedControlCode) {
+                $select.val(selectedControlCode);
             }
 
-            // Plugin Reinitialization
-            window.reinitCustomDropdownById('ConRLName');
-
-            // Auto reload Sub-Control Ledger list based on selected group
-            LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", selectedGroupLedgerCodeForSubControl, "");
-
-            // Control Ledger change event
-            $crldropdown.off('change').on('change', function () {
-                let selectedControlCode = $(this).val();
-                selectedControlLedgerCodeForSubControl = selectedControlCode || "";
+            $select.off('change').on('change', function () {
+                const selectedControl = $(this).val();
+                selectedControlLedgerCodeForSubControl = selectedControl || "";
 
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
-                if (!selectedControlCode) {
-                    $('#ConRLCode, #CLShortName, #GeneralLedgerCodeNo').val('');
-                    LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", selectedGroupLedgerCodeForSubControl, "");
+                if (!selectedControl) {
+                    $('#ConRLCode, #CLShortName').val('');
+                    $('#GeneralLedgerCodeNo').val('');
                     return;
                 }
 
-                // Fetch control ledger details
+                // Fetch Control Ledger details & next code
                 $.ajax({
                     url: '/control-ledger-info',
                     type: 'GET',
-                    data: { contrlcode: selectedControlCode },
+                    data: { contrlcode: selectedControl, controlcode: selectedControl },
                     success: function (data) {
                         $('#ConRLCode').val(data.subControlLedgerCodeNo || '');
                         $('#CLShortName').val(data.shortName || '');
@@ -165,80 +170,119 @@ function LoadControlLedgerDropdown(selectedGroupCode, selectedId = null) {
                                 }
                             });
                         }
-
-                        // Reload list filtered by both group and control
-                        LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl);
-                    },
-                    error: function () {
-                        console.error("Failed to fetch Control Ledger info");
                     }
                 });
             });
+
+            window.reinitCustomDropdownById('ConRLName');
         },
         error: function () {
-            console.error("Failed to fetch Control Ledger list under group");
+            console.error("Failed to load Control Ledger dropdown.");
         }
     });
 }
-
 //#endregion
 
-//#region Save Or Update Sub Control Ledger
+//#region Table Reload Helper
+function reloadSubControlLedgerTable() {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#subControlLedgerTable')) {
+        $('#subControlLedgerTable').DataTable().ajax.reload(null, false);
+    }
+}
+
+function LoadSubControlLedgerAll() {
+    reloadSubControlLedgerTable();
+}
+//#endregion
+
+//#region Selection Helpers
+function getSelectedSubControlLedgerIds() {
+    let ids = [...selectedSubControlLedger];
+
+    $('#subControlLedgerTable tbody input[type="checkbox"]:checked').each(function () {
+        const rawVal = $(this).val() || $(this).data('id');
+        const numVal = parseFloat(rawVal);
+        if (!isNaN(numVal) && !ids.includes(numVal)) {
+            ids.push(numVal);
+        }
+    });
+
+    if (ids.length === 0) {
+        const formAutoId = parseFloat($('#SubCRLAutoID').val());
+        if (!isNaN(formAutoId) && formAutoId > 0) {
+            ids.push(formAutoId);
+        }
+    }
+
+    return ids;
+}
+
+function updateSubControlCheckAllState() {
+    const $checkboxes = $('#subControlLedgerTable tbody input[type="checkbox"]');
+    const total = $checkboxes.length;
+    const checked = $checkboxes.filter(':checked').length;
+    $('#subcontrolledger-check-all').prop('checked', total > 0 && total === checked);
+}
+//#endregion
+
+//#region Save Or Update Sub-Control Ledger
 function SubControlLedgerSaveOrUpdate() {
     let autoID = $('#SubCRLAutoID').val();
-    let SubControlLedgerData = {
-        autoId: autoID ? parseInt(autoID) : 0,
+    let parsedAutoId = autoID ? parseFloat(autoID) : 0;
+
+    let SubControlData = {
+        autoId: parsedAutoId,
+        GRLCode: $("#groupcode").val(),
         SubControlLedgerCodeNo: $("#ConRLCode").val(),
         GeneralLedgerCodeNo: $("#GeneralLedgerCodeNo").val(),
-        GeneralLedgerName: $("#GeneralLedgerName").val(),
-        ShortName: $("#SubCRLshortName").val(),
-        GRLCode: $("#groupName").val()
+        GeneralLedgerName: ($("#GeneralLedgerName").val() || '').trim(),
+        ShortName: ($("#SubCRLshortName").val() || '').trim()
     };
 
-    // Validations
-    if (!SubControlLedgerData.GRLCode) {
+    // Client Validations
+    if (!$("#groupName").val()) {
         toastr.error("Please Select a Group Ledger.");
         $('#groupName').addClass('border-error');
         $('#groupName').siblings('.custom-dd-wrapper').addClass('border-error');
         return false;
     }
 
-    if (!SubControlLedgerData.SubControlLedgerCodeNo) {
+    if (!$("#ConRLName").val()) {
         toastr.error("Please Select a Control Ledger.");
         $('#ConRLName').addClass('border-error');
         $('#ConRLName').siblings('.custom-dd-wrapper').addClass('border-error');
         return false;
     }
 
-    if (!SubControlLedgerData.GeneralLedgerName) {
-        toastr.error("Please Enter Sub-Control Ledger.");
-        $('#GeneralLedgerName').addClass('border-error');
+    if (!SubControlData.GeneralLedgerName) {
+        toastr.error("Please Enter Sub-Control Ledger Name.");
+        $('#GeneralLedgerName').addClass('border-error').focus();
         return false;
     } else {
         $('#GeneralLedgerName').removeClass('border-error');
     }
 
-    // Check for duplicate
+    // Check duplicate
     $.ajax({
         url: '/subcontrol-ledger/check-duplicate',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify(SubControlLedgerData),
+        data: JSON.stringify(SubControlData),
         success: function (dupResponse) {
             if (dupResponse.isDuplicate) {
-                toastr.error(dupResponse.message);
+                toastr.error(dupResponse.message || "Data Already Exists.");
                 return;
             }
 
-            let url = autoID ? `/subcontrol-ledger/${autoID}` : '/subcontrol-ledger';
-            let method = autoID ? 'PUT' : 'POST';
-            let successMessage = autoID ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
+            let url = parsedAutoId > 0 ? `/subcontrol-ledger/${parsedAutoId}` : '/subcontrol-ledger';
+            let method = parsedAutoId > 0 ? 'PUT' : 'POST';
+            let successMessage = parsedAutoId > 0 ? 'Data Updated Successfully.' : 'Data Saved Successfully.';
 
             $.ajax({
                 url: url,
                 type: method,
                 contentType: 'application/json',
-                data: JSON.stringify(SubControlLedgerData),
+                data: JSON.stringify(SubControlData),
                 success: function (response) {
                     if (response.success) {
                         toastr.success(successMessage);
@@ -248,6 +292,7 @@ function SubControlLedgerSaveOrUpdate() {
 
                         SubControlLedgerFormClear();
                         selectedSubControlLedger = [];
+                        reloadSubControlLedgerTable();
 
                         if (typeof ModalLoadSubControlLedgerAll === "function") {
                             ModalLoadSubControlLedgerAll();
@@ -257,25 +302,25 @@ function SubControlLedgerSaveOrUpdate() {
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error('Error Saving Sub-Control Ledger :', error);
+                    toastr.error(xhr.responseJSON?.message || "Error Saving Sub-Control Ledger.");
+                    console.error('Save Error:', error);
                 }
             });
         },
         error: function (xhr, status, error) {
             toastr.error("Server error occurred during duplicate check!");
-            console.error('Error checking duplicate:', error);
+            console.error('Duplicate Check Error:', error);
         }
     });
 }
 //#endregion
 
-//#region Sub Control Ledger Clear
+//#region Clear Form
 function SubControlLedgerFormClear() {
     isEditModeSubControl = false;
 
     $("#SubCRLAutoID").val("");
 
-    // Clear all custom dropdowns
     window.clearAllCustomDropdowns('#subcontrolForm');
 
     $("#groupcode, #groupshortName").val("");
@@ -289,92 +334,34 @@ function SubControlLedgerFormClear() {
     $('#SubControldisplayModifyDate').text('');
     $('#SubControldisplayLDate').text(getBangladeshDateTime());
 
-    $(".Subcontrol-checkbox").prop("checked", false);
-    $("#SubselectAll").prop("checked", false);
-    $('#SubsearchInput').val('');
+    // Reset button text
+    $('.js-SubControl-save span').text('Save');
 
+    // Reset selections
     selectedSubControlLedger = [];
-    currenSubControltPage = 1;
+    $('#subControlLedgerTable tbody input[type="checkbox"]').prop('checked', false);
+    $('#subControlLedgerTable tbody tr').removeClass('selected-row');
+    $('#subcontrolledger-check-all').prop('checked', false);
+
     selectedGroupLedgerCodeForSubControl = "";
     selectedControlLedgerCodeForSubControl = "";
 
+    let $conSelect = $('#ConRLName');
+    $conSelect.find('option:not(:first)').remove();
+    $conSelect.val('');
+    window.reinitCustomDropdownById('ConRLName');
+
     LoadDropdownGRLCRL();
-    LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", "", "");
-}
-//#endregion
-
-//#region Load All Sub-Control Ledger Data
-function LoadSubControlLedgerAll(page = 1, pageSize = SubControlpageSize, sortColumn = SubControlcurrentSortColumn, sortDirection = SubControlcurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "") {
-    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#subControlLedgerTable')) {
-        $('#subControlLedgerTable').DataTable().ajax.reload(null, false);
-        return;
-    }
-    $.ajax({
-        url: '/subcontrol-ledger-list',
-        type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: pageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection,
-            controlLedgerCode: controlLedgerCode,
-            groupLedgerCode: groupLedgerCode
-        },
-        success: function (response) {
-            let rows = '';
-            if (response.data && response.data.length > 0) {
-                response.data.forEach(function (item) {
-                    rows += `<tr>
-                        <td class="text-center">
-                            <input type="checkbox" class="form-check-input form-check-input-sm Subcontrol-checkbox"
-                                data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-transfer subcontrol-ledger" data-autoid="${item.autoId}">
-                                ${item.generalLedgerCodeNo}
-                            </button>
-                        </td>
-                        <td>${item.generalLedgerName || ''}</td>
-                        <td>${item.shortName || ''}</td>
-                     </tr>`;
-                });
-            } else {
-                rows = `<tr><td colspan="4" class="text-center text-muted">No records found</td></tr>`;
-            }
-            $('#SubControltblBody').html(rows);
-
-            if (response.paginationInfo) {
-                let currPage = response.paginationInfo.currentPage;
-                let totalPages = response.paginationInfo.totalPages;
-                let totalRecords = response.totalCount || 0;
-                let startIndex = response.paginationInfo.startItem || 0;
-                let endIndex = response.paginationInfo.endItem || 0;
-
-                $('#SubControlpaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-                $('#SubControlpaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
-                $('#SubControltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
-
-                currenSubControltPage = currPage;
-                SubControlgeneratePageButtons(currenSubControltPage, totalPages);
-            }
-
-            SubControlupdateCheckboxState();
-            SubControlupdateSortIndicators();
-        },
-        error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
-        }
-    });
 }
 //#endregion
 
 //#region Populate Data For Edit
 $(document).on('click', '.js-subcontrolledger-edit, .subcontrol-ledger', function (e) {
     e.preventDefault();
-    const id = parseInt($(this).data('id') || $(this).data('autoid'));
-    if (!id) return;
+    const rawId = $(this).data('id') || $(this).data('autoid');
+    if (!rawId) return;
 
+    const id = parseFloat(rawId);
     isEditModeSubControl = true;
     selectedSubControlLedger = [id];
 
@@ -383,15 +370,15 @@ $(document).on('click', '.js-subcontrolledger-edit, .subcontrol-ledger', functio
         type: 'GET',
         success: function (data) {
             if (data) {
-                $('#SubCRLAutoID').val(id);
+                $('#SubCRLAutoID').val(data.autoId || id);
                 $('#groupcode').val(data.grlCode || '');
                 $('#groupshortName').val(data.grlShortname || '');
 
-                // Group Ledger
+                // Group Ledger dropdown
                 $('#groupName').val(data.grlCode);
                 window.reinitCustomDropdownById('groupName');
 
-                // Control Ledger Dropdown
+                // Control Ledger dropdown
                 if (data.grlCode) {
                     LoadControlLedgerDropdown(data.grlCode, data.subControlLedgerCodeNo);
                 }
@@ -424,10 +411,27 @@ $(document).on('click', '.js-subcontrolledger-edit, .subcontrol-ledger', functio
                     $('#SubControldisplayModifyDate').text('');
                 }
 
-                $('.Subcontrol-checkbox').prop('checked', false);
-                $("#SubselectAll").prop('checked', false);
-                $(`.Subcontrol-checkbox[data-autoid="${id}"]`).prop('checked', true);
-                SubControlupdateCheckboxState();
+                // Switch save button to Update
+                $('.js-SubControl-save span').text('Update');
+
+                // Sync checkboxes in grid
+                $('#subControlLedgerTable tbody input[type="checkbox"]').each(function () {
+                    const rowVal = parseFloat($(this).val() || $(this).data('id'));
+                    if (rowVal === id) {
+                        $(this).prop('checked', true);
+                        $(this).closest('tr').addClass('selected-row');
+                    } else {
+                        $(this).prop('checked', false);
+                        $(this).closest('tr').removeClass('selected-row');
+                    }
+                });
+                updateSubControlCheckAllState();
+
+                // Focus and scroll
+                $('#GeneralLedgerName').focus();
+                if ($('#subcontrolForm').length) {
+                    $('html, body').animate({ scrollTop: $('#subcontrolForm').offset().top - 80 }, 300);
+                }
             }
         },
         error: function (xhr, status, error) {
@@ -438,216 +442,185 @@ $(document).on('click', '.js-subcontrolledger-edit, .subcontrol-ledger', functio
 });
 //#endregion
 
-//#region Single & Multiple Delete Sub-Control Ledger
-function SubControlLedgerDelete() {
-    const ids = selectedSubControlLedger.map(x => parseInt(x)).filter(x => !isNaN(x));
+//#region Checkbox Selection Handlers
+// Individual row checkbox
+$(document).on('change', '#subControlLedgerTable tbody input[type="checkbox"]', function () {
+    const val = parseFloat($(this).val() || $(this).data('id'));
+    if (isNaN(val)) return;
 
-    if (!ids.length) {
+    if ($(this).prop('checked')) {
+        if (!selectedSubControlLedger.includes(val)) {
+            selectedSubControlLedger.push(val);
+        }
+        $(this).closest('tr').addClass('selected-row');
+    } else {
+        selectedSubControlLedger = selectedSubControlLedger.filter(x => x !== val);
+        $(this).closest('tr').removeClass('selected-row');
+    }
+
+    updateSubControlCheckAllState();
+});
+
+// Master Checkbox
+$(document).on('change', '#subcontrolledger-check-all', function () {
+    const isChecked = $(this).prop('checked');
+    $('#subControlLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id'));
+        if (isNaN(val)) return;
+
+        if (isChecked) {
+            if (!selectedSubControlLedger.includes(val)) {
+                selectedSubControlLedger.push(val);
+            }
+            $(this).prop('checked', true).closest('tr').addClass('selected-row');
+        } else {
+            selectedSubControlLedger = selectedSubControlLedger.filter(x => x !== val);
+            $(this).prop('checked', false).closest('tr').removeClass('selected-row');
+        }
+    });
+});
+
+// DataTables Draw Event
+$(document).on('draw.dt', '#subControlLedgerTable', function () {
+    $('#subControlLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id'));
+        if (selectedSubControlLedger.includes(val)) {
+            $(this).prop('checked', true);
+            $(this).closest('tr').addClass('selected-row');
+        }
+    });
+    updateSubControlCheckAllState();
+});
+//#endregion
+
+//#region Delete Sub-Control Ledger
+function SubControlLedgerDelete(ids) {
+    if (!ids || !ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
 
     $.ajax({
         url: '/subcontrol-ledger-all-delete',
-        type: 'DELETE',
+        type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
+            if (response.isSuccess === false || response.success === false) {
+                toastr.error(response.message || "Failed to delete.");
+                return;
+            }
+
             toastr.success(response.message || "Data Deleted Successfully.");
 
             const event = new CustomEvent('SubcontrolLedgerUpdated', { detail: { newSubCRLlLedgerCodeNo: response.generalLedgerCodeNo } });
             window.dispatchEvent(event);
 
             SubControlLedgerFormClear();
-            LoadSubControlLedgerAll(currenSubControltPage, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection);
             selectedSubControlLedger = [];
-            $("#SubselectAll").prop("checked", false);
+            reloadSubControlLedgerTable();
 
             if (typeof ModalLoadSubControlLedgerAll === "function") {
                 ModalLoadSubControlLedgerAll();
             }
         },
         error: function (xhr, status, error) {
-            toastr.error("Error Occurred During Deletion.");
+            toastr.error(xhr.responseJSON?.message || "Error Occurred During Deletion.");
             console.error("Delete Error:", error);
         }
     });
 }
-//#endregion
 
-//#region Sort & Pagination Helpers 
-function SubControlupdateSortIndicators() {
-    $('.Subsortable').removeClass('sort-asc sort-desc');
-    $('.Subsortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+// Toolbar Delete Button
+$(document).on("click", "#SubcontroldeleteBtn, .js-SubControl-delete-confirm", function (e) {
+    const isSubControlBtn = $(this).hasClass('js-SubControl-delete-confirm') ||
+                            $(this).closest('#sub-control-tab-pane, #subcontrolForm').length > 0;
+    if (!isSubControlBtn) return;
 
-    const header = $(`.Subsortable[data-column="${SubControlcurrentSortColumn}"]`);
-    header.addClass(SubControlcurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+    e.preventDefault();
+    e.stopPropagation();
 
-    const icon = header.find('.sort-icon');
-    icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(SubControlcurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-}
+    const ids = getSelectedSubControlLedgerIds();
+    if (!ids.length) {
+        toastr.warning("Please select at least one record to delete.");
+        return;
+    }
 
-function SubControlgeneratePageButtons(currentPage, totalPages) {
-    const navigationDiv = $('#SubControlpageNavigation');
-    navigationDiv.empty();
+    subControlLedgerPendingDeleteIds = ids;
+    isSubControlLedgerDeletePending = true;
 
-    function createButton(page) {
-        const btn = $('<button type="button">')
-            .addClass('btn btn-sm mx-1')
-            .text(page)
-            .click(() => LoadSubControlLedgerAll(page, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, $('#SubsearchInput').val().trim(), selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl));
-
-        if (page === currentPage) {
-            btn.addClass('btn-primary');
-        } else {
-            btn.addClass('btn-outline-primary');
+    if ($('#gcDeleteModal').length) {
+        const itemText = ids.length > 1 ? `these ${ids.length} items` : 'this item';
+        $('#gcDeleteModal .title').text(`Are you sure you want to delete ${itemText}? This process cannot be undone.`);
+        $('#gcDeleteModal').modal('show');
+    } else {
+        if (confirm(`Are you sure you want to delete ${ids.length > 1 ? 'these ' + ids.length + ' items' : 'this item'}?`)) {
+            SubControlLedgerDelete(ids);
         }
-        return btn;
     }
+});
 
-    if (totalPages <= 1) return;
-
-    navigationDiv.append(createButton(1));
-
-    if (currentPage > 2) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
+// Confirmation Button inside #gcDeleteModal
+$(document).on("click", "#gcDeleteModal .js-gc-delete-confirm, #gcDeleteModal .js-delete", function (e) {
+    if (isSubControlLedgerDeletePending && subControlLedgerPendingDeleteIds.length > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const idsToDelete = [...subControlLedgerPendingDeleteIds];
+        isSubControlLedgerDeletePending = false;
+        subControlLedgerPendingDeleteIds = [];
+        $('#gcDeleteModal').modal('hide');
+        SubControlLedgerDelete(idsToDelete);
     }
+});
 
-    if (currentPage > 1 && currentPage < totalPages) {
-        navigationDiv.append(createButton(currentPage));
-    }
-
-    if (currentPage < totalPages - 1) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    navigationDiv.append(createButton(totalPages));
-}
-
-function SubControlupdateCheckboxState() {
-    $('.Subcontrol-checkbox').each(function () {
-        const ID = parseInt($(this).data('autoid'));
-        $(this).prop('checked', selectedSubControlLedger.includes(ID));
-    });
-    const allChecked = $('.Subcontrol-checkbox:visible').length > 0 &&
-        $('.Subcontrol-checkbox:visible:not(:checked)').length === 0;
-    $('#SubselectAll').prop('checked', allChecked);
-}
-
-function SubControldebounce(func, delay) {
-    let timer;
-    return function () {
-        const context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-function SubControlbindCheckboxHandlers() {
-    $(document).off('click', '.Subcontrol-checkbox').on('click', '.Subcontrol-checkbox', function () {
-        const id = parseInt($(this).data('autoid'));
-        const isChecked = $(this).prop('checked');
-
-        if (isChecked) {
-            if (!selectedSubControlLedger.includes(id)) selectedSubControlLedger.push(id);
-        } else {
-            const index = selectedSubControlLedger.indexOf(id);
-            if (index !== -1) selectedSubControlLedger.splice(index, 1);
-        }
-
-        const allChecked = $('.Subcontrol-checkbox:visible').length > 0 &&
-            $('.Subcontrol-checkbox:visible:not(:checked)').length === 0;
-        $('#SubselectAll').prop('checked', allChecked);
-    });
-}
-
-$(document).on('click', '#SubselectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.Subcontrol-checkbox:visible').prop('checked', isChecked);
-
-    $('.Subcontrol-checkbox:visible').each(function () {
-        const id = parseInt($(this).data('autoid'));
-        const index = selectedSubControlLedger.indexOf(id);
-        if (isChecked && index === -1) {
-            selectedSubControlLedger.push(id);
-        } else if (!isChecked && index !== -1) {
-            selectedSubControlLedger.splice(index, 1);
-        }
-    });
+$(document).on('hidden.bs.modal', '#gcDeleteModal', function () {
+    isSubControlLedgerDeletePending = false;
+    subControlLedgerPendingDeleteIds = [];
 });
 //#endregion
 
-//#region Document Ready
+//#region Ready Part
 $(document).ready(function () {
     LoadDropdownGRLCRL();
-    LoadSubControlLedgerAll();
-    SubControlbindCheckboxHandlers();
-
     $('#SubControldisplayLDate').text(getBangladeshDateTime());
 
+    // Save Button Handlers
     $(document).on("submit", "#subcontrolForm", function (e) {
         e.preventDefault();
         SubControlLedgerSaveOrUpdate();
     });
+
     $(document).on("click", ".js-SubControl-save", function (e) {
         e.preventDefault();
         SubControlLedgerSaveOrUpdate();
     });
 
-    $(document).on("click", "#SubcontroldeleteBtn, .js-SubControl-delete-confirm", function (e) {
+    // Clear Button Handler
+    $(document).on("click", ".SubcontrolresetBtn, .js-SubControl-clear", function (e) {
+        const isSubControlReset = $(this).hasClass('js-SubControl-clear') ||
+                                  $(this).closest('#sub-control-tab-pane, #subcontrolForm').length > 0;
+        if (!isSubControlReset) return;
         e.preventDefault();
-        SubControlLedgerDelete();
-    });
-
-    $(document).on("click", ".SubcontrolresetBtn, .js-SubControl-clear", function () {
         SubControlLedgerFormClear();
     });
 
-    $(document).on('input', '.SubsearchInput', SubControldebounce(function () {
-        const searchValue = $(this).val().trim();
-        LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, searchValue, selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl);
-    }, 500));
-
-    $(document).on('click', '#SubControlfirstPage', function () {
-        currenSubControltPage = 1;
-        LoadSubControlLedgerAll(currenSubControltPage, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl);
-    });
-
-    $(document).on('click', '#SubControlnextPage', function () {
-        currenSubControltPage++;
-        LoadSubControlLedgerAll(currenSubControltPage, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl);
-    });
-
-    $(document).on('click', '#SubControlprevPage', function () {
-        if (currenSubControltPage > 1) {
-            currenSubControltPage--;
-            LoadSubControlLedgerAll(currenSubControltPage, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl);
+    // Print Button
+    $(document).on("click", ".printBtn", function (e) {
+        if ($(this).closest('#sub-control-tab-pane, #subcontrolForm').length > 0) {
+            e.preventDefault();
+            if (typeof printForm === 'function') {
+                printForm();
+            } else {
+                window.print();
+            }
         }
     });
 
-    $(document).on('click', '#SubControllastPage', function () {
-        let lastPage = parseInt($('#SubControlpageNavigation button').last().text());
-        if (!isNaN(lastPage)) {
-            currenSubControltPage = lastPage;
-            LoadSubControlLedgerAll(currenSubControltPage, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, "", selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl);
+    // Favorite Button
+    $(document).on("click", ".subfavBtn", function () {
+        if ($(this).closest('#sub-control-tab-pane, #subcontrolForm').length > 0 && typeof toggleFavorite === 'function') {
+            toggleFavorite();
         }
-    });
-
-    $(document).on('change', '.SubControlpageSize', function () {
-        SubControlpageSize = parseInt($(this).val());
-        LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection);
-    });
-
-    $(document).on('click', '.Subsortable', function () {
-        const column = $(this).data('column');
-        if (column === SubControlcurrentSortColumn) {
-            SubControlcurrentSortDirection = (SubControlcurrentSortDirection === 'desc') ? 'asc' : 'desc';
-        } else {
-            SubControlcurrentSortColumn = column;
-            SubControlcurrentSortDirection = 'desc';
-        }
-        LoadSubControlLedgerAll(1, SubControlpageSize, SubControlcurrentSortColumn, SubControlcurrentSortDirection, $('#SubsearchInput').val().trim(), selectedGroupLedgerCodeForSubControl, selectedControlLedgerCodeForSubControl);
     });
 });
 //#endregion

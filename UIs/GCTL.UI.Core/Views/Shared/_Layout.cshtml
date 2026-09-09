@@ -23,8 +23,8 @@
     <!-- Custom datepicker CSS AFTER flatpickr, so overrides apply -->
     <link href="~/lib/custom-datepicker/custom-datepicker.css" rel="stylesheet" />
 
-    <link href="~/css/layout.css" rel="stylesheet" />
-    <link href="~/css/toolbars.css" rel="stylesheet" />
+    <link href="~/css/layout.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/toolbars.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/css/dynamic-grid.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/css/custom/custom-datatable.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/lib/custom-select-2/custom-select-2.css" rel="stylesheet" />
@@ -179,7 +179,7 @@
     <script src="~/lib/custom-datepicker/custom-datepicker.js"></script>
     @* <script src="~/js/layout/ChoiceManager.js"></script> *@
 
-    <script src="~/js/layout/layout.js"></script>
+    <script src="~/js/layout/layout.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
         $(function () {

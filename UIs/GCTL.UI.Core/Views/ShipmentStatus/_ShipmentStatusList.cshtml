@@ -10,13 +10,17 @@
     CheckColumnData = "autoId",
     CheckAllId = "selectAllShipmentStatus",
     CheckboxClass = "js-shipmentstatus-check",
+    DefaultSortColumn = "ShipmentStatusId",
+    DefaultSortDirection = "desc",
     ShowSearchBox = true,
     ShowPagination = true,
+    Bordered = true,
+    Striped = true,
     Columns = new List<GridColumn>
     {
-        new() { Data = "shipmentStatusId", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-shipmentstatus-edit", IdField = "autoId", Align = "center", SortField = "ShipmentStatusId" },
-        new() { Data = "shipmentStatus", Header = "Shipment Status", Width = "40%", Align = "left", SortField = "ShipmentStatus" },
-        new() { Data = "shortName", Header = "Short Name", Width = "20%", Align = "left", SortField = "ShortName" },
-        new() { Data = "transportModeType", Header = "Transport Mode", Width = "22%", SortField = "transportModeType" }
+        new() { Data = "shipmentStatusId", Header = "ID", Width = "12%", IsEditLink = true, EditSelectorClass = "js-shipmentstatus-edit", IdField = "autoId", Align = "center", SortField = "ShipmentStatusId" },
+        new() { Data = "shipmentStatus", Header = "Shipment Status", Width = "38%", Align = "left", SortField = "ShipmentStatus" },
+        new() { Data = "shortName", Header = "Short Name", Width = "25%", Align = "left", SortField = "ShortName" },
+        new() { Data = "transportModeType", Header = "Transport Mode", Width = "25%", Align = "left", SortField = "transportModeType" }
     }
 })

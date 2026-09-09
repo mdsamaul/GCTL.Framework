@@ -24,6 +24,7 @@ namespace GCTL.Controllers.CharOfAccount
 
         [HttpGet]
         [Route("genral-ledger/details/{id}")]
+        [Route("general-ledger/details/{id}")]
         public async Task<IActionResult> GetGeneralLedgerDetails(int id)
         {
             if (id <= 0)
@@ -156,6 +157,7 @@ namespace GCTL.Controllers.CharOfAccount
 
 
         [HttpDelete]
+        [HttpPost]
         [Route("general-ledger-all-delete")]
         public async Task<ActionResult> BulkDelete([FromBody] List<decimal> ids)
         {
@@ -231,16 +233,16 @@ namespace GCTL.Controllers.CharOfAccount
 
         //Control Ledger Info
 
-        //[HttpGet]
-        //[Route("generalUi-crl-info")]
-        //public async Task<IActionResult> GetControlLedgerInfo(string contrlcode)
-        //{
-        //    var ledger = await _subcontrolLedger.GetAllControlInfo(contrlcode);
+        [HttpGet]
+        [Route("generalUi-crl-info")]
+        public async Task<IActionResult> GetControlLedgerInfo(string contrlcode)
+        {
+            var ledger = await _subcontrolLedger.GetAllControlInfo(contrlcode);
 
-        //    if (ledger == null)  return NotFound();
+            if (ledger == null)  return NotFound();
 
-        //    return Ok(ledger);
-        //}
+            return Ok(ledger);
+        }
 
         #endregion
 

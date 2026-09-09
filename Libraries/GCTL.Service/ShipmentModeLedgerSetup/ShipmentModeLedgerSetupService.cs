@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.ShipmentModeLedgerSetup;
@@ -53,7 +53,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
 
         public async Task<List<ShipmentModeLedgerSetupSetupViewModel>> GetAllAsync()
         {
-            var entity = 
+            var query = 
                     from sml in shipmentModeLedgerrepository.All().AsNoTracking()
                     join a in subSubLedgerRepo.All().AsNoTracking()
                         on sml.AdvanceLedgerCode equals a.SubSusidiaryLedgerCodeNo into advanceGroup
@@ -66,29 +66,21 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
                     from r in revenueGroup.DefaultIfEmpty()
                     select new ShipmentModeLedgerSetupSetupViewModel
                     {
+                        Tc = sml.Tc,
                         ExpenseTypeId = sml.ExpenseTypeId ?? string.Empty,
                         ExpenseType = sml.ExpenseType ?? string.Empty,
                         ExpenseLedgerCodeNo = e.SubsidiaryLedgerName ?? string.Empty,
                         RevenueLedgerCodeNo = r.SubSubsidiaryLedgerName ?? string.Empty,
                         AdvanceLedgerCode = a.SubSubsidiaryLedgerName ?? string.Empty,
+                        ShortName = sml.ShortName ?? string.Empty,
+                        Ldate = sml.Ldate,
+                        ModifyDate = sml.ModifyDate,
+                        Luser = sml.Luser,
+                        Lip = sml.Lip,
+                        Lmac = sml.Lmac
                     };
 
-            return entity.Select(entityVM => new ShipmentModeLedgerSetupSetupViewModel
-            {
-                Tc = entityVM.Tc,
-                ExpenseTypeId = entityVM.ExpenseTypeId,
-                ExpenseType = entityVM.ExpenseType,
-                ExpenseLedgerCodeNo = entityVM.ExpenseLedgerCodeNo,
-                RevenueLedgerCodeNo = entityVM.RevenueLedgerCodeNo,
-                AdvanceLedgerCode = entityVM.AdvanceLedgerCode,
-                ShortName = entityVM.ShortName,
-                Ldate = entityVM.Ldate,
-                ModifyDate = entityVM.ModifyDate,
-                Luser = entityVM.Luser,
-                Lip = entityVM.Lip,
-                Lmac = entityVM.Lmac,
-
-            }).ToList();
+            return await query.ToListAsync();
         }
 
         #endregion
@@ -106,7 +98,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
             {
                 Tc = entity.Tc,
                 ExpenseTypeId = entity.ExpenseTypeId,
-                ExpenseType = entity.ExpenseTypeId,
+                ExpenseType = entity.ExpenseType,
                 ExpenseLedgerCodeNo = entity.ExpenseLedgerCodeNo,
                 RevenueLedgerCodeNo = entity.RevenueLedgerCodeNo,
                 AdvanceLedgerCode = entity.AdvanceLedgerCode,
@@ -147,6 +139,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
                 await shipmentModeLedgerrepository.AddAsync(entity);
                 await shipmentModeLedgerrepository.CommitTransactionAsync();
 
+                entityVM.ExpenseTypeId = strMaxNO;
                 return true;
             }
             catch (Exception ex)
@@ -175,8 +168,10 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
                     return false;
                 }
 
-                // Don't update VendorId (Primary Key)
-                entity.ExpenseType = entityVM.ExpenseType;
+                if (!string.IsNullOrWhiteSpace(entityVM.ExpenseType))
+                {
+                    entity.ExpenseType = entityVM.ExpenseType;
+                }
                 entity.ExpenseLedgerCodeNo = entityVM.ExpenseLedgerCodeNo;
                 entity.RevenueLedgerCodeNo = entityVM.RevenueLedgerCodeNo;
                 entity.AdvanceLedgerCode = entityVM.AdvanceLedgerCode;
@@ -264,16 +259,19 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
         #region Duplicate Check 
         public async Task<bool> IsExistByCodeAsync(string code)
         {
+            if (string.IsNullOrWhiteSpace(code)) return false;
             return await shipmentModeLedgerrepository.All().AnyAsync(x => x.ExpenseTypeId == code);
         }
 
         public async Task<bool> IsExistAsync(string name)
         {
+            if (string.IsNullOrWhiteSpace(name)) return false;
             return await shipmentModeLedgerrepository.All().AnyAsync(x => x.ExpenseType == name);
         }
 
         public async Task<bool> IsExistAsync(string name, string typeCode)
         {
+            if (string.IsNullOrWhiteSpace(name)) return false;
             return await shipmentModeLedgerrepository.All().AnyAsync(x => x.ExpenseType == name && x.ExpenseTypeId != typeCode);
         }
 
@@ -345,13 +343,22 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
 
         public async Task<IEnumerable<CommonSelectModel>> SelectShipmentMode()
         {
-            var data = await shipmentModeLedgerrepository.All().AsNoTracking()
-                .Select(x => new CommonSelectModel
-                {
-                    Code = x.ExpenseTypeId,
-                    Name = x.ExpenseType
-                }).ToListAsync();
-            return data;
+            var list = await shipmentModeLedgerrepository.All().AsNoTracking()
+                .Where(x => !string.IsNullOrWhiteSpace(x.ExpenseType))
+                .Select(x => x.ExpenseType.Trim())
+                .Distinct()
+                .ToListAsync();
+
+            if (!list.Any())
+            {
+                list = new List<string> { "AIR", "SEA", "ROAD", "RAIL" };
+            }
+
+            return list.Select(name => new CommonSelectModel
+            {
+                Code = name,
+                Name = name
+            }).ToList();
         }
         #endregion
 

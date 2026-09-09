@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.BranchAddress.BranchAddressPageViewModel
+@model GCTL.UI.Core.ViewModels.BranchAddress.BranchAddressPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -24,69 +24,234 @@
         background-color: #fff !important;
     }
 
-    /* Plus Button Style */
-    .btn-plus {
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        padding: 0 10px;
-        transition: background-color 0.2s ease, color 0.2s ease;
+    /* ==========================================================================
+       Branch Address Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Chart Of Account - Control Ledger pattern
+       ========================================================================== */
+    .ba-field-col {
+        position: relative !important;
     }
 
-        .btn-plus:hover {
-            background-color: #0d6efd; /* Bootstrap blue */
-            color: #ffffff;
-            border-color: #0d6efd;
-        }
-
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
-    /* Country wrapper */
-    .Ven-input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .ba-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
     }
 
-    .Ven-select-wrap {
-        flex: 1;
-        min-width: 0; /* flex child shrink fix */
+    .ba-field-col .form-label .text-danger,
+    .ba-field-col .form-label sup,
+    .ba-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
     }
 
-        /* Select2 container full width */
-        .Ven-select-wrap .select2-container {
-            width: 100% !important;
-        }
-
-    /* Plus button */
-    .btn-plus {
-        flex-shrink: 0;
-        width: 30px;
-        height: 30px;
-        padding: 0;
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease, color 0.2s ease;
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .ba-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
-        .btn-plus:hover {
-            background-color: #0d6efd;
-            color: #ffffff;
-            border-color: #0d6efd;
+    .ba-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .ba-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Full width for all inputs and select2 containers */
+    .ba-field-col .form-control,
+    .ba-field-col .form-select,
+    .ba-field-col select,
+    .ba-field-col .select2-container,
+    .ba-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
+    .ba-layout-form-col .card-body {
+        padding: 12px 18px !important;
+    }
+
+    .ba-layout-form-col .card-body .row,
+    .ba-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
+    .ba-field-col .field-fixed-width > .detached-action-btn,
+    .ba-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
+        min-height: 28px !important;
+        max-height: 34px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .ba-field-col .field-fixed-width > .detached-action-btn:hover,
+    .ba-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .ba-field-col .field-fixed-width > .detached-action-btn:focus,
+    .ba-field-col .field-fixed-width > .js-quick-add:focus,
+    .ba-field-col .field-fixed-width > .detached-action-btn:active,
+    .ba-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .ba-field-col .field-fixed-width > .detached-action-btn i,
+    .ba-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .ba-field-col .field-fixed-width {
+            gap: 8px !important;
         }
 
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
+        .ba-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
         }
+
+        .ba-field-col .field-fixed-width > .detached-action-btn,
+        .ba-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
+    }
+
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .ba-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .ba-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .ba-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .ba-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .ba-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ba-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ba-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ba-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .ba-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ba-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .ba-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .ba-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
 
 </style>
 
@@ -97,8 +262,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Left Setup Form Column -->
-            <div class="col-md-6">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 ba-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -106,13 +271,41 @@
                             Title = "Branch Address",
                             SaveBtnClass = "js-BranchAddress-save",
                             DeleteBtnClass = "js-BranchAddress-delete-confirm",
-                            ClearBtnClass = "js-BranchAddress-clear"
+                            ClearBtnClass = "js-BranchAddress-clear",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
+
                     @if (Model.TabModel != null)
                     {
                         @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
                     }
+                    else
+                    {
+                        @await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel
+                        {
+                            GroupId = "vendorTabGroup",
+                            Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
+                            {
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "vendorInfo",
+                                    TabTitle = "Vendor Info",
+                                    ControllerName = "VendorInfo",
+                                    ActionName = "Index"
+                                },
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "branchAddress",
+                                    TabTitle = "Branch Address",
+                                    ControllerName = "BranchAddress",
+                                    ActionName = "Index",
+                                    IsActive = true
+                                }
+                            }
+                        })
+                    }
+
                     <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="BranchAddress-form" asp-controller="BranchAddress">
                             <div class="js-BranchAddress-form-container">
@@ -123,8 +316,8 @@
                 </div>
             </div>
 
-            <!-- Right Table Grid Column -->
-            <div class="col-md-6">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-12 col-xxl-6 ba-layout-grid-col">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "BranchAddress-grid",
@@ -159,12 +352,19 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/pages/branchAddress.js" asp-append-version="true"></script>
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/branchAddress.js" asp-append-version="true" defer></script>
     <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "BranchAddress")'
-        };
-
-        $.branchAddress(options);
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.branchAddress === "function") {
+                var options = {
+                    baseUrl: '@Url.Action("", "BranchAddress")'
+                };
+                options.load = () => { };
+                $.branchAddress(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
     </script>
 }

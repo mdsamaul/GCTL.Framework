@@ -1,7 +1,6 @@
 ﻿@{
     ViewBag.Title = "Voucher Entry";
 }
-
 <style>
     .form-floating .selectLabel {
         font-size: 14px !important;
@@ -41,6 +40,7 @@
         padding: 8px 6px;
         width: 80px;
     }
+
     /* CSS for error styling */
     .border-error {
         border: 1px solid red !important;
@@ -72,20 +72,6 @@
     .ledger-value {
         text-align: left;
     }
-
-    .details-icon-group {
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-
-        .details-icon-group i {
-            font-size: 30px;
-            cursor: pointer;
-            color: #6c757d;
-        }
 
     .voucher-entry-table thead th {
         background-color: #f8f9fa;
@@ -122,83 +108,6 @@
     .tmp-details {
         display: inline-flex;
     }
-
-    .details-icon-group {
-        display: flex;
-        gap: 10px;
-    }
-
-    .icon-btn {
-        width: 38px;
-        height: 38px;
-        border-radius: 8px;
-        border: none;
-        background: #f4f4f4;
-        color: #4a4a4a;
-        font-size: 18px;
-        cursor: pointer;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-        transition: 0.2s;
-        position: relative;
-    }
-
-        .icon-btn:hover {
-            background: #e3e3e3;
-            transform: translateY(-2px);
-        }
-
-        .icon-btn:active {
-            transform: scale(0.95);
-        }
-
-        .icon-btn.add {
-            color: #1B873F;
-        }
-
-        .icon-btn.cancel {
-            color: #C71F2D;
-        }
-
-        .icon-btn.refresh {
-            color: #0A6BE7;
-        }
-
-        .icon-btn::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 45px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: #fff;
-            padding: 5px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.2s;
-            z-index: 99;
-        }
-
-        .icon-btn::before {
-            content: "";
-            position: absolute;
-            bottom: 38px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 5px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-            opacity: 0;
-            transition: 0.2s;
-            z-index: 98;
-        }
-
-        .icon-btn:hover::after,
-        .icon-btn:hover::before {
-            opacity: 1;
-        }
 
     .tooltip-btn {
         position: relative;
@@ -244,6 +153,152 @@
     #Narration {
         resize: none;
     }
+
+    /* ===== Details icon group (single source of truth) ===== */
+    .details-icon-group {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        align-content: center;
+    }
+
+    .icon-btn {
+        position: relative;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: #f8f9fa;
+        color: #4a4a4a;
+        line-height: 1;
+        flex-shrink: 0;
+        cursor: pointer;
+        /* box-shadow: 0 1px 3px rgba(0,0,0,0.15); */
+        transition: 0.2s;
+    }
+
+        .icon-btn:hover {
+            background: #eef1f4;
+            border-color: #c8ced3;
+            transform: translateY(-2px);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Fixed, consistent icon size across every screen */
+        .icon-btn .default-icon,
+        .icon-btn .icon-stack {
+            font-size: 22px;
+            width: 22px;
+            height: 22px;
+        }
+
+        .icon-btn.add {
+            color: #1B873F;
+        }
+
+        .icon-btn.cancel {
+            color: #C71F2D;
+        }
+
+        .icon-btn.refresh {
+            color: #0A6BE7;
+        }
+
+        .icon-btn.add .default-icon,
+        .icon-btn.cancel .default-icon {
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .icon-btn.add:hover .default-icon {
+            transform: scale(1.15);
+            color: #1B873F;
+        }
+
+        .icon-btn.cancel:hover .default-icon {
+            transform: scale(1.15);
+            color: #C71F2D;
+        }
+
+        .icon-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 5px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+            z-index: 99;
+        }
+
+        .icon-btn::before {
+            content: "";
+            position: absolute;
+            bottom: 38px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+            opacity: 0;
+            transition: 0.2s;
+            z-index: 98;
+        }
+
+        .icon-btn:hover::after,
+        .icon-btn:hover::before {
+            opacity: 1;
+        }
+
+    /* Refresh icon stack */
+    .icon-stack {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .icon-stack .journal-base,
+        .icon-stack .refresh-icon {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .icon-stack .journal-base {
+            opacity: 0.5;
+        }
+
+        .icon-stack .refresh-icon {
+            transition: transform 0.3s ease;
+        }
+
+    .icon-btn.refresh:hover .refresh-icon {
+        transform: rotate(180deg) scale(1.15);
+        color: #0A6BE7;
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -270,7 +325,8 @@
                             PrintBtnClass = "printBtn",
                             ExcelBtnClass = "export-excel",
                             PdfBtnClass = "export-pdf",
-                            EnablePrint = true
+                            EnablePrint = true,
+                            ShowExtraContent=true
                         })
                     </div>
                     <div class="card-body px-4 py-3">

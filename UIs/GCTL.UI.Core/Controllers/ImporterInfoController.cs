@@ -121,7 +121,7 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (await importerInfoService.IsExistAsync(modelVM.ImporterId, modelVM.ImporterName))
+                if (await importerInfoService.IsExistAsync(modelVM.ImporterName, modelVM.ImporterId))
                 {
                     return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                 }

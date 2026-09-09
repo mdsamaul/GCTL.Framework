@@ -174,8 +174,8 @@
             </div>
 
             @* ---------- Bottom Toolbar ---------- *@
-            <div class="row g-4 no-print" style="margin-top: 9px;">
-                <div class="col-12 col-md-6 col-xxl-12 sc-toolbar-col">
+            <div class="row g-4 no-print">
+                <div class="col-12">
                     @await Html.PartialAsync("_Toolbars", new ToobarModel
                     {
                         Title = "",
@@ -187,7 +187,7 @@
                         SaveBtnId = "btnSaveDL-bottom",
                         SaveBtnClass = "js-salesdl-save",
                         ReserveActionSlot = true,
-                        Style = "border-bottom:0px !important; padding-left:610px",
+                        Style = "border-bottom:0px !important; padding-left:170px",
                         ShowExtraContentLaptopOnly = true,
                         ShowExtraContent1 = true,
                         ShowExtraContent2 = false

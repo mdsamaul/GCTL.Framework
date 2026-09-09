@@ -119,7 +119,7 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
-                if (await exporterInfoService.IsExistAsync(modelVM.ExporterId, modelVM.ExporterName))
+                if (await exporterInfoService.IsExistAsync(modelVM.ExporterName, modelVM.ExporterId))
                 {
                     return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
                 }

@@ -98,13 +98,17 @@
                     },
                     dataSrc: function (json) {
                         console.log(json);
+                        if (!json) return [];
                         if (json.recordsTotal === undefined && json.totalCount !== undefined) {
                             json.recordsTotal = json.totalCount;
                         }
                         if (json.recordsFiltered === undefined && json.filteredCount !== undefined) {
                             json.recordsFiltered = json.filteredCount;
                         }
-                        return json.data !== undefined ? json.data : json;
+                        if (json.data !== undefined) {
+                            return json.data !== null ? json.data : [];
+                        }
+                        return Array.isArray(json) ? json : [];
                     }
                 },
                 columnDefs: [{ targets: '_all', orderSequence: ['asc', 'desc'] }].concat(settings.columnDefs),
@@ -227,7 +231,7 @@
                 return null;
             }
 
-            var config = $table.data('grid-config');
+            var config = $table.data('grid-config') || $table.attr('data-grid-config');
             if (typeof config === 'string') {
                 try { config = JSON.parse(config); } catch (e) { console.error("Invalid grid config JSON", e); return null; }
             }

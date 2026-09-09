@@ -1,4 +1,4 @@
-﻿.choices.is-disabled .choices__inner, .choices.is-disabled .choices__input {
+.choices.is-disabled .choices__inner, .choices.is-disabled .choices__input {
     background: #eff2f6 !important
 }
 
@@ -99,7 +99,7 @@ select.form-control-sm:disabled {
 }
 
 .dropdown-item {
-    font-size: .750rem;
+    font-size: 12.5px;
 }
 
     .dropdown-item:hover {
@@ -113,61 +113,72 @@ select.form-control-sm:disabled {
 
 table.dataTable.table-sm > tbody > tr > td,
 table.dataTable.table-sm > thead > tr > th {
-    padding-top: 0.1rem;
-    padding-bottom: 0.1rem;
-}
-.form-control-sm,
-.form-select-sm {
-    font-size: 0.82rem;
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+    font-size: 12.5px;
 }
 
-label , .form-label {
-    font-size: 0.75rem !important;
-    font-weight: 450 !important;
-    color: #000 !important;
+.form-control,
+.form-select,
+.form-control-sm,
+.form-select-sm {
+    font-size: 13px !important;
+    font-family: 'Nunito', sans-serif !important;
+}
+
+label, .form-label {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
     margin-bottom: 2px !important;
 }
 
 .js-quick-add {
     border-color: #ced4da !important;
 }
-.form-control::placeholder {
-    color: #8a9bb8 !important;
+
+.form-control::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: #94a3b8 !important;
     font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 13px !important;
     opacity: 1 !important;
 }
 
-.form-control::-webkit-input-placeholder {
-    color: #8a9bb8 !important;
+.form-control::-webkit-input-placeholder,
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    color: #94a3b8 !important;
     font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 13px !important;
 }
 
-.form-control::-moz-placeholder {
-    color: #8a9bb8 !important;
+.form-control::-moz-placeholder,
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+    color: #94a3b8 !important;
     font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 13px !important;
     opacity: 1 !important;
 }
 
-
-.form-control:-ms-input-placeholder {
-    color: #8a9bb8 !important;
+.form-control:-ms-input-placeholder,
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    color: #94a3b8 !important;
     font-style: italic !important;
-    font-family: "Segoe UI", Arial, sans-serif !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 13px !important;
+}
 
-    table.dataTable.table-sm > tbody > tr > td,
-    table.dataTable.table-sm > thead > tr > th {
-        padding-top: 0.1rem;
-        padding-bottom: 0.1rem;
-    }
-
-    div.dt-layout-end,
-    div.dt-layout-full,
-    div.dt-layout-start {
-        padding: 0;
-    }
+div.dt-layout-end,
+div.dt-layout-full,
+div.dt-layout-start {
+    padding: 0;
 }
 
 

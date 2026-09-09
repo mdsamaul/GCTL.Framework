@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
     $.transportInformation = function (options) {
 
         //#region Default options
@@ -268,7 +268,9 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        window.initCustomDropdowns(settings.formContainer, true);
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns(settings.formContainer, true);
+                        }
 
                         resolve(data)
                     },
@@ -291,7 +293,11 @@
 
             if (!code) {
                 toastr.info('select Transport Type');
-                $('#VehicleTypeId').select2('open');
+                if ($.fn.select2 && $('#VehicleTypeId').data('select2')) {
+                    $('#VehicleTypeId').select2('open');
+                } else {
+                    $('#VehicleTypeId').trigger('focus');
+                }
                 return false;
             }
 

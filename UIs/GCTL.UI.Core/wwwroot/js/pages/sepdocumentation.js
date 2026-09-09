@@ -462,7 +462,7 @@ $(document).ready(function () {
         }
 
         const model = collectFormData();
-        debugger
+       
         console.log(model);
         $.ajax({
             url: '/SepDocUpdate/Save',
@@ -475,7 +475,7 @@ $(document).ready(function () {
                     toastr.success(response.message || 'Saved successfully');
                     currentPage = 1;
                     bottomCurrentPage = 1;
-                    loadJobs();
+                   
                     loadBottomJobs();
                     clearForm();
                     setDate("#jobDate", new Date());
