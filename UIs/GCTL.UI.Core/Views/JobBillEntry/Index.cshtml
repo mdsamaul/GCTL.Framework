@@ -41,7 +41,7 @@
         font-size: 13px;
         padding: 2px 6px;
         height: 28px;
-        border-radius: 3px;
+        /* border-radius: 3px; */
         color: #000 !important;
     }
 
@@ -75,7 +75,9 @@
     .input-group .input-group-text {
         padding-top: 0px !important;
         padding-bottom: 0px !important;
-        font-size: 13px;
+        border-top-left-radius: 3px !important;
+        border-bottom-left-radius: 3px !important;
+        font-size: 0.78rem;
     }
 
     .custom-dd-box {
@@ -87,6 +89,13 @@
     .custom-dd-input {
         font-size: 13px !important;
     }
+
+    #dateFrom + input,
+    #dateTo + input {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
+
 </style>
 
 <div class="container-fluid p-0">
@@ -103,7 +112,7 @@
     @* Card 1: Job Entry List (_CustomGrid with Radio) *@
     <fieldset class="custom-fieldset card p-2 pt-3">
         <legend class="float-none w-auto px-2 fw-bold text-secondary small">
-            <i class="fas fa-list me-1 text-primary"></i> Job Entry List
+            Job Entry List
         </legend>
 
         <div id="jobSummary">
@@ -131,19 +140,19 @@
                     </div>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <!-- Empty -->
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="row align-items-center gx-2">
                         <label class="col-auto col-form-label fw-semibold">Date</label>
                         <div class="col">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text py-0">From</span>
-                                <input type="text" class="form-control form-control-sm custom-datepicker caiCon me-1" id="dateFrom" placeholder="DD/MM/YYYY">
+                                <input type="text" class="form-control form-control-sm custom-datepicker caiCon me-1  rounded-start-0" id="dateFrom" placeholder="DD/MM/YYYY">
                                 <span class="input-group-text py-0 ms-1">To</span>
-                                <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="dateTo" placeholder="DD/MM/YYYY">
+                                <input type="text" class="form-control form-control-sm custom-datepicker caiCon  rounded-start-0" id="dateTo" style="border-radius: 0px;" placeholder="DD/MM/YYYY">
                             </div>
                         </div>
                     </div>
@@ -168,7 +177,7 @@
                 CardWrapper = false,
                 Columns = new()
                 {
-                    new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },
+                    new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left", IsWrapable = false, IsCopyable = true },
                     new() { Data = "jobDate", Header = "Job Date", Width = "8%", RenderFn = "formatDate" },
                     new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "12%" },
                     new() { Data = "customerName", Header = "Customer", Width = "18%", Align = "left" },
@@ -184,7 +193,7 @@
     @* Card 2: Bill & Job Details (Exact form placement from your Razor code) *@
     <fieldset class="custom-fieldset card p-3">
         <legend class="float-none w-auto px-2 fw-bold text-secondary small">
-            <i class="fas fa-file-invoice-dollar me-1 text-primary"></i> Bill & Job Details
+            Bill & Job Details
         </legend>
 
         <input type="hidden" id="sdId" />
@@ -214,14 +223,14 @@
             <!-- Job Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Job Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="jobDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="jobDate" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- Customer Name -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Customer Name</label>
-                <select class="form-select form-select-sm custom-select-single" id="customerId" data-placeholder="Select Customer" asp-items="ViewBag.CustomerName as SelectList">
+                <select class="form-select form-select-sm custom-select-single" disabled id="customerId" data-placeholder="Select Customer" asp-items="ViewBag.CustomerName as SelectList">
                     <option value="">Select Customer</option>
                 </select>
                 <span class="text-danger"></span>
@@ -229,14 +238,14 @@
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Customer Address</label>
-                <textarea class="form-control form-control-sm" rows="2" id="customerAddress"></textarea>
+                <textarea class="form-control form-control-sm" rows="2" readonly id="customerAddress"></textarea>
                 <span class="text-danger"></span>
             </div>
 
             <!-- Customer Delivery Address -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Customer Delivery Address</label>
-                <select class="form-select form-select-sm custom-select-single" id="customerDeliveryAddress" data-placeholder="Select Customer Delivery Address">
+                <select class="form-select form-select-sm custom-select-single" disabled id="customerDeliveryAddress" data-placeholder="Select Customer Delivery Address">
                     <option value="">Select Customer Delivery Address</option>
                 </select>
                 <span class="text-danger"></span>
@@ -244,7 +253,7 @@
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Shipment Mode</label>
-                <select class="form-select form-select-sm custom-select-single" id="shipmentModeId" data-placeholder="Select Shipment Mode" asp-items="ViewBag.ShipmentMode as SelectList">
+                <select class="form-select form-select-sm custom-select-single" disabled id="shipmentModeId" data-placeholder="Select Shipment Mode" asp-items="ViewBag.ShipmentMode as SelectList">
                     <option value="">Select Shipment Mode</option>
                 </select>
                 <span class="text-danger"></span>
@@ -253,7 +262,7 @@
             <!-- Port Name -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Port Name</label>
-                <select class="form-select form-select-sm custom-select-single" id="portId" data-placeholder="Select Port" asp-items="ViewBag.PortName as SelectList">
+                <select class="form-select form-select-sm custom-select-single" disabled id="portId" data-placeholder="Select Port" asp-items="ViewBag.PortName as SelectList">
                     <option value="">Select Port</option>
                 </select>
                 <span class="text-danger"></span>
@@ -262,41 +271,41 @@
             <!-- Doc's Received Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Doc's Received Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docsReceivedDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="docsReceivedDate" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- LC/EXP No -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">EXP No</label>
-                <input class="form-control form-control-sm" id="lcExpNo" />
+                <input class="form-control form-control-sm" readonly id="lcExpNo" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">EXP Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="expDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="expDate" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- LC Value -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">LC NO</label>
-                <input class="form-control form-control-sm" id="lcNo" />
+                <input class="form-control form-control-sm" readonly id="lcNo" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">LC Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="lcDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="lcDate" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">LC Value</label>
                 <div class="d-flex gap-2 group-horizontal">
-                    <input type="number" class="form-control form-control-sm" id="lcValue" />
-                    <select class="form-select form-select-sm custom-select-single" id="lcValCurrencyId" data-placeholder="Select Currency" asp-items="ViewBag.CurrencyForLC as SelectList">
+                    <input type="number" class="form-control form-control-sm" readonly id="lcValue" />
+                    <select class="form-select form-select-sm custom-select-single" disabled id="lcValCurrencyId" data-placeholder="Select Currency" asp-items="ViewBag.CurrencyForLC as SelectList">
                         <option value="">Select Currency</option>
                     </select>
                 </div>
@@ -307,8 +316,8 @@
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">BDT Rate</label>
                 <div class="d-flex gap-2 group-horizontal">
-                    <input type="number" class="form-control form-control-sm" id="bdtRate" />
-                    <input type="number" class="form-control form-control-sm" id="bdtTotal" />
+                    <input type="number" class="form-control form-control-sm" readonly id="bdtRate" />
+                    <input type="number" class="form-control form-control-sm" readonly id="bdtTotal" />
                 </div>
                 <span class="text-danger"></span>
                 <span class="text-danger"></span>
@@ -317,22 +326,22 @@
             <!-- Invoice No -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Invoice No</label>
-                <input class="form-control form-control-sm" id="invoiceNo" />
+                <input class="form-control form-control-sm" readonly id="invoiceNo" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- Invoice Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Invoice Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="invoiceDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="invoiceDate" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Invoice Value</label>
                 <div class="d-flex gap-2 group-horizontal">
-                    <input type="number" class="form-control form-control-sm" id="invoiceValue" />
-                    <select class="form-select form-select-sm custom-select-single" id="invValCurrencyId" data-placeholder="Select Currency" asp-items="ViewBag.CurrencyForInvoice as SelectList">
+                    <input type="number" class="form-control form-control-sm" readonly id="invoiceValue" />
+                    <select class="form-select form-select-sm custom-select-single" disabled id="invValCurrencyId" data-placeholder="Select Currency" asp-items="ViewBag.CurrencyForInvoice as SelectList">
                         <option value="">Select Currency</option>
                     </select>
                 </div>
@@ -343,8 +352,8 @@
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">BDT Rate</label>
                 <div class="d-flex gap-2 group-horizontal">
-                    <input type="number" class="form-control form-control-sm" id="invBdtRate" />
-                    <input type="number" class="form-control form-control-sm" id="invBdtTotal" />
+                    <input type="number" class="form-control form-control-sm" readonly id="invBdtRate" />
+                    <input type="number" class="form-control form-control-sm" readonly id="invBdtTotal" />
                 </div>
                 <span class="text-danger"></span>
                 <span class="text-danger"></span>
@@ -352,93 +361,93 @@
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Number of Transport</label>
-                <input class="form-control form-control-sm" id="noTransport" />
+                <input class="form-control form-control-sm" readonly id="noTransport" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Demarage Day(s)</label>
-                <input class="form-control form-control-sm" id="demarageDay" />
+                <input class="form-control form-control-sm" readonly id="demarageDay" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- IP/EP No -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">IP/EP No</label>
-                <input class="form-control form-control-sm" id="ipEpNo" />
+                <input class="form-control form-control-sm" readonly id="ipEpNo" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- IP Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">IP Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="ipDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="ipDate" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Undertaking No</label>
-                <input class="form-control form-control-sm" id="undertakingNo" />
+                <input class="form-control form-control-sm" readonly id="undertakingNo" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Arrival Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="arrivalDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="arrivalDate" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- B/L No -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">B/L No</label>
-                <input class="form-control form-control-sm" id="blNo" />
+                <input class="form-control form-control-sm" readonly id="blNo" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- B/L Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">B/L Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="blDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="blDate" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- B/E No -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">B/E No</label>
-                <input class="form-control form-control-sm" id="beNo" />
+                <input class="form-control form-control-sm" readonly id="beNo" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- B/E Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">B/E Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="beDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="beDate" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">EFR No</label>
-                <input class="form-control form-control-sm" id="efrNo" />
+                <input class="form-control form-control-sm" readonly id="efrNo" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- EFR Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">EFR Date</label>
-                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="efrDate" />
+                <input type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="efrDate" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">ROT No</label>
-                <input class="form-control form-control-sm" id="rotNo" />
+                <input class="form-control form-control-sm" readonly id="rotNo" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- Importer Name -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Importer Name</label>
-                <select class="form-select form-select-sm custom-select-single" id="importerId" data-placeholder="Select Importer" asp-items="ViewBag.ImporterName as SelectList">
+                <select class="form-select form-select-sm custom-select-single" disabled id="importerId" data-placeholder="Select Importer" asp-items="ViewBag.ImporterName as SelectList">
                     <option value="">Select Importer</option>
                 </select>
                 <span class="text-danger"></span>
@@ -446,21 +455,21 @@
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">HAWB</label>
-                <input class="form-control form-control-sm" id="hawb" />
+                <input class="form-control form-control-sm" readonly id="hawb" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- Container No -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Container No</label>
-                <input class="form-control form-control-sm" id="containerNo" />
+                <input class="form-control form-control-sm" readonly id="containerNo" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- Material Description -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Material Description</label>
-                <textarea class="form-control form-control-sm" rows="2" id="materialDescription"></textarea>
+                <textarea class="form-control form-control-sm" rows="2" readonly id="materialDescription"></textarea>
                 <span class="text-danger"></span>
             </div>
 
@@ -468,8 +477,8 @@
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Quantity & Unit (PKG)</label>
                 <div class="d-flex gap-2 group-horizontal">
-                    <input type="number" class="form-control form-control-sm" id="quantity" />
-                    <select class="form-select form-select-sm custom-select-single" id="quantityUnitId" data-placeholder="Select Unit" asp-items="ViewBag.QuantityUnit as SelectList">
+                    <input type="number" class="form-control form-control-sm" readonly id="quantity" />
+                    <select class="form-select form-select-sm custom-select-single" disabled id="quantityUnitId" data-placeholder="Select Unit" asp-items="ViewBag.QuantityUnit as SelectList">
                         <option value="">Select Unit</option>
                     </select>
                 </div>
@@ -481,8 +490,8 @@
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Weight & Unit (KG)</label>
                 <div class="d-flex gap-2 group-horizontal">
-                    <input type="number" class="form-control form-control-sm" id="weight" />
-                    <select class="form-select form-select-sm custom-select-single" id="weightUnitId" data-placeholder="Select Unit" asp-items="ViewBag.WeightUnit as SelectList">
+                    <input type="number" class="form-control form-control-sm" readonly id="weight" />
+                    <select class="form-select form-select-sm custom-select-single" disabled id="weightUnitId" data-placeholder="Select Unit" asp-items="ViewBag.WeightUnit as SelectList">
                         <option value="">Select Unit</option>
                     </select>
                 </div>
@@ -493,8 +502,8 @@
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Packing Quantity</label>
                 <div class="d-flex gap-2 group-horizontal">
-                    <input type="number" class="form-control form-control-sm" id="packQty" />
-                    <select class="form-select form-select-sm custom-select-single" id="packQtyUnitId" data-placeholder="Select Unit" asp-items="ViewBag.QuantityUnit as SelectList">
+                    <input type="number" class="form-control form-control-sm" readonly id="packQty" />
+                    <select class="form-select form-select-sm custom-select-single" disabled id="packQtyUnitId" data-placeholder="Select Unit" asp-items="ViewBag.QuantityUnit as SelectList">
                         <option value="">Select Unit</option>
                     </select>
                 </div>
@@ -505,21 +514,21 @@
             <!-- FWDR (Shipping Agent) -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">FWDR (Shipping Agent)</label>
-                <input class="form-control form-control-sm" id="forwarderId" />
+                <input class="form-control form-control-sm" readonly id="forwarderId" />
                 <span class="text-danger"></span>
             </div>
 
             <!-- Vessel/Rott No -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Vessel/Rott No</label>
-                <input class="form-control form-control-sm" id="vesselRottNo" />
+                <input class="form-control form-control-sm" readonly id="vesselRottNo" />
                 <span class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">ETA Delivery Date</label>
                 <input asp-for="ETADeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
-                       id="etaDeliveryDate" />
+                       readonly id="etaDeliveryDate" />
                 <span asp-validation-for="ETADeliveryDate" class="text-danger"></span>
             </div>
 
@@ -527,20 +536,20 @@
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Actual Delivery Date</label>
                 <input asp-for="ActualDeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
-                       id="actualDeliveryDate" />
+                       readonly id="actualDeliveryDate" />
                 <span asp-validation-for="ActualDeliveryDate" class="text-danger"></span>
             </div>
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Unstuffing Date</label>
-                <input asp-for="UnstuffingDate" type="date" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffingDate" />
+                <input asp-for="UnstuffingDate" type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="unstuffingDate" />
                 <span asp-validation-for="UnstuffingDate" class="text-danger"></span>
             </div>
 
             <!-- Place of Loading -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Place of Loading</label>
-                <select asp-for="PlaceOfLoadingID" class="form-select form-select-sm custom-select-single" id="placeOfLoadingId" data-placeholder="Select Place" asp-items="ViewBag.PlaceOfLoading as SelectList">
+                <select asp-for="PlaceOfLoadingID" class="form-select form-select-sm custom-select-single" disabled id="placeOfLoadingId" data-placeholder="Select Place" asp-items="ViewBag.PlaceOfLoading as SelectList">
                     <option value="">Select Place</option>
                 </select>
                 <span asp-validation-for="PlaceOfLoadingID" class="text-danger"></span>
@@ -549,14 +558,14 @@
             <!-- ETD Date -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">ETD Date</label>
-                <input asp-for="ETDDate" type="date" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
+                <input asp-for="ETDDate" type="date" class="form-control form-control-sm custom-datepicker caiCon" readonly id="etdDate" />
                 <span asp-validation-for="ETDDate" class="text-danger"></span>
             </div>
 
             <!-- Shed / Yard -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Shed / Yard</label>
-                <select asp-for="ShedYardID" class="form-select form-select-sm custom-select-single" id="shedYardId" data-placeholder="Select Shed/Yard" asp-items="ViewBag.ShedYard as SelectList">
+                <select asp-for="ShedYardID" class="form-select form-select-sm custom-select-single" disabled id="shedYardId" data-placeholder="Select Shed/Yard" asp-items="ViewBag.ShedYard as SelectList">
                     <option value="">Select Shed/Yard</option>
                 </select>
                 <span asp-validation-for="ShedYardID" class="text-danger"></span>
@@ -565,7 +574,7 @@
             <!-- Freight Charge -->
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Freight Charge</label>
-                <select asp-for="FreightChargeID" class="form-select form-select-sm custom-select-single" id="freightChargeId" data-placeholder="Select Freight Charge" asp-items="ViewBag.FreightCharge as SelectList">
+                <select asp-for="FreightChargeID" class="form-select form-select-sm custom-select-single" disabled id="freightChargeId" data-placeholder="Select Freight Charge" asp-items="ViewBag.FreightCharge as SelectList">
                     <option value="">Select Freight Charge</option>
                 </select>
                 <span asp-validation-for="FreightChargeID" class="text-danger"></span>
@@ -573,7 +582,7 @@
 
             <div class="col-lg-4 col-md-6">
                 <label class="form-label">Console No</label>
-                <input class="form-control form-control-sm" id="consoleNo" />
+                <input class="form-control form-control-sm" readonly id="consoleNo" />
                 <span class="text-danger"></span>
             </div>
 
@@ -717,7 +726,7 @@
     @* Card 6: Bill History *@
     <fieldset class="custom-fieldset card p-2 mb-3">
         <legend class="float-none w-auto px-2 fw-bold text-secondary small">
-            <i class="fas fa-history me-1 text-primary"></i> Bill History
+            Bill History
         </legend>
 
         @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
@@ -737,15 +746,15 @@
             CardWrapper = false,
             Columns = new()
             {
-                new() { Data = "billNo", Header = "Bill No", Align = "left", IsEditLink = true, EditSelectorClass = "bill-detail-link", IdField = "billNo" },
+                new() { Data = "billNo", Header = "Bill No", Align = "left", IsEditLink = true,IsWrapable = false, EditSelectorClass = "bill-detail-link", IdField = "billNo", IsCopyable = true },
                 new() { Data = "billDate", Header = "Bill Date", RenderFn = "formatDate" },
-                new() { Data = "jobNo", Header = "Job No", Align = "left" },
+                new() { Data = "jobNo", Header = "Job No", Align = "left", IsWrapable = false, IsCopyable = true },
                 new() { Data = "shipmentMode", Header = "Shipment Mode" },
                 new() { Data = "customer", Header = "Customer", Align = "left" },
                 new() { Data = "deliveryDate", Header = "Delivery Date", RenderFn = "formatDate" },
                 new() { Data = "hawb", Header = "HAWB", Align = "left" },
                 new() { Data = "beNo", Header = "BE No", Align = "left" },
-                new() { Data = "invoiceValue", Header = "Invoice Value", Align = "right" }
+                new() { Data = "invoiceValue", Header = "Invoice Value", Align = "right", TabularNumber = true }
             }
         })
     </fieldset>

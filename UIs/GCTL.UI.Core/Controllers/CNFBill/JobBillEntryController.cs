@@ -262,10 +262,35 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> SaveBill([FromBody] SaveBillRequestDto request)
+        {
+            var result = await _billService.SaveBillAsync(request, LoginInfo);
+            return Json(new { success = result.Success, message = result.Message, data = result.Data });
+        }
+
+        [HttpPost]
         public async Task<IActionResult> DeleteBills([FromBody] List<string> billNos)
         {
             var result = await _billService.DeleteBillsAsync(billNos, LoginInfo);
             return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CustomerInfo(string customerId)
+        {
+            if (string.IsNullOrEmpty(customerId))
+            {
+                return BadRequest("CustomerId is required.");
+            }
+
+            var result = await _sepDocumentationService.GetCustomerInfoAsync(customerId);
+
+            if (!result.Success)
+            {
+                return NotFound(result.Message);
+            }
+
+            return Json(result);
         }
     }
 }

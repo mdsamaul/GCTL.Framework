@@ -273,11 +273,11 @@ mark.search-highlight {
     border: 1px solid #fef08a;
 }
 
-/* Tabular Monospaced Numbers */
+/* Tabular Numbers */
 .tabular-number {
-    font-variant-numeric: tabular-nums;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 13px;
+    font-family: var(--font-body, var(--bs-body-font-family, sans-serif)) !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" !important;
 }
 
 /* Text Truncate with Ellipsis */
