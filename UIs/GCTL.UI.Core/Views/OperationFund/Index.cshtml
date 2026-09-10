@@ -54,44 +54,62 @@
     }
 
 
-    .custom-fieldset {
-        position: relative;
-        border: 2px solid #ddd;
-        border-radius: 10px;
-        padding: 30px 20px 20px 20px;
-        margin: 20px 0;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    /* Flat Design */
+    .custom-fieldset,
+    .custom-fieldset:hover,
+    .card,
+    .card:hover,
+    .btn,
+    .btn:hover,
+    .form-control,
+    .form-select,
+    .table {
+        box-shadow: none !important;
+        transform: none !important;
     }
 
-        .custom-fieldset legend {
-            position: absolute;
-            top: -14px;
-            left: 20px;
-            background-color: white;
-            padding: 0 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #727272;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: auto;
-        }
+    .custom-fieldset {
+        position: relative;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px;
+        padding: 18px 14px 12px 14px;
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
+        background-color: #fff;
+    }
 
-        .custom-fieldset input[type="submit"] {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background-color: #fff;
-            border: 2px solid #333;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    .custom-fieldset legend {
+        position: absolute;
+        top: -11px;
+        left: 14px;
+        background-color: #fff;
+        padding: 0 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        border-radius: 3px;
+        width: auto;
+        margin-bottom: 0;
+    }
 
-            .custom-fieldset input[type="submit"]:hover {
-                background-color: #45a049;
-                border-color: #45a049;
-            }
+    thead th,
+    div.dt-container table.dataTable thead th,
+    .custom-grid-table thead th {
+        background: #f8fafc !important;
+        background-image: none !important;
+        color: #334155 !important;
+        font-size: 12.5px;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: none !important;
+    }
+
+    .bottom-nav .card {
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+    }
 </style>
 
 <div class="container-fluid p-0">
