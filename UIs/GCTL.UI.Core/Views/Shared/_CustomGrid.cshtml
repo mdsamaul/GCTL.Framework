@@ -19,6 +19,29 @@
     };
 
     var collapseId = $"collapse_{Model.GridId}";
+
+    // Determine whether to show the header Check All checkbox (default true for all grids)
+    bool showCheckAll = true;
+    var showCheckAllProp = Model.GetType().GetProperty("ShowCheckAll");
+    if (showCheckAllProp != null && showCheckAllProp.PropertyType == typeof(bool))
+    {
+        showCheckAll = (bool)(showCheckAllProp.GetValue(Model) ?? true);
+    }
+    else if (string.IsNullOrEmpty(Model.CheckAllId) || 
+             Model.CheckAllId.Equals("none", StringComparison.OrdinalIgnoreCase) || 
+             Model.CheckAllId.Equals("false", StringComparison.OrdinalIgnoreCase))
+    {
+        showCheckAll = false;
+    }
+
+    if (ViewData["ShowCheckAll"] is bool vShowCheckAll)
+    {
+        showCheckAll = vShowCheckAll;
+    }
+    else if (ViewData["HideCheckAll"] is bool vHideCheckAll)
+    {
+        showCheckAll = !vHideCheckAll;
+    }
 }
 
 @if (Model.CardWrapper || Model.IsCollapsible || !string.IsNullOrEmpty(Model.CardTitle))
@@ -75,15 +98,19 @@
                                 }
                                 @if (Model.ShowCheckbox)
                                 {
-                                    <th class="text-center align-middle no-sort" style="width:3%; min-width: 30px;">
-                                        <span class="user-select-none">Sel.</span><br />
-                                        <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
-                                               disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                                    <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
+                                        <span class="user-select-none">Sel.</span>
+                                        @if (showCheckAll)
+                                        {
+                                            <br />
+                                            <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
+                                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                                        }
                                     </th>
                                 }
                                 else if (Model.UseRadio)
                                 {
-                                    <th class="text-center align-middle no-sort" style="width:3%; min-width: 30px;">
+                                    <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
                                         <span class="user-select-none">Sel.</span>
                                     </th>
                                 }
@@ -129,15 +156,19 @@ else
                     }
                     @if (Model.ShowCheckbox)
                     {
-                        <th class="text-center align-middle no-sort" style="width:2%; min-width: 30px; padding-top: 0px!important; padding-bottom: 0px!important;">
-                            <span class="user-select-none">Sel.</span><br />
-                            <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
-                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                        <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
+                            <span class="user-select-none">Sel.</span>
+                            @if (showCheckAll)
+                            {
+                                <br />
+                                <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
+                                       disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                            }
                         </th>
                     }
                     else if (Model.UseRadio)
                     {
-                        <th class="text-center align-middle no-sort" style="width:2%; min-width: 30px; padding-top: 0px!important; padding-bottom: 0px!important;">
+                        <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
                             <span class="user-select-none">Sel.</span>
                         </th>
                     }

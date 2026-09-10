@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Service.Pagination;
 
@@ -23,6 +23,7 @@ namespace GCTL.Service.VoucherEntry
 
         #region Voucher Entry Tmp Details Delete Single Or More
         Task<bool> DeleteAsync(int? ids);
+        Task<bool> DeleteAsync(string userId);
 
         #endregion
 
@@ -45,17 +46,20 @@ namespace GCTL.Service.VoucherEntry
 
         #region Get Master Voucher Information with specific Master ID
         Task<VoucherEntryVM> GetByMasterIdAsync(decimal id);
+        Task<VoucherEntryVM> GetByVoucherCodeAsync(string voucherCode);
         #endregion
 
 
         #region Get Details Voucher Information with specific Details ID
         Task<List<VoucherDetailsVM>> GetDetailsByVoucherIdAsync(decimal? voucherEntryautoId);
+        Task<List<VoucherDetailsVM>> GetDetailsByVoucherCodeAsync(string voucherCode);
         #endregion
 
 
         #region When Edit Button Clicked then Details table data Copied to Tmp Table
 
         Task<bool> DetailsCopiedToTmp(decimal id, string? currenUserID);
+        Task<bool> DetailsCopiedToTmp(string voucherCodeOrId, string? currenUserID);
 
         #endregion
 

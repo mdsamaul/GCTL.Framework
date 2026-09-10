@@ -231,24 +231,30 @@ namespace GCTL_App.Controllers.VoucherEntry
         #region Get All Master & Details Voucher for Edit
 
         [HttpGet("voucher-entry-details/{id}")]
-        public async Task<IActionResult> GetVoucherEntryDetails([FromRoute] decimal id)
+        public async Task<IActionResult> GetVoucherEntryDetails([FromRoute] string id)
         {
-            var main = await _service.GetByMasterIdAsync(id);
+            VoucherEntryVM main = null;
+            if (decimal.TryParse(id, out decimal autoId))
+            {
+                main = await _service.GetByMasterIdAsync(autoId);
+            }
+            if (main == null)
+            {
+                main = await _service.GetByVoucherCodeAsync(id);
+            }
+
             if (main == null)
                 return NotFound(new { success = false, message = "Voucher not found" });
-
-            //var details = await _service.GetDetailsByVoucherIdAsync(main.autoId);
 
             return Ok(new { success = true, data = new { Main = main} });
         }
 
 
         [HttpPost("details-copied-tmptable/{id}")]
-        public async Task<IActionResult> CopyDetailsToTmp([FromRoute] decimal id)
+        public async Task<IActionResult> CopyDetailsToTmp([FromRoute] string id)
         {
-            string currentUserId = LoginInfo?.Username;
+            string currentUserId = LoginInfo?.Username ?? LoginInfo?.EmployeeId;
 
-            int.TryParse(currentUserId, out int employeeId);
             try
             {
                 var success = await _service.DetailsCopiedToTmp(id, currentUserId);
@@ -297,14 +303,11 @@ namespace GCTL_App.Controllers.VoucherEntry
         [Route("delete-with-user")]
         public async Task<IActionResult> Delete()
         {
-            string currentUserId = LoginInfo?.EmployeeId;
-
-            int.TryParse(currentUserId, out int employeeId); try
+            string currentUserId = LoginInfo?.Username ?? LoginInfo?.EmployeeId;
+            try
             {
-                var data = await _service.DeleteAsync(employeeId);
-
-                    return Json(new { success = true, message = "Data Deleted Succssfully" });
-
+                var data = await _service.DeleteAsync(currentUserId);
+                return Json(new { success = true, message = "Data Deleted Successfully" });
             }
             catch(Exception ex)
             {

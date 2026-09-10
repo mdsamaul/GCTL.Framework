@@ -40,74 +40,28 @@
 
         return false;
     }
-
-    string GetItemIcon(GCTL.Core.ViewModels.Menu.MenuDto item)
-    {
-        if (item != null && !string.IsNullOrWhiteSpace(item.Icon))
-        {
-            var raw = item.Icon.Trim();
-            if (raw.StartsWith("bi ") || raw.StartsWith("fa ") || raw.StartsWith("fas ") || raw.StartsWith("far ") || raw.StartsWith("fab "))
-            {
-                return raw;
-            }
-            if (raw.StartsWith("bi-"))
-            {
-                return "bi " + raw;
-            }
-            if (raw.StartsWith("fa-"))
-            {
-                return "fa " + raw;
-            }
-            return "fa fa-" + raw;
-        }
-
-        var key = $"{item?.Title} {item?.ControllerName} {item?.MenuId}".ToLowerInvariant();
-
-        if (key.Contains("dashboard") || key.Contains("home")) return "bi bi-speedometer2";
-        if (key.Contains("master") || key.Contains("setup") || key.Contains("setting") || key.Contains("config")) return "bi bi-gear-wide-connected";
-        if (key.Contains("operation") || key.Contains("daily") || key.Contains("job") || key.Contains("task") || key.Contains("entry")) return "bi bi-briefcase-fill";
-        if (key.Contains("report") || key.Contains("chart") || key.Contains("invoice") || key.Contains("analytic")) return "bi bi-bar-chart-line-fill";
-        if (key.Contains("hrm") || key.Contains("employee") || key.Contains("staff") || key.Contains("user") || key.Contains("people")) return "bi bi-people-fill";
-        if (key.Contains("doc") || key.Contains("file") || key.Contains("note") || key.Contains("sepdoc")) return "bi bi-file-earmark-text-fill";
-        if (key.Contains("cross") || key.Contains("app") || key.Contains("module")) return "bi bi-grid-3x3-gap-fill";
-        if (key.Contains("security") || key.Contains("role") || key.Contains("permission") || key.Contains("lock")) return "bi bi-shield-lock-fill";
-        if (key.Contains("bank") || key.Contains("account") || key.Contains("pay") || key.Contains("finance")) return "bi bi-bank";
-        if (key.Contains("transport") || key.Contains("port") || key.Contains("place") || key.Contains("ship")) return "bi bi-truck";
-        if (key.Contains("table") || key.Contains("grid") || key.Contains("list")) return "bi bi-table";
-
-        if (item?.Children != null && item.Children.Any())
-        {
-            return "bi bi-folder2-open";
-        }
-
-        return "bi bi-circle-fill icon-dot";
-    }
 }
-<ul class="sidebar-menu sidebar-rail-menu">
+<ul class="sidebar-menu sidebar-rail-menu ssms-tree-list">
 @foreach (var item in Model)
 {
     var hasChildren = item.Children != null && item.Children.Any();
     var itemActive = IsItemActive(item);
     var directActive = IsDirectActive(item);
-    var arrowIcon = hasChildren && item.Children.Any(c => c.Children != null && c.Children.Any())
-        ? "bi bi-chevron-double-right"
-        : "bi bi-chevron-right";
 
-    <li class="menu-item rail-item @(hasChildren ? "has-flyout" : "") @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")" data-menu-id="@item.MenuId">
+    <li class="menu-item rail-item tree-node @(hasChildren ? "has-children has-flyout" : "is-leaf") @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")" data-menu-id="@item.MenuId">
         @if (hasChildren)
         {
-            <button class="menu-link rail-link d-flex align-items-center w-100 @(directActive ? "active" : "")" type="button"
+            <button class="menu-link rail-link tree-link d-flex align-items-center w-100 @(directActive ? "active" : "")" type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#children-@item.AutoId"
                     aria-expanded="@(itemActive ? "true" : "false")"
                     aria-controls="children-@item.AutoId">
-                <i class="@GetItemIcon(item) menu-item-icon rail-icon"></i>
-                <span class="menu-text rail-text">@item.Title</span>
-                <i class="@arrowIcon ms-auto menu-arrow"></i>
+                <span class="tree-expander" aria-hidden="true"></span>
+                <span class="menu-text rail-text tree-text">@item.Title</span>
             </button>
 
-            <!-- Downward accordion (visible when sidebar is expanded in initial state) -->
-            <div class="collapse @(itemActive ? "show" : "") accordion-submenu" id="children-@item.AutoId">
+            <!-- Downward tree branch children -->
+            <div class="collapse @(itemActive ? "show" : "") accordion-submenu tree-submenu" id="children-@item.AutoId">
                 @await Html.PartialAsync("_MenuPartial", item.Children)
             </div>
 
@@ -124,8 +78,8 @@
                             @if (childHasChildren)
                             {
                                 <div class="flyout-link @(childDirectActive ? "active" : "")" role="button" tabindex="0">
-                                    <span class="flyout-text">- @child.Title</span>
-                                    <i class="bi bi-chevron-right flyout-arrow"></i>
+                                    <span class="flyout-text">@child.Title</span>
+                                    <i class="bi bi-chevron-right flyout-arrow ms-auto"></i>
                                 </div>
                                 <div class="rail-flyout-nested shadow">
                                     <ul class="flyout-list">
@@ -139,8 +93,8 @@
                                                 @if (subChildHasChildren)
                                                 {
                                                     <div class="flyout-link @(subDirectActive ? "active" : "")" role="button" tabindex="0">
-                                                        <span class="flyout-text">-- @subChild.Title</span>
-                                                        <i class="bi bi-chevron-right flyout-arrow"></i>
+                                                        <span class="flyout-text">@subChild.Title</span>
+                                                        <i class="bi bi-chevron-right flyout-arrow ms-auto"></i>
                                                     </div>
                                                     <div class="rail-flyout-nested shadow">
                                                         <ul class="flyout-list">
@@ -149,7 +103,7 @@
                                                                 var leafActive = IsDirectActive(leaf);
                                                                 <li class="flyout-item @(leafActive ? "active" : "")">
                                                                     <a class="flyout-link @(leafActive ? "active" : "")" asp-controller="@leaf.ControllerName" asp-action="@leaf.ViewName">
-                                                                        <span class="flyout-text">--- @leaf.Title</span>
+                                                                        <span class="flyout-text">@leaf.Title</span>
                                                                     </a>
                                                                 </li>
                                                             }
@@ -159,7 +113,7 @@
                                                 else
                                                 {
                                                     <a class="flyout-link @(subDirectActive ? "active" : "")" asp-controller="@subChild.ControllerName" asp-action="@subChild.ViewName">
-                                                        <span class="flyout-text">-- @subChild.Title</span>
+                                                        <span class="flyout-text">@subChild.Title</span>
                                                     </a>
                                                 }
                                             </li>
@@ -170,7 +124,7 @@
                             else
                             {
                                 <a class="flyout-link @(childDirectActive ? "active" : "")" asp-controller="@child.ControllerName" asp-action="@child.ViewName">
-                                    <span class="flyout-text">- @child.Title</span>
+                                    <span class="flyout-text">@child.Title</span>
                                 </a>
                             }
                         </li>
@@ -180,9 +134,8 @@
         }
         else
         {
-            <a class="menu-link rail-link d-flex align-items-center w-100 @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
-                <i class="@GetItemIcon(item) menu-item-icon rail-icon"></i>
-                <span class="menu-text rail-text">@item.Title</span>
+            <a class="menu-link rail-link tree-link d-flex align-items-center w-100 @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
+                <span class="menu-text rail-text tree-text">@item.Title</span>
             </a>
         }
     </li>
