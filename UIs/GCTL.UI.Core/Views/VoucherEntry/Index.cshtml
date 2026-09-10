@@ -226,21 +226,55 @@
         align-content: center;
     }
 
-    /* Details Grid Compact Styling */
-    #VoucherEntryTempGrid thead th {
-        background-color: #f1f4f8 !important;
-        font-size: 12.5px !important;
-        padding: 4px 8px !important;
-        font-weight: 600 !important;
-        color: #2c3e50 !important;
-        white-space: nowrap !important;
+    /* =========================================================
+       Responsive Grid Tables - STRICTLY NO HORIZONTAL SCROLL
+       ========================================================= */
+    .grid-no-horizontal-scroll,
+    .table-responsive,
+    .custom-grid-wrapper,
+    div.dt-container,
+    div.dt-container .dt-layout-row,
+    div.dt-container .dt-layout-full {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important; /* Strictly prevents horizontal scrollbar */
+        box-sizing: border-box !important;
     }
 
-    #VoucherEntryTempGrid tbody td {
+    #VoucherEntryTempGrid,
+    #voucherEntryTable,
+    table.dataTable,
+    .custom-grid-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important; /* Forces columns to strictly fit within 100% */
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    #VoucherEntryTempGrid thead th,
+    #voucherEntryTable thead th {
+        background-color: #f1f4f8 !important;
         font-size: 12.5px !important;
-        padding: 3px 8px !important;
+        padding: 4px 6px !important;
+        font-weight: 600 !important;
+        color: #2c3e50 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    #VoucherEntryTempGrid tbody td,
+    #voucherEntryTable tbody td {
+        font-size: 12.5px !important;
+        padding: 3px 6px !important;
         vertical-align: middle !important;
-        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        word-break: break-word !important;
     }
 
     .voucher-total-box {
@@ -250,6 +284,12 @@
         border-radius: 4px;
         font-size: 12.5px !important;
         margin-top: 4px !important;
+    }
+
+    .consistent-look,
+    .content.consistent-look {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
     }
 
     .icon-btn {
@@ -429,27 +469,30 @@
 
             <!-- Bottom Table Grid Column -->
             <div class="col-md-12">
-                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
-                {
-                    GridId = "voucherEntryTable",
-                    AjaxUrl = "/VoucherEntry/GetTableData",
-                    AjaxMethod = "POST",
-                    ServerSide = true,
-                    ShowCheckbox = true,
-                    CheckColumnData = "autoId",
-                    CheckAllId = "VoucherEntry-check-all",
-                    DefaultSortColumn = "VoucherDate",
-                    DefaultSortDirection = "desc",
-                    Columns = new()
+                <div class="table-responsive grid-no-horizontal-scroll">
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                     {
-                        new() { Data = "voucherNo", Header = "Voucher No.", Width = "15%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId" },
-                        new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "7%"},
-                        new() { Data = "narration", Header = "Narration", Width = "33%"},
-                        new() { Data = "branchName", Header = "Branch", Width = "16%"},
-                        new() { Data = "amount", Header = "Amount", Width = "13%"},
-                        new() { Data = "invoiceNo", Header = "Invoice No", Width = "16%"}
-                    }
-                })
+                        GridId = "voucherEntryTable",
+                        AjaxUrl = "/VoucherEntry/GetTableData",
+                        AjaxMethod = "POST",
+                        ServerSide = true,
+                        ShowCheckbox = true,
+                        CheckColumnData = "autoId",
+                        CheckAllId = "VoucherEntry-check-all",
+                        DefaultSortColumn = "VoucherDate",
+                        DefaultSortDirection = "desc",
+                        Compact = true,
+                        Columns = new()
+                        {
+                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "14%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId" },
+                            new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "10%"},
+                            new() { Data = "narration", Header = "Narration", Width = "30%"},
+                            new() { Data = "branchName", Header = "Branch", Width = "15%"},
+                            new() { Data = "amount", Header = "Amount", Width = "13%"},
+                            new() { Data = "invoiceNo", Header = "Invoice No", Width = "14%"}
+                        }
+                    })
+                </div>
             </div>
 
         </div>
