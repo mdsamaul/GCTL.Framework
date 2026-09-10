@@ -1,8 +1,22 @@
 
+function getTodayDateStr() {
+    var today = new Date();
+    var y = today.getFullYear();
+    var m = String(today.getMonth() + 1).padStart(2, '0');
+    var d = String(today.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+}
+
 // Example usage: Populate with sample data
 $(document).ready(function () {
 
     showDev('loaded')
+
+    if (typeof setDate === 'function') {
+        setDate('#billDate', getTodayDateStr());
+    } else {
+        $('#billDate').val(getTodayDateStr());
+    }
 
     //#region Select 2
 
@@ -93,7 +107,14 @@ $(document).ready(function () {
         populateChargeTblFunc(jobId);
     });
 
-
+    // Customer change: load customer address and related delivery addresses
+    $(document).on('change', '#customerId', function () {
+        if (window._isPopulatingBillForm) {
+            return;
+        }
+        var customerId = $(this).val();
+        loadCustomerInfo(customerId);
+    });
 
 
 
@@ -192,37 +213,138 @@ $(document).ready(function () {
     //#endregion
 
     //#region Submit
-    $('#saveShipmentBtn').on('click', function (e) {
+    $('#saveBillEntryBtn').on('click', function (e) {
         e.preventDefault();
 
-        // ফর্ম ডেটা সংগ্রহ
-        var formData = $('#shipmentForm').serialize();
+        var jobNo = $('#jobNo').val() || $('#jobNoHidden').val();
+        if (!jobNo) {
+            toastr.warning("Please select a job first.");
+            return;
+        }
+
+        var chcItems = [];
+        $('#chargeTableBody tr').each(function () {
+            var $row = $(this);
+            var isChecked = $row.find('.includeChk').is(':checked');
+            if (isChecked) {
+                var chcVal = $row.find('.billAmtInput').length ? parseFloat($row.find('.billAmtInput').val()) : parseFloat($row.data('billamt'));
+                if (isNaN(chcVal)) chcVal = 0;
+                chcItems.push({
+                    chcid: String($row.data('chcid') || ''),
+                    billHead: String($row.data('billhead') || ''),
+                    description: String($row.data('desc') || ''),
+                    billAmount: chcVal,
+                    isReceiptable: String($row.data('isrec') || '')
+                });
+            }
+        });
+
+        var expenseItems = [];
+        $('#expenceDetailTableBody tr').each(function () {
+            var $row = $(this);
+            var isChecked = $row.find('.includeExpenseChk').is(':checked');
+            if (isChecked) {
+                var expBillAmt = parseFloat($row.find('.expBillAmtInput').val());
+                if (isNaN(expBillAmt)) expBillAmt = 0;
+                var confAmt = parseFloat($row.data('confirmamt'));
+                if (isNaN(confAmt)) confAmt = 0;
+
+                expenseItems.push({
+                    expenseHeadId: String($row.data('headid') || ''),
+                    billHead: String($row.data('head') || ''),
+                    confirmAmt: confAmt,
+                    billAmt: expBillAmt
+                });
+            }
+        });
+
+        var requestData = {
+            billNo: $('#billNo').val() || '',
+            billDate: $('#billDate').val() || '',
+            jobNo: jobNo,
+            customerId: $('#customerId').val() || '',
+            destinationId: $('#destinationId').val() || '',
+            remarks: $('#remarks').val() || '',
+            agComm: parseFloat($('#agComm').val()) || null,
+            onInvVal: parseFloat($('#onInvVal').val()) || null,
+            amount: parseFloat($('#amount').val()) || null,
+            specialDiscount: parseFloat($('#disc').val()) || null,
+            chcItems: chcItems,
+            expenseItems: expenseItems
+        };
+
+        var $btn = $(this);
+        $btn.prop('disabled', true);
 
         $.ajax({
-            url: $('#shipmentForm').attr('action'),   // asp-action="Create" অনুযায়ী URL নেবে
-            type: $('#shipmentForm').attr('method'),  // method="post"
-            data: formData,
+            url: '/JobBillEntry/SaveBill',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
             success: function (response) {
+                $btn.prop('disabled', false);
                 if (response.success) {
-                    clearForm();
-                    loadJobStatuses();
-                    toastr.success(response.message || "Shipment saved successfully!");
-                }
-                else {
-                    toastr.warning(response.message || "Shipment not saved!");
+                    toastr.success(response.message || "Bill saved successfully!");
+                    if (response.data) {
+                        $('#billNo').val(response.data);
+                    }
+                    if (jobGrid) {
+                        jobGrid.ajax.reload();
+                    }
+                    if (window.BillHistoryTable) {
+                        window.BillHistoryTable.ajax.reload();
+                    } else if ($.fn.DataTable && $.fn.DataTable.isDataTable('#BillHistoryTable')) {
+                        $('#BillHistoryTable').DataTable().ajax.reload();
+                    }
+                } else {
+                    toastr.error(response.message || "Failed to save bill.");
                 }
             },
             error: function (xhr, status, error) {
+                $btn.prop('disabled', false);
                 console.error(error);
-                toastr.warning("Error occurred while saving shipment.");
+                toastr.error("An error occurred while saving the bill.");
             }
         });
     });
 
+    function calculateTotalBillAmount() {
+        var total = 0;
 
+        // Sum included custom handling charges
+        $('#chargeTableBody tr').each(function () {
+            var $row = $(this);
+            if ($row.find('.includeChk').is(':checked')) {
+                var amt = $row.find('.billAmtInput').length ? parseFloat($row.find('.billAmtInput').val()) : parseFloat($row.data('billamt'));
+                if (!isNaN(amt)) {
+                    total += amt;
+                }
+            }
+        });
 
+        // Sum included expense details
+        $('#expenceDetailTableBody tr').each(function () {
+            var $row = $(this);
+            if ($row.find('.includeExpenseChk').is(':checked')) {
+                var amt = parseFloat($row.find('.expBillAmtInput').val());
+                if (isNaN(amt)) {
+                    amt = parseFloat($row.data('billamt')) || 0;
+                }
+                if (!isNaN(amt)) {
+                    total += amt;
+                }
+            }
+        });
 
+        // Add Agency Commission Amount if populated
+        var agComm = parseFloat($('#agComm').val());
+        // If amount was not manually entered, update #amount with the calculated total
+        $('#amount').val(total.toFixed(2));
+    }
 
+    $(document).on('change', '#chargeTableBody .includeChk', calculateTotalBillAmount);
+    $(document).on('change', '#expenceDetailTableBody .includeExpenseChk', calculateTotalBillAmount);
+    $(document).on('input change', '#expenceDetailTableBody .expBillAmtInput', calculateTotalBillAmount);
     //#endregion
 
     //#region SampleData
@@ -292,6 +414,62 @@ $(document).ready(function () {
 
 
 });
+
+async function loadCustomerInfo(customerId, selectedDeliveryLocation) {
+    if (!customerId) {
+        $('#customerAddress').val('');
+        if (typeof setSelect === 'function') {
+            setSelect('#customerDeliveryAddress', '', true, [], false, 'Select Customer Delivery Address');
+        } else {
+            $('#customerDeliveryAddress').empty().append('<option value="">Select Customer Delivery Address</option>').val('').prop('disabled', true).trigger('change');
+        }
+        return;
+    }
+
+    try {
+        var response = await $.ajax({
+            url: '/JobBillEntry/CustomerInfo',
+            type: 'GET',
+            data: { customerId: customerId }
+        });
+
+        if (response && response.success && response.data) {
+            var customer = response.data;
+            $('#customerAddress').val(customer.customerAddress || '');
+
+            var deliveryItems = (customer.delivaryAddress || []).map(function (d) {
+                return {
+                    id: d.delivaryId,
+                    text: d.delivaryAddress
+                };
+            });
+
+            var targetLocation = selectedDeliveryLocation;
+            if (!targetLocation && deliveryItems.length > 0) {
+                targetLocation = deliveryItems[0].id;
+            }
+
+            if (typeof setSelect === 'function') {
+                setSelect(
+                    '#customerDeliveryAddress',
+                    targetLocation || '',
+                    true,
+                    deliveryItems,
+                    false,
+                    'Select Customer Delivery Address'
+                );
+            } else {
+                var $delSelect = $('#customerDeliveryAddress').empty().append('<option value="">Select Customer Delivery Address</option>');
+                deliveryItems.forEach(function (item) {
+                    $delSelect.append($('<option></option>').val(item.id).text(item.text));
+                });
+                $delSelect.val(targetLocation || '').prop('disabled', true).trigger('change');
+            }
+        }
+    } catch (e) {
+        console.error('Error loading customer info:', e);
+    }
+}
 
 
 //#region delete head
@@ -393,8 +571,8 @@ function clearForm() {
     $('#weight').val('');
     $('#vesselRottNo').val('');
     $('#remarks').val('');
-    $('#creationDate').val('');
-    $('#updatedDate').val('');
+    $('#creationDate').text('');
+    $('#lastUpdateDate').text('');
     $('#billNo').val('');
     $('#customerAddress').val('');
     $('#lcNo').val('');
@@ -416,24 +594,25 @@ function clearForm() {
     $('#onInvVal').val('');
     $('#amount').val('');
     $('#cost').val('');
+    $('#disc').val('');
 
     // Date fields (using setDate)
     if (typeof setDate === 'function') {
-        setDate('#billDate', '');
-        setDate('#jobDate', '');
-        setDate('#docsReceivedDate', '');
-        setDate('#expDate', '');
-        setDate('#lcDate', '');
-        setDate('#invoiceDate', '');
-        setDate('#ipDate', '');
-        setDate('#arrivalDate', '');
-        setDate('#blDate', '');
-        setDate('#beDate', '');
-        setDate('#efrDate', '');
-        setDate('#etaDeliveryDate', '');
-        setDate('#actualDeliveryDate', '');
-        setDate('#unstuffingDate', '');
-        setDate('#etdDate', '');
+        setDate('#billDate', getTodayDateStr(), false);
+        setDate('#jobDate', '', true);
+        setDate('#docsReceivedDate', '', true);
+        setDate('#expDate', '', true);
+        setDate('#lcDate', '', true);
+        setDate('#invoiceDate', '', true);
+        setDate('#ipDate', '', true);
+        setDate('#arrivalDate', '', true);
+        setDate('#blDate', '', true);
+        setDate('#beDate', '', true);
+        setDate('#efrDate', '', true);
+        setDate('#etaDeliveryDate', '', true);
+        setDate('#actualDeliveryDate', '', true);
+        setDate('#unstuffingDate', '', true);
+        setDate('#etdDate', '', true);
     } else {
         $('#billDate, #jobDate, #docsReceivedDate, #expDate, #lcDate, #invoiceDate, #ipDate, #arrivalDate, #blDate, #beDate, #efrDate, #etaDeliveryDate, #actualDeliveryDate, #unstuffingDate, #etdDate').val('');
     }
@@ -503,6 +682,9 @@ function populateBottomForm(data) {
 
 function populateForm(data) {
     console.log(data);
+
+    showDev(data);
+
     $('#sdId').val(data.id || '');
 
     // New ones
@@ -519,22 +701,24 @@ function populateForm(data) {
     $('#agComm').val(data.agComm || '');
     $('#onInvVal').val(data.onInvVal || '');
     $('#amount').val(data.amount || '');
+    $('#disc').val(data.specialDiscount || '');
     $('#headId').val(data.headId || '').trigger('change');
 
     // Dates using setDate
+    var targetBillDate = data.billDate || getTodayDateStr();
     if (typeof setDate === 'function') {
-        setDate('#billDate', data.billDate || '');
-        setDate('#jobDate', data.jobDate || '');
-        setDate('#docsReceivedDate', data.docsReceivedDate || data.docReceivedDate || '');
-        setDate('#expDate', data.expDate || '');
-        setDate('#lcDate', data.lcDate || '');
-        setDate('#invoiceDate', data.invoiceDate || '');
-        setDate('#ipDate', data.ipDate || '');
-        setDate('#blDate', data.blDate || '');
-        setDate('#beDate', data.beDate || '');
-        setDate('#dischargeDate', data.dischargeDate || '');
+        setDate('#billDate', targetBillDate, false);
+        setDate('#jobDate', data.jobDate || '', true);
+        setDate('#docsReceivedDate', data.docsReceivedDate || data.docReceivedDate || '', true);
+        setDate('#expDate', data.expDate || '', true);
+        setDate('#lcDate', data.lcDate || '', true);
+        setDate('#invoiceDate', data.invoiceDate || '', true);
+        setDate('#ipDate', data.ipDate || '', true);
+        setDate('#blDate', data.blDate || '', true);
+        setDate('#beDate', data.beDate || '', true);
+        setDate('#dischargeDate', data.dischargeDate || '', true);
     } else {
-        $('#billDate').val(data.billDate || '');
+        $('#billDate').val(targetBillDate);
         $('#jobDate').val(data.jobDate || '');
         $('#docsReceivedDate').val(data.docsReceivedDate || data.docReceivedDate || '');
         $('#expDate').val(data.expDate || '');
@@ -546,12 +730,18 @@ function populateForm(data) {
         $('#dischargeDate').val(data.dischargeDate || '');
     }
 
+    window._isPopulatingBillForm = true;
     $('#shipmentModeId').val(data.shipmentModeId || '').trigger('change');
     $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false);
     $('#jobNo').val(data.jobNo || '');
     $('#jobNoHidden').val(data.jobNo || '');
     $('#customerId').val(data.customerId || '').trigger('change');
-    $('#customerDeliveryAddress').val(data.customerDeliveryAddress || '').trigger('change');
+    if (data.customerId) {
+        loadCustomerInfo(data.customerId, data.customerDeliveryAddress);
+    } else {
+        $('#customerDeliveryAddress').val(data.customerDeliveryAddress || '').trigger('change');
+    }
+    window._isPopulatingBillForm = false;
     $('#portId').val(data.portId || '').trigger('change');
     $('#lcExpNo').val(data.lcExpNo || '');
     $('#lcValue').val(data.lcValue || '');
@@ -571,13 +761,11 @@ function populateForm(data) {
     $('#forwarderId').val(data.forwarderId || '').trigger('change');
     $('#vesselRottNo').val(data.vesselRottNo || '');
     $('#remarks').val(data.remarks || '');
-    $('#creationDate').val(data.createdAt || '');
-    $('#updatedDate').val(data.updatedAt || '');
+    $('#creationDate').text(data.createdAt ? String(data.createdAt).split('T')[0] : '');
+    $('#lastUpdateDate').text(data.updatedAt ? String(data.updatedAt).split('T')[0] : '');
     if (window.initCustomDropdowns) {
         window.initCustomDropdowns(document, true);
     }
-
-    populateExpenseTable(expenseData);
 }
 
 //#endregion
@@ -598,15 +786,16 @@ function populateChargeTable(data) {
     tbody.empty(); // clear old rows
 
     $.each(data, function (index, item) {
+        var isIncluded = (item.include !== false);
         var row = `
-                <tr>
+                <tr data-tc="${item.tc || ''}" data-chcid="${item.chcid || ''}" data-billhead="${item.chc || ''}" data-desc="${item.description || ''}" data-billamt="${item.billAmt || 0}" data-isrec="${item.isRec || ''}">
                     <td class="text-center">${item.serialNo || (index + 1)}</td>
-                    <td class="text-center">${item.isRec}</td>
-                    <td class="text-start ps-2">${item.chc}</td>
-                    <td class="text-start ps-2">${item.description}</td>
-                    <td class="text-end pe-2">${item.billAmt}</td>
+                    <td class="text-center">${item.isRec || ''}</td>
+                    <td class="text-start ps-2">${item.chc || ''}</td>
+                    <td class="text-start ps-2">${item.description || ''}</td>
+                    <td class="text-end pe-2">${item.billAmt || 0}</td>
                     <td class="text-center">
-                        <input type="checkbox" class="form-check-input m-0 shadow-none includeChk" ${item.include ? "checked" : ""}>
+                        <input type="checkbox" class="form-check-input m-0 shadow-none includeChk" ${isIncluded ? "checked" : ""}>
                     </td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-danger border-0 deleteChrgBtn" data-tc="${item.tc}" title="Delete">
@@ -619,46 +808,26 @@ function populateChargeTable(data) {
     });
 }
 
-var expenseData = [
-    {
-        sl: 3,
-        head: "Transport",
-        isRec: true,
-        serviceType: "Logistics",
-        confirmAmt: 500,
-        billAmt: 500,
-        isInclude: true
-    },
-    {
-        sl: 5,
-        head: "Food",
-        isRec: false,
-        serviceType: "Catering",
-        confirmAmt: 300,
-        billAmt: 300,
-        isInclude: false
-    }
-];
-
 // Populate table
 function populateExpenseTable(data) {
     var tbody = $("#expenceDetailTableBody");
     tbody.empty(); // clear old rows
 
     $.each(data, function (i, item) {
+        var isIncluded = (item.include !== false);
         var row = `
-                <tr>
+                <tr data-headid="${item.expenseHeadId || ''}" data-head="${item.head || ''}" data-confirmamt="${item.confirmAmt || 0}" data-billamt="${item.billAmt || 0}">
                     <td class="text-center">${item.serialNo || (i + 1)}</td>
-                    <td class="text-start ps-2">${item.head}</td>
-                    <td class="text-center">${item.isRec}</td>
-                    <td class="text-center">${item.serviceType}</td>
-                    <td class="text-end pe-2">${item.confirmAmt}</td>
+                    <td class="text-start ps-2">${item.head || ''}</td>
+                    <td class="text-center">${item.isRec || ''}</td>
+                    <td class="text-center">${item.serviceType || ''}</td>
+                    <td class="text-end pe-2">${item.confirmAmt || 0}</td>
                     <td class="text-end pe-2">
-                        <input type="number" class="form-control form-control-sm text-end"
-                               value="${item.billAmt}" />
+                        <input type="number" class="form-control form-control-sm text-end expBillAmtInput"
+                               value="${item.billAmt || 0}" />
                     </td>
                     <td class="text-center">
-                        <input type="checkbox" class="form-check-input m-0 shadow-none" ${item.isInclude ? "checked" : ""} />
+                        <input type="checkbox" class="form-check-input m-0 shadow-none includeExpenseChk" ${isIncluded ? "checked" : ""} />
                     </td>
                 </tr>
             `;
@@ -726,6 +895,7 @@ function PopulateTheForm(jobId) {
         data: { id: jobId },
         success: function (data) {
             clearForm();
+            showDev(data);
             populateForm(data);
 
 

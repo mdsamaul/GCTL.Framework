@@ -1,4 +1,4 @@
-﻿/*!
+/*!
  * customDropdown - Fully Custom Dropdown (NO Select2 dependency)
  * -----------------------------------------------------------------
  * Parent class: customDropdownBase
@@ -333,6 +333,10 @@
             this._buildSkeleton();
             this._bindCommonEvents();
             this.$original.data('customDdInstance', this);
+
+            if (this.$original.is(':disabled') || this.$original.is('[readonly]')) {
+                this.setDisabled(true);
+            }
 
             if (this.options.items) this.loadStaticItems(this.options.items);
             return this;
