@@ -140,13 +140,13 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     }
 
     .app-sidebar > .sidebar-menu {
-        padding: 10px 6px;
+        padding: 6px 4px 20px 2px;
     }
 
     .menu-item a,
     .menu-item .menu-link {
-        padding: 5px 6px 5px 8px;
-        gap: 8px;
+        padding: 2.5px 4px 2.5px 2px;
+        gap: 0;
     }
 
     .menu-text {
@@ -355,7 +355,7 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 .app-sidebar > .sidebar-menu,
 .sidebar-menu-scroll > .sidebar-menu {
     flex: 1 1 auto;
-    padding: 10px 8px 40px 8px;
+    padding: 6px 4px 30px 2px;
     overflow: visible !important;
 }
 
@@ -515,46 +515,254 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 }
 
 /* -----------------------------------------------------------------
-   Left Menu Hierarchy & Submenu Indentation (Tree Guide Line)
+   Left Menu Hierarchy - SSMS TreeView Design
    ----------------------------------------------------------------- */
-.app-sidebar:not(.collapsed) .accordion-submenu {
-    margin-left: 14px;
-    padding-left: 6px;
-    border-left: 1.5px solid #e2e8f0;
-    margin-top: 2px;
-    margin-bottom: 3px;
+.app-sidebar:not(.collapsed) .ssms-tree-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 4px 16px 2px;
 }
 
-.app-sidebar:not(.collapsed) .menu-item.active > .accordion-submenu {
-    border-left-color: #cbd5e1;
+/* Reset padding on nested tree lists inside submenus */
+.app-sidebar:not(.collapsed) .tree-submenu .ssms-tree-list,
+.app-sidebar:not(.collapsed) .accordion-submenu .ssms-tree-list {
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-/* 2nd Level Child (Nested Submenu) */
-.app-sidebar:not(.collapsed) .accordion-submenu .accordion-submenu {
-    margin-left: 10px;
-    padding-left: 6px;
-    border-left: 1.5px dashed #cbd5e1;
+.app-sidebar:not(.collapsed) .tree-node {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-/* Child Menu Item Link Styling */
-.app-sidebar:not(.collapsed) .accordion-submenu .menu-link {
-    padding: 5px 8px !important;
+/* Tree Node Link / Button Row */
+.app-sidebar:not(.collapsed) .tree-link,
+.app-sidebar:not(.collapsed) .menu-item .menu-link {
+    display: flex;
+    align-items: center;
+    padding: 2.5px 4px 2.5px 2px !important;
+    margin: 1px 0;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    font-weight: 400;
+    color: #1e293b;
+    width: 100%;
+    text-align: left;
+    background-color: transparent;
+    cursor: pointer;
+    border: none;
+    gap: 0;
+}
+
+.app-sidebar:not(.collapsed) .tree-link:hover,
+.app-sidebar:not(.collapsed) .menu-item a:hover,
+.app-sidebar:not(.collapsed) .menu-item .menu-link:hover {
+    background-color: #e5f3ff !important;
+    color: #000000 !important;
+}
+
+/* SSMS Tree Expander Box [+] / [-] */
+.tree-expander {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 11px;
+    height: 11px;
+    min-width: 11px;
+    border: 1px solid #7f9db9;
+    background-color: #ffffff;
+    margin-right: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    box-sizing: border-box;
+    border-radius: 1px;
+    z-index: 2;
+}
+
+.tree-expander:hover {
+    border-color: #0078d7;
+}
+
+/* Minus horizontal line */
+.tree-expander::before {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 1px;
+    background-color: #222222;
+}
+
+/* Plus vertical line (present only when collapsed) */
+.tree-expander::after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 5px;
+    background-color: #222222;
+}
+
+/* When expanded (aria-expanded="true"), hide vertical line -> [-] */
+[aria-expanded="true"] > .tree-expander::after,
+[aria-expanded="true"] .tree-expander::after {
+    display: none !important;
+}
+
+/* When collapsed (aria-expanded="false"), show vertical line -> [+] */
+[aria-expanded="false"] > .tree-expander::after,
+[aria-expanded="false"] .tree-expander::after {
+    display: block !important;
+}
+
+/* Spacer for leaf items (without children) to align icons with parent rows */
+.tree-spacer,
+.tree-expander-spacer {
+    display: inline-block;
+    width: 11px;
+    min-width: 11px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+/* Tree Node Icon Wrapper */
+.tree-node-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* SSMS Yellow Folder Icon */
+.ssms-folder-icon {
+    color: #e5a93b !important; /* Golden amber yellow */
+    font-size: 13.5px !important;
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 4px;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+}
+
+/* Dynamic Open vs Closed folder switching based on aria-expanded */
+[aria-expanded="true"] .ssms-folder-closed {
+    display: none !important;
+}
+[aria-expanded="true"] .ssms-folder-open {
+    display: inline-flex !important;
+}
+[aria-expanded="false"] .ssms-folder-closed {
+    display: inline-flex !important;
+}
+[aria-expanded="false"] .ssms-folder-open {
+    display: none !important;
+}
+
+/* SSMS Database Cylinder Icon */
+.ssms-db-icon {
+    color: #475569 !important; /* Classic slate / charcoal */
+    font-size: 12.5px !important;
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+
+/* SSMS Server / Database with Green Play Indicator */
+.ssms-server-icon {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 4px;
+    color: #374151;
     font-size: 12.5px;
-    gap: 8px;
-    border-radius: 5px;
-    color: #475569;
 }
 
-.app-sidebar:not(.collapsed) .accordion-submenu .menu-link:hover {
-    color: #0b63ce !important;
-    background-color: rgba(11, 99, 206, 0.06) !important;
+.ssms-server-icon .ssms-green-play {
+    position: absolute;
+    right: -3px;
+    bottom: -1px;
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e;
+    border: 1px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0.5px 1.5px rgba(0, 0, 0, 0.3);
 }
 
-.app-sidebar:not(.collapsed) .accordion-submenu .menu-link .menu-item-icon {
-    font-size: 13px !important;
-    width: 14px;
-    height: 14px;
-    opacity: 0.7;
+.ssms-server-icon .ssms-green-play i {
+    font-size: 3.5px !important;
+    color: #ffffff !important;
+    margin-left: 0.5px;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Submenu container and Dotted Tree Guidelines */
+.app-sidebar:not(.collapsed) .accordion-submenu,
+.app-sidebar:not(.collapsed) .tree-submenu {
+    list-style: none;
+    margin: 0 0 0 7px;
+    padding: 0 0 0 8px;
+    position: relative;
+    border-left: 1px dotted #8c9ba5 !important;
+}
+
+.app-sidebar:not(.collapsed) .accordion-submenu .accordion-submenu,
+.app-sidebar:not(.collapsed) .tree-submenu .tree-submenu {
+    margin-left: 7px;
+    padding-left: 8px;
+    border-left: 1px dotted #8c9ba5 !important;
+}
+
+/* Dotted horizontal branch line from parent vertical line to child node */
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node::before {
+    content: '';
+    position: absolute;
+    top: 11px;
+    left: -8px;
+    width: 10px;
+    border-top: 1px dotted #8c9ba5;
+    z-index: 1;
+}
+
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node.is-leaf::before {
+    width: 13px;
+}
+
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node.is-leaf .tree-link {
+    padding-left: 6px !important;
+}
+
+/* Hide overrun of vertical dotted line past the last child */
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node:last-child::after {
+    content: '';
+    position: absolute;
+    top: 11px;
+    bottom: 0;
+    left: -9px;
+    width: 3px;
+    background-color: var(--bg-sidebar);
+    z-index: 1;
 }
 
 .app-sidebar.collapsed .sidebar-menu-wrapper,
@@ -562,77 +770,90 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     overflow: visible !important;
 }
 
-.menu-item a:hover,
-.menu-item .menu-link:hover {
-    background-color: hsl(var(--primary-hsl) / 0.05) !important;
-    color: var(--primary) !important;
+/* Active / selected item (classic SSMS blue highlight: #0078d7 with white text and focus outline) */
+.app-sidebar:not(.collapsed) .menu-item.direct-active > .menu-link,
+.app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link,
+.app-sidebar:not(.collapsed) .tree-link.active,
+.app-sidebar:not(.collapsed) .menu-link.active {
+    background-color: #0078d7 !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    border-radius: 2px !important;
+    outline: 1px dotted #004e8c;
+    outline-offset: -1px;
+    box-shadow: none !important;
 }
 
-/* Parent active menu item - 8% opacity */
-.menu-item.active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.08) !important;
-    color: var(--primary) !important;
-    font-weight: 600;
+.app-sidebar:not(.collapsed) .menu-item.direct-active > .menu-link .tree-text,
+.app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link .tree-text,
+.app-sidebar:not(.collapsed) .tree-link.active .tree-text,
+.app-sidebar:not(.collapsed) .menu-link.active .menu-text {
+    color: #ffffff !important;
+}
+
+.app-sidebar:not(.collapsed) .menu-item.direct-active > .menu-link .ssms-db-icon,
+.app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link .ssms-db-icon,
+.app-sidebar:not(.collapsed) .tree-link.active .ssms-db-icon,
+.app-sidebar:not(.collapsed) .menu-link.active i {
+    color: #ffffff !important;
 }
 
 .app-sidebar.collapsed .menu-item.active > .menu-link {
     border-left: 3.5px solid #0b63ce !important;
 }
 
-/* Direct active child leaf link (বর্তমানে যে পেজে আছেন - একদম স্পষ্ট হাইলাইট) */
-.menu-item .menu-link.active,
-.menu-item.direct-active > .menu-link,
-.accordion-submenu .menu-item.direct-active > .menu-link {
-    background-color: #e8f1fd !important;
-    color: #0b63ce !important;
-    font-weight: 600 !important;
-    border-left: 3.5px solid #0b63ce !important;
-    border-radius: 0 6px 6px 0 !important;
-    padding-left: 8px !important;
-    box-shadow: none !important;
-}
-
-.menu-item .menu-link.active i,
-.menu-item.direct-active > .menu-link i,
-.accordion-submenu .menu-item.direct-active > .menu-link i,
-.menu-item .menu-link.active .menu-arrow,
-.menu-item.direct-active > .menu-link .menu-arrow {
-    color: #0b63ce !important;
-    opacity: 1 !important;
-}
-
-.menu-text {
+.menu-text,
+.tree-text {
     transition: opacity 0.2s ease, transform 0.2s ease;
     opacity: 1;
     font-size: 13px;
 }
 
 /* Dark mode overrides */
-:root[data-theme="dark"] .accordion-submenu {
-    border-left-color: #1f2937;
+:root[data-theme="dark"] .tree-expander {
+    background-color: #1e293b;
+    border-color: #475569;
 }
 
-:root[data-theme="dark"] .accordion-submenu .menu-link {
-    color: var(--text-sidebar);
+:root[data-theme="dark"] .tree-expander::before,
+:root[data-theme="dark"] .tree-expander::after {
+    background-color: #e2e8f0;
 }
 
-:root[data-theme="dark"] .menu-item a,
+:root[data-theme="dark"] .accordion-submenu,
+:root[data-theme="dark"] .tree-submenu {
+    border-left-color: #475569 !important;
+}
+
+:root[data-theme="dark"] .tree-submenu .tree-node::before {
+    border-top-color: #475569;
+}
+
+:root[data-theme="dark"] .tree-submenu .tree-node:last-child::after {
+    background-color: var(--bg-sidebar);
+}
+
+:root[data-theme="dark"] .tree-link,
 :root[data-theme="dark"] .menu-item .menu-link {
     color: var(--text-sidebar);
 }
 
-:root[data-theme="dark"] .menu-item a:hover,
+:root[data-theme="dark"] .tree-link:hover,
 :root[data-theme="dark"] .menu-item .menu-link:hover {
     background-color: rgba(255, 255, 255, 0.08) !important;
-    color: var(--text-sidebar-active) !important;
+    color: #ffffff !important;
 }
 
-:root[data-theme="dark"] .menu-item .menu-link.active,
+:root[data-theme="dark"] .ssms-db-icon {
+    color: #94a3b8 !important;
+}
+
 :root[data-theme="dark"] .menu-item.direct-active > .menu-link,
-:root[data-theme="dark"] .accordion-submenu .menu-item.direct-active > .menu-link {
-    background-color: rgba(37, 99, 235, 0.22) !important;
-    color: #60a5fa !important;
-    border-left-color: #3b82f6 !important;
+:root[data-theme="dark"] .tree-node.direct-active > .tree-link,
+:root[data-theme="dark"] .tree-link.active {
+    background-color: #0b63ce !important;
+    color: #ffffff !important;
+    outline-color: #3b82f6;
 }
 
 
@@ -1009,9 +1230,62 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 }
 
 .app-sidebar.collapsed .rail-item.active > .rail-link .rail-icon,
-.app-sidebar.collapsed .rail-item.active > .rail-link .rail-text {
+.app-sidebar.collapsed .rail-item.active > .rail-link .rail-text,
+.app-sidebar.collapsed .rail-item.active > .rail-link .tree-node-icon,
+.app-sidebar.collapsed .rail-item.active > .rail-link .tree-text {
     color: #0b63ce !important;
     font-weight: 600 !important;
+}
+
+.app-sidebar.collapsed .tree-expander,
+.app-sidebar.collapsed .tree-spacer,
+.app-sidebar.collapsed .tree-expander-spacer {
+    display: none !important;
+}
+
+.app-sidebar.collapsed .tree-node-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 2px !important;
+}
+
+.app-sidebar.collapsed .ssms-folder-icon,
+.app-sidebar.collapsed .ssms-db-icon {
+    font-size: 1.25rem !important;
+    width: auto !important;
+    height: auto !important;
+    margin-right: 0 !important;
+}
+
+.app-sidebar.collapsed .ssms-server-icon {
+    font-size: 1.25rem !important;
+    width: auto !important;
+    height: auto !important;
+    margin-right: 0 !important;
+}
+
+.app-sidebar.collapsed .ssms-server-icon .ssms-green-play {
+    right: -4px;
+    bottom: -2px;
+    width: 9px;
+    height: 9px;
+}
+
+.flyout-link .flyout-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.flyout-link .ssms-folder-icon,
+.flyout-link .ssms-db-icon,
+.flyout-link .ssms-server-icon {
+    font-size: 13px !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 6px !important;
 }
 
 /* Collapsed Flyout Level 1 */
