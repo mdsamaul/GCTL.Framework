@@ -542,14 +542,16 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 .app-sidebar:not(.collapsed) .menu-item .menu-link {
     display: flex;
     align-items: center;
-    padding: 2.5px 4px 2.5px 2px !important;
-    margin: 1px 0;
+    padding: 3px 6px 3px 3px !important;
+    margin: 1.5px 0;
     text-decoration: none;
-    border-radius: 2px;
-    transition: background-color 0.12s ease, color 0.12s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    border-radius: 0 5px 5px 0;
+    border-left: 3.5px solid transparent;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.35;
     font-size: 13px;
     font-weight: 400;
     color: #1e293b;
@@ -557,15 +559,18 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     text-align: left;
     background-color: transparent;
     cursor: pointer;
-    border: none;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
     gap: 0;
 }
 
 .app-sidebar:not(.collapsed) .tree-link:hover,
 .app-sidebar:not(.collapsed) .menu-item a:hover,
 .app-sidebar:not(.collapsed) .menu-item .menu-link:hover {
-    background-color: #e5f3ff !important;
-    color: #000000 !important;
+    background-color: #f0f6ff !important;
+    color: #0b63ce !important;
+    border-left-color: #93c5fd;
 }
 
 /* SSMS Tree Expander Box [+] / [-] */
@@ -770,17 +775,17 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     overflow: visible !important;
 }
 
-/* Active / selected item (classic SSMS blue highlight: #0078d7 with white text and focus outline) */
+/* Active / selected item (matches user request: soft light blue bg, solid blue left bar line, blue text, no icon, wraps text) */
 .app-sidebar:not(.collapsed) .menu-item.direct-active > .menu-link,
 .app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link,
 .app-sidebar:not(.collapsed) .tree-link.active,
 .app-sidebar:not(.collapsed) .menu-link.active {
-    background-color: #0078d7 !important;
-    color: #ffffff !important;
-    font-weight: 500 !important;
-    border-radius: 2px !important;
-    outline: 1px dotted #004e8c;
-    outline-offset: -1px;
+    background-color: #e8f1fd !important;
+    color: #0b63ce !important;
+    font-weight: 600 !important;
+    border-left: 3.5px solid #0b63ce !important;
+    border-radius: 0 6px 6px 0 !important;
+    outline: none !important;
     box-shadow: none !important;
 }
 
@@ -788,14 +793,11 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 .app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link .tree-text,
 .app-sidebar:not(.collapsed) .tree-link.active .tree-text,
 .app-sidebar:not(.collapsed) .menu-link.active .menu-text {
-    color: #ffffff !important;
-}
-
-.app-sidebar:not(.collapsed) .menu-item.direct-active > .menu-link .ssms-db-icon,
-.app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link .ssms-db-icon,
-.app-sidebar:not(.collapsed) .tree-link.active .ssms-db-icon,
-.app-sidebar:not(.collapsed) .menu-link.active i {
-    color: #ffffff !important;
+    color: #0b63ce !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
 }
 
 .app-sidebar.collapsed .menu-item.active > .menu-link {
@@ -807,6 +809,11 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     transition: opacity 0.2s ease, transform 0.2s ease;
     opacity: 1;
     font-size: 13px;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.35;
+    flex: 1 1 auto;
 }
 
 /* Dark mode overrides */
@@ -840,20 +847,26 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 
 :root[data-theme="dark"] .tree-link:hover,
 :root[data-theme="dark"] .menu-item .menu-link:hover {
-    background-color: rgba(255, 255, 255, 0.08) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
     color: #ffffff !important;
-}
-
-:root[data-theme="dark"] .ssms-db-icon {
-    color: #94a3b8 !important;
+    border-left-color: #3b82f6;
 }
 
 :root[data-theme="dark"] .menu-item.direct-active > .menu-link,
 :root[data-theme="dark"] .tree-node.direct-active > .tree-link,
 :root[data-theme="dark"] .tree-link.active {
-    background-color: #0b63ce !important;
-    color: #ffffff !important;
-    outline-color: #3b82f6;
+    background-color: rgba(37, 99, 235, 0.22) !important;
+    color: #60a5fa !important;
+    border-left: 3.5px solid #3b82f6 !important;
+    border-radius: 0 6px 6px 0 !important;
+    outline: none !important;
+}
+
+:root[data-theme="dark"] .menu-item.direct-active > .menu-link .tree-text,
+:root[data-theme="dark"] .tree-node.direct-active > .tree-link .tree-text,
+:root[data-theme="dark"] .tree-link.active .tree-text {
+    color: #60a5fa !important;
+    font-weight: 600 !important;
 }
 
 
