@@ -129,7 +129,7 @@ else
                     }
                     @if (Model.ShowCheckbox)
                     {
-                        <th class="text-center align-middle no-sort" style="width:2%; min-width: 30px;">
+                        <th class="text-center align-middle no-sort" style="width:2%; min-width: 30px; padding-top: 0px!important; padding-bottom: 0px!important;">
                             <span class="user-select-none">Sel.</span><br />
                             <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
                                    disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
@@ -137,7 +137,7 @@ else
                     }
                     else if (Model.UseRadio)
                     {
-                        <th class="text-center align-middle no-sort" style="width:2%; min-width: 30px;">
+                        <th class="text-center align-middle no-sort" style="width:2%; min-width: 30px; padding-top: 0px!important; padding-bottom: 0px!important;">
                             <span class="user-select-none">Sel.</span>
                         </th>
                     }

@@ -12,30 +12,50 @@
         position: sticky;
     }
 
-    /* Operation Fund Card System */
+    /* Flat Design */
+    .custom-fieldset,
+    .custom-fieldset:hover,
+    .card,
+    .card:hover,
+    .btn,
+    .btn:hover,
+    .form-control,
+    .form-select,
+    .table {
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
     .custom-fieldset {
         position: relative;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        padding: 16px 14px 10px 14px;
-        margin: 10px 0;
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px;
+        padding: 18px 14px 12px 14px;
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
         background-color: #fff;
     }
 
-        .custom-fieldset legend {
-            position: absolute;
-            top: -12px;
-            left: 15px;
-            background-color: white;
-            padding: 0 8px;
-            font-size: 13px;
-            font-weight: bold;
-            color: #555;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: auto;
-        }
+    .custom-fieldset legend {
+        position: absolute;
+        top: -11px;
+        left: 14px;
+        background-color: #fff;
+        padding: 0 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        border-radius: 3px;
+        width: auto;
+        margin-bottom: 0;
+    }
+
+    .bottom-nav .card {
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 4px !important;
+    }
 
     .form-control-sm, .form-select-sm, textarea.form-control-sm {
         font-size: 13px;
@@ -60,11 +80,16 @@
         background-color: #f0f1f2 !important;
     }
 
-    thead th {
-        background-color: #f8f9fa !important;
-        color: #333;
-        font-size: 13px;
-        font-weight: 700;
+    thead th,
+    div.dt-container table.dataTable thead th,
+    .custom-grid-table thead th {
+        background: #f8fafc !important;
+        background-image: none !important;
+        color: #334155 !important;
+        font-size: 12.5px;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: none !important;
     }
 
     .table-sm td {
