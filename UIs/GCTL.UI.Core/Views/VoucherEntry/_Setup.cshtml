@@ -5,31 +5,34 @@
     <input type="hidden" id="VoucherEntryAutoID" name="autoId" />
     <input type="hidden" id="VoucherEntryCodeNo" name="VoucherEntryCodeNo" />
 
-    @* Main Information Section - 2 Controls Per Row *@
-    <fieldset class="border rounded-3 px-3 py-2 position-relative voucher-fieldset">
-        <legend class="float-none w-auto px-2 fw-bold"
-                style="font-size: 13px; border: 0px solid #dee2e6; border-radius: 6px; background-color: #fff; margin-bottom: 2px;">
-            Main Information
-        </legend>
+    @* Main Information Section *@
+    <div class="voucher-section mb-2">
+        <div class="voucher-section-header d-flex align-items-center mb-2">
+            <span class="voucher-section-bar"></span>
+            <span class="voucher-section-title">Main Information</span>
+        </div>
         <div class="row g-2">
 
             @* Row 1: Company & Branch *@
-            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-            {
-                IsVisible = true,
-                ShowOnInit = true,
-                ColumnClass = "col-md-6",
-                FieldType = FieldType.Select,
-                InputId = "CompanyCode",
-                InputName = "CompanyCode",
-                LabelText = "Company",
-                ReserveActionSlot = false,
-                Placeholder = "-- Select Company --",
-                IsRequired = true,
-                LabelInline = true,
-                LabelColWidth = 3,
-                LabelColumnClass = "text-end"
-            })
+            <div class="col-md-6 position-relative">
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                {
+                    IsVisible = true,
+                    ShowOnInit = true,
+                    ColumnClass = "w-100",
+                    FieldType = FieldType.Select,
+                    InputId = "CompanyCode",
+                    InputName = "CompanyCode",
+                    LabelText = "Company",
+                    ReserveActionSlot = false,
+                    Placeholder = "-- Select Company --",
+                    IsRequired = true,
+                    LabelInline = true,
+                    LabelColWidth = 3,
+                    LabelColumnClass = "text-end"
+                })
+                <hr class="voucher-divider" />
+            </div>
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
@@ -82,7 +85,7 @@
                 LabelColumnClass = "text-end"
             })
 
-            @* Row 3: Voucher No & Narration *@
+            @* Row 3: Voucher No *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 IsVisible = true,
@@ -100,12 +103,14 @@
                 LabelColWidth = 3,
                 LabelColumnClass = "text-end"
             })
+            <div class="col-md-6 d-none d-md-block"></div>
 
+            @* Row 4: Narration in a new row *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 IsVisible = true,
                 ShowOnInit = true,
-                ColumnClass = "col-md-6",
+                ColumnClass = "col-12 narration-col",
                 FieldType = FieldType.Textarea,
                 InputId = "Narration",
                 InputName = "Narration",
@@ -120,16 +125,16 @@
             })
 
         </div>
-    </fieldset>
+    </div>
 
     <input type="hidden" id="TmpDetailsAutoID">
 
-    @* Details Information Section - 2 Controls Per Row *@
-    <fieldset class="border rounded-3 px-3 py-2 position-relative mt-1 voucher-fieldset">
-        <legend class="float-none w-auto px-2 fw-bold"
-                style="font-size: 13px; border: 0px solid #dee2e6; border-radius: 6px; background-color: #fff; margin-bottom: 2px;">
-            Details Information
-        </legend>
+    @* Details Information Section *@
+    <div class="voucher-section mt-3 mb-2">
+        <div class="voucher-section-header d-flex align-items-center mb-2">
+            <span class="voucher-section-bar"></span>
+            <span class="voucher-section-title">Details Information</span>
+        </div>
 
         <div class="row g-2">
 
@@ -227,16 +232,17 @@
                 IsVisible = true,
                 ShowOnInit = true,
                 ColumnClass = "col-md-6",
-                FieldType = FieldType.Number,
+                FieldType = FieldType.Text,
                 InputId = "Amount",
                 InputName = "Amount",
                 ReserveActionSlot = false,
                 LabelText = "Amount",
-                Placeholder = "Amount",
+                Placeholder = "0.00",
                 IsRequired = true,
                 LabelInline = true,
                 LabelColWidth = 3,
-                LabelColumnClass = "text-end"
+                LabelColumnClass = "text-end",
+                InputStyle = "text-align: right;"
             })
 
             @* Row 3: Cheque No & Cheque Date *@
@@ -272,21 +278,21 @@
                 LabelColumnClass = "text-end"
             })
 
-            @* Details Button Group *@
+            @* Details Button Group with Previous Icons & Toolbar Hover Effect *@
             <div class="col-12 pe-0 my-1">
-                <div class="details-icon-group">
+                <div class="details-icon-group d-flex justify-content-end align-items-center gap-2">
                     <!-- Add -->
-                    <button type="button" id="AddDetails" data-tooltip="Add" class="icon-btn add">
+                    <button type="button" id="AddDetails" title="Add" data-tooltip="Add" class="icon-btn add">
                         <i class="bi bi-journal-plus default-icon"></i>
                     </button>
 
                     <!-- Cancel -->
-                    <button type="button" id="CancelDetails" data-tooltip="Cancel" class="icon-btn cancel">
+                    <button type="button" id="CancelDetails" title="Cancel" data-tooltip="Cancel" class="icon-btn cancel">
                         <i class="bi bi-journal-minus default-icon"></i>
                     </button>
 
                     <!-- Refresh -->
-                    <button type="button" id="RefreshDetails" data-tooltip="Refresh" class="icon-btn refresh">
+                    <button type="button" id="RefreshDetails" title="Refresh" data-tooltip="Refresh" class="icon-btn refresh">
                         <span class="icon-stack">
                             <i class="bi bi-journal journal-base"></i>
                             <i class="bi bi-arrow-repeat refresh-icon"></i>
@@ -295,7 +301,7 @@
                 </div>
             </div>
 
-            @* Details Table (100% Responsive, Strictly No Horizontal Scroll) *@
+            @* Details Table (100% Responsive, Strictly No Horizontal Scroll, Borderless) *@
             <div class="col-12 pe-0">
                 <div class="table-responsive grid-no-horizontal-scroll">
                     @await Html.PartialAsync("_CustomGrid", new GridModel
@@ -308,18 +314,19 @@
                         CheckColumnData = "autoId",
                         CheckAllId = "none",
                         Compact = true,
+                        Bordered = false,
                         Columns = new List<GridColumn>
                         {
                             new GridColumn { Data = "accCode", Header = "Acc. Code", Align = "center", Width = "16%", IsEditLink = true, IdField = "autoId", EditSelectorClass = "js-grid-edit" },
                             new GridColumn { Data = "accountHead", Header = "Account Head", Width = "22%" },
                             new GridColumn { Data = "description", Header = "Description", Width = "22%" },
-                            new GridColumn { Data = "debitAmount", Header = "Debit", Align = "right", Width = "14%" },
-                            new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "14%" },
+                            new GridColumn { Data = "debitAmount", Header = "Debit", Align = "right", Width = "14%", RenderFn = "formatCurrency", TabularNumber = true },
+                            new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "14%", RenderFn = "formatCurrency", TabularNumber = true },
                             new GridColumn { Data = "autoId", Header = "Action", Align = "center", Width = "10%", RenderFn = "voucherActionButtons", Sortable = false, Searchable = false }
                         }
                     }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
                 </div>
-                <div class="d-flex justify-content-end align-items-center voucher-total-box mt-1 px-3 py-1" style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-size: 13px; gap: 20px;">
+                <div class="d-flex justify-content-end align-items-center voucher-total-box mt-1 px-3 py-1" style="background-color: #f8f9fa; border: none; border-top: 1px solid #dee2e6; border-radius: 4px; font-size: 13px; gap: 20px;">
                     <span class="fw-bold">Total :</span>
                     <div><span class="text-muted small">Dr:</span> <span class="fw-bold" id="TotalDrValue">0.00</span></div>
                     <div><span class="text-muted small">Cr:</span> <span class="fw-bold" id="TotalCrValue">0.00</span></div>
@@ -327,7 +334,7 @@
             </div>
 
         </div>
-    </fieldset>
+    </div>
 
     <hr class="my-2 mx-2">
 

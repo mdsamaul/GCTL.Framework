@@ -193,146 +193,182 @@
 
     /* =========================================================
        Screen Responsive Control Layout:
-       - Laptop (< 1400px): Labels & Inputs Side-by-Side (Inline)
-       - Big Screen (>= 1400px): Label on Top, Input Below (Vertical)
+       - Labels & Inputs Side-by-Side (Inline) for all screens
+       - Label: 25% width (right-aligned) so all controllers start at the exact same vertical line
+       - Narration: 12.5% label + 87.5% input (starts at exact same line and ends with right controller)
        ========================================================= */
-    @@media (max-width: 1399.98px) {
-        #VoucherEntry-form .row.align-items-center {
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: center !important;
-        }
+    #VoucherEntry-form .voucher-section {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
 
-        #VoucherEntry-form .row.align-items-center > [class*="col-3"],
-        #VoucherEntry-form .row.align-items-center > .col-3 {
-            flex: 0 0 25% !important;
-            max-width: 25% !important;
-            text-align: right !important;
-            padding-right: 6px !important;
-        }
+    #VoucherEntry-form .row.align-items-center {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
 
-        #VoucherEntry-form .row.align-items-center > [class*="col-9"],
-        #VoucherEntry-form .row.align-items-center > .col-9 {
-            flex: 0 0 75% !important;
-            max-width: 75% !important;
-        }
+    #VoucherEntry-form .row.align-items-center > [class*="col-3"],
+    #VoucherEntry-form .row.align-items-center > .col-3 {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        text-align: right !important;
+        padding-right: 6px !important;
+    }
 
-        #VoucherEntry-form .form-label {
-            font-size: 12.5px !important;
-            font-weight: 500 !important;
-            white-space: nowrap !important;
-            margin-bottom: 0 !important;
-            color: #3e4855 !important;
-            padding-right: 4px !important;
-        }
+    #VoucherEntry-form .row.align-items-center > [class*="col-9"],
+    #VoucherEntry-form .row.align-items-center > .col-9 {
+        flex: 0 0 75% !important;
+        max-width: 75% !important;
+    }
 
-        .ledger-row {
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: center !important;
-        }
+    #VoucherEntry-form .form-label {
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        margin-bottom: 0 !important;
+        color: #3e4855 !important;
+        padding-right: 4px !important;
+    }
 
-        .ledger-label {
-            flex: 0 0 25% !important;
-            max-width: 25% !important;
-            text-align: right !important;
-            padding-right: 6px !important;
-            font-size: 12.5px !important;
-            font-weight: 500 !important;
-            color: #3e4855 !important;
-            white-space: nowrap !important;
-        }
+    .ledger-row {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
 
-        .ledger-value {
-            flex: 0 0 75% !important;
-            max-width: 75% !important;
-            text-align: left !important;
-            font-size: 12.5px !important;
-            color: #212529 !important;
-        }
+    .ledger-label {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        text-align: right !important;
+        padding-right: 6px !important;
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        color: #3e4855 !important;
+        white-space: nowrap !important;
+    }
+
+    .ledger-value {
+        flex: 0 0 75% !important;
+        max-width: 75% !important;
+        text-align: left !important;
+        font-size: 12.5px !important;
+        color: #212529 !important;
+    }
+
+    #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-3"],
+    #VoucherEntry-form .narration-col .row.align-items-center > .col-3 {
+        flex: 0 0 12.5% !important;
+        max-width: 12.5% !important;
+        text-align: right !important;
+        padding-right: 6px !important;
+    }
+
+    #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-9"],
+    #VoucherEntry-form .narration-col .row.align-items-center > .col-9 {
+        flex: 0 0 87.5% !important;
+        max-width: 87.5% !important;
+    }
+
+    #VoucherEntry-form .narration-col textarea#Narration {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
     @@media (min-width: 1400px) {
-        #VoucherEntry-form .row.align-items-center {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            row-gap: 2px !important;
-        }
-
-        #VoucherEntry-form .row.align-items-center > [class*="col-3"],
-        #VoucherEntry-form .row.align-items-center > .col-3 {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            text-align: left !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-
-        #VoucherEntry-form .row.align-items-center > [class*="col-9"],
-        #VoucherEntry-form .row.align-items-center > .col-9 {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-        }
-
         #VoucherEntry-form .form-label {
             font-size: 13px !important;
-            font-weight: 600 !important;
-            text-align: left !important;
-            margin-bottom: 2px !important;
-            color: #2c3e50 !important;
-            display: inline-block !important;
         }
 
-        #VoucherEntry-form .input-group,
-        #VoucherEntry-form .select2-container,
-        #VoucherEntry-form .form-control,
-        #VoucherEntry-form .form-select {
-            max-width: 540px !important; /* Prevents controls from stretching excessively on large screens */
-        }
-
-        .ledger-row {
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: center !important;
-            gap: 8px !important;
-            font-size: 13px !important;
-        }
-
-        .ledger-label {
-            font-size: 13px !important;
-            font-weight: 600 !important;
-            color: #2c3e50 !important;
-            text-align: left !important;
-            white-space: nowrap !important;
-        }
-
+        .ledger-label,
         .ledger-value {
             font-size: 13px !important;
-            color: #212529 !important;
         }
     }
 
-    /* Compact Fieldsets & Card */
-    .voucher-entry-card-body {
-        padding: 8px 16px !important;
+    /* Voucher Section & Bar Header (matching screenshot) */
+    .voucher-section {
+        margin-bottom: 8px;
     }
 
-    .voucher-fieldset {
-        padding: 6px 12px 8px 12px !important;
-        margin-bottom: 6px !important;
-        border-color: #dee2e6 !important;
+    .voucher-section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+        margin-bottom: 8px;
     }
 
-    .voucher-fieldset legend {
-        font-size: 13px !important;
-        font-weight: 600 !important;
+    .voucher-section-bar {
+        display: inline-block;
+        width: 3.5px;
+        height: 16px;
+        background-color: #c48325;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .voucher-section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e3a8a;
+        letter-spacing: 0.2px;
+    }
+
+    .voucher-divider {
+        border: 0 !important;
+        border-top: 1px solid #e9ecef !important;
+        opacity: 0.85 !important;
+        margin-top: 6px !important;
         margin-bottom: 2px !important;
-        padding: 0 6px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+    }
+
+    /* Top Toolbar Title Icon Badge (matching screenshot) */
+    .voucher-title-icon-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 26px !important;
+        height: 26px !important;
+        background-color: #fff9eb !important;
+        border: 1px solid #fde68a !important;
+        border-radius: 6px !important;
+        color: #c48325 !important;
+        font-size: 13px !important;
+        margin-right: 8px !important;
+        flex-shrink: 0 !important;
+        box-shadow: 0 1px 2px rgba(196, 131, 37, 0.1) !important;
+    }
+
+    .voucher-title-text {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #1e3a8a !important;
+        letter-spacing: 0.2px !important;
+    }
+
+    .voucher-entry-card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .voucher-entry-card .card-header {
+        border-bottom: none !important;
+    }
+
+    .voucher-entry-card .toolbar-container {
+        border: none !important;
+        box-shadow: none !important;
+        border-bottom: 1px solid #edf2f7 !important;
+        padding-bottom: 4px !important;
+    }
+
+    .voucher-entry-card-body {
+        padding: 4px 16px 12px 16px !important;
     }
 
     /* Details Icon Group Compact */
@@ -437,7 +473,8 @@
     .voucher-total-box {
         background-color: #f8f9fa;
         padding: 4px 10px !important;
-        border: 1px solid #dee2e6;
+        border: none !important;
+        border-top: 1px solid #e2e8f0 !important;
         border-radius: 4px;
         font-size: 12.5px !important;
         margin-top: 4px !important;
@@ -449,140 +486,155 @@
         max-width: 100% !important;
     }
 
-    .icon-btn {
-        position: relative;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        background: #f8f9fa;
-        color: #4a4a4a;
-        line-height: 1;
-        flex-shrink: 0;
-        cursor: pointer;
-        /* box-shadow: 0 1px 3px rgba(0,0,0,0.15); */
-        transition: 0.2s;
+    /* Toolbar Button Effect for Details Action Icons (Add, Cancel, Refresh) */
+    .details-icon-group {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
     }
 
-        .icon-btn:hover {
-            background: #eef1f4;
-            border-color: #c8ced3;
-            transform: translateY(-2px);
-        }
+    .icon-btn {
+        position: relative !important;
+        width: 32px !important;
+        height: 32px !important;
+        border: 1px solid #dcdfe3 !important;
+        border-radius: 4px !important;
+        background: #fff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        flex-shrink: 0 !important;
+        cursor: pointer !important;
+        overflow: hidden !important;
+        transition: color .3s ease, border-color .3s ease, transform .25s ease, box-shadow .25s ease !important;
+    }
 
-        .icon-btn:active {
-            transform: scale(0.95);
-        }
+    .icon-btn::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 0 !important;
+        transition: height .3s ease !important;
+        z-index: 0 !important;
+    }
 
-        /* Fixed, consistent icon size across every screen */
-        .icon-btn .default-icon,
-        .icon-btn .icon-stack {
-            font-size: 22px;
-            width: 22px;
-            height: 22px;
-        }
+    .icon-btn:hover::before {
+        height: 100% !important;
+    }
 
-        .icon-btn.add {
-            color: #1B873F;
-        }
+    .icon-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,.10) !important;
+    }
 
-        .icon-btn.cancel {
-            color: #C71F2D;
-        }
+    .icon-btn .default-icon,
+    .icon-btn .icon-stack {
+        position: relative !important;
+        z-index: 1 !important;
+        font-size: 20px !important;
+        width: 20px !important;
+        height: 20px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
 
-        .icon-btn.refresh {
-            color: #0A6BE7;
-        }
+    /* Add button - green */
+    .icon-btn.add {
+        color: #1B873F !important;
+        border-color: #dcdfe3 !important;
+    }
+    .icon-btn.add::before {
+        background: rgba(27, 135, 63, 0.14) !important;
+    }
+    .icon-btn.add:hover {
+        border-color: #1B873F !important;
+    }
 
-        .icon-btn.add .default-icon,
-        .icon-btn.cancel .default-icon {
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
+    /* Cancel button - red */
+    .icon-btn.cancel {
+        color: #C71F2D !important;
+        border-color: #dcdfe3 !important;
+    }
+    .icon-btn.cancel::before {
+        background: rgba(199, 31, 45, 0.14) !important;
+    }
+    .icon-btn.cancel:hover {
+        border-color: #C71F2D !important;
+    }
 
-        .icon-btn.add:hover .default-icon {
-            transform: scale(1.15);
-            color: #1B873F;
-        }
-
-        .icon-btn.cancel:hover .default-icon {
-            transform: scale(1.15);
-            color: #C71F2D;
-        }
-
-        .icon-btn::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 45px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: #fff;
-            padding: 5px 8px;
-            font-size: 12px;
-            border-radius: 4px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.2s;
-            z-index: 99;
-        }
-
-        .icon-btn::before {
-            content: "";
-            position: absolute;
-            bottom: 38px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 5px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-            opacity: 0;
-            transition: 0.2s;
-            z-index: 98;
-        }
-
-        .icon-btn:hover::after,
-        .icon-btn:hover::before {
-            opacity: 1;
-        }
+    /* Refresh button - blue */
+    .icon-btn.refresh {
+        color: #0A6BE7 !important;
+        border-color: #dcdfe3 !important;
+    }
+    .icon-btn.refresh::before {
+        background: rgba(10, 107, 231, 0.14) !important;
+    }
+    .icon-btn.refresh:hover {
+        border-color: #0A6BE7 !important;
+    }
 
     /* Refresh icon stack */
     .icon-stack {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
-        .icon-stack .journal-base,
-        .icon-stack .refresh-icon {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            line-height: 1;
-        }
+    .icon-stack .journal-base,
+    .icon-stack .refresh-icon {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 20px !important;
+        line-height: 1 !important;
+    }
 
-        .icon-stack .journal-base {
-            opacity: 0.5;
-        }
-
-        .icon-stack .refresh-icon {
-            transition: transform 0.3s ease;
-        }
+    .icon-stack .journal-base {
+        opacity: 0.45 !important;
+    }
 
     .icon-btn.refresh:hover .refresh-icon {
-        transform: rotate(180deg) scale(1.15);
-        color: #0A6BE7;
+        transform: rotate(180deg) scale(1.1) !important;
+        transition: transform 0.35s ease !important;
+    }
+
+    /* Borderless Details Table */
+    #VoucherEntryTempGrid,
+    #VoucherEntryTempGrid.table,
+    #VoucherEntryTempGrid.table-bordered,
+    #VoucherEntryTempGrid th,
+    #VoucherEntryTempGrid td {
+        border: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-top: none !important;
+    }
+
+    #VoucherEntryTempGrid thead th {
+        border-bottom: 1.5px solid #dcdfe3 !important;
+        background-color: #f8fafc !important;
+    }
+
+    #VoucherEntryTempGrid tbody td {
+        border-bottom: 1px solid #edf2f7 !important;
+    }
+
+    #VoucherEntryTempGrid tbody tr:last-child td {
+        border-bottom: none !important;
     }
 </style>
 
@@ -597,11 +649,11 @@
 
             <!-- Top Setup Form Column -->
             <div class="col-md-12">
-                <div class="card rounded shadow-sm">
+                <div class="card rounded shadow-none border-0 voucher-entry-card">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Voucher Entry",
+                            Title = "<span class=\"voucher-title-icon-badge\"><i class=\"fa-regular fa-file-lines\"></i></span><span class=\"voucher-title-text\">Voucher Entry</span>",
                             SaveBtnClass = "js-VoucherEntry-save",
                             DeleteBtnClass = "js-VoucherEntry-delete-confirm",
                             ClearBtnClass = "js-VoucherEntry-clear",
@@ -644,7 +696,7 @@
                             new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "10%"},
                             new() { Data = "narration", Header = "Narration", Width = "30%"},
                             new() { Data = "branchName", Header = "Branch", Width = "15%"},
-                            new() { Data = "amount", Header = "Amount", Width = "13%"},
+                            new() { Data = "amount", Header = "Amount", Width = "13%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
                             new() { Data = "invoiceNo", Header = "Invoice No", Width = "14%"}
                         }
                     }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
