@@ -41,6 +41,7 @@ namespace GCTL.UI.Core.ViewModels
         public string CheckboxClass { get; set; } = "checkbox";
         public string CheckAllId { get; set; } = "checkAll";
         public bool DisableCheckAll { get; set; } = false;
+        public bool ShowCheckAll { get; set; } = true;
         public bool UseRadio { get; set; } = false;             // radio instead of checkbox (single-select rows)
         public string RadioName { get; set; } = "rowSelect";
         public bool SelectRowHighlight { get; set; } = false;   // soft blue highlight on selected rows

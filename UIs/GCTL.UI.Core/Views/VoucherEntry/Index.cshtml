@@ -374,6 +374,17 @@
         word-break: break-word !important;
     }
 
+    #VoucherEntryTempGrid thead th.col-select-cell,
+    #VoucherEntryTempGrid tbody td.col-select-cell,
+    #voucherEntryTable thead th.col-select-cell,
+    #voucherEntryTable tbody td.col-select-cell {
+        width: 45px !important;
+        min-width: 45px !important;
+        text-align: center !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+
     .voucher-total-box {
         background-color: #f8f9fa;
         padding: 4px 10px !important;
@@ -574,7 +585,7 @@
                         ServerSide = true,
                         ShowCheckbox = true,
                         CheckColumnData = "autoId",
-                        CheckAllId = "VoucherEntry-check-all",
+                        CheckAllId = "none",
                         DefaultSortColumn = "VoucherDate",
                         DefaultSortDirection = "desc",
                         Compact = true,
@@ -587,7 +598,7 @@
                             new() { Data = "amount", Header = "Amount", Width = "13%"},
                             new() { Data = "invoiceNo", Header = "Invoice No", Width = "14%"}
                         }
-                    })
+                    }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
                 </div>
             </div>
 

@@ -287,10 +287,10 @@
                 var selectColIdx = columns.length;
                 columns.push({
                     data: useRadio ? null : config.checkColumnData,
-                    className: "text-center",
+                    className: "text-center col-select-cell",
                     orderable: false,
                     searchable: false,
-                    width: "3%",
+                    width: "45px",
                     render: function (data, type, row) {
                         var cls = config.checkboxClass || 'form-check-input checkbox m-0 shadow-none';
                         return useRadio
@@ -432,6 +432,13 @@
                 ? [[defaultSortIdx, config.defaultSortDirection || "desc"]]
                 : [];
 
+            var showCheckAll = config.showCheckAll !== undefined 
+                ? config.showCheckAll 
+                : (config.ShowCheckAll !== undefined ? config.ShowCheckAll : true);
+            if (config.checkAllId === "none" || config.checkAllId === "false" || !config.checkAllId) {
+                showCheckAll = false;
+            }
+
             var builtSettings = {
                 gridSelector: '#' + config.gridId,
                 ajaxUrl: config.ajaxUrl,
@@ -440,7 +447,7 @@
                 ajaxData: overrides.ajaxData,
                 columns: columns,
                 checkBoxClass: config.checkboxClass || 'form-check-input checkbox m-0 shadow-none',
-                checkAllSelector: (config.showCheckbox && !config.disableCheckAll && config.checkAllId)
+                checkAllSelector: (config.showCheckbox && !config.disableCheckAll && showCheckAll && config.checkAllId && config.checkAllId !== 'none')
                     ? ('#' + config.checkAllId)
                     : null,
                 order: initialOrder,
