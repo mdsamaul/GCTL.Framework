@@ -331,10 +331,17 @@ namespace GCTL.Service.VoucherEntry
         #region Delete tmp data With User ID
         public async Task<bool> DeleteAsync(int? ids)
         {
+            return await DeleteAsync(ids?.ToString() ?? "");
+        }
+
+        public async Task<bool> DeleteAsync(string userId)
+        {
             try
             {
-                var tmpdetails = await _tmpDetails.All().Where(d => d.Luser == ids.ToString()).ToListAsync();
-                if (tmpdetails != null)
+                var tmpdetails = await _tmpDetails.All()
+                    .Where(d => string.IsNullOrEmpty(userId) || d.Luser == userId || string.IsNullOrEmpty(d.Luser))
+                    .ToListAsync();
+                if (tmpdetails != null && tmpdetails.Any())
                 {
                     await _tmpDetails.DeleteRangeAsync(tmpdetails);
                 }
@@ -592,7 +599,7 @@ namespace GCTL.Service.VoucherEntry
         }
         #endregion
 
-        #region Get Master Voucher Information with specific Master ID
+        #region Get Master Voucher Information with specific Master ID or VoucherEntryCodeNo
 
         public async Task<VoucherEntryVM> GetByMasterIdAsync(decimal autoId)
         {
@@ -601,6 +608,31 @@ namespace GCTL.Service.VoucherEntry
                               select new VoucherEntryVM
                               {
                                   autoId = main.AutoId,
+                                  VoucherEntryCodeNo = main.VoucherEntryCodeNo,
+                                  CompanyCode = main.CompanyCode,
+                                  BranchCode = main.BranchCode,
+                                  VoucherNo = main.VoucherNo,
+                                  VoucherDate = main.VoucherDate,
+                                  Narration = main.Narration,
+                                  VoucherType_Code = main.VoucherTypeCode,
+                                  Ldate = main.Ldate,
+                                  ModifyDate = main.ModifyDate
+                              }).FirstOrDefaultAsync();
+
+            return data;
+        }
+
+        public async Task<VoucherEntryVM> GetByVoucherCodeAsync(string voucherCode)
+        {
+            if (string.IsNullOrWhiteSpace(voucherCode))
+                return null;
+
+            var data = await (from main in _repository.All()
+                              where main.VoucherEntryCodeNo == voucherCode
+                              select new VoucherEntryVM
+                              {
+                                  autoId = main.AutoId,
+                                  VoucherEntryCodeNo = main.VoucherEntryCodeNo,
                                   CompanyCode = main.CompanyCode,
                                   BranchCode = main.BranchCode,
                                   VoucherNo = main.VoucherNo,
@@ -615,35 +647,17 @@ namespace GCTL.Service.VoucherEntry
         }
         #endregion
 
-        #region Get Details Voucher Information with specific VoucherEntryAutoId
-        //public async Task<List<VoucherDetailsVM>> GetDetailsByVoucherIdAsync(decimal? voucherEntryAutoId)
-        //{
-        //    var data = await (from details in _voucherDetails.All()
-        //                      join gnrlL in _generalLedger.All()
-        //                        on details.AccCode equals gnrlL.SubSusidiaryLedgerCodeNo into gnLjoin
-        //                      from gnrl in gnLjoin.DefaultIfEmpty()
-        //                      where details.VoucherEntryAutoId == voucherEntryAutoId
-        //                      select new VoucherDetailsVM
-        //                      {
-        //                          autoId = details.AutoId,
-        //                          AccCode = details.AccCode,
-        //                          Description = details.Description,
-        //                          DebitAmount = details.DebitAmount,
-        //                          CreditAmount = details.CreditAmount,
-        //                          AccountHeadName = gnrl.SubSubsidiaryLedgerName,
-        //                          TrType = details.TrType,
-        //                          VoucherEntryDetailsCodeNo = details.VoucherEntryDetailsCodeNo,
-        //                      }).ToListAsync();
-
-        //    return data;
-        //}
-        public async Task<List<VoucherDetailsVM>> GetDetailsByVoucherIdAsync(decimal? voucherEntryAutoId)
+        #region Get Details Voucher Information with specific VoucherEntryCodeNo / VoucherEntryAutoId
+        public async Task<List<VoucherDetailsVM>> GetDetailsByVoucherCodeAsync(string voucherCode)
         {
+            if (string.IsNullOrWhiteSpace(voucherCode))
+                return new List<VoucherDetailsVM>();
+
             var data = await (from details in _voucherDetails.All()
                               join gnrlL in _generalLedger.All()
                                 on details.AccCode equals gnrlL.SubSusidiaryLedgerCodeNo into gnLjoin
                               from gnrl in gnLjoin.DefaultIfEmpty()
-                              where details.VoucherEntryAutoId == voucherEntryAutoId
+                              where details.VoucherEntryCodeNo == voucherCode
                               select new VoucherDetailsVM
                               {
                                   autoId = details.AutoId,
@@ -656,28 +670,67 @@ namespace GCTL.Service.VoucherEntry
                                   VoucherEntryDetailsCodeNo = details.VoucherEntryDetailsCodeNo,
                                   VoucherEntryNo = details.VoucherEntryCodeNo,
                                   ChequeNo = details.ChequeNo,
-                                  ChequeDate = details.ChequeDate.Value
+                                  ChequeDate = details.ChequeDate ?? DateTime.Today
                               }).ToListAsync();
 
             return data;
+        }
+
+        public async Task<List<VoucherDetailsVM>> GetDetailsByVoucherIdAsync(decimal? voucherEntryAutoId)
+        {
+            if (!voucherEntryAutoId.HasValue)
+                return new List<VoucherDetailsVM>();
+
+            var voucher = await _repository.All().FirstOrDefaultAsync(x => x.AutoId == voucherEntryAutoId.Value);
+            if (voucher == null || string.IsNullOrWhiteSpace(voucher.VoucherEntryCodeNo))
+                return new List<VoucherDetailsVM>();
+
+            return await GetDetailsByVoucherCodeAsync(voucher.VoucherEntryCodeNo);
         }
         #endregion
 
         #region When Edit Button Clicked then Details table data Copied to Tmp Table
 
-        public async Task<bool> DetailsCopiedToTmp(decimal id, string? currenUserID)
+        public async Task<bool> DetailsCopiedToTmp(string voucherCodeOrId, string? currenUserID)
         {
             try
             {
-                var orginaDetailsData = await GetDetailsByVoucherIdAsync(id);
+                // 1. Details temp table-er sob existing data remove hobe first
+                var existingTemp = await _tmpDetails.All()
+                    .Where(d => string.IsNullOrEmpty(currenUserID) || d.Luser == currenUserID || string.IsNullOrEmpty(d.Luser))
+                    .ToListAsync();
 
-                //Details table Data Copied to Tmp table
-                foreach (var tmpdata in orginaDetailsData)
+                if (existingTemp != null && existingTemp.Any())
+                {
+                    await _tmpDetails.DeleteRangeAsync(existingTemp);
+                }
+
+                // 2. Resolve VoucherEntryCodeNo (use VoucherEntryCodeNo, not autoId)
+                string actualVoucherCode = voucherCodeOrId;
+                var masterByCode = await _repository.All().FirstOrDefaultAsync(v => v.VoucherEntryCodeNo == voucherCodeOrId);
+                if (masterByCode != null)
+                {
+                    actualVoucherCode = masterByCode.VoucherEntryCodeNo;
+                }
+                else if (decimal.TryParse(voucherCodeOrId, out decimal autoId))
+                {
+                    var masterById = await _repository.All().FirstOrDefaultAsync(v => v.AutoId == autoId);
+                    if (masterById != null && !string.IsNullOrEmpty(masterById.VoucherEntryCodeNo))
+                    {
+                        actualVoucherCode = masterById.VoucherEntryCodeNo;
+                    }
+                }
+
+                // 3. Original Details table data fetched by VoucherEntryCodeNo (Acc_VoucherEntryDetails)
+                var originalDetailsData = await GetDetailsByVoucherCodeAsync(actualVoucherCode);
+
+                // 4. Details table data Copied to Tmp table
+                foreach (var tmpdata in originalDetailsData)
                 {
                     var tmp = new AccVoucherEntryDetailsTemp
                     {
                         VoucherEntryDetailsCodeNo = tmpdata.VoucherEntryDetailsCodeNo,
-                        VoucherEntryCodeNo = tmpdata.VoucherEntryNo ?? "",
+                        VoucherEntryCodeNo = tmpdata.VoucherEntryNo ?? actualVoucherCode,
                         TrType = tmpdata.TrType,
                         AccCode = tmpdata.AccCode,
                         Description = tmpdata.Description,
@@ -685,7 +738,7 @@ namespace GCTL.Service.VoucherEntry
                         CreditAmount = tmpdata.CreditAmount,
                         ChequeNo = tmpdata.ChequeNo ?? "",
                         ChequeDate = tmpdata.ChequeDate,
-                        Luser = currenUserID.ToString()
+                        Luser = currenUserID?.ToString() ?? ""
                     };
                     await _tmpDetails.AddAsync(tmp);
                 }
@@ -694,9 +747,13 @@ namespace GCTL.Service.VoucherEntry
             }
             catch (Exception)
             {
-
                 throw;
             }
+        }
+
+        public async Task<bool> DetailsCopiedToTmp(decimal id, string? currenUserID)
+        {
+            return await DetailsCopiedToTmp(id.ToString(), currenUserID);
         }
 
         #endregion

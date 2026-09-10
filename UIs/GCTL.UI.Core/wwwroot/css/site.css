@@ -637,89 +637,13 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 }
 
 /* Tree Node Icon Wrapper */
-.tree-node-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-/* SSMS Yellow Folder Icon */
-.ssms-folder-icon {
-    color: #e5a93b !important; /* Golden amber yellow */
-    font-size: 13.5px !important;
-    width: 16px !important;
-    height: 16px !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-right: 4px;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
-}
-
-/* Dynamic Open vs Closed folder switching based on aria-expanded */
-[aria-expanded="true"] .ssms-folder-closed {
+/* Tree Node Icons - completely removed per user request (only +/- tree-expander is displayed) */
+.tree-node-icon,
+.ssms-folder-icon,
+.ssms-db-icon,
+.ssms-server-icon,
+.flyout-icon {
     display: none !important;
-}
-[aria-expanded="true"] .ssms-folder-open {
-    display: inline-flex !important;
-}
-[aria-expanded="false"] .ssms-folder-closed {
-    display: inline-flex !important;
-}
-[aria-expanded="false"] .ssms-folder-open {
-    display: none !important;
-}
-
-/* SSMS Database Cylinder Icon */
-.ssms-db-icon {
-    color: #475569 !important; /* Classic slate / charcoal */
-    font-size: 12.5px !important;
-    width: 16px !important;
-    height: 16px !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-right: 4px;
-}
-
-/* SSMS Server / Database with Green Play Indicator */
-.ssms-server-icon {
-    position: relative;
-    width: 16px;
-    height: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-right: 4px;
-    color: #374151;
-    font-size: 12.5px;
-}
-
-.ssms-server-icon .ssms-green-play {
-    position: absolute;
-    right: -3px;
-    bottom: -1px;
-    width: 8px;
-    height: 8px;
-    background-color: #22c55e;
-    border: 1px solid #ffffff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0.5px 1.5px rgba(0, 0, 0, 0.3);
-}
-
-.ssms-server-icon .ssms-green-play i {
-    font-size: 3.5px !important;
-    color: #ffffff !important;
-    margin-left: 0.5px;
-    width: auto !important;
-    height: auto !important;
 }
 
 /* Submenu container and Dotted Tree Guidelines */
@@ -1256,49 +1180,15 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     display: none !important;
 }
 
-.app-sidebar.collapsed .tree-node-icon {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin-bottom: 2px !important;
-}
-
+.app-sidebar.collapsed .tree-node-icon,
 .app-sidebar.collapsed .ssms-folder-icon,
-.app-sidebar.collapsed .ssms-db-icon {
-    font-size: 1.25rem !important;
-    width: auto !important;
-    height: auto !important;
-    margin-right: 0 !important;
-}
-
-.app-sidebar.collapsed .ssms-server-icon {
-    font-size: 1.25rem !important;
-    width: auto !important;
-    height: auto !important;
-    margin-right: 0 !important;
-}
-
-.app-sidebar.collapsed .ssms-server-icon .ssms-green-play {
-    right: -4px;
-    bottom: -2px;
-    width: 9px;
-    height: 9px;
-}
-
-.flyout-link .flyout-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
+.app-sidebar.collapsed .ssms-db-icon,
+.app-sidebar.collapsed .ssms-server-icon,
+.flyout-link .flyout-icon,
 .flyout-link .ssms-folder-icon,
 .flyout-link .ssms-db-icon,
 .flyout-link .ssms-server-icon {
-    font-size: 13px !important;
-    width: 16px !important;
-    height: 16px !important;
-    margin-right: 6px !important;
+    display: none !important;
 }
 
 /* Collapsed Flyout Level 1 */

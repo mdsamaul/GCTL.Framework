@@ -40,12 +40,6 @@
 
         return false;
     }
-
-    bool IsServerOrDashboard(GCTL.Core.ViewModels.Menu.MenuDto item)
-    {
-        var key = $"{item?.Title} {item?.ControllerName} {item?.MenuId}".ToLowerInvariant();
-        return key.Contains("dashboard") || key.Contains("server");
-    }
 }
 <ul class="sidebar-menu sidebar-rail-menu ssms-tree-list">
 @foreach (var item in Model)
@@ -53,7 +47,6 @@
     var hasChildren = item.Children != null && item.Children.Any();
     var itemActive = IsItemActive(item);
     var directActive = IsDirectActive(item);
-    var isServer = IsServerOrDashboard(item);
 
     <li class="menu-item rail-item tree-node @(hasChildren ? "has-children has-flyout" : "is-leaf") @(itemActive ? "active" : "") @(directActive ? "direct-active" : "")" data-menu-id="@item.MenuId">
         @if (hasChildren)
@@ -64,10 +57,6 @@
                     aria-expanded="@(itemActive ? "true" : "false")"
                     aria-controls="children-@item.AutoId">
                 <span class="tree-expander" aria-hidden="true"></span>
-                <span class="tree-node-icon" aria-hidden="true">
-                    <i class="fa fa-folder ssms-folder-icon ssms-folder-closed"></i>
-                    <i class="fa fa-folder-open ssms-folder-icon ssms-folder-open"></i>
-                </span>
                 <span class="menu-text rail-text tree-text">@item.Title</span>
             </button>
 
@@ -84,15 +73,11 @@
                         var childHasChildren = child.Children != null && child.Children.Any();
                         var childActive = IsItemActive(child);
                         var childDirectActive = IsDirectActive(child);
-                        var childIsServer = IsServerOrDashboard(child);
 
                         <li class="flyout-item @(childHasChildren ? "has-nested" : "") @(childActive ? "active" : "")">
                             @if (childHasChildren)
                             {
                                 <div class="flyout-link @(childDirectActive ? "active" : "")" role="button" tabindex="0">
-                                    <span class="flyout-icon me-1" aria-hidden="true">
-                                        <i class="fa fa-folder ssms-folder-icon"></i>
-                                    </span>
                                     <span class="flyout-text">@child.Title</span>
                                     <i class="bi bi-chevron-right flyout-arrow ms-auto"></i>
                                 </div>
@@ -108,9 +93,6 @@
                                                 @if (subChildHasChildren)
                                                 {
                                                     <div class="flyout-link @(subDirectActive ? "active" : "")" role="button" tabindex="0">
-                                                        <span class="flyout-icon me-1" aria-hidden="true">
-                                                            <i class="fa fa-folder ssms-folder-icon"></i>
-                                                        </span>
                                                         <span class="flyout-text">@subChild.Title</span>
                                                         <i class="bi bi-chevron-right flyout-arrow ms-auto"></i>
                                                     </div>
@@ -142,12 +124,6 @@
                             else
                             {
                                 <a class="flyout-link @(childDirectActive ? "active" : "")" asp-controller="@child.ControllerName" asp-action="@child.ViewName">
-                                    @if (childIsServer)
-                                    {
-                                        <span class="flyout-icon me-1" aria-hidden="true">
-                                            <i class="bi bi-speedometer2 text-primary"></i>
-                                        </span>
-                                    }
                                     <span class="flyout-text">@child.Title</span>
                                 </a>
                             }
@@ -159,12 +135,6 @@
         else
         {
             <a class="menu-link rail-link tree-link d-flex align-items-center w-100 @(directActive ? "active" : "")" asp-controller="@item.ControllerName" asp-action="@item.ViewName">
-                @if (isServer)
-                {
-                    <span class="tree-node-icon me-1" aria-hidden="true">
-                        <i class="bi bi-speedometer2 text-primary"></i>
-                    </span>
-                }
                 <span class="menu-text rail-text tree-text">@item.Title</span>
             </a>
         }

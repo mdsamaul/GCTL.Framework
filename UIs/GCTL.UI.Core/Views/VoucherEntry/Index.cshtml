@@ -640,7 +640,7 @@
                         Compact = true,
                         Columns = new()
                         {
-                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "14%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId" },
+                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "14%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId", DataAttributes = new() { "voucherEntryCodeNo" } },
                             new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "10%"},
                             new() { Data = "narration", Header = "Narration", Width = "30%"},
                             new() { Data = "branchName", Header = "Branch", Width = "15%"},
