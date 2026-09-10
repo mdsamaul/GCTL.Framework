@@ -132,7 +132,7 @@
 
         <div class="row g-2">
 
-            @* Row 1: Tr. Type & Account Head *@
+            @* Row 1: Tr. Type *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 IsVisible = true,
@@ -155,7 +155,35 @@
                     new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Text = "Cr", Value = "Cr" }
                 }, "Value", "Text")
             })
+            <div class="col-md-6 d-none d-md-block"></div>
 
+            @* Row 2 & 3: Ledger Section (Right after Tr. Type, visible when Account Head is selected) *@
+            <div class="col-md-6 mt-1 ledger-col" style="display:none;">
+                <div class="ledger-row">
+                    <span class="ledger-label">Group Ledger :</span>
+                    <span class="ledger-value" id="GroupLedgerValue"></span>
+                </div>
+            </div>
+            <div class="col-md-6 mt-1 ledger-col" style="display:none;">
+                <div class="ledger-row">
+                    <span class="ledger-label">Control Ledger :</span>
+                    <span class="ledger-value" id="ControlLedgerValue"></span>
+                </div>
+            </div>
+            <div class="col-md-6 mt-1 ledger-col" style="display:none;">
+                <div class="ledger-row">
+                    <span class="ledger-label">Sub Control Ledger :</span>
+                    <span class="ledger-value" id="SubControlLedgerValue"></span>
+                </div>
+            </div>
+            <div class="col-md-6 mt-1 ledger-col" style="display:none;">
+                <div class="ledger-row">
+                    <span class="ledger-label">Sub-Sidiary Ledgers :</span>
+                    <span class="ledger-value" id="SubSidiaryLedgerValue"></span>
+                </div>
+            </div>
+
+            @* Row 4: Account Head *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 IsVisible = true,
@@ -173,8 +201,9 @@
                 LabelColWidth = 3,
                 LabelColumnClass = "text-end"
             })
+            <div class="col-md-6 d-none d-md-block"></div>
 
-            @* Row 2: Description & Amount *@
+            @* Row 5: Description & Amount *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 IsVisible = true,
@@ -208,32 +237,6 @@
                 LabelColWidth = 3,
                 LabelColumnClass = "text-end"
             })
-
-            @* Ledger Section (hidden by default) *@
-            <div class="col-md-6 mt-1" style="display:none;">
-                <div class="ledger-row">
-                    <span class="ledger-label">Group Ledger :</span>
-                    <span class="ledger-value" id="GroupLedgerValue"></span>
-                </div>
-            </div>
-            <div class="col-md-6 mt-1" style="display:none;">
-                <div class="ledger-row">
-                    <span class="ledger-label">Control Ledger :</span>
-                    <span class="ledger-value" id="ControlLedgerValue"></span>
-                </div>
-            </div>
-            <div class="col-md-6 mt-1" style="display:none;">
-                <div class="ledger-row">
-                    <span class="ledger-label">Sub-Control Ledger :</span>
-                    <span class="ledger-value" id="SubControlLedgerValue"></span>
-                </div>
-            </div>
-            <div class="col-md-6 mt-1" style="display:none;">
-                <div class="ledger-row">
-                    <span class="ledger-label">Sub-Sidiary Ledger :</span>
-                    <span class="ledger-value" id="SubSidiaryLedgerValue"></span>
-                </div>
-            </div>
 
             @* Row 3: Cheque No & Cheque Date *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel

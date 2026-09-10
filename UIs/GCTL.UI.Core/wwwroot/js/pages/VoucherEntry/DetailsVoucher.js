@@ -430,10 +430,10 @@ function fillFormFields(data) {
     }
 
     // Ledger info
-    if (data.groupLedgerName) $('#GroupLedgerValue').text(data.groupLedgerName).closest('.ledger-row').show();
-    if (data.controlLedgerName) $('#ControlLedgerValue').text(data.controlLedgerName).closest('.ledger-row').show();
-    if (data.subControlLedgerName) $('#SubControlLedgerValue').text(data.subControlLedgerName).closest('.ledger-row').show();
-    if (data.subSidiaryLedgerName) $('#SubSidiaryLedgerValue').text(data.subSidiaryLedgerName).closest('.ledger-row').show();
+    if (data.groupLedgerName) $('#GroupLedgerValue').text(data.groupLedgerName).closest('.ledger-col, .col-md-6').show();
+    if (data.controlLedgerName) $('#ControlLedgerValue').text(data.controlLedgerName).closest('.ledger-col, .col-md-6').show();
+    if (data.subControlLedgerName) $('#SubControlLedgerValue').text(data.subControlLedgerName).closest('.ledger-col, .col-md-6').show();
+    if (data.subSidiaryLedgerName) $('#SubSidiaryLedgerValue').text(data.subSidiaryLedgerName).closest('.ledger-col, .col-md-6').show();
 }
 
 $(document).on('click', '.js-grid-edit', function (e) {

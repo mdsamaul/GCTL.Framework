@@ -58,19 +58,22 @@
 
     .ledger-row {
         display: flex;
-        justify-content: flex-start;
+        align-items: center;
         margin-bottom: 3px;
+        font-size: 12.5px;
     }
 
     .ledger-label {
-        width: 170px;
-        text-align: right;
-        padding-right: 10px;
-        font-weight: bold;
+        font-weight: 500;
+        color: #3e4855;
+        white-space: nowrap;
+        padding-right: 6px;
     }
 
     .ledger-value {
-        text-align: left;
+        color: #212529;
+        font-weight: 400;
+        word-break: break-word;
     }
 
     .voucher-entry-table thead th {
@@ -222,6 +225,31 @@
             color: #3e4855 !important;
             padding-right: 4px !important;
         }
+
+        .ledger-row {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+        }
+
+        .ledger-label {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+            text-align: right !important;
+            padding-right: 6px !important;
+            font-size: 12.5px !important;
+            font-weight: 500 !important;
+            color: #3e4855 !important;
+            white-space: nowrap !important;
+        }
+
+        .ledger-value {
+            flex: 0 0 75% !important;
+            max-width: 75% !important;
+            text-align: left !important;
+            font-size: 12.5px !important;
+            color: #212529 !important;
+        }
     }
 
     @@media (min-width: 1400px) {
@@ -265,6 +293,27 @@
         #VoucherEntry-form .form-control,
         #VoucherEntry-form .form-select {
             max-width: 540px !important; /* Prevents controls from stretching excessively on large screens */
+        }
+
+        .ledger-row {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 8px !important;
+            font-size: 13px !important;
+        }
+
+        .ledger-label {
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #2c3e50 !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+        }
+
+        .ledger-value {
+            font-size: 13px !important;
+            color: #212529 !important;
         }
     }
 
