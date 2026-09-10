@@ -309,13 +309,17 @@
         border: 0 !important;
     }
 
-    /* Uniform height & 100% width for all inputs, selects, custom datepickers, and input-groups */
+    /* Uniform height & 100% width for all inputs, selects, custom datepickers, and input-groups across big & laptop screens */
     .sep-doc-fields-row .form-control:not(textarea),
     .sep-doc-fields-row .form-select,
     .sep-doc-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(textarea),
     .sep-doc-fields-row select,
     .sep-doc-fields-row .input-group-text,
-    .sep-doc-fields-row .custom-datepicker {
+    .sep-doc-fields-row .custom-datepicker,
+    .sep-doc-fields-row .caiCon,
+    .sep-doc-fields-row .flatpickr-input,
+    .sep-doc-fields-row input.flatpickr-input,
+    .sep-doc-fields-row .custom-dd-box {
         height: var(--control-height) !important;
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
@@ -328,10 +332,16 @@
     .sep-doc-fields-row .form-select,
     .sep-doc-fields-row select,
     .sep-doc-fields-row .select2-container,
-    .sep-doc-fields-row .input-group .select2-container {
+    .sep-doc-fields-row .input-group .select2-container,
+    .sep-doc-fields-row .custom-dd-wrapper {
         width: 100% !important;
         flex: 1 1 auto !important;
         min-width: 0 !important;
+    }
+
+    .sep-doc-fields-row input[type="date"]::-webkit-date-and-time-value {
+        margin: 0 !important;
+        line-height: calc(var(--control-height) - 2px) !important;
     }
 
     /* Textareas take 100% width with natural multiline height */
@@ -350,23 +360,32 @@
     }
 
     /* Select2 dropdown height and arrow alignment */
-    .sep-doc-fields-row .select2-container .select2-selection--single {
+    .sep-doc-fields-row .select2-container,
+    .sep-doc-fields-row .select2-container .select2-selection,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection,
+    .sep-doc-fields-row .select2-container .select2-selection--single,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single {
         height: var(--control-height) !important;
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
         display: flex !important;
         align-items: center !important;
+        line-height: calc(var(--control-height) - 2px) !important;
         box-sizing: border-box !important;
     }
 
-    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__rendered {
+    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__rendered,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
         line-height: calc(var(--control-height) - 2px) !important;
+        height: calc(var(--control-height) - 2px) !important;
         padding-left: 8px !important;
         padding-right: 20px !important;
         font-size: 13px !important;
+        box-sizing: border-box !important;
     }
 
-    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__arrow {
+    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__arrow,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
         height: calc(var(--control-height) - 2px) !important;
         top: 1px !important;
         right: 4px !important;
@@ -400,7 +419,7 @@
         line-height: 1 !important;
     }
 
-    /* Quick-Add (+) Button positioned inside the column gap with clear 12px right gap and NO border */
+    /* Quick-Add (+) Button positioned inside the column gap with clear 24px right gap and NO border */
     .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
     .sep-doc-fields-row .field-fixed-width > .js-quick-add {
         position: absolute !important;
@@ -453,7 +472,7 @@
         font-size: 11px !important;
     }
 
-    /* ================= Dual Input Group (gap-2 & 50%-50% Equal Width) ================= */
+    /* ================= Dual Input Group (gap-2 & Strict 50%-50% Equal Width, Same Height) ================= */
     .dual-input-group {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -463,6 +482,7 @@
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
         gap: 0.5rem !important; /* gap-2 (8px) */
+        box-sizing: border-box !important;
     }
 
     .dual-input-group > * {
@@ -479,24 +499,27 @@
         margin: 0 !important;
         border: 0 !important;
         flex: 0 0 0% !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
     }
 
-    /* Left Input: 50% width */
+    /* Left Input: Exactly 50% width minus half gap */
     .dual-input-group > input:first-child,
     .dual-input-group > select:first-child,
     .dual-input-group > .form-control:first-child {
-        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        flex: 0 0 calc((100% - 0.5rem) / 2) !important;
         width: calc((100% - 0.5rem) / 2) !important;
         max-width: calc((100% - 0.5rem) / 2) !important;
-        min-width: 0 !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
         height: var(--control-height) !important;
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
         line-height: calc(var(--control-height) - 2px) !important;
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        box-sizing: border-box !important;
     }
 
-    /* Right Input / Select / Dropdown: 50% width */
+    /* Right Input / Select / Dropdown: Exactly 50% width minus half gap */
     .dual-input-group > input:nth-child(2),
     .dual-input-group > input:last-child,
     .dual-input-group > select:nth-child(2),
@@ -505,22 +528,27 @@
     .dual-input-group > .select2-container,
     .dual-input-group > select + .select2-container,
     .dual-input-group > .select2 {
-        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        flex: 0 0 calc((100% - 0.5rem) / 2) !important;
         width: calc((100% - 0.5rem) / 2) !important;
         max-width: calc((100% - 0.5rem) / 2) !important;
-        min-width: 0 !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
         height: var(--control-height) !important;
         min-height: var(--control-height) !important;
         max-height: var(--control-height) !important;
         line-height: calc(var(--control-height) - 2px) !important;
         margin-left: 0 !important;
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        box-sizing: border-box !important;
     }
 
     .dual-input-group > .custom-dd-wrapper,
     .dual-input-group > select + .custom-dd-wrapper {
         width: calc((100% - 0.5rem) / 2) !important;
         max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
     }
 
     .dual-input-group > .custom-dd-wrapper .custom-dd-box,
@@ -528,6 +556,10 @@
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
         width: 100% !important;
         height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        box-sizing: border-box !important;
     }
 
     .dual-input-group .select2-container,
@@ -540,37 +572,101 @@
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
         width: 100% !important;
         height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group .select2-selection--single .select2-selection__rendered,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--control-height) - 2px) !important;
+        height: calc(var(--control-height) - 2px) !important;
+        padding-left: 8px !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group .select2-selection--single .select2-selection__arrow,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--control-height) - 2px) !important;
+        top: 1px !important;
+        right: 4px !important;
     }
 
     /* ==========================================================================
        Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
+       Exact same height, exact same width, and identical generous right-side gap for quick plus button
        ========================================================================== */
     @@media (max-width: 1400px) {
         .sep-doc-fields-row {
-            --control-height: 28px !important;
-            --gap-size: 34px !important;
-            --btn-width: 18px !important;
-            row-gap: 10px !important;
+            --control-height: 30px !important;
+            --gap-size: 36px !important;
+            --btn-width: 20px !important;
+            --bs-gutter-x: var(--gap-size) !important;
+            row-gap: 12px !important;
         }
 
         .sep-doc-fields-row .form-label {
-            font-size: 11.5px !important;
-            height: 18px !important;
-            min-height: 18px !important;
-            max-height: 18px !important;
-            margin-bottom: 3px !important;
+            font-size: 12px !important;
+            height: 20px !important;
+            min-height: 20px !important;
+            max-height: 20px !important;
+            margin-bottom: 4px !important;
         }
 
         .sep-doc-fields-row .form-check {
-            min-height: 28px !important;
-            margin-top: 21px !important;
+            min-height: 30px !important;
+            margin-top: 24px !important;
         }
 
+        /* Form Card Container: Symmetrical left & right margins just like big screen (24px clean gap for + button) */
         .sep-doc-form-card,
         #entryTabPane > div:first-child {
-            padding-left: 20px !important;
-            padding-right: 42px !important;
+            padding-left: 24px !important;
+            padding-right: 48px !important;
         }
+
+        /* Quick-add button size & right gap strictly preserved on laptop screen */
+        .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .sep-doc-fields-row .field-fixed-width > .js-quick-add {
+            position: absolute !important;
+            left: calc(100% + 4px) !important;
+            width: 20px !important;
+            min-width: 20px !important;
+            max-width: 20px !important;
+            height: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
+        }
+    }
+
+    /* Quick Plus Modal Dialog right side gap and responsive styling */
+    #gcModalStack .modal-dialog {
+        max-width: calc(100vw - 48px) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    #gcModalStack .modal-content {
+        border-radius: 8px !important;
+        overflow: hidden !important;
+    }
+
+    #gcModalStack .modal-body {
+        padding: 16px 20px !important;
+    }
+
+    #gcModalStack .toolbar-btn-group,
+    #gcModalStack .toolbar-doc,
+    #gcModalStack .card-header .toolbar-btn-group {
+        padding-right: 12px !important;
+        margin-right: 4px !important;
+    }
+
+    #gcModalStack .modal-footer,
+    #gcModalStack .card-footer {
+        padding-right: 16px !important;
     }
 
     /* Small / Mobile Screens fallback */
@@ -971,6 +1067,7 @@
                         LabelText = "L/C Value",
                         FieldType = FieldType.DualInput,
                         Placeholder="L/C Value",
+                        ReserveActionSlot = true,
                         SecondField = new DynamicFieldColumnModel
                         {
                             InputId = "currencyId",
@@ -1063,6 +1160,7 @@
                         FieldType = FieldType.DualInput,
                         InputType="text",
                         Placeholder = "Invoice Value",
+                        ReserveActionSlot = true,
                         SecondField = new DynamicFieldColumnModel
                         {
                             InputId = "invoiceCurrencyId",

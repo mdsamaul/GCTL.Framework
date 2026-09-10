@@ -116,11 +116,12 @@
 .dual-input-group > input:first-child,
 .dual-input-group > select:first-child,
 .dual-input-group > .form-control:first-child {
-    flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+    flex: 0 0 calc((100% - 0.5rem) / 2) !important;
     width: calc((100% - 0.5rem) / 2) !important;
     max-width: calc((100% - 0.5rem) / 2) !important;
-    min-width: 0 !important;
+    min-width: calc((100% - 0.5rem) / 2) !important;
     border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    box-sizing: border-box !important;
 }
 
 /* Second control (right input / select / custom-dd-wrapper / select2): 50% width, restore full rounded corners */
@@ -132,12 +133,13 @@
 .dual-input-group > .select2-container,
 .dual-input-group > select + .select2-container,
 .dual-input-group > .select2 {
-    flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+    flex: 0 0 calc((100% - 0.5rem) / 2) !important;
     width: calc((100% - 0.5rem) / 2) !important;
     max-width: calc((100% - 0.5rem) / 2) !important;
-    min-width: 0 !important;
+    min-width: calc((100% - 0.5rem) / 2) !important;
     margin-left: 0 !important;
     border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    box-sizing: border-box !important;
 }
 
 /* Ensure custom-dd-wrapper and its box inside dual-input-group have proper border-radius and width */
