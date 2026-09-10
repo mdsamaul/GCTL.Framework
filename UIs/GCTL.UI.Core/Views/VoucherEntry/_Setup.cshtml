@@ -130,7 +130,7 @@
     <input type="hidden" id="TmpDetailsAutoID">
 
     @* Details Information Section *@
-    <div class="voucher-section mt-3 mb-2">
+    <div class="voucher-section mt-0 mb-2">
         <div class="voucher-section-header d-flex align-items-center mb-2">
             <span class="voucher-section-bar"></span>
             <span class="voucher-section-title">Details Information</span>
@@ -279,7 +279,7 @@
             })
 
             @* Details Button Group with Previous Icons & Toolbar Hover Effect *@
-            <div class="col-12 pe-0 my-1">
+            <div class="col-12 pe-0 mb-0 mt-1">
                 <div class="details-icon-group d-flex justify-content-end align-items-center gap-2">
                     <!-- Add -->
                     <button type="button" id="AddDetails" title="Add" data-tooltip="Add" class="icon-btn add">
@@ -302,7 +302,7 @@
             </div>
 
             @* Details Table (100% Responsive, Strictly No Horizontal Scroll, Borderless) *@
-            <div class="col-12 pe-0">
+            <div class="col-12 pe-0 pt-0 mt-0">
                 <div class="table-responsive grid-no-horizontal-scroll">
                     @await Html.PartialAsync("_CustomGrid", new GridModel
                     {
