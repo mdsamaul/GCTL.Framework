@@ -11,16 +11,27 @@ div.dt-container .dt-layout-full {
 
 div.dt-container .dt-layout-start {
     padding-left: 0 !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 div.dt-container .dt-layout-end {
     padding-right: 0 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    text-align: right !important;
 }
 
 div.dt-container .dt-layout-row {
     margin-left: 0 !important;
     margin-right: 0 !important;
     margin-bottom: 0.35rem;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
 }
 
 div.dt-container {
@@ -149,8 +160,15 @@ div.dt-container table.dataTable.enable-select-highlight tbody tr.selected-row:h
 
 /* Search Input with Magnifier Icon (BS5 border, No Shadow) */
 div.dt-container .dt-search,
-.dt-search {
+.dt-search,
+.dataTables_wrapper .dataTables_filter {
     position: relative;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    float: right !important;
+    text-align: right !important;
 }
 
 div.dt-container .dt-search input,

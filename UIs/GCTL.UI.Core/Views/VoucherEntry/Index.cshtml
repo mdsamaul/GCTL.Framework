@@ -104,12 +104,12 @@
         min-height: 31px !important;
         max-height: 31px !important;
         font-size: 13px !important;
-        padding: 3px 8px !important;
+        /* padding: 3px 8px !important; */
         line-height: 1.5 !important;
         border-color: #cbd0dd !important;
         border-radius: 4px !important;
         box-sizing: border-box !important;
-        width: 100% !important;
+        /* width: 100% !important; */
     }
 
     #VoucherEntry-form textarea#Narration {
@@ -188,14 +188,84 @@
         width: 1% !important;
     }
 
-    /* Inline labels horizontal styling */
-    #VoucherEntry-form .form-label {
-        font-size: 12.5px !important;
-        font-weight: 500 !important;
-        white-space: nowrap !important;
-        margin-bottom: 0 !important;
-        color: #3e4855 !important;
-        padding-right: 4px !important;
+    /* =========================================================
+       Screen Responsive Control Layout:
+       - Laptop (< 1400px): Labels & Inputs Side-by-Side (Inline)
+       - Big Screen (>= 1400px): Label on Top, Input Below (Vertical)
+       ========================================================= */
+    @@media (max-width: 1399.98px) {
+        #VoucherEntry-form .row.align-items-center {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+        }
+
+        #VoucherEntry-form .row.align-items-center > [class*="col-3"],
+        #VoucherEntry-form .row.align-items-center > .col-3 {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+            text-align: right !important;
+            padding-right: 6px !important;
+        }
+
+        #VoucherEntry-form .row.align-items-center > [class*="col-9"],
+        #VoucherEntry-form .row.align-items-center > .col-9 {
+            flex: 0 0 75% !important;
+            max-width: 75% !important;
+        }
+
+        #VoucherEntry-form .form-label {
+            font-size: 12.5px !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            margin-bottom: 0 !important;
+            color: #3e4855 !important;
+            padding-right: 4px !important;
+        }
+    }
+
+    @@media (min-width: 1400px) {
+        #VoucherEntry-form .row.align-items-center {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            row-gap: 2px !important;
+        }
+
+        #VoucherEntry-form .row.align-items-center > [class*="col-3"],
+        #VoucherEntry-form .row.align-items-center > .col-3 {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            text-align: left !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        #VoucherEntry-form .row.align-items-center > [class*="col-9"],
+        #VoucherEntry-form .row.align-items-center > .col-9 {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        #VoucherEntry-form .form-label {
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            text-align: left !important;
+            margin-bottom: 2px !important;
+            color: #2c3e50 !important;
+            display: inline-block !important;
+        }
+
+        #VoucherEntry-form .input-group,
+        #VoucherEntry-form .select2-container,
+        #VoucherEntry-form .form-control,
+        #VoucherEntry-form .form-select {
+            max-width: 540px !important; /* Prevents controls from stretching excessively on large screens */
+        }
     }
 
     /* Compact Fieldsets & Card */
@@ -224,6 +294,33 @@
         margin-top: 4px !important;
         margin-bottom: 4px !important;
         align-content: center;
+    }
+
+    /* Search input right alignment */
+    div.dt-container .dt-layout-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    div.dt-container .dt-layout-end,
+    div.dt-container .dt-search,
+    .dataTables_wrapper .dataTables_filter,
+    .dt-search {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        margin-left: auto !important;
+        float: right !important;
+        text-align: right !important;
+    }
+
+    div.dt-container .dt-search input,
+    .dataTables_wrapper .dataTables_filter input,
+    .dt-search input {
+        margin-left: auto !important;
+        text-align: left !important;
     }
 
     /* =========================================================
