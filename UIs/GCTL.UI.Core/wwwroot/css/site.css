@@ -542,8 +542,8 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
 .app-sidebar:not(.collapsed) .menu-item .menu-link {
     display: flex;
     align-items: center;
-    padding: 3px 6px 3px 3px !important;
-    margin: 1.5px 0;
+    padding: 2px 3px 2px 3px !important;
+    margin: .5px 0;
     text-decoration: none;
     border-radius: 0 5px 5px 0;
     border-left: 3.5px solid transparent;

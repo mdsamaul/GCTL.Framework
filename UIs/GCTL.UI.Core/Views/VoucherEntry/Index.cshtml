@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Voucher Entry";
 }
 <style>
@@ -94,74 +94,162 @@
             color: #007bff;
         }
 
-    .select2-container .select2-selection--single {
-        height: calc(2.9rem + 2px) !important;
+    /* Uniform height, width and compact styling for all inputs, selects, and datepickers */
+    #VoucherEntry-form .form-control,
+    #VoucherEntry-form .form-select,
+    #VoucherEntry-form .custom-datepicker,
+    #VoucherEntry-form input[type="text"],
+    #VoucherEntry-form input[type="number"] {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        font-size: 13px !important;
+        padding: 3px 8px !important;
+        line-height: 1.5 !important;
+        border-color: #cbd0dd !important;
+        border-radius: 4px !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    #VoucherEntry-form textarea#Narration {
+        height: 31px !important;
+        min-height: 31px !important;
+        font-size: 13px !important;
+        padding: 4px 8px !important;
+        line-height: 1.4 !important;
+        border-color: #cbd0dd !important;
+        border-radius: 4px !important;
+        resize: vertical;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    /* Select2 container matching 100% width and 31px height */
+    #VoucherEntry-form .select2-container {
+        width: 100% !important;
+        height: 31px !important;
+    }
+
+    #VoucherEntry-form .select2-container .select2-selection--single {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 8px !important;
+        border: 1px solid #cbd0dd !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 29px !important;
+        height: 29px !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        color: #333 !important;
+        display: flex !important;
         align-items: center !important;
     }
 
-    .btn-transfer:focus,
-    .btn-transfer.focus {
-        outline: 0 !important;
-        box-shadow: none !important;
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__placeholder {
+        line-height: 29px !important;
+        font-size: 13px !important;
+        color: #8a9bb8 !important;
     }
 
-    .tmp-details {
-        display: inline-flex;
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 29px !important;
+        top: 0 !important;
+        right: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
     }
 
-    .tooltip-btn {
-        position: relative;
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__arrow b {
+        margin-top: 0 !important;
     }
 
-        .tooltip-btn::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: #fff;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: 0.2s ease;
-            z-index: 999999;
-        }
-
-        .tooltip-btn::before {
-            content: "";
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 5px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-            opacity: 0;
-            transition: 0.2s ease;
-            z-index: 999999;
-        }
-
-        .tooltip-btn:hover::after,
-        .tooltip-btn:hover::before {
-            opacity: 1;
-        }
-
-    #Narration {
-        resize: none;
+    /* Input group alignment inside form */
+    #VoucherEntry-form .input-group,
+    #VoucherEntry-form .input-group-sm {
+        width: 100% !important;
+        height: 31px !important;
+        flex-wrap: nowrap !important;
     }
 
-    /* ===== Details icon group (single source of truth) ===== */
+    #VoucherEntry-form .input-group > .select2-container {
+        flex: 1 1 auto !important;
+        width: 1% !important;
+    }
+
+    /* Inline labels horizontal styling */
+    #VoucherEntry-form .form-label {
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        margin-bottom: 0 !important;
+        color: #3e4855 !important;
+        padding-right: 4px !important;
+    }
+
+    /* Compact Fieldsets & Card */
+    .voucher-entry-card-body {
+        padding: 8px 16px !important;
+    }
+
+    .voucher-fieldset {
+        padding: 6px 12px 8px 12px !important;
+        margin-bottom: 6px !important;
+        border-color: #dee2e6 !important;
+    }
+
+    .voucher-fieldset legend {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        margin-bottom: 2px !important;
+        padding: 0 6px !important;
+    }
+
+    /* Details Icon Group Compact */
     .details-icon-group {
         display: flex;
         justify-content: center;
         gap: 8px;
-        margin-top: 10px;
-        margin-bottom: 10px;
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
         align-content: center;
+    }
+
+    /* Details Grid Compact Styling */
+    #VoucherEntryTempGrid thead th {
+        background-color: #f1f4f8 !important;
+        font-size: 12.5px !important;
+        padding: 4px 8px !important;
+        font-weight: 600 !important;
+        color: #2c3e50 !important;
+        white-space: nowrap !important;
+    }
+
+    #VoucherEntryTempGrid tbody td {
+        font-size: 12.5px !important;
+        padding: 3px 8px !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+    }
+
+    .voucher-total-box {
+        background-color: #f8f9fa;
+        padding: 4px 10px !important;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 12.5px !important;
+        margin-top: 4px !important;
     }
 
     .icon-btn {
@@ -329,7 +417,7 @@
                             ShowExtraContent=true
                         })
                     </div>
-                    <div class="card-body px-4 py-3">
+                    <div class="card-body px-3 py-2 voucher-entry-card-body">
                         <form asp-action="Setup" method="post" id="VoucherEntry-form" asp-controller="VoucherEntry">
                             <div class="js-VoucherEntry-form-container">
                                 <partial name="_Setup" />
