@@ -569,16 +569,19 @@
         border-color: #C71F2D !important;
     }
 
-    /* Refresh button - blue */
-    .icon-btn.refresh {
-        color: #0A6BE7 !important;
+    /* Refresh button - clear color (same as top toolbar clear button) */
+    .icon-btn.refresh,
+    .icon-btn.clear {
+        color: #212529 !important;
         border-color: #dcdfe3 !important;
     }
-    .icon-btn.refresh::before {
-        background: rgba(10, 107, 231, 0.14) !important;
+    .icon-btn.refresh::before,
+    .icon-btn.clear::before {
+        background: rgba(33, 37, 41, 0.08) !important;
     }
-    .icon-btn.refresh:hover {
-        border-color: #0A6BE7 !important;
+    .icon-btn.refresh:hover,
+    .icon-btn.clear:hover {
+        border-color: #212529 !important;
     }
 
     /* Refresh icon stack */
