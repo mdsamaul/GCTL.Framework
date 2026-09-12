@@ -1,5 +1,23 @@
-//#region Custom Renderers
+//#region Custom Renderers & Formatting
 window.gctlRenderers = window.gctlRenderers || {};
+
+function formatMoney(num) {
+    if (num === null || num === undefined || num === '' || isNaN(num)) return '0.00';
+    let val = parseFloat(num);
+    return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+window.gctlRenderers.formatCurrency = function (data, type, row) {
+    if (data === null || data === undefined || data === '' || isNaN(data)) {
+        return (type === 'sort' || type === 'type') ? 0 : '0.00';
+    }
+    let val = parseFloat(data);
+    if (type === 'sort' || type === 'type') {
+        return val;
+    }
+    return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 window.gctlRenderers.voucherActionButtons = function (data, type, row) {
     return `<button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 js-grid-edit me-1" data-id="${data}" title="Edit"><i class="bi bi-pencil"></i></button>
             <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 js-grid-delete" data-id="${data}" title="Delete"><i class="bi bi-trash"></i></button>`;
@@ -21,12 +39,12 @@ $(document).ready(function () {
                 let records = json.data ? json.data : (Array.isArray(json) ? json : []);
                 
                 records.forEach(item => {
-                    totalDr += (item.debitAmount || 0);
-                    totalCr += (item.creditAmount || 0);
+                    totalDr += (parseFloat(item.debitAmount) || 0);
+                    totalCr += (parseFloat(item.creditAmount) || 0);
                 });
                 
-                $('#TotalDrValue').text(totalDr.toFixed(2));
-                $('#TotalCrValue').text(totalCr.toFixed(2));
+                $('#TotalDrValue').text(formatMoney(totalDr));
+                $('#TotalCrValue').text(formatMoney(totalCr));
             }
         });
     }
@@ -54,6 +72,36 @@ $(document).ready(function () {
     $(document).on("click", "#RefreshDetails", function () {
         console.log("Clerar Button Clicked")
         DetailsSectionClear();
+    });
+
+    // Amount input formatting (commas, 2 decimals)
+    $(document).on('focus', '#Amount', function () {
+        let val = $(this).val().toString().replace(/,/g, '').trim();
+        if (parseFloat(val) === 0) {
+            $(this).val('');
+        } else if (val) {
+            $(this).val(val);
+        }
+        $(this).select();
+    });
+
+    $(document).on('blur', '#Amount', function () {
+        let val = $(this).val().toString().replace(/,/g, '').trim();
+        if (val !== '' && !isNaN(val)) {
+            $(this).val(formatMoney(val));
+        }
+    });
+
+    $(document).on('input', '#Amount', function () {
+        let val = $(this).val();
+        let sanitized = val.replace(/[^0-9.]/g, '');
+        let parts = sanitized.split('.');
+        if (parts.length > 2) {
+            sanitized = parts[0] + '.' + parts.slice(1).join('');
+        }
+        if (val !== sanitized) {
+            $(this).val(sanitized);
+        }
     });
 
 });
@@ -223,7 +271,8 @@ function SaveOrUpdateTmpDetails() {
     console.log("Save Or Update Tmp Voucher Details Function Called");
 
     let autoID = $("#TmpDetailsAutoID").val();
-    let amountValue = parseFloat($("#Amount").val()) || 0;
+    let rawAmount = $("#Amount").val() ? $("#Amount").val().toString().replace(/,/g, '').trim() : "0";
+    let amountValue = parseFloat(rawAmount) || 0;
 
     let TmpData = {
         autoId: autoID || 0,
@@ -409,7 +458,7 @@ function fillFormFields(data) {
 
     // Amount
     const amount = data.trType === "Dr" ? data.debitAmount : data.creditAmount;
-    $('#Amount').val(amount || 0);
+    $('#Amount').val(amount != null && amount !== '' ? formatMoney(amount) : '');
 
     // Cheque Date
     if (data.chequeDate) {
@@ -430,10 +479,10 @@ function fillFormFields(data) {
     }
 
     // Ledger info
-    if (data.groupLedgerName) $('#GroupLedgerValue').text(data.groupLedgerName).closest('.ledger-row').show();
-    if (data.controlLedgerName) $('#ControlLedgerValue').text(data.controlLedgerName).closest('.ledger-row').show();
-    if (data.subControlLedgerName) $('#SubControlLedgerValue').text(data.subControlLedgerName).closest('.ledger-row').show();
-    if (data.subSidiaryLedgerName) $('#SubSidiaryLedgerValue').text(data.subSidiaryLedgerName).closest('.ledger-row').show();
+    if (data.groupLedgerName) $('#GroupLedgerValue').text(data.groupLedgerName).closest('.ledger-col, .col-md-6').show();
+    if (data.controlLedgerName) $('#ControlLedgerValue').text(data.controlLedgerName).closest('.ledger-col, .col-md-6').show();
+    if (data.subControlLedgerName) $('#SubControlLedgerValue').text(data.subControlLedgerName).closest('.ledger-col, .col-md-6').show();
+    if (data.subSidiaryLedgerName) $('#SubSidiaryLedgerValue').text(data.subSidiaryLedgerName).closest('.ledger-col, .col-md-6').show();
 }
 
 $(document).on('click', '.js-grid-edit', function (e) {

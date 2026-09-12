@@ -712,11 +712,13 @@ $(document).on("click", "#deleteModal .js-delete, #deleteModal .js-gc-delete-con
 $(document).on('click', '.voucher-no-btn, .js-VoucherEntry-edit', function (e) {
     e.preventDefault();
     const autoId = $(this).data('autoid') || $(this).data('id');
+    const voucherCode = $(this).attr('data-voucher-entry-code-no') || $(this).data('voucher-entry-code-no') || $(this).data('voucherentrycodeno');
+    const targetIdentifier = voucherCode || autoId;
     
-    DetailsCopiedToTmptable(autoId);
+    DetailsCopiedToTmptable(targetIdentifier);
 
     $.ajax({
-        url: '/voucher-entry-details/' + autoId,
+        url: '/voucher-entry-details/' + targetIdentifier,
         type: 'GET',
         success: function (response) {
             console.log("Full Response:", response);
@@ -735,9 +737,10 @@ $(document).on('click', '.voucher-no-btn, .js-VoucherEntry-edit', function (e) {
                 //LoadTmpVoucherDetailsTable();   // Load Tmp table Data
                 //renderVoucherDetailsTable(details);
 
-                selectedVoucher = [autoId];
+                const currentAutoId = main.autoId || autoId;
+                selectedVoucher = [currentAutoId];
                 $('.voucher-checkbox').prop('checked', false);
-                $(`.voucher-checkbox[data-autoid="${autoId}"]`).prop('checked', true);
+                $(`.voucher-checkbox[data-autoid="${currentAutoId}"]`).prop('checked', true);
 
                 VoucherupdateCheckboxState();
              
@@ -763,6 +766,7 @@ function fillMainVoucherInfo(main) {
 
     //I am setting the Voucher Type but I don't want to fire the event
     $('#VoucherEntryAutoID').val(main.autoId || 0);
+    $('#VoucherEntryCodeNo').val(main.voucherEntryCodeNo || '');
 
     if (typeof setSelect === "function") {
         setSelect('#VoucherTypeCode', main.voucherType_Code, false);

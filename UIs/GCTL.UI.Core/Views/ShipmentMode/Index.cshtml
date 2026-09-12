@@ -156,7 +156,7 @@
 
     /* Form row gutter & card-body padding: Perfectly balanced left and right gaps with equal width inputs */
     .sm-layout-form-col .card-body {
-        padding: 14px 50px 14px 24px !important;
+        padding: 14px 48px 14px 24px !important;
     }
 
     .sm-layout-form-col .card-body .row,
@@ -166,7 +166,8 @@
 
     /* Centered form wrapper for equal left & right gaps */
     .sm-form-centered-wrapper {
-        width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
         margin-left: auto !important;
         margin-right: auto !important;
     }
@@ -237,126 +238,35 @@
         font-size: 11px !important;
     }
 
-    /* Small / Mobile Screens fallback */
-    @@media (max-width: 767.98px) {
-        .sm-layout-form-col .card-body {
-            padding: 14px 16px !important;
-        }
-
-        .sm-field-col .field-fixed-width {
-            gap: 8px !important;
-        }
-
-        .sm-field-col .field-fixed-width > .input-group {
-            flex: 1 1 auto !important;
-            width: auto !important;
-        }
-
-        .sm-field-col .field-fixed-width > .detached-action-btn,
-        .sm-field-col .field-fixed-width > .js-quick-add {
-            position: static !important;
-            transform: none !important;
-            width: 28px !important;
-            min-width: 28px !important;
-        }
+    /* ==========================================================================
+       Side-by-side flex layout for all screens:
+       - Left: Setup Form (50% width)
+       - Right: Table Grid (50% width)
+       - Form Inputs: 2 per row (50% each inside form card)
+       ========================================================================== */
+    .sm-layout-form-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        margin-bottom: 0 !important;
     }
 
-    /* Responsive layout:
-       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Form wrapper is 50% width centered (with equal 25% gaps on left & right), Inputs are col-6 (50% of wrapper = 25% of card).
-       - Big screen (> 1600px): Form is on Left (50%), Form wrapper is 100%, Inputs are 50% (2 per row), Grid is on Right (50%).
-    */
-    @@media (max-width: 1600px) {
-        .sm-layout-form-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            margin-bottom: 1rem;
-        }
-
-        .sm-layout-form-col .card-body {
-            padding: 14px 24px !important;
-        }
-
-        .sm-layout-grid-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            padding-bottom: 1.5rem !important;
-        }
-
-        .sm-form-centered-wrapper {
-            max-width: 50% !important;
-        }
-
-        .sm-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sm-toolbar-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
+    .sm-layout-grid-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-bottom: 0 !important;
     }
 
-    @@media (min-width: 1600.02px) {
-        .sm-layout-form-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sm-layout-form-col .card-body {
-            padding: 14px 50px 14px 24px !important;
-        }
-
-        .sm-layout-grid-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sm-form-centered-wrapper {
-            max-width: 100% !important;
-        }
-
-        .sm-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sm-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
+    .sm-field-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
     }
 
-    @@media (max-width: 991.98px) {
-        .sm-form-centered-wrapper {
-            max-width: 100% !important;
-        }
-
-        .sm-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sm-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
-    @@media (max-width: 575.98px) {
-        .sm-form-centered-wrapper {
-            max-width: 100% !important;
-        }
-
-        .sm-field-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-
-        .sm-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
+    .sm-toolbar-col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
     }
 
     /* Tab styles matching _GlobalTabs */
@@ -418,8 +328,8 @@
     <div class="">
         <div class="row g-2">
 
-            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
-            <div class="col-12 col-xxl-6 sm-layout-form-col">
+            <!-- Left Setup Form Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 sm-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         <!-- Toolbar for Shipment Mode -->
@@ -483,8 +393,8 @@
                 </div>
             </div>
 
-            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 sm-layout-grid-col">
+            <!-- Right Table Grid Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 sm-layout-grid-col">
                 <!-- Shipment Mode Grid Pane -->
                 <div id="shipmentModeGridPane">
                     <div class="js-shipmentmode-grid-container" id="shipmentList">
