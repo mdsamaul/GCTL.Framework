@@ -266,27 +266,34 @@ function ResetExpenseHeadForm() {
     reloadDataTable();
 }
 
-// Bulk Delete
-function BulkDeleteExpenseHead() {
-    let selectedIds = [];
+// Bulk Delete with Modal
+var selectedExpenseHeadIds = [];
+
+function PromptDeleteExpenseHead() {
+    selectedExpenseHeadIds = [];
     $("#expenseHeadTable .js-expensehead-check:checked").each(function () {
         let val = parseInt($(this).val());
-        if (val) selectedIds.push(val);
+        if (val) selectedExpenseHeadIds.push(val);
     });
 
-    if (selectedIds.length === 0) {
+    if (selectedExpenseHeadIds.length === 0) {
         let currentTc = parseInt($("#tc").val());
         if (currentTc > 0) {
-            selectedIds.push(currentTc);
+            selectedExpenseHeadIds.push(currentTc);
         }
     }
 
-    if (selectedIds.length === 0) {
-        toastr.warning("Please select at least one record to delete.");
+    if (selectedExpenseHeadIds.length === 0) {
+        toastr.info("Please select at least one item to delete.");
         return;
     }
 
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} record(s)?`)) {
+    $('#ExpenseHead-delete-modal').modal('show');
+}
+
+function ExecuteDeleteExpenseHead() {
+    if (!selectedExpenseHeadIds || selectedExpenseHeadIds.length === 0) {
+        $('#ExpenseHead-delete-modal').modal('hide');
         return;
     }
 
@@ -294,21 +301,29 @@ function BulkDeleteExpenseHead() {
         url: '/expense-head-bulk',
         type: 'DELETE',
         contentType: 'application/json',
-        data: JSON.stringify(selectedIds),
+        data: JSON.stringify(selectedExpenseHeadIds),
         success: function (res) {
+            $('#ExpenseHead-delete-modal').modal('hide');
             if (res.isSuccess) {
-                toastr.success(res.message);
+                toastr.success(res.message || "Data Deleted Successfully.");
                 ResetExpenseHeadForm();
                 reloadDataTable();
                 $('#selectAllExpense').prop('checked', false);
             } else {
-                toastr.error(res.message);
+                toastr.error(res.message || "Failed to delete.");
             }
+            selectedExpenseHeadIds = [];
         },
         error: function (xhr) {
+            $('#ExpenseHead-delete-modal').modal('hide');
             toastr.error(xhr.responseJSON?.message || "Failed to delete selected records.");
+            selectedExpenseHeadIds = [];
         }
     });
+}
+
+function BulkDeleteExpenseHead() {
+    PromptDeleteExpenseHead();
 }
 
 // Export Report
@@ -417,10 +432,16 @@ $(document).ready(function () {
         }
     });
 
-    // Handle delete button click
-    $(".deleteBtn, #deleteBtn").on("click", function (e) {
+    // Handle delete button click (trigger modal)
+    $(document).on("click", ".deleteBtn, #deleteBtn, .js-expensehead-delete-confirm", function (e) {
         e.preventDefault();
-        BulkDeleteExpenseHead();
+        PromptDeleteExpenseHead();
+    });
+
+    // Handle confirm delete from modal
+    $(document).on("click", ".js-expensehead-delete", function (e) {
+        e.preventDefault();
+        ExecuteDeleteExpenseHead();
     });
 
     // Handle clear button

@@ -81,7 +81,7 @@ body {
     margin: 0;
     font-family: 'Nunito', sans-serif !important;
     font-style: normal;
-    font-size: 16px;
+    font-size: 13px; /* Changed from 14px to 13px (10pt) */
     background-color: var(--bg-app);
     color: var(--text-main);
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -110,27 +110,43 @@ textarea {
     font-style: normal;
 }
 
+/* Force 13px (10pt) on inputs, dropdowns, placeholders, and grids */
+input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .grid-container, label, .form-label {
+    font-size: 13px !important;
+}
+
+::placeholder {
+    font-size: 13px !important;
+}
+
 /* Responsive Font Sizing & Sidebar Width: for screen resolutions 1400px and below */
 @media (max-width: 1400px) {
     :root {
-        --sidebar-width-expanded: 190px;
+        --sidebar-width-expanded: 200px;
         --sidebar-width-collapsed: 60px;
     }
 
     html,
-    body,
-    p, span, div, a, label, table, th, td, button {
+    body {
         font-size: 13px;
     }
 
+    p, span, div, a, table, th, td, button {
+        font-size: 13px;
+    }
+
+    label, .form-label {
+        font-size: 13px !important;
+    }
+
     .app-sidebar > .sidebar-menu {
-        padding: 10px 6px;
+        padding: 6px 4px 20px 2px;
     }
 
     .menu-item a,
     .menu-item .menu-link {
-        padding: 5px 6px 5px 8px;
-        gap: 8px;
+        padding: 2.5px 4px 2.5px 2px;
+        gap: 0;
     }
 
     .menu-text {
@@ -138,7 +154,7 @@ textarea {
     }
 
     .menu-item-icon {
-        font-size: 0.85rem !important;
+        font-size: 13px !important;
     }
 }
 
@@ -260,7 +276,7 @@ textarea {
 }
 
 .sidebar-header .sidebar-brand-text {
-    font-size: 0.68rem;
+    font-size: 13px;
     font-weight: 700;
     color: #1e293b;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -295,8 +311,8 @@ textarea {
 
 .sidebar-menu-scroll {
     flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
     .sidebar-logo i {
@@ -306,7 +322,7 @@ textarea {
     }
 
     .sidebar-logo .sidebar-brand-text {
-        font-size: 0.85rem;
+        font-size: 13px;
         line-height: 1;
     }
 
@@ -314,7 +330,7 @@ textarea {
 .navbar .nav-link,
 .navbar .navbar-text,
 .navbar .btn {
-    font-size: 0.85rem;
+    font-size: 13px;
 }
 
 .sidebar-brand-text {
@@ -338,10 +354,9 @@ textarea {
 
 .app-sidebar > .sidebar-menu,
 .sidebar-menu-scroll > .sidebar-menu {
-    flex: 1 1 0;
-    padding: 16px 8px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 1 1 auto;
+    padding: 6px 4px 30px 2px;
+    overflow: visible !important;
 }
 
 .sidebar-footer {
@@ -435,7 +450,7 @@ textarea {
 
     .menu-item a i,
     .menu-item .menu-link i {
-        font-size: 0.9rem;
+        font-size: 13px;
         width: 18px;
         height: 18px;
         display: inline-flex;
@@ -445,7 +460,7 @@ textarea {
     }
 
 .icon-dot {
-    font-size: 0.35rem !important;
+    font-size: 13px !important;
     opacity: 0.7;
 }
 
@@ -483,7 +498,7 @@ textarea {
     opacity: 1 !important;
     transform: none !important;
     pointer-events: auto !important;
-    font-size: 0.72rem !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
     text-align: center !important;
     line-height: 1.2 !important;
@@ -499,66 +514,283 @@ textarea {
     display: none !important;
 }
 
+/* -----------------------------------------------------------------
+   Left Menu Hierarchy - SSMS TreeView Design
+   ----------------------------------------------------------------- */
+.app-sidebar:not(.collapsed) .ssms-tree-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 4px 16px 2px;
+}
+
+/* Reset padding on nested tree lists inside submenus */
+.app-sidebar:not(.collapsed) .tree-submenu .ssms-tree-list,
+.app-sidebar:not(.collapsed) .accordion-submenu .ssms-tree-list {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.app-sidebar:not(.collapsed) .tree-node {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Tree Node Link / Button Row */
+.app-sidebar:not(.collapsed) .tree-link,
+.app-sidebar:not(.collapsed) .menu-item .menu-link {
+    display: flex;
+    align-items: center;
+    padding: 2px 3px 2px 3px !important;
+    margin: .5px 0;
+    text-decoration: none;
+    border-radius: 0 5px 5px 0;
+    border-left: 3.5px solid transparent;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.35;
+    font-size: 13px;
+    font-weight: 400;
+    color: #1e293b;
+    width: 100%;
+    text-align: left;
+    background-color: transparent;
+    cursor: pointer;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    gap: 0;
+}
+
+.app-sidebar:not(.collapsed) .tree-link:hover,
+.app-sidebar:not(.collapsed) .menu-item a:hover,
+.app-sidebar:not(.collapsed) .menu-item .menu-link:hover {
+    background-color: #f0f6ff !important;
+    color: #0b63ce !important;
+    border-left-color: #93c5fd;
+}
+
+/* SSMS Tree Expander Box [+] / [-] */
+.tree-expander {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 11px;
+    height: 11px;
+    min-width: 11px;
+    border: 1px solid #7f9db9;
+    background-color: #ffffff;
+    margin-right: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    box-sizing: border-box;
+    border-radius: 1px;
+    z-index: 2;
+}
+
+.tree-expander:hover {
+    border-color: #0078d7;
+}
+
+/* Minus horizontal line */
+.tree-expander::before {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 1px;
+    background-color: #222222;
+}
+
+/* Plus vertical line (present only when collapsed) */
+.tree-expander::after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 5px;
+    background-color: #222222;
+}
+
+/* When expanded (aria-expanded="true"), hide vertical line -> [-] */
+[aria-expanded="true"] > .tree-expander::after,
+[aria-expanded="true"] .tree-expander::after {
+    display: none !important;
+}
+
+/* When collapsed (aria-expanded="false"), show vertical line -> [+] */
+[aria-expanded="false"] > .tree-expander::after,
+[aria-expanded="false"] .tree-expander::after {
+    display: block !important;
+}
+
+/* Spacer for leaf items (without children) to align icons with parent rows */
+.tree-spacer,
+.tree-expander-spacer {
+    display: inline-block;
+    width: 11px;
+    min-width: 11px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+/* Tree Node Icon Wrapper */
+/* Tree Node Icons - completely removed per user request (only +/- tree-expander is displayed) */
+.tree-node-icon,
+.ssms-folder-icon,
+.ssms-db-icon,
+.ssms-server-icon,
+.flyout-icon {
+    display: none !important;
+}
+
+/* Submenu container and Dotted Tree Guidelines */
+.app-sidebar:not(.collapsed) .accordion-submenu,
+.app-sidebar:not(.collapsed) .tree-submenu {
+    list-style: none;
+    margin: 0 0 0 7px;
+    padding: 0 0 0 8px;
+    position: relative;
+    border-left: 1px dotted #8c9ba5 !important;
+}
+
+.app-sidebar:not(.collapsed) .accordion-submenu .accordion-submenu,
+.app-sidebar:not(.collapsed) .tree-submenu .tree-submenu {
+    margin-left: 7px;
+    padding-left: 8px;
+    border-left: 1px dotted #8c9ba5 !important;
+}
+
+/* Dotted horizontal branch line from parent vertical line to child node */
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node::before {
+    content: '';
+    position: absolute;
+    top: 11px;
+    left: -8px;
+    width: 10px;
+    border-top: 1px dotted #8c9ba5;
+    z-index: 1;
+}
+
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node.is-leaf::before {
+    width: 13px;
+}
+
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node.is-leaf .tree-link {
+    padding-left: 6px !important;
+}
+
+/* Hide overrun of vertical dotted line past the last child */
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node:last-child::after {
+    content: '';
+    position: absolute;
+    top: 11px;
+    bottom: 0;
+    left: -9px;
+    width: 3px;
+    background-color: var(--bg-sidebar);
+    z-index: 1;
+}
+
 .app-sidebar.collapsed .sidebar-menu-wrapper,
 .app-sidebar.collapsed .sidebar-menu-scroll {
     overflow: visible !important;
 }
 
-.menu-item a:hover,
-.menu-item .menu-link:hover {
-    background-color: hsl(var(--primary-hsl) / 0.05) !important;
-    color: var(--primary) !important;
+/* Active / selected item (matches user request: soft light blue bg, solid blue left bar line, blue text, no icon, wraps text) */
+.app-sidebar:not(.collapsed) .menu-item.direct-active > .menu-link,
+.app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link,
+.app-sidebar:not(.collapsed) .tree-link.active,
+.app-sidebar:not(.collapsed) .menu-link.active {
+    background-color: #e8f1fd !important;
+    color: #0b63ce !important;
+    font-weight: 600 !important;
+    border-left: 3.5px solid #0b63ce !important;
+    border-radius: 0 6px 6px 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
-/* Parent active menu item - 8% opacity */
-.menu-item.active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.08) !important;
-    color: var(--primary) !important;
-    font-weight: 600;
+.app-sidebar:not(.collapsed) .menu-item.direct-active > .menu-link .tree-text,
+.app-sidebar:not(.collapsed) .tree-node.direct-active > .tree-link .tree-text,
+.app-sidebar:not(.collapsed) .tree-link.active .tree-text,
+.app-sidebar:not(.collapsed) .menu-link.active .menu-text {
+    color: #0b63ce !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
 }
 
 .app-sidebar.collapsed .menu-item.active > .menu-link {
     border-left: 3.5px solid #0b63ce !important;
 }
 
-/* Direct active child leaf link - 13% opacity (5% higher than parent) */
-.menu-item .menu-link.active,
-.menu-item.direct-active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.13) !important;
-    color: var(--primary) !important;
-    font-weight: 600;
-    box-shadow: none !important;
-}
-
-.menu-item .menu-link.active i,
-.menu-item.direct-active > .menu-link i,
-.menu-item .menu-link.active .menu-arrow,
-.menu-item.direct-active > .menu-link .menu-arrow {
-    color: var(--primary) !important;
-}
-
-.menu-text {
+.menu-text,
+.tree-text {
     transition: opacity 0.2s ease, transform 0.2s ease;
     opacity: 1;
     font-size: 13px;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.35;
+    flex: 1 1 auto;
 }
 
 /* Dark mode overrides */
-:root[data-theme="dark"] .menu-item a,
+:root[data-theme="dark"] .tree-expander {
+    background-color: #1e293b;
+    border-color: #475569;
+}
+
+:root[data-theme="dark"] .tree-expander::before,
+:root[data-theme="dark"] .tree-expander::after {
+    background-color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .accordion-submenu,
+:root[data-theme="dark"] .tree-submenu {
+    border-left-color: #475569 !important;
+}
+
+:root[data-theme="dark"] .tree-submenu .tree-node::before {
+    border-top-color: #475569;
+}
+
+:root[data-theme="dark"] .tree-submenu .tree-node:last-child::after {
+    background-color: var(--bg-sidebar);
+}
+
+:root[data-theme="dark"] .tree-link,
 :root[data-theme="dark"] .menu-item .menu-link {
     color: var(--text-sidebar);
 }
 
-:root[data-theme="dark"] .menu-item a:hover,
+:root[data-theme="dark"] .tree-link:hover,
 :root[data-theme="dark"] .menu-item .menu-link:hover {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    color: var(--text-sidebar-active) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    border-left-color: #3b82f6;
 }
 
-:root[data-theme="dark"] .menu-item .menu-link.active,
-:root[data-theme="dark"] .menu-item.direct-active > .menu-link {
-    background-color: hsl(var(--primary-hsl) / 0.2) !important;
-    color: var(--primary) !important;
+:root[data-theme="dark"] .menu-item.direct-active > .menu-link,
+:root[data-theme="dark"] .tree-node.direct-active > .tree-link,
+:root[data-theme="dark"] .tree-link.active {
+    background-color: rgba(37, 99, 235, 0.22) !important;
+    color: #60a5fa !important;
+    border-left: 3.5px solid #3b82f6 !important;
+    border-radius: 0 6px 6px 0 !important;
+    outline: none !important;
+}
+
+:root[data-theme="dark"] .menu-item.direct-active > .menu-link .tree-text,
+:root[data-theme="dark"] .tree-node.direct-active > .tree-link .tree-text,
+:root[data-theme="dark"] .tree-link.active .tree-text {
+    color: #60a5fa !important;
+    font-weight: 600 !important;
 }
 
 
@@ -632,7 +864,7 @@ textarea {
 }
 
 .topnav-brand .brand-subtitle {
-    font-size: 0.65rem;
+    font-size: 13px;
     color: #64748b;
     font-weight: 500;
     letter-spacing: 0.2px;
@@ -669,7 +901,7 @@ textarea {
     border: 1px solid #cbd5e1;
     background-color: #f8fafc;
     color: #1e293b;
-    font-size: 0.85rem;
+    font-size: 13px;
     outline: none;
     transition: border-color 0.2s, background-color 0.2s;
 }
@@ -692,7 +924,7 @@ textarea {
     transform: translateY(-50%);
     color: #64748b;
     pointer-events: none;
-    font-size: 0.85rem;
+    font-size: 13px;
 }
 
 /* Center Clock Pill on Other Pages */
@@ -707,7 +939,7 @@ textarea {
     color: #ffffff;
     padding: 5px 16px;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     font-family: 'Outfit', sans-serif;
     letter-spacing: 0.3px;
@@ -719,7 +951,7 @@ textarea {
     color: #2563eb;
     padding: 5px 16px;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     font-family: 'Outfit', sans-serif !important;
     letter-spacing: 0.3px;
@@ -753,21 +985,21 @@ textarea {
 
 .user-nav-welcome {
     color: #1e293b;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
 }
 
 .topnav-nav-divider {
     color: #cbd5e1;
-    font-size: 0.85rem;
+    font-size: 13px;
     user-select: none;
 }
 
 .topnav-nav-link {
     color: #334155 !important;
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: 13px;
     font-weight: 500;
     display: inline-flex;
     align-items: center;
@@ -778,7 +1010,7 @@ textarea {
 
 .topnav-nav-link i {
     color: #0b63ce;
-    font-size: 0.95rem;
+    font-size: 13px;
 }
 
 .topnav-nav-link:hover {
@@ -797,7 +1029,7 @@ textarea {
     background: #ffffff;
     border: 1px solid #dcdfe3;
     border-radius: 4px;
-    font-size: 0.750rem;
+    font-size: 13px;
     font-weight: 600;
     color: #dc3545;
     cursor: pointer;
@@ -839,7 +1071,7 @@ textarea {
 
 .btn-topnav-logout i {
     color: #dc3545;
-    font-size: 0.85rem;
+    font-size: 13px;
     transition: color 0.25s ease;
 }
 
@@ -905,7 +1137,7 @@ textarea {
 }
 
 .app-sidebar.collapsed .rail-text {
-    font-size: 0.72rem !important;
+    font-size: 13px !important;
     font-weight: 500 !important;
     color: #334155 !important;
     text-align: center !important;
@@ -935,9 +1167,28 @@ textarea {
 }
 
 .app-sidebar.collapsed .rail-item.active > .rail-link .rail-icon,
-.app-sidebar.collapsed .rail-item.active > .rail-link .rail-text {
+.app-sidebar.collapsed .rail-item.active > .rail-link .rail-text,
+.app-sidebar.collapsed .rail-item.active > .rail-link .tree-node-icon,
+.app-sidebar.collapsed .rail-item.active > .rail-link .tree-text {
     color: #0b63ce !important;
     font-weight: 600 !important;
+}
+
+.app-sidebar.collapsed .tree-expander,
+.app-sidebar.collapsed .tree-spacer,
+.app-sidebar.collapsed .tree-expander-spacer {
+    display: none !important;
+}
+
+.app-sidebar.collapsed .tree-node-icon,
+.app-sidebar.collapsed .ssms-folder-icon,
+.app-sidebar.collapsed .ssms-db-icon,
+.app-sidebar.collapsed .ssms-server-icon,
+.flyout-link .flyout-icon,
+.flyout-link .ssms-folder-icon,
+.flyout-link .ssms-db-icon,
+.flyout-link .ssms-server-icon {
+    display: none !important;
 }
 
 /* Collapsed Flyout Level 1 */
@@ -979,7 +1230,7 @@ textarea {
     align-items: center;
     justify-content: space-between;
     padding: 8px 16px;
-    font-size: 0.82rem;
+    font-size: 13px;
     font-weight: 500;
     color: #334155;
     text-decoration: none;
@@ -1001,7 +1252,7 @@ textarea {
 }
 
 .flyout-arrow {
-    font-size: 0.7rem;
+    font-size: 13px;
     color: #94a3b8;
     margin-left: 8px;
 }
@@ -1092,7 +1343,7 @@ textarea {
 }
 
 .metric-label {
-    font-size: 0.85rem;
+    font-size: 13px;
     color: var(--text-muted);
     font-weight: 500;
 }
@@ -1167,7 +1418,7 @@ textarea {
 }
 
 .timeline-time {
-    font-size: 0.75rem;
+    font-size: 13px;
     color: var(--text-muted);
     font-weight: 500;
 }
@@ -1276,7 +1527,7 @@ textarea {
 .auth-visual-copy p {
     color: rgba(255, 255, 255, 0.85);
     max-width: 320px;
-    font-size: 0.98rem;
+    font-size: 13px;
     line-height: 1.7;
 }
 
@@ -1414,7 +1665,7 @@ textarea {
 .form-group-animated input:focus~label,
 .form-group-animated input:not(:placeholder-shown)~label {
     top: 12px;
-    font-size: 0.75rem;
+    font-size: 13px;
     color: var(--primary);
 }
 
@@ -1553,7 +1804,7 @@ textarea {
 
 .dummy-chart-label {
     margin-top: 8px;
-    font-size: 0.75rem;
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-muted);
 }
@@ -1654,7 +1905,7 @@ input[type="tel"],
 input[type="url"],
 textarea,
 select {
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
 }
 
@@ -1667,7 +1918,7 @@ input::placeholder,
 textarea::placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1680,7 +1931,7 @@ input::-webkit-input-placeholder,
 textarea::-webkit-input-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1693,7 +1944,7 @@ input::-moz-placeholder,
 textarea::-moz-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1706,7 +1957,7 @@ input:-ms-input-placeholder,
 textarea:-ms-input-placeholder {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
     opacity: 1 !important;
 }
@@ -1716,7 +1967,7 @@ select.form-control option[value=""],
 select option[value=""] {
     color: #8a9bb8 !important;
     font-style: italic !important;
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
 }
 
 /* Webkit Date & Time Input Specific Alignment */
@@ -1729,7 +1980,7 @@ input[type="date"]::-webkit-datetime-edit-year-field,
 input[type="datetime-local"]::-webkit-datetime-edit,
 input[type="month"]::-webkit-datetime-edit,
 input[type="time"]::-webkit-datetime-edit {
-    font-size: 0.750rem !important;
+    font-size: 13px !important;
     font-family: "Segoe UI", Arial, sans-serif !important;
 }
 

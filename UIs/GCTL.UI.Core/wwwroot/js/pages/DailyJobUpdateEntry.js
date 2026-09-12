@@ -215,8 +215,7 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
                     clearForm();
-                    statusCurrentPage = 1;  // Reset to first page
-                    loadJobStatuses();
+                    statusCurrentPage = 1;  
                     toastr.success(response.message || "Shipment saved successfully!");
                 }
                 else {
@@ -460,7 +459,7 @@ function renderTimeline(steps) {
 function populateForm(data) {
     showDev(data)
     setSelect('#shipmentModeId', data.shipmentModeId, true);
-    $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false);
+    $('#isCustomJobNo').prop('checked', data.isCustomJobNo || false).prop('disabled', true);
     setField('#jobNo', data.jobNo || '', true);
     setField('#customerAddress', data.updatedAt || '', true);
     setField('#jobNoHidden', data.jobNo || '', true);

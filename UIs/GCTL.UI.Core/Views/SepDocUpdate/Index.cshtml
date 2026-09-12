@@ -134,11 +134,11 @@
 
     .form-control-sm,
     .form-select-sm {
-        font-size: 0.82rem;
+        font-size: 13px;
     }
 
     .form-label {
-        font-size: 0.75rem;
+        font-size: 13px;
         font-weight: 600;
         color: #6c757d;
         margin-bottom: 2px;
@@ -225,13 +225,264 @@
             border-bottom: 2px solid #ffffff !important;
         }
 
-    /* ================= Dual Input Group (gap-2 & 50%-50% Equal Width) ================= */
+    /* ================= Form Fields Row & Layout (Ledger & VendorInfo Standard) ================= */
+    .sep-doc-fields-row {
+        --control-height: 30px;
+        --gap-size: 36px;
+        --btn-width: 20px;
+        --bs-gutter-x: var(--gap-size) !important;
+        row-gap: 12px !important;
+    }
+
+    #entryTabPane > div,
+    #uploadTabPane > div,
+    .sep-doc-fields-row,
+    .sep-doc-fields-row > div {
+        overflow: visible !important;
+    }
+
+    /* Form Card Container: Symmetrical left & right margins (compensates for Column 3 quick-add button) */
+    .sep-doc-form-card,
+    #entryTabPane > div:first-child {
+        padding-left: 24px !important;
+        padding-right: 48px !important;
+    }
+
+    /* Uniform Label Styling & Baseline Alignment */
+    .sep-doc-fields-row .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        margin-bottom: 4px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .form-label .text-danger,
+    .sep-doc-fields-row .form-label sup,
+    .sep-doc-fields-row .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure input/select container inside field-fixed-width takes 100% of the column width */
+    .sep-doc-fields-row .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Hide invisible placeholder buttons completely so non-quick-add fields expand to 100% */
+    .sep-doc-fields-row .field-fixed-width > .invisible-placeholder-btn {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+    }
+
+    /* Uniform height & 100% width for all inputs, selects, custom datepickers, and input-groups across big & laptop screens */
+    .sep-doc-fields-row .form-control:not(textarea),
+    .sep-doc-fields-row .form-select,
+    .sep-doc-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(textarea),
+    .sep-doc-fields-row select,
+    .sep-doc-fields-row .input-group-text,
+    .sep-doc-fields-row .custom-datepicker,
+    .sep-doc-fields-row .caiCon,
+    .sep-doc-fields-row .flatpickr-input,
+    .sep-doc-fields-row input.flatpickr-input,
+    .sep-doc-fields-row .custom-dd-box {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .form-control,
+    .sep-doc-fields-row .form-select,
+    .sep-doc-fields-row select,
+    .sep-doc-fields-row .select2-container,
+    .sep-doc-fields-row .input-group .select2-container,
+    .sep-doc-fields-row .custom-dd-wrapper {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    .sep-doc-fields-row input[type="date"]::-webkit-date-and-time-value {
+        margin: 0 !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+    }
+
+    /* Textareas take 100% width with natural multiline height */
+    .sep-doc-fields-row textarea,
+    .sep-doc-fields-row .field-fixed-width > textarea {
+        min-height: 56px !important;
+        height: auto !important;
+        max-height: none !important;
+        line-height: 1.4 !important;
+        padding: 4px 8px !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Select2 dropdown height and arrow alignment */
+    .sep-doc-fields-row .select2-container,
+    .sep-doc-fields-row .select2-container .select2-selection,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection,
+    .sep-doc-fields-row .select2-container .select2-selection--single,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        display: flex !important;
+        align-items: center !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__rendered,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--control-height) - 2px) !important;
+        height: calc(var(--control-height) - 2px) !important;
+        padding-left: 8px !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__arrow,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--control-height) - 2px) !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    /* Checkbox Alignment */
+    .sep-doc-fields-row .form-check {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-height: var(--control-height) !important;
+        margin-top: 24px !important;
+        margin-bottom: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .sep-doc-fields-row .form-check .form-check-input {
+        margin: 0 !important;
+        float: none !important;
+        width: 16px !important;
+        height: 16px !important;
+        cursor: pointer !important;
+    }
+
+    .sep-doc-fields-row .form-check .form-check-label {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear 24px right gap and NO border */
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        width: var(--btn-width) !important;
+        min-width: var(--btn-width) !important;
+        max-width: var(--btn-width) !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):hover,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):focus,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add:focus,
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):active,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn i,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* ================= Dual Input Group (gap-2 & Strict 50%-50% Equal Width, Same Height) ================= */
     .dual-input-group {
         display: flex !important;
         flex-wrap: nowrap !important;
         align-items: stretch !important;
         width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
         gap: 0.5rem !important; /* gap-2 (8px) */
+        box-sizing: border-box !important;
     }
 
     .dual-input-group > * {
@@ -248,20 +499,27 @@
         margin: 0 !important;
         border: 0 !important;
         flex: 0 0 0% !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
     }
 
-    /* Left Input: 50% width */
+    /* Left Input: Exactly 50% width minus half gap */
     .dual-input-group > input:first-child,
     .dual-input-group > select:first-child,
     .dual-input-group > .form-control:first-child {
-        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        flex: 0 0 calc((100% - 0.5rem) / 2) !important;
         width: calc((100% - 0.5rem) / 2) !important;
         max-width: calc((100% - 0.5rem) / 2) !important;
-        min-width: 0 !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        box-sizing: border-box !important;
     }
 
-    /* Right Input / Select / Dropdown: 50% width */
+    /* Right Input / Select / Dropdown: Exactly 50% width minus half gap */
     .dual-input-group > input:nth-child(2),
     .dual-input-group > input:last-child,
     .dual-input-group > select:nth-child(2),
@@ -270,24 +528,38 @@
     .dual-input-group > .select2-container,
     .dual-input-group > select + .select2-container,
     .dual-input-group > .select2 {
-        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        flex: 0 0 calc((100% - 0.5rem) / 2) !important;
         width: calc((100% - 0.5rem) / 2) !important;
         max-width: calc((100% - 0.5rem) / 2) !important;
-        min-width: 0 !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
         margin-left: 0 !important;
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        box-sizing: border-box !important;
     }
 
     .dual-input-group > .custom-dd-wrapper,
     .dual-input-group > select + .custom-dd-wrapper {
         width: calc((100% - 0.5rem) / 2) !important;
         max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
     }
 
     .dual-input-group > .custom-dd-wrapper .custom-dd-box,
     .dual-input-group > select + .custom-dd-wrapper .custom-dd-box {
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
         width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        box-sizing: border-box !important;
     }
 
     .dual-input-group .select2-container,
@@ -299,6 +571,133 @@
     .dual-input-group .select2-container--bootstrap-5 .select2-selection {
         border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
         width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group .select2-selection--single .select2-selection__rendered,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--control-height) - 2px) !important;
+        height: calc(var(--control-height) - 2px) !important;
+        padding-left: 8px !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group .select2-selection--single .select2-selection__arrow,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--control-height) - 2px) !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    /* ==========================================================================
+       Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
+       Exact same height, exact same width, and identical generous right-side gap for quick plus button
+       ========================================================================== */
+    @@media (max-width: 1400px) {
+        .sep-doc-fields-row {
+            --control-height: 30px !important;
+            --gap-size: 36px !important;
+            --btn-width: 20px !important;
+            --bs-gutter-x: var(--gap-size) !important;
+            row-gap: 12px !important;
+        }
+
+        .sep-doc-fields-row .form-label {
+            font-size: 12px !important;
+            height: 20px !important;
+            min-height: 20px !important;
+            max-height: 20px !important;
+            margin-bottom: 4px !important;
+        }
+
+        .sep-doc-fields-row .form-check {
+            min-height: 30px !important;
+            margin-top: 24px !important;
+        }
+
+        /* Form Card Container: Symmetrical left & right margins just like big screen (24px clean gap for + button) */
+        .sep-doc-form-card,
+        #entryTabPane > div:first-child {
+            padding-left: 24px !important;
+            padding-right: 48px !important;
+        }
+
+        /* Quick-add button size & right gap strictly preserved on laptop screen */
+        .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .sep-doc-fields-row .field-fixed-width > .js-quick-add {
+            position: absolute !important;
+            left: calc(100% + 4px) !important;
+            width: 20px !important;
+            min-width: 20px !important;
+            max-width: 20px !important;
+            height: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
+        }
+    }
+
+    /* Quick Plus Modal Dialog right side gap and responsive styling */
+    #gcModalStack .modal-dialog {
+        max-width: calc(100vw - 48px) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    #gcModalStack .modal-content {
+        border-radius: 8px !important;
+        overflow: hidden !important;
+    }
+
+    #gcModalStack .modal-body {
+        padding: 16px 20px !important;
+    }
+
+    #gcModalStack .toolbar-btn-group,
+    #gcModalStack .toolbar-doc,
+    #gcModalStack .card-header .toolbar-btn-group {
+        padding-right: 12px !important;
+        margin-right: 4px !important;
+    }
+
+    #gcModalStack .modal-footer,
+    #gcModalStack .card-footer {
+        padding-right: 16px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .sep-doc-form-card,
+        #entryTabPane > div:first-child {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        .sep-doc-fields-row {
+            --bs-gutter-x: 16px !important;
+        }
+
+        .sep-doc-fields-row .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .sep-doc-fields-row .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .sep-doc-fields-row .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+            border: 1px solid #ced4da !important;
+            background: #f8f9fa !important;
+        }
     }
 </style>
 @* <partial name="_PageHeader" model="Model" /> *@
@@ -484,8 +883,8 @@
 
         <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
         <div class="tab-pane fade show active" id="entryTabPane" role="tabpanel">
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 pt-lg-2 bg-white shadow rounded">
-                <div class="row">
+            <div class="py-2 bg-white shadow rounded sep-doc-form-card">
+                <div class="row sep-doc-fields-row">
 
                     @* ---------- Shipment Mode (MultiSelect) — no button needed ---------- *@
                     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -668,6 +1067,7 @@
                         LabelText = "L/C Value",
                         FieldType = FieldType.DualInput,
                         Placeholder="L/C Value",
+                        ReserveActionSlot = true,
                         SecondField = new DynamicFieldColumnModel
                         {
                             InputId = "currencyId",
@@ -760,6 +1160,7 @@
                         FieldType = FieldType.DualInput,
                         InputType="text",
                         Placeholder = "Invoice Value",
+                        ReserveActionSlot = true,
                         SecondField = new DynamicFieldColumnModel
                         {
                             InputId = "invoiceCurrencyId",
@@ -1107,7 +1508,7 @@
 
                 </div>
 
-                <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
+                <div class="border-bottom border-2 my-2"></div>
 
                 @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                 {
@@ -1118,10 +1519,9 @@
                     ShowFavorite = false,
                     ShowPrint = false,
                     IsPlain = true,
-                    ReserveActionSlot=true,
-           Style="border-bottom:0px !important;"
+                    ReserveActionSlot = true,
+                    Style = "border-bottom:0px !important;"
                 })
-
             </div>
 
             <!-- ==================== Grid of saved jobs ==================== -->
@@ -1210,11 +1610,11 @@
 
         <!-- ==================== TAB 2: Document Upload Info ==================== -->
         <div class="tab-pane fade" id="uploadTabPane" role="tabpanel">
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+            <div class="pt-2 pb-0 bg-white shadow rounded sep-doc-form-card">
                 <div class="card mb-3">
                     <div class="card-header bg-light fw-bold">Main Information</div>
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-3 sep-doc-fields-row">
                             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                             {
                                 InputId = "uploadJobNoDisplay",
@@ -1267,7 +1667,7 @@
                     </table>
                 </div>
 
-                <div class="row g-3">
+                <div class="row g-3 sep-doc-fields-row">
                     <div class="col-lg-4 col-md-6">
                         <label class="form-label">Upload File</label>
                         <input type="file" class="form-control form-control-sm" id="uploadFile" />
@@ -1291,19 +1691,19 @@
                     })
                 </div>
 
-                <div class="mt-3">
-                    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                    {
-                        Title = "",
-                        SaveBtnClass = "doc-seve-upload-btn",
-                        ShowClear = false,
-                        ShowDelete = false,
-                        ShowFavorite = false,
-                        ShowPrint = false,
-                        IsPlain = true,
-           Style="border-bottom:0px !important;"
-                    })
-                </div>
+                <div class="border-bottom border-2 my-2"></div>
+
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "",
+                    SaveBtnClass = "doc-seve-upload-btn",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true,
+                    Style = "border-bottom:0px !important;"
+                })
             </div>
         </div>
     </div>

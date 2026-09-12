@@ -32,6 +32,161 @@
         width: 95% !important;
     }
 
+    /* ==========================================================================
+       Sales Customer Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Vendor Info pattern
+       ========================================================================== */
+    .sc-field-col {
+        position: relative !important;
+    }
+
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .sc-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .form-label .text-danger,
+    .sc-field-col .form-label sup,
+    .sc-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .sc-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Full width for all inputs and select2 containers */
+    .sc-field-col .form-control,
+    .sc-field-col .form-select,
+    .sc-field-col select,
+    .sc-field-col .select2-container,
+    .sc-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
+    .sc-layout-form-col .card-body {
+        padding: 12px 18px !important;
+    }
+
+    .sc-layout-form-col .card-body .row,
+    .sc-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
+    .sc-field-col .field-fixed-width > .detached-action-btn,
+    .sc-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
+        min-height: 28px !important;
+        max-height: 34px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .field-fixed-width > .detached-action-btn:hover,
+    .sc-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .sc-field-col .field-fixed-width > .detached-action-btn:focus,
+    .sc-field-col .field-fixed-width > .js-quick-add:focus,
+    .sc-field-col .field-fixed-width > .detached-action-btn:active,
+    .sc-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .sc-field-col .field-fixed-width > .detached-action-btn i,
+    .sc-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .sc-field-col .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .sc-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sc-field-col .field-fixed-width > .detached-action-btn,
+        .sc-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
+    }
+
     /* Responsive layout:
        - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
        - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)

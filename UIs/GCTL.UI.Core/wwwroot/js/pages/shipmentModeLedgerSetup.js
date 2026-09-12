@@ -4,14 +4,14 @@
         //#region Default options
 
         var settings = $.extend({
-            baseUrl: "/",
+            baseUrl: "/ShipmentModeLedgerSetup",
             formSelector: "#ShipmentModeLedgerSetup-form",
             formContainer: ".js-ShipmentModeLedgerSetup-form-container",
             gridSelector: "#ShipmentModeLedgerSetup-grid",
             gridContainer: ".js-ShipmentModeLedgerSetup-grid-container",
             editSelector: ".js-ShipmentModeLedgerSetup-edit",
             saveSelector: ".js-ShipmentModeLedgerSetup-save",
-            selectAllSelector: "#ShipmentModeLedgerSetup-check-all",
+            selectAllSelector: "#js-ShipmentModeLedgerSetup-checkall",
             deleteSelector: ".js-ShipmentModeLedgerSetup-delete-confirm",
             deleteModal: "#ShipmentModeLedgerSetup-delete-modal",
             finalDeleteSelector: ".js-ShipmentModeLedgerSetup-delete",
@@ -30,9 +30,9 @@
             }
         }, options);
 
-        var gridUrl = settings.baseUrl + "/grid";
-        var saveUrl = settings.baseUrl + "/setup";
-        var deleteUrl = settings.baseUrl + "/Delete";
+        var base = (settings.baseUrl || "/ShipmentModeLedgerSetup").replace(/\/+$/, "");
+        var saveUrl = base + "/Setup";
+        var deleteUrl = base + "/Delete";
         var selectedItems = [];
 
         $(document).ready(function () {
@@ -46,7 +46,6 @@
                 $.gctlGrid.initFromModel({ gridId: 'ShipmentModeLedgerSetup-grid' });
             }
 
-
             loadTable();
             $('#LdateModifyHide').hide();
             $('#sectionBreak').hide();
@@ -54,7 +53,9 @@
             //#region formatDateTime
 
             function formatDateTime(dateStr) {
+                if (!dateStr) return '';
                 var date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
                 return date.toLocaleString('en-GB', {
                     day: '2-digit',
                     month: '2-digit',
@@ -67,34 +68,56 @@
 
             //#endregion
 
-            //#region GetById
-            $(document).on('click', '.js-ShipmentModeLedgerSetup-edit', function (e) {
+            //#region Dropdown Helpers
+
+            function setDropdownValue(selector, val) {
+                if (typeof setSelect === "function") {
+                    setSelect(selector, val, false);
+                }
+                $(selector).val(val).trigger('change');
+                if (typeof window.reinitCustomDropdownById === "function") {
+                    var id = selector.replace('#', '');
+                    window.reinitCustomDropdownById(id);
+                }
+            }
+
+            function resetSelectField(selector) {
+                if (typeof setSelect === "function") {
+                    setSelect(selector, '', false);
+                }
+                $(selector).val('').trigger('change');
+                if (typeof window.reinitCustomDropdownById === "function") {
+                    var id = selector.replace('#', '');
+                    window.reinitCustomDropdownById(id);
+                }
+            }
+
+            //#endregion
+
+            //#region GetById (Edit)
+
+            $("body").off('click', settings.editSelector).on('click', settings.editSelector, function (e) {
                 e.preventDefault();
                 var id = $(this).data('id');
-                //console.log(id);
+                if (!id) return;
+
                 $.ajax({
-                    url: '/ShipmentModeLedgerSetup/GetById',
+                    url: base + '/GetById',
                     type: 'GET',
                     data: { code: id },
                     success: function (data) {
                         if (data) {
-                           // console.log(data);
+                            var tcVal = (data.tc && parseInt(data.tc) > 0) ? data.tc : (data.expenseTypeId ? 1 : 0);
+                            $('#Tc').val(tcVal);
+                            $('#Id').val(data.id || '');
+                            $('#ExpenseTypeId').val(data.expenseTypeId || '');
 
-                            $('#Tc').val(data.tc);
-                            $('#Id').val(data.id);
-                            $('#ExpenseTypeId').val(data.expenseTypeId);
+                            setDropdownValue('#ExpenseType', data.expenseType || '');
+                            setDropdownValue('#ExpenseLedgerCodeNo', data.expenseLedgerCodeNo || '');
+                            setDropdownValue('#RevenueLedgerCodeNo', data.revenueLedgerCodeNo || '');
+                            setDropdownValue('#AdvanceLedgerCode', data.advanceLedgerCode || '');
 
-                            $('#ExpenseType').val(data.expenseType).trigger('change');
-                            window.reinitCustomDropdownById('ExpenseType');
-
-                            $('#RevenueLedgerCodeNo').val(data.revenueLedgerCodeNo).trigger('change');
-                            window.reinitCustomDropdownById('RevenueLedgerCodeNo');
-
-                            $('#ExpenseLedgerCodeNo').val(data.expenseLedgerCodeNo).trigger('change');
-                            window.reinitCustomDropdownById('ExpenseLedgerCodeNo');
-
-                            $('#AdvanceLedgerCode').val(data.advanceLedgerCode).trigger('change');
-                            window.reinitCustomDropdownById('AdvanceLedgerCode');
+                            $(settings.deleteSelector).data('id', data.expenseTypeId);
 
                             $('#LdateModifyHide').show();
                             $('#sectionBreak').show();
@@ -113,7 +136,7 @@
                         }
                     },
                     error: function () {
-                        alert('Failed to load vendor information data.');
+                        toastr.error('Failed to load shipment mode ledger setup data.');
                     }
                 });
             });
@@ -122,9 +145,9 @@
 
             //#region Save
 
-            $("body").on("click", settings.saveSelector, function () {
-                //debugger
-                validation();
+            $("body").off('click', settings.saveSelector).on('click', settings.saveSelector, function (e) {
+                e.preventDefault();
+
                 var $valid = $(settings.formSelector).valid();
                 if (!$valid) {
                     return false;
@@ -136,67 +159,84 @@
                 else
                     data = $(settings.formSelector).serialize();
 
-                var url = $(settings.formSelector).attr("action");
+                var url = $(settings.formSelector).attr("action") || saveUrl;
 
-                var options = {
+                var ajaxOptions = {
                     url: url,
                     method: "POST",
                     data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            loadForm(saveUrl)
-
-                                .then((data) => {
-                                    loadTable();
-                                    ResetBranchAddressForm();
-                                    $(settings.lastCodeSelector).val(response.lastCode);
-                                    // alert("The last code has been updated to: " + response.lastCode);
-                                })
-                                .catch((error) => {
-                                    console.log(error)
-                                })
-
                             toastr.success(response.message);
+                            loadTable();
+                            ResetForm();
+                            if (response.lastCode) {
+                                $(settings.lastCodeSelector).val(response.lastCode);
+                            }
+                            $(settings.deleteSelector).data('id', '');
                         }
                         else {
                             toastr.error(response.message);
                             console.log(response);
                         }
+                    },
+                    error: function (xhr) {
+                        toastr.error("An error occurred while saving.");
+                        console.error(xhr);
                     }
-                }
+                };
+
                 if (settings.haseFile) {
-                    options.processData = false;
-                    options.contentType = false;
+                    ajaxOptions.processData = false;
+                    ajaxOptions.contentType = false;
                 }
-                $.ajax(options);
+
+                $.ajax(ajaxOptions);
             });
 
             //#endregion
 
             //#region selectAllSelector & deleteSelector
 
-            $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+            $("body").off("click", `${settings.selectAllSelector}, #ShipmentModeLedgerSetup-check-all`)
+                     .on("click", `${settings.selectAllSelector}, #ShipmentModeLedgerSetup-check-all`, function () {
+                var isChecked = $(this).prop('checked');
+                $(settings.gridSelector).find("tbody input[type='checkbox']").prop('checked', isChecked);
             });
 
-            $("body").on("click", settings.deleteSelector, function (e) {
+            $("body").off("click", settings.deleteSelector)
+                     .on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
 
-                if ($(this).data('id')) {
-                    selectedItems.push($(this).data('id'));
-                } else {
-                    $('input:checkbox.checkBox').each(function () {
+                // 1. Collect from checked checkboxes in table
+                $(settings.gridSelector).find("tbody input[type='checkbox']:checked, tbody .checkBox:checked, tbody .form-check-input:checked").each(function () {
+                    var val = $(this).val();
+                    if (val && !selectedItems.includes(val)) {
+                        selectedItems.push(val);
+                    }
+                });
 
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
+                // 2. Active form item fallback
+                if (selectedItems.length === 0) {
+                    var btnId = $(this).data('id');
+                    if (btnId) {
+                        selectedItems.push(btnId);
+                    } else {
+                        var formId = $("#ExpenseTypeId").val();
+                        var tcVal = parseInt($("#Tc").val() || $("#tc").val()) || 0;
+                        if (formId && tcVal > 0) {
+                            selectedItems.push(formId);
                         }
-                    });
+                    }
                 }
 
                 if (selectedItems.length > 0) {
+                    var count = selectedItems.length;
+                    var titleText = count > 1 
+                        ? `Are you sure you want to delete these ${count} items? This process cannot be undone.`
+                        : "Are you sure you want to delete this item? This process cannot be undone.";
+                    $(settings.deleteModal).find('.title').text(titleText);
                     $(settings.deleteModal).modal("show");
                 } else {
                     toastr.info("Please select at least one item.");
@@ -205,88 +245,109 @@
 
             //#endregion
 
-            //#region Delete & deleteModal
+            //#region Delete Execution (Modal)
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-
-                var source = $(event.relatedTarget);
-                var id = source.data("ids");
-
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure to delete?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(selectedItems),
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-
-                                loadTable();
-                                ResetBranchAddressForm();
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                toastr.error(response.message);
-                                console.log(response);
-                            }
-                        }
-                    });
-                });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
-            });
-
-            //#endregion
-
-            //#region topSelector & decimalSelector
-
-            $("body").on("click", settings.topSelector, function (e) {
+            $("body").off("click", settings.finalDeleteSelector)
+                     .on("click", settings.finalDeleteSelector, function (e) {
+                e.stopPropagation();
                 e.preventDefault();
-                $("html, body").animate({ scrollTop: 0 }, 500);
-            });
+                e.stopImmediatePropagation();
 
+                if (!selectedItems || selectedItems.length === 0) {
+                    $(settings.deleteModal).modal("hide");
+                    return;
+                }
 
-            $("body").on("keyup", settings.decimalSelector, function () {
-                var self = $(this);
-                showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
-            });
-
-            //#endregion
-
-            //#region availabilitySelector
-
-            $("body").on("keyup", settings.availabilitySelector, function () {
-                var self = $(this);
-                let code = $(".js-ExpenseTypeId-code").val();
-                let name = self.val();
-                // check
                 $.ajax({
-                    url: settings.baseUrl + "/CheckAvailability",
+                    url: deleteUrl,
                     method: "POST",
-                    data: { code: code, name: name },
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
                     success: function (response) {
-                        console.log(response);
-                        if (response.isSuccess) {
+                        $(settings.deleteModal).modal("hide");
+                        if (response.success) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+
+                            loadTable();
+                            ResetForm();
+                            $(`${settings.selectAllSelector}, #ShipmentModeLedgerSetup-check-all`).prop('checked', false);
+                            $(settings.deleteSelector).data('id', '');
+                        } else {
                             toastr.error(response.message);
                         }
+                    },
+                    error: function (xhr) {
+                        $(settings.deleteModal).modal("hide");
+                        var msg = "Failed to delete.";
+                        try {
+                            var res = JSON.parse(xhr.responseText);
+                            if (res.message) msg = res.message;
+                        } catch (ex) {}
+                        toastr.error(msg);
                     }
                 });
+            });
+
+            //#endregion
+
+            //#region Clear
+
+            $("body").off('click', settings.clearSelector).on('click', settings.clearSelector, function (e) {
+                e.preventDefault();
+                ResetForm();
+                loadTable();
+            });
+
+            //#endregion
+
+            //#region ResetForm
+
+            function ResetForm() {
+                $('#Tc').val(0);
+                $('#Id').val('');
+                $(settings.deleteSelector).data('id', '');
+
+                resetSelectField('#ExpenseType');
+                resetSelectField('#ExpenseLedgerCodeNo');
+                resetSelectField('#RevenueLedgerCodeNo');
+                resetSelectField('#AdvanceLedgerCode');
+
+                $('#LdateModifyHide').hide();
+                $('#sectionBreak').hide();
+                $('#creationDateSpan').text('');
+                $('#modifyDateSpan').text('');
+
+                selectedItems = [];
+                $(`${settings.selectAllSelector}, #ShipmentModeLedgerSetup-check-all`).prop('checked', false);
+                $(settings.gridSelector).find('input[type="checkbox"]').prop('checked', false);
+
+                getNextExpenseTypeId();
+            }
+
+            function getNextExpenseTypeId() {
+                $.ajax({
+                    url: base + '/GetNextId',
+                    type: 'GET',
+                    success: function (response) {
+                        if (response) {
+                            $('#ExpenseTypeId').val(response);
+                            $('#lastCode').val(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error("Error fetching next Expense Type ID:", xhr.responseText);
+                    }
+                });
+            }
+
+            //#endregion
+
+            //#region Top Selector
+
+            $("body").off("click", settings.topSelector).on("click", settings.topSelector, function (e) {
+                e.preventDefault();
+                $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
             //#endregion
@@ -303,80 +364,6 @@
 
         //#endregion
 
-        //#region loadForm
-
-        function loadForm(url) {
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    cache: false,
-                    success: function (data) {
-                        console.log(data);
-                        $(settings.formContainer).empty();
-                        $(settings.formContainer).html(data);
-                        $.validator.unobtrusive.parse($(settings.formSelector));
-
-                        window.initCustomDropdowns(settings.formContainer, true);
-
-                        resolve(data)
-                    },
-                    error: function (error) {
-                        reject(error)
-                    },
-                })
-            })
-        }
-
-        //#endregion
-
-        //#region ResetBranchAddressForm
-
-        function getNextExpenseTypeId() {
-            $.ajax({
-                url: '/ShipmentModeLedgerSetup/GetNextId',
-                type: 'GET',
-                success: function (response) {
-                    console.log(response);
-                    $('#ExpenseTypeId').val(response);
-                    $('#lastCode').val(response);
-                },
-                error: function (xhr) {
-                    console.error("Error fetching next Expense Type ID:", xhr.responseText);
-                }
-            });
-        }
-
-        $(document).on('click', '.js-ShipmentModeLedgerSetup-clear', function () {
-            ResetBranchAddressForm();
-            loadTable(); // if applicable
-        });
-
-        function ResetBranchAddressForm() {
-            // Reset hidden/control fields
-            $('#Tc').val(0);
-            $('#Id').val('');
-
-            getNextExpenseTypeId();
-
-            setSelect('#ExpenseType', '', false);
-            setSelect('#ExpenseLedgerCodeNo', '', false);
-            setSelect('#RevenueLedgerCodeNo', '', false);
-            setSelect('#AdvanceLedgerCode', '', false);
-
-            // Hide sections
-            $('#LdateModifyHide').hide();
-            $('#sectionBreak').hide();
-
-            // Clear checkbox selections
-            selectedItems = [];
-
-            $("#ShipmentModeLedgerSetup-check-all").prop("checked", false);
-            $('#ShipmentModeLedgerSetup-grid input[type="checkbox"]').prop('checked', false);
-        }
-
-        //#endregion
-
-    }
+    };
 
 }(jQuery));

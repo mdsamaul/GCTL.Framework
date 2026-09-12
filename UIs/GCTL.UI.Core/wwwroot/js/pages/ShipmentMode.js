@@ -1,27 +1,3 @@
-$(function () {
-    function showShipmentMode() {
-        $("#toolbarEntry").addClass("show");
-        $("#toolbarUpload").removeClass("show");
-    }
-
-    function showShipmentStatus() {
-        $("#toolbarUpload").addClass("show");
-        $("#toolbarEntry").removeClass("show");
-    }
-
-    // Default
-    showShipmentMode();
-
-    // Tab Switches
-    $('#shipment-type-tab').on('shown.bs.tab', function () {
-        showShipmentMode();
-    });
-
-    $('#shipment-status-tab').on('shown.bs.tab', function () {
-        showShipmentStatus();
-    });
-});
-
 function getNextExpenseTypeId() {
     $.ajax({
         url: '/next-expense-type-id',
@@ -40,11 +16,17 @@ function clearShipmentForm() {
         $('#shipmentForm')[0].reset();
     }
     $('#expenseType').removeClass('error-border');
-    $('#modifyDateContainer').hide();
-    $('#lDateContainer').hide();
-    $('#shipmentForm input[name="tcId"]').val(0);
+    $('#sectionBreak').hide();
+    $('#LdateModifyHide').hide();
+    $('#shipmentForm input[name="tcId"], #tcId').val(0);
     $('#selectAllShipmentMode').prop('checked', false);
     $('.js-shipmentmode-check').prop('checked', false);
+
+    if (typeof setSelect === "function") {
+        setSelect('#transportModeTypeId', '', false);
+    } else {
+        $('#transportModeTypeId').val('').trigger('change');
+    }
 
     getNextExpenseTypeId();
 
@@ -54,14 +36,14 @@ function clearShipmentForm() {
 }
 
 function saveOrUpdateShipmentMode() {
-    let tcId = parseInt($('#shipmentForm input[name="tcId"]').val()) || 0;
+    let tcId = parseInt($('#shipmentForm input[name="tcId"]').val()) || parseInt($('#tcId').val()) || 0;
     const transportModeTypeId = $('#transportModeTypeId').val();
-    const expenseTypeId = $('#shipmentForm input[name="expenseTypeId"]').val();
-    const expenseType = $('#shipmentForm input[name="expenseType"]').val().trim();
-    const shortName = $('#shipmentForm input[name="shortName"]').val().trim();
+    const expenseTypeId = $('#shipmentForm input[name="expenseTypeId"]').val() || $('#expenseTypeId').val();
+    const expenseType = ($('#shipmentForm input[name="expenseType"]').val() || $('#expenseType').val() || '').trim();
+    const shortName = ($('#shipmentForm input[name="shortName"]').val() || $('#shortName').val() || '').trim();
 
     if (!expenseType) {
-        toastr.warning("Expense Type is required.");
+        toastr.warning("Shipment Mode is required.");
         $('#expenseType').addClass('error-border').focus();
         return;
     }
@@ -127,26 +109,33 @@ function saveOrUpdateShipmentMode() {
     });
 }
 
-function deleteSelectedShipmentModes() {
-    let selectedIds = [];
+var selectedShipmentModeIds = [];
+
+function promptDeleteShipmentModes() {
+    selectedShipmentModeIds = [];
     $("#shipmentModeTable .js-shipmentmode-check:checked").each(function () {
         let val = parseInt($(this).val());
-        if (val) selectedIds.push(val);
+        if (val) selectedShipmentModeIds.push(val);
     });
 
-    if (selectedIds.length === 0) {
-        let currentTc = parseInt($('#shipmentForm input[name="tcId"]').val()) || 0;
+    if (selectedShipmentModeIds.length === 0) {
+        let currentTc = parseInt($('#shipmentForm input[name="tcId"]').val()) || parseInt($('#tcId').val()) || 0;
         if (currentTc > 0) {
-            selectedIds.push(currentTc);
+            selectedShipmentModeIds.push(currentTc);
         }
     }
 
-    if (selectedIds.length === 0) {
-        toastr.warning("Please select at least one item to delete.");
+    if (selectedShipmentModeIds.length === 0) {
+        toastr.info("Please select at least one item to delete.");
         return;
     }
 
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} record(s)?`)) {
+    $('#ShipmentMode-delete-modal').modal('show');
+}
+
+function executeDeleteShipmentModes() {
+    if (!selectedShipmentModeIds || selectedShipmentModeIds.length === 0) {
+        $('#ShipmentMode-delete-modal').modal('hide');
         return;
     }
 
@@ -154,8 +143,9 @@ function deleteSelectedShipmentModes() {
         url: '/shipment-mode-multi',
         type: 'DELETE',
         contentType: 'application/json',
-        data: JSON.stringify(selectedIds),
+        data: JSON.stringify(selectedShipmentModeIds),
         success: function (response) {
+            $('#ShipmentMode-delete-modal').modal('hide');
             $('#selectAllShipmentMode').prop('checked', false);
             clearShipmentForm();
             if ($.gctlGrid) {
@@ -163,12 +153,14 @@ function deleteSelectedShipmentModes() {
             }
 
             if (response.isSuccess) {
-                toastr.success(response.message);
+                toastr.success(response.message || "Data Deleted Successfully.");
             } else {
-                toastr.error(response.message);
+                toastr.error(response.message || "Failed to delete.");
             }
+            selectedShipmentModeIds = [];
         },
         error: function (xhr) {
+            $('#ShipmentMode-delete-modal').modal('hide');
             let msg = "An error occurred while deleting shipment modes!";
             try {
                 const res = JSON.parse(xhr.responseText);
@@ -176,17 +168,18 @@ function deleteSelectedShipmentModes() {
             } catch { }
             toastr.error(msg);
             console.error('Error deleting shipment modes:', xhr);
+            selectedShipmentModeIds = [];
         }
     });
 }
 
 function populateExpenseTypeForm(data) {
     if (!data) return;
-    $('#shipmentForm input[name="expenseTypeId"]').val(data.expenseTypeID || data.ExpenseTypeID);
-    $('#shipmentForm input[name="expenseType"]').val(data.expenseType || data.ExpenseType);
-    $('#shipmentForm input[name="shortName"]').val(data.shortName || data.ShortName || "");
-    $('#shipmentForm input[name="tcId"]').val(data.tc || data.TC);
-    
+    $('#shipmentForm input[name="expenseTypeId"], #expenseTypeId').val(data.expenseTypeID || data.ExpenseTypeID);
+    $('#shipmentForm input[name="expenseType"], #expenseType').val(data.expenseType || data.ExpenseType);
+    $('#shipmentForm input[name="shortName"], #shortName').val(data.shortName || data.ShortName || "");
+    $('#shipmentForm input[name="tcId"], #tcId').val(data.tc || data.TC);
+
     let transportModeVal = (data.transportModeTypeId || data.TransportModeTypeId || "").trim();
     if (typeof setSelect === "function") {
         setSelect('#transportModeTypeId', transportModeVal, false);
@@ -194,56 +187,45 @@ function populateExpenseTypeForm(data) {
         $('#transportModeTypeId').val(transportModeVal).trigger('change');
     }
 
+    let hasDate = false;
     let lDateVal = data.ldate || data.lDate || data.Ldate;
     if (lDateVal) {
-        const formattedLDate = new Date(lDateVal).toLocaleDateString('en-GB');
+        const formattedLDate = new Date(lDateVal).toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true
+        });
         $('#displayLDate').text(formattedLDate);
-        $('#lDateContainer').show();
+        hasDate = true;
     } else {
-        $('#lDateContainer').hide();
+        $('#displayLDate').text('');
     }
 
     let modDateVal = data.modifyDate || data.ModifyDate;
     if (modDateVal) {
-        const formattedModifyDate = new Date(modDateVal).toLocaleDateString('en-GB');
+        const formattedModifyDate = new Date(modDateVal).toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true
+        });
         $('#displayModifyDate').text(formattedModifyDate);
-        $('#modifyDateContainer').show();
+        hasDate = true;
     } else {
-        $('#modifyDateContainer').hide();
+        $('#displayModifyDate').text('');
+    }
+
+    if (hasDate) {
+        $('#sectionBreak').show();
+        $('#LdateModifyHide').show();
+    } else {
+        $('#sectionBreak').hide();
+        $('#LdateModifyHide').hide();
     }
 }
 
 $(document).ready(function () {
-    // Load Form
-    $.ajax({
-        url: '/ShipmentMode/ShipmentForm',
-        type: 'GET',
-        success: function (data) {
-            $('#shipmentFormContainer').html(data);
-            if (typeof window.initCustomDropdowns === "function") {
-                window.initCustomDropdowns('#shipmentFormContainer', true);
-            }
-            getNextExpenseTypeId();
-        },
-        error: function (xhr, status, error) {
-            console.error("Failed to load ShipmentForm:", error);
-        }
-    });
-
-    // Load List & initialize CustomGrid
-    $.ajax({
-        url: '/ShipmentMode/ShipmentList',
-        type: 'GET',
-        success: function (data) {
-            $('#shipmentList').html(data);
-            if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: 'shipmentModeTable' });
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("Failed to load ShipmentList:", error);
-        }
-    });
+    // Custom grid initialization
+    if ($.gctlGrid && $('#shipmentModeTable').length) {
+        $.gctlGrid.initFromModel({ gridId: 'shipmentModeTable' });
+    }
 
     // Edit link click in custom datatable
     $(document).on('click', '.js-shipmentmode-edit', function (e) {
@@ -265,18 +247,26 @@ $(document).ready(function () {
         });
     });
 
-    // Toolbar buttons
-    $(document).on("click", ".saveBtn", function (e) {
+    // Save
+    $(document).on("click", ".saveBtn, .js-shipmentmode-save", function (e) {
         e.preventDefault();
         saveOrUpdateShipmentMode();
     });
 
-    $(document).on("click", ".deleteBtn", function (e) {
+    // Delete prompt
+    $(document).on("click", ".deleteBtn, .js-shipmentmode-delete-confirm", function (e) {
         e.preventDefault();
-        deleteSelectedShipmentModes();
+        promptDeleteShipmentModes();
     });
 
-    $(document).on("click", ".clearBtn", function (e) {
+    // Delete execute from modal
+    $(document).on("click", ".js-shipmentmode-delete", function (e) {
+        e.preventDefault();
+        executeDeleteShipmentModes();
+    });
+
+    // Clear
+    $(document).on("click", ".clearBtn, .js-shipmentmode-clear", function (e) {
         e.preventDefault();
         clearShipmentForm();
     });

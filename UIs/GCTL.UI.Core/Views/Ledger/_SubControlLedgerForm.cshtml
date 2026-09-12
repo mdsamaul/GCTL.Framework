@@ -7,15 +7,15 @@
        ========================================================================== */
     :root {
         --control-height: 31px;
-        --gap-size: 24px;
-        --btn-width: 22px;
+        --gap-size: 36px;
+        --btn-width: 20px;
     }
 
     .subcontrol-ledger-fields-row,
     .control-ledger-fields-row {
         --control-height: 31px;
-        --gap-size: 24px;
-        --btn-width: 22px;
+        --gap-size: 36px;
+        --btn-width: 20px;
         display: flex !important;
         flex-wrap: wrap !important;
         justify-content: space-between !important;
@@ -183,7 +183,7 @@
     .control-ledger-fields-row .field-fixed-width > .detached-action-btn,
     .control-ledger-fields-row .field-fixed-width > .js-quick-add {
         position: absolute !important;
-        left: calc(100% + 1px) !important;
+        left: calc(100% + 4px) !important;
         top: 0 !important;
         bottom: 0 !important;
         height: var(--control-height) !important;
@@ -248,8 +248,8 @@
         .subcontrol-ledger-fields-row,
         .control-ledger-fields-row {
             --control-height: 28px !important;
-            --gap-size: 22px !important;
-            --btn-width: 20px !important;
+            --gap-size: 34px !important;
+            --btn-width: 18px !important;
             row-gap: 8px !important;
         }
 
@@ -394,9 +394,9 @@
         EnableFavorite = true
     })
 
-    <div class="card-body">
+    <div class="card-body p-0">
         <form id="subcontrolForm">
-            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
+            <fieldset style="padding: 12px; border-radius: 5px;">
                 <input type="hidden" id="SubCRLAutoID" name="autoId" />
 
                 <div class="row subcontrol-ledger-fields-row control-ledger-fields-row">
@@ -425,7 +425,7 @@
                         InputId = "groupName",
                         InputName = "groupName",
                         LabelText = "Group Ledger Name",
-                        Placeholder = "-- Select Group Ledger --",
+                        Placeholder = "Select Group Ledger",
                         IsRequired = true,
                         ShowQuickAdd = true,
                         ReserveActionSlot=false,
@@ -472,7 +472,7 @@
                         InputId = "ConRLName",
                         InputName = "CRLName",
                         LabelText = "Control Ledger Name",
-                        Placeholder = "-- Select Control Ledger --",
+                        Placeholder = "Select Control Ledger",
                         IsRequired = true,
                         ShowQuickAdd = true,
                         ReserveActionSlot=false,
@@ -575,7 +575,7 @@
                 </div>
 
                 @* Bottom Save Button *@
-                <div class="row no-print" style="margin-top: 9px;">
+                <div class="row no-print">
                     <div class="col-12">
                         @await Html.PartialAsync("_Toolbars", new ToobarModel
                         {

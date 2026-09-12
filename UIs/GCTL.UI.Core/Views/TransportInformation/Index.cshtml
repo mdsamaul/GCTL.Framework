@@ -7,8 +7,7 @@
 }
 
 <style>
-
-    #TransportDeleteModalBodyHeightFeixd {
+    #TransportInformationDeleteModalBodyHeightFeixd {
         height: 50px !important;
     }
 
@@ -25,130 +24,311 @@
         background-color: #fff !important;
     }
 
-    /* Plus Button Style */
-    .btn-plus {
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        padding: 0 10px;
-        transition: background-color 0.2s ease, color 0.2s ease;
+    /* ==========================================================================
+       Transport Information Form: Equal Width & Height Inputs & Quick-Add (+) Buttons
+       Mirrors Shipment Mode / Vendor Info pattern
+       ========================================================================== */
+    .ti-field-col {
+        position: relative !important;
     }
 
-        .btn-plus:hover {
-            background-color: #0d6efd; /* Bootstrap blue */
-            color: #ffffff;
-            border-color: #0d6efd;
-        }
-
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
-    /* Country wrapper */
-    .Vehicle-input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .ti-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
     }
 
-    .Vehicle-select-wrap {
-        flex: 1;
-        min-width: 0; /* flex child shrink fix */
+    .ti-field-col .form-label .text-danger,
+    .ti-field-col .form-label sup,
+    .ti-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
     }
 
-        /* Select2 container full width */
-    .Vehicle-select-wrap .select2-container {
-            width: 100% !important;
-        }
-
-    /* Plus button */
-    .btn-plus {
-        flex-shrink: 0;
-        width: 30px;
-        height: 30px;
-        padding: 0;
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease, color 0.2s ease;
+    /* Ensure field-fixed-width is flex container taking 100% of the column width */
+    .ti-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
-        .btn-plus:hover {
-            background-color: #0d6efd;
-            color: #ffffff;
-            border-color: #0d6efd;
-        }
+    .ti-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
 
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
-        }
+    .ti-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
 
+    /* Full width for all inputs and select2 containers */
+    .ti-field-col .form-control,
+    .ti-field-col .form-select,
+    .ti-field-col select,
+    .ti-field-col .select2-container,
+    .ti-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* ==========================================================================
+       Uniform Height (31px) & Typography for ALL Inputs, Selects, and Dropdowns
+       ========================================================================== */
+    .ti-field-col .input-group,
+    .ti-field-col .form-control,
+    .ti-field-col .form-select,
+    .ti-field-col select,
+    .ti-field-col .select2-container,
+    .ti-field-col .select2-container .select2-selection--single {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .ti-field-col .form-control,
+    .ti-field-col .form-select,
+    .ti-field-col .select2-container .select2-selection--single {
+        border-radius: 4px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0 8px !important;
+    }
+
+    /* Select2 container specific height & text alignment matching text inputs */
+    .ti-field-col .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 29px !important;
+        height: 31px !important;
+        font-size: 13px !important;
+        padding-left: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        color: #495057 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .ti-field-col .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 29px !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    .ti-field-col .select2-container--default .select2-selection--single .select2-selection__clear {
+        height: 29px !important;
+        line-height: 29px !important;
+        margin-right: 18px !important;
+        font-size: 13px !important;
+    }
+
+    .ti-field-col .form-control:focus,
+    .ti-field-col .form-select:focus,
+    .ti-field-col .select2-container--default.select2-container--focus .select2-selection--single,
+    .ti-field-col .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+
+    /* Form row gutter & card-body padding: Perfectly balanced left and right gaps with equal width inputs */
+    .ti-layout-form-col .card-body {
+        padding: 14px 48px 14px 24px !important;
+    }
+
+    .ti-layout-form-col .card-body .row,
+    .ti-layout-form-col .row.g-4 {
+        --bs-gutter-x: 32px !important;
+    }
+
+    /* Centered form wrapper for equal left & right gaps */
+    .ti-form-centered-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Quick-Add (+) Button positioned to the right of the input with symmetrical right gap */
+    .ti-field-col .field-fixed-width > .detached-action-btn,
+    .ti-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .ti-field-col .field-fixed-width > .invisible-placeholder-btn {
+        visibility: hidden !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    .ti-field-col .field-fixed-width > .detached-action-btn:hover,
+    .ti-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .ti-field-col .field-fixed-width > .detached-action-btn:focus,
+    .ti-field-col .field-fixed-width > .js-quick-add:focus,
+    .ti-field-col .field-fixed-width > .detached-action-btn:active,
+    .ti-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .ti-field-col .field-fixed-width > .detached-action-btn i,
+    .ti-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* ==========================================================================
+       Side-by-side flex layout for all screens:
+       - Left: Setup Form (50% width)
+       - Right: Table Grid (50% width)
+       - Form Inputs: 2 per row (50% each inside form card)
+       ========================================================================== */
+    .ti-layout-form-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        margin-bottom: 0 !important;
+    }
+
+    .ti-layout-grid-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-bottom: 0 !important;
+    }
+
+    .ti-field-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+    }
+
+    .ti-toolbar-col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
 </style>
 
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid px-0">
+    <div class="">
         <div class="row g-2">
 
-            <div class="col-md-6 pe-1">
-                <div class="card">
+            <!-- Left Setup Form Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 ti-layout-form-col">
+                <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Transport Information",
-                            SaveBtnClass = "js-TransportInformation-save",
-                            DeleteBtnClass = "js-TransportInformation-delete-confirm",
-                            ClearBtnClass = "js-TransportInformation-clear",
-                            ReserveActionSlot=true
+                            SaveBtnClass = "js-TransportInformation-save saveBtn",
+                            DeleteBtnClass = "js-TransportInformation-delete-confirm deleteBtn",
+                            ClearBtnClass = "js-TransportInformation-clear clearBtn",
+                            PdfBtnClass = "export-pdf",
+                            ExcelBtnClass = "export-excel",
+                            FavtBtnClass = "favBtn",
+                            ShowExtraContentLaptopOnly = true
                         })
                     </div>
-                    <div class="card-body px-2">
-
+                    <div class="card-body">
                         <form asp-action="Setup" method="post" id="TransportInformation-form" asp-controller="TransportInformation">
-
                             <div class="js-TransportInformation-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6 ps-1">
-                <div class="card">
-                        <div class="js-TransportInformation-grid-container">
-                            @await Html.PartialAsync("_CustomGrid", new GridModel
+            <!-- Right Table Grid Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 ti-layout-grid-col">
+                <div class="card rounded shadow-sm">
+                    <div class="js-TransportInformation-grid-container">
+                        @await Html.PartialAsync("_CustomGrid", new GridModel
+                        {
+                            GridId = "TransportInformation-grid",
+                            AjaxUrl = "/TransportInformation/GetTableData",
+                            AjaxMethod = "GET",
+                            ServerSide = false,
+                            CheckAllId = "TransportInformation-check-all",
+                            CheckColumnData = "vehicleId",
+                            DefaultSortColumn = "vehicleId",
+                            DefaultSortDirection = "desc",
+                            Columns = new List<GridColumn>
                             {
-                                GridId = "TransportInformation-grid",
-                                AjaxUrl = "/TransportInformation/GetTableData",
-                                AjaxMethod = "GET",
-                                ServerSide = false,
-                                CheckAllId = "js-TransportInformation-checkall",
-                                CheckColumnData = "vehicleId",
-                                DefaultSortColumn = "vehicleId",
-                                DefaultSortDirection = "desc",
-                                Columns = new List<GridColumn>
-                                {
-                                    new() { Data = "vehicleId", Header = "ID", Width="10%", IsEditLink = true, EditSelectorClass = "js-TransportInformation-edit", IdField = "vehicleId" },
-                                    new() { Data = "vehicleNo", Header = "Transport No.", Width="25%", Align = "left" },
-                                    new() { Data = "vehicleType", Header = "Transport Type", Width="35%", Align = "left" },
-                                    new() { Data = "portName", Header = "Port Name", Width="30%", Align = "left" }
-                                },
-                                ShowCheckbox = true,
-                                Bordered = true,
-                                Striped = true
-                            })
-
-                        </div>
+                                new() { Data = "vehicleId", Header = "ID", Width="12%", IsEditLink = true, EditSelectorClass = "js-TransportInformation-edit", IdField = "vehicleId" },
+                                new() { Data = "vehicleNo", Header = "Transport No.", Width="28%", Align = "left" },
+                                new() { Data = "vehicleType", Header = "Transport Type", Width="32%", Align = "left" },
+                                new() { Data = "portName", Header = "Port Name", Width="28%", Align = "left" }
+                            },
+                            ShowCheckbox = true,
+                            Bordered = true,
+                            Striped = true
+                        })
+                    </div>
                 </div>
             </div>
 
@@ -156,6 +336,7 @@
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
@@ -163,15 +344,19 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/app.input.validation.js"></script>
     <script src="~/js/pages/transportInformation.js"></script>
     <script type="text/javascript">
-        var options = {
-        baseUrl: '@Url.Action("", "TransportInformation")'
-        };
-        options.load = () => {
-        };
-
-        $.transportInformation(options);
+        (function waitForInit() {
+            if (window.jQuery && typeof $.transportInformation === "function") {
+                var options = {
+                    baseUrl: '@Url.Action("", "TransportInformation")'
+                };
+                options.load = () => { };
+                $.transportInformation(options);
+            } else {
+                setTimeout(waitForInit, 30);
+            }
+        })();
     </script>
 }
-

@@ -149,6 +149,7 @@ namespace GCTL.Controllers.CharOfAccount
 
 
         [HttpDelete]
+        [HttpPost]
         [Route("control-ledger-all-delete")]
         public async Task<ActionResult> BulkDelete([FromBody] List<decimal> ids)
         {

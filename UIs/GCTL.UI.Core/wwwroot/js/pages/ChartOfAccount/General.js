@@ -1,29 +1,42 @@
 let selectedGeneralLedger = [];
-let currenGeneraltPage = 1;
-let GeneralpageSize = 10;
-let GeneralcurrentSortColumn = 'SubSusidiaryLedgerCodeNo';
-let GeneralcurrentSortDirection = 'desc';
+let isGeneralLedgerDeletePending = false;
+let generalLedgerPendingDeleteIds = [];
 let isEditModeGeneral = false;
 
-// Selected dropdown values (for pagination reload)
+// Selected dropdown values
 let selectedGroupCodeforGL = "";
 let selectedControlCodeforGL = "";
 let selectedSubControlCodeforGL = "";
 let selectedSubsidiaryCodeforGL = "";
 
-// Helper: Bangladesh Local Date & Time Formatter
+//#region Helper: Bangladesh Time & Date Formatter
 function getBangladeshDateTime() {
-    return new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    }).replace(',', '').toUpperCase();
-}
+    let now = new Date();
+    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    let bdOffset = 6 * 60 * 60 * 1000;
+    let bdTime = new Date(utc + bdOffset);
 
-//#region Error Border Cleanup (Native / Custom Dropdown)
+    let day = bdTime.getDate().toString().padStart(2, '0');
+    let month = (bdTime.getMonth() + 1).toString().padStart(2, '0');
+    let year = bdTime.getFullYear();
+
+    let hours = bdTime.getHours();
+    let minutes = bdTime.getMinutes().toString().padStart(2, '0');
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+}
+//#endregion
+
+//#region Validation Error Border Cleanup
+$(document).on('input', '.form-control', function () {
+    if ($(this).val().trim() !== '') {
+        $(this).removeClass('border-error');
+    }
+});
+
 document.addEventListener('change', function (e) {
     if (e.target && $(e.target).hasClass('form-select')) {
         $(e.target).removeClass('border-error');
@@ -32,279 +45,286 @@ document.addEventListener('change', function (e) {
 });
 //#endregion
 
-//#region Custom Event Listener For Group Ledger Dropdown Updated
-window.addEventListener('groupLedgerUpdated', function (e) {
+//#region Custom Event Listeners
+window.addEventListener('groupLedgerUpdated', function () {
     loadGeneralLedgerData();
-    $("#Generalgrlcode").val("");
-    $("#GeneralgrlshortName").val("");
+});
 
-    $("#GeneralCRLCode").val("");
-    $("#GeneralCRLShortName").val("");
+window.addEventListener('ControlLedgerUpdated', function () {
+    const currentGroupCode = $('#GeneralgrlName').val();
+    if (currentGroupCode) {
+        loadControlLedgerDropdown(currentGroupCode);
+    }
+});
 
-    $("#GeneralSCRLCode").val("");
-    $("#GeneralSCRLShortname").val("");
+window.addEventListener('SubcontrolLedgerUpdated', function () {
+    const currentControlCode = $('#GeneralCRLName').val();
+    if (currentControlCode) {
+        loadSubControlLedgerDropdown(currentControlCode);
+    }
+});
 
-    $("#GeneralSSLCode").val("");
-    $("#GeneralSSLShortName").val("");
-    $("#GeneralLedgerCode").val("");
-
-    GeneralLedgerAll();
+window.addEventListener('SubSidiaryLedgerUpdated', function () {
+    const currentSubControlCode = $('#GeneralSCRLName').val();
+    if (currentSubControlCode) {
+        loadSubSidiaryLedgerDropdown(currentSubControlCode);
+    }
 });
 //#endregion
 
 //#region General Ledger UI: Cascading Dropdowns and Data Loading
 
 // 1. Group Ledger Dropdown
-async function loadGeneralLedgerData(selectedId = null) {
-    try {
-        const groupResponse = await $.ajax({
-            url: "/generalUi-grl-dropdown",
-            type: "GET"
-        });
+function loadGeneralLedgerData(selectedId = null) {
+    return $.ajax({
+        url: "/generalUi-grl-dropdown",
+        type: "GET",
+        success: function (groupResponse) {
+            let $dropdown = $('#GeneralgrlName');
+            $dropdown.find('option:not(:first)').remove();
 
-        let $dropdown = $('#GeneralgrlName');
-        $dropdown.find('option:not(:first)').remove();
-
-        if (groupResponse && groupResponse.data) {
-            $.each(groupResponse.data, function (index, item) {
-                $dropdown.append($('<option></option>').val(item.id).text(item.name));
-            });
-        }
-
-        if (selectedId) {
-            $dropdown.val(selectedId);
-        }
-
-        window.reinitCustomDropdownById('GeneralgrlName');
-
-        // Bind Change Event
-        $dropdown.off('change').on('change', async function () {
-            const selectedGroupCode = $(this).val();
-            selectedGroupCodeforGL = selectedGroupCode || "";
-            $(this).removeClass('border-error');
-
-            if (!selectedGroupCode) {
-                resetGroupLedgerFields();
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", "", "", "", "");
-                return;
+            if (groupResponse && groupResponse.data) {
+                $.each(groupResponse.data, function (index, item) {
+                    $dropdown.append($('<option></option>').val(item.id).text(item.name));
+                });
             }
 
-            // Load Control Ledger Dropdown
-            await loadControlLedgerDropdown(selectedGroupCode);
+            if (selectedId) {
+                $dropdown.val(selectedId);
+            }
 
-            // Fetch Group Ledger Details
-            try {
-                const groupInfo = await $.ajax({
+            window.reinitCustomDropdownById('GeneralgrlName');
+
+            // Bind Change Event
+            $dropdown.off('change').on('change', async function () {
+                const selectedGroupCode = $(this).val();
+                selectedGroupCodeforGL = selectedGroupCode || "";
+                $(this).removeClass('border-error');
+                $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
+
+                if (!selectedGroupCode) {
+                    resetGroupLedgerFields();
+                    return;
+                }
+
+                // Reset downstream fields
+                resetControlLedgerFields();
+
+                // Load Control Ledger Dropdown
+                await loadControlLedgerDropdown(selectedGroupCode);
+
+                // Fetch Group Ledger Details
+                $.ajax({
                     url: '/generalUi-grl-info',
                     type: 'GET',
-                    data: { groupcode: selectedGroupCode }
+                    data: { groupcode: selectedGroupCode },
+                    success: function (groupInfo) {
+                        $('#Generalgrlcode').val(groupInfo.controlLedgerCodeNo || '');
+                        $('#GeneralgrlshortName').val(groupInfo.shortName || '');
+                    },
+                    error: function (err) {
+                        console.error("Error fetching group info:", err);
+                    }
                 });
-
-                $('#Generalgrlcode').val(groupInfo.controlLedgerCodeNo || '');
-                $('#GeneralgrlshortName').val(groupInfo.shortName || '');
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", selectedGroupCodeforGL, "", "", "");
-            } catch (err) {
-                console.error("Error fetching group info:", err);
-            }
-        });
-
-    } catch (error) {
-        console.error("Error loading general ledger data:", error);
-    }
+            });
+        },
+        error: function (error) {
+            console.error("Error loading group ledger dropdown:", error);
+        }
+    });
 }
 
 // 2. Control Ledger Dropdown
-async function loadControlLedgerDropdown(groupCode, selectedId = null) {
-    try {
-        const controlResponse = await $.ajax({
-            url: '/generalUi-crl-dropdown',
-            type: 'GET',
-            data: { groupcode: groupCode }
-        });
+function loadControlLedgerDropdown(groupCode, selectedId = null) {
+    return $.ajax({
+        url: '/generalUi-crl-dropdown',
+        type: 'GET',
+        data: { groupcode: groupCode },
+        success: function (controlResponse) {
+            let $dropdown = $("#GeneralCRLName");
+            $dropdown.find('option:not(:first)').remove();
 
-        let $dropdown = $("#GeneralCRLName");
-        $dropdown.find('option:not(:first)').remove();
-
-        if (controlResponse && controlResponse.data) {
-            $.each(controlResponse.data, function (index, item) {
-                $dropdown.append($('<option></option>').val(item.id).text(item.name));
-            });
-        }
-
-        if (selectedId) {
-            $dropdown.val(selectedId);
-        }
-
-        window.reinitCustomDropdownById('GeneralCRLName');
-
-        $dropdown.off('change').on('change', async function () {
-            const selectedControlCode = $(this).val();
-            selectedControlCodeforGL = selectedControlCode || "";
-            $(this).removeClass('border-error');
-
-            if (!selectedControlCode) {
-                resetControlLedgerFields();
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", groupCode, "", "", "");
-                return;
+            if (controlResponse && controlResponse.data) {
+                $.each(controlResponse.data, function (index, item) {
+                    $dropdown.append($('<option></option>').val(item.id).text(item.name));
+                });
             }
 
-            // Load Sub-Control Dropdown
-            await loadSubControlLedgerDropdown(selectedControlCode);
+            if (selectedId) {
+                $dropdown.val(selectedId);
+            }
 
-            // Fetch Control Details
-            try {
-                const controlInfo = await $.ajax({
+            window.reinitCustomDropdownById('GeneralCRLName');
+
+            $dropdown.off('change').on('change', async function () {
+                const selectedControlCode = $(this).val();
+                selectedControlCodeforGL = selectedControlCode || "";
+                $(this).removeClass('border-error');
+                $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
+
+                if (!selectedControlCode) {
+                    resetControlLedgerFields();
+                    return;
+                }
+
+                // Reset downstream fields
+                resetSubControlLedgerFields();
+
+                // Load Sub-Control Dropdown
+                await loadSubControlLedgerDropdown(selectedControlCode);
+
+                // Fetch Control Details
+                $.ajax({
                     url: '/generalUi-crl-info',
                     type: 'GET',
-                    data: { contrlcode: selectedControlCode }
+                    data: { contrlcode: selectedControlCode },
+                    success: function (controlInfo) {
+                        $('#GeneralCRLCode').val(controlInfo.subControlLedgerCodeNo || '');
+                        $('#GeneralCRLShortName').val(controlInfo.shortName || '');
+                    },
+                    error: function (err) {
+                        console.error("Error loading control info:", err);
+                    }
                 });
-
-                $('#GeneralCRLCode').val(controlInfo.subControlLedgerCodeNo || '');
-                $('#GeneralCRLShortName').val(controlInfo.shortName || '');
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", groupCode, selectedControlCodeforGL, "", "");
-            } catch (err) {
-                console.error("Error loading control info:", err);
-            }
-        });
-
-    } catch (error) {
-        console.error("Error loading control ledger:", error);
-    }
+            });
+        },
+        error: function (error) {
+            console.error("Error loading control ledger:", error);
+        }
+    });
 }
 
 // 3. Sub-Control Ledger Dropdown
-async function loadSubControlLedgerDropdown(controlCode, selectedId = null) {
-    try {
-        const subControlResponse = await $.ajax({
-            url: '/generalUi-subcrl-dropdown',
-            type: 'GET',
-            data: { controlcode: controlCode }
-        });
+function loadSubControlLedgerDropdown(controlCode, selectedId = null) {
+    return $.ajax({
+        url: '/generalUi-subcrl-dropdown',
+        type: 'GET',
+        data: { controlcode: controlCode },
+        success: function (subControlResponse) {
+            let $dropdown = $("#GeneralSCRLName");
+            $dropdown.find('option:not(:first)').remove();
 
-        let $dropdown = $("#GeneralSCRLName");
-        $dropdown.find('option:not(:first)').remove();
-
-        if (subControlResponse && subControlResponse.data) {
-            $.each(subControlResponse.data, function (index, item) {
-                $dropdown.append($('<option></option>').val(item.id).text(item.name));
-            });
-        }
-
-        if (selectedId) {
-            $dropdown.val(selectedId);
-        }
-
-        window.reinitCustomDropdownById('GeneralSCRLName');
-
-        $dropdown.off('change').on('change', async function () {
-            const selectedSubControlCode = $(this).val();
-            selectedSubControlCodeforGL = selectedSubControlCode || "";
-            $(this).removeClass('border-error');
-
-            if (!selectedSubControlCode) {
-                resetSubControlLedgerFields();
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", "", controlCode, "", "");
-                return;
+            if (subControlResponse && subControlResponse.data) {
+                $.each(subControlResponse.data, function (index, item) {
+                    $dropdown.append($('<option></option>').val(item.id).text(item.name));
+                });
             }
 
-            // Load Sub-Sidiary Dropdown
-            await loadSubSidiaryLedgerDropdown(selectedSubControlCode);
+            if (selectedId) {
+                $dropdown.val(selectedId);
+            }
 
-            // Fetch Sub-Control Details
-            try {
-                const subControlInfo = await $.ajax({
+            window.reinitCustomDropdownById('GeneralSCRLName');
+
+            $dropdown.off('change').on('change', async function () {
+                const selectedSubControlCode = $(this).val();
+                selectedSubControlCodeforGL = selectedSubControlCode || "";
+                $(this).removeClass('border-error');
+                $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
+
+                if (!selectedSubControlCode) {
+                    resetSubControlLedgerFields();
+                    return;
+                }
+
+                // Reset downstream fields
+                resetSubSidiaryLedgerFields();
+
+                // Load Sub-Sidiary Dropdown
+                await loadSubSidiaryLedgerDropdown(selectedSubControlCode);
+
+                // Fetch Sub-Control Details
+                $.ajax({
                     url: '/generalUi-subcrl-info',
                     type: 'GET',
-                    data: { subcontrlcode: selectedSubControlCode }
+                    data: { subcontrlcode: selectedSubControlCode },
+                    success: function (subControlInfo) {
+                        $('#GeneralSCRLCode').val(subControlInfo.generalLedgerCodeNo || '');
+                        $('#GeneralSCRLShortname').val(subControlInfo.shortName || '');
+                    },
+                    error: function (err) {
+                        console.error("Error loading sub-control info:", err);
+                    }
                 });
-
-                $('#GeneralSCRLCode').val(subControlInfo.generalLedgerCodeNo || '');
-                $('#GeneralSCRLShortname').val(subControlInfo.shortName || '');
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", "", controlCode, selectedSubControlCodeforGL, "");
-            } catch (err) {
-                console.error("Error loading sub-control info:", err);
-            }
-        });
-
-    } catch (error) {
-        console.error("Error loading sub-control ledger:", error);
-    }
+            });
+        },
+        error: function (error) {
+            console.error("Error loading sub-control ledger:", error);
+        }
+    });
 }
 
 // 4. Sub-Sidiary Ledger Dropdown
-async function loadSubSidiaryLedgerDropdown(subControlCode, selectedId = null) {
-    try {
-        const sslResponse = await $.ajax({
-            url: '/generalUi-ssl-dropdown',
-            type: 'GET',
-            data: { subcontrolcode: subControlCode }
-        });
+function loadSubSidiaryLedgerDropdown(subControlCode, selectedId = null) {
+    return $.ajax({
+        url: '/generalUi-ssl-dropdown',
+        type: 'GET',
+        data: { subcontrolcode: subControlCode },
+        success: function (sslResponse) {
+            let $dropdown = $("#GeneralSSLName");
+            $dropdown.find('option:not(:first)').remove();
 
-        let $dropdown = $("#GeneralSSLName");
-        $dropdown.find('option:not(:first)').remove();
-
-        if (sslResponse && sslResponse.data) {
-            $.each(sslResponse.data, function (index, item) {
-                $dropdown.append($('<option></option>').val(item.id).text(item.name));
-            });
-        }
-
-        if (selectedId) {
-            $dropdown.val(selectedId);
-        }
-
-        window.reinitCustomDropdownById('GeneralSSLName');
-
-        $dropdown.off('change').on('change', async function () {
-            const selectedSSLCode = $(this).val();
-            selectedSubsidiaryCodeforGL = selectedSSLCode || "";
-            $(this).removeClass('border-error');
-
-            if (!selectedSSLCode) {
-                resetSubSidiaryLedgerFields();
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", "", "", "", "");
-                return;
+            if (sslResponse && sslResponse.data) {
+                $.each(sslResponse.data, function (index, item) {
+                    $dropdown.append($('<option></option>').val(item.id).text(item.name));
+                });
             }
 
-            // Fetch Sub-Sidiary Info
-            try {
-                const sslInfo = await $.ajax({
-                    url: '/generalUi-ssl-info',
-                    type: 'GET',
-                    data: { subsidiarycode: selectedSSLCode }
-                });
+            if (selectedId) {
+                $dropdown.val(selectedId);
+            }
 
-                $('#GeneralSSLCode').val(sslInfo.susidiaryLedgerCodeNo || '');
-                $('#GeneralSSLShortName').val(sslInfo.shortName || '');
+            window.reinitCustomDropdownById('GeneralSSLName');
 
-                if (!isEditModeGeneral) {
-                    $.ajax({
-                        url: '/next-general-ledger-code',
-                        type: 'GET',
-                        data: { subsidiaryLedgercode: selectedSSLCode },
-                        success: function (nextCode) {
-                            $('#GeneralLedgerCode').val(nextCode);
-                        },
-                        error: function (xhr, status, error) {
-                            console.error("Error fetching next General Ledger code:", error);
-                        }
-                    });
+            $dropdown.off('change').on('change', function () {
+                const selectedSSLCode = $(this).val();
+                selectedSubsidiaryCodeforGL = selectedSSLCode || "";
+                $(this).removeClass('border-error');
+                $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
+
+                if (!selectedSSLCode) {
+                    resetSubSidiaryLedgerFields();
+                    return;
                 }
 
-                GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", "", "", "", selectedSSLCode);
-            } catch (err) {
-                console.error("Error loading subsidiary info:", err);
-            }
-        });
+                // Fetch Sub-Sidiary Info
+                $.ajax({
+                    url: '/generalUi-ssl-info',
+                    type: 'GET',
+                    data: { subsidiarycode: selectedSSLCode },
+                    success: function (sslInfo) {
+                        $('#GeneralSSLCode').val(sslInfo.susidiaryLedgerCodeNo || '');
+                        $('#GeneralSSLShortName').val(sslInfo.shortName || '');
 
-    } catch (error) {
-        console.error("Error loading subsidiary ledger:", error);
-    }
+                        if (!isEditModeGeneral) {
+                            $.ajax({
+                                url: '/next-general-ledger-code',
+                                type: 'GET',
+                                data: { subsidiaryLedgercode: selectedSSLCode },
+                                success: function (nextCode) {
+                                    $('#GeneralLedgerCode').val(nextCode);
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error("Error fetching next General Ledger code:", error);
+                                }
+                            });
+                        }
+                    },
+                    error: function (err) {
+                        console.error("Error loading subsidiary info:", err);
+                    }
+                });
+            });
+        },
+        error: function (error) {
+            console.error("Error loading subsidiary ledger:", error);
+        }
+    });
 }
 
 // 5. Cash Flow Dropdown
 function CashFlowDropdown(selectedId = null) {
-    $.ajax({
+    return $.ajax({
         url: "/cash-flow-dropdown",
         type: "GET",
         success: function (cashdata) {
@@ -324,72 +344,71 @@ function CashFlowDropdown(selectedId = null) {
             window.reinitCustomDropdownById('CashFlowTypeID');
         },
         error: function () {
-            console.log("Failed Cash Flow Dropdown");
+            console.error("Failed Cash Flow Dropdown");
         }
     });
 }
-
 //#endregion
 
 //#region Reset Cascading Helpers
-
 function resetGroupLedgerFields() {
-    $('#Generalgrlcode').val('');
-    $('#GeneralgrlshortName').val('');
-
-    window.clearCustomDropdownById('GeneralCRLName');
-    window.clearCustomDropdownById('GeneralSCRLName');
-    window.clearCustomDropdownById('GeneralSSLName');
-
-    $('#GeneralCRLCode, #GeneralCRLShortName').val('');
-    $('#GeneralSCRLCode, #GeneralSCRLShortname').val('');
-    $('#GeneralSSLCode, #GeneralSSLShortName').val('');
-    $('#GeneralLedgerCode').val('');
+    $('#Generalgrlcode, #GeneralgrlshortName').val('');
+    resetControlLedgerFields();
 }
 
 function resetControlLedgerFields() {
     $('#GeneralCRLCode, #GeneralCRLShortName').val('');
-    window.clearCustomDropdownById('GeneralSCRLName');
-    window.clearCustomDropdownById('GeneralSSLName');
-
-    $('#GeneralSCRLCode, #GeneralSCRLShortname').val('');
-    $('#GeneralSSLCode, #GeneralSSLShortName').val('');
-    $('#GeneralLedgerCode').val('');
+    let $ctrl = $('#GeneralCRLName');
+    $ctrl.find('option:not(:first)').remove();
+    $ctrl.val('');
+    window.reinitCustomDropdownById('GeneralCRLName');
+    resetSubControlLedgerFields();
 }
 
 function resetSubControlLedgerFields() {
     $('#GeneralSCRLCode, #GeneralSCRLShortname').val('');
-    window.clearCustomDropdownById('GeneralSSLName');
-
-    $('#GeneralSSLCode, #GeneralSSLShortName').val('');
-    $('#GeneralLedgerCode').val('');
+    let $subctrl = $('#GeneralSCRLName');
+    $subctrl.find('option:not(:first)').remove();
+    $subctrl.val('');
+    window.reinitCustomDropdownById('GeneralSCRLName');
+    resetSubSidiaryLedgerFields();
 }
 
 function resetSubSidiaryLedgerFields() {
     $('#GeneralSSLCode, #GeneralSSLShortName').val('');
+    let $ssl = $('#GeneralSSLName');
+    $ssl.find('option:not(:first)').remove();
+    $ssl.val('');
+    window.reinitCustomDropdownById('GeneralSSLName');
     $('#GeneralLedgerCode').val('');
 }
+//#endregion
 
+//#region Table Reload Helper
+function reloadGeneralLedgerTable() {
+    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#generalLedgerTable')) {
+        $('#generalLedgerTable').DataTable().ajax.reload(null, false);
+    }
+}
 //#endregion
 
 //#region Save Or Update General Ledger
-
 function GeneralLedgerSaveOrUpdate() {
     let autoID = $('#GeneralAutoID').val();
-    let isActive = $("#IsActive").prop('checked') ? 'Y' : 'N';
+    let isActive = $("#IsActive").is(':checked') ? 'Y' : 'N';
 
     let GeneralLedgerData = {
-        autoId: autoID ? parseInt(autoID) : 0,
-        SubsidiaryLedgerCodeNo: $("#GeneralSSLCode").val(),
-        SubSusidiaryLedgerCodeNo: $("#GeneralLedgerCode").val(),
-        SubSubsidiaryLedgerName: $("#GeneralLName").val(),
-        ShortName: $("#GeneralShortName").val(),
-        CashFlowTypeID: $("#CashFlowTypeID").val(),
+        autoId: autoID ? parseFloat(autoID) : 0,
+        SubsidiaryLedgerCodeNo: ($("#GeneralSSLCode").val() || "").trim(),
+        SubSusidiaryLedgerCodeNo: ($("#GeneralLedgerCode").val() || "").trim(),
+        SubSubsidiaryLedgerName: ($("#GeneralLName").val() || "").trim(),
+        ShortName: ($("#GeneralShortName").val() || "").trim(),
+        CashFlowTypeID: $("#CashFlowTypeID").val() || null,
         IsActive: isActive,
-        GeneralgrlName: $("#GeneralgrlName").val(),
-        GeneralCRLName: $("#GeneralCRLName").val(),
-        GeneralSCRLName: $("#GeneralSCRLName").val(),
-        GeneralSSLName: $("#GeneralSSLName").val()
+        GeneralgrlName: $("#GeneralgrlName").val() || "",
+        GeneralCRLName: $("#GeneralCRLName").val() || "",
+        GeneralSCRLName: $("#GeneralSCRLName").val() || "",
+        GeneralSSLName: $("#GeneralSSLName").val() || ""
     };
 
     // Validations
@@ -463,12 +482,13 @@ function GeneralLedgerSaveOrUpdate() {
                         toastr.success(successMessage);
                         GeneralLedgerFormClear();
                         selectedGeneralLedger = [];
+                        reloadGeneralLedgerTable();
                     } else {
                         toastr.error(response.message || "Operation Failed!");
                     }
                 },
                 error: function (xhr, status, error) {
-                    toastr.error("Error Saving General Ledger.");
+                    toastr.error(xhr.responseJSON?.message || "Error Saving General Ledger.");
                     console.error('Error Saving General Ledger :', error);
                 }
             });
@@ -479,118 +499,23 @@ function GeneralLedgerSaveOrUpdate() {
         }
     });
 }
-
-//#endregion
-
-//#region Populate Data For Edit
-
-$(document).on('click', '.js-generalledger-edit, .General-ledger', function (e) {
-    e.preventDefault();
-    const id = parseInt($(this).data('id') || $(this).data('autoid'));
-    if (!id) return;
-
-    isEditModeGeneral = true;
-    selectedGeneralLedger = [id];
-
-    $.ajax({
-        url: `/genral-ledger/details/${id}`,
-        type: 'GET',
-        success: async function (data) {
-            $('#GeneralAutoID').val(id);
-
-            // Group Ledger
-            const groupCode = data.generalgrlcode || '';
-            $('#Generalgrlcode').val(groupCode);
-            $('#GeneralgrlshortName').val(data.generalgrlshortName || '');
-            $('#GeneralgrlName').val(groupCode);
-            window.reinitCustomDropdownById('GeneralgrlName');
-
-            // Control Ledger
-            const controlCode = data.generalCRLCode || '';
-            if (groupCode) {
-                await loadControlLedgerDropdown(groupCode, controlCode);
-            }
-            $('#GeneralCRLCode').val(controlCode);
-            $('#GeneralCRLShortName').val(data.generalCRLShortName || '');
-
-            // Sub-Control Ledger
-            const subControlCode = data.generalSCRLCode || '';
-            if (controlCode) {
-                await loadSubControlLedgerDropdown(controlCode, subControlCode);
-            }
-            $('#GeneralSCRLCode').val(subControlCode);
-            $('#GeneralSCRLShortname').val(data.generalSCRLShortname || '');
-
-            // Sub-Sidiary Ledger
-            const subSididaryLedger = data.subsidiaryLedgerCodeNo || '';
-            if (subControlCode) {
-                await loadSubSidiaryLedgerDropdown(subControlCode, subSididaryLedger);
-            }
-            $('#GeneralSSLCode').val(subSididaryLedger);
-            $('#GeneralSSLShortName').val(data.generalSSLShortName || '');
-
-            // Input Fields
-            $('#GeneralLedgerCode').val(data.subSusidiaryLedgerCodeNo || '');
-            $('#GeneralLName').val(data.subSubsidiaryLedgerName || '');
-            $('#GeneralShortName').val(data.shortName || '');
-
-            // Cash Flow
-            const cashFlowTypeID = data.cashFlowTypeID || '';
-            $('#CashFlowTypeID').val(cashFlowTypeID);
-            window.reinitCustomDropdownById('CashFlowTypeID');
-
-            $('#IsActive').prop('checked', data.isActive === 'Y');
-
-            // Dates
-            if (data.lDate) {
-                let entryDate = new Date(data.lDate).toLocaleString('en-GB', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: 'numeric', minute: '2-digit', hour12: true
-                }).replace(',', '');
-                $('#GeneralldisplayLDate').text(entryDate.toUpperCase());
-            } else {
-                $('#GeneralldisplayLDate').text('');
-            }
-
-            if (data.modifyDate) {
-                let updateDate = new Date(data.modifyDate).toLocaleString('en-GB', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: 'numeric', minute: '2-digit', hour12: true
-                }).replace(',', '');
-                $('#GeneraldisplayModifyDate').text(updateDate.toUpperCase());
-            } else {
-                $('#GeneraldisplayModifyDate').text('');
-            }
-
-            $('.General-checkbox').prop('checked', false);
-            $(`.General-checkbox[data-autoid="${id}"]`).prop('checked', true);
-            $("#GeneralselectAll").prop('checked', false);
-            GeneralupdateCheckboxState();
-        },
-        error: function (xhr, status, error) {
-            toastr.error("Failed To Fetch General Ledger Details.");
-            console.error("Error Fetching Details:", error);
-        }
-    });
-});
-
 //#endregion
 
 //#region Clear Form
-
 function GeneralLedgerFormClear() {
     isEditModeGeneral = false;
 
     $("#GeneralAutoID").val("");
+
+    window.clearAllCustomDropdowns('#generalLedgerForm');
+
     $("#Generalgrlcode, #GeneralgrlshortName").val("");
     $("#GeneralCRLCode, #GeneralCRLShortName").val("");
     $("#GeneralSCRLCode, #GeneralSCRLShortname").val("");
     $("#GeneralSSLCode, #GeneralSSLShortName").val("");
-    $("#GeneralLName, #GeneralLedgerCode, #GeneralShortName").val("");
+    $("#GeneralLedgerCode, #GeneralLName, #GeneralShortName").val("");
+    $("#CashFlowTypeID").val("");
     $("#IsActive").prop('checked', false);
-
-    // Clear all custom dropdowns
-    window.clearAllCustomDropdowns('#generalLedgerForm');
 
     $(".form-control, .form-select").removeClass("is-invalid is-valid border-error");
     $(".custom-dd-wrapper").removeClass("border-error");
@@ -599,300 +524,360 @@ function GeneralLedgerFormClear() {
     $('#GeneraldisplayModifyDate').text('');
     $('#GeneralldisplayLDate').text(getBangladeshDateTime());
 
-    $(".General-checkbox").prop("checked", false);
-    $("#GeneralselectAll").prop("checked", false);
-    $('#GeneralsearchInput').val('');
+    // Reset button text
+    $('.js-GeneralLedger-save span, #btnSave span').text('Save');
 
+    // Reset selections
     selectedGeneralLedger = [];
-    currenGeneraltPage = 1;
+    $('#generalLedgerTable tbody input[type="checkbox"]').prop('checked', false);
+    $('#generalLedgerTable tbody tr').removeClass('selected-row');
+    $('#generalledger-check-all').prop('checked', false);
+
+    selectedGroupCodeforGL = "";
+    selectedControlCodeforGL = "";
+    selectedSubControlCodeforGL = "";
+    selectedSubsidiaryCodeforGL = "";
+
+    // Clear dependent dropdown options
+    let $ctrlSelect = $('#GeneralCRLName');
+    $ctrlSelect.find('option:not(:first)').remove();
+    $ctrlSelect.val('');
+    window.reinitCustomDropdownById('GeneralCRLName');
+
+    let $subctrlSelect = $('#GeneralSCRLName');
+    $subctrlSelect.find('option:not(:first)').remove();
+    $subctrlSelect.val('');
+    window.reinitCustomDropdownById('GeneralSCRLName');
+
+    let $sslSelect = $('#GeneralSSLName');
+    $sslSelect.find('option:not(:first)').remove();
+    $sslSelect.val('');
+    window.reinitCustomDropdownById('GeneralSSLName');
 
     loadGeneralLedgerData();
     CashFlowDropdown();
-    GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", "", "", "", "");
 }
-
 //#endregion
 
-//#region Load All General Ledger Data
+//#region Populate Data For Edit
+$(document).on('click', '.js-generalledger-edit, .general-ledger', function (e) {
+    e.preventDefault();
+    const rawId = $(this).data('id') || $(this).data('autoid');
+    if (!rawId) return;
 
-function GeneralLedgerAll(page = 1, pageSize = GeneralpageSize, sortColumn = GeneralcurrentSortColumn, sortDirection = GeneralcurrentSortDirection, searchTerm = "", groupLedgerCode = "", controlLedgerCode = "", subcontrolLedgerCode = "", subSididaryLedger = "") {
-    if ($.fn.DataTable && $.fn.DataTable.isDataTable('#generalLedgerTable')) {
-        $('#generalLedgerTable').DataTable().ajax.reload(null, false);
-        return;
-    }
+    const id = parseFloat(rawId);
+    isEditModeGeneral = true;
+    selectedGeneralLedger = [id];
+
     $.ajax({
-        url: '/general-ledger-list',
+        url: `/general-ledger/details/${id}`,
         type: 'GET',
-        data: {
-            pageNumber: page,
-            pageSize: pageSize,
-            searchTerm: searchTerm,
-            sortColumn: sortColumn,
-            sortOrder: sortDirection,
-            groupLedgerCode: groupLedgerCode,
-            controlLedgerCode: controlLedgerCode,
-            subcontrolLedgerCode: subcontrolLedgerCode,
-            subSididaryLedger: subSididaryLedger
-        },
-        success: function (response) {
-            let rows = '';
-            if (response.data && response.data.length > 0) {
-                response.data.forEach(function (item) {
-                    rows += `<tr>
-                        <td class="text-center">
-                            <input type="checkbox" class="form-check-input form-check-input-sm General-checkbox"
-                                data-autoid="${item.autoId}" style="width:12px; height:12px;">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none General-ledger" data-autoid="${item.autoId}">
-                                ${item.subSusidiaryLedgerCodeNo}
-                            </button>
-                        </td>
-                        <td>${item.subSubsidiaryLedgerName || ''}</td>
-                        <td>${item.cashFlowTypeName || ''}</td>
-                        <td style="text-align:center; width:50px;">${item.isActive === 'Y' ? 'Yes' : 'No'}</td>
-                    </tr>`;
+        success: async function (response) {
+            if (response) {
+                $('#GeneralAutoID').val(response.autoId || id);
+
+                // Group Ledger
+                const groupCode = response.generalgrlcode || '';
+                $('#Generalgrlcode').val(groupCode);
+                $('#GeneralgrlshortName').val(response.generalgrlshortName || '');
+                $('#GeneralgrlName').val(groupCode);
+                window.reinitCustomDropdownById('GeneralgrlName');
+
+                // Control Ledger
+                const controlCode = response.generalCRLCode || '';
+                if (groupCode) {
+                    await loadControlLedgerDropdown(groupCode, controlCode);
+                }
+                $('#GeneralCRLCode').val(controlCode);
+                $('#GeneralCRLShortName').val(response.generalCRLShortName || '');
+
+                // Sub-Control Ledger
+                const subControlCode = response.generalSCRLCode || '';
+                if (controlCode) {
+                    await loadSubControlLedgerDropdown(controlCode, subControlCode);
+                }
+                $('#GeneralSCRLCode').val(subControlCode);
+                $('#GeneralSCRLShortname').val(response.generalSCRLShortname || '');
+
+                // Sub-Sidiary Ledger
+                const subSididaryLedger = response.subsidiaryLedgerCodeNo || '';
+                if (subControlCode) {
+                    await loadSubSidiaryLedgerDropdown(subControlCode, subSididaryLedger);
+                }
+                $('#GeneralSSLCode').val(subSididaryLedger);
+                $('#GeneralSSLShortName').val(response.generalSSLShortName || '');
+
+                // General Ledger details
+                $('#GeneralLedgerCode').val(response.subSusidiaryLedgerCodeNo || '');
+                $('#GeneralLName').val(response.subSubsidiaryLedgerName || '');
+                $('#GeneralShortName').val(response.shortName || '');
+
+                // Cash Flow
+                const cashFlowTypeID = response.cashFlowTypeID || '';
+                $('#CashFlowTypeID').val(cashFlowTypeID);
+                window.reinitCustomDropdownById('CashFlowTypeID');
+
+                // IsActive
+                $('#IsActive').prop('checked', response.isActive === 'Y' || response.isActive === 'Yes');
+
+                // Dates
+                if (response.lDate) {
+                    let entryDate = new Date(response.lDate).toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                    }).replace(',', '');
+                    $('#GeneralldisplayLDate').text(entryDate.toUpperCase());
+                } else {
+                    $('#GeneralldisplayLDate').text('');
+                }
+
+                if (response.modifyDate) {
+                    let updateDate = new Date(response.modifyDate).toLocaleString('en-GB', {
+                        day: '2-digit', month: '2-digit', year: 'numeric',
+                        hour: 'numeric', minute: '2-digit', hour12: true
+                    }).replace(',', '');
+                    $('#GeneraldisplayModifyDate').text(updateDate.toUpperCase());
+                } else {
+                    $('#GeneraldisplayModifyDate').text('');
+                }
+
+                // Switch save button to Update
+                $('.js-GeneralLedger-save span, #btnSave span').text('Update');
+
+                // Sync checkboxes in grid
+                $('#generalLedgerTable tbody input[type="checkbox"]').each(function () {
+                    const rowVal = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+                    if (rowVal === id) {
+                        $(this).prop('checked', true);
+                        $(this).closest('tr').addClass('selected-row');
+                    } else {
+                        $(this).prop('checked', false);
+                        $(this).closest('tr').removeClass('selected-row');
+                    }
                 });
+                updateGeneralLedgerCheckAllState();
+
+                // Focus and scroll
+                $('#GeneralLName').focus();
+                if ($('#generalLedgerForm').length) {
+                    $('html, body').animate({ scrollTop: $('#generalLedgerForm').offset().top - 80 }, 300);
+                }
             } else {
-                rows = `<tr><td colspan="5" class="text-center text-muted">No records found</td></tr>`;
+                toastr.error("General Ledger not found!");
             }
-            $('#GeneraltblBody').html(rows);
-
-            if (response.paginationInfo) {
-                let currPage = response.paginationInfo.currentPage;
-                let totalPages = response.paginationInfo.totalPages;
-                let totalRecords = response.totalCount || 0;
-                let startIndex = response.paginationInfo.startItem || 0;
-                let endIndex = response.paginationInfo.endItem || 0;
-
-                $('#GeneralpaginationSummary').text(`Showing ${startIndex} to ${endIndex} of ${totalRecords} entries`);
-                $('#GeneralpaginationInfo').text(`Page ${currPage} of ${Math.max(1, totalPages)}`);
-                $('#GeneraltotalRecordsInfo').text(`Total Records: ${totalRecords}`);
-
-                currenGeneraltPage = currPage;
-                GeneralgeneratePageButtons(currenGeneraltPage, totalPages);
-            }
-
-            GeneralupdateCheckboxState();
-            GeneralupdateSortIndicators();
         },
         error: function (xhr, status, error) {
-            console.error("Error Loading Data: ", error);
+            toastr.error("Error fetching General Ledger details!");
+            console.error("Error fetching details:", error);
         }
     });
+});
+//#endregion
+
+//#region Checkbox Selection Handlers
+function updateGeneralLedgerCheckAllState() {
+    const $visibleCheckboxes = $('#generalLedgerTable tbody input[type="checkbox"]');
+    if ($visibleCheckboxes.length === 0) {
+        $('#generalledger-check-all').prop('checked', false);
+        return;
+    }
+    const allChecked = $visibleCheckboxes.length === $visibleCheckboxes.filter(':checked').length;
+    $('#generalledger-check-all').prop('checked', allChecked);
 }
 
+function getSelectedGeneralLedgerIds() {
+    let ids = [...selectedGeneralLedger];
+
+    $('#generalLedgerTable tbody input[type="checkbox"]:checked').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+        if (!isNaN(val) && !ids.includes(val)) {
+            ids.push(val);
+        }
+    });
+
+    // Fallback: If no checkbox selected, but an item is loaded in the form for edit
+    if (ids.length === 0) {
+        const currentAutoId = parseFloat($('#GeneralAutoID').val());
+        if (!isNaN(currentAutoId) && currentAutoId > 0) {
+            ids.push(currentAutoId);
+        }
+    }
+
+    return ids;
+}
+
+// Individual row checkbox
+$(document).on('change', '#generalLedgerTable tbody input[type="checkbox"]', function () {
+    const val = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+    if (isNaN(val)) return;
+
+    if ($(this).prop('checked')) {
+        if (!selectedGeneralLedger.includes(val)) {
+            selectedGeneralLedger.push(val);
+        }
+        $(this).closest('tr').addClass('selected-row');
+    } else {
+        selectedGeneralLedger = selectedGeneralLedger.filter(x => x !== val);
+        $(this).closest('tr').removeClass('selected-row');
+    }
+
+    updateGeneralLedgerCheckAllState();
+});
+
+// Master Checkbox
+$(document).on('change', '#generalledger-check-all', function () {
+    const isChecked = $(this).prop('checked');
+    $('#generalLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+        if (isNaN(val)) return;
+
+        if (isChecked) {
+            if (!selectedGeneralLedger.includes(val)) {
+                selectedGeneralLedger.push(val);
+            }
+            $(this).prop('checked', true).closest('tr').addClass('selected-row');
+        } else {
+            selectedGeneralLedger = selectedGeneralLedger.filter(x => x !== val);
+            $(this).prop('checked', false).closest('tr').removeClass('selected-row');
+        }
+    });
+});
+
+// DataTables Draw Event
+$(document).on('draw.dt', '#generalLedgerTable', function () {
+    $('#generalLedgerTable tbody input[type="checkbox"]').each(function () {
+        const val = parseFloat($(this).val() || $(this).data('id') || $(this).data('autoid'));
+        if (selectedGeneralLedger.includes(val)) {
+            $(this).prop('checked', true);
+            $(this).closest('tr').addClass('selected-row');
+        }
+    });
+    updateGeneralLedgerCheckAllState();
+});
 //#endregion
 
 //#region Delete General Ledger
-
-function GeneralLedgerDelete() {
-    const ids = selectedGeneralLedger.map(x => parseInt(x)).filter(x => !isNaN(x));
-
-    if (!ids.length) {
+function GeneralLedgerDelete(ids) {
+    if (!ids || !ids.length) {
         toastr.warning("No Record Selected For Deletion.");
         return;
     }
 
     $.ajax({
         url: '/general-ledger-all-delete',
-        type: 'DELETE',
+        type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(ids),
         success: function (response) {
+            if (response.isSuccess === false || response.success === false) {
+                toastr.error(response.message || "Failed to delete.");
+                return;
+            }
+
             toastr.success(response.message || "Data Deleted Successfully.");
+
             GeneralLedgerFormClear();
-            GeneralLedgerAll(currenGeneraltPage, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection);
             selectedGeneralLedger = [];
-            $("#GeneralselectAll").prop("checked", false);
+            reloadGeneralLedgerTable();
         },
         error: function (xhr, status, error) {
-            toastr.error("Error Occurred During Deletion.");
+            toastr.error(xhr.responseJSON?.message || "Error Occurred During Deletion.");
             console.error("Delete Error:", error);
         }
     });
 }
 
-//#endregion
+// Toolbar Delete Button
+$(document).on("click", "#GeneraldeleteBtn, .js-GeneralLedger-delete-confirm", function (e) {
+    const isGeneralBtn = $(this).hasClass('js-GeneralLedger-delete-confirm') ||
+                         $(this).closest('#general-tab-pane, #generalLedgerForm').length > 0;
+    if (!isGeneralBtn) return;
 
-//#region Pagination & Checkbox Helpers
+    e.preventDefault();
+    e.stopPropagation();
 
-function GeneralupdateSortIndicators() {
-    $('.Generalsortable').removeClass('sort-asc sort-desc');
-    $('.Generalsortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+    const ids = getSelectedGeneralLedgerIds();
+    if (!ids.length) {
+        toastr.warning("Please select at least one record to delete.");
+        return;
+    }
 
-    const header = $(`.Generalsortable[data-column="${GeneralcurrentSortColumn}"]`);
-    header.addClass(GeneralcurrentSortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+    generalLedgerPendingDeleteIds = ids;
+    isGeneralLedgerDeletePending = true;
 
-    const icon = header.find('.sort-icon');
-    icon.removeClass('fa-sort fa-sort-up fa-sort-down');
-    icon.addClass(GeneralcurrentSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-}
-
-function GeneralgeneratePageButtons(currentPage, totalPages) {
-    const navigationDiv = $('#GeneralpageNavigation');
-    navigationDiv.empty();
-
-    function createButton(page) {
-        const btn = $('<button type="button">')
-            .addClass('btn btn-sm mx-1')
-            .text(page)
-            .click(() => GeneralLedgerAll(page, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, $('#GeneralsearchInput').val().trim()));
-
-        if (page === currentPage) {
-            btn.addClass('btn-primary');
-        } else {
-            btn.addClass('btn-outline-primary');
+    if ($('#gcDeleteModal').length) {
+        const itemText = ids.length > 1 ? `these ${ids.length} items` : 'this item';
+        $('#gcDeleteModal .title').text(`Are you sure you want to delete ${itemText}? This process cannot be undone.`);
+        $('#gcDeleteModal').modal('show');
+    } else {
+        if (confirm(`Are you sure you want to delete ${ids.length > 1 ? 'these ' + ids.length + ' items' : 'this item'}?`)) {
+            GeneralLedgerDelete(ids);
         }
-        return btn;
     }
-
-    if (totalPages <= 1) return;
-
-    navigationDiv.append(createButton(1));
-
-    if (currentPage > 2) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    if (currentPage > 1 && currentPage < totalPages) {
-        navigationDiv.append(createButton(currentPage));
-    }
-
-    if (currentPage < totalPages - 1) {
-        navigationDiv.append($('<span>').text('...').css('padding', '0 5px'));
-    }
-
-    navigationDiv.append(createButton(totalPages));
-}
-
-function GeneralupdateCheckboxState() {
-    $('.General-checkbox').each(function () {
-        const ID = parseInt($(this).data('autoid'));
-        $(this).prop('checked', selectedGeneralLedger.includes(ID));
-    });
-    const allChecked = $('.General-checkbox:visible').length > 0 &&
-        $('.General-checkbox:visible:not(:checked)').length === 0;
-    $('#GeneralselectAll').prop('checked', allChecked);
-}
-
-function Generaldebounce(func, delay) {
-    let timer;
-    return function () {
-        const context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-function GeneralbindCheckboxHandlers() {
-    $(document).off('click', '.General-checkbox').on('click', '.General-checkbox', function () {
-        const id = parseInt($(this).data('autoid'));
-        const isChecked = $(this).prop('checked');
-
-        if (isChecked) {
-            if (!selectedGeneralLedger.includes(id)) selectedGeneralLedger.push(id);
-        } else {
-            const index = selectedGeneralLedger.indexOf(id);
-            if (index !== -1) selectedGeneralLedger.splice(index, 1);
-        }
-
-        const allChecked = $('.General-checkbox:visible').length > 0 &&
-            $('.General-checkbox:visible:not(:checked)').length === 0;
-        $('#GeneralselectAll').prop('checked', allChecked);
-    });
-}
-
-$(document).on('click', '#GeneralselectAll', function () {
-    const isChecked = $(this).prop('checked');
-    $('.General-checkbox:visible').prop('checked', isChecked);
-
-    $('.General-checkbox:visible').each(function () {
-        const id = parseInt($(this).data('autoid'));
-        const index = selectedGeneralLedger.indexOf(id);
-        if (isChecked && index === -1) {
-            selectedGeneralLedger.push(id);
-        } else if (!isChecked && index !== -1) {
-            selectedGeneralLedger.splice(index, 1);
-        }
-    });
 });
 
+// Confirmation Button inside #gcDeleteModal
+$(document).on("click", "#gcDeleteModal .js-gc-delete-confirm, #gcDeleteModal .js-delete", function (e) {
+    if (isGeneralLedgerDeletePending && generalLedgerPendingDeleteIds.length > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const idsToDelete = [...generalLedgerPendingDeleteIds];
+        isGeneralLedgerDeletePending = false;
+        generalLedgerPendingDeleteIds = [];
+        $('#gcDeleteModal').modal('hide');
+        GeneralLedgerDelete(idsToDelete);
+    }
+});
+
+$(document).on('hidden.bs.modal', '#gcDeleteModal', function () {
+    isGeneralLedgerDeletePending = false;
+    generalLedgerPendingDeleteIds = [];
+});
 //#endregion
 
 //#region Document Ready
-
 $(document).ready(function () {
     loadGeneralLedgerData();
     CashFlowDropdown();
-    GeneralLedgerAll();
-    GeneralbindCheckboxHandlers();
-
     $('#GeneralldisplayLDate').text(getBangladeshDateTime());
 
+    // Save Button Handlers
     $(document).on("submit", "#generalLedgerForm", function (e) {
         e.preventDefault();
         GeneralLedgerSaveOrUpdate();
     });
+
     $(document).on("click", ".js-GeneralLedger-save", function (e) {
         e.preventDefault();
         GeneralLedgerSaveOrUpdate();
     });
 
-    $(document).on("click", "#GeneraldeleteBtn, .js-GeneralLedger-delete-confirm", function (e) {
+    // Clear Button Handler
+    $(document).on("click", "#btnClear, .GeneralresetBtn, .js-GeneralLedger-clear", function (e) {
+        const isGeneralReset = $(this).hasClass('js-GeneralLedger-clear') ||
+                               $(this).closest('#general-tab-pane, #generalLedgerForm').length > 0;
+        if (!isGeneralReset) return;
         e.preventDefault();
-        GeneralLedgerDelete();
-    });
-
-    $(document).on("click", ".GeneralresetBtn, .js-GeneralLedger-clear", function () {
         GeneralLedgerFormClear();
     });
 
-    $(document).on('input', '.GeneralsearchInput', Generaldebounce(function () {
-        const searchValue = $('.GeneralsearchInput').val().trim();
-        GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, searchValue);
-    }, 500));
-
-    $(document).on('click', '#GeneralfirstPage', function () {
-        currenGeneraltPage = 1;
-        GeneralLedgerAll(currenGeneraltPage, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", selectedGroupCodeforGL, selectedControlCodeforGL, selectedSubControlCodeforGL, selectedSubsidiaryCodeforGL);
-    });
-
-    $(document).on('click', '#GeneralnextPage', function () {
-        currenGeneraltPage++;
-        GeneralLedgerAll(currenGeneraltPage, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", selectedGroupCodeforGL, selectedControlCodeforGL, selectedSubControlCodeforGL, selectedSubsidiaryCodeforGL);
-    });
-
-    $(document).on('click', '#GeneralprevPage', function () {
-        if (currenGeneraltPage > 1) {
-            currenGeneraltPage--;
-            GeneralLedgerAll(currenGeneraltPage, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", selectedGroupCodeforGL, selectedControlCodeforGL, selectedSubControlCodeforGL, selectedSubsidiaryCodeforGL);
+    // Print Button
+    $(document).on("click", ".printBtn", function (e) {
+        if ($(this).closest('#general-tab-pane, #generalLedgerForm').length > 0) {
+            e.preventDefault();
+            if (typeof printForm === 'function') {
+                printForm();
+            } else {
+                window.print();
+            }
         }
     });
 
-    $(document).on('click', '#GenerallastPage', function () {
-        let lastPage = parseInt($('#GeneralpageNavigation button').last().text());
-        if (!isNaN(lastPage)) {
-            currenGeneraltPage = lastPage;
-            GeneralLedgerAll(currenGeneraltPage, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, "", selectedGroupCodeforGL, selectedControlCodeforGL, selectedSubControlCodeforGL, selectedSubsidiaryCodeforGL);
+    // Favorite Button
+    $(document).on("click", ".GeneralfavBtn", function () {
+        if ($(this).closest('#general-tab-pane, #generalLedgerForm').length > 0 && typeof toggleFavorite === 'function') {
+            toggleFavorite();
         }
-    });
-
-    $(document).on('change', '.GeneralpageSize', function () {
-        GeneralpageSize = parseInt($(this).val());
-        GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection);
-    });
-
-    $(document).on('click', '.Generalsortable', function () {
-        const column = $(this).data('column');
-        if (column === GeneralcurrentSortColumn) {
-            GeneralcurrentSortDirection = (GeneralcurrentSortDirection === 'desc') ? 'asc' : 'desc';
-        } else {
-            GeneralcurrentSortColumn = column;
-            GeneralcurrentSortDirection = 'desc';
-        }
-        GeneralLedgerAll(1, GeneralpageSize, GeneralcurrentSortColumn, GeneralcurrentSortDirection, $('#GeneralsearchInput').val().trim());
     });
 });
-
 //#endregion

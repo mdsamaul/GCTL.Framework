@@ -459,36 +459,64 @@ $('.table-sm').on('draw.dt', function () {
     $('.table-sm thead th input[type="checkbox"]').addClass('form-check-input');
 });
 
-// Preserve sidebar scroll position exactly
+// Preserve and restore sidebar scroll position exactly
 $(function () {
-    var $sidebar = $('.app-sidebar');
-    if ($sidebar.length > 0) {
-        var $scrollable = $sidebar;
-        
-        var $menuUl = $sidebar.find('.sidebar-menu');
-        if ($menuUl.length > 0 && ($menuUl.css('overflow-y') === 'auto' || $menuUl.css('overflow-y') === 'scroll')) {
-            $scrollable = $menuUl;
+    var $scrollContainer = $('.sidebar-menu-scroll');
+    if ($scrollContainer.length === 0) {
+        $scrollContainer = $('.app-sidebar');
+    }
+    if ($scrollContainer.length === 0) return;
+
+    var containerEl = $scrollContainer[0];
+    var isRestoring = false;
+
+    function saveSidebarScroll() {
+        if (isRestoring) return;
+        var top = containerEl.scrollTop;
+        if (typeof top === 'number' && !isNaN(top)) {
+            localStorage.setItem('sidebarScrollTop', top);
+            sessionStorage.setItem('sidebarScrollTop', top);
+        }
+    }
+
+    // Save scroll position as the user scrolls
+    containerEl.addEventListener('scroll', saveSidebarScroll, { passive: true });
+
+    // Save immediately before page unloads
+    window.addEventListener('beforeunload', saveSidebarScroll);
+
+    // Save on clicking any menu item link or button
+    $(document).on('click', '.app-sidebar a, .app-sidebar button, .menu-link, .rail-link', function () {
+        saveSidebarScroll();
+    });
+
+    // Restore scroll position
+    function restoreSidebarScroll() {
+        var saved = sessionStorage.getItem('sidebarScrollTop') || localStorage.getItem('sidebarScrollTop');
+        var savedTop = saved !== null && saved !== undefined ? parseInt(saved, 10) : NaN;
+
+        if (!isNaN(savedTop) && savedTop > 0) {
+            isRestoring = true;
+            containerEl.scrollTop = savedTop;
+            setTimeout(function () {
+                containerEl.scrollTop = savedTop;
+                isRestoring = false;
+            }, 50);
+            setTimeout(function () {
+                containerEl.scrollTop = savedTop;
+            }, 200);
         } else {
-            var $wrapper = $sidebar.find('.sidebar-menu-wrapper, .sidebar-menu-scroll').first();
-            if ($wrapper.length > 0 && ($wrapper.css('overflow-y') === 'auto' || $wrapper.css('overflow-y') === 'scroll')) {
-                $scrollable = $wrapper;
+            // If no saved scroll, scroll active item into view
+            var $active = $('.menu-item.direct-active, .menu-link.active').first();
+            if ($active.length > 0) {
+                $active[0].scrollIntoView({ block: 'center', inline: 'nearest' });
             }
         }
-
-        // Restore scroll position
-        var savedScroll = localStorage.getItem('sidebarScrollTop');
-        if (savedScroll) {
-            $scrollable.scrollTop(parseInt(savedScroll, 10));
-        }
-
-        // Save scroll position on scroll
-        $scrollable.on('scroll', function() {
-            localStorage.setItem('sidebarScrollTop', $(this).scrollTop());
-        });
-        
-        // Also save on click just in case
-        $('.menu-link').on('click', function() {
-            localStorage.setItem('sidebarScrollTop', $scrollable.scrollTop());
-        });
     }
+
+    // Execute immediately and after layout rendering
+    restoreSidebarScroll();
+    requestAnimationFrame(function () {
+        restoreSidebarScroll();
+    });
 });

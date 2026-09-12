@@ -207,13 +207,13 @@
                     AjaxMethod = "GET",
                     ServerSide = false,
                     ShowCheckbox = true,
-                    CheckColumnData = "tc",
-                    CheckAllId = "js-ImporterInfo-checkall",
+                    CheckColumnData = "importerId",
+                    CheckAllId = "ImporterInfo-check-all",
                     DefaultSortColumn = "importerId",
                     DefaultSortDirection = "desc",
                     Columns = new List<GridColumn>
                     {
-                        new() { Data = "importerId", Header = "Importer Id", Width = "12%", IsEditLink = true, EditSelectorClass = "js-ImporterInfo-edit", IdField = "tc" },
+                        new() { Data = "importerId", Header = "Importer Id", Width = "12%", IsEditLink = true, EditSelectorClass = "js-ImporterInfo-edit", IdField = "importerId" },
                         new() { Data = "importerName", Header = "Name", Width = "24%", Align = "left" },
                         new() { Data = "importerAddress", Header = "Address", Width = "20%", Align = "left" },
                         new() { Data = "phone", Header = "Phone", Width = "12%", Align = "left" },

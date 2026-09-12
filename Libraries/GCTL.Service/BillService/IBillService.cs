@@ -18,6 +18,7 @@ namespace GCTL.Service.BillService
         Task<CommonReturnViewModel> DeleteChargeAsync(decimal tc, UserInfoViewModel? userInfo);
         Task<PaginationResponse<BillHistoryDto>> GetBillHistoryPagedAsync(PaginationRequest request);
         Task<BillEntryJobVM?> GetBillDetailAsync(string billNo);
+        Task<CommonReturnViewModel> SaveBillAsync(SaveBillRequestDto request, UserInfoViewModel? userInfo);
         Task<CommonReturnViewModel> DeleteBillsAsync(List<string> billNos, UserInfoViewModel? userInfo);
     }
 }

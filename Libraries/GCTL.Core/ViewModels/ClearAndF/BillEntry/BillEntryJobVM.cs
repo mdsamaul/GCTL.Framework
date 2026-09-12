@@ -67,26 +67,31 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
         public decimal? OnInvVal { get; set; }
         public decimal? Amount { get; set; }
         public string HeadId { get; set; }
+        public decimal? SpecialDiscount { get; set; }
     }
 
     public class ExpenseDetailDto
     {
+        public string? ExpenseHeadId { get; set; } = string.Empty;
         public string? SerialNo { get; set; } = string.Empty;
         public string Head { get; set; } = string.Empty;
         public string IsRec { get; set; } = string.Empty;
         public string ServiceType { get; set; } = string.Empty;
         public decimal? ConfirmAmt { get; set; }
         public decimal? BillAmt { get; set; }
+        public bool Include { get; set; } = true;
     }
 
     public class ChargeTableItemDto
     {
+        public string? Chcid { get; set; } = string.Empty;
         public string? SerialNo { get; set; } = string.Empty;
         public string IsRec { get; set; } = string.Empty;
         public string Chc { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal? BillAmt { get; set; }
         public decimal Tc { get; set; }
+        public bool Include { get; set; } = true;
     }
 
     public class AddCostRequestDto
@@ -119,6 +124,39 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
         public string BeNo { get; set; } = string.Empty;
         [Searchable]
         public decimal? InvoiceValue { get; set; }
+    }
+
+    public class SaveBillRequestDto
+    {
+        public string? BillNo { get; set; }
+        public string? BillDate { get; set; }
+        public string JobNo { get; set; } = string.Empty;
+        public string? CustomerId { get; set; }
+        public string? DestinationId { get; set; }
+        public string? Remarks { get; set; }
+        public decimal? AgComm { get; set; }
+        public decimal? OnInvVal { get; set; }
+        public decimal? Amount { get; set; }
+        public decimal? SpecialDiscount { get; set; }
+        public List<SaveBillChcItemDto> ChcItems { get; set; } = new();
+        public List<SaveBillExpenseItemDto> ExpenseItems { get; set; } = new();
+    }
+
+    public class SaveBillChcItemDto
+    {
+        public string? Chcid { get; set; }
+        public string? BillHead { get; set; }
+        public string? Description { get; set; }
+        public decimal? BillAmount { get; set; }
+        public string? IsReceiptable { get; set; }
+    }
+
+    public class SaveBillExpenseItemDto
+    {
+        public string? ExpenseHeadId { get; set; }
+        public string? BillHead { get; set; }
+        public decimal? ConfirmAmt { get; set; }
+        public decimal? BillAmt { get; set; }
     }
 }
 

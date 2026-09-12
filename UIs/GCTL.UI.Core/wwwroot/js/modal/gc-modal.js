@@ -1,4 +1,4 @@
-﻿(function ($) {
+(function ($) {
 
     var GcModal = {
         stack: [],
@@ -95,6 +95,16 @@
                             // modal body er moddhe notun ashe custom select gula reinit
                             window.initCustomDropdowns($body, true);
 
+                            // Auto-initialize any _CustomGrid in modal body that is not yet initialized
+                            if ($.gctlGrid) {
+                                $body.find("table[data-grid-config]").each(function () {
+                                    var gridId = this.id;
+                                    if (gridId && (!$.fn.DataTable || !$.fn.DataTable.isDataTable("#" + gridId))) {
+                                        $.gctlGrid.initFromModel({ gridId: gridId });
+                                    }
+                                });
+                            }
+
                             $modal.trigger("gc-modal:loaded");
                             return;
                         }
@@ -115,6 +125,20 @@
                 error: function () {
                     $modal.find(".modal-body").html("<p class='text-danger p-3'>Failed to load content.</p>");
                 }
+            });
+
+            $modal.on("shown.bs.modal", function () {
+                $modal.find("table.dataTable, table[data-grid-config]").each(function () {
+                    if ($.fn.DataTable && $.fn.DataTable.isDataTable(this)) {
+                        var dt = $(this).DataTable();
+                        dt.columns.adjust();
+                        if (dt.responsive) {
+                            dt.responsive.recalc();
+                        }
+                    } else if ($.gctlGrid && this.id) {
+                        $.gctlGrid.initFromModel({ gridId: this.id });
+                    }
+                });
             });
 
             $modal.modal("show");

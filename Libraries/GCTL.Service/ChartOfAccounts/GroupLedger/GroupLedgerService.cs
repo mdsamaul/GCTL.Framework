@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
@@ -79,6 +79,7 @@ namespace GCTL.Service.ChartOfAccounts.GroupLedger
 
             var result = entity.Select(model => new GroupLedgerVM
             {
+                autoId = model.AutoId,
                 ControlLedgerCodeNo = model.ControlLedgerCodeNo,
                 ControlLedgerName = model.ControlLedgerName,
                 ShortName = model.ShortName
@@ -92,7 +93,7 @@ namespace GCTL.Service.ChartOfAccounts.GroupLedger
             var data = await _repository.All().Where(pt => pt.AutoId == id)
                         .Select(pt => new GroupLedgerVM
                         {
-
+                            autoId = pt.AutoId,
                             ControlLedgerCodeNo = pt.ControlLedgerCodeNo,
                             ControlLedgerName = pt.ControlLedgerName,
                             ShortName = pt.ShortName,

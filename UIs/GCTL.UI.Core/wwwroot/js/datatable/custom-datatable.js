@@ -98,13 +98,17 @@
                     },
                     dataSrc: function (json) {
                         console.log(json);
+                        if (!json) return [];
                         if (json.recordsTotal === undefined && json.totalCount !== undefined) {
                             json.recordsTotal = json.totalCount;
                         }
                         if (json.recordsFiltered === undefined && json.filteredCount !== undefined) {
                             json.recordsFiltered = json.filteredCount;
                         }
-                        return json.data !== undefined ? json.data : json;
+                        if (json.data !== undefined) {
+                            return json.data !== null ? json.data : [];
+                        }
+                        return Array.isArray(json) ? json : [];
                     }
                 },
                 columnDefs: [{ targets: '_all', orderSequence: ['asc', 'desc'] }].concat(settings.columnDefs),
@@ -227,7 +231,7 @@
                 return null;
             }
 
-            var config = $table.data('grid-config');
+            var config = $table.data('grid-config') || $table.attr('data-grid-config');
             if (typeof config === 'string') {
                 try { config = JSON.parse(config); } catch (e) { console.error("Invalid grid config JSON", e); return null; }
             }
@@ -283,10 +287,10 @@
                 var selectColIdx = columns.length;
                 columns.push({
                     data: useRadio ? null : config.checkColumnData,
-                    className: "text-center",
+                    className: "text-center col-select-cell",
                     orderable: false,
                     searchable: false,
-                    width: "3%",
+                    width: "45px",
                     render: function (data, type, row) {
                         var cls = config.checkboxClass || 'form-check-input checkbox m-0 shadow-none';
                         return useRadio
@@ -428,6 +432,13 @@
                 ? [[defaultSortIdx, config.defaultSortDirection || "desc"]]
                 : [];
 
+            var showCheckAll = config.showCheckAll !== undefined 
+                ? config.showCheckAll 
+                : (config.ShowCheckAll !== undefined ? config.ShowCheckAll : true);
+            if (config.checkAllId === "none" || config.checkAllId === "false" || !config.checkAllId) {
+                showCheckAll = false;
+            }
+
             var builtSettings = {
                 gridSelector: '#' + config.gridId,
                 ajaxUrl: config.ajaxUrl,
@@ -436,7 +447,7 @@
                 ajaxData: overrides.ajaxData,
                 columns: columns,
                 checkBoxClass: config.checkboxClass || 'form-check-input checkbox m-0 shadow-none',
-                checkAllSelector: (config.showCheckbox && !config.disableCheckAll && config.checkAllId)
+                checkAllSelector: (config.showCheckbox && !config.disableCheckAll && showCheckAll && config.checkAllId && config.checkAllId !== 'none')
                     ? ('#' + config.checkAllId)
                     : null,
                 order: initialOrder,
@@ -538,6 +549,19 @@
             var month = String(d.getMonth() + 1).padStart(2, '0');
             var year = d.getFullYear();
             return day + '/' + month + '/' + year;
+        };
+    }
+
+    if (!window.gctlRenderers.formatCurrency) {
+        window.gctlRenderers.formatCurrency = function (data, type, row) {
+            if (data === null || data === undefined || data === '' || isNaN(data)) {
+                return (type === 'sort' || type === 'type') ? 0 : '0.00';
+            }
+            var num = parseFloat(data);
+            if (type === 'sort' || type === 'type') {
+                return num;
+            }
+            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
     }
 

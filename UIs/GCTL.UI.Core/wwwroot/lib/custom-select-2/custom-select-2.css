@@ -1,4 +1,4 @@
-﻿/* customDropdown - fully custom, no Select2 */
+/* customDropdown - fully custom, no Select2 */
 
 .custom-dd-wrapper {
     position: relative;
@@ -32,7 +32,8 @@
     flex: 1 1 30px;
     min-width: 20px;
     padding: 0 2px;
-    font-size: .750rem !important;
+    font-size: 13px !important;
+    font-family: 'Nunito', sans-serif !important;
     background: transparent;
     line-height: 1.5;
 }
@@ -179,9 +180,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 12px;
+    padding: 6px 12px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
+    font-family: 'Nunito', sans-serif;
 }
 
     .custom-dd-option:hover {
