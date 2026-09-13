@@ -15,7 +15,7 @@
     window.gctlRenderers.renderNoticeFile = function (data, type, row) {
         if (!data?.trim()) return '<span class="text-muted small">No file</span>';
         const fileName = data.split(/[/\\]/).pop();
-        return `<a href="/NoticeDocument/${data}" target="_blank" class="file-link" title="Click to open ${fileName}"><i class="fas fa-paperclip me-1"></i>${fileName}</a>`;
+        return `<a href="/NoticeDocument/${data}" target="_blank" class="file-link text-primary fs-5" title="Click to view ${fileName}"><i class="bi bi-eye-fill"></i></a>`;
     };
 
     $.noticeManagement = function (options) {
@@ -195,10 +195,6 @@
                 if (hasRealValue && hasData) {
                     return;
                 }
-
-                if (selector == companySelect && !hasRealValue) {
-                    val = '001';
-                }
                 
                 // Ensure the underlying DOM <select> gets the new options!
                 // This is critical so that .val(val) succeeds and form submission works.
@@ -256,101 +252,40 @@
         // Employee grid management
         const employeeGridManager = {
             load: employees => {
-                if ($.fn.DataTable.isDataTable(employeeGrid) && state.empDataTable) {
-                    state.empDataTable.destroy();
-                    state.empDataTable = null;
+                let dt = $.gctlGrid.getTable('employee-filter-grid');
+                if (!dt) {
+                    dt = employeeGridManager.initDataTable();
                 }
 
-                const tableBody = $(employeeGridBody);
-                tableBody.empty();
+                if (dt) {
+                    // Update the state array before re-drawing if needed, though checkboxes will bind via delegate
+                    dt.clear();
+                    dt.rows.add(employees);
+                    dt.draw();
+                }
 
-                employees.forEach(emp => {
-                    const isOriginal = state.isEditMode && String(emp.employeeId) === String(state.originalEmpId);
-                    const checkboxAttrs = state.isEditMode ? 'disabled' : '';
-                    const checkedAttr = isOriginal ? 'checked' : '';
-
-                    const row = $(`
-                        <tr>
-                            <td class="text-center"><input type="checkbox" class="empSelect" ${checkboxAttrs} ${checkedAttr} /></td>
-                            <td class="p-1 text-center">${emp.employeeId}</td>
-                            <td class="p-1 text-start">${emp.employeeName}</td>
-                            <td class="p-1 text-start">${emp.designationName}</td>
-                            <td class="p-1 text-center">${emp.departmentName}</td>
-                            <td class="p-1 text-center">${emp.branchName}</td>
-                            <td class="p-1 text-center">${emp.employeeTypeName}</td>
-                            <td class="p-1 text-center">${emp.employmentNature}</td>
-                            <td class="p-1 text-center">${emp.joiningDate}</td>
-                            <td class="p-1 text-center">${emp.employeeStatus}</td>
-                        </tr>
-                    `);
-                    tableBody.append(row);
-                });
-
-                employeeGridManager.initDataTable();
                 if (state.isEditMode) $(employeeCheckAll).prop('disabled', true);
             },
 
             initDataTable: () => {
-                state.empDataTable = $(employeeGrid).DataTable({
-                    paging: true,
-                    pageLength: 10,
-                    lengthMenu: [[10, 25, 50, 100, 1000, -1], [10, 25, 50, 100, 1000, "All"]],
-                    lengthChange: true,
-                    info: true,
-                    autoWidth: false,
-                    responsive: true,
-                    language: {
-                        search: "🔍 Search:",
-                        lengthMenu: "Show _MENU_ entries",
-                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                        paginate: {
-                            first: "First",
-                            previous: "Prev",
-                            next: "Next",
-                            last: "Last"
-                        },
-                        emptyTable: "No data available",
-                        processing: "Loading data..."
-                    },
-                    columnDefs: [
-                        {
-                            targets: 0, orderable: false, className: 'no-sort',
-                            createdCell: function (td) {
-                                $(td).html(`
-                                    <div class="d-flex align-items-center justify-content-center h-100">
-                                        ${$(td).html()}
-                                    </div>
-                                `);
+                return $.gctlGrid.initFromModel({ 
+                    gridId: 'employee-filter-grid',
+                    extraOptions: {
+                        createdRow: function (row, data, dataIndex) {
+                            if (state.isEditMode && String(data.employeeId) === String(state.originalEmpId)) {
+                                $(row).find('.empSelect').prop('checked', true);
+                            }
+                            if (state.isEditMode) {
+                                $(row).find('.empSelect').prop('disabled', true);
                             }
                         },
-                        {
-                            targets: 8,
-                            render: function (data, type, row) {
-
-                                if (type === "sort" || type === "type") {
-                                    // Convert to timestamp for proper sorting
-                                    const parts = data.split('/');
-                                    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
-                                }
-
-                                return data; // display normally
-                            }
-                        }
-                    ],
-                    initComplete: function () {
-                        utils.hideLoading();
-                        $(employeeGrid).closest('.dataTables_wrapper')
-                            .find(customSearch).on('keyup', function () {
-                                state.empDataTable.search(this.value).draw();
+                        drawCallback: () => {
+                            $(`${employeeGridBody} input[type="checkbox"]`).each(function () {
+                                const empId = $(this).data('id') || $(this).val();
+                                $(this).prop('checked', state.selectedEmpIds.has(empId));
                             });
-
-                    },
-                    drawCallback: () => {
-                        $(`${employeeGridBody} input[type="checkbox"]`).each(function () {
-                            const empId = $(this).closest('tr').find('td:nth-child(2)').text().trim();
-                            $(this).prop('checked', state.selectedEmpIds.has(empId));
-                        });
-                        employeeGridManager.updateSelectAllState();
+                            employeeGridManager.updateSelectAllState();
+                        }
                     }
                 });
             },
@@ -363,7 +298,7 @@
 
             updateSelectedIds: () => {
                 $(`${employeeGridBody} input[type="checkbox"]`).each(function () {
-                    const empId = $(this).closest('tr').find('td:nth-child(2)').text().trim();
+                    const empId = $(this).data('id') || $(this).val();
                     state.selectedEmpIds[$(this).is(':checked') ? 'add' : 'delete'](empId);
                 });
             }
@@ -372,85 +307,18 @@
         // Notice grid management
         const noticeGridManager = {
             display: () => {
-                if ($.fn.DataTable.isDataTable(noticeGrid)) {
-                    $(noticeGrid).DataTable().clear().destroy();
-                }
-
-                $(noticeGrid).DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: { url: API.paginatedData, type: 'POST' },
-                    columns: [
-                        {
-                            data: null, orderable: false, className: 'text-center',
-                            render: (data, type, row) => `<input type="checkbox" data-id="${row.tc}"/>`
-                        },
-                        {
-                            data: 'noticeId', className: 'text-center',
-                            render: (data, type, row) => `<a href="#notice-form" class="notice-id-link" data-id="${row.tc}">${data}</a>`
-                        },
-                        { data: 'noticeTitle', className: 'text-left' },
-                        { data: 'noticeDesc', className: 'text-left' },
-                        {
-                            data: 'entryDate', className: 'text-center',
-                            render: data => utils.formatDate(data)
-                        },
-                        {
-                            data: 'priorityLevel', className: 'text-center',
-                            render: data => data === 1 ? '<span style="color: #b22222; font-weight: bold;">Important</span>' : 'Normal'
-                        },
-                        {
-                            data: 'status', className: 'text-center',
-                            render: data => data === "1" ? "Active" : 'Hold'
-                        },
-                        {
-                            data: 'filePath', className: 'text-center',
-                            render: data => {
-                                if (!data?.trim()) return '<span class="text-muted">No file</span>';
-                                const fileName = data.split(/[/\\]/).pop();
-                                return `<a href="/NoticeDocument/${data}" target="_blank" class="file-link" title="Click to open ${fileName}">${fileName}</a>`;
-                            }
+                $.gctlGrid.initFromModel({ 
+                    gridId: 'notice-grid',
+                    extraOptions: {
+                        drawCallback: () => {
+                            $(`${noticeGridBody} input[type="checkbox"]`).each(function () {
+                                const id = $(this).data('id') || $(this).val();
+                                $(this).prop('checked', state.selectedNoticeIds.has(id));
+                            });
+                            const total = $(`${noticeGridBody} input[type="checkbox"]`).length;
+                            const checked = $(`${noticeGridBody} input[type="checkbox"]:checked`).length;
+                            $(noticeCheckAll).prop('checked', total > 0 && total === checked);
                         }
-                    ],
-                    autoWidth: false, info: true, lengthChange: true,
-                    lengthMenu: [[10, 25, 50, 100, 1000, -1], [10, 25, 50, 100, 1000, "All"]],
-                    ordering: true, pageLength: 10, paging: true, responsive: true, order: [[1, 'desc']],
-                    scrollCollapse: true, scrollX: true, searching: true,
-                    columnDefs: [{
-                        targets: 0, orderable: false, className: 'no-sort',
-                        createdCell: function (td) {
-                            $(td).html(`
-                                 <div class="d-flex align-items-center justify-content-center h-100">
-                                    ${$(td).html()}
-                                </div>
-                            `);
-                        }
-                    }],
-                    language: {
-                        search: "🔍 Search:", lengthMenu: "Show _MENU_ entries",
-                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                        paginate: { first: "First", previous: "Prev", next: "Next", last: "Last" },
-                        emptyTable: "No data available", processing: "Loading data..."
-                    },
-                    initComplete: function () {
-                        const api = this.api();
-                        let debounceTimeout;
-                        $('.dataTables_filter input').off().on('input', function () {
-                            clearTimeout(debounceTimeout);
-                            const searchTerm = this.value;
-                            debounceTimeout = setTimeout(() => {
-                                api.search(searchTerm).page('first').draw('page');
-                            }, 500);
-                        });
-                    },
-                    drawCallback: () => {
-                        $(`${noticeGridBody} input[type="checkbox"]`).each(function () {
-                            const id = $(this).data('id');
-                            $(this).prop('checked', state.selectedNoticeIds.has(id));
-                        });
-                        const total = $(`${noticeGridBody} input[type="checkbox"]`).length;
-                        const checked = $(`${noticeGridBody} input[type="checkbox"]:checked`).length;
-                        $(noticeCheckAll).prop('checked', total > 0 && total === checked);
                     }
                 });
             },
@@ -803,14 +671,6 @@
             $(`${companySelect}, ${departmentSelect}, ${designationSelect}`).on("change", api.loadFilterEmp);
         };
 
-        // Initialize employee grid
-        const initEmployeeGrid = () => {
-            //utils.showLoading();
-            setTimeout(() => {
-                if (state.empDataTable) state.empDataTable.destroy();
-                employeeGridManager.initDataTable();
-            }, 100);
-        };
 
         // Main initialization
         const init = () => {
@@ -830,7 +690,6 @@
             }
 
             bindEvents();
-            initEmployeeGrid();
             api.loadFilterEmp();
             api.loadNoticeId();
             api.loadNoticeData();
