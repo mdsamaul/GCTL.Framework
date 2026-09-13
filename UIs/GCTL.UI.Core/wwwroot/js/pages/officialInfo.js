@@ -45,12 +45,6 @@
             loadTableData(null);
 
             // ── #EmployeeId change: only fires on real user selection ──────────────
-            //$('#EmployeeId').on('change', function () {
-            //    if (_suppressEmployeeChange) return;
-            //    var selectedEmployee = $(this).val();
-            //    if (!selectedEmployee) return;
-            //    fetchAndPopulateEmployee(selectedEmployee);
-            //});
             $('#EmployeeId').on('change', function () {                
                 if (_suppressEmployeeChange) return;
                 var selectedEmployee = $(this).val();
@@ -72,7 +66,7 @@
                     success: function (response) {
                         
                         if (!response) {
-                            console.error('No response received.');
+                          // console.error('No response received.');
                             return;
                         }
 
@@ -84,7 +78,7 @@
                     },
                     error: function () {
                         _suppressEmployeeChange = false;
-                        console.error('Failed to fetch employee details.');
+                        // console.error('Failed to fetch employee details.');
                         toastr.error('Failed to load employee details.');
                     }
                 });
@@ -170,7 +164,7 @@
             // ── EDIT button click ──────────────────────────────────────────────────
             $(document).on('click', '.js-officialInfo-Edit-confirm, .js-grid-edit', function () {
                 var employeeId = $(this).attr('data-id');
-                console.log('Edit clicked, employeeId:', employeeId);
+                // console.log('Edit clicked, employeeId:', employeeId);
                 if (!employeeId) return;
 
                 var $employeeDD = $('#EmployeeId');
@@ -472,12 +466,12 @@
                     url: reloadUrl,
                     method: "GET",
                     success: function (response) {
-                        console.log(response);
+                       // console.log(response);
                         $.each(response, function (i, item) {
                             $(target).append($('<option>', { value: item.code, text: item.name }));
                         });
                         $(target).val(lastCode);
-                        console.log("Testttt", lastCode);
+                       // console.log("Test", lastCode);
                     }
                 });
             });
@@ -493,7 +487,6 @@
         function initialize() {
             $(document).ready(async function () {
                 AllDatePicker();             
-
             });
         }
 
