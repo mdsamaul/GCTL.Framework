@@ -100,7 +100,7 @@
                 }
 
                 _suppressEmployeeChange = true;
-                console.log(data);
+               // console.log(data);
                 // Text Inputs
                 var autoId = autoIdParam || getProp(data, 'autoId') || '0';
                 window.setField('#AutoId', autoId);
@@ -322,7 +322,6 @@
                     .css('border', (!val || val.trim() === '') ? '1px solid red' : '');
             }
 
-
             // ── Delete confirmation ────────────────────────────────────────────────
             function getDeleteModal() {
                 var $m = $(settings.deleteModal);
@@ -350,7 +349,7 @@
 
                 if (selectedItems.length > 0) {
                     var $modal = getDeleteModal();
-                    $modal.find('.title').html("Are you sure you want to delete these item(s)? This process cannot be undone.");
+                    $modal.find('.title').html("Are you sure to delete");
                     $modal.modal("show");
                 } else {
                     toastr.info("Please select at least one item.");

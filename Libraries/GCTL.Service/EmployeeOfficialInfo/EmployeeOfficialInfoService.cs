@@ -196,10 +196,6 @@ namespace GCTL.Service.EmployeeOfficialInfo
                               equals des.DesignationCode into desGroup
                               from des in desGroup.DefaultIfEmpty()
 
-                              //join cl in clientRepository.All().AsNoTracking() on oi.ClientId 
-                              //equals cl.ClientId into clGroup
-                              //from cl in clGroup.DefaultIfEmpty()
-
                               where oi.EmployeeId == code
 
                               select new HrmEmployeeOfficialInfoSetupViewModel

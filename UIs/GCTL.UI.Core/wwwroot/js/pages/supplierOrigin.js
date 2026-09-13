@@ -44,9 +44,8 @@
 
         $(() => {
             if ($.gctlGrid) {
-            $.gctlGrid.initFromModel({ gridId: 'supplierOriginTable' });
-        }
-
+                $.gctlGrid.initFromModel({ gridId: 'supplierOriginTable' });
+            }
 
             loadTable();
 
@@ -243,7 +242,7 @@
         });
 
         //#region loadTable
-        // function loadTable() {
+         function loadTable() {
             if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
                 $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }

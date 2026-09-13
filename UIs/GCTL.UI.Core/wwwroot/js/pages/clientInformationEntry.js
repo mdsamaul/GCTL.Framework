@@ -46,9 +46,8 @@
                 $.gctlGrid.initFromModel({ gridId: 'ClientInformationEntry-grid' });
             }
 
-
             loadTable();
-
+            
             //#region editSelector & clearSelector
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
@@ -102,7 +101,6 @@
                                 .then((data) => {
                                     loadTable();
                                     $(settings.lastCodeSelector).val(response.lastCode);
-                                    // alert("The last code has been updated to: " + response.lastCode);
                                 })
                                 .catch((error) => {
                                     console.log(error)
