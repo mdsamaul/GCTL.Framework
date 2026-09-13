@@ -141,11 +141,11 @@ namespace GCTL_App.Controllers.VoucherEntry
 
         [HttpPost]
         [Route("VoucherEntry/GetTableData")]
-        public async Task<IActionResult> GetTableData(int pageNumber = 1, int pageSize = 10, string sortColumn = "VoucherDate", string sortOrder = "desc", string searchTerm = "")
+        public async Task<IActionResult> GetTableData(int pageNumber = 1, int pageSize = 10, string sortColumn = "VoucherDate", string sortOrder = "desc", string searchTerm = "", DateTime? fromDate = null, DateTime? toDate = null)
         {
             try
             {
-                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder, null, null);
+                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder, fromDate, toDate);
 
                 if (result.Data == null || !result.Data.Any())
                 {

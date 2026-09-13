@@ -964,48 +964,68 @@
             $("body").on('click', settings.deleteSelector, function (e) {
                 e.preventDefault();
                 var selectedIds = [];
-                $('.checkBox:checked').each(function () { selectedIds.push($(this).val()); });
-
-                if (selectedIds.length === 0) {
-                    var singleId = $(this).closest('tr').find('.checkBox').val();
-                    if (singleId) { selectedIds.push(singleId); }
-                    else { toastr.error('Please select an employee to delete.'); return; }
-                }
-                $(settings.deleteModal + ' ' + settings.finalDeleteSelector).data('ids', selectedIds);
-                $(settings.deleteModal).modal('show');
-            });
-
-            // ── Delete: confirm ──────────────────────────────────────────────
-            $("body").on('click', settings.finalDeleteSelector, function (e) {
-                e.preventDefault();
-                var selectedIds = $(this).data('ids');
-                if (!selectedIds || selectedIds.length === 0) {
-                    toastr.error('No employee selected.');
-                    $(settings.deleteModal).modal('hide');
-                    return;
-                }
-                $.ajax({
-                    type: 'POST', url: deleteURL,
-                    contentType: 'application/json',
-                    data: JSON.stringify(selectedIds),
-                    success: function (result) {
-                        if (result.isSuccess) {
-                            // Server-side: just reload current page
-                            if (dataTableInstance) dataTableInstance.ajax.reload(null, false);
-                            toastr.success(result.message);
-                            $('.checkBox').prop('checked', false);
-                        } else if (result.refError) {
-                            toastr.warning(result.message);
-                        } else {
-                            toastr.error(result.message, 'Error');
-                        }
-                        $(settings.deleteModal).modal('hide');
-                    },
-                    error: function () {
-                        toastr.error('An error occurred while deleting.');
-                        $(settings.deleteModal).modal('hide');
+                
+                // 1. Collect all checked checkboxes
+                $('.checkBox:checked, .checkbox:checked, #HrmEmployee2-grid tbody input[type="checkbox"]:checked').each(function () {
+                    var val = $(this).val();
+                    if (val && !selectedIds.includes(val)) {
+                        selectedIds.push(val);
                     }
                 });
+
+                // 2. Add the specific ID from the button clicked (if any)
+                var clickedId = $(this).data('id');
+                if (clickedId && !selectedIds.includes(clickedId.toString())) {
+                    selectedIds.push(clickedId.toString());
+                }
+
+                // 3. Fallback for Setup form (if we are on the form page)
+                if (selectedIds.length === 0) {
+                    var formEmployeeId = $('#EmployeeId').val();
+                    if (formEmployeeId) {
+                        selectedIds.push(formEmployeeId);
+                    }
+                }
+
+                if (selectedIds.length > 0) {
+                    GcDelete.confirm("Are you sure to delete?", function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: deleteURL,
+                            contentType: 'application/json',
+                            data: JSON.stringify(selectedIds),
+                            success: function (result) {
+                                if (result.isSuccess) {
+                                    // Server-side: just reload current page
+                                    if (dataTableInstance) {
+                                        dataTableInstance.ajax.reload(null, false);
+                                    } else {
+                                        // Redirect to Index if we deleted from Setup page
+                                        setTimeout(function () {
+                                            window.location.href = '/HrmEmployee2/Index';
+                                        }, 1000);
+                                    }
+                                    toastr.success(result.message);
+                                    
+                                    // Clear selection
+                                    $('.checkBox, .checkbox, #HrmEmployee2-grid tbody input[type="checkbox"]').prop('checked', false);
+                                    if ($('#HrmEmployee2-check-all').length) {
+                                        $('#HrmEmployee2-check-all').prop('checked', false);
+                                    }
+                                } else if (result.refError) {
+                                    toastr.warning(result.message);
+                                } else {
+                                    toastr.error(result.message, 'Error');
+                                }
+                            },
+                            error: function () {
+                                toastr.error('An error occurred while deleting.');
+                            }
+                        });
+                    });
+                } else {
+                    toastr.info("Please select at least one employee to delete.", 'Warning');
+                }
             });
 
             // ── Image helpers ────────────────────────────────────────────────
