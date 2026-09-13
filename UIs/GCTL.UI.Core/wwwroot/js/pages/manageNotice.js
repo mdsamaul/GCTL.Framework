@@ -36,6 +36,7 @@
             departmentSelect = "#departmentSelect",
             designationSelect = "#designationSelect",
             employeeSelect = "#employeeSelect",
+            activityStatusSelect = "#activityStatusSelect",
             employeeGrid = "#employee-filter-grid",
             employeeGridBody = "#employee-filter-grid tbody",
             employeeCheckAll = "#employee-check-all",
@@ -72,7 +73,8 @@
             originalEmpId: null,
             selectedEmpIds: new Set(),
             selectedNoticeIds: new Set(),
-            isEditMode: false
+            isEditMode: false,
+            isProgrammaticChange: false
         };
 
         // Utility functions
@@ -171,39 +173,84 @@
 
         // Dropdown management
         const dropdownManager = {
-            // populate: (selector, dataList) => {
-            //     const $select = $(selector);
-            //     dataList.forEach(item => {
-            //         if (item.code && item.name && $select.find(`option[value="${item.code}"]`).length === 0) {
-            //             $select.append(`<option value="${item.code}">${item.name}</option>`);
-            //         }
-            //         if (selector == companySelect) {
-            //             $select.val('001');
-            //         }
-            //     });
-            //     $select.multiselect('rebuild');
-            // },
+            populate: (selector, dataList) => {
+                const $select = $(selector);
+                
+                // Format data for setSelect (expects {id/value, text})
+                const mappedData = dataList.map(item => ({
+                    id: item.code,
+                    text: item.name
+                }));
+                
+                let instance = $select.data('customDdInstance');
+                // Read value from instance if possible, because the underlying <select> might be empty right now
+                let val = instance && instance.selected && instance.selected.length > 0 ? instance.selected[0] : $select.val();
+                let hasRealValue = val && (typeof val === 'string' ? val.trim() !== '' : val.length > 0);
+                
+                let hasData = instance && instance.data && instance.data.length > 0;
+                
+                // If the dropdown already has a user-selected value AND it already has its options loaded, do NOT rebuild it!
+                // This completely stops the "reload/flicker" effect when selecting an item, 
+                // while ensuring it still loads properly on the first page load!
+                if (hasRealValue && hasData) {
+                    return;
+                }
 
-            // clearDependent: selectors => {
-            //     selectors.forEach(selector => {
-            //         $(selector).multiselect('deselectAll', false).empty().multiselect('rebuild');
-            //     });
-            // },
+                if (selector == companySelect && !hasRealValue) {
+                    val = '001';
+                }
+                
+                // Ensure the underlying DOM <select> gets the new options!
+                // This is critical so that .val(val) succeeds and form submission works.
+                $select.empty();
+                dataList.forEach(item => {
+                    $select.append(`<option value="${item.code}">${item.name}</option>`);
+                });
+                if (val) $select.val(val);
 
-            // setupCascading: () => {
-            //     const clearMap = {
-            //         [companySelect]: [branchSelect, departmentSelect, designationSelect, employeeSelect],
-            //         [branchSelect]: [departmentSelect, designationSelect, employeeSelect],
-            //         [departmentSelect]: [designationSelect, employeeSelect],
-            //         [designationSelect]: [employeeSelect]
-            //     };
+                state.isProgrammaticChange = true;
+                if (typeof setSelect === "function") {
+                    setSelect(selector, val, false, mappedData);
+                } else {
+                    $select.val(val);
+                }
+                setTimeout(() => state.isProgrammaticChange = false, 50);
+            },
 
-            //     Object.entries(clearMap).forEach(([parent, children]) => {
-            //         $(parent).off("change.clearDropdowns").on("change.clearDropdowns", () => {
-            //             dropdownManager.clearDependent(children);
-            //         });
-            //     });
-            // }
+            clearDependent: selectors => {
+                state.isProgrammaticChange = true;
+                selectors.forEach(selector => {
+                    const $select = $(selector);
+                    $select.empty(); // Physically remove old options to prevent auto-selecting the first option
+                    
+                    if (typeof setSelect === "function") {
+                        setSelect(selector, '', false, []);
+                        const instance = $select.data('customDdInstance');
+                        if (instance) {
+                            instance.data = [];
+                            instance.selected = [];
+                            instance.$input.val(''); // Make sure the text input is cleared so the placeholder shows!
+                            instance._renderList([]);
+                        }
+                    }
+                });
+                setTimeout(() => state.isProgrammaticChange = false, 50);
+            },
+
+            setupCascading: () => {
+                const clearMap = {
+                    [companySelect]: [branchSelect, departmentSelect, designationSelect, employeeSelect],
+                    [branchSelect]: [departmentSelect, designationSelect, employeeSelect],
+                    [departmentSelect]: [designationSelect, employeeSelect],
+                    [designationSelect]: [employeeSelect]
+                };
+
+                Object.entries(clearMap).forEach(([parent, children]) => {
+                    $(parent).off("change.clearDropdowns").on("change.clearDropdowns", () => {
+                        dropdownManager.clearDependent(children);
+                    });
+                });
+            }
         };
 
         // Employee grid management
@@ -430,14 +477,16 @@
                         const { lookupData, employees } = res;
                         employeeGridManager.load(employees);
 
-                        // if (lookupData.companies?.length) dropdownManager.populate(companySelect, lookupData.companies);
-                        // if (lookupData.departments?.length) dropdownManager.populate(departmentSelect, lookupData.departments);
-                        // if (lookupData.designations?.length) dropdownManager.populate(designationSelect, lookupData.designations);
-                        // if (lookupData.employees?.length) dropdownManager.populate(employeeSelect, lookupData.employees);
-                        // if (lookupData.branches?.length) dropdownManager.populate(branchSelect, lookupData.branches);
+                        if (lookupData) {
+                            if (lookupData.companies) dropdownManager.populate(companySelect, lookupData.companies);
+                            if (lookupData.departments) dropdownManager.populate(departmentSelect, lookupData.departments);
+                            if (lookupData.designations) dropdownManager.populate(designationSelect, lookupData.designations);
+                            if (lookupData.employees) dropdownManager.populate(employeeSelect, lookupData.employees);
+                            if (lookupData.branches) dropdownManager.populate(branchSelect, lookupData.branches);
+                        }
 
-                        // dropdownManager.setupCascading();
-                        // api.bindFilterEvents();
+                        dropdownManager.setupCascading();
+                        api.bindFilterEvents();
                     },
                     error: (xhr, status, error) => {
                         console.error("Error loading filtered employees:", error);
@@ -449,9 +498,20 @@
 
             bindFilterEvents: () => {
                 if (!state.filterChangeBound) {
-                    const selectors = [companySelect, branchSelect, departmentSelect, designationSelect, employeeSelect];
-                    $(selectors.join(',')).on("change.loadFilter", api.loadFilterEmp);
-                    state.filterChangeBound = true;
+                    // Bind change events to reload filter
+                    const filterSelectors = [companySelect, branchSelect, departmentSelect, designationSelect, employeeSelect, activityStatusSelect].join(',');
+                    $(filterSelectors).off("change.loadFilter").on("change.loadFilter", function () {
+                        // Prevent redundant calls on empty values during clearing
+                        if (state.isProgrammaticChange) return;
+
+                        if (!state.filterChangeBound) {
+                            state.filterChangeBound = true;
+                            setTimeout(() => {
+                                api.loadFilterEmp();
+                                state.filterChangeBound = false;
+                            }, 100);
+                        }
+                    });
                 }
             },
 
