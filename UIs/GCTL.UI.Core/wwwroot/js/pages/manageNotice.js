@@ -12,10 +12,58 @@
     window.gctlRenderers.renderActiveStatus = function (data, type, row) {
         return (data === "1" || data === 1) ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Hold</span>';
     };
+    window.gctlShowFileModal = function (fileUrl, fileName) {
+        let $modal = $('#gctlFileViewerModal');
+        if (!$modal.length) {
+            const modalHtml = `
+            <div class="modal fade" id="gctlFileViewerModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content shadow-lg border-0">
+                        <div class="modal-header bg-light border-bottom-0 py-2">
+                            <h5 class="modal-title fs-6 fw-semibold text-secondary" id="gctlFileViewerModalTitle">File Viewer</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-0 text-center" style="height: 85vh; background: #e9ecef;">
+                            <div id="gctlFileViewerContent" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            $('body').append(modalHtml);
+            $modal = $('#gctlFileViewerModal');
+            
+            // Cleanup iframe on hide to stop audio/video if any
+            $modal.on('hidden.bs.modal', function () {
+                $('#gctlFileViewerContent').empty();
+            });
+        }
+        
+        $('#gctlFileViewerModalTitle').text(fileName);
+        const $content = $('#gctlFileViewerContent');
+        
+        // Show loading state briefly
+        $content.html('<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
+        
+        const ext = fileName.split('.').pop().toLowerCase();
+        const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+        
+        setTimeout(() => {
+            if (imgExts.includes(ext)) {
+                $content.html(`<img src="${fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="${fileName}" />`);
+            } else {
+                $content.html(`<iframe src="${fileUrl}" style="width: 100%; height: 100%; border: none;"></iframe>`);
+            }
+        }, 150);
+        
+        const modalInstance = new bootstrap.Modal($modal[0]);
+        modalInstance.show();
+    };
+
     window.gctlRenderers.renderNoticeFile = function (data, type, row) {
         if (!data?.trim()) return '<span class="text-muted small">No file</span>';
         const fileName = data.split(/[/\\]/).pop();
-        return `<a href="/NoticeDocument/${data}" target="_blank" class="file-link text-primary fs-5" title="Click to view ${fileName}"><i class="bi bi-eye-fill"></i></a>`;
+        const fileUrl = `/NoticeDocument/${data}`;
+        return `<a href="javascript:void(0)" onclick="window.gctlShowFileModal('${fileUrl}', '${fileName}')" class="file-link text-primary fs-5" title="Click to view ${fileName}"><i class="bi bi-eye-fill"></i></a>`;
     };
 
     $.noticeManagement = function (options) {
