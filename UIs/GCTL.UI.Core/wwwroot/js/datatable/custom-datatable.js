@@ -25,7 +25,7 @@
             if (!settings.gridSelector || !$(settings.gridSelector).length) {
                 return null;
             }
-            if (!settings.ajaxUrl) {
+            if (!settings.ajaxUrl && settings.serverSide) {
                 return null;
             }
 
@@ -69,7 +69,56 @@
             var dtOptions = $.extend(true, {
                 autoWidth: false,
                 serverSide: settings.serverSide,
-                ajax: {
+                columnDefs: [{ targets: '_all', orderSequence: ['asc', 'desc'] }].concat(settings.columnDefs),
+                columns: settings.columns,
+                lengthChange: true,
+                pageLength: settings.pageLength,
+                lengthMenu: settings.lengthMenu,
+                order: settings.order,
+                language: {
+                    emptyTable: "No records available",
+                    zeroRecords: "No matching records found",
+                    processing: "<span class='spinner-border spinner-border-sm me-1'></span> Loading...",
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search records...",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    paginate: {
+                        first: "<i class='bi bi-chevron-double-left'></i>",
+                        previous: "<i class='bi bi-chevron-left'></i>",
+                        next: "<i class='bi bi-chevron-right'></i>",
+                        last: "<i class='bi bi-chevron-double-right'></i>"
+                    }
+                },
+                drawCallback: function () {
+                    var dt = this.api();
+                    applyStriping();
+                    applyHighlight(dt);
+                },
+                destroy: true
+            }, settings.extraOptions);
+
+            // Shimmer Skeleton placeholder on preXhr
+            if (settings.showSkeletonLoading) {
+                $table.off('preXhr.dt.gctlSkeleton').on('preXhr.dt.gctlSkeleton', function () {
+                    var colCount = settings.columns.length || $table.find('thead th').length || 6;
+                    var skeletonHtml = '';
+                    for (var i = 0; i < (settings.pageLength || 10); i++) {
+                        skeletonHtml += '<tr class="skeleton-row">';
+                        for (var j = 0; j < colCount; j++) {
+                            var width = j === 0 ? '16px' : (40 + (j * 15) % 45) + '%';
+                            skeletonHtml += '<td><span class="skeleton-box" style="width:' + width + ';"></span></td>';
+                        }
+                        skeletonHtml += '</tr>';
+                    }
+                    $table.find('tbody').html(skeletonHtml);
+                });
+            }
+
+            if (settings.ajaxUrl) {
+                dtOptions.ajax = {
                     url: settings.ajaxUrl,
                     type: settings.ajaxType,
                     data: function (d) {
@@ -97,7 +146,6 @@
                         }
                     },
                     dataSrc: function (json) {
-                        console.log(json);
                         if (!json) return [];
                         if (json.recordsTotal === undefined && json.totalCount !== undefined) {
                             json.recordsTotal = json.totalCount;
@@ -110,53 +158,7 @@
                         }
                         return Array.isArray(json) ? json : [];
                     }
-                },
-                columnDefs: [{ targets: '_all', orderSequence: ['asc', 'desc'] }].concat(settings.columnDefs),
-                columns: settings.columns,
-                lengthChange: true,
-                pageLength: settings.pageLength,
-                lengthMenu: settings.lengthMenu,
-                order: settings.order,
-                language: {
-                    emptyTable: "No records available",
-                    zeroRecords: "No matching records found",
-                    processing: "<span class='spinner-border spinner-border-sm me-1'></span> Loading...",
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search records...",
-                    lengthMenu: "Show _MENU_ entries",
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    infoEmpty: "Showing 0 to 0 of 0 entries",
-                    infoFiltered: "(filtered from _MAX_ total entries)",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    }
-                },
-                drawCallback: function () {
-                    var dt = this.api();
-                    applyStriping();
-                    applyHighlight(dt);
-                },
-                destroy: true
-            }, settings.extraOptions);
-
-            // Shimmer Skeleton placeholder on preXhr
-            if (settings.showSkeletonLoading) {
-                $table.off('preXhr.dt.gctlSkeleton').on('preXhr.dt.gctlSkeleton', function () {
-                    var colCount = settings.columns.length || $table.find('thead th').length || 6;
-                    var skeletonHtml = '';
-                    for (var i = 0; i < (settings.pageLength || 10); i++) {
-                        skeletonHtml += '<tr class="skeleton-row">';
-                        for (var j = 0; j < colCount; j++) {
-                            var width = j === 0 ? '16px' : (40 + (j * 15) % 45) + '%';
-                            skeletonHtml += '<td><span class="skeleton-box" style="width:' + width + ';"></span></td>';
-                        }
-                        skeletonHtml += '</tr>';
-                    }
-                    $table.find('tbody').html(skeletonHtml);
-                });
+                };
             }
 
             var dataTable = $table.DataTable(dtOptions);
@@ -285,18 +287,19 @@
             var hasSelectCol = showCheckbox || useRadio;
             if (hasSelectCol) {
                 var selectColIdx = columns.length;
+                var checkColData = config.checkColumnData || config.CheckColumnData;
                 columns.push({
-                    data: useRadio ? null : config.checkColumnData,
+                    data: useRadio ? null : checkColData,
                     className: "text-center col-select-cell",
                     orderable: false,
                     searchable: false,
                     width: "45px",
                     render: function (data, type, row) {
-                        var cls = config.checkboxClass || 'form-check-input checkbox m-0 shadow-none';
+                        var cls = config.checkboxClass || config.CheckboxClass || 'form-check-input checkbox m-0 shadow-none';
                         return useRadio
                             ? '<input type="radio" class="' + cls + '" name="' +
-                            (config.radioName || 'rowSelect') + '" value="' +
-                            (row[config.checkColumnData] != null ? row[config.checkColumnData] : '') + '">'
+                            (config.radioName || config.RadioName || 'rowSelect') + '" value="' +
+                            (row[checkColData] != null ? row[checkColData] : '') + '">'
                             : '<input type="checkbox" class="' + cls + '" data-id="' + (data != null ? data : '') + '" value="' +
                             (data != null ? data : '') + '">';
                     }
