@@ -171,13 +171,20 @@
                 return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
             },
 
-            getFilterValue: () => ({
-                CompanyCodes: utils.toArray($(companySelect).val()),
-                BranchCodes: utils.toArray($(branchSelect).val()),
-                DepartmentCodes: utils.toArray($(departmentSelect).val()),
-                DesignationCodes: utils.toArray($(designationSelect).val()),
-                EmployeeCodes: utils.toArray($(employeeSelect).val())
-            })
+            getFilterValue: () => {
+                const getArray = (val) => {
+                    if (!val) return [];
+                    return Array.isArray(val) ? val : [val];
+                };
+                return {
+                    companyCodes: getArray($(companySelect).val()),
+                    branchCodes: getArray($(branchSelect).val()),
+                    departmentCodes: getArray($(departmentSelect).val()),
+                    designationCodes: getArray($(designationSelect).val()),
+                    employeeCodes: getArray($(employeeSelect).val()),
+                    employeeStatus: $(activityStatusSelect).val() || ['01']
+                };
+            }
         };
 
         // Loading overlay setup
