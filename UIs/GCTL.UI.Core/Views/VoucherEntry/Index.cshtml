@@ -680,6 +680,15 @@
 
             <!-- Bottom Table Grid Column -->
             <div class="col-md-12">
+                <div class="d-flex justify-content-start align-items-center mb-2 gap-2">
+                    <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
+                    <div class="input-group input-group-sm" style="width: 320px;">
+                        <span class="input-group-text">Date From</span>
+                        <input type="date" class="form-control" id="dateFrom">
+                        <span class="input-group-text">To</span>
+                        <input type="date" class="form-control" id="dateTo">
+                    </div>
+                </div>
                 <div class="table-responsive grid-no-horizontal-scroll">
                     @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
                     {
