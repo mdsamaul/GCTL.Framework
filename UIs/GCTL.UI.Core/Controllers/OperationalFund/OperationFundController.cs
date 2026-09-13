@@ -149,9 +149,9 @@ namespace GCTL.UI.Core.Controllers
         #region Dropdown Section
 
         #region Accounts Head Dropdown
-        public async Task<IActionResult> GetAccountsHeadDD(string serviceTypeId)
+        public async Task<IActionResult> GetAccountsHeadDD(string serviceTypeId, string shipmentModeId)
         {
-            var headdata = await _service.GetAllAccountsHead(serviceTypeId);
+            var headdata = await _service.GetAllAccountsHead(serviceTypeId, shipmentModeId);
             return Json(headdata);
         }
         #endregion
@@ -180,7 +180,7 @@ namespace GCTL.UI.Core.Controllers
         }
         #endregion
 
-        #region Accounts Head Dropdown
+        #region Curencies Dropdown
         public async Task<IActionResult> GetCurenciesDD()
         {
             var currencies = await _service.GetAllCurencies();

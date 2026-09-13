@@ -406,13 +406,15 @@ namespace GCTL.Service.OperationalFund
         #region Dropdown
 
         #region Accounts Head Dropdown
-        public async Task<IEnumerable<SelectListItem>> GetAllAccountsHead(string serviceTypeId)
+        public async Task<IEnumerable<SelectListItem>> GetAllAccountsHead(string serviceTypeId, string shipmentModeId)
         {
-            var typelist = await _accountsHead.All().Where(e => e.ServiceTypeId == serviceTypeId).Select(t => new SelectListItem
-            {
-                Value = t.ExpenseHeadId.ToString(),
-                Text = t.ExpenseHead
-            }).ToListAsync();
+            var typelist = await _accountsHead.All()
+                .Where(e => e.ServiceTypeId == serviceTypeId && e.ExpenseTypeId == shipmentModeId)
+                .Select(t => new SelectListItem
+                {
+                    Value = t.ExpenseHeadId.ToString(),
+                    Text = t.ExpenseHead
+                }).ToListAsync();
 
             return typelist;
         }
@@ -673,7 +675,7 @@ namespace GCTL.Service.OperationalFund
                               into servicJoin
                                 from servic in servicJoin.DefaultIfEmpty()
                                 where tmp.Luser == currentUser
-                                orderby Convert.ToInt32(head.SerialNo)
+                                orderby tmp.ServiceTypeId, Convert.ToInt32(head.SerialNo)
 
                                 select new RequistionDetailsTmpVM
                                 {

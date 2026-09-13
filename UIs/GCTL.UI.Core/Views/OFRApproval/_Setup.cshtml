@@ -137,6 +137,55 @@
         font-weight: 700 !important;
     }
 
+    /* Uniform Font Size, Family, Weight & Alignment for Expense Table */
+    #expenseTableWrapper table,
+    #expenseTableWrapper table th,
+    #expenseTableWrapper table td,
+    #expenseTableWrapper table input,
+    #expenseTableWrapper table .form-control-sm,
+    #expenseTableWrapper table .subtotal-row td,
+    #expenseTableWrapper table .grand-total-row td,
+    #expenseTableWrapper table .btn {
+        font-size: 13px !important;
+    }
+
+    /* Table rows background clean white */
+    #expenseTableWrapper table tbody tr td,
+    #expenseTableWrapper table tbody tr.subtotal-row td,
+    #expenseTableWrapper table tbody tr.grand-total-row td,
+    #expenseTableWrapper table tbody tr.selected-row td,
+    #expenseTableWrapper table tbody tr:hover td {
+        background-color: #ffffff !important;
+    }
+
+    /* Remove number spinner buttons */
+    #expenseTableWrapper table input[type="number"]::-webkit-outer-spin-button,
+    #expenseTableWrapper table input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    #expenseTableWrapper table input[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        font-family: inherit !important;
+        font-variant-numeric: tabular-nums !important;
+        padding-right: 6px !important;
+    }
+
+    /* Align text: cell padding + input border + input padding-right */
+    #expenseTableWrapper table .subtotal-req,
+    #expenseTableWrapper table .subtotal-approval,
+    #expenseTableWrapper table .grand-total-req,
+    #expenseTableWrapper table .grand-total-approval {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        font-family: inherit !important;
+        font-variant-numeric: tabular-nums !important;
+        padding-right: 15px !important;
+    }
+
 </style>
 <div class="container-fluid py-0">
         <form id="tmpDetailsForm">
@@ -212,17 +261,15 @@
             </div>
         </form>
 
-        <div class="row mt-3">
+        <div class="row mt-2">
             <div class="col-12">
-                <fieldset class="custom-fieldset border rounded p-3 bg-white">
-                    <legend class="float-none w-auto px-2 fw-bold text-secondary small">Expenses in Detail</legend>
-
+                <div class="custom-fieldset border-0 rounded p-2 bg-white">
                     <div id="dataLoadContainer">
                         <div class="table-responsive" id="expenseTableWrapper" style="overflow:visible; max-height:none;">
                             <table class="table table-sm table-bordered align-middle shadow-sm">
                                 <thead class="table-light text-center">
                                     <tr class="small">
-                                        <th class="fw-bold text-center" style="width:5%">SL No.</th>
+                                        <th class="fw-bold text-center" style="width:5%">SN.</th>
                                         <th class="fw-bold text-start" style="width:15%">Expense Head</th>
                                         <th class="fw-bold text-center" style="width:5%">Is Rece.</th>
                                         <th class="fw-bold text-center" style="width:10%">Service Type</th>
@@ -238,7 +285,7 @@
                             </table>
                         </div>
                     </div>
-                </fieldset>
+                </div>
             </div>
         </div>
 </div>

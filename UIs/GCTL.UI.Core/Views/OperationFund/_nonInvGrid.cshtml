@@ -32,9 +32,9 @@
                 CustomGridWrapper = false,
                 Columns = new()
             {
-                new() { Data = "ofrNo", Header = "OFR No", Width = "12%", IsEditLink=true, EditSelectorClass="ofr-no-link text-decoration-underline",  },
+                new() { Data = "ofrNo", Header = "OFR No", Width = "12%", IsEditLink=true, EditSelectorClass="ofr-no-link text-decoration-underline", IsWrapable = false, IsCopyable = true },
                 new() { Data = "ofrDate", Header = "OFR Date", Width = "12%", RenderFn = "formatDate" },
-                new() { Data = "jobNo", Header = "Job No", Width = "12%", Align="left" },
+                new() { Data = "jobNo", Header = "Job No", Width = "12%", Align="left", IsWrapable = false, IsCopyable = true },
                 new() { Data = "customerName", Header = "Customer Name", Width = "20%", Align="left" },
                 new() { Data = "billingAddress", Header = "Billing Address", Width = "24%", Align = "left" },
                 new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "20%" }

@@ -1,4 +1,4 @@
-﻿using GCTL.Core.DataTables;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OperationalFund;
 using GCTL.Service.Pagination;
@@ -10,7 +10,7 @@ namespace GCTL.Service.OperationalFund
     {
         #region Dropdown
 
-        Task<IEnumerable<SelectListItem>> GetAllAccountsHead(string serviceTypeId);
+        Task<IEnumerable<SelectListItem>> GetAllAccountsHead(string serviceTypeId, string shipmentModeId);
         Task<IEnumerable<SelectListItem>> GetAllServiceType();
         Task<IEnumerable<SelectListItem>> GetAllCustomer();
         Task<IEnumerable<SelectListItem>> GetAllShipmentMode();

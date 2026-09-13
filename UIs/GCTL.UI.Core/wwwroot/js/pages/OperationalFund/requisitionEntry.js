@@ -1,4 +1,4 @@
-﻿//#region Renderers
+//#region Renderers
 // window.gctlRenderers.ofrLink = function (data, type, row) {
 //     return `<span class="ofr-no-link" style="cursor:pointer; text-decoration:underline;">${data ?? ''}</span>`;
 // };
@@ -90,6 +90,9 @@ function LoadRequisitionDetails(offrNo) {
             $('#Job-Qty').val(res.qty ?? '');
             $('#Job-Weight').val(res.weight ?? '');
             setCurrencyValue('#Job-Currencies', res.currencyID ?? '', true);
+            if (typeof loadAccountHeads === 'function') {
+                loadAccountHeads($('#ServiceType'));
+            }
         },
         error: function () {
             toastr.error('Failed to load requisition details!');

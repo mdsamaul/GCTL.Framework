@@ -96,8 +96,7 @@ td.col-select-cell {
     min-width: 45px !important;
     text-align: center !important;
     vertical-align: middle !important;
-    padding-left: 2px !important;
-    padding-right: 2px !important;
+    padding: 0 !important;
 }
 
 /* Cells (Compact by Default) */
@@ -324,6 +323,19 @@ mark.search-highlight {
 }
 
 /* 1-Click Copy Button & Floating Tooltip */
+.copy-wrapper {
+    display: inline-flex !important;
+    align-items: center;
+    vertical-align: middle;
+    white-space: nowrap !important;
+}
+
+.text-nowrap .target-text,
+td.text-nowrap .copy-wrapper,
+td.text-nowrap a.custom-grid-link {
+    white-space: nowrap !important;
+}
+
 .btn-copy-code {
     opacity: 0;
     color: #94a3b8;
@@ -332,9 +344,11 @@ mark.search-highlight {
     cursor: pointer;
     transition: opacity 0.15s;
     position: relative;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-tr:hover .btn-copy-code {
+td:hover .btn-copy-code {
     opacity: 1;
 }
 

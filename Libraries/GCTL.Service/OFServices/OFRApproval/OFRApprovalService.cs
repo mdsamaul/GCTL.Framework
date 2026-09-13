@@ -26,6 +26,7 @@ namespace GCTL.Service.OFRApproval
         private readonly IRepository<CfDefExpenseHead> _accountsHead;
         private readonly IRepository<Core_ServiceType> _serviceType;
         private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
+        private readonly IRepository<CoreBankAccountInformation> _bankAccountInfo;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
 
 
@@ -41,6 +42,7 @@ namespace GCTL.Service.OFRApproval
                 IRepository<Core_ServiceType> serviceType, 
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails, 
                 IRepository<AccSubSubsidiaryLedger> generalLedger, 
+                IRepository<CoreBankAccountInformation> bankAccountInfo,
                 IRepository<Sep_Documentation> sepDocumentation
             ) : base(genericRepository)
         {
@@ -54,6 +56,7 @@ namespace GCTL.Service.OFRApproval
             _serviceType = serviceType;
             _Tmpdetails = tmpdetails;
             _generalLedger = generalLedger;
+            _bankAccountInfo = bankAccountInfo;
             _sepDocumentation = sepDocumentation;
         }
         #endregion
@@ -255,12 +258,28 @@ namespace GCTL.Service.OFRApproval
         #region Bank Account Dropdown
         public async Task<IEnumerable<SelectListItem>> GetBankAccount(string value)
         {
-            return await _generalLedger.All().Where(e => e.SubsidiaryLedgerCodeNo == value)
-                .Select(e => new SelectListItem
-                {
-                    Value = e.SubSusidiaryLedgerCodeNo.ToString(),
-                    Text = e.SubSubsidiaryLedgerName
-                }).ToListAsync();
+            if (value == "Employee" || value == "10200300004")
+            {
+                return await _generalLedger.All()
+                    .Where(e => e.SubsidiaryLedgerCodeNo == "10200300004" && e.IsActive == "Y")
+                    .Select(e => new SelectListItem
+                    {
+                        Value = e.SubSusidiaryLedgerCodeNo.ToString(),
+                        Text = e.SubSubsidiaryLedgerName
+                    }).ToListAsync();
+            }
+
+            var query = from a in _generalLedger.All()
+                        join b in _bankAccountInfo.All()
+                            on a.SubSubsidiaryLedgerName equals b.AccountNo
+                        where a.SubsidiaryLedgerCodeNo == value || (value == "Bank" && a.SubsidiaryLedgerCodeNo == "10200400003")
+                        select new SelectListItem
+                        {
+                            Value = a.SubSusidiaryLedgerCodeNo.ToString(),
+                            Text = a.SubSubsidiaryLedgerName + " - " + b.AccountName
+                        };
+
+            return await query.ToListAsync();
         }
         #endregion
 

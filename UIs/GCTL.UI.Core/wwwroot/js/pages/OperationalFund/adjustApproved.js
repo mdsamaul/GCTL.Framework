@@ -370,7 +370,7 @@ function loadBankAccounts($cashBankSelect, selectedBank = null) {
     // Clear dropdown
     $bankSelect.empty().append('<option value="">Select Bank Account</option>');
 
-    if (!value || value === 'Cash' || value === 'Employee') {
+    if (!value || value === 'Cash') {
         $bankSelect.prop('disabled', true);
         return;
     }
