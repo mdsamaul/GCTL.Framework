@@ -50,7 +50,8 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: #6c757d;
+    /*    color: #6c757d;*/
+    color: #dc3545bd;
     padding: 0 4px;
     font-size: 14px;
 }
