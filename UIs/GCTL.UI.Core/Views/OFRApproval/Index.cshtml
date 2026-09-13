@@ -50,48 +50,90 @@
         flex: 1;
     }
 
-    .custom-fieldset {
-        position: relative;
-        border: 2px solid #ddd;
-        border-radius: 10px;
-        padding: 30px 20px 20px 20px;
-        margin: 20px 0;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    /* Flat & Crisp Design */
+    .custom-fieldset,
+    .custom-fieldset:hover,
+    .card,
+    .card:hover,
+    .btn,
+    .btn:hover,
+    .form-control,
+    .form-select,
+    .table,
+    .toolbar-container,
+    .sticky-bar {
+        box-shadow: none !important;
+        transform: none !important;
     }
 
-        .custom-fieldset legend {
-            position: absolute;
-            top: -14px;
-            left: 20px;
-            background-color: white;
-            padding: 0 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #727272;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: auto;
-        }
+    /* Make toolbar flat with crisp background, no shadow, subtle border */
+    .toolbar-container,
+    .toolbar-container.bg-white {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        box-shadow: none !important;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
 
-        .custom-fieldset input[type="submit"] {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background-color: #fff;
-            border: 2px solid #333;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    /* Crisp sections: clean white against #f8fafc app background with ultra-subtle crisp border */
+    .custom-fieldset {
+        position: relative;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        border-radius: 4px;
+        padding: 10px 14px 10px 14px;
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
+        background-color: #ffffff !important;
+    }
 
-            .custom-fieldset input[type="submit"]:hover {
-                background-color: #45a049;
-                border-color: #45a049;
-            }
+    .custom-fieldset legend {
+        display: none !important;
+    }
 
+    thead th,
+    div.dt-container table.dataTable thead th,
+    .custom-grid-table thead th {
+        background: #f8fafc !important;
+        background-image: none !important;
+        color: #334155 !important;
+        font-size: 12.5px;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0 !important;
+        border-top: none !important;
+    }
+
+    div.dt-container table.dataTable thead th.col-select-cell,
+    div.dt-container table.dataTable tbody td.col-select-cell,
+    .custom-grid-table thead th.col-select-cell,
+    .custom-grid-table tbody td.col-select-cell,
+    th.col-select-cell,
+    td.col-select-cell {
+        padding: 0 !important;
+    }
+
+    /* Crisp Bottom Navigation & Pagination */
+    .bottom-nav .card {
+        box-shadow: none !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        border-radius: 4px !important;
+        background-color: #ffffff !important;
+    }
+
+    div.dt-container .pagination .page-link {
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+    }
+
+    div.dt-container .pagination .page-item.active .page-link {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: #ffffff !important;
+    }
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid p-0">
     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
     {
         Title = "Operational Fund Requisition Approval",
@@ -99,18 +141,19 @@
         DeleteBtnId = "Req-DeleteBtn",
         ClearBtnId = "Approve-Clear"
     })
-    <fieldset class="custom-fieldset card p-2 pt-4">
-        <legend class="float-none w-auto px-2 fw-bold text-secondary small">Job Entry List</legend>
+    <div class="custom-fieldset card p-2 border-0">
         <partial name="_Grid" />
-    </fieldset>
+    </div>
 
-    <fieldset class="custom-fieldset card p-2">
+    <div class="custom-fieldset card p-2 border-0">
         <partial name="_Setup" />
-    </fieldset>
+    </div>
 
-    <fieldset class="custom-fieldset card p-2">
+    <div class="custom-fieldset card p-2 mb-0 border-0">
         <partial name="_nonInvGrid" />
-    </fieldset>
+    </div>
+
+    <partial name="_bottomNavigation"/>
 </div>
 
 @section Scripts {

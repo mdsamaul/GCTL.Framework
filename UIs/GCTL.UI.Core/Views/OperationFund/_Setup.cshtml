@@ -5,7 +5,7 @@
         width: auto;
     }
 
-    .form-control-sm, .form-select-sm
+    .form-control-sm, .form-select-sm,
     textarea.form-control-sm {
         font-size: 13px;
         padding: 2px 5px;
@@ -177,6 +177,53 @@
         font-weight: 700 !important;
     }
 
+    /* Uniform Font Size, Family, Weight & Alignment for Expense Table */
+    #expenseTable,
+    #expenseTable th,
+    #expenseTable td,
+    #expenseTable input,
+    #expenseTable .form-control-sm,
+    #expenseTable .subtotal-row td,
+    #expenseTable .grand-total-row td,
+    #expenseTable .btn {
+        font-size: 13px !important;
+    }
+
+    /* Table rows background clean white */
+    #expenseTable tbody tr td,
+    #expenseTable tbody tr.subtotal-row td,
+    #expenseTable tbody tr.grand-total-row td,
+    #expenseTable tbody tr.selected-row td,
+    #expenseTable tbody tr:hover td {
+        background-color: #ffffff !important;
+    }
+
+    /* Remove number spinner buttons */
+    #expenseTable input.tmp-amount::-webkit-outer-spin-button,
+    #expenseTable input.tmp-amount::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    #expenseTable input.tmp-amount {
+        -moz-appearance: textfield;
+        appearance: textfield;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        font-family: inherit !important;
+        font-variant-numeric: tabular-nums !important;
+        padding-right: 6px !important;
+    }
+
+    /* Align text: cell padding (0.5rem = 8px) + input border (1px) + input padding-right (6px) = 15px */
+    #expenseTable .subtotal-amount,
+    #expenseTable .grand-total-amount {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        font-family: inherit !important;
+        font-variant-numeric: tabular-nums !important;
+        padding-right: 15px !important;
+    }
+
 </style>
 <div class="container-fluid py-0">
     <form id="tmpDetailsForm">
@@ -314,31 +361,31 @@
         </div>
     </form>
 
-    <div class="row mt-3">
+    <div class="row mt-2">
         <div class="col-12">
-            <fieldset class="custom-fieldset border rounded p-3 bg-white">
-                <legend class="float-none w-auto px-2 fw-bold text-secondary small">Expenses in Detail</legend>
-
+            <div class="custom-fieldset border-0 rounded p-2 bg-white">
                 <div id="dataLoadContainer">
-                    <div class="table-responsive" id="expenseTableWrapper">
-                        <table class="table table-sm table-bordered align-middle shadow-sm">
-                            <thead class="table-light text-center">
-                                <tr class="small">
-                                    <th class="fw-bold text-center" style="width:5%">SL No.</th>
-                                    <th class="fw-bold text-center" style="width:25%">Expense Head</th>
-                                    <th class="fw-bold text-center" style="width:10%">Is Rece.</th>
-                                    <th class="fw-bold text-center" style="width:15%">Service Type</th>
-                                    <th class="fw-bold text-center" style="width:10%">Req. Amount</th>
-                                    <th class="fw-bold text-center" style="width:25%">Remarks</th>
-                                    <th class="fw-bold text-center" style="width:10%">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="small fw-bold text-black" id="expenseTableBody" style="font-size: 13px;">
-                            </tbody>
-                        </table>
-                    </div>
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
+                    {
+                        GridId = "expenseTable",
+                        ServerSide = false,
+                        ShowPagination = false,
+                        ShowSearchBox = false,
+                        CustomGridWrapper = false,
+                        Bordered = true,
+                        Columns = new()
+                        {
+                            new() { Data = "serialNo", Header = "SN.", Width = "5%", Sortable = false, Searchable = false, Align = "center" },
+                            new() { Data = "accountHeadName", Header = "Expense Head", Width = "25%", Sortable = false, Searchable = false, Align = "left" },
+                            new() { Data = "isReceivetable", Header = "Is Rece.", Width = "10%", Sortable = false, Searchable = false, Align = "center" },
+                            new() { Data = "serviceTypeName", Header = "Service Type", Width = "15%", Sortable = false, Searchable = false, Align = "center" },
+                            new() { Data = "amount", Header = "Req. Amount", Width = "10%", Sortable = false, Searchable = false, Align = "right" },
+                            new() { Data = "remark", Header = "Remarks", Width = "25%", Sortable = false, Searchable = false, Align = "left" },
+                            new() { Data = "action", Header = "Action", Width = "10%", Sortable = false, Searchable = false, Align = "center" }
+                        }
+                    })
                 </div>
-            </fieldset>
+            </div>
         </div>
     </div>
 </div>

@@ -6,6 +6,11 @@
 } *@
 
 <style>
+    th.col-select-cell,
+    td.col-select-cell {
+        padding: 0 !important;
+    }
+
     #employee-filter-grid tbody tr td:first-child {
         width: 5%;
         padding: 0;
@@ -54,7 +59,7 @@
     }
 
 
-    /* Flat Design */
+    /* Flat & Crisp Design */
     .custom-fieldset,
     .custom-fieldset:hover,
     .card,
@@ -63,34 +68,36 @@
     .btn:hover,
     .form-control,
     .form-select,
-    .table {
+    .table,
+    .toolbar-container,
+    .sticky-bar {
         box-shadow: none !important;
         transform: none !important;
     }
 
+    /* Make toolbar flat with crisp background, no shadow, subtle border */
+    .toolbar-container,
+    .toolbar-container.bg-white {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        box-shadow: none !important;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+
+    /* Crisp sections: clean white against #f8fafc app background with ultra-subtle crisp border */
     .custom-fieldset {
         position: relative;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
         border-radius: 4px;
-        padding: 18px 14px 12px 14px;
-        margin-top: 20px !important;
-        margin-bottom: 20px !important;
-        background-color: #fff;
+        padding: 10px 14px 10px 14px;
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
+        background-color: #ffffff !important;
     }
 
     .custom-fieldset legend {
-        position: absolute;
-        top: -11px;
-        left: 14px;
-        background-color: #fff;
-        padding: 0 8px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #475569;
-        border: 1px solid #e2e8f0;
-        border-radius: 3px;
-        width: auto;
-        margin-bottom: 0;
+        display: none !important;
     }
 
     thead th,
@@ -105,20 +112,37 @@
         border-top: none !important;
     }
 
+    div.dt-container table.dataTable thead th.col-select-cell,
+    div.dt-container table.dataTable tbody td.col-select-cell,
+    .custom-grid-table thead th.col-select-cell,
+    .custom-grid-table tbody td.col-select-cell,
+    th.col-select-cell,
+    td.col-select-cell {
+        padding: 0 !important;
+    }
+
+    /* Crisp Bottom Navigation & Pagination */
     .bottom-nav .card {
         box-shadow: none !important;
-        border: 1px solid #e2e8f0 !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
         border-radius: 4px !important;
+        background-color: #ffffff !important;
+    }
+
+    div.dt-container .pagination .page-link {
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+    }
+
+    div.dt-container .pagination .page-item.active .page-link {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: #ffffff !important;
     }
 </style>
 
 <div class="container-fluid p-0">
-    @* <div class="card rounded">
-        <div class="card-header bg-white px-2">
-            <partial name="_Toolbars" ></partial>
-        </div>
-    </div> *@
-    @* <partial name="_Toolbars" /> *@
     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
     {
         Title = "Operational Fund Requisition Entry",
@@ -126,18 +150,17 @@
         DeleteBtnId = "Req-DeleteBtn",
         ClearBtnId = "Req-Clear"
     })
-    <fieldset class="custom-fieldset card p-2 pt-4">
-        <legend class="float-none w-auto px-2 fw-bold text-secondary small">Job Entry List</legend>
+    <div class="custom-fieldset card p-2 border-0">
         <partial name="_Grid" />
-    </fieldset>
+    </div>
 
-    <fieldset class="custom-fieldset card p-2">
+    <div class="custom-fieldset card p-2 border-0">
         <partial name="_Setup" />
-    </fieldset>
+    </div>
 
-    <fieldset class="custom-fieldset card p-2 mb-0">
+    <div class="custom-fieldset card p-2 mb-0 border-0">
         <partial name="_nonInvGrid" />
-    </fieldset>
+    </div>
 
     <partial name="_bottomNavigation"/>
 </div>

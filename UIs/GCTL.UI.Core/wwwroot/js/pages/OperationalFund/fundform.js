@@ -49,21 +49,28 @@ function InitDropdown(url, selector, placeholder, callback) {
 }
 //#endregion
 
-//#region Load AccountHead based on ServiceType
+//#region Load AccountHead based on ServiceType and ShipmentMode
 function loadAccountHeads($serviceTypeSelect, selectedHead = null) {
-
-    let serviceTypeId = $serviceTypeSelect.val();
+    let serviceTypeId = $serviceTypeSelect ? $serviceTypeSelect.val() : $('#ServiceType').val();
+    let shipmentModeId = $('#ShipmentModeID').val();
     let $accountHeadSelect = $('#AccountHead');
 
     // Clear dropdown
-    $accountHeadSelect.empty().append('<option value="">Select Accounts Head</option>').prop('disabled', false);
-
-    if (!serviceTypeId) {
+    if (!shipmentModeId) {
+        $accountHeadSelect.empty().append('<option value="">Select Shipment Mode</option>');
         if (window.reinitCustomDropdownById) window.reinitCustomDropdownById('AccountHead');
         return;
     }
 
-    $.get('/OperationFund/GetAccountsHeadDD', { serviceTypeId: serviceTypeId }, function (res) {
+    if (!serviceTypeId) {
+        $accountHeadSelect.empty().append('<option value="">Select Accounts Head</option>');
+        if (window.reinitCustomDropdownById) window.reinitCustomDropdownById('AccountHead');
+        return;
+    }
+
+    $accountHeadSelect.empty().append('<option value="">Select Accounts Head</option>');
+
+    $.get('/OperationFund/GetAccountsHeadDD', { serviceTypeId: serviceTypeId, shipmentModeId: shipmentModeId }, function (res) {
         res.forEach(item => {
             $accountHeadSelect.append(
                 `<option value="${item.value}">${item.text}</option>`
@@ -161,6 +168,7 @@ $(document).on('click', 'input[name="jobSelect"]', function () {
                     toastr.error("Error generating Requisition No");
                 });
                 ClearTmpDetail();
+                loadAccountHeads($('#ServiceType'));
             },
             error: function () {
                 console.error("Error loading header data", xhr);
@@ -173,9 +181,10 @@ $(document).on('click', 'input[name="jobSelect"]', function () {
 
 //#region Clear Job Header Fileds
 function clearJobHeaderFields() {
-    $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo").val("");
+    $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo,#ShipmentModeID,#CustomerID").val("");
     setCurrencyValue('#Job-Currencies', '', true);
     // window.setSelect('#Job-Currencies', '', true);
+    loadAccountHeads($('#ServiceType'));
 }
 //#endregion
 
@@ -212,6 +221,8 @@ $(document).ready(function () {
     //Load list
     loadJobEntryList();
 
+    // Initial state for AccountHead
+    loadAccountHeads();
 });
 //#endregion
 

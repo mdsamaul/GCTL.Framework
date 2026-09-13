@@ -56,10 +56,12 @@
     CheckColumnData = "jobNo",
     DefaultSortColumn = "jobDate",
     DefaultSortDirection = "desc",
+    PageLengths = [5, 10, 25, 50, 100, -1],
+    DefaultPageLength = 5,
     CustomGridWrapper = false,
     Columns = new()
     {
-        new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left" },
+        new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left", IsWrapable = false, IsCopyable = true },
         new() { Data = "jobDate", Header = "Job Date", Width = "8%", RenderFn = "formatDate" },
         new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "12%" },
         new() { Data = "customerName", Header = "Customer", Width = "18%", Align = "left" },

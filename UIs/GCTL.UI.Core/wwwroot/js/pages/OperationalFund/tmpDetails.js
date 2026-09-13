@@ -116,7 +116,7 @@ function saveTmpDetails() {
 function ClearAfterClikButton() {
     //uncheck radion button
     $('.job-radio').prop('checked', false);
-    $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo,#Amount,#Remark").val("");
+    $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo,#Amount,#Remark,#ShipmentModeID,#CustomerID").val("");
     $("#Job-SearchInput,#Req-Search").val("");
     // Choices dropdowns reset
     const customSelectors = ['ServiceType', 'AccountHead', 'Customer', 'Job-ShipmentMode', 'Job-Currencies'];
@@ -131,16 +131,22 @@ function ClearAfterClikButton() {
     $('input[name="ReqSelect"]').prop('checked', false);
     LoadRequisitionList();
     loadJobEntryList();
+    if (typeof loadAccountHeads === 'function') {
+        loadAccountHeads();
+    }
 }
 function ClearFullForm() {
     $('.job-radio').prop('checked', false);
-    $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo,#Amount,#Remark").val("");
+    $("#Job-JoBNO,#Job-ShipmentModeInput,#Job-CustomerName,#Job-LCValue,#Job-InvoiceNo,#Job-InvoiceValue,#Job-HAWB,#Job-MatDescription,#Job-Qty,#Job-Weight,#Job-RequisitionNo,#Amount,#Remark,#ShipmentModeID,#CustomerID").val("");
     // Choices dropdowns reset
     const customSelectors = ['ServiceType', 'AccountHead', 'Customer', 'Job-ShipmentMode'];
     customSelectors.forEach(id => {
         if (window.clearCustomDropdownById) window.clearCustomDropdownById(id);
     });
     setCurrencyValue('#Job-Currencies', '', true);
+    if (typeof loadAccountHeads === 'function') {
+        loadAccountHeads();
+    }
 }
 function clearTmpForm() {
     $("#Amount,#Remark").val("");
@@ -273,7 +279,7 @@ $(document).ready(function () {
 //#region Load Tmp Details Table with live totals
 function loadTmpDetails() {
     $.get('/OperationFund/GetAllTmpVoucherDetails', function (res) {
-        const $tbody = $('#expenseTableBody');
+        const $tbody = $('#expenseTable tbody, #expenseTableBody');
         $tbody.html('');
 
         if (!res || res.length === 0) return;
@@ -298,7 +304,7 @@ function loadTmpDetails() {
                 $tbody.append(`
                     <tr>
                         <td class="text-center">${item.serialNo}</td>
-                        <td>${item.accountHeadName}</td>
+                        <td class="text-start">${item.accountHeadName}</td>
                         <td class="text-center">${item.isReceivetable ? 'Yes' : 'No'}</td>
                         <td class="text-center">${item.serviceTypeName}</td>
                         <td class="text-end">
@@ -308,7 +314,7 @@ function loadTmpDetails() {
                                    data-tc="${item.tc}"
                                    data-service-type="${serviceType}" />
                         </td>
-                        <td>
+                        <td class="text-start">
                             <input type="text"
                                    class="form-control form-control-sm tmp-remark"
                                    value="${item.remark ?? ''}"
@@ -325,7 +331,7 @@ function loadTmpDetails() {
 
             // Subtotal row
             $tbody.append(`
-                <tr class="subtotal-row" data-service-type="${serviceType}">
+                <tr class="subtotal-row table-light" data-service-type="${serviceType}">
                     <td colspan="4" class="text-end fs-8 fw-bold">
                         Subtotal
                     </td>
@@ -342,7 +348,7 @@ function loadTmpDetails() {
 
         // Grand Total row
         $tbody.append(`
-            <tr class="grand-total-row">
+            <tr class="grand-total-row table-secondary">
                 <td colspan="4" class="text-end fs-8 fw-bold">Grand Total</td>
                 <td class="grand-total-amount text-end fs-8 fw-bold">${grandTotal.toFixed(2)}</td>
                 <td colspan="2"></td>
@@ -357,7 +363,7 @@ function recalcTotals() {
     let grandTotal = 0;
 
     // subtotal per service type
-    $('#expenseTableBody tr').each(function () {
+    $('#expenseTable tbody tr, #expenseTableBody tr').each(function () {
         const $tr = $(this);
         if ($tr.hasClass('subtotal-row') || $tr.hasClass('grand-total-row')) return;
 
@@ -369,7 +375,7 @@ function recalcTotals() {
     });
 
     // Update subtotal rows & sum grand total
-    $('#expenseTableBody tr.subtotal-row').each(function () {
+    $('#expenseTable tbody tr.subtotal-row, #expenseTableBody tr.subtotal-row').each(function () {
         const serviceType = $(this).data('service-type');
         const subtotal = groupedTotals[serviceType] || 0;
         $(this).find('.subtotal-amount').text(subtotal.toFixed(2));
