@@ -257,6 +257,7 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
+
         [HttpGet]
         public async Task<IActionResult> GetContactPersonsForTable()
         {

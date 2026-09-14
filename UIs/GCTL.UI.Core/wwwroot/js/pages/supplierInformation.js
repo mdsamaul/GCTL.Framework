@@ -54,6 +54,7 @@
 
             select2DD();
             loadSNCId();
+            loadContactPersonsTable();
             loadBankAccountInfoTable();
             enterKeyNavigation();
             BankAccountInfoClearTable();
@@ -121,6 +122,8 @@
                             $('#AccountNo').val(data.accountNo);
                             $('#OpeningBalance').val(data.openingBalance);
                             $('#Remarks').val(data.remarks);
+
+                            loadContactPersonsTableForEdit(data.contactPerson1);
 
                             $('#LdateModifyHide').show();
                             $('#sectionBreak').show();
@@ -404,6 +407,7 @@
                         $(settings.formContainer).html(data);
                         // $('#EmployeeId').val(employeeId);
                         $.validator.unobtrusive.parse($(settings.formSelector));
+                        loadContactPersonsTable();
                     },
                     error: function (error) {
                         reject(error)
@@ -487,7 +491,7 @@
             $('#Optype').val('');
             $('#Remarks').val('');
 
-            clearCPSelection();
+            loadContactPersonsTable();
 
             // Reset dropdowns/selects to default (empty or first option)
             $('#SupplierCategoryId').val('').trigger('change');
@@ -552,245 +556,6 @@
             }
             return true;
         }
-        //#endregion
-
-        //#region CP - Optimized
-
-        let selectedCPs = [];
-        let allCPs = [];
-
-        $(document).ready(function () {
-            initializeCPDD();
-            loadCP();
-        });
-
-        function initializeCPDD() {
-            const $button = $('#contactPersonButton');
-            const $menu = $('#contactPersonMenu');
-
-            // Button click handler - consolidated
-            $button.on('click', function (e) {
-                e.stopPropagation();
-                // console.log("test");
-                if ($menu.is(':visible')) {
-                    $menu.hide();
-                } else {
-                    positionDropdown();
-                    $menu.show();
-                }
-            });
-
-            // Click outside to close
-            $(document).on('click', function (e) {
-                if (!$(e.target).closest('#contactPersonDropdown').length) {
-                    $menu.hide();
-                }
-            });
-
-            // Clear selection
-            $('#clearSelection').on('click', function (e) {
-                e.stopPropagation();
-                clearCPSelection();
-            });
-
-            $('#selectAllCP').on('change', function (e) {
-                e.stopPropagation();
-                const isChecked = $(this).prop('checked');
-                $('#contactPersonTableBody tr:visible .contact-checkbox').prop('checked', isChecked);
-                updateSelectedCPs();
-            });
-        }
-
-        function initContactPersonSearch() {
-            const $searchInput = $('#cpSearch');
-            if (!$searchInput.length) return;
-
-            let inputTimer = null;
-
-            $searchInput.off('input').on('input', function () {
-                clearTimeout(inputTimer);
-                inputTimer = setTimeout(() => {
-                    const searchTerm = $searchInput.val().toLowerCase().trim();
-                    filterContactPersonTable(searchTerm);
-                }, 200);
-            });
-        }
-
-        function filterContactPersonTable(searchTerm) {
-            if (!searchTerm) {
-                $('#contactPersonTableBody tr').show();
-                updateSelectAllCheckbox();
-                return;
-            }
-
-            $('#contactPersonTableBody tr').each(function () {
-                const text = $(this).text().toLowerCase();
-                $(this).toggle(text.includes(searchTerm));
-            });
-            updateSelectAllCheckbox();
-        };
-
-        function loadCP() {
-            $.ajax({
-                url: '/SupplierInformation/GetContactPersons',
-                type: 'GET',
-                success: function (response) {
-                    if (response.success && response.data) {
-                        allCPs = response.data; // Store for later use
-                        buildCPTable();
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('Error loading contact persons:', error);
-                }
-            });
-        }
-
-        function buildCPTable() {
-            data = allCPs;
-
-            const $tbody = $('#contactPersonTableBody');
-
-            if (!data.length) {
-                $tbody.html('<tr><td colspan="5" class="text-center text-middle text-muted p-3">No contact persons found</td></tr>');
-                return;
-            }
-
-            const rows = data.map(cp => {
-                const isSelected = selectedCPs.some(selected => selected.cpid === cp.cpid);
-                return `
-            <tr>
-                <td class="text-center align-middle"><input type="checkbox" class="contact-checkbox "
-                           value="${cp.cpid}" data-name="${cp.contactPersonName}"
-                           ${isSelected ? 'checked' : ''}></td>
-                <td>${cp.contactPersonName}</td>
-                <td class="text-nowrap">${cp.designation || ''}</td>
-                <td class="text-center">${cp.phone || ''}</td>
-                <td>${cp.email || ''}</td>
-            </tr>
-        `;
-            }).join('');
-
-            $tbody.html(rows);
-
-            $tbody.off('change', '.contact-checkbox').on('change', '.contact-checkbox', function () {
-                updateSelectedCPs();
-                updateSelectAllCheckbox();
-            });
-
-            initContactPersonSearch();
-            updateSelectAllCheckbox();
-        }
-
-        function updateSelectedCPs() {
-            selectedCPs = $('.contact-checkbox:checked').map(function () {
-                return { cpid: $(this).val(), name: $(this).data('name') };
-            }).get();
-
-            updateCPDisplay();
-            updateHiddenInput();
-        };
-
-        function updateSelectAllCheckbox() {
-            const $visibleCheckboxes = $('#contactPersonTableBody tr:visible .contact-checkbox');
-            const $selectAll = $('#selectAllCP');
-
-            if ($visibleCheckboxes.length === 0) {
-                $selectAll.prop('checked', false).prop('indeterminate', false);
-                return;
-            }
-
-            const checkedCount = $visibleCheckboxes.filter(':checked').length;
-
-            if (checkedCount === 0) {
-                $selectAll.prop('checked', false).prop('indeterminate', false);
-            } else if (checkedCount === $visibleCheckboxes.length) {
-                $selectAll.prop('checked', true).prop('indeterminate', false);
-            } else {
-                $selectAll.prop('checked', false).prop('indeterminate', true);
-            }
-        };
-
-        function updateCPDisplay() {
-            const $button = $('#contactPersonButton .selected-text');
-            const $clearBtn = $('#clearSelection');
-            const count = selectedCPs.length;
-
-            if (count === 0) {
-                $button.text('--Select Contact Person--');
-                $clearBtn.hide();
-            } else if (count === 1) {
-                $button.text(selectedCPs[0].name);
-                $clearBtn.show();
-            } else {
-                $button.html(`<span class="selected-count">${count} contacts selected</span>`);
-                $clearBtn.show();
-            }
-        };
-
-        function updateCPDisplay() {
-            const $button = $('#contactPersonButton .selected-text');
-            const $clearBtn = $('#clearSelection');
-            const count = selectedCPs.length;
-
-            if (count === 0) {
-                $button.text('--Select Contact Person--');
-                $clearBtn.hide();
-            } else if (count === 1) {
-                $button.text(selectedCPs[0].name);
-                $clearBtn.show();
-            } else {
-                $button.html(`<span class="selected-count">${count} contacts selected</span>`);
-                $clearBtn.show();
-            }
-        }
-
-        function updateHiddenInput() {
-            const cpids = selectedCPs.map(cp => cp.cpid).join(',');
-            $('#ContatPerson1').val(cpids);
-        }
-
-        function clearCPSelection() {
-            $('.contact-checkbox').prop('checked', false);
-            selectedCPs = [];
-            updateCPDisplay();
-            updateHiddenInput();
-            updateSelectAllCheckbox();
-        }
-
-        function setSelectedCP(cpids) {
-            if (!cpids) {
-                clearCPSelection();
-                return;
-            }
-
-            const cpidArray = cpids.split(',').map(id => id.trim());
-
-            selectedCPs = cpidArray
-                .map(cpid => allCPs.find(contact => contact.cpid === cpid))
-                .filter(cp => cp)
-                .map(cp => ({ cpid: cp.cpid, name: cp.contactPersonName }));
-
-            $('.contact-checkbox').each(function () {
-                $(this).prop('checked', cpidArray.includes($(this).val()));
-            });
-
-            updateCPDisplay();
-            updateHiddenInput();
-            updateSelectAllCheckbox();
-        }
-
-        const positionDropdown = () => {
-            const $btn = $('#contactPersonButton');
-            const $menu = $('#contactPersonMenu');
-            const top = $btn.offset().top - $(window).scrollTop();
-            const below = $(window).height() - top - $btn.outerHeight();
-            const showAbove = below < 300 && top > 300;
-
-            $menu.toggleClass('show-above', showAbove)
-                .toggleClass('show-below', !showAbove);
-        };
-
         //#endregion
 
         //#region Bank AccountInfoValue
@@ -932,6 +697,85 @@
                 },
                 error: function (e) {
                     console.log(e);
+                }
+            });
+        }
+
+        //#endregion
+
+        //#region Contact Person Table Dropdown
+
+        function loadContactPersonsTable() {
+            $.ajax({
+                url: '/SupplierInformation/GetContactPersonsForTable',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        var contactItems = response.data.map(function (c) {
+                            return {
+                                id: c.id,
+                                text: c.name,
+                                designation: c.designation,
+                                phone: c.phone,
+                                email: c.email
+                            };
+                        });
+
+                        setSelect(
+                            '#ContatPerson1',
+                            [],
+                            false,
+                            contactItems,
+                            true,
+                            'Select Contact Person(s)'
+                        );
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Error loading contact persons');
+                }
+            });
+        }
+
+        function loadContactPersonsTableForEdit(selectedContactPerson) {
+            $.ajax({
+                url: '/SupplierInformation/GetContactPersonsForTable',
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        var contactItems = response.data.map(function (c) {
+                            return {
+                                id: c.id,
+                                text: c.name,
+                                designation: c.designation,
+                                phone: c.phone,
+                                email: c.email
+                            };
+                        });
+
+                        var selectedValues = [];
+                        if (selectedContactPerson) {
+                            selectedValues = Array.isArray(selectedContactPerson)
+                                ? selectedContactPerson
+                                : selectedContactPerson.toString().split(',').map(x => x.trim()).filter(x => x);
+                        }
+
+                        setSelect(
+                            '#ContatPerson1',
+                            selectedValues,
+                            false,
+                            contactItems,
+                            true,
+                            'Select Contact Person(s)'
+                        );
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('Error loading contact persons');
                 }
             });
         }

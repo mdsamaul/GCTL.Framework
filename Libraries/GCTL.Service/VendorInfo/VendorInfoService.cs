@@ -340,6 +340,8 @@ namespace GCTL.Service.VendorInfo
         }
         #endregion
 
+        #region ContactPersonsForTable
+
         public async Task<CommonReturnViewModel> GetContactPersonsForTableAsync()
         {
             try
@@ -375,6 +377,7 @@ namespace GCTL.Service.VendorInfo
                 };
             }
         }
+        #endregion
 
     }
 }
