@@ -51,13 +51,13 @@
     justify-content: center;
     cursor: pointer;
     /*    color: #6c757d;*/
-    color: #dc3545bd;
+    color: #6c757d;
     padding: 0 4px;
     font-size: 14px;
 }
 
 .custom-dd-clear-icon {
-    color: #dc3545d1;
+    color: #6c757d;
     font-size: 18px;
     font-weight: normal;
     line-height: 1;
