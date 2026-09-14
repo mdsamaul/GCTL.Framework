@@ -80,7 +80,7 @@
                         <label class="form-label mb-0 text-end d-block" for="NoticeDesc">Details:</label>
                     </div>
                     <div class="col-10">
-                        <textarea class="form-control form-control-sm" id="NoticeDesc" name="NoticeDesc" rows="4" placeholder="Enter Notice Details" style="resize:none;"></textarea>
+                        <textarea class="form-control form-control-sm" id="NoticeDesc" name="NoticeDesc" rows="4" placeholder="Enter Notice Details" style="resize:none;" onkeydown="if(event.keyCode===13) { event.stopPropagation(); }"></textarea>
                     </div>
                 </div>
             </div>
