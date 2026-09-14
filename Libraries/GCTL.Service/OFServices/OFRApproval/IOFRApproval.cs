@@ -1,4 +1,4 @@
-﻿using GCTL.Core.DataTables;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OFRSection.OFRApproval;
 using GCTL.Service.Pagination;
@@ -33,7 +33,9 @@ namespace GCTL.Service.OFRApproval
 
         #region Where User Click on Bottom Grid Edit button
         Task<OFRApprovalMasterVM> GetRequisitionInputData(string jobNo);
+        Task<OFRApprovalMasterVM> GetRequisitionInputDataByOFRNo(string ofrNo);
         Task<bool> CopyDetailsToTmpTable(string jobNo, string? currentUserId, BaseViewModel model);
+        Task<bool> CopyDetailsToTmpTableByOFRNo(string ofrNo, string? currentUserId, BaseViewModel model);
         #endregion
 
     }

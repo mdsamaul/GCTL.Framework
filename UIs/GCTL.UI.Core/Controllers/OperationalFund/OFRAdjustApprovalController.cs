@@ -215,22 +215,37 @@ namespace GCTL.UI.Core.Controllers
 
         #region When Click Edit Button Then Load Data Input field
         [HttpGet]
-        public async Task<IActionResult> EditDetails(string jobno, BaseViewModel model)
+        public async Task<IActionResult> EditDetails(string ofrNo, string jobno, BaseViewModel model)
         {
             try
             {
                 string? currentUserID = LoginInfo?.Username;
 
-                // Get master data
-                var masterData = await _service.GetRequisitionMasterByJobNo(jobno);
+                OFRAdjustApprovalMasterVM? masterData = null;
+                bool detailsCopied = false;
 
-                if (masterData == null)
+                if (!string.IsNullOrEmpty(ofrNo))
                 {
-                    return Json(new { success = false, message = "No requisition found for this job no" });
+                    masterData = await _service.GetRequisitionMasterByOFRNo(ofrNo);
+                    if (masterData == null)
+                    {
+                        return Json(new { success = false, message = "No requisition found for this OFR No" });
+                    }
+                    detailsCopied = await _service.CopyDetailsToTmpByOFRNo(ofrNo, currentUserID, model);
                 }
-
-                // Copy details to temp table
-                bool detailsCopied = await _service.CopyDetailsToTmp(jobno, currentUserID, model);
+                else if (!string.IsNullOrEmpty(jobno))
+                {
+                    masterData = await _service.GetRequisitionMasterByJobNo(jobno);
+                    if (masterData == null)
+                    {
+                        return Json(new { success = false, message = "No requisition found for this job no" });
+                    }
+                    detailsCopied = await _service.CopyDetailsToTmp(jobno, currentUserID, model);
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Invalid request parameters" });
+                }
 
                 if (!detailsCopied)
                 {

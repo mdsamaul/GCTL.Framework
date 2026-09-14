@@ -660,17 +660,17 @@ $('#BillAdjust-SaveBtn').on('click', function () {
 //#region When User Click Bottom Grid job no Edit Button
 $(document).on('click', '.job-no', function () {
 
-    let jobno = $(this).data('id') || $(this).text().trim();
+    let ofrNo = $(this).data('id') || $(this).text().trim();
 
-    if (!jobno) {
-        toastr.warning("Invalid Job No");
+    if (!ofrNo) {
+        toastr.warning("Invalid OFR No");
         return;
     }
 
     $.ajax({
         url: "/OFRBillAdjust/EditButtonClicked",
         type: "GET",
-        data: { jobno: jobno },
+        data: { ofrNo: ofrNo },
         success: function (res) {
 
             console.log("Edit click response:", res);
@@ -703,7 +703,7 @@ $(document).on('click', '.job-no', function () {
 
 
             // Load temp details grid
-            TmpDetailsLoad(jobno);
+            TmpDetailsLoad(data.jobNo);
 
             toastr.success(res.message);
         },
