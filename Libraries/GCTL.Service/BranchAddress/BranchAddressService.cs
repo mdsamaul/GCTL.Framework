@@ -315,22 +315,22 @@ namespace GCTL.Service.BranchAddress
         #region Permission all type
         public async Task<bool> PagePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Branch Address" && x.TitleCheck);
+            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Vendor Info" && x.TitleCheck);
         }
 
         public async Task<bool> SavePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Branch Address" && x.CheckAdd);
+            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Vendor Info" && x.CheckAdd);
         }
 
         public async Task<bool> UpdatePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Branch Address" && x.CheckEdit);
+            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Vendor Info" && x.CheckEdit);
         }
 
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Branch Address" && x.CheckDelete);
+            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Vendor Info" && x.CheckDelete);
         }
         #endregion
 
@@ -345,7 +345,7 @@ namespace GCTL.Service.BranchAddress
             join d in desiRepo.All()
                 on cp.DesignationCode equals d.DesignationCode into dg
             from d in dg.DefaultIfEmpty()
-            select new ContactPersonTableDto
+            select new ContactPersonTableDto1
             {
                 Id = cp.Cpid,
                 Name = cp.ContactPersonName ?? "",

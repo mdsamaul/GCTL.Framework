@@ -3,6 +3,7 @@ using GCTL.Core.DataTables;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.SupplierInformation;
 using GCTL.Data.Models;
+using GCTL.Service.BranchAddress;
 using GCTL.Service.Common;
 using GCTL.Service.SupplierInformation;
 using GCTL.UI.Core.ViewModels.SupplierInformation;
@@ -496,6 +497,13 @@ namespace GCTL.UI.Core.Controllers
         }
 
         #endregion
+
+        [HttpGet]
+        public async Task<IActionResult> GetContactPersonsForTable()
+        {
+            var result = await supplierInformationService.GetContactPersonsForTableAsync();
+            return Json(result);
+        }
 
     }
 }

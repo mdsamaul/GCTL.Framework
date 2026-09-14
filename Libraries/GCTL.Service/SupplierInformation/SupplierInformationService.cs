@@ -1,5 +1,6 @@
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.SupplierInformation;
 using GCTL.Data.Models;
@@ -32,6 +33,7 @@ namespace GCTL.Service.SupplierInformation
         private readonly IRepository<InvDefSalesPerson> invDefSalesPersonRepository;
         private readonly IRepository<SalesSupplierBankAccountTemp> salesSupplierBankAccountTempRepo;
         private readonly IRepository<SalesSupplierBankAccount> salesSupplierBankAccountRepo;
+        private readonly IRepository<HrmDefDesignation> desiRepo;
         string strMaxNO = string.Empty;
 
         private const string TableName = "RMG_Def_Supplier";
@@ -54,7 +56,8 @@ namespace GCTL.Service.SupplierInformation
             IRepository<CoreBankAccountInformation> salesDefBankAccountInformationRepository,
             IRepository<InvDefSalesPerson> invDefSalesPersonRepository,
             IRepository<SalesSupplierBankAccountTemp> salesSupplierBankAccountTempRepo,
-            IRepository<SalesSupplierBankAccount> salesSupplierBankAccountRepo
+            IRepository<SalesSupplierBankAccount> salesSupplierBankAccountRepo,
+            IRepository<HrmDefDesignation> desiRepo
 
             ) 
             
@@ -75,6 +78,7 @@ namespace GCTL.Service.SupplierInformation
             this.invDefSalesPersonRepository = invDefSalesPersonRepository;
             this.salesSupplierBankAccountTempRepo = salesSupplierBankAccountTempRepo;
             this.salesSupplierBankAccountRepo = salesSupplierBankAccountRepo;
+            this.desiRepo = desiRepo;
         }
 
         #endregion
@@ -859,6 +863,45 @@ namespace GCTL.Service.SupplierInformation
             {
                 await salesSupplierBankAccountRepo.RollbackTransactionAsync();
                 throw;
+            }
+        }
+
+        #endregion
+
+        #region GetContactPersonsForTable
+
+        public async Task<CommonReturnViewModel> GetContactPersonsForTableAsync()
+        {
+            try
+            {
+                var data = await (
+            from cp in salesContactPersonRepository.All()
+            join d in desiRepo.All()
+                on cp.DesignationCode equals d.DesignationCode into dg
+            from d in dg.DefaultIfEmpty()
+            select new ContactPersonTableDto
+            {
+                Id = cp.Cpid.ToString(),
+                Name = cp.ContactPersonName ?? "",
+                Designation = d != null ? d.DesignationName : "",
+                Phone = cp.ContactPersonMobile ?? "",
+                Email = cp.ContactPersonEmail ?? ""
+            }).ToListAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = "Contact persons fetched successfully",
+                    Data = data
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = "Error fetching contact persons: " + ex.Message
+                };
             }
         }
 

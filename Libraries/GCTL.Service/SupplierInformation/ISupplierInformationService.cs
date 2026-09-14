@@ -1,4 +1,5 @@
 using GCTL.Core.DataTables;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.SupplierInformation;
 using System;
@@ -35,5 +36,8 @@ namespace GCTL.Service.SupplierInformation
         Task<bool> BankAccountInfoSaveEditAsync(SalesSupplierBankAccountTempDto bankAccountInfoSaveEdit);
         Task<bool> BankAccountInfoDeleteAsync(string sbaid);
         Task<bool> BankAccountInfoClearTableTempAsync();
+
+        Task<CommonReturnViewModel> GetContactPersonsForTableAsync();
+
     }
 }
