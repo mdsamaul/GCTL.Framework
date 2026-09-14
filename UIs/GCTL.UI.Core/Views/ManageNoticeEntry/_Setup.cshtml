@@ -24,8 +24,8 @@
     }
 </style>
 
-<div class="p-0">
-    <form id="notice-form" class="mt-2">
+<div class="p-0 pe-5 me-5">
+    <form id="notice-form" class="mt-2 pe-5">
         <input type="hidden" id="Tc" name="Tc" />
 
         <div class="row g-2 align-items-start">
@@ -73,19 +73,17 @@
                 ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
             })
 
-            @* Row 3: Left = Details | Right = Priority Level *@
-            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-            {
-                InputId = "NoticeDesc",
-                LabelText = "Details:",
-                FieldType = FieldType.Textarea,
-                Placeholder = "Enter Notice Details",
-                Rows = 4,
-                LabelInline = true,
-                LabelColWidth = 4,
-                LabelCssClass = "text-end d-block",
-                ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
-            })
+            @* Row 3: Details (Full Width) *@
+            <div class="col-12 mb-2">
+                <div class="row align-items-start gx-2">
+                    <div class="col-2">
+                        <label class="form-label mb-0 text-end d-block" for="NoticeDesc">Details:</label>
+                    </div>
+                    <div class="col-10">
+                        <textarea class="form-control form-control-sm" id="NoticeDesc" name="NoticeDesc" rows="4" placeholder="Enter Notice Details" style="resize:none;"></textarea>
+                    </div>
+                </div>
+            </div>
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
