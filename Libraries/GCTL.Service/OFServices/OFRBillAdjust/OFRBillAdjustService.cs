@@ -93,6 +93,39 @@ namespace GCTL.Service.OFRBillAdjust
 
             return await query.FirstOrDefaultAsync();
         }
+        public async Task<OFRBillAdjustMasterVM> GetRequisitionMasterByOFRNo(string ofrNo)
+        {
+            var query = from ofr in _repository.All()
+                        join doc in _documentation.All() on ofr.JobNo equals doc.JobNo
+                        join cust in _customer.All() on doc.CustomerId equals cust.CustomerId into custGroup
+                        from cust in custGroup.DefaultIfEmpty()
+                        join expType in _shipmentmode.All() on ofr.ExpenseTypeId equals expType.ExpenseTypeId into expTypeGroup
+                        from expType in expTypeGroup.DefaultIfEmpty()
+                        where ofr.Ofrno == ofrNo
+                        select new OFRBillAdjustMasterVM
+                        {
+                            OFRNo = ofr.Ofrno,
+                            JobNo = ofr.JobNo,
+                            OFRDate = ofr.Ofrdate,
+                            PortCharge = ofr.PortCharge,
+                            AsycodaCharge = ofr.AsycodaCharge,
+                            DutyChalanCharge = ofr.DutyByChallanCharge,
+                            ShipingCharge = ofr.ShippingCharge,
+                            BillAdjustModifiedDate = ofr.BillAdjustApproveModifyDate,
+                            BillAdjustApprovedDate = ofr.BillAdjustApproveDate,
+                            CustomerID = cust.CustomerId,
+                            CustomerName = cust.CustomerName ?? "",
+                            InvoiceNo = doc.InvoiceNo,
+                            Quantity = doc.Quntity1,
+                            ShipmentModeID = expType.ExpenseTypeId,
+                            ShipmentMode = expType.ExpenseType,
+                            LCValue = doc.Lcvalue,
+                            MaterialDescription = doc.MaterialDescription,
+                            Weight = doc.Quntity2
+                        };
+
+            return await query.FirstOrDefaultAsync();
+        }
         #endregion
 
         #region Get Requisition Details into Tmp Details
@@ -111,6 +144,48 @@ namespace GCTL.Service.OFRBillAdjust
                 await _Tmpdetails.DeleteRangeAsync(existingTmp);
 
             // Map to temporary table (use the Temp model)
+            var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
+            {
+                OfrDetailsId = d.OfrDetailsId,
+                Ofrno = d.Ofrno,
+                JobNo = d.JobNo,
+                ExpenseHeadId = d.ExpenseHeadId,
+                ServiceTypeId = d.ServiceTypeId,
+                EstimatedAmount = d.EstimatedAmount,
+                ActualAmount = d.ActualAmount,
+                DifferentAmount = d.DifferentAmount,
+                BillAdjustAmount = d.BillAdjustAmount,
+                Luser = currentUserId,
+                Ldate = DateTime.Now,
+                Lmac = model.Lmac,
+                Lip = model.Lip,
+                CompanyCode = d.CompanyCode,
+                EmployeeId = currentUserId,
+                ExpenseHeadRemarks = d.ExpenseHeadRemarks
+            }).ToList();
+
+            if (tmpDetails == null || !tmpDetails.Any())
+            {
+                throw new InvalidOperationException("Failed to map details to temporary table");
+            }
+            await _Tmpdetails.AddRangeAsync(tmpDetails);
+            return true;
+        }
+
+        public async Task<bool> CopyDetailsToTmpByOFRNo(string ofrNo, string? currentUserId, BaseViewModel model)
+        {
+            if (string.IsNullOrEmpty(currentUserId)) return false;
+
+            var details = await _details.All().Where(d => d.Ofrno == ofrNo).ToListAsync();
+            if (!details.Any()) return false;
+
+            var existingTmp = await _Tmpdetails.All()
+                .Where(x => x.Luser == currentUserId)
+                .ToListAsync();
+
+            if (existingTmp.Any())
+                await _Tmpdetails.DeleteRangeAsync(existingTmp);
+
             var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
             {
                 OfrDetailsId = d.OfrDetailsId,

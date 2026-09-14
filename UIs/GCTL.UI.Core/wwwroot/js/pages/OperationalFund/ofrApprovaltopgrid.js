@@ -264,8 +264,8 @@ function loadTmpDetails(jobNo) {
                         <td>
                             <select class="form-select form-select-sm cashbank-select" data-tc="${item.ofrDetailsID}">
                                 <option value="">Select...</option>
-                                <option value="10200400001">Cash</option>
-                                <option value="10200400003">Bank</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank">Bank</option>
                                 <option value="Employee">Employee</option>
                             </select>
                         </td>
@@ -279,9 +279,11 @@ function loadTmpDetails(jobNo) {
 
                 $tbody.append($row);
 
-                //Set Cash/Bank from API
-                $row.find('.cashbank-select').val(item.cashBank || '');
-
+                //Set Cash/Bank from API (handles "Bank", "10200400003", "Cash", "10200400001", "Employee")
+                let cbVal = item.cashBank || '';
+                if (cbVal === '10200400003') cbVal = 'Bank';
+                else if (cbVal === '10200400001') cbVal = 'Cash';
+                $row.find('.cashbank-select').val(cbVal);
 
                 //Load Bank Accounts and auto-select if any
                 loadBankAccounts($row.find('.cashbank-select'), item.bankAccount);
@@ -850,17 +852,17 @@ function ClearTmpDetail() {
 //#region When User Click Bottom Grid job no Edit Button
 $(document).on('click', '.job-no', function () {
 
-    let jobno = $(this).data('id') || $(this).text().trim();
+    let ofrNo = $(this).data('id') || $(this).text().trim();
 
-    if (!jobno) {
-        toastr.warning("Invalid Job No");
+    if (!ofrNo) {
+        toastr.warning("Invalid OFR No");
         return;
     }
 
     $.ajax({
         url: "/OFRApproval/EditButtonClicked",
         type: "GET",
-        data: { jobno: jobno },
+        data: { ofrNo: ofrNo },
         success: function (res) {
 
             console.log("Edit click response:", res);
@@ -887,7 +889,7 @@ $(document).on('click', '.job-no', function () {
             $("#Appro-Weight").val(data.weight);
 
             // Load temp details grid
-            loadTmpDetails(jobno);
+            loadTmpDetails(data.jobNo);
 
             toastr.success(res.message);
         },
