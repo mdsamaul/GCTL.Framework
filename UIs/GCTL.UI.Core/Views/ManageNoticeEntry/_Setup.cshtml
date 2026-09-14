@@ -1,7 +1,31 @@
 @using GCTL.UI.Core.ViewModels
 
-<div class="p-0">
-    <form id="notice-form" class="mt-2">
+<style>
+    .btn-glass-primary {
+        background: rgba(13, 110, 253, 0.1) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(13, 110, 253, 0.3) !important;
+        color: #0d6efd !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    .btn-glass-primary:hover {
+        background: rgba(13, 110, 253, 0.2) !important;
+        border-color: rgba(13, 110, 253, 0.5) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+        color: #0b5ed7 !important;
+    }
+    .btn-glass-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+</style>
+
+<div class="p-0 pe-5 me-5">
+    <form id="notice-form" class="mt-2 pe-5">
         <input type="hidden" id="Tc" name="Tc" />
 
         <div class="row g-2 align-items-start">
@@ -49,19 +73,17 @@
                 ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
             })
 
-            @* Row 3: Left = Details | Right = Priority Level *@
-            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
-            {
-                InputId = "NoticeDesc",
-                LabelText = "Details:",
-                FieldType = FieldType.Textarea,
-                Placeholder = "Enter Notice Details",
-                Rows = 4,
-                LabelInline = true,
-                LabelColWidth = 4,
-                LabelCssClass = "text-end d-block",
-                ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
-            })
+            @* Row 3: Details (Full Width) *@
+            <div class="col-12 mb-2">
+                <div class="row align-items-start gx-2">
+                    <div class="col-2">
+                        <label class="form-label mb-0 text-end d-block" for="NoticeDesc">Details:</label>
+                    </div>
+                    <div class="col-10">
+                        <textarea class="form-control form-control-sm" id="NoticeDesc" name="NoticeDesc" rows="4" placeholder="Enter Notice Details" style="resize:none;" onkeydown="if(event.keyCode===13) { event.stopPropagation(); }"></textarea>
+                    </div>
+                </div>
+            </div>
 
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
@@ -95,8 +117,8 @@
                 <div class="row align-items-center gx-2">
                     <div class="col-4"></div>
                     <div class="col-8">
-                        <button type="button" class="btn btn-default success-btn btn-sm" id="sendMail">
-                            Send Email
+                        <button type="button" class="btn btn-sm btn-glass-primary px-4 py-1 d-flex align-items-center justify-content-center gap-2" id="sendMail">
+                            <i class="bi bi-send"></i> Send Email
                         </button>
                     </div>
                 </div>
@@ -136,4 +158,4 @@
         </div>
     </form>
 </div>
-
+

@@ -32,6 +32,7 @@ namespace GCTL.UI.Core.Controllers
         private readonly IRepository<RmgDefSupplier> supplierInformationRepository;
         private readonly IRepository<InvDefSalesPerson> invDefSalesPersonRepository;
         private readonly IRepository<HrmDefDesignation> hrmDesignationRepository;
+        private readonly IRepository<CfDefVendorPrefix> vendorprifisxRep;
 
         string strMaxNO = string.Empty;
 
@@ -51,8 +52,8 @@ namespace GCTL.UI.Core.Controllers
             IRepository<SalesSupplierBankAccountTemp> salesSupplierBankAccountTempRepository,
             IRepository<RmgDefSupplier> supplierInformationRepository,
             IRepository<InvDefSalesPerson> invDefSalesPersonRepository,
-            IRepository<HrmDefDesignation> hrmDesignationRepository
-            
+            IRepository<HrmDefDesignation> hrmDesignationRepository,
+            IRepository<CfDefVendorPrefix> vendorprifisxRep
             )
         {
             this.supplierInformationService = supplierInformationService;
@@ -71,6 +72,7 @@ namespace GCTL.UI.Core.Controllers
             this.supplierInformationRepository = supplierInformationRepository;
             this.invDefSalesPersonRepository = invDefSalesPersonRepository;
             this.hrmDesignationRepository = hrmDesignationRepository;
+            this.vendorprifisxRep = vendorprifisxRep;
         }
 
         #endregion
@@ -99,6 +101,7 @@ namespace GCTL.UI.Core.Controllers
             ViewBag.SupplierBankDD = new SelectList(salesDefBankInfoRepository.All(), "BankId", "BankName");
             ViewBag.SupplierBankBranchDD = new SelectList(salesDefBankBranchInfoRepository.All(), "BankBranchId", "BankBranchName");
             ViewBag.SalesPersonDD = new SelectList(invDefSalesPersonRepository.All(), "SalesPersonId", "SalesPerson");
+            ViewBag.SupplierPreDD = new SelectList(vendorprifisxRep.All(), "VendorPrifixId", "PrifixName");
             ViewBag.ActiveDD = new SelectList(supplierInformationRepository.All()
 
         .Select(x => new
@@ -160,6 +163,7 @@ namespace GCTL.UI.Core.Controllers
             ViewBag.ContatPersonDD = new SelectList(salesContactPersonRepository.All(), "Cpid", "ContactPersonName");
             ViewBag.SupplierBankDD = new SelectList(salesDefBankInfoRepository.All(), "BankId", "BankName");
             ViewBag.SupplierBankBranchDD = new SelectList(salesDefBankBranchInfoRepository.All(), "BankBranchId", "BankBranchName");
+            ViewBag.SupplierPreDD = new SelectList(vendorprifisxRep.All(), "VendorPrifixId", "PrifixName");
             // ViewBag.SalesPersonDD = new SelectList(salesContactPersonRepository.All(), "Cpid", "ContactPersonName");
             ViewBag.ActiveDD = new SelectList(supplierInformationRepository.All().Select(x => new{
             Value = x.Active,

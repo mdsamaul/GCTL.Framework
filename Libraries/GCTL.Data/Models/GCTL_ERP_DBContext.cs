@@ -615,16 +615,16 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntry>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity
+                .HasNoKey()
+                .ToTable("Acc_VoucherEntry");
 
-            entity.ToTable("Acc_VoucherEntry");
-
+            entity.Property(e => e.ApprovedBy).HasMaxLength(50);
+            entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
-            entity.Property(e => e.ApprovedBy).HasMaxLength(50);
-            entity.Property(e => e.ApprovedDate).HasColumnType("datetime");
             entity.Property(e => e.BranchCode).HasMaxLength(50);
             entity.Property(e => e.CompanyCode).HasMaxLength(50);
             entity.Property(e => e.CostCenterCodeNo)
@@ -674,17 +674,17 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccVoucherEntryDetail>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity
+                .HasNoKey()
+                .ToTable("Acc_VoucherEntryDetails");
 
-            entity.ToTable("Acc_VoucherEntryDetails");
-
+            entity.Property(e => e.AccCode)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
-            entity.Property(e => e.AccCode)
-                .IsRequired()
-                .HasMaxLength(50);
             entity.Property(e => e.BankName).HasMaxLength(100);
             entity.Property(e => e.Branch).HasMaxLength(100);
             entity.Property(e => e.ChequeDate).HasColumnType("datetime");
@@ -2146,7 +2146,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("FactoryID");
             entity.Property(e => e.FirstName).HasMaxLength(100);
-            entity.Property(e => e.IsMobile).HasMaxLength(10);
+            entity.Property(e => e.IsMobile).HasMaxLength(50);
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
@@ -3355,13 +3355,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmEmpDigitalSignature>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("HRM_EmpDigitalSignature");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.AutoId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("autoId");
+            entity.ToTable("HRM_EmpDigitalSignature");
+
+            entity.Property(e => e.AutoId).HasColumnName("autoId");
             entity.Property(e => e.DigitalSignature)
                 .IsRequired()
                 .HasColumnType("image");
@@ -3842,13 +3840,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<HrmEmployeePhoto>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("HRM_EmployeePhoto");
+            entity.HasKey(e => e.AutoId);
 
-            entity.Property(e => e.AutoId)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("autoId");
+            entity.ToTable("HRM_EmployeePhoto");
+
+            entity.Property(e => e.AutoId).HasColumnName("autoId");
             entity.Property(e => e.EmployeeId)
                 .IsRequired()
                 .HasMaxLength(50)

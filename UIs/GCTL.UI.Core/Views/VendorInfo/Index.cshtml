@@ -272,6 +272,7 @@
                             SaveBtnClass = "js-VendorInfo-save",
                             DeleteBtnClass = "js-VendorInfo-delete-confirm",
                             ClearBtnClass = "js-VendorInfo-clear",
+                            ShowExtraContent = true,
                             ShowExtraContentLaptopOnly = true
                         })
                     </div>
@@ -317,7 +318,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 ven-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 <div class="js-VendorInfo-grid-container">
                     @await Html.PartialAsync("_CustomGrid", new GridModel
                     {

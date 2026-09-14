@@ -15,6 +15,28 @@ $(document).ready(function () {
     setDate("#VoucherDate", new Date());
     setDate("#StartDate", new Date());
     setDate("#EndDate", new Date());
+    
+    // Set default dates for the grid filter
+    var now = new Date();
+    var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    var formatYYYYMMDD = function(date) {
+        var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+        return [year, month, day].join('-');
+    };
+    $('#dateFrom').val(formatYYYYMMDD(firstDay));
+    $('#dateTo').val(formatYYYYMMDD(now));
+
+    // Reload grid on date change
+    $('#dateFrom, #dateTo').on('change', function () {
+        LoadVoucherEntriesTable();
+    });
+
     LoadVoucherTypeDropdown();
     LoadAccountHeadDropdown();
     VoucherEntryCompanyDropdown();
@@ -650,7 +672,13 @@ function LoadVoucherEntriesTable() {
         }
     } else {
         if (window.GctlGrid) {
-            window.GctlGrid.initFromModel({ gridId: 'voucherEntryTable' });
+            window.GctlGrid.initFromModel({ 
+                gridId: 'voucherEntryTable',
+                ajaxData: function (d) {
+                    d.fromDate = $('#dateFrom').val();
+                    d.toDate = $('#dateTo').val();
+                }
+            });
         }
     }
 }

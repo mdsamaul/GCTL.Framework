@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Email;
 using GCTL.Core.ViewModels.ManageNoticeEntries;
@@ -290,6 +290,9 @@ namespace GCTL.Service.ManageNoticeEntries
                             EmpNatureName = empNature.EmploymentNature
                         };
 
+            if (filter.CompanyCodes?.Any() == true)
+                query = query.Where(x => filter.CompanyCodes.Contains(x.CompanyCode));
+
             if (filter.BranchCodes?.Any() == true)
                 query = query.Where(x => filter.BranchCodes.Contains(x.BranchCode));
 
@@ -311,13 +314,6 @@ namespace GCTL.Service.ManageNoticeEntries
                     Name = c.CompanyName
                 }).ToListAsync();
 
-            var branch = await branchRepo.All().AsNoTracking()
-                .Select(c => new LookupItemDto
-                {
-                    Code = c.BranchCode,
-                    Name = c.BranchName
-                }).ToListAsync();
-
             result.Employees = filteredData.Select(x => new EmployeeListItemViewModel
             {
                 EmployeeId = x.EmployeeId,
@@ -333,7 +329,13 @@ namespace GCTL.Service.ManageNoticeEntries
             }).ToList();
 
             result.LookupData["companies"] = company;
-            result.LookupData["branches"] = branch;
+
+            result.LookupData["branches"] = filteredData
+                .Where(x => x.BranchCode != null && x.BranchName != null)
+                .Select(x => new LookupItemDto { Code = x.BranchCode, Name = x.BranchName })
+                .GroupBy(x => x.Code)
+                .Select(x => x.First())
+                .ToList();
 
             result.LookupData["employees"] = filteredData
                 .Where(x => x.EmployeeId != null)
@@ -342,19 +344,22 @@ namespace GCTL.Service.ManageNoticeEntries
                     Code = x.EmployeeId,
                     Name = string.Join(" ", new[] { x.FirstName, x.LastName }.Where(n => !string.IsNullOrWhiteSpace(n)))
                 })
-                .Distinct()
+                .GroupBy(x => x.Code)
+                .Select(x => x.First())
                 .ToList();
 
             result.LookupData["designations"] = filteredData
                 .Where(x => x.DesignationCode != null && x.DesignationName != null)
                 .Select(x => new LookupItemDto { Code = x.DesignationCode, Name = x.DesignationName })
-                .Distinct()
+                .GroupBy(x => x.Code)
+                .Select(x => x.First())
                 .ToList();
 
             result.LookupData["departments"] = filteredData
                 .Where(x => x.DepartmentCode != null && x.DepartmentName != null)
                 .Select(x => new LookupItemDto { Code = x.DepartmentCode, Name = x.DepartmentName })
-                .Distinct()
+                .GroupBy(x => x.Code)
+                .Select(x => x.First())
                 .ToList();
 
             return result;

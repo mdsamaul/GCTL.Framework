@@ -12,10 +12,58 @@
     window.gctlRenderers.renderActiveStatus = function (data, type, row) {
         return (data === "1" || data === 1) ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Hold</span>';
     };
+    window.gctlShowFileModal = function (fileUrl, fileName) {
+        let $modal = $('#gctlFileViewerModal');
+        if (!$modal.length) {
+            const modalHtml = `
+            <div class="modal fade" id="gctlFileViewerModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered">
+                    <div class="modal-content shadow-lg border-0">
+                        <div class="modal-header bg-light border-bottom-0 py-2">
+                            <h5 class="modal-title fs-6 fw-semibold text-secondary" id="gctlFileViewerModalTitle">File Viewer</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-0 text-center" style="height: 85vh; background: #e9ecef;">
+                            <div id="gctlFileViewerContent" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            $('body').append(modalHtml);
+            $modal = $('#gctlFileViewerModal');
+            
+            // Cleanup iframe on hide to stop audio/video if any
+            $modal.on('hidden.bs.modal', function () {
+                $('#gctlFileViewerContent').empty();
+            });
+        }
+        
+        $('#gctlFileViewerModalTitle').text(fileName);
+        const $content = $('#gctlFileViewerContent');
+        
+        // Show loading state briefly
+        $content.html('<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>');
+        
+        const ext = fileName.split('.').pop().toLowerCase();
+        const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+        
+        setTimeout(() => {
+            if (imgExts.includes(ext)) {
+                $content.html(`<img src="${fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="${fileName}" />`);
+            } else {
+                $content.html(`<iframe src="${fileUrl}" style="width: 100%; height: 100%; border: none;"></iframe>`);
+            }
+        }, 150);
+        
+        const modalInstance = new bootstrap.Modal($modal[0]);
+        modalInstance.show();
+    };
+
     window.gctlRenderers.renderNoticeFile = function (data, type, row) {
         if (!data?.trim()) return '<span class="text-muted small">No file</span>';
         const fileName = data.split(/[/\\]/).pop();
-        return `<a href="/NoticeDocument/${data}" target="_blank" class="file-link" title="Click to open ${fileName}"><i class="fas fa-paperclip me-1"></i>${fileName}</a>`;
+        const fileUrl = `/NoticeDocument/${data}`;
+        return `<a href="javascript:void(0)" onclick="window.gctlShowFileModal('${fileUrl}', '${fileName}')" class="file-link text-primary fs-5" title="Click to view ${fileName}"><i class="bi bi-eye-fill"></i></a>`;
     };
 
     $.noticeManagement = function (options) {
@@ -36,6 +84,7 @@
             departmentSelect = "#departmentSelect",
             designationSelect = "#designationSelect",
             employeeSelect = "#employeeSelect",
+            activityStatusSelect = "#activityStatusSelect",
             employeeGrid = "#employee-filter-grid",
             employeeGridBody = "#employee-filter-grid tbody",
             employeeCheckAll = "#employee-check-all",
@@ -72,7 +121,8 @@
             originalEmpId: null,
             selectedEmpIds: new Set(),
             selectedNoticeIds: new Set(),
-            isEditMode: false
+            isEditMode: false,
+            isProgrammaticChange: false
         };
 
         // Utility functions
@@ -121,13 +171,20 @@
                 return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
             },
 
-            getFilterValue: () => ({
-                CompanyCodes: utils.toArray($(companySelect).val()),
-                BranchCodes: utils.toArray($(branchSelect).val()),
-                DepartmentCodes: utils.toArray($(departmentSelect).val()),
-                DesignationCodes: utils.toArray($(designationSelect).val()),
-                EmployeeCodes: utils.toArray($(employeeSelect).val())
-            })
+            getFilterValue: () => {
+                const getArray = (val) => {
+                    if (!val) return [];
+                    return Array.isArray(val) ? val : [val];
+                };
+                return {
+                    companyCodes: getArray($(companySelect).val()),
+                    branchCodes: getArray($(branchSelect).val()),
+                    departmentCodes: getArray($(departmentSelect).val()),
+                    designationCodes: getArray($(designationSelect).val()),
+                    employeeCodes: getArray($(employeeSelect).val()),
+                    employeeStatus: $(activityStatusSelect).val() || ['01']
+                };
+            }
         };
 
         // Loading overlay setup
@@ -171,139 +228,119 @@
 
         // Dropdown management
         const dropdownManager = {
-            // populate: (selector, dataList) => {
-            //     const $select = $(selector);
-            //     dataList.forEach(item => {
-            //         if (item.code && item.name && $select.find(`option[value="${item.code}"]`).length === 0) {
-            //             $select.append(`<option value="${item.code}">${item.name}</option>`);
-            //         }
-            //         if (selector == companySelect) {
-            //             $select.val('001');
-            //         }
-            //     });
-            //     $select.multiselect('rebuild');
-            // },
+            populate: (selector, dataList) => {
+                const $select = $(selector);
+                
+                // Format data for setSelect (expects {id/value, text})
+                const mappedData = dataList.map(item => ({
+                    id: item.code,
+                    text: item.name
+                }));
+                
+                let instance = $select.data('customDdInstance');
+                // Read value from instance if possible, because the underlying <select> might be empty right now
+                let val = instance && instance.selected && instance.selected.length > 0 ? instance.selected[0] : $select.val();
+                let hasRealValue = val && (typeof val === 'string' ? val.trim() !== '' : val.length > 0);
+                
+                let hasData = instance && instance.data && instance.data.length > 0;
+                
+                // If the dropdown already has a user-selected value AND it already has its options loaded, do NOT rebuild it!
+                // This completely stops the "reload/flicker" effect when selecting an item, 
+                // while ensuring it still loads properly on the first page load!
+                if (hasRealValue && hasData) {
+                    return;
+                }
+                
+                // Ensure the underlying DOM <select> gets the new options!
+                // This is critical so that .val(val) succeeds and form submission works.
+                $select.empty();
+                dataList.forEach(item => {
+                    $select.append(`<option value="${item.code}">${item.name}</option>`);
+                });
+                if (val) $select.val(val);
 
-            // clearDependent: selectors => {
-            //     selectors.forEach(selector => {
-            //         $(selector).multiselect('deselectAll', false).empty().multiselect('rebuild');
-            //     });
-            // },
+                state.isProgrammaticChange = true;
+                if (typeof setSelect === "function") {
+                    setSelect(selector, val, false, mappedData);
+                } else {
+                    $select.val(val);
+                }
+                setTimeout(() => state.isProgrammaticChange = false, 50);
+            },
 
-            // setupCascading: () => {
-            //     const clearMap = {
-            //         [companySelect]: [branchSelect, departmentSelect, designationSelect, employeeSelect],
-            //         [branchSelect]: [departmentSelect, designationSelect, employeeSelect],
-            //         [departmentSelect]: [designationSelect, employeeSelect],
-            //         [designationSelect]: [employeeSelect]
-            //     };
+            clearDependent: selectors => {
+                state.isProgrammaticChange = true;
+                selectors.forEach(selector => {
+                    const $select = $(selector);
+                    $select.empty(); // Physically remove old options to prevent auto-selecting the first option
+                    
+                    if (typeof setSelect === "function") {
+                        setSelect(selector, '', false, []);
+                        const instance = $select.data('customDdInstance');
+                        if (instance) {
+                            instance.data = [];
+                            instance.selected = [];
+                            instance.$input.val(''); // Make sure the text input is cleared so the placeholder shows!
+                            instance._renderList([]);
+                        }
+                    }
+                });
+                setTimeout(() => state.isProgrammaticChange = false, 50);
+            },
 
-            //     Object.entries(clearMap).forEach(([parent, children]) => {
-            //         $(parent).off("change.clearDropdowns").on("change.clearDropdowns", () => {
-            //             dropdownManager.clearDependent(children);
-            //         });
-            //     });
-            // }
+            setupCascading: () => {
+                const clearMap = {
+                    [companySelect]: [branchSelect, departmentSelect, designationSelect, employeeSelect],
+                    [branchSelect]: [departmentSelect, designationSelect, employeeSelect],
+                    [departmentSelect]: [designationSelect, employeeSelect],
+                    [designationSelect]: [employeeSelect]
+                };
+
+                Object.entries(clearMap).forEach(([parent, children]) => {
+                    $(parent).off("change.clearDropdowns").on("change.clearDropdowns", () => {
+                        dropdownManager.clearDependent(children);
+                    });
+                });
+            }
         };
 
         // Employee grid management
         const employeeGridManager = {
             load: employees => {
-                if ($.fn.DataTable.isDataTable(employeeGrid) && state.empDataTable) {
-                    state.empDataTable.destroy();
-                    state.empDataTable = null;
+                let dt = $.gctlGrid.getTable('employee-filter-grid');
+                if (!dt) {
+                    dt = employeeGridManager.initDataTable();
                 }
 
-                const tableBody = $(employeeGridBody);
-                tableBody.empty();
+                if (dt) {
+                    // Update the state array before re-drawing if needed, though checkboxes will bind via delegate
+                    dt.clear();
+                    dt.rows.add(employees);
+                    dt.draw();
+                }
 
-                employees.forEach(emp => {
-                    const isOriginal = state.isEditMode && String(emp.employeeId) === String(state.originalEmpId);
-                    const checkboxAttrs = state.isEditMode ? 'disabled' : '';
-                    const checkedAttr = isOriginal ? 'checked' : '';
-
-                    const row = $(`
-                        <tr>
-                            <td class="text-center"><input type="checkbox" class="empSelect" ${checkboxAttrs} ${checkedAttr} /></td>
-                            <td class="p-1 text-center">${emp.employeeId}</td>
-                            <td class="p-1 text-start">${emp.employeeName}</td>
-                            <td class="p-1 text-start">${emp.designationName}</td>
-                            <td class="p-1 text-center">${emp.departmentName}</td>
-                            <td class="p-1 text-center">${emp.branchName}</td>
-                            <td class="p-1 text-center">${emp.employeeTypeName}</td>
-                            <td class="p-1 text-center">${emp.employmentNature}</td>
-                            <td class="p-1 text-center">${emp.joiningDate}</td>
-                            <td class="p-1 text-center">${emp.employeeStatus}</td>
-                        </tr>
-                    `);
-                    tableBody.append(row);
-                });
-
-                employeeGridManager.initDataTable();
                 if (state.isEditMode) $(employeeCheckAll).prop('disabled', true);
             },
 
             initDataTable: () => {
-                state.empDataTable = $(employeeGrid).DataTable({
-                    paging: true,
-                    pageLength: 10,
-                    lengthMenu: [[10, 25, 50, 100, 1000, -1], [10, 25, 50, 100, 1000, "All"]],
-                    lengthChange: true,
-                    info: true,
-                    autoWidth: false,
-                    responsive: true,
-                    language: {
-                        search: "🔍 Search:",
-                        lengthMenu: "Show _MENU_ entries",
-                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                        paginate: {
-                            first: "First",
-                            previous: "Prev",
-                            next: "Next",
-                            last: "Last"
-                        },
-                        emptyTable: "No data available",
-                        processing: "Loading data..."
-                    },
-                    columnDefs: [
-                        {
-                            targets: 0, orderable: false, className: 'no-sort',
-                            createdCell: function (td) {
-                                $(td).html(`
-                                    <div class="d-flex align-items-center justify-content-center h-100">
-                                        ${$(td).html()}
-                                    </div>
-                                `);
+                return $.gctlGrid.initFromModel({ 
+                    gridId: 'employee-filter-grid',
+                    extraOptions: {
+                        createdRow: function (row, data, dataIndex) {
+                            if (state.isEditMode && String(data.employeeId) === String(state.originalEmpId)) {
+                                $(row).find('.empSelect').prop('checked', true);
+                            }
+                            if (state.isEditMode) {
+                                $(row).find('.empSelect').prop('disabled', true);
                             }
                         },
-                        {
-                            targets: 8,
-                            render: function (data, type, row) {
-
-                                if (type === "sort" || type === "type") {
-                                    // Convert to timestamp for proper sorting
-                                    const parts = data.split('/');
-                                    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
-                                }
-
-                                return data; // display normally
-                            }
-                        }
-                    ],
-                    initComplete: function () {
-                        utils.hideLoading();
-                        $(employeeGrid).closest('.dataTables_wrapper')
-                            .find(customSearch).on('keyup', function () {
-                                state.empDataTable.search(this.value).draw();
+                        drawCallback: () => {
+                            $(`${employeeGridBody} input[type="checkbox"]`).each(function () {
+                                const empId = $(this).data('id') || $(this).val();
+                                $(this).prop('checked', state.selectedEmpIds.has(empId));
                             });
-
-                    },
-                    drawCallback: () => {
-                        $(`${employeeGridBody} input[type="checkbox"]`).each(function () {
-                            const empId = $(this).closest('tr').find('td:nth-child(2)').text().trim();
-                            $(this).prop('checked', state.selectedEmpIds.has(empId));
-                        });
-                        employeeGridManager.updateSelectAllState();
+                            employeeGridManager.updateSelectAllState();
+                        }
                     }
                 });
             },
@@ -316,7 +353,7 @@
 
             updateSelectedIds: () => {
                 $(`${employeeGridBody} input[type="checkbox"]`).each(function () {
-                    const empId = $(this).closest('tr').find('td:nth-child(2)').text().trim();
+                    const empId = $(this).data('id') || $(this).val();
                     state.selectedEmpIds[$(this).is(':checked') ? 'add' : 'delete'](empId);
                 });
             }
@@ -325,85 +362,18 @@
         // Notice grid management
         const noticeGridManager = {
             display: () => {
-                if ($.fn.DataTable.isDataTable(noticeGrid)) {
-                    $(noticeGrid).DataTable().clear().destroy();
-                }
-
-                $(noticeGrid).DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: { url: API.paginatedData, type: 'POST' },
-                    columns: [
-                        {
-                            data: null, orderable: false, className: 'text-center',
-                            render: (data, type, row) => `<input type="checkbox" data-id="${row.tc}"/>`
-                        },
-                        {
-                            data: 'noticeId', className: 'text-center',
-                            render: (data, type, row) => `<a href="#notice-form" class="notice-id-link" data-id="${row.tc}">${data}</a>`
-                        },
-                        { data: 'noticeTitle', className: 'text-left' },
-                        { data: 'noticeDesc', className: 'text-left' },
-                        {
-                            data: 'entryDate', className: 'text-center',
-                            render: data => utils.formatDate(data)
-                        },
-                        {
-                            data: 'priorityLevel', className: 'text-center',
-                            render: data => data === 1 ? '<span style="color: #b22222; font-weight: bold;">Important</span>' : 'Normal'
-                        },
-                        {
-                            data: 'status', className: 'text-center',
-                            render: data => data === "1" ? "Active" : 'Hold'
-                        },
-                        {
-                            data: 'filePath', className: 'text-center',
-                            render: data => {
-                                if (!data?.trim()) return '<span class="text-muted">No file</span>';
-                                const fileName = data.split(/[/\\]/).pop();
-                                return `<a href="/NoticeDocument/${data}" target="_blank" class="file-link" title="Click to open ${fileName}">${fileName}</a>`;
-                            }
+                $.gctlGrid.initFromModel({ 
+                    gridId: 'notice-grid',
+                    extraOptions: {
+                        drawCallback: () => {
+                            $(`${noticeGridBody} input[type="checkbox"]`).each(function () {
+                                const id = $(this).data('id') || $(this).val();
+                                $(this).prop('checked', state.selectedNoticeIds.has(id));
+                            });
+                            const total = $(`${noticeGridBody} input[type="checkbox"]`).length;
+                            const checked = $(`${noticeGridBody} input[type="checkbox"]:checked`).length;
+                            $(noticeCheckAll).prop('checked', total > 0 && total === checked);
                         }
-                    ],
-                    autoWidth: false, info: true, lengthChange: true,
-                    lengthMenu: [[10, 25, 50, 100, 1000, -1], [10, 25, 50, 100, 1000, "All"]],
-                    ordering: true, pageLength: 10, paging: true, responsive: true, order: [[1, 'desc']],
-                    scrollCollapse: true, scrollX: true, searching: true,
-                    columnDefs: [{
-                        targets: 0, orderable: false, className: 'no-sort',
-                        createdCell: function (td) {
-                            $(td).html(`
-                                 <div class="d-flex align-items-center justify-content-center h-100">
-                                    ${$(td).html()}
-                                </div>
-                            `);
-                        }
-                    }],
-                    language: {
-                        search: "🔍 Search:", lengthMenu: "Show _MENU_ entries",
-                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                        paginate: { first: "First", previous: "Prev", next: "Next", last: "Last" },
-                        emptyTable: "No data available", processing: "Loading data..."
-                    },
-                    initComplete: function () {
-                        const api = this.api();
-                        let debounceTimeout;
-                        $('.dataTables_filter input').off().on('input', function () {
-                            clearTimeout(debounceTimeout);
-                            const searchTerm = this.value;
-                            debounceTimeout = setTimeout(() => {
-                                api.search(searchTerm).page('first').draw('page');
-                            }, 500);
-                        });
-                    },
-                    drawCallback: () => {
-                        $(`${noticeGridBody} input[type="checkbox"]`).each(function () {
-                            const id = $(this).data('id');
-                            $(this).prop('checked', state.selectedNoticeIds.has(id));
-                        });
-                        const total = $(`${noticeGridBody} input[type="checkbox"]`).length;
-                        const checked = $(`${noticeGridBody} input[type="checkbox"]:checked`).length;
-                        $(noticeCheckAll).prop('checked', total > 0 && total === checked);
                     }
                 });
             },
@@ -430,14 +400,16 @@
                         const { lookupData, employees } = res;
                         employeeGridManager.load(employees);
 
-                        // if (lookupData.companies?.length) dropdownManager.populate(companySelect, lookupData.companies);
-                        // if (lookupData.departments?.length) dropdownManager.populate(departmentSelect, lookupData.departments);
-                        // if (lookupData.designations?.length) dropdownManager.populate(designationSelect, lookupData.designations);
-                        // if (lookupData.employees?.length) dropdownManager.populate(employeeSelect, lookupData.employees);
-                        // if (lookupData.branches?.length) dropdownManager.populate(branchSelect, lookupData.branches);
+                        if (lookupData) {
+                            if (lookupData.companies) dropdownManager.populate(companySelect, lookupData.companies);
+                            if (lookupData.departments) dropdownManager.populate(departmentSelect, lookupData.departments);
+                            if (lookupData.designations) dropdownManager.populate(designationSelect, lookupData.designations);
+                            if (lookupData.employees) dropdownManager.populate(employeeSelect, lookupData.employees);
+                            if (lookupData.branches) dropdownManager.populate(branchSelect, lookupData.branches);
+                        }
 
-                        // dropdownManager.setupCascading();
-                        // api.bindFilterEvents();
+                        dropdownManager.setupCascading();
+                        api.bindFilterEvents();
                     },
                     error: (xhr, status, error) => {
                         console.error("Error loading filtered employees:", error);
@@ -449,9 +421,20 @@
 
             bindFilterEvents: () => {
                 if (!state.filterChangeBound) {
-                    const selectors = [companySelect, branchSelect, departmentSelect, designationSelect, employeeSelect];
-                    $(selectors.join(',')).on("change.loadFilter", api.loadFilterEmp);
-                    state.filterChangeBound = true;
+                    // Bind change events to reload filter
+                    const filterSelectors = [companySelect, branchSelect, departmentSelect, designationSelect, employeeSelect, activityStatusSelect].join(',');
+                    $(filterSelectors).off("change.loadFilter").on("change.loadFilter", function () {
+                        // Prevent redundant calls on empty values during clearing
+                        if (state.isProgrammaticChange) return;
+
+                        if (!state.filterChangeBound) {
+                            state.filterChangeBound = true;
+                            setTimeout(() => {
+                                api.loadFilterEmp();
+                                state.filterChangeBound = false;
+                            }, 100);
+                        }
+                    });
                 }
             },
 
@@ -743,14 +726,6 @@
             $(`${companySelect}, ${departmentSelect}, ${designationSelect}`).on("change", api.loadFilterEmp);
         };
 
-        // Initialize employee grid
-        const initEmployeeGrid = () => {
-            //utils.showLoading();
-            setTimeout(() => {
-                if (state.empDataTable) state.empDataTable.destroy();
-                employeeGridManager.initDataTable();
-            }, 100);
-        };
 
         // Main initialization
         const init = () => {
@@ -770,7 +745,6 @@
             }
 
             bindEvents();
-            initEmployeeGrid();
             api.loadFilterEmp();
             api.loadNoticeId();
             api.loadNoticeData();

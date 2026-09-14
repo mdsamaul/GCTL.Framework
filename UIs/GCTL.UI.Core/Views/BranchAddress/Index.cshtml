@@ -272,6 +272,7 @@
                             SaveBtnClass = "js-BranchAddress-save",
                             DeleteBtnClass = "js-BranchAddress-delete-confirm",
                             ClearBtnClass = "js-BranchAddress-clear",
+                            ShowExtraContent = true,
                             ShowExtraContentLaptopOnly = true
                         })
                     </div>
@@ -317,7 +318,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 ba-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "BranchAddress-grid",
