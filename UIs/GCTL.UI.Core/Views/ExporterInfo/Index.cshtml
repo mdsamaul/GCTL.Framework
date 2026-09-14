@@ -95,6 +95,33 @@
         min-width: 0 !important;
     }
 
+    /* ==========================================================================
+       Uniform Height (31px) & Typography for ALL Inputs, Selects, and Dropdowns
+       ========================================================================== */
+    .ex-field-col .input-group,
+    .ex-field-col .form-control,
+    .ex-field-col .form-select,
+    .ex-field-col select,
+    .ex-field-col .select2-container,
+    .ex-field-col .select2-container .select2-selection--single,
+    .ex-field-col .select2-container .select2-selection--multiple {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .ex-field-col .form-control,
+    .ex-field-col .form-select,
+    .ex-field-col .select2-container .select2-selection--single,
+    .ex-field-col .select2-container .select2-selection--multiple {
+        border-radius: 4px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0 8px !important;
+    }
+
     /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
     .ex-layout-form-col .card-body {
         padding: 12px 18px !important;
@@ -112,12 +139,12 @@
         left: calc(100% + 4px) !important;
         top: 0 !important;
         bottom: 0 !important;
-        height: 100% !important;
-        min-height: 28px !important;
-        max-height: 34px !important;
-        width: 20px !important;
-        min-width: 20px !important;
-        max-width: 20px !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
         padding: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
@@ -162,6 +189,7 @@
     /* Small / Mobile Screens fallback */
     @@media (max-width: 767.98px) {
         .ex-field-col .field-fixed-width {
+            width: 100% !important;
             gap: 8px !important;
         }
 
@@ -179,80 +207,6 @@
         }
     }
 
-    /* Responsive layout:
-       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
-       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
-    */
-    @@media (max-width: 1600px) {
-        .ex-layout-form-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            margin-bottom: 1rem;
-        }
-
-        .ex-layout-grid-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            padding-bottom: 1.5rem !important;
-        }
-
-        .ex-field-col {
-            flex: 0 0 25% !important;
-            max-width: 25% !important;
-        }
-
-        .ex-toolbar-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-    }
-
-    @@media (min-width: 1600.02px) {
-        .ex-layout-form-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ex-layout-grid-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ex-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ex-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
-    @@media (max-width: 991.98px) {
-        .ex-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ex-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
-    @@media (max-width: 575.98px) {
-        .ex-field-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-
-        .ex-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
 </style>
 
 <!-- Content Header (Page header) -->
@@ -261,32 +215,15 @@
 <section class="content consistent-look">
     <div class="">
         <div class="row g-2">
-
-            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
-            <div class="col-12 col-xxl-6 ex-layout-form-col">
-                <div class="card rounded shadow-sm">
-                    <div class="card-header p-0">
-                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                        {
-                            Title = "Exporter Info",
-                            SaveBtnClass = "js-ExporterInfo-save",
-                            DeleteBtnClass = "js-ExporterInfo-delete-confirm",
-                            ClearBtnClass = "js-ExporterInfo-clear",
-                            ShowExtraContentLaptopOnly = true
-                        })
+            <div class="col-12" id="exporterInfoFormContainer">
+                <form asp-action="Setup" method="post" id="ExporterInfo-form" asp-controller="ExporterInfo">
+                    <div class="js-ExporterInfo-form-container">
+                        <partial name="_Setup" model="Model.Setup" />
                     </div>
-                    <div class="card-body px-2">
-                        <form asp-action="Setup" method="post" id="ExporterInfo-form" asp-controller="ExporterInfo">
-                            <div class="js-ExporterInfo-form-container">
-                                <partial name="_Setup" model="Model.Setup" />
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                </form>
             </div>
 
-            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 ex-layout-grid-col">
+            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 mt-3" id="exporterInfoList">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",
@@ -309,7 +246,6 @@
                     }
                 })
             </div>
-
         </div>
 
         <partial name="_BottomNavigation" />

@@ -50,38 +50,96 @@
 }
 
 .form-container-responsive .form-control,
-.form-container-responsive .form-select {
-    font-size: var(--ratio-font-input);
-    padding: 0.375rem 0.75rem;
-    height: 36px;
-    border-radius: 0.375rem;
-    line-height: 1.5;
+.form-container-responsive .form-select,
+.form-container-responsive .select2-container .select2-selection--single,
+.form-container-responsive .select2-container .select2-selection--multiple {
+    font-size: 13px !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    max-height: 31px !important;
+    line-height: 29px !important;
+    border-radius: 4px !important;
+    box-sizing: border-box !important;
     box-shadow: none;
 }
 
-/* Responsive Detached Action Button (.js-quick-add / + button) */
-.detached-action-btn,
-.js-quick-add {
-    height: clamp(30px, 2.3vw, 32px) !important;
-    min-width: clamp(30px, 2.3vw, 32px) !important;
-    width: clamp(30px, 2.3vw, 32px) !important;
+/* Global Quick-Add (+) Button styling and position within .field-fixed-width gap */
+.field-fixed-width {
+    width: calc(100% - 32px) !important;
+    padding-right: 0 !important;
+    position: relative !important;
+}
+
+.field-fixed-width > .detached-action-btn,
+.field-fixed-width > .js-quick-add {
+    position: absolute !important;
+    left: calc(100% + 4px) !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    max-height: 31px !important;
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px !important;
     padding: 0 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: clamp(0.7rem, 0.75vw, 13px) !important;
-    border-radius: 0.375rem !important;
-    flex-shrink: 0 !important;
-    transition: all 0.15s ease-in-out;
+    z-index: 5 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: #495057 !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
 }
 
-@media (max-width: 1400px) {
-    .detached-action-btn,
-    .js-quick-add {
-        height: 26px !important;
-        min-width: 26px !important;
-        width: 26px !important;
-        font-size: 13px !important;
+.field-fixed-width > .detached-action-btn:hover,
+.field-fixed-width > .js-quick-add:hover {
+    border: 0 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    background: #e9ecef !important;
+    color: #0d6efd !important;
+}
+
+.field-fixed-width > .detached-action-btn:focus,
+.field-fixed-width > .js-quick-add:focus,
+.field-fixed-width > .detached-action-btn:active,
+.field-fixed-width > .js-quick-add:active {
+    border: 0 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.field-fixed-width > .detached-action-btn i,
+.field-fixed-width > .js-quick-add i {
+    font-size: 11px !important;
+}
+
+@media (max-width: 767.98px) {
+    .field-fixed-width {
+        width: 100% !important;
+        gap: 8px !important;
+    }
+
+    .field-fixed-width > .input-group {
+        flex: 1 1 auto !important;
+        width: auto !important;
+    }
+
+    .field-fixed-width > .detached-action-btn,
+    .field-fixed-width > .js-quick-add {
+        position: static !important;
+        transform: none !important;
+        width: 28px !important;
+        min-width: 28px !important;
     }
 }
 
