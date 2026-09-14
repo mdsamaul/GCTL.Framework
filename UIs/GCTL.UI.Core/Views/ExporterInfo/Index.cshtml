@@ -263,7 +263,7 @@
         <div class="row g-2">
 
             <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
-            <div class="col-12 col-xxl-6 ex-layout-form-col">
+            <div class="col-12 col-xxl-6 im-layout-form-col">
                 <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
@@ -272,6 +272,7 @@
                             SaveBtnClass = "js-ExporterInfo-save",
                             DeleteBtnClass = "js-ExporterInfo-delete-confirm",
                             ClearBtnClass = "js-ExporterInfo-clear",
+                            ShowExtraContent = true,
                             ShowExtraContentLaptopOnly = true
                         })
                     </div>
@@ -286,7 +287,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 ex-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",
