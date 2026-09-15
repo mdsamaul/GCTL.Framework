@@ -1652,6 +1652,12 @@
                     </div>
                 </div>
 
+                <!-- Hidden fields for editing existing document -->
+                <input type="hidden" id="editDocCode" value="" />
+                <input type="hidden" id="editAutoId" value="" />
+                <input type="hidden" id="editFilePath" value="" />
+                <input type="hidden" id="editFileName" value="" />
+
                 <div class="table-responsive scrollbar mb-3">
                     <table class="table table-bordered table-sm fs-9 mb-0" id="documentTable">
                         <thead class="bg-light text-center">
@@ -1673,9 +1679,17 @@
 
                 <div class="row g-3 sep-doc-fields-row align-items-start mt-2">
                     <div class="col-lg-4 col-md-4">
-                        <label class="form-label fw-bold">Upload File</label>
-                        <input type="file" class="form-control form-control-sm" id="uploadFile" />
-                        <small class="text-primary fw-bold d-block mt-1">Max Size 15 MB</small>
+                        <label class="form-label fw-bold" for="uploadFile">Upload File</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="file" class="form-control form-control-sm" id="uploadFile" />
+                            <a href="javascript:void(0);" id="btnPreviewSelectedFile" class="btn btn-sm btn-outline-primary py-0 px-2 d-inline-flex align-items-center gap-1 shadow-none flex-shrink-0" style="font-size: 11px; height: 31px; line-height: 29px;" title="Preview File">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1 flex-wrap gap-1">
+                            <small class="text-primary fw-bold">Max Size 15 MB</small>
+                            <span id="currentFileBadge" class="badge bg-light text-dark border d-none py-1 px-2" style="font-weight: 500; font-size: 11px;"></span>
+                        </div>
                     </div>
 
                     <div class="col-lg-4 col-md-4">

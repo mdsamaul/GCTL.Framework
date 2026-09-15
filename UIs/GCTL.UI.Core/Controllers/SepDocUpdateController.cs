@@ -27,8 +27,6 @@ namespace GCTL_App.Controllers
         private readonly IGenericRepository<CfDefShedYard> _shedYardRepository;
         private readonly IGenericRepository<SalesDefImporterInfo> _importerInfoRepository;
         private readonly IGenericRepository<SepDocumentation> _documentUploadRepository;
-        private readonly IGenericRepository<SepDocumentInfo> _documentInfoRepository;
-        private readonly IGenericRepository<SalesCustomer> _customerRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public SepDocUpdateController(
@@ -41,8 +39,6 @@ namespace GCTL_App.Controllers
             IGenericRepository<CfDefShedYard> shedYardRepository,
             IGenericRepository<SalesDefImporterInfo> importerInfoRepository,
             IGenericRepository<SepDocumentation> documentUploadRepository,
-            IGenericRepository<SepDocumentInfo> documentInfoRepository,
-            IGenericRepository<SalesCustomer> customerRepository,
             IWebHostEnvironment webHostEnvironment) : base()
         {
             _service = service;
@@ -54,8 +50,6 @@ namespace GCTL_App.Controllers
             _shedYardRepository = shedYardRepository;
             _importerInfoRepository = importerInfoRepository;
             _documentUploadRepository = documentUploadRepository;
-            _documentInfoRepository = documentInfoRepository;
-            _customerRepository = customerRepository;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -258,68 +252,15 @@ namespace GCTL_App.Controllers
         [ModulePermission]
         public async Task<IActionResult> GetJobDetailsForUpload(string jobNo)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(jobNo))
-                    return Json(new { success = false, message = "Job No is required." });
-
-                var job = await _documentUploadRepository.All()
-                    .Where(x => x.JobNo == jobNo)
-                    .OrderByDescending(x => x.Tc)
-                    .FirstOrDefaultAsync();
-
-                if (job == null)
-                    return Json(new { success = false, message = "Job not found." });
-
-                string customerName = "";
-                if (!string.IsNullOrEmpty(job.CustomerId))
-                {
-                    var customer = await _customerRepository.All()
-                        .Where(c => c.CustomerId == job.CustomerId)
-                        .Select(c => c.CustomerName)
-                        .FirstOrDefaultAsync();
-                    customerName = customer ?? "";
-                }
-
-                return Json(new
-                {
-                    success = true,
-                    jobNo = job.JobNo,
-                    date = job.Date.HasValue ? job.Date.Value.ToString("dd/MM/yyyy") : "",
-                    customerName = customerName,
-                    customerAddress = job.CustomerAddress ?? ""
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
+            var result = await _service.GetJobDetailsForUploadAsync(jobNo);
+            return Json(result);
         }
 
         [HttpGet]
         [ModulePermission]
         public async Task<IActionResult> GetJobDocuments(string jobNo)
         {
-            if (string.IsNullOrWhiteSpace(jobNo))
-                return Json(new List<object>());
-
-            var result = await _documentInfoRepository.All()
-                .Where(d => d.JobNo == jobNo)
-                .OrderBy(d => d.DocCode)
-                .Select(d => new
-                {
-                    autoId = d.AutoId,
-                    docCode = d.DocCode,
-                    jobNo = d.JobNo,
-                    documentName = d.DocumentName ?? "",
-                    documentDiscription = d.DocumentDiscription ?? "",
-                    documentType = d.DocumentType ?? "",
-                    filePath = !string.IsNullOrEmpty(d.DocumentType) ? "/DocumentInfo/" + d.DocumentType : "",
-                    lDate = d.Ldate.HasValue ? d.Ldate.Value.ToString("dd/MM/yyyy hh:mm tt") : "",
-                    modifyDate = d.ModifyDate.HasValue ? d.ModifyDate.Value.ToString("dd/MM/yyyy hh:mm tt") : ""
-                })
-                .ToListAsync();
-
+            var result = await _service.GetJobDocumentsAsync(jobNo);
             return Json(result);
         }
 
@@ -330,75 +271,29 @@ namespace GCTL_App.Controllers
             [FromForm] string JobNo, 
             [FromForm] string DocumentName,
             [FromForm] string Description, 
-            IFormFile uploadFile)
+            [FromForm] string? DocCode,
+            IFormFile? uploadFile)
         {
-            try
+            var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            var request = new SepDocumentUploadRequest
             {
-                if (string.IsNullOrWhiteSpace(JobNo))
-                    return Json(ApiResponse.Error("Job No is required."));
+                JobNo = JobNo,
+                DocumentName = DocumentName,
+                Description = Description,
+                DocCode = DocCode,
+                UploadFile = uploadFile,
+                CompanyCode = LoginInfo?.CompanyCode ?? "001",
+                UserId = LoginInfo?.EmployeeId ?? LoginInfo?.Username ?? "Admin",
+                IpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "",
+                WebRootPath = webRoot
+            };
 
-                if (string.IsNullOrWhiteSpace(DocumentName))
-                    return Json(ApiResponse.Error("Document Name is required."));
-
-                if (uploadFile == null || uploadFile.Length == 0)
-                    return Json(ApiResponse.Error("Please select a file to upload."));
-
-                if (uploadFile.Length > 15 * 1024 * 1024)
-                    return Json(ApiResponse.Error("File size exceeds the 15 MB limit."));
-
-                // 1. Generate 8-digit DocCode (e.g. 00000001, 00000002, ...)
-                var allDocCodes = await _documentInfoRepository.All()
-                    .Select(d => d.DocCode)
-                    .ToListAsync();
-
-                int maxNum = 0;
-                foreach (var code in allDocCodes)
-                {
-                    if (int.TryParse(code, out int n) && n > maxNum)
-                        maxNum = n;
-                }
-                string docCode = (maxNum + 1).ToString("D8");
-
-                // 2. Save file to wwwroot/DocumentInfo
-                var ext = Path.GetExtension(uploadFile.FileName);
-                var fileName = $"{docCode}{ext}";
-                var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var folderPath = Path.Combine(webRoot, "DocumentInfo");
-
-                if (!Directory.Exists(folderPath))
-                    Directory.CreateDirectory(folderPath);
-
-                var fullPath = Path.Combine(folderPath, fileName);
-                using (var stream = new FileStream(fullPath, FileMode.Create))
-                {
-                    await uploadFile.CopyToAsync(stream);
-                }
-
-                // 3. Insert into Sep_DocumentInfo
-                var entity = new SepDocumentInfo
-                {
-                    DocCode = docCode,
-                    JobNo = JobNo,
-                    DocumentName = DocumentName,
-                    DocumentDiscription = Description ?? "",
-                    DocumentType = fileName,
-                    Doucment = null,
-                    CompanyCode = LoginInfo?.CompanyCode ?? "001",
-                    Luser = LoginInfo?.EmployeeId ?? LoginInfo?.Username ?? "Admin",
-                    Ldate = DateTime.Now,
-                    Lip = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "",
-                    Lmac = "",
-                    UserInfoEmployeeId = LoginInfo?.EmployeeId ?? ""
-                };
-
-                await _documentInfoRepository.AddAsync(entity);
-
-                return Json(ApiResponse.Success("Document uploaded successfully."));
-            }
-            catch (Exception ex)
-            {
-                return Json(ApiResponse.Error("Error occurred: " + ex.Message));
-            }
+            var result = await _service.UploadOrUpdateDocumentAsync(request);
+            if (result.Success)
+                return Json(ApiResponse.Success(result.Message));
+            else
+                return Json(ApiResponse.Error(result.Message));
         }
 
         [HttpPost]
@@ -406,37 +301,16 @@ namespace GCTL_App.Controllers
         [ModulePermission(PermissionType.Delete)]
         public async Task<IActionResult> DeleteDocuments([FromBody] SepDocDeleteDocRequest request)
         {
-            try
-            {
-                if (request?.DocCodes == null || request.DocCodes.Count == 0)
-                    return Json(ApiResponse.Error("No documents selected for deletion."));
+            if (request == null)
+                return Json(ApiResponse.Error("Invalid request."));
 
-                var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var folderPath = Path.Combine(webRoot, "DocumentInfo");
+            request.WebRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var result = await _service.DeleteDocumentsAsync(request);
 
-                var entities = await _documentInfoRepository.All()
-                    .Where(d => request.DocCodes.Contains(d.DocCode))
-                    .ToListAsync();
-
-                foreach (var entity in entities)
-                {
-                    if (!string.IsNullOrEmpty(entity.DocumentType))
-                    {
-                        var filePath = Path.Combine(folderPath, entity.DocumentType);
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            try { System.IO.File.Delete(filePath); } catch { }
-                        }
-                    }
-                    await _documentInfoRepository.DeleteAsync(entity);
-                }
-
-                return Json(ApiResponse.Success("Document(s) deleted successfully."));
-            }
-            catch (Exception ex)
-            {
-                return Json(ApiResponse.Error("Error occurred: " + ex.Message));
-            }
+            if (result.Success)
+                return Json(ApiResponse.Success(result.Message));
+            else
+                return Json(ApiResponse.Error(result.Message));
         }
 
         #endregion
@@ -474,10 +348,5 @@ namespace GCTL_App.Controllers
 
             return Json(result);
         }
-    }
-
-    public class SepDocDeleteDocRequest
-    {
-        public List<string> DocCodes { get; set; } = new();
     }
 }

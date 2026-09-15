@@ -263,6 +263,7 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
+                        resetUploadFields();
                         const jobNo = $('#uploadJobNo').val() || currentJobNo;
                         loadDocuments(jobNo);
                     } else {
@@ -607,7 +608,7 @@ $(document).ready(function () {
 
     // When Job No is changed in Document Upload Info tab
     $(document).on('change', '#uploadJobNo', function () {
-        debugger
+        resetUploadFields();
         const jobNo = $(this).val();
         currentJobNo = jobNo;
         if (!jobNo) {
@@ -626,7 +627,6 @@ $(document).ready(function () {
             type: 'GET',
             data: { jobNo: jobNo },
             success: function (res) {
-                debugger
                 if (res.success) {
                     $('#uploadJobDateDisplay').val(res.date || '');
                     $('#uploadCustomerDisplay').val(res.customerName || '');
@@ -645,8 +645,19 @@ $(document).ready(function () {
         loadDocuments(jobNo);
     });
 
+    function resetUploadFields() {
+        $('#editDocCode').val('');
+        $('#editAutoId').val('');
+        $('#editFilePath').val('');
+        $('#editFileName').val('');
+        $('#uploadFile').val('');
+        $('#documentName').val('');
+        $('#documentDescription').val('');
+        $('#currentFileBadge').addClass('d-none').html('');
+        $('#documentTable tbody tr').removeClass('table-primary');
+    }
+
     function loadDocuments(jobNo) {
-        document
         if (!jobNo) {
             renderDocumentTable([]);
             return;
@@ -678,19 +689,38 @@ $(document).ready(function () {
             $('#docEntryDate').text(lastItem.lDate || '');
             $('#docModifyDate').text(lastItem.modifyDate || '');
 
+            const currentEditingDocCode = $('#editDocCode').val();
+
             data.forEach((d, idx) => {
-                rows += `<tr>
+                const docNameSafe = (d.documentName || '').replace(/"/g, '&quot;');
+                const descSafe = (d.documentDiscription || '').replace(/"/g, '&quot;');
+                const isEditingThis = currentEditingDocCode && currentEditingDocCode === d.docCode;
+
+                rows += `<tr class="${isEditingThis ? 'table-primary' : ''}">
                     <td class="text-center">
                         <input type="checkbox" class="doc-item-check form-check-input" value="${d.docCode}" data-autoid="${d.autoId}" />
                     </td>
-                    <td class="text-center fw-bold">${idx + 1}</td>
+                    <td class="text-center fw-bold">
+                        <a href="javascript:void(0);" class="edit-doc-btn text-primary text-decoration-underline fw-bold" 
+                           data-doccode="${d.docCode}" 
+                           data-autoid="${d.autoId}" 
+                           data-docname="${docNameSafe}" 
+                           data-desc="${descSafe}" 
+                           data-file="${d.filePath || ''}" 
+                           data-filename="${d.documentType || ''}" 
+                           data-ldate="${d.lDate || ''}" 
+                           data-modifydate="${d.modifyDate || ''}" 
+                           title="Click to edit document">
+                            ${idx + 1}
+                        </a>
+                    </td>
                     <td>${d.documentName || ''}</td>
                     <td>${d.documentDiscription || ''}</td>
                     <td class="text-center">
                         <a href="javascript:void(0);" class="preview-doc-btn text-danger fw-bold text-decoration-underline" 
                            data-file="${d.filePath}" 
                            data-filename="${d.documentType}" 
-                           data-docname="${d.documentName || ''}">
+                           data-docname="${docNameSafe}">
                            ${d.documentType || 'View File'}
                         </a>
                     </td>
@@ -712,21 +742,18 @@ $(document).ready(function () {
         $('#checkAllDocs').prop('checked', total > 0 && total === checked);
     });
 
-    // Preview Document Modal
-    $(document).on('click', '.preview-doc-btn', function (e) {
-        e.preventDefault();
-        const filePath = $(this).data('file');
-        const fileName = $(this).data('filename');
-        const docName = $(this).data('docname');
-
+    // Helper to open document preview modal
+    let activeBlobUrl = null;
+    function openPreviewModal(filePath, fileName, docName, isBlobUrl, fileSizeText) {
         if (!filePath) {
-            toastr.warning('No file path available.');
+            toastr.warning('No file available to preview.');
             return;
         }
 
-        $('#docPreviewModalLabel').html(`<i class="fas fa-file-alt text-primary me-2"></i>Preview: ${docName || fileName}`);
-        $('#docPreviewFileInfo').text(fileName);
-        $('#docPreviewDownloadBtn').attr('href', filePath).attr('download', fileName);
+        const title = docName ? `Preview: ${docName}` : (fileName ? `Preview: ${fileName}` : 'Document Preview');
+        $('#docPreviewModalLabel').html(`<i class="fas fa-file-alt text-primary me-2"></i>${title}`);
+        $('#docPreviewFileInfo').text(fileSizeText ? `${fileName} (${fileSizeText})` : fileName);
+        $('#docPreviewDownloadBtn').attr('href', filePath).attr('download', fileName || 'download');
 
         const ext = (fileName || '').split('.').pop().toLowerCase();
         let contentHtml = '';
@@ -734,7 +761,7 @@ $(document).ready(function () {
         if (ext === 'pdf') {
             contentHtml = `<iframe src="${filePath}" style="width: 100%; height: 72vh; border: none; border-radius: 8px;"></iframe>`;
         } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) {
-            contentHtml = `<div class="p-3"><img src="${filePath}" class="img-fluid rounded shadow-sm" style="max-height: 72vh; object-fit: contain;" alt="${fileName}" /></div>`;
+            contentHtml = `<div class="p-3 text-center"><img src="${filePath}" class="img-fluid rounded shadow-sm" style="max-height: 72vh; object-fit: contain;" alt="${fileName}" /></div>`;
         } else {
             contentHtml = `<div class="py-5 text-center">
                 <i class="fas fa-file fa-4x text-secondary mb-3"></i>
@@ -750,12 +777,120 @@ $(document).ready(function () {
         } else {
             $('#docPreviewModal').modal('show');
         }
+    }
+
+    // Preview Document Modal from Table Link
+    $(document).on('click', '.preview-doc-btn', function (e) {
+        e.preventDefault();
+        const filePath = $(this).data('file');
+        const fileName = $(this).data('filename');
+        const docName = $(this).data('docname');
+        openPreviewModal(filePath, fileName, docName, false, '');
     });
 
-    // Upload & Save Document
+    // Preview button next to Upload File input
+    $(document).on('click', '#btnPreviewSelectedFile', function (e) {
+        e.preventDefault();
+        const fileInput = $('#uploadFile')[0];
+
+        // 1. If user selected a local file in input, preview it via blob URL
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            if (activeBlobUrl) {
+                try { URL.revokeObjectURL(activeBlobUrl); } catch { }
+            }
+            activeBlobUrl = URL.createObjectURL(file);
+            const sizeStr = (file.size / 1024 / 1024 < 1)
+                ? `${(file.size / 1024).toFixed(1)} KB`
+                : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            openPreviewModal(activeBlobUrl, file.name, $('#documentName').val() || file.name, true, sizeStr);
+            return;
+        }
+
+        // 2. If editing existing document and no new file selected, preview current server file
+        const editFilePath = $('#editFilePath').val();
+        const editFileName = $('#editFileName').val();
+        if (editFilePath) {
+            openPreviewModal(editFilePath, editFileName, $('#documentName').val() || editFileName, false, '');
+            return;
+        }
+
+        toastr.info('Please select a file to preview.');
+    });
+
+    // On File Input Change
+    $(document).on('change', '#uploadFile', function () {
+        const fileInput = this;
+        if (fileInput.files && fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const sizeStr = (file.size / 1024 / 1024 < 1)
+                ? `${(file.size / 1024).toFixed(1)} KB`
+                : `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            $('#currentFileBadge')
+                .removeClass('d-none')
+                .html(`<i class="fas fa-file me-1 text-primary"></i> Selected: <b>${file.name}</b> (${sizeStr})`);
+
+            // If Document Name is empty, auto-populate with file name without extension
+            if (!$('#documentName').val()) {
+                const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                $('#documentName').val(nameWithoutExt);
+            }
+        } else {
+            const editFileName = $('#editFileName').val();
+            const editFilePath = $('#editFilePath').val();
+            if (editFileName) {
+                $('#currentFileBadge')
+                    .removeClass('d-none')
+                    .html(`<i class="fas fa-paperclip me-1 text-primary"></i> Current: <a href="javascript:void(0);" class="preview-doc-btn text-danger fw-bold" data-file="${editFilePath}" data-filename="${editFileName}">${editFileName}</a>`);
+            } else {
+                $('#currentFileBadge').addClass('d-none').html('');
+            }
+        }
+    });
+
+    // Edit Document Button Click
+    $(document).on('click', '.edit-doc-btn', function (e) {
+        e.preventDefault();
+        const docCode = $(this).data('doccode');
+        const autoId = $(this).data('autoid');
+        const docName = $(this).data('docname');
+        const desc = $(this).data('desc');
+        const file = $(this).data('file');
+        const fileName = $(this).data('filename');
+        const lDate = $(this).data('ldate');
+        const modifyDate = $(this).data('modifydate');
+
+        $('#editDocCode').val(docCode);
+        $('#editAutoId').val(autoId);
+        $('#editFilePath').val(file);
+        $('#editFileName').val(fileName);
+
+        $('#documentName').val(docName).focus();
+        $('#documentDescription').val(desc);
+        $('#uploadFile').val('');
+
+        if (fileName) {
+            $('#currentFileBadge')
+                .removeClass('d-none')
+                .html(`<i class="fas fa-paperclip me-1 text-primary"></i> Current: <a href="javascript:void(0);" class="preview-doc-btn text-danger fw-bold" data-file="${file}" data-filename="${fileName}" data-docname="${docName}">${fileName}</a>`);
+        } else {
+            $('#currentFileBadge').addClass('d-none').html('');
+        }
+
+        if (lDate) $('#docEntryDate').text(lDate);
+        if (modifyDate) $('#docModifyDate').text(modifyDate);
+
+        // Highlight selected row in table
+        $('#documentTable tbody tr').removeClass('table-primary');
+        $(this).closest('tr').addClass('table-primary');
+
+        toastr.info(`Editing document: ${docName || docCode}`);
+    });
+
+    // Upload & Save / Update Document
     $(document).on('click', '.doc-seve-upload-btn, #uploadDocumentBtn', function (e) {
         e.preventDefault();
-        debugger
+
         const jobNo = $('#uploadJobNo').val() || currentJobNo;
         if (!jobNo) {
             toastr.warning('Please select a Job No first.');
@@ -763,8 +898,14 @@ $(document).ready(function () {
             return;
         }
 
+        const docCode = $('#editDocCode').val();
+        const isEdit = !!docCode;
+
         const fileInput = $('#uploadFile')[0];
-        if (!fileInput || !fileInput.files || !fileInput.files.length) {
+        const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+
+        // If creating new document, file is required
+        if (!isEdit && !hasFile) {
             toastr.warning('Please choose a file to upload.');
             $('#uploadFile').focus();
             return;
@@ -781,7 +922,12 @@ $(document).ready(function () {
         formData.append('JobNo', jobNo);
         formData.append('DocumentName', docName.trim());
         formData.append('Description', ($('#documentDescription').val() || '').trim());
-        formData.append('uploadFile', fileInput.files[0]);
+        if (docCode) {
+            formData.append('DocCode', docCode);
+        }
+        if (hasFile) {
+            formData.append('uploadFile', fileInput.files[0]);
+        }
 
         const token = $('input[name="__RequestVerificationToken"]').val();
 
@@ -794,17 +940,15 @@ $(document).ready(function () {
             headers: token ? { 'RequestVerificationToken': token } : {},
             success: function (response) {
                 if (response.success) {
-                    toastr.success(response.message || 'Document uploaded successfully.');
-                    $('#uploadFile').val('');
-                    $('#documentName').val('');
-                    $('#documentDescription').val('');
+                    toastr.success(response.message || (isEdit ? 'Document updated successfully.' : 'Document uploaded successfully.'));
+                    resetUploadFields();
                     loadDocuments(jobNo);
                 } else {
-                    toastr.warning(response.message || 'Failed to upload document.');
+                    toastr.warning(response.message || 'Failed to save document.');
                 }
             },
             error: function () {
-                toastr.error('Error occurred while uploading');
+                toastr.error('Error occurred while saving document');
             }
         });
     });
@@ -836,9 +980,8 @@ $(document).ready(function () {
     // Clear Document Upload inputs
     $(document).on('click', '.doc-clear-upload-btn', function (e) {
         e.preventDefault();
-        $('#uploadFile').val('');
-        $('#documentName').val('');
-        $('#documentDescription').val('');
+        resetUploadFields();
+        toastr.info('Upload form cleared.');
     });
 
     //#endregion
