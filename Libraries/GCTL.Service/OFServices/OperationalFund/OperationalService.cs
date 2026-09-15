@@ -730,10 +730,10 @@ namespace GCTL.Service.OperationalFund
                         PrifixId = "",
                         CompanyCode = "",
                         EmployeeId = model.UserInfoEmployeeId,//   .CreatedBy.ToString(),
-                        CashBank = "",
-                        CashBank2 = "",
-                        BankAccount = "",
-                        BankAccount2 = "",
+                        CashBank = string.Empty,
+                        CashBank2 = string.Empty,
+                        BankAccount = string.Empty,
+                        BankAccount2 = string.Empty,
                     };
 
                     await _repository.AddAsync(master);

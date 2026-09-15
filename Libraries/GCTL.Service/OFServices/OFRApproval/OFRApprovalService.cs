@@ -286,19 +286,16 @@ namespace GCTL.Service.OFRApproval
         #region Approval Amount Update
         public async Task<bool> SaveApprovalAsync(List<OFRApprovalDetailsSaveVM> model, string? Approveduser)
         {
+            if (model == null || !model.Any()) return false;
+
             await _repository.BeginTransactionAsync();
             try
             {
-                if (model == null || !model.Any()) return false;
-
                 var ofrNo = model.First().OFRNo;
 
                 // ENTRY (HEADER)
                 var entry = await _repository.All().FirstOrDefaultAsync(x => x.Ofrno == ofrNo);
 
-                entry.CashBank = model.Select(x => x.DetailsCashBank).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
-
-                entry.BankAccount = model.Select(x => x.DetailsBankAccount).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
                 bool isFirstApproval = false;
 
                 // DETAILS

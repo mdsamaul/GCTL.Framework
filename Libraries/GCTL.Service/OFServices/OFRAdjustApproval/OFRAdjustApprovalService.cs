@@ -374,11 +374,16 @@ namespace GCTL.Service.OFRAdjustApproval
 
                 if (entry == null) throw new Exception("OFR Entry not found");
 
-                // Header-level Cash/Bank (first non-empty from details)
-                entry.CashBank2 = model.Select(x => x.CashBank).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
-                entry.BankAccount2 = model.Select(x => x.BankAcount).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
                 entry.BillAdjustApprovalUser = Approveduser;
-                entry.BillAdjustApproveDate = DateTime.Now;
+
+                if (entry.BillAdjustApproveDate == null)
+                {
+                    entry.BillAdjustApproveDate = DateTime.Now;
+                }
+                else
+                {
+                    entry.BillAdjustApproveModifyDate = DateTime.Now;
+                }
 
                 await _repository.UpdateAsync(entry);
 
@@ -395,7 +400,10 @@ namespace GCTL.Service.OFRAdjustApproval
                     // Row-wise Cash / Bank
                     details.AdjustDetailsCashBank = item.CashBank;
                     details.AdjustDetailsBankAccount = item.BankAcount;
-                    details.AdjustUser = Approveduser;
+                    if (string.IsNullOrEmpty(details.AdjustUser))
+                    {
+                        details.AdjustUser = Approveduser;
+                    }
 
                     await _details.UpdateAsync(details);
                 }

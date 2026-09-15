@@ -264,8 +264,6 @@ namespace GCTL.Service.OFRBillAdjust
                 // ENTRY (HEADER)
                 var entry = await _repository.All().FirstOrDefaultAsync(x => x.Ofrno == ofrNo);
 
-                bool isFirstApproval = false;
-
                 // DETAILS
                 foreach (var item in model)
                 {
@@ -273,14 +271,9 @@ namespace GCTL.Service.OFRBillAdjust
 
                     if (details != null)
                     {
-                        //Check first time approval
-                        if (details.BillAdjustAmount == 0.00m)
-                        {
-                            isFirstApproval = true;
-                        }
-
                         details.BillAdjustAmount = item.AdjustAmount;
                         details.DifferentAmount = item.DifferentAmount;
+                        details.AdjustUser = Approveduser;
 
                         await _details.UpdateAsync(details);
                     }
@@ -294,19 +287,6 @@ namespace GCTL.Service.OFRBillAdjust
                     entry.AsycodaCharge = firstItem.AsycodaCharge;
                     entry.DutyByChallanCharge = firstItem.DutyChalanCharge;
                     entry.ShippingCharge = firstItem.ShipingCharge;
-
-                    if (isFirstApproval && entry.BillAdjustApproveDate == null)
-                    {
-
-                        //First time approve
-                        entry.BillAdjustApprovalUser = Approveduser;
-                        entry.BillAdjustApproveDate = DateTime.Now;
-                    }
-                    else
-                    {
-                        //Modify approve
-                        entry.BillAdjustApproveModifyDate = DateTime.Now;
-                    }
 
                     await _repository.UpdateAsync(entry);
                 }
