@@ -175,7 +175,7 @@ $(document).ready(function () {
     let pendingDocTc = null;
     let pendingOnSuccess = null;
 
-    $(document).on('click', '.doc-delete-entry-btn, .doc-delete-upload-btn', function (e) {
+    $(document).on('click', '.doc-delete-entry-btn', function (e) {
         e.preventDefault();
 
         // Check if this is the form delete button
@@ -246,20 +246,25 @@ $(document).ready(function () {
         var $modal = getDeleteModal();
         hideDeleteModal($modal);
 
-        if (pendingDeleteType === 'document' && pendingDocTc) {
-            const tc = pendingDocTc;
+        if (pendingDeleteType === 'document') {
+            const docCodes = pendingDeleteIds.length > 0 ? [...pendingDeleteIds] : (pendingDocTc ? [String(pendingDocTc)] : []);
+            pendingDeleteIds = [];
             pendingDocTc = null;
             pendingDeleteType = null;
 
+            if (docCodes.length === 0) return;
+
             $.ajax({
-                url: '/SepDocUpdate/DeleteDocument',
+                url: '/SepDocUpdate/DeleteDocuments',
                 type: 'POST',
-                data: { tc: tc },
+                data: JSON.stringify({ docCodes: docCodes }),
+                contentType: 'application/json',
                 headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
                 success: function (response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        loadDocuments(currentJobNo);
+                        const jobNo = $('#uploadJobNo').val() || currentJobNo;
+                        loadDocuments(jobNo);
                     } else {
                         toastr.error(response.message);
                     }
@@ -409,9 +414,10 @@ $(document).ready(function () {
 
         // Upload Tab Info Display
         currentJobNo = data.jobNo;
+        $('#uploadJobNo').val(data.jobNo || '').trigger('change.select2');
         $('#uploadJobNoDisplay').val(data.jobNo || '');
         $('#uploadJobDateDisplay').val(data.date ? new Date(data.date).toLocaleDateString('en-GB') : '');
-        $('#uploadCustomerDisplay').val(data.customerId || '');
+        $('#uploadCustomerDisplay').val(data.customerName || data.customerId || '');
         $('#uploadAddressDisplay').val(data.customerAddress || '');
 
         loadDocuments(currentJobNo);
@@ -580,20 +586,69 @@ $(document).ready(function () {
         if (clearJobNo !== false) setField('#jobNo', '', true);
 
         $('#sepDocForm')[0].reset();
-        $('.custom-select-single').val('').trigger('change.select2');
+        $('#sepDocForm .custom-select-single').val('').trigger('change.select2');
     }
 
     //#endregion
 
     //#region Document Upload tab
     let currentJobNo;
+
     $(document).on('shown.bs.tab', '#upload-tab', function () {
-        if (currentJobNo) loadDocuments(currentJobNo);
+        const selectedJob = $('#uploadJobNo').val() || currentJobNo;
+        if (selectedJob) {
+            if ($('#uploadJobNo').val() !== selectedJob) {
+                $('#uploadJobNo').val(selectedJob).trigger('change.select2');
+            } else {
+                loadDocuments(selectedJob);
+            }
+        }
+    });
+
+    // When Job No is changed in Document Upload Info tab
+    $(document).on('change', '#uploadJobNo', function () {
+        debugger
+        const jobNo = $(this).val();
+        currentJobNo = jobNo;
+        if (!jobNo) {
+            $('#uploadJobDateDisplay').val('');
+            $('#uploadCustomerDisplay').val('');
+            $('#uploadAddressDisplay').val('');
+            $('#docEntryDate').text('');
+            $('#docModifyDate').text('');
+            renderDocumentTable([]);
+            return;
+        }
+
+        // Fetch job details (date, customer, address)
+        $.ajax({
+            url: '/SepDocUpdate/GetJobDetailsForUpload',
+            type: 'GET',
+            data: { jobNo: jobNo },
+            success: function (res) {
+                debugger
+                if (res.success) {
+                    $('#uploadJobDateDisplay').val(res.date || '');
+                    $('#uploadCustomerDisplay').val(res.customerName || '');
+                    $('#uploadAddressDisplay').val(res.customerAddress || '');
+                } else {
+                    $('#uploadJobDateDisplay').val('');
+                    $('#uploadCustomerDisplay').val('');
+                    $('#uploadAddressDisplay').val('');
+                }
+            },
+            error: function () {
+                console.error('Error fetching job details for upload');
+            }
+        });
+
+        loadDocuments(jobNo);
     });
 
     function loadDocuments(jobNo) {
+        document
         if (!jobNo) {
-            $('#document-list-body').html('<tr><td colspan="6" class="text-center">No data available</td></tr>');
+            renderDocumentTable([]);
             return;
         }
 
@@ -612,20 +667,32 @@ $(document).ready(function () {
 
     function renderDocumentTable(data) {
         let rows = '';
+        $('#checkAllDocs').prop('checked', false);
+
         if (!data || data.length === 0) {
-            rows = '<tr><td colspan="6" class="text-center">No data available</td></tr>';
+            rows = '<tr><td colspan="5" class="text-center py-3 text-muted">No data available</td></tr>';
+            $('#docEntryDate').text('');
+            $('#docModifyDate').text('');
         } else {
-            data.forEach(d => {
+            let lastItem = data[data.length - 1];
+            $('#docEntryDate').text(lastItem.lDate || '');
+            $('#docModifyDate').text(lastItem.modifyDate || '');
+
+            data.forEach((d, idx) => {
                 rows += `<tr>
-                    <td class="text-center"><input type="checkbox" /></td>
-                    <td class="text-center">${d.tc}</td>
-                    <td>${d.documentName || ''}</td>
-                    <td>${d.description || ''}</td>
-                    <td><a href="${d.filePath || '#'}" target="_blank">${d.fileName || ''}</a></td>
                     <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger delete-doc-btn" data-tc="${d.tc}">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <input type="checkbox" class="doc-item-check form-check-input" value="${d.docCode}" data-autoid="${d.autoId}" />
+                    </td>
+                    <td class="text-center fw-bold">${idx + 1}</td>
+                    <td>${d.documentName || ''}</td>
+                    <td>${d.documentDiscription || ''}</td>
+                    <td class="text-center">
+                        <a href="javascript:void(0);" class="preview-doc-btn text-danger fw-bold text-decoration-underline" 
+                           data-file="${d.filePath}" 
+                           data-filename="${d.documentType}" 
+                           data-docname="${d.documentName || ''}">
+                           ${d.documentType || 'View File'}
+                        </a>
                     </td>
                 </tr>`;
             });
@@ -633,29 +700,90 @@ $(document).ready(function () {
         $('#document-list-body').html(rows);
     }
 
-    $(document).on('click', '#uploadDocumentBtn', function (e) {
-        e.preventDefault();
+    // Select all checkboxes in document table
+    $(document).on('change', '#checkAllDocs', function () {
+        const isChecked = $(this).is(':checked');
+        $('#documentTable tbody .doc-item-check').prop('checked', isChecked);
+    });
 
-        if (!currentJobNo) {
-            toastr.warning('Please select/save a Job first.');
+    $(document).on('change', '#documentTable tbody .doc-item-check', function () {
+        const total = $('#documentTable tbody .doc-item-check').length;
+        const checked = $('#documentTable tbody .doc-item-check:checked').length;
+        $('#checkAllDocs').prop('checked', total > 0 && total === checked);
+    });
+
+    // Preview Document Modal
+    $(document).on('click', '.preview-doc-btn', function (e) {
+        e.preventDefault();
+        const filePath = $(this).data('file');
+        const fileName = $(this).data('filename');
+        const docName = $(this).data('docname');
+
+        if (!filePath) {
+            toastr.warning('No file path available.');
+            return;
+        }
+
+        $('#docPreviewModalLabel').html(`<i class="fas fa-file-alt text-primary me-2"></i>Preview: ${docName || fileName}`);
+        $('#docPreviewFileInfo').text(fileName);
+        $('#docPreviewDownloadBtn').attr('href', filePath).attr('download', fileName);
+
+        const ext = (fileName || '').split('.').pop().toLowerCase();
+        let contentHtml = '';
+
+        if (ext === 'pdf') {
+            contentHtml = `<iframe src="${filePath}" style="width: 100%; height: 72vh; border: none; border-radius: 8px;"></iframe>`;
+        } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(ext)) {
+            contentHtml = `<div class="p-3"><img src="${filePath}" class="img-fluid rounded shadow-sm" style="max-height: 72vh; object-fit: contain;" alt="${fileName}" /></div>`;
+        } else {
+            contentHtml = `<div class="py-5 text-center">
+                <i class="fas fa-file fa-4x text-secondary mb-3"></i>
+                <p class="text-muted">Preview is not available for this file type (<b>.${ext}</b>).</p>
+                <a href="${filePath}" download="${fileName}" class="btn btn-primary"><i class="fas fa-download me-1"></i> Download File</a>
+            </div>`;
+        }
+
+        $('#docPreviewContainer').html(contentHtml);
+
+        if (window.bootstrap && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('docPreviewModal')).show();
+        } else {
+            $('#docPreviewModal').modal('show');
+        }
+    });
+
+    // Upload & Save Document
+    $(document).on('click', '.doc-seve-upload-btn, #uploadDocumentBtn', function (e) {
+        e.preventDefault();
+        debugger
+        const jobNo = $('#uploadJobNo').val() || currentJobNo;
+        if (!jobNo) {
+            toastr.warning('Please select a Job No first.');
+            $('#uploadJobNo').focus();
             return;
         }
 
         const fileInput = $('#uploadFile')[0];
-        if (!fileInput.files.length) {
+        if (!fileInput || !fileInput.files || !fileInput.files.length) {
             toastr.warning('Please choose a file to upload.');
+            $('#uploadFile').focus();
             return;
         }
-        if (!$('#documentName').val()) {
+
+        const docName = $('#documentName').val();
+        if (!docName || !docName.trim()) {
             toastr.warning('Document Name is required.');
+            $('#documentName').focus();
             return;
         }
 
         const formData = new FormData();
-        formData.append('JobNo', currentJobNo);
-        formData.append('DocumentName', $('#documentName').val());
-        formData.append('Description', $('#documentDescription').val());
+        formData.append('JobNo', jobNo);
+        formData.append('DocumentName', docName.trim());
+        formData.append('Description', ($('#documentDescription').val() || '').trim());
         formData.append('uploadFile', fileInput.files[0]);
+
+        const token = $('input[name="__RequestVerificationToken"]').val();
 
         $.ajax({
             url: '/SepDocUpdate/UploadDocument',
@@ -663,16 +791,16 @@ $(document).ready(function () {
             data: formData,
             processData: false,
             contentType: false,
-            headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+            headers: token ? { 'RequestVerificationToken': token } : {},
             success: function (response) {
                 if (response.success) {
-                    toastr.success(response.message);
+                    toastr.success(response.message || 'Document uploaded successfully.');
                     $('#uploadFile').val('');
                     $('#documentName').val('');
                     $('#documentDescription').val('');
-                    loadDocuments(currentJobNo);
+                    loadDocuments(jobNo);
                 } else {
-                    toastr.warning(response.message);
+                    toastr.warning(response.message || 'Failed to upload document.');
                 }
             },
             error: function () {
@@ -681,19 +809,36 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on('click', '.delete-doc-btn', function (e) {
+    // Delete Document(s) from Upload tab
+    $(document).on('click', '.doc-delete-upload-btn', function (e) {
         e.preventDefault();
-        const tc = $(this).data('tc');
-        if (!tc) return;
+
+        const selectedCodes = [];
+        $('#documentTable tbody .doc-item-check:checked').each(function () {
+            const val = $(this).val();
+            if (val) selectedCodes.push(val);
+        });
+
+        if (selectedCodes.length === 0) {
+            toastr.warning('Please select at least one document to delete.');
+            return;
+        }
 
         pendingDeleteType = 'document';
-        pendingDeleteIds = [];
-        pendingDocTc = tc;
-        pendingOnSuccess = null;
+        pendingDeleteIds = selectedCodes;
+        pendingDocTc = null;
 
         var $modal = getDeleteModal();
-        $modal.find('.title').html('Are you sure you want to delete this document? This process cannot be undone.');
+        $modal.find('.title').html(`Are you sure you want to delete ${selectedCodes.length} selected document(s)? This process cannot be undone.`);
         showDeleteModal($modal);
+    });
+
+    // Clear Document Upload inputs
+    $(document).on('click', '.doc-clear-upload-btn', function (e) {
+        e.preventDefault();
+        $('#uploadFile').val('');
+        $('#documentName').val('');
+        $('#documentDescription').val('');
     });
 
     //#endregion
