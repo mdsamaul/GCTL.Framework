@@ -123,14 +123,14 @@
     }
 
     /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
-    .im-layout-form-col .card-body {
+    /* .im-layout-form-col .card-body {
         padding: 12px 18px !important;
     }
 
     .im-layout-form-col .card-body .row,
     .im-layout-form-col .row.g-4 {
         --bs-gutter-x: 36px !important;
-    }
+    } */
 
     /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
     .im-field-col .field-fixed-width > .detached-action-btn,
@@ -214,7 +214,23 @@
 <section class="content consistent-look">
     <div class="">
         <div class="row g-2">
-            <div class="col-12" id="importerInfoFormContainer">
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 im-layout-form-col" id="importerInfoFormContainer">
+                <div class="card rounded" style="border-bottom: 0px;">
+                    <div class="card-header p-0 col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Importer Info",
+                            SaveBtnClass = "js-ImporterInfo-save",
+                            DeleteBtnClass = "js-ImporterInfo-delete-confirm",
+                            ClearBtnClass = "js-ImporterInfo-clear",
+                            // CssClass = "importer-toolbar-responsive",
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent = false
+                        })
+                    </div>
+                </div>
                 <form asp-action="Setup" method="post" id="ImporterInfo-form" asp-controller="ImporterInfo">
                     <div class="js-ImporterInfo-form-container">
                         <partial name="_Setup" model="Model.Setup" />
@@ -222,7 +238,8 @@
                 </form>
             </div>
             
-            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 mt-3" id="importerInfoList">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6 mt-3 mt-xxl-0" id="importerInfoList">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ImporterInfo-grid",
