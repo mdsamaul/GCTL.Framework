@@ -287,27 +287,28 @@
                     }
                     else
                     {
-                        GroupId = "vendorTabGroup",
-                        Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
-                        {
-                            new GCTL.Core.ViewModels.Common.TabItemModel
+                        @await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel {
+                            GroupId = "vendorTabGroup",
+                            Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
                             {
-                                TabId = "vendorInfo",
-                                TabTitle = "Vendor Info",
-                                ControllerName = "VendorInfo",
-                                ActionName = "Index",
-                                IsActive = true
-                            },
-                            new GCTL.Core.ViewModels.Common.TabItemModel
-                            {
-                                TabId = "branchAddress",
-                                TabTitle = "Branch Address",
-                                ControllerName = "BranchAddress",
-                                ActionName = "Index"
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "vendorInfo",
+                                    TabTitle = "Vendor Info",
+                                    ControllerName = "VendorInfo",
+                                    ActionName = "Index",
+                                    IsActive = true
+                                },
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "branchAddress",
+                                    TabTitle = "Branch Address",
+                                    ControllerName = "BranchAddress",
+                                    ActionName = "Index"
+                                }
                             }
-                        }
-                    })
-                }
+                        })
+                    }
 
                 <form asp-action="Setup" method="post" id="VendorInfo-form" asp-controller="VendorInfo">
                     <div class="js-VendorInfo-form-container">

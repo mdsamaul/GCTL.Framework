@@ -230,6 +230,11 @@
                             ShowExtraContentLaptopOnly = true
                         })
                     </div>
+                </div>
+                <form asp-action="Setup" method="post" id="ExporterInfo-form" asp-controller="ExporterInfo">
+                    <div class="js-ExporterInfo-form-container">
+                        <partial name="_Setup" model="Model.Setup" />
+                    </div>
                 </form>
             </div>
 
