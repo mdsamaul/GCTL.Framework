@@ -275,7 +275,7 @@ namespace GCTL.Service.OFRApproval
                         where a.SubsidiaryLedgerCodeNo == value || (value == "Bank" && a.SubsidiaryLedgerCodeNo == "10200400003")
                         select new SelectListItem
                         {
-                            Value = a.SubSusidiaryLedgerCodeNo.ToString(),
+                            Value = a.SubSubsidiaryLedgerName,
                             Text = a.SubSubsidiaryLedgerName + " - " + b.AccountName
                         };
 
@@ -452,12 +452,100 @@ namespace GCTL.Service.OFRApproval
 
             return data;
         }
+
+        public async Task<OFRApprovalMasterVM> GetRequisitionInputDataByOFRNo(string ofrNo)
+        {
+            var data = await (from req in _repository.All()
+                              join det in _details.All()
+                               on req.Ofrno equals det.Ofrno into detGroup
+                              from det in detGroup.DefaultIfEmpty()  // left join with details
+
+                              join doc in _sepDocumentation.All()
+                                on req.JobNo equals doc.JobNo into docGroup
+                              from doc in docGroup.DefaultIfEmpty()  // left join with documentation
+
+                              join st in _serviceType.All()
+                                on det.ServiceTypeId equals st.ServiceTypeId into stGroup
+                              from st in stGroup.DefaultIfEmpty()   // ServiceType lookup
+
+                              join eh in _accountsHead.All()
+                                on det.ExpenseHeadId equals eh.ExpenseHeadId into ehGroup
+                              from eh in ehGroup.DefaultIfEmpty()   // ExpenseHead lookup
+
+                              join cust in _customer.All()
+                                on doc.CustomerId equals cust.CustomerId into custGroup
+                              from cust in custGroup.DefaultIfEmpty()   // Customer
+
+                              join ship in _shipmentmode.All()
+                                on req.ExpenseTypeId equals ship.ExpenseTypeId into shipGroup
+                              from ship in shipGroup.DefaultIfEmpty() //ShipmentMode
+
+                              where req.Ofrno == ofrNo
+                              select new OFRApprovalMasterVM
+                              {
+                                  OFRNo = req.Ofrno,
+                                  OFRDate = req.Ofrdate,
+                                  JobNo = req.JobNo,
+                                  ShipmentMode = ship.ExpenseType,
+                                  CustomerName = cust.CustomerName,
+                                  LCValue = doc.Lcvalue,
+                                  InvoiceNo = doc.InvoiceNo,
+                                  MaterialDescription = doc.MaterialDescription,
+                                  Quantity = doc.Quntity1,
+                                  Weight = doc.Quntity2
+                              }).FirstOrDefaultAsync();
+
+            return data;
+        }
         #endregion
 
         #region Copied To Tmp Details Table
         public async Task<bool> CopyDetailsToTmpTable(string jobNo, string? currentUserId, BaseViewModel model)
         {
             return await CopyDetailsToTmp(jobNo, currentUserId);
+        }
+
+        public async Task<bool> CopyDetailsToTmpTableByOFRNo(string ofrNo, string? currentUserId, BaseViewModel model)
+        {
+            if (string.IsNullOrEmpty(currentUserId)) return false;
+
+            var details = await _details.All().Where(d => d.Ofrno == ofrNo).ToListAsync();
+            if (!details.Any()) return false;
+
+            var existingTmp = await _Tmpdetails.All()
+                .Where(x => x.Luser == currentUserId)
+                .ToListAsync();
+
+            if (existingTmp.Any())
+                await _Tmpdetails.DeleteRangeAsync(existingTmp);
+
+            var tmpDetails = details.Select(d => new CfOperationalFundRequisitionDetailsTemp
+            {
+                OfrDetailsId = d.OfrDetailsId,
+                Ofrno = d.Ofrno,
+                JobNo = d.JobNo,
+                ExpenseHeadId = d.ExpenseHeadId,
+                ServiceTypeId = d.ServiceTypeId,
+                EstimatedAmount = d.EstimatedAmount,
+                ActualAmount = d.ActualAmount,
+                DifferentAmount = d.DifferentAmount,
+                DifferentAmount2 = d.DifferentAmount2,
+                BillAdjustAmount = d.BillAdjustAmount,
+                Luser = currentUserId,
+                Ldate = DateTime.Now,
+                Lip = model.Lip,
+                Lmac = model.Lmac,
+                CompanyCode = d.CompanyCode,
+                EmployeeId = currentUserId,
+                ExpenseHeadRemarks = d.ExpenseHeadRemarks
+            }).ToList();
+
+            if (tmpDetails == null || !tmpDetails.Any())
+            {
+                throw new InvalidOperationException("Failed to map details to temporary table");
+            }
+            await _Tmpdetails.AddRangeAsync(tmpDetails);
+            return true;
         }
         #endregion
 

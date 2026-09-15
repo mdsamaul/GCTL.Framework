@@ -62,14 +62,16 @@
     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
         InputId = "Address", LabelText = "Head Office Address", FieldType = FieldType.Textarea,
         Placeholder = "Enter Head Office Address",
-        ColumnClass = "col-12 sup-field-col",
-        CustomAttributes = new Dictionary<string, string> { { "rows", "2" }, { "style", "resize:none;" } }
+        ColumnClass = "col-12 sup-field-col mt-0",
+        InputStyle = "resize:none;",
+        CustomAttributes = new Dictionary<string, string> { { "rows", "2" }}
     })
     @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
         InputId = "LocalOfficeAddress", LabelText = "Local Office Address", FieldType = FieldType.Textarea,
         Placeholder = "Enter Local Office Address",
-        ColumnClass = "col-12 sup-field-col",
-        CustomAttributes = new Dictionary<string, string> { { "rows", "2" }, { "style", "resize:none;" } }
+        ColumnClass = "col-12 sup-field-col mt-0",
+        InputStyle = "resize:none;",
+        CustomAttributes = new Dictionary<string, string> { { "rows", "2" }}
     })
 
     <!-- Row 4 -->
@@ -139,13 +141,29 @@
     })
 
     <!-- Contact Person (Replaces the massive custom HTML block) -->
-    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+ @*    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
         InputId = "ContatPerson1", LabelText = "Contact Person", FieldType = FieldType.MultiSelect,
         Placeholder = "Select Contact Person", SelectItems = ViewBag.ContactDD as SelectList,
         ShowQuickAdd = true, QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
         QuickAddTarget = "#ContatPerson1", QuickAddReloadUrl = Url.Action("GetContactPersonInfo", "Cascading"), QuickAddTitle = "Contact Person Info",
         ColumnClass = "col-12 col-md-6 sup-field-col mt-0",
         CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
+    }) *@
+
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "ContatPerson1",
+        LabelText = "Contact Person",
+        FieldType = FieldType.MultiSelect,
+        Placeholder = "Select Contact Person",
+        SelectItems = ViewBag.ContactDD as SelectList,
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0",
+        ReserveActionSlot = false,
+        ShowQuickAdd = true,
+        QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+        QuickAddTarget = "#ContatPerson1",
+        QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+        QuickAddTitle = "Contact Person Info"
     })
 
     <!-- Bank Account Section -->

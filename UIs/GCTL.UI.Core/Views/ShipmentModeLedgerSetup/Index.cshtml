@@ -99,6 +99,7 @@
                             SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
                             DeleteBtnClass = "js-ShipmentModeLedgerSetup-delete-confirm",
                             ClearBtnClass = "js-ShipmentModeLedgerSetup-clear",
+                            ShowExtraContent = true,
                             ShowExtraContentLaptopOnly = true
                         })
                     </div>
@@ -114,7 +115,7 @@
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-12 col-xxl-6 sml-layout-grid-col">
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ShipmentModeLedgerSetup-grid",
@@ -128,10 +129,10 @@
                     Columns = new()
                     {
                         new() { Data = "expenseTypeId", IsEditLink = true, EditSelectorClass = "js-ShipmentModeLedgerSetup-edit", Header = "ID", Width = "6%" },
-                        new() { Data = "expenseType", Header = "Shipment Mode", Width = "22%", Align = "left" },
+                        new() { Data = "expenseType", Header = "Shipment Mode", Width = "18%", Align = "left" },
                         new() { Data = "expenseLedgerCodeNo", Header = "Expense Ledger", Width = "22%", Align = "left" },
                         new() { Data = "revenueLedgerCodeNo", Header = "Revenue Ledger", Width = "22%", Align = "left" },
-                        new() { Data = "advanceLedgerCode", Header = "Advance Ledger", Width = "26%", Align = "left" }
+                        new() { Data = "advanceLedgerCode", Header = "Advance Ledger", Width = "30%", Align = "left" }
                     }
                 })
             </div>

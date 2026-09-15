@@ -11,9 +11,11 @@ namespace GCTL.Service.OFRBillAdjust
         #region When User Checked on radion then fill input fields and Detaisl data Copied to Tmp Details
         #region Get Requisition Info in Input fields
         Task<OFRBillAdjustMasterVM> GetRequisitionMasterByJobNo(string jobNo);
+        Task<OFRBillAdjustMasterVM> GetRequisitionMasterByOFRNo(string ofrNo);
         #endregion
         #region Get Requisition Details into Tmp Details
         Task<bool> CopyDetailsToTmp(string jobNo, string? currentUserId, BaseViewModel model);
+        Task<bool> CopyDetailsToTmpByOFRNo(string ofrNo, string? currentUserId, BaseViewModel model);
         #endregion
         #endregion
 

@@ -216,22 +216,35 @@ namespace GCTL.UI.Core.Controllers
 
         #region When Click Edit Button Then Load Data Input field
         [HttpGet]
-        public async Task<IActionResult> EditButtonClicked(string jobno, BaseViewModel model)
+        public async Task<IActionResult> EditButtonClicked(string ofrNo, string jobno, BaseViewModel model)
         {
             try
             {
-                //int? currentUserID = await GetCurrentEmployeeIdAsync();
+                OFRApprovalMasterVM? masterData = null;
+                bool detailsCopied = false;
 
-                // Get master data
-                var masterData = await _service.GetRequisitionInputData(jobno);
-
-                if (masterData == null)
+                if (!string.IsNullOrEmpty(ofrNo))
                 {
-                    return Json(new { success = false, message = "No requisition found for this job no" });
+                    masterData = await _service.GetRequisitionInputDataByOFRNo(ofrNo);
+                    if (masterData == null)
+                    {
+                        return Json(new { success = false, message = "No requisition found for this OFR No" });
+                    }
+                    detailsCopied = await _service.CopyDetailsToTmpTableByOFRNo(ofrNo, LoginInfo.Username, model);
                 }
-
-                // Copy details to temp table
-                bool detailsCopied = await _service.CopyDetailsToTmpTable(jobno, LoginInfo.Username, model);
+                else if (!string.IsNullOrEmpty(jobno))
+                {
+                    masterData = await _service.GetRequisitionInputData(jobno);
+                    if (masterData == null)
+                    {
+                        return Json(new { success = false, message = "No requisition found for this job no" });
+                    }
+                    detailsCopied = await _service.CopyDetailsToTmpTable(jobno, LoginInfo.Username, model);
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Invalid request parameters" });
+                }
 
                 if (!detailsCopied)
                 {

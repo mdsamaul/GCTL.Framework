@@ -215,15 +215,26 @@
 <section class="content consistent-look">
     <div class="">
         <div class="row g-2">
-            <div class="col-12" id="exporterInfoFormContainer">
-                <form asp-action="Setup" method="post" id="ExporterInfo-form" asp-controller="ExporterInfo">
-                    <div class="js-ExporterInfo-form-container">
-                        <partial name="_Setup" model="Model.Setup" />
+
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 im-layout-form-col">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Exporter Info",
+                            SaveBtnClass = "js-ExporterInfo-save",
+                            DeleteBtnClass = "js-ExporterInfo-delete-confirm",
+                            ClearBtnClass = "js-ExporterInfo-clear",
+                            ShowExtraContent = true,
+                            ShowExtraContentLaptopOnly = true
+                        })
                     </div>
                 </form>
             </div>
 
-            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 mt-3" id="exporterInfoList">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ExporterInfo-grid",

@@ -20,7 +20,9 @@ namespace GCTL.Service.OFRAdjustApproval
 
         #region When User check on radio button
         Task<OFRAdjustApprovalMasterVM> GetRequisitionMasterByJobNo(string jobNo);
+        Task<OFRAdjustApprovalMasterVM> GetRequisitionMasterByOFRNo(string ofrNo);
         Task<bool> CopyDetailsToTmp(string jobNo, string? currentUserId, BaseViewModel model);
+        Task<bool> CopyDetailsToTmpByOFRNo(string ofrNo, string? currentUserId, BaseViewModel model);
         #endregion
 
         #region Get All Tmp Details

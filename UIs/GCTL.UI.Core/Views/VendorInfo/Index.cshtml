@@ -265,14 +265,27 @@
 <section class="content consistent-look">
     <div class="">
         <div class="row g-2">
-            <div class="col-12" id="vendorInfoFormContainer">
-                @if (Model.TabModel != null)
-                {
-                    @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
-                }
-                else
-                {
-                    @await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel
+
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 ven-layout-form-col">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Vendor Info",
+                            SaveBtnClass = "js-VendorInfo-save",
+                            DeleteBtnClass = "js-VendorInfo-delete-confirm",
+                            ClearBtnClass = "js-VendorInfo-clear",
+                            ShowExtraContent = true,
+                            ShowExtraContentLaptopOnly = true
+                        })
+                    </div>
+
+                    @if (Model.TabModel != null)
+                    {
+                        @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
+                    }
+                    else
                     {
                         GroupId = "vendorTabGroup",
                         Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
@@ -303,7 +316,8 @@
                 </form>
             </div>
 
-            <div class="col-12 mt-3" id="vendorInfoList">
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6">
                 <div class="js-VendorInfo-grid-container">
                     @await Html.PartialAsync("_CustomGrid", new GridModel
                     {

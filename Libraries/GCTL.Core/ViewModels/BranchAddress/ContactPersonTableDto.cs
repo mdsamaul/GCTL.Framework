@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GCTL.Core.ViewModels.BranchAddress
 {
-    public class ContactPersonTableDto
+    public class ContactPersonTableDto1
     {
         public string? Id { get; set; }
         public string? Name { get; set; }

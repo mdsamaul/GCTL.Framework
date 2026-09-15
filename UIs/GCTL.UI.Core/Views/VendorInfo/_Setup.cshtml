@@ -300,7 +300,6 @@
             QuickAddTarget = "#ContactPerson",
             QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
             QuickAddTitle = "Contact Person Info",
-            CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
         })
 
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
