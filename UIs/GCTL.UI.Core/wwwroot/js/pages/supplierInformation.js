@@ -102,7 +102,7 @@
                             $('#Optype').val(data.optype).trigger('change');
                             $('#Active').val(data.active).trigger('change');
                             $('#CountryId').val(data.countryId).trigger('change');
-                            setSelectedCP(data.contatPerson1);
+                            // setSelectedCP(data.contatPerson1);
                             $('#SalesPersonId').val(data.salesPersonId).trigger('change');
                             $('#SupplierBankId').val(data.supplierBankId).trigger('change');
                             $('#SupplierBankBranchId').val(data.supplierBankBranchId).trigger('change');
@@ -407,6 +407,7 @@
                         $(settings.formContainer).html(data);
                         // $('#EmployeeId').val(employeeId);
                         $.validator.unobtrusive.parse($(settings.formSelector));
+                        window.initCustomDropdowns(settings.formContainer, true);
                         loadContactPersonsTable();
                     },
                     error: function (error) {

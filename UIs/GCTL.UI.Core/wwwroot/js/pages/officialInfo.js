@@ -72,7 +72,7 @@
                     success: function (response) {
                         
                         if (!response) {
-                            console.error('No response received.');
+                           // console.error('No response received.');
                             return;
                         }
 
@@ -170,7 +170,7 @@
             // ── EDIT button click ──────────────────────────────────────────────────
             $(document).on('click', '.js-officialInfo-Edit-confirm, .js-grid-edit', function () {
                 var employeeId = $(this).attr('data-id');
-                console.log('Edit clicked, employeeId:', employeeId);
+               // console.log('Edit clicked, employeeId:', employeeId);
                 if (!employeeId) return;
 
                 var $employeeDD = $('#EmployeeId');
@@ -472,12 +472,12 @@
                     url: reloadUrl,
                     method: "GET",
                     success: function (response) {
-                        console.log(response);
+                       // console.log(response);
                         $.each(response, function (i, item) {
                             $(target).append($('<option>', { value: item.code, text: item.name }));
                         });
                         $(target).val(lastCode);
-                        console.log("Testttt", lastCode);
+                       // console.log("Test", lastCode);
                     }
                 });
             });
