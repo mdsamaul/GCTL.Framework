@@ -2,15 +2,109 @@
 @using GCTL.UI.Core.ViewModels
 @using Microsoft.AspNetCore.Mvc.Rendering
 
-<div style="padding-top: 10px;">
-   
-    <div class="row">
-        <div class="col-lg-6">
-            <span id="message"></span>
-        </div>
-        <div class="col-lg-6">
+<style>
+    /* Card Header Toolbar: single bottom border line, no double line, no bottom rounded */
+    .card-header {
+        border-bottom: 0 !important;
+        background-color: transparent !important;
+    }
+    .card-header .toolbar-container {
+        border: 0 !important;
+        /* border-bottom: 1px solid #dee2e6 !important; */
+        border-radius: 0 !important;
+        border-top-left-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
+        border-top-right-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* Uniform Form Control Height (31px) across all inputs, dropdowns, and checkboxes */
+    #VendorInfo-form .form-control,
+    #VendorInfo-form .form-select,
+    #VendorInfo-form .custom-dd-box,
+    #VendorInfo-form .select2-container .select2-selection--single,
+    #VendorInfo-form .form-control-height-wrap {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        box-sizing: border-box !important;
+        border-radius: 4px !important;
+        font-size: 13px !important;
+    }
+
+    #VendorInfo-form .form-control {
+        padding: 0.25rem 0.5rem !important;
+        line-height: 1.5 !important;
+        border: 1px solid #ced4da !important;
+    }
+
+    #VendorInfo-form .input-group {
+        height: 31px !important;
+        min-height: 31px !important;
+    }
+
+    #VendorInfo-form .input-group > .custom-dd-wrapper {
+        flex: 1 1 auto;
+        width: 1%;
+        min-width: 0;
+    }
+
+    /* Uniform Label styling */
+    #VendorInfo-form .form-label {
+        font-weight: 500;
+        margin-bottom: 4px;
+        text-align: left;
+        display: block;
+        color: #333;
+        font-size: 13px;
+        line-height: 1.2;
+        min-height: 18px;
+    }
+
+    #VendorInfo-form .field-validation {
+        font-size: 13px;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Responsive Toolbar Padding */
+    .vendor-toolbar-responsive {
+        padding-left: 25px !important;
+    }
+    @@media (max-width: 1400px) {
+        .vendor-toolbar-responsive {
+            padding-left: 165px !important;
+        }
+    }
+</style>
+
+<div class="card rounded shadow-sm">
+    <div class="card-header px-3 pt-3 pb-0 border-0 bg-transparent">
+        <div class="row g-4">
+            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12">
+                @await Html.PartialAsync("_Toolbars", new ToobarModel
+                {
+                    Title = "Vendor Info",
+                    SaveBtnClass = "js-VendorInfo-save",
+                    DeleteBtnClass = "js-VendorInfo-delete-confirm",
+                    ClearBtnClass = "js-VendorInfo-clear",
+                    ReserveActionSlot = false,
+                    ShowExtraContent = false,
+                    IsPlain = true
+                })
+            </div>
         </div>
     </div>
+    
+    <div class="card-body px-3 py-3">
+        <div class="row">
+            <div class="col-lg-6">
+                <span id="message"></span>
+            </div>
+            <div class="col-lg-6">
+            </div>
+        </div>
 
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -20,8 +114,8 @@
     <input type="hidden" asp-for="Ldate" />
     <input type="hidden" asp-for="ModifyDate" />
 
-    @* ---------- Row 1: Vendor ID & Vendor Code ---------- *@
-    <div class="row g-4 mb-1">
+    <div class="row ven-ledger-fields-row">
+        @* ---------- Row 1: Vendor ID & Vendor Code ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "VendorId",
@@ -29,7 +123,7 @@
             FieldType = FieldType.Text,
             IsReadonly = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             CustomCssClass = "js-VendorId-code",
             DefaultValue = Model?.VendorId
         })
@@ -41,13 +135,11 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Vendor Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.VendorCode
         })
-    </div>
 
-    @* ---------- Row 2: Vendor Prefix & Name ---------- *@
-    <div class="row g-4 mb-1">
+        @* ---------- Row 2: Vendor Prefix & Name ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "VendorPrefix",
@@ -57,7 +149,7 @@
             SelectItems = ViewBag.VendorPrefixDD as SelectList,
             IsRequired = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             ShowQuickAdd = true,
             QuickAddUrl = Url.Action("Index", "VendorPrefix"),
             QuickAddTarget = "#VendorPrefix",
@@ -73,14 +165,12 @@
             Placeholder = "Enter Name",
             IsRequired = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.Name,
             AutoFocus = true
         })
-    </div>
 
-    @* ---------- Row 3: Address & Country ---------- *@
-    <div class="row g-4 mb-1">
+        @* ---------- Row 3: Address & Country ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Address",
@@ -88,7 +178,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Address",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.Address
         })
 
@@ -100,12 +190,10 @@
             Placeholder = "-- Select Country --",
             SelectItems = ViewBag.CountryDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col"
+            ColumnClass = "col-md-4 ven-field-col"
         })
-    </div>
 
-    @* ---------- Row 4: City & State/Province ---------- *@
-    <div class="row g-4 mb-1">
+        @* ---------- Row 4: City & State/Province ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "City",
@@ -113,7 +201,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter City",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.City
         })
 
@@ -124,13 +212,11 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter State/Province",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.StateOrProvince
         })
-    </div>
 
-    @* ---------- Row 5: Zip Code & Vat Reg. No. ---------- *@
-    <div class="row g-4 mb-1">
+        @* ---------- Row 5: Zip Code & Vat Reg. No. ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "ZipCode",
@@ -138,7 +224,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Zip Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.ZipCode
         })
 
@@ -149,13 +235,11 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Vat Reg. No.",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.VatRegNo
         })
-    </div>
 
-    @* ---------- Row 6: Phone & Fax ---------- *@
-    <div class="row g-4 mb-1">
+        @* ---------- Row 6: Phone & Fax ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Phone",
@@ -163,7 +247,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.Phone
         })
 
@@ -174,13 +258,11 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Fax",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.Fax
         })
-    </div>
 
-    @* ---------- Row 7: Email & Website ---------- *@
-    <div class="row g-4 mb-1">
+        @* ---------- Row 7: Email & Website ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Email",
@@ -188,7 +270,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.Email
         })
 
@@ -199,13 +281,11 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Website",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.Website
         })
-    </div>
 
-    @* ---------- Row 8: Contact Person & Remarks ---------- *@
-    <div class="row g-4 mb-1">
+        @* ---------- Row 8: Contact Person & Remarks ---------- *@
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
             InputId = "Cpid",
@@ -213,7 +293,7 @@
             FieldType = FieldType.MultiSelect,
             Placeholder = "Select Contact Person",
             SelectItems = ViewBag.ContactDD as SelectList,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             ReserveActionSlot = false,
             ShowQuickAdd = true,
             QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
@@ -229,13 +309,9 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Remarks",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             DefaultValue = Model?.Remarks
         })
-    </div>
-
-    <hr class="my-2" id="sectionBreak" style="display:none;" />
-    <div class="row g-4 mb-1" id="LdateModifyHide" style="display:none;">
 
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
         {
@@ -243,7 +319,7 @@
             LabelText = "Creation Date:",
             FieldType = FieldType.ReadonlyDisplay,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             ShowOnInit = Model.Ldate.HasValue,
             DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : ""
         })
@@ -254,7 +330,7 @@
             LabelText = "Last Update Date:",
             FieldType = FieldType.ReadonlyDisplay,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ven-field-col",
+            ColumnClass = "col-md-4 ven-field-col",
             ShowOnInit = Model.ModifyDate.HasValue,
             DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : ""
         })
@@ -263,23 +339,24 @@
 
 </div>
 
-<div class="row g-4 no-print">
-    <div class="col-12 ">
-        @await Html.PartialAsync("_Toolbars", new ToobarModel
-        {
-            Title = "",
-            ShowClear = false,
-            ShowDelete = false,
-            ShowPrint = false,
-            ShowFavorite = false,
-            IsPlain = true,
-            SaveBtnClass = "js-VendorInfo-save",
-            ReserveActionSlot = true,
-            ShowExtraContentLaptopOnly = true,
-            ShowExtraContent1 = true,
-            ShowExtraContent2 = false,
-            Style = "border-bottom:0px !important; padding-left:140px",
-           
-        })
+    <div class="row g-4">
+        <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title="",
+                SaveBtnClass = "js-VendorInfo-save",
+                ShowClear = false,
+                ShowDelete = false,
+                ShowFavorite = false,
+                ShowPrint = false,
+                IsPlain = true,
+                ReserveActionSlot = false,
+                CssClass = "vendor-toolbar-responsive",
+                Style = "border-bottom:0px !important;",
+                ShowExtraContent=false
+            })
+        </div>
+    </div>
+    
     </div>
 </div>

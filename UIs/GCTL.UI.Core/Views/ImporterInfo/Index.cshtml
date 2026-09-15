@@ -24,145 +24,186 @@
         background-color: #fff !important;
     }
 
-    /* Plus Button Style */
-    .btn-plus {
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        padding: 0 10px;
-        transition: background-color 0.2s ease, color 0.2s ease;
+    /* ==========================================================================
+       Importer Info Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Chart Of Account - Control Ledger pattern
+       ========================================================================== */
+    .im-field-col {
+        position: relative !important;
     }
 
-        .btn-plus:hover {
-            background-color: #0d6efd; /* Bootstrap blue */
-            color: #ffffff;
-            border-color: #0d6efd;
-        }
-
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
-    /* Country wrapper */
-    .con-input-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .im-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
     }
 
-    .con-select-wrap {
-        flex: 1;
-        min-width: 0; /* flex child shrink fix */
+    .im-field-col .form-label .text-danger,
+    .im-field-col .form-label sup,
+    .im-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
     }
 
-        /* Select2 container full width */
-        .con-select-wrap .select2-container {
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .im-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .im-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .im-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Full width for all inputs and select2 containers */
+    .im-field-col .form-control,
+    .im-field-col .form-select,
+    .im-field-col select,
+    .im-field-col .select2-container,
+    .im-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* ==========================================================================
+       Uniform Height (31px) & Typography for ALL Inputs, Selects, and Dropdowns
+       ========================================================================== */
+    .im-field-col .input-group,
+    .im-field-col .form-control,
+    .im-field-col .form-select,
+    .im-field-col select,
+    .im-field-col .select2-container,
+    .im-field-col .select2-container .select2-selection--single,
+    .im-field-col .select2-container .select2-selection--multiple {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .im-field-col .form-control,
+    .im-field-col .form-select,
+    .im-field-col .select2-container .select2-selection--single,
+    .im-field-col .select2-container .select2-selection--multiple {
+        border-radius: 4px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0 8px !important;
+    }
+
+    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
+    .im-layout-form-col .card-body {
+        padding: 12px 18px !important;
+    }
+
+    .im-layout-form-col .card-body .row,
+    .im-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
+    .im-field-col .field-fixed-width > .detached-action-btn,
+    .im-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .im-field-col .field-fixed-width > .detached-action-btn:hover,
+    .im-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .im-field-col .field-fixed-width > .detached-action-btn:focus,
+    .im-field-col .field-fixed-width > .js-quick-add:focus,
+    .im-field-col .field-fixed-width > .detached-action-btn:active,
+    .im-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .im-field-col .field-fixed-width > .detached-action-btn i,
+    .im-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .im-field-col .field-fixed-width {
             width: 100% !important;
+            gap: 8px !important;
         }
 
-    /* Plus button */
-    .btn-plus {
-        flex-shrink: 0;
-        width: 30px;
-        height: 30px;
-        padding: 0;
-        background-color: #ffffff;
-        color: #333;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-        .btn-plus:hover {
-            background-color: #0d6efd;
-            color: #ffffff;
-            border-color: #0d6efd;
+        .im-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
         }
 
-        .btn-plus:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
-    /* Responsive layout:
-       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
-       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
-    */
-    @@media (max-width: 1600px) {
-        .im-layout-form-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            margin-bottom: 1rem;
-        }
-
-        .im-layout-grid-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            padding-bottom: 1.5rem !important;
-        }
-
-        .im-field-col {
-            flex: 0 0 25% !important;
-            max-width: 25% !important;
-        }
-
-        .im-toolbar-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-    }
-
-    @@media (min-width: 1600.02px) {
-        .im-layout-form-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .im-layout-grid-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .im-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .im-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-
-        .im-layout-form-col .toolbar-extra-content {
-            display: none !important;
-        }
-    }
-
-    @@media (max-width: 991.98px) {
-        .im-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .im-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
-    @@media (max-width: 575.98px) {
-        .im-field-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-
-        .im-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
+        .im-field-col .field-fixed-width > .detached-action-btn,
+        .im-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
         }
     }
 </style>
@@ -173,33 +214,15 @@
 <section class="content consistent-look">
     <div class="">
         <div class="row g-2">
-
-            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
-            <div class="col-12 col-xxl-6 im-layout-form-col">
-                <div class="card rounded shadow-sm">
-                    <div class="card-header p-0">
-                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                        {
-                            Title = "Importer Info",
-                            SaveBtnClass = "js-ImporterInfo-save",
-                            DeleteBtnClass = "js-ImporterInfo-delete-confirm",
-                            ClearBtnClass = "js-ImporterInfo-clear",
-                            ShowExtraContent = true,
-                            ShowExtraContentLaptopOnly=true
-                        })
+            <div class="col-12" id="importerInfoFormContainer">
+                <form asp-action="Setup" method="post" id="ImporterInfo-form" asp-controller="ImporterInfo">
+                    <div class="js-ImporterInfo-form-container">
+                        <partial name="_Setup" model="Model.Setup" />
                     </div>
-                    <div class="card-body px-2">
-                        <form asp-action="Setup" method="post" id="ImporterInfo-form" asp-controller="ImporterInfo">
-                            <div class="js-ImporterInfo-form-container">
-                                <partial name="_Setup" model="Model.Setup" />
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                </form>
             </div>
-
-            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-10 col-xxl-6">
+            
+            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 mt-3" id="importerInfoList">
                 @await Html.PartialAsync("_CustomGrid", new GridModel
                 {
                     GridId = "ImporterInfo-grid",
@@ -222,7 +245,6 @@
                     }
                 })
             </div>
-
         </div>
 
         <partial name="_BottomNavigation" />
