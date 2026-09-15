@@ -63,7 +63,7 @@
         if (!data?.trim()) return '<span class="text-muted small">No file</span>';
         const fileName = data.split(/[/\\]/).pop();
         const fileUrl = `/NoticeDocument/${data}`;
-        return `<a href="javascript:void(0)" onclick="window.gctlShowFileModal('${fileUrl}', '${fileName}')" class="file-link text-primary fs-5" title="Click to view ${fileName}"><i class="bi bi-eye-fill"></i></a>`;
+        return `<a href="javascript:void(0)" onclick="window.gctlShowFileModal('${fileUrl}', '${fileName}')" class="file-link text-primary" title="Click to view ${fileName}">${fileName}</a>`;
     };
 
     $.noticeManagement = function (options) {

@@ -7,77 +7,203 @@
 }
 
 <style>
-    /* Responsive layout:
-       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
-       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
-    */
-    @@media (max-width: 1600px) {
-        .sml-layout-form-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            margin-bottom: 1rem;
-        }
-
-        .sml-layout-grid-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            padding-bottom: 1.5rem !important;
-        }
-
-        .sml-field-col {
-            flex: 0 0 25% !important;
-            max-width: 25% !important;
-        }
-
-        .sml-toolbar-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
+    #ShipmentModeLedgerSetupDeleteModalBodyHeightFeixd {
+        height: 50px !important;
     }
 
-    @@media (min-width: 1600.02px) {
-        .sml-layout-form-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sml-layout-grid-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sml-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sml-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
+    .dataTables_filter {
+        margin-right: 0px;
     }
 
-    @@media (max-width: 991.98px) {
-        .sml-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .sml-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
+    .bg-light {
+        background-color: #fff !important;
+        color: #000 !important;
     }
 
-    @@media (max-width: 575.98px) {
-        .sml-field-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #fff !important;
+    }
+
+    /* ==========================================================================
+       Shipment Mode Ledger Setup Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Chart Of Account - Control Ledger pattern
+       ========================================================================== */
+    .sml-field-col {
+        position: relative !important;
+    }
+
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .sml-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sml-field-col .form-label .text-danger,
+    .sml-field-col .form-label sup,
+    .sml-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .sml-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .sml-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sml-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Full width for all inputs and select2 containers */
+    .sml-field-col .form-control,
+    .sml-field-col .form-select,
+    .sml-field-col select,
+    .sml-field-col .select2-container,
+    .sml-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* ==========================================================================
+       Uniform Height (31px) & Typography for ALL Inputs, Selects, and Dropdowns
+       ========================================================================== */
+    .sml-field-col .input-group,
+    .sml-field-col .form-control,
+    .sml-field-col .form-select,
+    .sml-field-col select,
+    .sml-field-col .select2-container,
+    .sml-field-col .select2-container .select2-selection--single,
+    .sml-field-col .select2-container .select2-selection--multiple {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sml-field-col .form-control,
+    .sml-field-col .form-select,
+    .sml-field-col .select2-container .select2-selection--single,
+    .sml-field-col .select2-container .select2-selection--multiple {
+        border-radius: 4px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0 8px !important;
+    }
+
+    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
+    .sml-layout-form-col .card-body {
+        padding: 12px 18px !important;
+    }
+
+    .sml-layout-form-col .card-body .row,
+    .sml-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
+    .sml-field-col .field-fixed-width > .detached-action-btn,
+    .sml-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .sml-field-col .field-fixed-width > .detached-action-btn:hover,
+    .sml-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .sml-field-col .field-fixed-width > .detached-action-btn:focus,
+    .sml-field-col .field-fixed-width > .js-quick-add:focus,
+    .sml-field-col .field-fixed-width > .detached-action-btn:active,
+    .sml-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .sml-field-col .field-fixed-width > .detached-action-btn i,
+    .sml-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .sml-field-col .field-fixed-width {
+            width: 100% !important;
+            gap: 8px !important;
         }
 
-        .sml-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
+        .sml-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sml-field-col .field-fixed-width > .detached-action-btn,
+        .sml-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
         }
     }
 </style>
@@ -92,15 +218,16 @@
             <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
             <div class="col-12 col-xxl-6 sml-layout-form-col">
                 <div class="card rounded shadow-sm">
-                    <div class="card-header p-0">
+                    <div class="card-header p-0 col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Shipment Mode Ledger Setup",
                             SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
                             DeleteBtnClass = "js-ShipmentModeLedgerSetup-delete-confirm",
                             ClearBtnClass = "js-ShipmentModeLedgerSetup-clear",
-                            ShowExtraContent = true,
-                            ShowExtraContentLaptopOnly = true
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent = false
                         })
                     </div>
 

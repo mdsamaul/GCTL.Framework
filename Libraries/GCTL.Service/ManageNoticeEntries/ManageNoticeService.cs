@@ -634,8 +634,7 @@ namespace GCTL.Service.ManageNoticeEntries
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                string fileExtension = Path.GetExtension(file.FileName);
-                string fileName = $"{noticeId}_{Guid.NewGuid()}{fileExtension}";
+                string fileName = file.FileName;
                 string filePath = Path.Combine(uploadsFolder, fileName);
 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))

@@ -123,6 +123,30 @@
                     </div>
                 </div>
             </div>
+            <div class="col-lg-6 col-md-6 col-12 mb-2">
+                <div class="row align-items-center gx-2">
+                    <div class="col-4"></div>
+                    <div class="col-8">
+                        @* <button type="button" class="btn btn-sm btn-glass-primary px-4 py-1 d-flex align-items-center justify-content-center gap-2" id="sendMail">
+                            <i class="bi bi-send"></i> Send Email
+                        </button> *@
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "",
+                            SaveBtnClass = "js-VendorInfo-save",
+                            ShowClear = false,
+                            ShowDelete = false,
+                            ShowFavorite = false,
+                            ShowPrint = false,
+                            IsPlain = true,
+                            ReserveActionSlot = false,
+                            CssClass = "vendor-toolbar-responsive",
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContent = false
+                        })
+                    </div>
+                </div>
+            </div>
 
             @* Audit Date Info *@
             <div class="col-12" id="DateInfo" style="display:none;">
@@ -158,4 +182,3 @@
         </div>
     </form>
 </div>
-
