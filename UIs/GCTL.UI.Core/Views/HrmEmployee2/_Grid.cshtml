@@ -18,14 +18,14 @@
     Columns = new()
     {
         new() { Data = "employeeId", Header = "Employee Id", Width = "8%", IsEditLink = true, EditSelectorClass = "js-HrmEmployee2-edit" },
-        new() { Data = "firstName", Header = "Name", Width = "18%", RenderFn = "hrmEmpName" },
-        new() { Data = "firstNameBangla", Header = "Name (বাংলা)", Width = "18%", RenderFn = "hrmEmpNameBn" },
+        new() { Data = "firstName", Header = "Name", Width = "20%", Align = "left", RenderFn = "hrmEmpName" },
+        new() { Data = "firstNameBangla", Header = "Name (বাংলা)", Width = "20%", RenderFn = "hrmEmpNameBn" },
         new() { Data = "sexCode", Header = "Gender", Width = "7%" },
         new() { Data = "nationalityCode", Header = "Nationality", Width = "10%" },
-        new() { Data = "nationalIdno", Header = "National ID", Width = "11%" },
+        new() { Data = "nationalIdno", Header = "National ID", Width = "12%" },
         new() { Data = "telephone", Header = "Phone", Width = "10%" },
         new() { Data = "photoUrl", Header = "Picture", Width = "8%", Sortable = false, Searchable = false, RenderFn = "hrmEmpPhoto" },
-        new() { Data = "autoId", Header = "Actions", Width = "10%", Sortable = false, Searchable = false, RenderFn = "hrmEmpActions" }
+        new() { Data = "autoId", Header = "Actions", Width = "5%", Sortable = false, Searchable = false, RenderFn = "hrmEmpActions" }
     }
 })
 

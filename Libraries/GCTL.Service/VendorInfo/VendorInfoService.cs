@@ -7,7 +7,6 @@ using GCTL.Core.ViewModels.VendorPrefix;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
-using GCTL.Service.Designations;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -349,7 +348,7 @@ namespace GCTL.Service.VendorInfo
                 var data = await (
                     from cp in contactPersonrepository.All().AsNoTracking()
                     join d in desiRepo.All().AsNoTracking()
-                        on cp.DesignationCode equals d.DesignationCode into dg
+                    on cp.DesignationCode equals d.DesignationCode into dg
                     from d in dg.DefaultIfEmpty()
                     select new ContactPersonTableDto
                     {
