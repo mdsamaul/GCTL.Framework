@@ -5,6 +5,7 @@ using GCTL.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,18 +17,21 @@ namespace GCTL.Service.SepDocumentation
         private readonly IGenericRepository<SalesDeliveryLocation> _deliveryLocationRepository;
         private readonly IGenericRepository<GCTL.Data.Models.SepDocumentation> _sepDocumentationRepository;
         private readonly IGenericRepository<CfDefExpenseType> _shipmentModeRepository;
+        private readonly IGenericRepository<SepDocumentInfo> _documentInfoRepository;
 
         public SepDocumentationService(
             IGenericRepository<SalesCustomer> customerRepository,
             IGenericRepository<SalesDeliveryLocation> deliveryLocationRepository,
             IGenericRepository<GCTL.Data.Models.SepDocumentation> sepDocumentationRepository,
-            IGenericRepository<CfDefExpenseType> shipmentModeRepository
+            IGenericRepository<CfDefExpenseType> shipmentModeRepository,
+            IGenericRepository<SepDocumentInfo> documentInfoRepository
             )
         {
             _customerRepository = customerRepository;
             _deliveryLocationRepository = deliveryLocationRepository;
             _sepDocumentationRepository = sepDocumentationRepository;
             _shipmentModeRepository = shipmentModeRepository;
+            _documentInfoRepository = documentInfoRepository;
         }
 
         #region Grid
@@ -1029,6 +1033,225 @@ namespace GCTL.Service.SepDocumentation
                 };
             }
         }
+
+        #region Document Upload Info
+
+        public async Task<SepJobUploadDetailsDto> GetJobDetailsForUploadAsync(string jobNo)
+        {
+            if (string.IsNullOrWhiteSpace(jobNo))
+                return new SepJobUploadDetailsDto { Success = false, Message = "Job No is required." };
+
+            try
+            {
+                var job = await _sepDocumentationRepository.All()
+                    .Where(d => d.JobNo == jobNo)
+                    .OrderByDescending(d => d.Tc)
+                    .FirstOrDefaultAsync();
+
+                if (job == null)
+                    return new SepJobUploadDetailsDto { Success = false, Message = "Job not found." };
+
+                string customerName = "";
+                if (!string.IsNullOrEmpty(job.CustomerId))
+                {
+                    var customer = await _customerRepository.All()
+                        .Where(c => c.CustomerId == job.CustomerId)
+                        .Select(c => c.CustomerName)
+                        .FirstOrDefaultAsync();
+                    customerName = customer ?? "";
+                }
+
+                return new SepJobUploadDetailsDto
+                {
+                    Success = true,
+                    JobNo = job.JobNo ?? "",
+                    Date = job.Date.HasValue ? job.Date.Value.ToString("dd/MM/yyyy") : "",
+                    CustomerName = customerName,
+                    CustomerAddress = job.CustomerAddress ?? "",
+                    Message = "Success"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new SepJobUploadDetailsDto { Success = false, Message = ex.Message };
+            }
+        }
+
+        public async Task<List<SepJobDocumentItemDto>> GetJobDocumentsAsync(string jobNo)
+        {
+            if (string.IsNullOrWhiteSpace(jobNo))
+                return new List<SepJobDocumentItemDto>();
+
+            try
+            {
+                return await _documentInfoRepository.All()
+                    .Where(d => d.JobNo == jobNo)
+                    .OrderBy(d => d.DocCode)
+                    .Select(d => new SepJobDocumentItemDto
+                    {
+                        AutoId = d.AutoId,
+                        DocCode = d.DocCode ?? "",
+                        JobNo = d.JobNo ?? "",
+                        DocumentName = d.DocumentName ?? "",
+                        DocumentDiscription = d.DocumentDiscription ?? "",
+                        DocumentType = d.DocumentType ?? "",
+                        FilePath = !string.IsNullOrEmpty(d.DocumentType) ? "/DocumentInfo/" + d.DocumentType : "",
+                        LDate = d.Ldate.HasValue ? d.Ldate.Value.ToString("dd/MM/yyyy hh:mm tt") : "",
+                        ModifyDate = d.ModifyDate.HasValue ? d.ModifyDate.Value.ToString("dd/MM/yyyy hh:mm tt") : ""
+                    })
+                    .ToListAsync();
+            }
+            catch
+            {
+                return new List<SepJobDocumentItemDto>();
+            }
+        }
+
+        public async Task<CommonReturnViewModel> UploadOrUpdateDocumentAsync(SepDocumentUploadRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.JobNo))
+                    return new CommonReturnViewModel { Success = false, Message = "Job No is required." };
+
+                if (string.IsNullOrWhiteSpace(request.DocumentName))
+                    return new CommonReturnViewModel { Success = false, Message = "Document Name is required." };
+
+                var folderPath = Path.Combine(request.WebRootPath, "DocumentInfo");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                // EDIT / UPDATE EXISTING DOCUMENT
+                if (!string.IsNullOrWhiteSpace(request.DocCode))
+                {
+                    var entity = await _documentInfoRepository.All()
+                        .FirstOrDefaultAsync(d => d.DocCode == request.DocCode);
+
+                    if (entity == null)
+                        return new CommonReturnViewModel { Success = false, Message = "Document not found." };
+
+                    entity.DocumentName = request.DocumentName.Trim();
+                    entity.DocumentDiscription = request.Description?.Trim() ?? "";
+
+                    if (request.UploadFile != null && request.UploadFile.Length > 0)
+                    {
+                        if (request.UploadFile.Length > 15 * 1024 * 1024)
+                            return new CommonReturnViewModel { Success = false, Message = "File size exceeds the 15 MB limit." };
+
+                        if (!string.IsNullOrEmpty(entity.DocumentType))
+                        {
+                            var oldFilePath = Path.Combine(folderPath, entity.DocumentType);
+                            if (File.Exists(oldFilePath))
+                            {
+                                try { File.Delete(oldFilePath); } catch { }
+                            }
+                        }
+
+                        var ext = Path.GetExtension(request.UploadFile.FileName);
+                        var fileName = $"{request.DocCode}{ext}";
+                        var fullPath = Path.Combine(folderPath, fileName);
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            await request.UploadFile.CopyToAsync(stream);
+                        }
+                        entity.DocumentType = fileName;
+                    }
+
+                    entity.ModifyDate = DateTime.Now;
+                    entity.Luser = !string.IsNullOrEmpty(request.UserId) ? request.UserId : entity.Luser;
+                    entity.Lip = !string.IsNullOrEmpty(request.IpAddress) ? request.IpAddress : entity.Lip;
+
+                    await _documentInfoRepository.UpdateAsync(entity);
+                    return new CommonReturnViewModel { Success = true, Message = "Document updated successfully." };
+                }
+
+                // CREATE NEW DOCUMENT
+                if (request.UploadFile == null || request.UploadFile.Length == 0)
+                    return new CommonReturnViewModel { Success = false, Message = "Please select a file to upload." };
+
+                if (request.UploadFile.Length > 15 * 1024 * 1024)
+                    return new CommonReturnViewModel { Success = false, Message = "File size exceeds the 15 MB limit." };
+
+                var allDocCodes = await _documentInfoRepository.All()
+                    .Select(d => d.DocCode)
+                    .ToListAsync();
+
+                int maxNum = 0;
+                foreach (var code in allDocCodes)
+                {
+                    if (int.TryParse(code, out int n) && n > maxNum)
+                        maxNum = n;
+                }
+                string newDocCode = (maxNum + 1).ToString("D8");
+
+                var newExt = Path.GetExtension(request.UploadFile.FileName);
+                var newFileName = $"{newDocCode}{newExt}";
+                var newFullPath = Path.Combine(folderPath, newFileName);
+                using (var stream = new FileStream(newFullPath, FileMode.Create))
+                {
+                    await request.UploadFile.CopyToAsync(stream);
+                }
+
+                var newEntity = new SepDocumentInfo
+                {
+                    DocCode = newDocCode,
+                    JobNo = request.JobNo,
+                    DocumentName = request.DocumentName.Trim(),
+                    DocumentDiscription = request.Description?.Trim() ?? "",
+                    DocumentType = newFileName,
+                    Doucment = null,
+                    CompanyCode = request.CompanyCode ?? "001",
+                    Luser = request.UserId ?? "Admin",
+                    Ldate = DateTime.Now,
+                    Lip = request.IpAddress ?? "",
+                    Lmac = "",
+                    UserInfoEmployeeId = request.UserId ?? ""
+                };
+
+                await _documentInfoRepository.AddAsync(newEntity);
+                return new CommonReturnViewModel { Success = true, Message = "Document uploaded successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel { Success = false, Message = "Error occurred: " + ex.Message };
+            }
+        }
+
+        public async Task<CommonReturnViewModel> DeleteDocumentsAsync(SepDocDeleteDocRequest request)
+        {
+            try
+            {
+                if (request?.DocCodes == null || request.DocCodes.Count == 0)
+                    return new CommonReturnViewModel { Success = false, Message = "No documents selected for deletion." };
+
+                var folderPath = Path.Combine(request.WebRootPath, "DocumentInfo");
+
+                var entities = await _documentInfoRepository.All()
+                    .Where(d => request.DocCodes.Contains(d.DocCode))
+                    .ToListAsync();
+
+                foreach (var entity in entities)
+                {
+                    if (!string.IsNullOrEmpty(entity.DocumentType))
+                    {
+                        var filePath = Path.Combine(folderPath, entity.DocumentType);
+                        if (File.Exists(filePath))
+                        {
+                            try { File.Delete(filePath); } catch { }
+                        }
+                    }
+                    await _documentInfoRepository.DeleteAsync(entity);
+                }
+
+                return new CommonReturnViewModel { Success = true, Message = "Document(s) deleted successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel { Success = false, Message = "Error deleting documents: " + ex.Message };
+            }
+        }
+
+        #endregion
     }
 
     public class SelectListItem
