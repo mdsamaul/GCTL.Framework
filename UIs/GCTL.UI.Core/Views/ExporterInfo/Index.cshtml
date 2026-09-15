@@ -218,7 +218,7 @@
 
             <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
             <div class="col-12 col-xxl-6 im-layout-form-col">
-                <div class="card rounded shadow-sm">
+                @* <div class="card rounded shadow-sm">
                     <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
@@ -226,8 +226,25 @@
                             SaveBtnClass = "js-ExporterInfo-save",
                             DeleteBtnClass = "js-ExporterInfo-delete-confirm",
                             ClearBtnClass = "js-ExporterInfo-clear",
-                            ShowExtraContent = true,
-                            ShowExtraContentLaptopOnly = true
+                            CssClass = "exporter-toolbar-responsive",
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent = false
+                        })
+                    </div>
+                </div> *@
+                <div class="card rounded" style="border-bottom: 0px;">
+                    <div class="card-header p-0 col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Exporter Info",
+                            SaveBtnClass = "js-ExporterInfo-save",
+                            DeleteBtnClass = "js-ExporterInfo-delete-confirm",
+                            ClearBtnClass = "js-ExporterInfo-clear",
+                            // CssClass = "exporter-toolbar-responsive",
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent = false
                         })
                     </div>
                 </div>

@@ -84,7 +84,7 @@
 </style>
 
 <div class="card rounded shadow-sm">
-    <div class="card-header px-3 pt-3 pb-0 border-0 bg-transparent">
+    @* <div class="card-header px-3 pt-3 pb-0 border-0 bg-transparent">
         <div class="row g-4">
             <div class="col-xxl-6 col-xl-8 col-lg-8 col-12">
                 @await Html.PartialAsync("_Toolbars", new ToobarModel
@@ -99,7 +99,7 @@
                 })
             </div>
         </div>
-    </div>
+    </div> *@
     
     <div class="card-body px-3 py-3">
         <div class="row">
@@ -127,7 +127,7 @@
             FieldType = FieldType.Text,
             IsReadonly = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             CustomCssClass = "js-ExporterId-code",
             DefaultValue = Model?.ExporterId,
         })
@@ -139,7 +139,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Exporter Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ExporterCode
         })
     </div>
@@ -154,7 +154,7 @@
             Placeholder = "Enter Exporter Name",
             IsRequired = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ExporterName,
             AutoFocus = true
         })
@@ -166,7 +166,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Exporter Address",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ExporterAddress
         })
     </div>
@@ -181,7 +181,7 @@
             Placeholder = "-- Select Country --",
             SelectItems = ViewBag.CountryDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12"
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12"
         })
 
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -191,7 +191,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter City",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.City
         })
     </div>
@@ -205,7 +205,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter State/Province",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.StateOrProvince
         })
 
@@ -216,7 +216,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Zip Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ZipCode
         })
     </div>
@@ -230,7 +230,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Vat Reg. No.",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.VatRegNo
         })
 
@@ -241,7 +241,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Phone
         })
     </div>
@@ -255,7 +255,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Fax",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Fax
         })
 
@@ -266,7 +266,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Email
         })
     </div>
@@ -280,7 +280,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Website",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Website
         })
 
@@ -291,7 +291,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Remarks",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Remarks
         })
     </div>
@@ -305,7 +305,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Contact Person 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.ContactPerson1
         })
 
@@ -316,7 +316,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Designation 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Designation1
         })
     </div>
@@ -330,7 +330,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Phone1
         })
 
@@ -341,7 +341,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Email1
         })
     </div>
@@ -357,7 +357,7 @@
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
                 ReserveActionSlot = false,
-                ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+                ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
                 ShowOnInit = Model.Ldate.HasValue,
                 DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy") : ""
             })
@@ -368,7 +368,7 @@
                 LabelText = "Last Update Date:",
                 FieldType = FieldType.ReadonlyDisplay,
                 ReserveActionSlot = false,
-                ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
+                ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
                 ShowOnInit = Model.ModifyDate.HasValue,
                 DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy") : ""
             })
@@ -377,7 +377,7 @@
     }
 
     <div class="row g-4">
-        <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+        <div class="col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
             @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
             {
                 Title="",
@@ -390,6 +390,8 @@
                 ReserveActionSlot = false,
                 CssClass = "exporter-toolbar-responsive",
                 Style = "border-bottom:0px !important;",
+                // ShowExtraContent=false
+                ShowExtraContentLaptopOnly=true,
                 ShowExtraContent=false
             })
         </div>

@@ -176,8 +176,15 @@
 
     /* Quick-Add (+) Button positioned to the right of the input with symmetrical right gap */
     .sm-field-col .field-fixed-width {
-        width: calc(100% - 32px) !important; /* Physically shrink container to leave room for absolute button */
-        padding-right: 0 !important;
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
     .sm-field-col .field-fixed-width > .detached-action-btn,
