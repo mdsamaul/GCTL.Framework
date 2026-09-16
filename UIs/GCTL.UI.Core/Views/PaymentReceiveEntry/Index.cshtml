@@ -139,7 +139,7 @@
                         Compact = true,
                         Columns = new List<GridColumn>
                         {
-                            new() { Data = "customerId", Header = "Customer ID", Width = "10%", RenderFn = "renderCustomerId", Align = "center" },
+                            new() { Data = "customerId", Header = "Customer ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-select-customer", Align = "center" },
                             new() { Data = "customerName", Header = "Customer", Width = "18%", Align = "left" },
                             new() { Data = "customerAddress", Header = "Billing Address", Width = "24%", Align = "left" },
                             new() { Data = "totalSales", Header = "Net Sales Value", Width = "9%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
@@ -276,16 +276,24 @@
     <script src="~/js/app.input.validation.js" defer></script>
     <script src="~/js/pages/paymentReceiveEntry.js" defer></script>
     <script type="text/javascript">
+        // Prevent DataTables intrusive alert popups
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.dataTable) {
+            window.jQuery.fn.dataTable.ext.errMode = 'none';
+        }
+
         // Register custom renderers in global gctlRenderers registry
         window.gctlRenderers = window.gctlRenderers || {};
 
         window.gctlRenderers.renderCustomerId = function (data, type, row) {
-            var id = data || (row ? (row.customerId || row.CustomerID || row.customerID || '') : '');
+            var id = data || (row ? (row.customerId || row.CustomerID || '') : '');
             return '<a class="custom-grid-link js-select-customer fw-bold text-primary" data-id="' + id + '" style="cursor:pointer; text-decoration:underline;">' + id + '</a>';
         };
 
         (function waitForJQuery() {
             if (window.jQuery && typeof $.paymentReceiveEntry === "function") {
+                if ($.fn && $.fn.dataTable) {
+                    $.fn.dataTable.ext.errMode = 'none';
+                }
                 var options = {
                     baseUrl: '@Url.Action("", "PaymentReceiveEntry")'
                 };

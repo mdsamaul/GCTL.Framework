@@ -26,19 +26,35 @@
         var currentDueInvoices = [];
         //#endregion
 
+        // Prevent DataTables intrusive alert popups
+        if ($.fn && $.fn.dataTable) {
+            $.fn.dataTable.ext.errMode = 'none';
+        }
+
         $(() => {
+            if ($.fn && $.fn.dataTable) {
+                $.fn.dataTable.ext.errMode = 'none';
+            }
+
             // Ensure renderCustomerId is available globally
             window.gctlRenderers = window.gctlRenderers || {};
             if (!window.gctlRenderers.renderCustomerId) {
                 window.gctlRenderers.renderCustomerId = function (data, type, row) {
-                    var id = data || (row ? (row.customerId || row.CustomerID || row.customerID || '') : '');
+                    var id = data || (row ? (row.customerId || row.CustomerID || '') : '');
                     return '<a class="custom-grid-link js-select-customer fw-bold text-primary" data-id="' + id + '" style="cursor:pointer; text-decoration:underline;">' + id + '</a>';
                 };
             }
 
-            // Initialize top CustomerList grid
+            // Listen for DataTables error event to log safely without alerting user
+            $(settings.customerGridSelector + ', ' + settings.receivedGridSelector).on('error.dt', function (e, dtSettings, techNote, message) {
+                console.warn('DataTables warning suppressed:', message);
+            });
+
+            // Initialize top CustomerList grid if not already initialized
             if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: settings.customerGridId });
+                if (!$.fn.DataTable || !$.fn.DataTable.isDataTable(settings.customerGridSelector)) {
+                    $.gctlGrid.initFromModel({ gridId: settings.customerGridId });
+                }
             }
 
             //#region Date Formatting Utilities
