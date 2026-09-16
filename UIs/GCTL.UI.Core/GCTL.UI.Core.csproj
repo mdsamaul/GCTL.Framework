@@ -1,4 +1,4 @@
-﻿<!--<Project Sdk="Microsoft.NET.Sdk.Web">
+<!--<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -114,6 +114,15 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\js\tabs\" />
+    <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
+
+  <Target Name="EncryptAppSettingsOnPublish" AfterTargets="Publish;FileSystemPublish">
+    <PropertyGroup>
+      <_NormalizedPublishDir>$([System.String]::Copy('$(PublishDir)').TrimEnd('\'))</_NormalizedPublishDir>
+      <_NormalizedPublishUrl>$([System.String]::Copy('$(PublishUrl)').TrimEnd('\'))</_NormalizedPublishUrl>
+    </PropertyGroup>
+    <Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(MSBuildProjectDirectory)\Helpers\EncryptPublishSettings.ps1&quot; -publishDir &quot;$(_NormalizedPublishDir)&quot; -publishUrl &quot;$(_NormalizedPublishUrl)&quot;" />
+  </Target>
 
 </Project>

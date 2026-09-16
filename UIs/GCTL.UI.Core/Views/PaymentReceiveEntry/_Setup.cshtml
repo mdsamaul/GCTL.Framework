@@ -1,0 +1,201 @@
+@model GCTL.Core.ViewModels.PaymentReceiveEntry.PaymentReceiveEntrySetupViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="payment-receive-setup-wrapper">
+    <div asp-validation-summary="ModelOnly" class="text-danger small mb-1"></div>
+
+    <input type="hidden" asp-for="Tc" id="Tc" />
+    <input type="hidden" asp-for="SelectedInvoicesJson" id="SelectedInvoicesJson" />
+
+    <fieldset class="border rounded p-2 mb-2 bg-white main-info-fieldset">
+        <legend class="w-auto px-2 fs-6 fw-bold text-dark mb-1" style="float: none; font-size: 14px;">Main Information</legend>
+
+        <!-- Row 1: Payment Receive No. & Payment Receive Date -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentReceiveId">
+                        Payment Receive No.
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="PaymentReceiveId" id="PaymentReceiveId" class="form-control form-control-sm bg-light" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentReceiveDate">
+                        Payment Receive Date<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="date" asp-for="PaymentReceiveDate" id="PaymentReceiveDate" class="form-control form-control-sm"
+                               value="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Customer (ID + Name) & Billing Address -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="CustomerId">
+                        Customer<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <div class="input-group input-group-sm">
+                            <input type="text" asp-for="CustomerId" id="CustomerId" class="form-control form-control-sm bg-light fw-bold text-primary"
+                                   style="max-width: 110px;" placeholder="Customer ID" readonly required />
+                            <input type="text" asp-for="CustomerName" id="CustomerNameDisplay" class="form-control form-control-sm bg-light fw-bold text-dark"
+                                   placeholder="Click customer in top grid" readonly />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1">
+                        Billing Address:
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="BillingAddress" id="BillingAddressDisplay" class="form-control form-control-sm bg-light text-muted"
+                               placeholder="Customer Billing Address" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Against/Bill List -->
+        <div class="row g-1 mb-2 align-items-center">
+            <label class="col-md-2 col-sm-3 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AgainstBillList">
+                Against/Bill List
+            </label>
+            <div class="col-md-10 col-sm-9">
+                <input type="text" asp-for="AgainstBillList" id="AgainstBillList" class="form-control form-control-sm"
+                       placeholder="Enter Against/Bill List" />
+            </div>
+        </div>
+
+        <!-- Row 4: Payment Type & Payment Mode -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentTypeId">
+                        Payment Type<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <select asp-for="PaymentTypeId" asp-items="ViewBag.PaymentTypes as SelectList" id="PaymentTypeId" class="form-select form-select-sm" required>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentModeCode">
+                        Payment Mode<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <select asp-for="PaymentModeCode" asp-items="ViewBag.PaymentModes as SelectList" id="PaymentModeCode" class="form-select form-select-sm" required>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 5: Money Receipt No. & Money Receipt Date -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="MrNo">
+                        Money Receipt No.
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="MrNo" id="MrNo" class="form-control form-control-sm" placeholder="Enter MR No." />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="MrDate">
+                        Money Receipt Date<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="date" asp-for="MrDate" id="MrDate" class="form-control form-control-sm"
+                               value="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 6: Payment Amount & Bank Fee/Online Charge -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Amount">
+                        Payment Amount<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="number" step="0.01" asp-for="Amount" id="Amount" class="form-control form-control-sm text-end"
+                               placeholder="Enter Payment Amount" required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="BankFeeOnlineCharge">
+                        Bank Fee/Online Charge
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="number" step="0.01" asp-for="BankFeeOnlineCharge" id="BankFeeOnlineCharge" class="form-control form-control-sm text-end"
+                               placeholder="Enter Bank Fee/Online Charge" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 7: Remarks & Received by -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Remarks">
+                        Remarks
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="Remarks" id="Remarks" class="form-control form-control-sm" placeholder="Enter Remarks" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Receivedby">
+                        Received by
+                    </label>
+                    <div class="col-sm-7">
+                        <select asp-for="Receivedby" asp-items="ViewBag.Employees as SelectList" id="Receivedby" class="form-select form-select-sm">
+                            <option value="">--Select Received by--</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 8: Centered Submit Button -->
+        <div class="d-flex justify-content-center my-3">
+            <button type="button" class="btn btn-sm btn-light border shadow-sm px-4 fw-bold js-PaymentReceiveEntry-save" id="btnSubmit">
+                <i class="far fa-save me-1 text-primary"></i> Submit
+            </button>
+        </div>
+
+        <!-- Row 9: Creation Date & Last Update Date -->
+        <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2 text-muted small px-2">
+            <div>
+                <span>Creation Date: </span>
+                <span id="creationDateSpan" class="fw-semibold">@(string.IsNullOrEmpty(Model?.CreationDate) ? DateTime.Now.ToString("dd/MM/yyyy") : Model.CreationDate)</span>
+            </div>
+            <div>
+                <span>Last Update Date: </span>
+                <span id="modifyDateSpan" class="fw-semibold">@Model?.LastUpdateDate</span>
+            </div>
+        </div>
+    </fieldset>
+</div>
