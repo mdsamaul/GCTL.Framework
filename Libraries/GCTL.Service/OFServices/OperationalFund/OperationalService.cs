@@ -50,22 +50,22 @@ namespace GCTL.Service.OperationalFund
         public async Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(
     PaginationRequest request, string customerid = "", string shipmentmodeid = "")
         {
-            var query = from d in _genericRepository.All()          // Sep_Documentation
-                        join r in _repository.All()                  // CF_OperationalFundRequisitionEntry
+            var query = (from d in _genericRepository.All().AsNoTracking()          // Sep_Documentation
+                        join r in _repository.All().AsNoTracking()                  // CF_OperationalFundRequisitionEntry
                             on d.JobNo equals r.JobNo into rr
                         from r in rr.DefaultIfEmpty()
 
                             //Customer LEFT JOIN
-                        join c in _customer.All()
+                        join c in _customer.All().AsNoTracking()
                             on d.CustomerId equals c.CustomerId into cc
                         from c in cc.DefaultIfEmpty()
 
                             //Expense Type LEFT JOIN
-                        join e in _shipmentmode.All()
+                        join e in _shipmentmode.All().AsNoTracking()
                             on d.ExpenseTypeId equals e.ExpenseTypeId into ee
                         from e in ee.DefaultIfEmpty()
 
-                        join cash in _currencies.All()
+                        join cash in _currencies.All().AsNoTracking()
                             on d.InvoiceCurrencyId equals cash.CurrencyId into cashG
                         from cash in cashG.DefaultIfEmpty()
 
@@ -87,17 +87,19 @@ namespace GCTL.Service.OperationalFund
 
                             ShipmentModeID = e != null ? e.ExpenseTypeId : "",
                             ShipmentMode = e != null ? e.ExpenseType : ""
-                        };
-            int a = await query.CountAsync();
+                        }).AsNoTracking();
+
             if (!string.IsNullOrEmpty(customerid))
                 query = query.Where(x => x.CustomerID == customerid);
 
             if (!string.IsNullOrEmpty(shipmentmodeid))
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
 
+            int a = await query.CountAsync();
+
             if (request.PageSize == -1)
             {
-                request.PageSize = await query.CountAsync();
+                request.PageSize = a;
                 request.PageNumber = 1;
             }
 
@@ -105,17 +107,8 @@ namespace GCTL.Service.OperationalFund
                 request.SortColumn = nameof(JobEntryListVM.JobDate);
             if (string.IsNullOrEmpty(request.SortOrder))
                 request.SortOrder = "desc";
-            try
-            {
-                var result = await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
-                result.TotalCount = a;
-                return result;
-            }
-            catch (Exception ex)
-            {
 
-                throw;
-            }
+            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.JobNo);
 
         }
 
@@ -280,39 +273,29 @@ namespace GCTL.Service.OperationalFund
         #endregion
 
         #region Get All Requisition Entry
-        public async Task<PaginationResponse<RequisitionVM>> GetAllRequisition(
-    PaginationRequest request)
+        public async Task<PaginationResponse<RequisitionVM>> GetAllRequisition(PaginationRequest request)
         {
-            var query = from main in _repository.All()                 // CF_OperationalFundRequisitionEntry
-                        join doc in _genericRepository.All()               // Sep_Documentation
-                            on main.JobNo equals doc.JobNo
-                        join cust in _customer.All()                   // Sales_Customer
-                            on doc.CustomerId equals cust.CustomerId
-                        join exp in _shipmentmode.All()                // CF_Def_ExpenseType
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+            var query = from main in _repository.All().AsNoTracking()
+                        join doc in _genericRepository.All().AsNoTracking() on main.JobNo equals doc.JobNo
+                        join cust in _customer.All().AsNoTracking() on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
+                        join exp in _shipmentmode.All().AsNoTracking() on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
                         select new RequisitionVM
                         {
                             TC = main.Tc,
                             OFRNo = main.Ofrno,
                             OFRDate = main.Ofrdate,
                             JobNo = main.JobNo,
-
-                            CustomerName = cust.CustomerName,
-                            BillingAddress = cust.CustomerAddress,
-
-                            ShipmentMode = exp.ExpenseType
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            BillingAddress = cust != null ? cust.CustomerAddress : "",
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
-
-            if (request.PageSize == -1)
-            {
-                request.PageSize = await query.CountAsync();
-                request.PageNumber = 1;
-            }
 
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(RequisitionVM.JobNo);
 
-            return await PaginationService<RequisitionVM>.GetPaginatedData(query, request);
+            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.TC);
         }
 
         public async Task<PaginationService<RequisitionVM, RequisitionVM>.PaginationResult<RequisitionVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "OFRNo", string sortOrder = "desc")

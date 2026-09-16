@@ -62,13 +62,13 @@ namespace GCTL.Service.OFRAdjustApproval
         #region Get All Requisition for Bottom Grid
         public async Task<PaginationResponse<OFRAdjustApprovalBottomGridVM>> AllRequisitionforBottomGrid(PaginationRequest request)
         {
-            var query = from main in _repository.All()
-                        join doc in _documentation.All()
+            var query = (from main in _repository.All().AsNoTracking()
+                        join doc in _documentation.All().AsNoTracking()
                             on main.JobNo equals doc.JobNo
-                        join cust in _customer.All()
+                        join cust in _customer.All().AsNoTracking()
                             on doc.CustomerId equals cust.CustomerId into cusG
                         from cust in cusG.DefaultIfEmpty()
-                        join exp in _shipmentmode.All()
+                        join exp in _shipmentmode.All().AsNoTracking()
                             on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
                         from exp in shipG.DefaultIfEmpty()
                         where !string.IsNullOrEmpty(main.BillAdjustApprovalUser)
@@ -83,7 +83,7 @@ namespace GCTL.Service.OFRAdjustApproval
                             BillingAddress = cust != null ? cust.CustomerAddress : "",
                             ShipmentModeID = exp != null ? exp.ExpenseTypeId : "",
                             ShipmentMode = exp != null ? exp.ExpenseType : ""
-                        };
+                        }).AsNoTracking();
 
             if (request.PageSize == -1)
             {
@@ -96,20 +96,20 @@ namespace GCTL.Service.OFRAdjustApproval
             if (string.IsNullOrEmpty(request.SortOrder))
                 request.SortOrder = "desc";
 
-            return await PaginationService<OFRAdjustApprovalBottomGridVM>.GetPaginatedData(query, request);
+            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.TC);
         }
         #endregion
 
         #region Get All Requisition Entry in Top Grid
         public async Task<PaginationResponse<OFRAdjustApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "")
         {
-            var query = from main in _repository.All()
-                        join doc in _documentation.All()
+            var query = (from main in _repository.All().AsNoTracking()
+                        join doc in _documentation.All().AsNoTracking()
                             on main.JobNo equals doc.JobNo
-                        join cust in _customer.All()
+                        join cust in _customer.All().AsNoTracking()
                             on doc.CustomerId equals cust.CustomerId into cusG
                         from cust in cusG.DefaultIfEmpty()
-                        join exp in _shipmentmode.All()
+                        join exp in _shipmentmode.All().AsNoTracking()
                             on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
                         from exp in shipG.DefaultIfEmpty()
                         where string.IsNullOrEmpty(main.BillAdjustApprovalUser)
@@ -126,9 +126,7 @@ namespace GCTL.Service.OFRAdjustApproval
                             BENo = doc.Beno,
                             ShipmentModeID = doc.ExpenseTypeId,
                             ShipmentMode = exp != null ? exp.ExpenseType : ""
-                        };
-
-            int a = await query.CountAsync();
+                        }).AsNoTracking();
 
             // Filtering with Customer ID
             if (!string.IsNullOrEmpty(customerid))
@@ -141,9 +139,11 @@ namespace GCTL.Service.OFRAdjustApproval
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
             }
 
+            int a = await query.CountAsync();
+
             if (request.PageSize == -1)
             {
-                request.PageSize = await query.CountAsync();
+                request.PageSize = a;
                 request.PageNumber = 1;
             }
 
@@ -152,9 +152,7 @@ namespace GCTL.Service.OFRAdjustApproval
             if (string.IsNullOrEmpty(request.SortOrder))
                 request.SortOrder = "desc";
 
-            var result = await PaginationService<OFRAdjustApprovalTopGridVM>.GetPaginatedData(query, request);
-            result.TotalCount = a;
-            return result;
+            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.TC);
         }
         #endregion
         #endregion
