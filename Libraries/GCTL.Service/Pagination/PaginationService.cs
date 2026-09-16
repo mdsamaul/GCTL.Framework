@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace GCTL.Service.Pagination
 {
     #region new Pagination
-    public class PaginationService<TEntity>
+    public class PaginationService<TEntity> where TEntity : class
     {
         private static readonly ConcurrentDictionary<Type, PropertyInfo[]> _stringProps = new();
         private static readonly ConcurrentDictionary<Type, PropertyInfo[]> _intProps = new();
@@ -31,6 +31,8 @@ namespace GCTL.Service.Pagination
         {
             try
             {
+                query = query.AsNoTracking();
+
                 var type = typeof(TEntity);
                 var stringProps = _stringProps.GetOrAdd(type, t => Searchable(t, typeof(string)));
                 var intProps = _intProps.GetOrAdd(type, t => Searchable(t, typeof(int)).Concat(Searchable(t, typeof(int?))).ToArray());
@@ -38,14 +40,19 @@ namespace GCTL.Service.Pagination
                 var dateProps = _dateProps.GetOrAdd(type, t => Searchable(t, typeof(DateTime)).Concat(Searchable(t, typeof(DateTime?))).ToArray());
                 var totalItems = await query.CountAsync();
 
+                int fileredCount;
                 if (!string.IsNullOrWhiteSpace(request.SearchTerm))
                 {
                     var term = request.SearchTerm.Trim();
-                    Console.WriteLine(query);
                     var predicate = BuildSearchPredicate<TEntity>(term, stringProps, intProps, decimalProps, dateProps);
                     if (predicate != null)
                         query = query.Where(predicate);
-                    Console.WriteLine(query);
+
+                    fileredCount = await query.CountAsync();
+                }
+                else
+                {
+                    fileredCount = totalItems;
                 }
 
                 if (!string.IsNullOrEmpty(request.SortColumn))
@@ -54,8 +61,6 @@ namespace GCTL.Service.Pagination
                     if (prop != null)
                         query = BuildOrderBy(query, prop, request.SortOrder);
                 }
-
-                var fileredCount = await query.CountAsync();
 
                 var data = request.PageSize > 0
                     ? await query.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToListAsync()

@@ -50,22 +50,22 @@ namespace GCTL.Service.OperationalFund
         public async Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(
     PaginationRequest request, string customerid = "", string shipmentmodeid = "")
         {
-            var query = from d in _genericRepository.All()          // Sep_Documentation
-                        join r in _repository.All()                  // CF_OperationalFundRequisitionEntry
+            var query = (from d in _genericRepository.All().AsNoTracking()          // Sep_Documentation
+                        join r in _repository.All().AsNoTracking()                  // CF_OperationalFundRequisitionEntry
                             on d.JobNo equals r.JobNo into rr
                         from r in rr.DefaultIfEmpty()
 
                             //Customer LEFT JOIN
-                        join c in _customer.All()
+                        join c in _customer.All().AsNoTracking()
                             on d.CustomerId equals c.CustomerId into cc
                         from c in cc.DefaultIfEmpty()
 
                             //Expense Type LEFT JOIN
-                        join e in _shipmentmode.All()
+                        join e in _shipmentmode.All().AsNoTracking()
                             on d.ExpenseTypeId equals e.ExpenseTypeId into ee
                         from e in ee.DefaultIfEmpty()
 
-                        join cash in _currencies.All()
+                        join cash in _currencies.All().AsNoTracking()
                             on d.InvoiceCurrencyId equals cash.CurrencyId into cashG
                         from cash in cashG.DefaultIfEmpty()
 
@@ -87,17 +87,19 @@ namespace GCTL.Service.OperationalFund
 
                             ShipmentModeID = e != null ? e.ExpenseTypeId : "",
                             ShipmentMode = e != null ? e.ExpenseType : ""
-                        };
-            int a = await query.CountAsync();
+                        }).AsNoTracking();
+
             if (!string.IsNullOrEmpty(customerid))
                 query = query.Where(x => x.CustomerID == customerid);
 
             if (!string.IsNullOrEmpty(shipmentmodeid))
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
 
+            int a = await query.CountAsync();
+
             if (request.PageSize == -1)
             {
-                request.PageSize = await query.CountAsync();
+                request.PageSize = a;
                 request.PageNumber = 1;
             }
 
@@ -105,17 +107,8 @@ namespace GCTL.Service.OperationalFund
                 request.SortColumn = nameof(JobEntryListVM.JobDate);
             if (string.IsNullOrEmpty(request.SortOrder))
                 request.SortOrder = "desc";
-            try
-            {
-                var result = await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
-                result.TotalCount = a;
-                return result;
-            }
-            catch (Exception ex)
-            {
 
-                throw;
-            }
+            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.JobNo);
 
         }
 
@@ -261,62 +254,48 @@ namespace GCTL.Service.OperationalFund
             var prefix = firstPart + "/Ofr";
             // CouImp/Dha/Ofr
 
-            var monthYear = DateTime.Now.ToString("MMyy"); // 1225
+            var now = DateTime.Now;
+            var monthYear = now.ToString("MMyy"); // e.g. 0926
+            var yearSuffix = now.ToString("yy");   // e.g. 26
 
-            var lastRequisition = await _repository.All()
-                .Where(r =>
-                    r.Ofrno.StartsWith(prefix) &&
-                    r.Ofrno.Contains($"_{monthYear}_"))
-                .OrderByDescending(r => r.Ofrno)
-                .FirstOrDefaultAsync();
+            // Pattern matches {prefix}_[MM]{yy}_[6 digits] (e.g. CouImp/Dha/Ofr_0926_000001)
+            var yearPattern = $"{prefix}_[0-1][0-9]{yearSuffix}_%";
 
-            int serial = 1;
+            var maxSerial = await _repository.All()
+                .Where(r => r.Ofrno != null && r.Ofrno.Length >= 6 && EF.Functions.Like(r.Ofrno, yearPattern))
+                .Select(r => (int?)Convert.ToInt32(r.Ofrno.Substring(r.Ofrno.Length - 6)))
+                .MaxAsync();
 
-            if (lastRequisition != null)
-            {
-                var lastSerialStr = lastRequisition.Ofrno.Split('_').Last();
-                if (int.TryParse(lastSerialStr, out int lastSerial))
-                    serial = lastSerial + 1;
-            }
+            int serial = (maxSerial ?? 0) + 1;
 
             return $"{prefix}_{monthYear}_{serial:D6}";
         }
         #endregion
 
         #region Get All Requisition Entry
-        public async Task<PaginationResponse<RequisitionVM>> GetAllRequisition(
-    PaginationRequest request)
+        public async Task<PaginationResponse<RequisitionVM>> GetAllRequisition(PaginationRequest request)
         {
-            var query = from main in _repository.All()                 // CF_OperationalFundRequisitionEntry
-                        join doc in _genericRepository.All()               // Sep_Documentation
-                            on main.JobNo equals doc.JobNo
-                        join cust in _customer.All()                   // Sales_Customer
-                            on doc.CustomerId equals cust.CustomerId
-                        join exp in _shipmentmode.All()                // CF_Def_ExpenseType
-                            on main.ExpenseTypeId equals exp.ExpenseTypeId
+            var query = from main in _repository.All().AsNoTracking()
+                        join doc in _genericRepository.All().AsNoTracking() on main.JobNo equals doc.JobNo
+                        join cust in _customer.All().AsNoTracking() on doc.CustomerId equals cust.CustomerId into cusG
+                        from cust in cusG.DefaultIfEmpty()
+                        join exp in _shipmentmode.All().AsNoTracking() on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
+                        from exp in shipG.DefaultIfEmpty()
                         select new RequisitionVM
                         {
                             TC = main.Tc,
                             OFRNo = main.Ofrno,
                             OFRDate = main.Ofrdate,
                             JobNo = main.JobNo,
-
-                            CustomerName = cust.CustomerName,
-                            BillingAddress = cust.CustomerAddress,
-
-                            ShipmentMode = exp.ExpenseType
+                            CustomerName = cust != null ? cust.CustomerName : "",
+                            BillingAddress = cust != null ? cust.CustomerAddress : "",
+                            ShipmentMode = exp != null ? exp.ExpenseType : ""
                         };
-
-            if (request.PageSize == -1)
-            {
-                request.PageSize = await query.CountAsync();
-                request.PageNumber = 1;
-            }
 
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(RequisitionVM.JobNo);
 
-            return await PaginationService<RequisitionVM>.GetPaginatedData(query, request);
+            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.TC);
         }
 
         public async Task<PaginationService<RequisitionVM, RequisitionVM>.PaginationResult<RequisitionVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "OFRNo", string sortOrder = "desc")
