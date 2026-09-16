@@ -261,23 +261,19 @@ namespace GCTL.Service.OperationalFund
             var prefix = firstPart + "/Ofr";
             // CouImp/Dha/Ofr
 
-            var monthYear = DateTime.Now.ToString("MMyy"); // 1225
+            var now = DateTime.Now;
+            var monthYear = now.ToString("MMyy"); // e.g. 0926
+            var yearSuffix = now.ToString("yy");   // e.g. 26
 
-            var lastRequisition = await _repository.All()
-                .Where(r =>
-                    r.Ofrno.StartsWith(prefix) &&
-                    r.Ofrno.Contains($"_{monthYear}_"))
-                .OrderByDescending(r => r.Ofrno)
-                .FirstOrDefaultAsync();
+            // Pattern matches {prefix}_[MM]{yy}_[6 digits] (e.g. CouImp/Dha/Ofr_0926_000001)
+            var yearPattern = $"{prefix}_[0-1][0-9]{yearSuffix}_%";
 
-            int serial = 1;
+            var maxSerial = await _repository.All()
+                .Where(r => r.Ofrno != null && r.Ofrno.Length >= 6 && EF.Functions.Like(r.Ofrno, yearPattern))
+                .Select(r => (int?)Convert.ToInt32(r.Ofrno.Substring(r.Ofrno.Length - 6)))
+                .MaxAsync();
 
-            if (lastRequisition != null)
-            {
-                var lastSerialStr = lastRequisition.Ofrno.Split('_').Last();
-                if (int.TryParse(lastSerialStr, out int lastSerial))
-                    serial = lastSerial + 1;
-            }
+            int serial = (maxSerial ?? 0) + 1;
 
             return $"{prefix}_{monthYear}_{serial:D6}";
         }
