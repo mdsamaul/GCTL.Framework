@@ -1095,7 +1095,7 @@ namespace GCTL.Service.SepDocumentation
                         DocumentName = d.DocumentName ?? "",
                         DocumentDiscription = d.DocumentDiscription ?? "",
                         DocumentType = d.DocumentType ?? "",
-                        FilePath = !string.IsNullOrEmpty(d.DocumentType) ? "/DocumentInfo/" + d.DocumentType : "",
+                        FilePath = !string.IsNullOrEmpty(d.DocumentType) ? "/DocumentInfo/" + d.DocumentType.TrimStart('/') : "",
                         LDate = d.Ldate.HasValue ? d.Ldate.Value.ToString("dd/MM/yyyy hh:mm tt") : "",
                         ModifyDate = d.ModifyDate.HasValue ? d.ModifyDate.Value.ToString("dd/MM/yyyy hh:mm tt") : ""
                     })
@@ -1144,6 +1144,12 @@ namespace GCTL.Service.SepDocumentation
                             if (File.Exists(oldFilePath))
                             {
                                 try { File.Delete(oldFilePath); } catch { }
+                            }
+
+                            var legacyWwwrootPath = Path.Combine(request.WebRootPath, "wwwroot", entity.DocumentType);
+                            if (File.Exists(legacyWwwrootPath))
+                            {
+                                try { File.Delete(legacyWwwrootPath); } catch { }
                             }
                         }
 
@@ -1238,6 +1244,12 @@ namespace GCTL.Service.SepDocumentation
                         if (File.Exists(filePath))
                         {
                             try { File.Delete(filePath); } catch { }
+                        }
+
+                        var legacyWwwrootPath = Path.Combine(request.WebRootPath, "wwwroot", entity.DocumentType);
+                        if (File.Exists(legacyWwwrootPath))
+                        {
+                            try { File.Delete(legacyWwwrootPath); } catch { }
                         }
                     }
                     await _documentInfoRepository.DeleteAsync(entity);

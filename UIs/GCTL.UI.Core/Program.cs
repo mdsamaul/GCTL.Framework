@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.FileProviders;
 using OfficeOpenXml;
 using QuestPDF.Infrastructure;
 using Serilog;
@@ -143,6 +144,18 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+var docInfoDir = Path.Combine(app.Environment.ContentRootPath, "DocumentInfo");
+if (!Directory.Exists(docInfoDir))
+{
+    Directory.CreateDirectory(docInfoDir);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(docInfoDir),
+    RequestPath = "/DocumentInfo"
+});
 
 app.UseRouting();
 app.UseSession();
