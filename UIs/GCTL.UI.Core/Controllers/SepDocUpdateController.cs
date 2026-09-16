@@ -274,7 +274,7 @@ namespace GCTL_App.Controllers
             [FromForm] string? DocCode,
             IFormFile? uploadFile)
         {
-            var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var contentRoot = _webHostEnvironment.ContentRootPath ?? Directory.GetCurrentDirectory();
 
             var request = new SepDocumentUploadRequest
             {
@@ -286,7 +286,7 @@ namespace GCTL_App.Controllers
                 CompanyCode = LoginInfo?.CompanyCode ?? "001",
                 UserId = LoginInfo?.EmployeeId ?? LoginInfo?.Username ?? "Admin",
                 IpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "",
-                WebRootPath = webRoot
+                WebRootPath = contentRoot
             };
 
             var result = await _service.UploadOrUpdateDocumentAsync(request);
@@ -304,7 +304,7 @@ namespace GCTL_App.Controllers
             if (request == null)
                 return Json(ApiResponse.Error("Invalid request."));
 
-            request.WebRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            request.WebRootPath = _webHostEnvironment.ContentRootPath ?? Directory.GetCurrentDirectory();
             var result = await _service.DeleteDocumentsAsync(request);
 
             if (result.Success)

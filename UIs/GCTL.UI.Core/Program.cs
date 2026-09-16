@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.FileProviders;
 using OfficeOpenXml;
 using QuestPDF.Infrastructure;
 using Serilog;
@@ -35,15 +36,22 @@ builder.Host.UseSerilog();
 // Data Protection (Persist keys across app restarts)
 // ---------------------------------------------------------------------
 var keysFolder = new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "Keys"));
+if (!keysFolder.Exists)
+{
+    keysFolder.Create();
+}
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(keysFolder)
     .SetApplicationName("GCTL.UI.Core");
 
 // ---------------------------------------------------------------------
-// EF Core - Identity DbContext
+// EF Core - Identity DbContext (Auto-decrypts if password is encrypted with ENC(...))
 // ---------------------------------------------------------------------
-var connectionString = builder.Configuration.GetConnectionString("connection")
+var rawConnectionString = builder.Configuration.GetConnectionString("connection")
     ?? throw new InvalidOperationException("Connection string 'connection' not found in appsettings.json.");
+
+var connectionString = GCTL.UI.Core.Helpers.ConnectionEncryptor.DecryptConnectionString(rawConnectionString);
+builder.Configuration["ConnectionStrings:connection"] = connectionString;
 
 // Register DB contexts and application services via extension methods
 builder.Services.ConfigureContexts(builder.Configuration);
@@ -58,9 +66,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
-        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
-            ? CookieSecurePolicy.SameAsRequest
-            : CookieSecurePolicy.Always;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Events = new CookieAuthenticationEvents
         {
             OnValidatePrincipal = async context =>
@@ -115,6 +124,8 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 // Quest PDF License
@@ -141,8 +152,20 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+var docInfoDir = Path.Combine(app.Environment.ContentRootPath, "DocumentInfo");
+if (!Directory.Exists(docInfoDir))
+{
+    Directory.CreateDirectory(docInfoDir);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(docInfoDir),
+    RequestPath = "/DocumentInfo"
+});
 
 app.UseRouting();
 app.UseSession();

@@ -60,6 +60,7 @@ using GCTL.Service.OFRBillAdjust;
 using GCTL.Service.OpeningBalance;
 using GCTL.Service.OperationalFund;
 using GCTL.Service.PaymentModes;
+using GCTL.Service.PaymentReceiveEntry;
 using GCTL.Service.PaymentTerms;
 using GCTL.Service.PaymentType;
 using GCTL.Service.Permissions;
@@ -261,6 +262,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IOFRApproval, OFRApprovalService>();
             services.AddScoped<IOFRBillAdjust, OFRBillAdjustService>();
             services.AddScoped<IOFRAdjustApproval, OFRAdjustApprovalService>();
+            services.AddScoped<IPaymentReceiveEntryService, PaymentReceiveEntryService>();
             services.AddMemoryCache();
         }
 
