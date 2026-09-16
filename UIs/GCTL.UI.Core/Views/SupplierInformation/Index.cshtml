@@ -1,15 +1,11 @@
 @model GCTL.UI.Core.ViewModels.SupplierInformation.SupplierInformationPageViewModel
 
 <style>
-    /* ==========================================================================
-       Supplier Information Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
-       Mirrors Vendor Info / Chart of Accounts pattern
-       ========================================================================== */
+
     .sup-field-col {
         position: relative !important;
     }
 
-    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
     .sup-field-col .form-label {
         display: flex !important;
         align-items: center !important;
@@ -37,7 +33,6 @@
         display: inline-block !important;
     }
 
-    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
     .sup-field-col .field-fixed-width {
         position: relative !important;
         width: 100% !important;
@@ -61,7 +56,6 @@
         min-width: 0 !important;
     }
 
-    /* Full width for all inputs and select2 containers */
     .sup-field-col .form-control,
     .sup-field-col .form-select,
     .sup-field-col select,
@@ -72,7 +66,6 @@
         min-width: 0 !important;
     }
 
-    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
     .sup-layout-form-col .card-body {
         padding: 15px 42px 15px 24px !important;
     }
@@ -82,7 +75,6 @@
         --bs-gutter-x: 36px !important;
     }
 
-    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
     .sup-field-col .field-fixed-width > .detached-action-btn,
     .sup-field-col .field-fixed-width > .js-quick-add {
         position: absolute !important;
@@ -136,7 +128,6 @@
         font-size: 11px !important;
     }
 
-    /* Small / Mobile Screens fallback */
     @@media (max-width: 767.98px) {
         .sup-field-col .field-fixed-width {
             gap: 8px !important;
@@ -156,10 +147,6 @@
         }
     }
 
-    /* Responsive layout:
-       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs use Bootstrap grid, Grid is on Bottom (100%)
-       - Big screen (> 1600px): Form is on Left (50%), Inputs use Bootstrap grid, Grid is on Right (50%)
-    */
     @@media (max-width: 1600px) {
         .sup-layout-form-col {
             flex: 0 0 100% !important;

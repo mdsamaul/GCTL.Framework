@@ -95,6 +95,33 @@
         min-width: 0 !important;
     }
 
+    /* ==========================================================================
+       Uniform Height (31px) & Typography for ALL Inputs, Selects, and Dropdowns
+       ========================================================================== */
+    .ven-field-col .input-group,
+    .ven-field-col .form-control,
+    .ven-field-col .form-select,
+    .ven-field-col select,
+    .ven-field-col .select2-container,
+    .ven-field-col .select2-container .select2-selection--single,
+    .ven-field-col .select2-container .select2-selection--multiple {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .ven-field-col .form-control,
+    .ven-field-col .form-select,
+    .ven-field-col .select2-container .select2-selection--single,
+    .ven-field-col .select2-container .select2-selection--multiple {
+        border-radius: 4px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0 8px !important;
+    }
+
     /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
     .ven-layout-form-col .card-body {
         padding: 12px 18px !important;
@@ -112,12 +139,12 @@
         left: calc(100% + 4px) !important;
         top: 0 !important;
         bottom: 0 !important;
-        height: 100% !important;
-        min-height: 28px !important;
-        max-height: 34px !important;
-        width: 20px !important;
-        min-width: 20px !important;
-        max-width: 20px !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
         padding: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
@@ -162,6 +189,7 @@
     /* Small / Mobile Screens fallback */
     @@media (max-width: 767.98px) {
         .ven-field-col .field-fixed-width {
+            width: 100% !important;
             gap: 8px !important;
         }
 
@@ -178,81 +206,6 @@
             min-width: 28px !important;
         }
     }
-
-    /* Responsive layout:
-       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
-       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
-    */
-    @@media (max-width: 1600px) {
-        .ven-layout-form-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            margin-bottom: 1rem;
-        }
-
-        .ven-layout-grid-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            padding-bottom: 1.5rem !important;
-        }
-
-        .ven-field-col {
-            flex: 0 0 25% !important;
-            max-width: 25% !important;
-        }
-
-        .ven-toolbar-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-    }
-
-    @@media (min-width: 1600.02px) {
-        .ven-layout-form-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ven-layout-grid-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ven-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ven-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
-    @@media (max-width: 991.98px) {
-        .ven-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        .ven-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
-    @@media (max-width: 575.98px) {
-        .ven-field-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-
-        .ven-toolbar-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-        }
-    }
-
 </style>
 
 <!-- Content Header (Page header) -->
@@ -265,15 +218,16 @@
             <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
             <div class="col-12 col-xxl-6 ven-layout-form-col">
                 <div class="card rounded shadow-sm">
-                    <div class="card-header p-0">
+                    <div class="card-header p-0 col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Vendor Info",
                             SaveBtnClass = "js-VendorInfo-save",
                             DeleteBtnClass = "js-VendorInfo-delete-confirm",
                             ClearBtnClass = "js-VendorInfo-clear",
-                            ShowExtraContent = true,
-                            ShowExtraContentLaptopOnly = true
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent = false
                         })
                     </div>
 
@@ -283,8 +237,7 @@
                     }
                     else
                     {
-                        @await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel
-                        {
+                        @await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel {
                             GroupId = "vendorTabGroup",
                             Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
                             {
@@ -307,18 +260,18 @@
                         })
                     }
 
-                    <div class="card-body px-2">
-                        <form asp-action="Setup" method="post" id="VendorInfo-form" asp-controller="VendorInfo">
-                            <div class="js-VendorInfo-form-container">
-                                <partial name="_Setup" model="Model.Setup" />
-                            </div>
-                        </form>
+                <div class="card-body px-2">
+                    <form asp-action="Setup" method="post" id="VendorInfo-form" asp-controller="VendorInfo">
+                    <div class="js-VendorInfo-form-container">
+                        <partial name="_Setup" model="Model.Setup" />
                     </div>
+                </form>
+                </div>
                 </div>
             </div>
 
             <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
-            <div class="col-10 col-xxl-6">
+            <div class="col-10 col-xxl-6 ven-layout-grid-col">
                 <div class="js-VendorInfo-grid-container">
                     @await Html.PartialAsync("_CustomGrid", new GridModel
                     {
@@ -345,7 +298,6 @@
                     })
                 </div>
             </div>
-
         </div>
 
         <partial name="_BottomNavigation" />

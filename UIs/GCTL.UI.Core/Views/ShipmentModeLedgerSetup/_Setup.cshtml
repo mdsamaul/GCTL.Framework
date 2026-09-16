@@ -32,7 +32,7 @@
             FieldType = FieldType.Text,
             IsReadonly = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sml-field-col",
             CustomCssClass = "js-ExpenseTypeId-code",
             DefaultValue = Model?.ExpenseTypeId
         })
@@ -45,7 +45,7 @@
             Placeholder = "-- Select Shipment Mode --",
             SelectItems = ViewBag.ShipmentDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sml-field-col"
         })
     </div>
 
@@ -59,7 +59,7 @@
             Placeholder = "-- Select Expense Ledger --",
             SelectItems = ViewBag.ExpenseDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sml-field-col"
         })
 
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -70,7 +70,7 @@
             Placeholder = "-- Select Revenue Ledger --",
             SelectItems = ViewBag.RevenueDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sml-field-col"
         })
     </div>
 
@@ -84,7 +84,7 @@
             Placeholder = "-- Select Advance Ledger --",
             SelectItems = ViewBag.AdvanceDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col"
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sml-field-col"
         })
     </div>
 
@@ -97,7 +97,7 @@
             LabelText = "Creation Date:",
             FieldType = FieldType.ReadonlyDisplay,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sml-field-col",
             ShowOnInit = Model.Ldate.HasValue,
             DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : ""
         })
@@ -108,7 +108,7 @@
             LabelText = "Last Update Date:",
             FieldType = FieldType.ReadonlyDisplay,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sml-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sml-field-col",
             ShowOnInit = Model.ModifyDate.HasValue,
             DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : ""
         })
@@ -117,22 +117,21 @@
 
 </div>
 
-<div class="row g-4 no-print">
-    <div class="col-12">
-        @await Html.PartialAsync("_Toolbars", new ToobarModel
+<div class="row g-4">
+    <div class="col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
         {
             Title = "",
+            SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
             ShowClear = false,
             ShowDelete = false,
             ShowPrint = false,
             ShowFavorite = false,
             IsPlain = true,
-            SaveBtnClass = "js-ShipmentModeLedgerSetup-save",
-            ReserveActionSlot = true,
-            Style = "border-bottom:0px !important; padding-left:170px",
+            ReserveActionSlot = false,
+            Style = "border-bottom:0px !important;",
             ShowExtraContentLaptopOnly = true,
-            ShowExtraContent1 = true,
-            ShowExtraContent2 = false
+            ShowExtraContent = false
         })
     </div>
 </div>

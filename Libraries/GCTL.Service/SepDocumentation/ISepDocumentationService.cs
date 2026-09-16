@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.SepDocumentation;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -30,5 +30,11 @@ namespace GCTL.Service.SepDocumentation
         Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId);
         Task<CommonReturnViewModel> GetCustomerInfoAsync(string customerId);
         Task<string> GenerateJobNoWithoutIdAsync();
+
+        // --- Document Upload Info methods ---
+        Task<SepJobUploadDetailsDto> GetJobDetailsForUploadAsync(string jobNo);
+        Task<List<SepJobDocumentItemDto>> GetJobDocumentsAsync(string jobNo);
+        Task<CommonReturnViewModel> UploadOrUpdateDocumentAsync(SepDocumentUploadRequest request);
+        Task<CommonReturnViewModel> DeleteDocumentsAsync(SepDocDeleteDocRequest request);
     }
 }

@@ -103,7 +103,8 @@
     .sm-field-col .form-select,
     .sm-field-col select,
     .sm-field-col .select2-container,
-    .sm-field-col .select2-container .select2-selection--single {
+    .sm-field-col .select2-container .select2-selection--single,
+    .sm-field-col .select2-container .select2-selection--multiple {
         height: 31px !important;
         min-height: 31px !important;
         max-height: 31px !important;
@@ -114,7 +115,8 @@
 
     .sm-field-col .form-control,
     .sm-field-col .form-select,
-    .sm-field-col .select2-container .select2-selection--single {
+    .sm-field-col .select2-container .select2-selection--single,
+    .sm-field-col .select2-container .select2-selection--multiple {
         border-radius: 4px !important;
         border: 1px solid #ced4da !important;
         padding: 0 8px !important;
@@ -173,6 +175,18 @@
     }
 
     /* Quick-Add (+) Button positioned to the right of the input with symmetrical right gap */
+    .sm-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
     .sm-field-col .field-fixed-width > .detached-action-btn,
     .sm-field-col .field-fixed-width > .js-quick-add {
         position: absolute !important;
@@ -236,6 +250,27 @@
     .sm-field-col .field-fixed-width > .detached-action-btn i,
     .sm-field-col .field-fixed-width > .js-quick-add i {
         font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .sm-field-col .field-fixed-width {
+            gap: 8px !important;
+            width: 100% !important;
+        }
+
+        .sm-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sm-field-col .field-fixed-width > .detached-action-btn,
+        .sm-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
     }
 
     /* ==========================================================================
@@ -343,7 +378,7 @@
                                 PdfBtnClass = "export-pdf",
                                 ExcelBtnClass = "export-excel",
                                 FavtBtnClass = "favBtn",
-                                ShowExtraContentLaptopOnly = true
+                                ShowExtraContentLaptopOnly = false
                             })
                         </div>
                         <!-- Toolbar for Shipment Status -->
@@ -357,7 +392,7 @@
                                 PdfBtnClass = "export-pdf-status",
                                 ExcelBtnClass = "export-excel-status",
                                 FavtBtnClass = "favShipmentStatusBtn",
-                                ShowExtraContentLaptopOnly = true
+                                ShowExtraContentLaptopOnly = false
                             })
                         </div>
                     </div>

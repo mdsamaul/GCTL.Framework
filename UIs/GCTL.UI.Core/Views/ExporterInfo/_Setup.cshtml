@@ -6,14 +6,109 @@
     <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
 </div>
 
-<div style="padding-top: 10px;">
-    <div class="row">
-        <div class="col-lg-6">
-            <span id="message"></span>
+<style>
+    /* Card Header Toolbar: single bottom border line, no double line, no bottom rounded */
+    .card-header {
+        border-bottom: 0 !important;
+        background-color: transparent !important;
+    }
+    .card-header .toolbar-container {
+        border: 0 !important;
+        /* border-bottom: 1px solid #dee2e6 !important; */
+        border-radius: 0 !important;
+        border-top-left-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
+        border-top-right-radius: calc(var(--bs-border-radius, 0.375rem) - 1px) !important;
+        border-bottom-left-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* Uniform Form Control Height (31px) across all inputs, dropdowns, and checkboxes */
+    #ExporterInfo-form .form-control,
+    #ExporterInfo-form .form-select,
+    #ExporterInfo-form .custom-dd-box,
+    #ExporterInfo-form .select2-container .select2-selection--single,
+    #ExporterInfo-form .form-control-height-wrap {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        box-sizing: border-box !important;
+        border-radius: 4px !important;
+        font-size: 13px !important;
+    }
+
+    #ExporterInfo-form .form-control {
+        padding: 0.25rem 0.5rem !important;
+        line-height: 1.5 !important;
+        border: 1px solid #ced4da !important;
+    }
+
+    #ExporterInfo-form .input-group {
+        height: 31px !important;
+        min-height: 31px !important;
+    }
+
+    #ExporterInfo-form .input-group > .custom-dd-wrapper {
+        flex: 1 1 auto;
+        width: 1%;
+        min-width: 0;
+    }
+
+    /* Uniform Label styling */
+    #ExporterInfo-form .form-label {
+        font-weight: 500;
+        margin-bottom: 4px;
+        text-align: left;
+        display: block;
+        color: #333;
+        font-size: 13px;
+        line-height: 1.2;
+        min-height: 18px;
+    }
+
+    #ExporterInfo-form .field-validation {
+        font-size: 13px;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Responsive Toolbar Padding */
+    .exporter-toolbar-responsive {
+        padding-left: 25px !important;
+    }
+    @@media (max-width: 1400px) {
+        .exporter-toolbar-responsive {
+            padding-left: 165px !important;
+        }
+    }
+</style>
+
+<div class="card rounded shadow-sm">
+    @* <div class="card-header px-3 pt-3 pb-0 border-0 bg-transparent">
+        <div class="row g-4">
+            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12">
+                @await Html.PartialAsync("_Toolbars", new ToobarModel
+                {
+                    Title = "Exporter Info",
+                    SaveBtnClass = "js-ExporterInfo-save",
+                    DeleteBtnClass = "js-ExporterInfo-delete-confirm",
+                    ClearBtnClass = "js-ExporterInfo-clear",
+                    ReserveActionSlot = false,
+                    ShowExtraContent = false,
+                    IsPlain = true
+                })
+            </div>
         </div>
-        <div class="col-lg-6">
+    </div> *@
+    
+    <div class="card-body px-3 py-3">
+        <div class="row">
+            <div class="col-lg-6">
+                <span id="message"></span>
+            </div>
+            <div class="col-lg-6">
+            </div>
         </div>
-    </div>
 
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -32,7 +127,7 @@
             FieldType = FieldType.Text,
             IsReadonly = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             CustomCssClass = "js-ExporterId-code",
             DefaultValue = Model?.ExporterId,
         })
@@ -44,7 +139,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Exporter Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ExporterCode
         })
     </div>
@@ -59,7 +154,7 @@
             Placeholder = "Enter Exporter Name",
             IsRequired = true,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ExporterName,
             AutoFocus = true
         })
@@ -71,7 +166,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Exporter Address",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ExporterAddress
         })
     </div>
@@ -86,7 +181,7 @@
             Placeholder = "-- Select Country --",
             SelectItems = ViewBag.CountryDD as SelectList,
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col"
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12"
         })
 
         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -96,7 +191,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter City",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.City
         })
     </div>
@@ -110,7 +205,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter State/Province",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.StateOrProvince
         })
 
@@ -121,7 +216,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Zip Code",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.ZipCode
         })
     </div>
@@ -135,7 +230,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Vat Reg. No.",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ex-field-col",
             DefaultValue = Model?.VatRegNo
         })
 
@@ -146,7 +241,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Phone
         })
     </div>
@@ -160,7 +255,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Fax",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Fax
         })
 
@@ -171,7 +266,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Email
         })
     </div>
@@ -185,7 +280,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Website",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Website
         })
 
@@ -196,7 +291,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Remarks",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Remarks
         })
     </div>
@@ -210,7 +305,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Contact Person 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.ContactPerson1
         })
 
@@ -221,7 +316,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Designation 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Designation1
         })
     </div>
@@ -235,7 +330,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Phone 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Phone1
         })
 
@@ -246,7 +341,7 @@
             FieldType = FieldType.Text,
             Placeholder = "Enter Email 1",
             ReserveActionSlot = false,
-            ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
             DefaultValue = Model?.Email1
         })
     </div>
@@ -262,7 +357,7 @@
                 LabelText = "Creation Date:",
                 FieldType = FieldType.ReadonlyDisplay,
                 ReserveActionSlot = false,
-                ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+                ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
                 ShowOnInit = Model.Ldate.HasValue,
                 DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy") : ""
             })
@@ -273,7 +368,7 @@
                 LabelText = "Last Update Date:",
                 FieldType = FieldType.ReadonlyDisplay,
                 ReserveActionSlot = false,
-                ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 ex-field-col",
+                ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12",
                 ShowOnInit = Model.ModifyDate.HasValue,
                 DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy") : ""
             })
@@ -281,24 +376,26 @@
         </div>
     }
 
-</div>
-
-<div class="row g-4 no-print">
-    <div class="col-12">
-        @await Html.PartialAsync("_Toolbars", new ToobarModel
-        {
-            Title = "",
-            ShowClear = false,
-            ShowDelete = false,
-            ShowPrint = false,
-            ShowFavorite = false,
-            IsPlain = true,
-            SaveBtnClass = "js-ExporterInfo-save",
-            ReserveActionSlot = true,
-            Style = "border-bottom:0px !important; padding-left:140px",
-            ShowExtraContentLaptopOnly = true,
-            ShowExtraContent1 = true,
-            ShowExtraContent2 = false
-        })
+    <div class="row g-4">
+        <div class="col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title="",
+                SaveBtnClass = "js-ExporterInfo-save",
+                ShowClear = false,
+                ShowDelete = false,
+                ShowFavorite = false,
+                ShowPrint = false,
+                IsPlain = true,
+                ReserveActionSlot = false,
+                CssClass = "exporter-toolbar-responsive",
+                Style = "border-bottom:0px !important;",
+                // ShowExtraContent=false
+                ShowExtraContentLaptopOnly=true,
+                ShowExtraContent=false
+            })
+        </div>
+    </div>
+    
     </div>
 </div>

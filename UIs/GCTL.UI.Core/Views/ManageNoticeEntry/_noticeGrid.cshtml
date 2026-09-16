@@ -22,10 +22,10 @@
             new() { Data = "noticeId", Header = "ID", Width = "8%", Align = "center", IsEditLink = true, EditSelectorClass = "notice-id-link", IdField = "tc" },
             new() { Data = "noticeTitle", Header = "Notice Title", Width = "22%", Align = "left" },
             new() { Data = "noticeDesc", Header = "Details", Width = "30%", Align = "left" },
-            new() { Data = "entryDate", Header = "Entry Date", Width = "12%", Align = "center", RenderFn = "formatDate" },
             new() { Data = "priorityLevel", Header = "Priority Level", Width = "10%", Align = "center", RenderFn = "renderPriority" },
+            new() { Data = "filePath", Header = "File", Width = "10%", Align = "center", RenderFn = "renderNoticeFile" },
             new() { Data = "status", Header = "Active", Width = "8%", Align = "center", RenderFn = "renderActiveStatus" },
-            new() { Data = "filePath", Header = "File", Width = "10%", Align = "center", RenderFn = "renderNoticeFile" }
+            new() { Data = "entryDate", Header = "Entry Date", Width = "12%", Align = "center", RenderFn = "formatDate" },
         }
     })
 </div>

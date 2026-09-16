@@ -146,27 +146,31 @@
 </style>
 
 <div class="card rounded shadow-sm">
-    <div class="card-header p-0 border-0">
-        @await Html.PartialAsync("_Toolbars", new ToobarModel
-        {
-            Title = "Expense Head Info",
-            SaveBtnClass = "saveBtn",
-            DeleteBtnId = "deleteBtn",
-            DeleteBtnClass = "deleteBtn js-expensehead-delete-confirm",
-            ClearBtnClass = "resetBtn",
-            ExcelBtnClass = "export-excel",
-            PdfBtnClass = "export-pdf",
-            FavtBtnClass = "favBtn",
-            ReserveActionSlot = false,
-            ShowExtraContent= true,
-        })
+    <div class="card-header px-3 pt-3 pb-0 border-0 bg-transparent">
+        <div class="row g-4">
+            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12">
+                @await Html.PartialAsync("_Toolbars", new ToobarModel
+                {
+                    Title = "Expense Head Info",
+                    SaveBtnClass = "saveBtn",
+                    DeleteBtnId = "deleteBtn",
+                    DeleteBtnClass = "deleteBtn js-expensehead-delete-confirm",
+                    ClearBtnClass = "resetBtn",
+                    ExcelBtnClass = "export-excel",
+                    PdfBtnClass = "export-pdf",
+                    FavtBtnClass = "favBtn",
+                    ReserveActionSlot = false,
+                    ShowExtraContent= false,
+                    IsPlain = true
+                })
+            </div>
+        </div>
     </div>
 
     <div class="card-body px-3 py-3">
         <form id="expenseForm">
             <input type="hidden" id="tc" name="tc" />
 
-            @* ================= Row 1: Expense Head ID & Shipment Mode ================= *@
             <div class="row g-4 mb-1">
                 @* ---------- Expense Head ID (readonly) ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -177,7 +181,7 @@
                     Placeholder = "Expense Head ID",
                     IsReadonly = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3",
+                    ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
                 })
 
                 @* ---------- Shipment Mode (Select) ---------- *@
@@ -190,15 +194,13 @@
                     SelectItems = ViewBag.ShipmentModes as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3",
+                    ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
                 })
-                <div class="col-lg-6 col-md-6"></div>
             </div>
 
-            @* ================= Row 2: Is Receiptable & Expense Head Name ================= *@
             <div class="row g-4 mb-1">
                 @* ---------- Is Receiptable (Checkbox) ---------- *@
-                <div class="col-lg-3 col-md-3 d-flex align-items-center">
+                <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 d-flex align-items-center">
                     <label class="form-label" for="isReceiptable">Is Receiptable Expense</label>
                     <div class="form-control-height-wrap">
                         <div class="form-check m-0 d-flex align-items-center ps-0">
@@ -220,12 +222,10 @@
                     Placeholder = "Expense Head",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3",
+                    ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
                 })
-                <div class="col-lg-6 col-md-6"></div>
             </div>
 
-            @* ================= Row 3: Short Name & Amount ================= *@
             <div class="row g-4 mb-1">
                 @* ---------- Short Name ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -235,7 +235,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3",
+                    ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12",
                 })
 
                 @* ---------- Amount ---------- *@
@@ -246,12 +246,10 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Amount",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3"
+                    ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12"
                 })
-                <div class="col-lg-6 col-md-6"></div>
             </div>
 
-            @* ================= Row 4: Serial No & Service Provided By ================= *@
             <div class="row g-4 mb-1">
                 @* ---------- Serial No ---------- *@
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -262,7 +260,7 @@
                     Placeholder = "Serial No",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3"
+                    ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12"
                 })
 
                 @* ---------- Service Provided By (Select) ---------- *@
@@ -275,26 +273,25 @@
                     SelectItems = ViewBag.ServiceProviders as SelectList,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-lg-3 col-md-3"
+                    ColumnClass = "col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12"
                 })
-                <div class="col-lg-6 col-md-6"></div>
             </div>
 
             @* ---------- Creation & Modify Date ---------- *@
             <div class="row g-4 mt-1" id="LdateModifyHide">
-                <div class="col-lg-3 col-md-3 mt-0" id="lDateContainer" style="display: none;">
+                <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 mt-0" id="lDateContainer" style="display: none;">
                     <label class="form-label text-muted small mb-1">Creation Date</label>
                     <div id="displayLDate" class="text-secondary fw-semibold py-1"></div>
                 </div>
 
-                <div class="col-lg-3 col-md-3 mt-0" id="modifyDateContainer" style="display: none;">
+                <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-12 mt-0" id="modifyDateContainer" style="display: none;">
                     <label class="form-label text-muted small mb-1">Modify Date</label>
                     <div id="displayModifyDate" class="text-secondary fw-semibold py-1"></div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-12 d-flex justify-content-end">
+            <div class="row g-4">
+                <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                     {
                         Title="",
@@ -307,7 +304,7 @@
                         ReserveActionSlot = false,
                         CssClass = "expense-toolbar-responsive",
                         Style = "border-bottom:0px !important;",
-                        ShowExtraContent1=true
+                        ShowExtraContent=false
                     })
                 </div>
             </div>

@@ -27,6 +27,7 @@ namespace GCTL_App.Controllers
         private readonly IGenericRepository<CfDefShedYard> _shedYardRepository;
         private readonly IGenericRepository<SalesDefImporterInfo> _importerInfoRepository;
         private readonly IGenericRepository<SepDocumentation> _documentUploadRepository;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public SepDocUpdateController(
             ISepDocumentationService service,
@@ -37,7 +38,8 @@ namespace GCTL_App.Controllers
             IGenericRepository<CfDefPlaceOfLoading> placeofLoadingRepository,
             IGenericRepository<CfDefShedYard> shedYardRepository,
             IGenericRepository<SalesDefImporterInfo> importerInfoRepository,
-            IGenericRepository<SepDocumentation> documentUploadRepository) : base()
+            IGenericRepository<SepDocumentation> documentUploadRepository,
+            IWebHostEnvironment webHostEnvironment) : base()
         {
             _service = service;
             _shipmentModeRepository = shipmentModeRepository;
@@ -48,6 +50,7 @@ namespace GCTL_App.Controllers
             _shedYardRepository = shedYardRepository;
             _importerInfoRepository = importerInfoRepository;
             _documentUploadRepository = documentUploadRepository;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         #endregion
@@ -79,6 +82,12 @@ namespace GCTL_App.Controllers
             ViewBag.ShedYard = new SelectList(_shedYardRepository.All().Select(e => new { id = e.ShedYardId, name = e.ShedYardName }), "id", "name");
             ViewBag.ImporterName = new SelectList(_importerInfoRepository.All().Select(e => new { id = e.ImporterId, name = e.Name }), "id", "name");
             ViewBag.FreightCharge = new SelectList(new List<string> { "Prepaid", "Collect" }, null);
+            ViewBag.JobNos = new SelectList(
+                _documentUploadRepository.All()
+                    .Where(e => !string.IsNullOrEmpty(e.JobNo))
+                    .OrderByDescending(e => e.Tc)
+                    .Select(e => new { id = e.JobNo, name = e.JobNo })
+                    .Distinct(), "id", "name");
         }
 
         #endregion
@@ -241,111 +250,67 @@ namespace GCTL_App.Controllers
 
         [HttpGet]
         [ModulePermission]
+        public async Task<IActionResult> GetJobDetailsForUpload(string jobNo)
+        {
+            var result = await _service.GetJobDetailsForUploadAsync(jobNo);
+            return Json(result);
+        }
+
+        [HttpGet]
+        [ModulePermission]
         public async Task<IActionResult> GetJobDocuments(string jobNo)
         {
-            var result = await _documentUploadRepository.All()
-                .Where(d => d.JobNo == jobNo)
-                .OrderBy(d => d.JobNo)
-                .Select(d => new
-                {
-                    tc = d.Tc,
-                    jobNo = d.JobNo,
-                    documentName = d.InvoiceNo,
-                    //description = d.dis,
-                    //fileName = d.FileName,
-                    //filePath = d.FilePath
-                })
-                .ToListAsync();
-
+            var result = await _service.GetJobDocumentsAsync(jobNo);
             return Json(result);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ModulePermission]
-        public async Task<IActionResult> UploadDocument([FromForm] string JobNo, [FromForm] string DocumentName,
-            [FromForm] string Description, IFormFile uploadFile)
+        public async Task<IActionResult> UploadDocument(
+            [FromForm] string JobNo, 
+            [FromForm] string DocumentName,
+            [FromForm] string Description, 
+            [FromForm] string? DocCode,
+            IFormFile? uploadFile)
         {
-            try
+            var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            var request = new SepDocumentUploadRequest
             {
-                if (string.IsNullOrEmpty(JobNo))
-                    return Json(ApiResponse.Error("Job No is required."));
+                JobNo = JobNo,
+                DocumentName = DocumentName,
+                Description = Description,
+                DocCode = DocCode,
+                UploadFile = uploadFile,
+                CompanyCode = LoginInfo?.CompanyCode ?? "001",
+                UserId = LoginInfo?.EmployeeId ?? LoginInfo?.Username ?? "Admin",
+                IpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "",
+                WebRootPath = webRoot
+            };
 
-                if (string.IsNullOrEmpty(DocumentName))
-                    return Json(ApiResponse.Error("Document Name is required."));
-
-                if (uploadFile == null || uploadFile.Length == 0)
-                    return Json(ApiResponse.Error("Please select a file to upload."));
-
-                if (uploadFile.Length > 15 * 1024 * 1024)
-                    return Json(ApiResponse.Error("File size exceeds the 15 MB limit."));
-
-                var uploadsFolder = Path.Combine("wwwroot", "uploads", "SepDocuments", JobNo);
-                Directory.CreateDirectory(uploadsFolder);
-
-                var savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(uploadFile.FileName)}";
-                var fullPath = Path.Combine(uploadsFolder, savedFileName);
-
-                using (var stream = new FileStream(fullPath, FileMode.Create))
-                {
-                    await uploadFile.CopyToAsync(stream);
-                }
-
-                var maxSl = await _documentUploadRepository.All()
-                    .Where(d => d.JobNo == JobNo)
-                    .Select(d => (int?)d.Tc)
-                    .MaxAsync() ?? 0;
-
-                var entity = new SepDocumentation
-                {
-                    JobNo = JobNo,
-                    //SlNo = maxSl + 1,
-                    //DocumentName = DocumentName,
-                    //Description = Description ?? "",
-                    //FileName = uploadFile.FileName,
-                    //FilePath = $"/uploads/SepDocuments/{JobNo}/{savedFileName}",
-                    //FileSize = uploadFile.Length,
-                    Luser = LoginInfo?.EmployeeId ?? "",
-                    Ldate = DateTime.Now
-                };
-
-                await _documentUploadRepository.AddAsync(entity);
-
-                return Json(ApiResponse.Success("Document uploaded successfully."));
-            }
-            catch (Exception ex)
-            {
-                return Json(ApiResponse.Error("Error occurred: " + ex.Message));
-            }
+            var result = await _service.UploadOrUpdateDocumentAsync(request);
+            if (result.Success)
+                return Json(ApiResponse.Success(result.Message));
+            else
+                return Json(ApiResponse.Error(result.Message));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [ModulePermission(PermissionType.Delete)]
-        public async Task<IActionResult> DeleteDocument(decimal tc)
+        public async Task<IActionResult> DeleteDocuments([FromBody] SepDocDeleteDocRequest request)
         {
-            try
-            {
-                var entity = await _documentUploadRepository.GetByIdAsync(tc);
-                if (entity == null)
-                    return Json(ApiResponse.Error("Document not found."));
-                var FilePath = "";
-                if (!string.IsNullOrEmpty(FilePath))
-                {
-                    //var physicalPath = Path.Combine("wwwroot", entity.FilePath.TrimStart('/'));
-                    var physicalPath = Path.Combine("wwwroot", FilePath.TrimStart('/'));
-                    if (System.IO.File.Exists(physicalPath))
-                        System.IO.File.Delete(physicalPath);
-                }
+            if (request == null)
+                return Json(ApiResponse.Error("Invalid request."));
 
-                await _documentUploadRepository.DeleteAsync(entity);
+            request.WebRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var result = await _service.DeleteDocumentsAsync(request);
 
-                return Json(ApiResponse.Success("Document deleted successfully."));
-            }
-            catch (Exception ex)
-            {
-                return Json(ApiResponse.Error("Error occurred: " + ex.Message));
-            }
+            if (result.Success)
+                return Json(ApiResponse.Success(result.Message));
+            else
+                return Json(ApiResponse.Error(result.Message));
         }
 
         #endregion

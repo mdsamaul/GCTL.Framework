@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -61,5 +61,47 @@ namespace GCTL.Core.ViewModels.SepDocumentation
         public string DocumentType { get; set; }
         public string FileName { get; set; }
         public bool IsSelected { get; set; }
+    }
+
+    public class SepJobUploadDetailsDto
+    {
+        public bool Success { get; set; } = true;
+        public string JobNo { get; set; } = string.Empty;
+        public string Date { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerAddress { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+    }
+
+    public class SepJobDocumentItemDto
+    {
+        public decimal AutoId { get; set; }
+        public string DocCode { get; set; } = string.Empty;
+        public string JobNo { get; set; } = string.Empty;
+        public string DocumentName { get; set; } = string.Empty;
+        public string DocumentDiscription { get; set; } = string.Empty;
+        public string DocumentType { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public string LDate { get; set; } = string.Empty;
+        public string ModifyDate { get; set; } = string.Empty;
+    }
+
+    public class SepDocumentUploadRequest
+    {
+        public string JobNo { get; set; } = string.Empty;
+        public string DocumentName { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? DocCode { get; set; }
+        public IFormFile? UploadFile { get; set; }
+        public string? CompanyCode { get; set; }
+        public string? UserId { get; set; }
+        public string? IpAddress { get; set; }
+        public string WebRootPath { get; set; } = string.Empty;
+    }
+
+    public class SepDocDeleteDocRequest
+    {
+        public List<string> DocCodes { get; set; } = new();
+        public string WebRootPath { get; set; } = string.Empty;
     }
 }
