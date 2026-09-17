@@ -46,7 +46,6 @@
                 $.gctlGrid.initFromModel({ gridId: 'BranchAddress-grid' });
             }
 
-
             loadTable();
             $('#LdateModifyHide').hide();
             $('#sectionBreak').hide();
@@ -72,7 +71,7 @@
             $(document).on('click', '.js-BranchAddress-edit', function (e) {
                 e.preventDefault();
                 var id = $(this).data('id');
-                console.log(id);
+               // console.log(id);
                 $.ajax({
                     url: '/BranchAddress/GetById',
                     type: 'GET',
@@ -154,14 +153,14 @@
                                     $(settings.lastCodeSelector).val(response.lastCode);
                                 })
                                 .catch((error) => {
-                                    console.log(error)
+                                    // console.log(error)
                                 })
 
                             toastr.success(response.message);
                         }
                         else {
                             toastr.error(response.message);
-                            console.log(response);
+                           // console.log(response);
                         }
                     }
                 }
@@ -465,5 +464,6 @@
         }
 
         //#endregion
+
     }
 })(jQuery);

@@ -16,6 +16,8 @@ namespace GCTL.Data.Models
         Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<GetExpenseHeadReportResult>> GetExpenseHeadReportAsync(string expenseTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<GetLedgerTreeResult>> GetLedgerTreeAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<prc_GetCustomerDueInvoiceListResult>> prc_GetCustomerDueInvoiceListAsync(string customerId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerListForPaymentReceiveResult>> Proc_CustomerListForPaymentReceiveAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<sp_GetAllCustomerDeliveryInfoResult>> sp_GetAllCustomerDeliveryInfoAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<sp_GetCustomerReportsInfoResult>> sp_GetCustomerReportsInfoAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<sp_GetVoucherPreviewDataResult>> sp_GetVoucherPreviewDataAsync(string ids, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);

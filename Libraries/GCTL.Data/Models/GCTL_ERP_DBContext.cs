@@ -89,6 +89,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CfOperationalFundRequisitionEntry> CfOperationalFundRequisitionEntries { get; set; }
 
+    public virtual DbSet<CfPaymentReceiveEntry> CfPaymentReceiveEntries { get; set; }
+
     public virtual DbSet<CfShipmentStatus> CfShipmentStatuses { get; set; }
 
     public virtual DbSet<CoreAccessCode> CoreAccessCodes { get; set; }
@@ -228,6 +230,10 @@ public partial class GCTL_ERP_DBContext : DbContext
     public virtual DbSet<PaymentMode> PaymentModes { get; set; }
 
     public virtual DbSet<PaymentPeriodType> PaymentPeriodTypes { get; set; }
+
+    public virtual DbSet<PaymentReceive> PaymentReceives { get; set; }
+
+    public virtual DbSet<PaymentReceiveDetail> PaymentReceiveDetails { get; set; }
 
     public virtual DbSet<RmgDefSupplier> RmgDefSuppliers { get; set; }
 
@@ -1084,12 +1090,20 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<CfBillEntry>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("CF_BillEntry");
+            entity.HasKey(e => e.Tc);
+
+            entity.ToTable("CF_BillEntry");
+
+            entity.HasIndex(e => e.CustomerId, "IX_CF_BillEntry_CustomerID");
+
+            entity.HasIndex(e => new { e.CustomerId, e.BillDate }, "IX_CF_BillEntry_CustomerID_BillDate").IsDescending(false, true);
 
             entity.HasIndex(e => new { e.BillNo, e.JobNo }, "UC_CF_BillEntry").IsUnique();
 
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.ArrivalDate).HasColumnType("datetime");
             entity.Property(e => e.AssessableRate).HasColumnType("decimal(18, 2)");
@@ -1194,10 +1208,6 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("QUnitTypeID");
             entity.Property(e => e.Rotno).HasColumnName("ROTNo");
             entity.Property(e => e.SpecialDiscount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.Tc)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("TC");
             entity.Property(e => e.Terms).HasMaxLength(200);
             entity.Property(e => e.WunitTypeId)
                 .HasMaxLength(50)
@@ -1206,10 +1216,14 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<CfBillEntryDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("CF_BillEntryDetails");
+            entity.HasKey(e => e.Tc);
 
+            entity.ToTable("CF_BillEntryDetails");
+
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
             entity.Property(e => e.ActualAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BillDetailsId)
                 .IsRequired()
@@ -1244,18 +1258,18 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("LUser");
             entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
-            entity.Property(e => e.Tc)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<CfBillEntryDetailsChchead>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("CF_BillEntryDetails_CHCHead");
+            entity.HasKey(e => e.Tc);
 
+            entity.ToTable("CF_BillEntryDetails_CHCHead");
+
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
             entity.Property(e => e.BillAmount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BillNo)
                 .IsRequired()
@@ -1288,10 +1302,6 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("LUser");
             entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
-            entity.Property(e => e.Tc)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("TC");
         });
 
         modelBuilder.Entity<CfDailyJobUpdateEntry>(entity =>
@@ -1671,6 +1681,57 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.PortCharge).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.PrifixId).HasMaxLength(50);
             entity.Property(e => e.ShippingCharge).HasColumnType("decimal(18, 2)");
+        });
+
+        modelBuilder.Entity<CfPaymentReceiveEntry>(entity =>
+        {
+            entity.HasKey(e => e.Tc).HasName("PK__CF_Payme__3214E4083694C34D");
+
+            entity.ToTable("CF_PaymentReceiveEntry");
+
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
+            entity.Property(e => e.BankId)
+                .HasMaxLength(50)
+                .HasColumnName("BankID");
+            entity.Property(e => e.BillAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BillNo).HasMaxLength(50);
+            entity.Property(e => e.BranchName).HasMaxLength(150);
+            entity.Property(e => e.ChequeDate).HasColumnType("datetime");
+            entity.Property(e => e.ChequeNo).HasMaxLength(100);
+            entity.Property(e => e.CompanyCode).HasMaxLength(50);
+            entity.Property(e => e.CustomerId)
+                .HasMaxLength(50)
+                .HasColumnName("CustomerID");
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.DueAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.EmployeeId)
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.JobNo).HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.PaymentModeCode).HasMaxLength(50);
+            entity.Property(e => e.PaymentReceiveId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("PaymentReceiveID");
+            entity.Property(e => e.ReceiveDate).HasColumnType("datetime");
+            entity.Property(e => e.ReceivedAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Remarks).HasMaxLength(500);
         });
 
         modelBuilder.Entity<CfShipmentStatus>(entity =>
@@ -4276,6 +4337,91 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<PaymentReceive>(entity =>
+        {
+            entity.HasKey(e => e.AutoId).HasName("PK__PaymentR__6B232965688011EA");
+
+            entity.ToTable("PaymentReceive");
+
+            entity.HasIndex(e => new { e.CustomerId, e.PaymentReceiveDate }, "IX_PaymentReceive_CustomerID_Date").IsDescending(false, true);
+
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("AutoID");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.BankFeeOnlineCharge).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ChequeBank).HasMaxLength(50);
+            entity.Property(e => e.ChequeDate).HasColumnType("datetime");
+            entity.Property(e => e.ChequeNo).HasMaxLength(50);
+            entity.Property(e => e.CompanyCode).HasMaxLength(50);
+            entity.Property(e => e.CustomerId)
+                .HasMaxLength(50)
+                .HasColumnName("CustomerID");
+            entity.Property(e => e.DepositMobileNo).HasMaxLength(50);
+            entity.Property(e => e.DepositedAcno)
+                .HasMaxLength(50)
+                .HasColumnName("DepositedACNo");
+            entity.Property(e => e.EmployeeId)
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.IsChequeVerified).HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.Mrdate)
+                .HasColumnType("datetime")
+                .HasColumnName("MRDate");
+            entity.Property(e => e.Mrno)
+                .HasMaxLength(50)
+                .HasColumnName("MRNo");
+            entity.Property(e => e.PaymentModeCode).HasMaxLength(50);
+            entity.Property(e => e.PaymentReceiveDate).HasColumnType("datetime");
+            entity.Property(e => e.PaymentReceiveId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("PaymentReceiveID");
+            entity.Property(e => e.PaymentTypeId)
+                .HasMaxLength(50)
+                .HasColumnName("PaymentTypeID");
+            entity.Property(e => e.Receivedby).HasMaxLength(50);
+            entity.Property(e => e.Remarks).HasMaxLength(200);
+            entity.Property(e => e.TransferredAcname)
+                .HasMaxLength(50)
+                .HasColumnName("TransferredACName");
+            entity.Property(e => e.TransferredAcno)
+                .HasMaxLength(50)
+                .HasColumnName("TransferredACNo");
+            entity.Property(e => e.TransferredBank).HasMaxLength(50);
+            entity.Property(e => e.TransfterMobileNo).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<PaymentReceiveDetail>(entity =>
+        {
+            entity.HasKey(e => e.AutoId).HasName("PK__PaymentR__6B232905F1612A01");
+
+            entity.HasIndex(e => e.InvoiceNo, "IX_PaymentReceiveDetails_InvoiceNo");
+
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.InvoiceNo).HasMaxLength(100);
+            entity.Property(e => e.PaymentReceiveId)
+                .HasMaxLength(100)
+                .HasColumnName("PaymentReceiveID");
+        });
+
         modelBuilder.Entity<RmgDefSupplier>(entity =>
         {
             entity.HasKey(e => e.SupplierId).HasName("PK__RMG_Def___4BE666B4E3A4DC98");
@@ -4485,6 +4631,8 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.HasKey(e => e.CustomerId).HasName("TC");
 
             entity.ToTable("Sales_Customer");
+
+            entity.HasIndex(e => e.CustomerId, "IX_Sales_Customer_CustomerID");
 
             entity.Property(e => e.CustomerId)
                 .HasMaxLength(50)

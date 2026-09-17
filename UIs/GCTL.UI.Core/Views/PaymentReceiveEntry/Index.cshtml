@@ -1,0 +1,397 @@
+@model GCTL.UI.Core.ViewModels.PaymentReceiveEntry.PaymentReceiveEntryPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title ?? "Payment Receive Entry";
+    ViewBag.Title = "Payment Receive Entry";
+    Model.Breadcrumb = "Payment Receive Entry";
+}
+
+<style>
+    .payment-receive-page .form-control-sm,
+    .payment-receive-page .form-select-sm,
+    .payment-receive-page .custom-datepicker,
+    .payment-receive-page .flatpickr-input {
+        height: 28px !important;
+        min-height: 28px !important;
+        font-size: 12px !important;
+        padding: 2px 6px !important;
+    }
+
+    .payment-receive-page .col-form-label-sm {
+        font-size: 12px !important;
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+    }
+
+    .main-info-fieldset,
+    .due-invoices-card {
+        border: 1px solid #c2c9d1 !important;
+        background-color: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .main-info-fieldset legend {
+        font-size: 14px !important;
+        font-weight: 700;
+        color: #333;
+        float: none !important;
+        width: auto !important;
+        margin-bottom: 4px !important;
+    }
+
+    .due-invoices-card legend {
+        font-size: 14px !important;
+        font-weight: 700;
+        color: #333;
+        float: none !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 4px !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+
+    /* Custom Dropdown (custom-select-2) matching 100% width and 28px height */
+    .payment-receive-page select[style*="display: none"],
+    .payment-receive-page select.custom-select-single[style*="display: none"],
+    .payment-receive-page select.select2-hidden-accessible {
+        display: none !important;
+    }
+
+    .payment-receive-page .custom-dd-wrapper {
+        width: 100% !important;
+    }
+
+    .payment-receive-page .custom-dd-box {
+        height: 28px !important;
+        min-height: 28px !important;
+        max-height: 28px !important;
+        padding: 0 6px !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+    }
+
+    .payment-receive-page .custom-dd-input {
+        font-size: 12px !important;
+        height: 26px !important;
+        line-height: 26px !important;
+        padding: 0 2px !important;
+    }
+
+    .payment-receive-page .custom-dd-clear-icon,
+    .payment-receive-page .custom-dd-arrow {
+        font-size: 12px !important;
+        padding: 0 3px !important;
+    }
+
+    @@media (min-width: 768px) {
+        .payment-receive-page #AgainstBillList.against-bill-fullwidth {
+            position: relative;
+            z-index: 2;
+        }
+    }
+
+    .btn-filter-action {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e2e6ea 100%);
+        border: 1px solid #b1b9c1;
+        font-size: 12px;
+        font-weight: 600;
+        color: #212529;
+        padding: 3px 16px;
+        border-radius: 3px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.08);
+        cursor: pointer;
+        height: 28px;
+    }
+
+    .btn-filter-action:hover {
+        background: linear-gradient(180deg, #e9ecef 0%, #dbe0e5 100%);
+        color: #000;
+        border-color: #9da6b0;
+    }
+
+    .due-invoices-card .table th {
+        background-color: #f1f4f7;
+        font-size: 12px;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #ced4da;
+    }
+
+    .due-invoices-card .table td {
+        font-size: 12px;
+        vertical-align: middle;
+    }
+
+    .due-invoices-card .table tfoot td {
+        background-color: #f8f9fa;
+        font-weight: 700;
+        font-size: 12px;
+    }
+
+    .customer-link {
+        color: #0d6efd;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .customer-link:hover {
+        color: #0a58ca;
+    }
+
+    .custom-grid-table th {
+        font-size: 12px !important;
+        white-space: nowrap !important;
+    }
+
+    .custom-grid-table td {
+        font-size: 12px !important;
+    }
+
+    /* Compact header & cells for CustomerList-grid (date, value, due columns) */
+    #CustomerList-grid thead th {
+        font-size: 11px !important;
+        white-space: normal !important;
+        line-height: 1.15 !important;
+        vertical-align: middle !important;
+        padding: 4px 3px !important;
+        text-align: center !important;
+    }
+
+    #CustomerList-grid tbody td {
+        font-size: 11.5px !important;
+        padding: 3px 4px !important;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content payment-receive-page">
+    <div class="container-fluid px-2">
+        <!-- Top Toolbar -->
+        <div class="card rounded shadow-sm mb-2">
+            <div class="card-header p-0 col-12 d-flex justify-content-end bg-white">
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "Payment Receive Entry",
+                    SaveBtnClass = "js-PaymentReceiveEntry-save",
+                    DeleteBtnClass = "js-PaymentReceiveEntry-delete-confirm",
+                    ClearBtnClass = "js-PaymentReceiveEntry-clear",
+                    PrintBtnClass = "js-PaymentReceiveEntry-print",
+                    FavtBtnClass = "js-PaymentReceiveEntry-fav",
+                    Style = "border-bottom:0px !important;",
+                    ShowExtraContentLaptopOnly = true,
+                    ShowExtraContent = false
+                })
+            </div>
+        </div>
+
+        <!-- Section 1: Top Grid (Customer List for Payment Receive) -->
+        <div class="card rounded shadow-sm mb-2">
+            <div class="card-body p-2">
+                <div class="js-CustomerList-grid-container">
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
+                    {
+                        GridId = "CustomerList-grid",
+                        AjaxUrl = "/PaymentReceiveEntry/GetCustomerList",
+                        AjaxMethod = "GET",
+                        ServerSide = false,
+                        CheckAllId = "none",
+                        ShowCheckbox = false,
+                        DefaultSortColumn = "customerId",
+                        DefaultSortDirection = "asc",
+                        PageLengths = new[] { 5, 10, 25, 50, -1 },
+                        DefaultPageLength = 5,
+                        Bordered = true,
+                        Striped = true,
+                        Compact = true,
+                        Columns = new List<GridColumn>
+                        {
+                            new() { Data = "customerId", Header = "Customer ID", Width = "7%", IsEditLink = true, EditSelectorClass = "js-select-customer", Align = "center" },
+                            new() { Data = "customerName", Header = "Customer", Width = "22.5%", Align = "left" },
+                            new() { Data = "customerAddress", Header = "Billing Address", Width = "27.5%", Align = "left" },
+                            new() { Data = "totalSales", Header = "Net Sales<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "due", Header = "Total Due", Width = "7%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastSalesAmount", Header = "Last Sales<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastSalesDate", Header = "Last Sales<br/>Date", Width = "7%", Align = "center" },
+                            new() { Data = "lastPaymentAmount", Header = "Last Payment<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastPaymentDate", Header = "Last Payment<br/>Date", Width = "7%", Align = "center" }
+                        }
+                    }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Middle Split (Left: Main Information | Right: Due Invoices) -->
+        <div class="row g-2 mb-2">
+            <!-- Left: Main Information Form -->
+            <div class="col-12 col-xl-7 col-lg-7">
+                <form asp-action="Setup" method="post" id="PaymentReceiveEntry-form" asp-controller="PaymentReceiveEntry">
+                    <div class="js-PaymentReceiveEntry-form-container">
+                        <partial name="_Setup" model="Model.Setup" />
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right: Due Invoices Grid -->
+            <div class="col-12 col-xl-5 col-lg-5">
+                <fieldset class="border rounded p-2 mb-2 bg-white main-info-fieldset due-invoices-card">
+                    <legend class="w-100 px-2 fs-6 fw-bold text-dark mb-1 d-flex justify-content-between align-items-center" style="float: none; font-size: 14px;">
+                        <span>Due Invoices</span>
+                        <span id="dueInvoicesCountBadge" class="badge bg-secondary" style="font-size: 11px; font-weight: 500;">0 Invoices</span>
+                    </legend>
+
+                    <div class="js-DueInvoices-grid-container">
+                        @await Html.PartialAsync("_CustomGrid", new GridModel
+                        {
+                            GridId = "DueInvoices-grid",
+                            AjaxUrl = "/PaymentReceiveEntry/GetDueInvoices",
+                            AjaxMethod = "GET",
+                            ServerSide = false,
+                            ShowCheckbox = true,
+                            CheckColumnData = "billNo",
+                            CheckAllId = "dueInvoicesCheckAll",
+                            ShowPagination = true,
+                            PageLengths = new[] { 10, 25, 50, -1 },
+                            DefaultPageLength = 10,
+                            ShowSearchBox = true,
+                            CustomGridWrapper = false,
+                            Bordered = true,
+                            Striped = true,
+                            Compact = true,
+                            Columns = new List<GridColumn>
+                            {
+                                new() { Data = "billNo", Header = "Invoice No.", Width = "30%", Align = "left", RenderFn = "renderDueInvoiceNo" },
+                                new() { Data = "billDate", Header = "Date", Width = "24%", Align = "center" },
+                                new() { Data = "billAmount", Header = "Amount", Width = "23%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                                new() { Data = "due", Header = "Due", Width = "23%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true }
+                            }
+                        })
+                    </div>
+
+                    <!-- Grand Total Summary Bar -->
+                    <div class="d-flex justify-content-between align-items-center bg-light border border-top-0 px-2 py-1 small fw-bold rounded-bottom">
+                        <span>Grand Total:</span>
+                        <div class="d-flex gap-3">
+                            <span>Amount: <span id="dueTotalAmount" class="text-primary">0.00</span></span>
+                            <span>Due: <span id="dueTotalDue" class="text-danger">0.00</span></span>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
+        <!-- Section 3: Bottom Filter By & Search Results -->
+        <div class="card rounded shadow-sm mb-3">
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-start align-items-center mb-2 gap-2 flex-wrap">
+                    <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
+                    <div class="input-group input-group-sm" style="width: 340px;">
+                        <span class="input-group-text">Date From</span>
+                        <input type="text" class="form-control custom-datepicker" id="filterFromDate"
+                               value="@(DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
+                        <span class="input-group-text">To</span>
+                        <input type="text" class="form-control custom-datepicker" id="filterToDate"
+                               value="@(DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
+                    </div>
+                    <button type="button" class="btn-filter-action" id="btnFilterSearch">Search</button>
+                    <button type="button" class="btn-filter-action" id="btnFilterPreview">Preview</button>
+                </div>
+
+                <!-- Bottom Grid for Filtered Payment Received -->
+                <div id="paymentReceivedGridContainer" style="display: none;">
+                    <hr class="my-2" />
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold small text-secondary">Payment Received Records</span>
+                        <button type="button" class="btn-close btn-sm" id="btnCloseReceivedGrid" aria-label="Close"></button>
+                    </div>
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
+                    {
+                        GridId = "PaymentReceivedHistory-grid",
+                        AjaxUrl = "/PaymentReceiveEntry/SearchPaymentReceived",
+                        AjaxMethod = "GET",
+                        ServerSide = false,
+                        ShowCheckbox = true,
+                        CheckColumnData = "paymentReceiveId",
+                        CheckAllId = "PaymentReceivedHistory-check-all",
+                        DefaultSortColumn = "paymentReceiveId",
+                        DefaultSortDirection = "desc",
+                        Bordered = true,
+                        Striped = true,
+                        Compact = true,
+                        Columns = new List<GridColumn>
+                        {
+                            new() { Data = "paymentReceiveId", Header = "Receive ID", Width = "12%", IsEditLink = true, EditSelectorClass = "js-PaymentReceiveEntry-edit", IdField = "paymentReceiveId" },
+                            new() { Data = "paymentReceiveDate", Header = "Receive Date", Width = "10%", Align = "center" },
+                            new() { Data = "customerId", Header = "Customer ID", Width = "10%" },
+                            new() { Data = "customerName", Header = "Customer Name", Width = "22%" },
+                            new() { Data = "customerAddress", Header = "Address", Width = "22%" },
+                            new() { Data = "amount", Header = "Amount", Width = "10%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "paymentType", Header = "Type", Width = "7%" },
+                            new() { Data = "paymentModeName", Header = "Mode", Width = "7%" }
+                        }
+                    })
+                </div>
+            </div>
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/paymentReceiveEntry.js" defer></script>
+    <script type="text/javascript">
+        // Prevent DataTables intrusive alert popups
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.dataTable) {
+            window.jQuery.fn.dataTable.ext.errMode = 'none';
+        }
+
+        // Register custom renderers in global gctlRenderers registry
+        window.gctlRenderers = window.gctlRenderers || {};
+
+        window.gctlRenderers.renderCustomerId = function (data, type, row) {
+            var id = data || (row ? (row.customerId || row.CustomerID || '') : '');
+            return '<a class="custom-grid-link js-select-customer fw-bold text-primary" data-id="' + id + '" style="cursor:pointer; text-decoration:underline;">' + id + '</a>';
+        };
+
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.paymentReceiveEntry === "function") {
+                if ($.fn && $.fn.dataTable) {
+                    $.fn.dataTable.ext.errMode = 'none';
+                }
+                var options = {
+                    baseUrl: '@Url.Action("", "PaymentReceiveEntry")'
+                };
+                options.load = () => { };
+                $.paymentReceiveEntry(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+
+        function formatCurrency(data) {
+            if (data === null || data === undefined || data === '') return '0.00';
+            var num = parseFloat(data);
+            return isNaN(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatDate(data) {
+            if (!data) return '';
+            var d = new Date(data);
+            if (isNaN(d.getTime())) return data;
+            return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+    </script>
+}
