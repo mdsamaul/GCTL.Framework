@@ -107,6 +107,102 @@
                 window.initCustomDropdowns(settings.formContainer || document, false);
             }
 
+            // Align Against/Bill List input width to match the end of right-side inputs
+            function alignAgainstBillWidth() {
+                var $input = $('#AgainstBillList');
+                if (!$input.length) return;
+
+                if (window.innerWidth >= 768) {
+                    var inputEl = $input[0];
+
+                    // Determine exact left edge of the input (anchored to inner left of its .col-sm-7 parent)
+                    var leftEdge = 0;
+                    var col7 = inputEl.closest('.col-sm-7');
+                    if (col7 && col7.offsetWidth > 0) {
+                        var pl = parseFloat(window.getComputedStyle(col7).paddingLeft) || 2;
+                        leftEdge = col7.getBoundingClientRect().left + pl;
+                    } else {
+                        var $topInput = $('#PaymentReceiveId');
+                        if ($topInput.length && $topInput.is(':visible') && $topInput[0].offsetWidth > 0) {
+                            leftEdge = $topInput[0].getBoundingClientRect().left;
+                        } else {
+                            leftEdge = inputEl.getBoundingClientRect().left;
+                        }
+                    }
+
+                    // Determine exact right edge of the right-side inputs
+                    var rightEdge = 0;
+                    // 1. BankFeeOnlineCharge (standard input in row 6, never hidden by plugins)
+                    var bankInput = document.getElementById('BankFeeOnlineCharge');
+                    if (bankInput && bankInput.offsetWidth > 0) {
+                        rightEdge = bankInput.getBoundingClientRect().right;
+                    }
+                    // 2. PaymentReceiveDate (check flatpickr altInput or the input itself or its .col-sm-7 container)
+                    if (!rightEdge || rightEdge <= leftEdge) {
+                        var prDate = document.getElementById('PaymentReceiveDate');
+                        if (prDate) {
+                            var fp = $(prDate).data('customFpInstance');
+                            if (fp && fp.altInput && fp.altInput.offsetWidth > 0) {
+                                rightEdge = fp.altInput.getBoundingClientRect().right;
+                            } else {
+                                var nextInput = $(prDate).next('input:visible')[0];
+                                if (nextInput && nextInput.offsetWidth > 0) {
+                                    rightEdge = nextInput.getBoundingClientRect().right;
+                                } else if (prDate.offsetWidth > 0) {
+                                    rightEdge = prDate.getBoundingClientRect().right;
+                                } else {
+                                    var rCol7 = prDate.closest('.col-sm-7');
+                                    if (rCol7 && rCol7.offsetWidth > 0) {
+                                        var pr = parseFloat(window.getComputedStyle(rCol7).paddingRight) || 2;
+                                        rightEdge = rCol7.getBoundingClientRect().right - pr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // 3. Fallback to right col-md-6 inner edge
+                    if (!rightEdge || rightEdge <= leftEdge) {
+                        var rightCol = document.querySelector('#PaymentReceiveEntry-form .row.g-2 > .col-md-6:nth-child(2)');
+                        if (rightCol && rightCol.offsetWidth > 0) {
+                            var rcRect = rightCol.getBoundingClientRect();
+                            var prCol = parseFloat(window.getComputedStyle(rightCol).paddingRight) || 4;
+                            rightEdge = rcRect.right - prCol - 2;
+                        }
+                    }
+
+                    var exactW = Math.round(rightEdge - leftEdge);
+                    if (exactW > 50) {
+                        inputEl.style.setProperty('width', exactW + 'px', 'important');
+                        inputEl.style.setProperty('max-width', 'none', 'important');
+                        inputEl.style.setProperty('position', 'relative', 'important');
+                        inputEl.style.setProperty('z-index', '2', 'important');
+                    }
+                } else {
+                    var el = $input[0];
+                    el.style.removeProperty('width');
+                    el.style.removeProperty('max-width');
+                    el.style.removeProperty('position');
+                    el.style.removeProperty('z-index');
+                }
+            }
+
+            alignAgainstBillWidth();
+            setTimeout(alignAgainstBillWidth, 50);
+            setTimeout(alignAgainstBillWidth, 150);
+            setTimeout(alignAgainstBillWidth, 300);
+            setTimeout(alignAgainstBillWidth, 600);
+            $(window).on('resize orientationchange', alignAgainstBillWidth);
+
+            if (window.ResizeObserver) {
+                var formEl = document.querySelector('.js-PaymentReceiveEntry-form-container') || document.querySelector('#PaymentReceiveEntry-form');
+                if (formEl) {
+                    var ro = new ResizeObserver(function () {
+                        alignAgainstBillWidth();
+                    });
+                    ro.observe(formEl);
+                }
+            }
+
             //#region Date Formatting Utilities
             function setDatepickerVal(selector, val) {
                 if (window.setDate) {
@@ -477,6 +573,7 @@
                             $('#BillingAddressDisplay').text(data.billingAddress || '').attr('title', data.billingAddress || '');
                             $('#BillingAddressHidden').val(data.billingAddress || '');
                             $('#AgainstBillList').val(data.againstBillList || '');
+                            alignAgainstBillWidth();
 
                             if (window.setSelect) {
                                 if (data.paymentTypeId) window.setSelect('#PaymentTypeId', data.paymentTypeId);
@@ -545,6 +642,7 @@
                 $('#Remarks').val('');
                 $('#SelectedInvoicesJson').val('[]');
                 $('#modifyDateSpan').text('');
+                alignAgainstBillWidth();
 
                 // Clear Due Invoices Table
                 selectedInvoicesMap = {};
