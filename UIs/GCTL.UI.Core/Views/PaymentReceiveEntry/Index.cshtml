@@ -8,7 +8,9 @@
 
 <style>
     .payment-receive-page .form-control-sm,
-    .payment-receive-page .form-select-sm {
+    .payment-receive-page .form-select-sm,
+    .payment-receive-page .custom-datepicker,
+    .payment-receive-page .flatpickr-input {
         height: 28px !important;
         min-height: 28px !important;
         font-size: 12px !important;
@@ -21,16 +23,75 @@
         padding-bottom: 4px !important;
     }
 
-    .main-info-fieldset {
+    .main-info-fieldset,
+    .due-invoices-card {
         border: 1px solid #c2c9d1 !important;
         background-color: #ffffff;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
     .main-info-fieldset legend {
-        font-size: 13px !important;
+        font-size: 14px !important;
         font-weight: 700;
         color: #333;
+        float: none !important;
+        width: auto !important;
+        margin-bottom: 4px !important;
+    }
+
+    .due-invoices-card legend {
+        font-size: 14px !important;
+        font-weight: 700;
+        color: #333;
+        float: none !important;
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 4px !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+
+    /* Custom Dropdown (custom-select-2) matching 100% width and 28px height */
+    .payment-receive-page select[style*="display: none"],
+    .payment-receive-page select.custom-select-single[style*="display: none"],
+    .payment-receive-page select.select2-hidden-accessible {
+        display: none !important;
+    }
+
+    .payment-receive-page .custom-dd-wrapper {
+        width: 100% !important;
+    }
+
+    .payment-receive-page .custom-dd-box {
+        height: 28px !important;
+        min-height: 28px !important;
+        max-height: 28px !important;
+        padding: 0 6px !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+    }
+
+    .payment-receive-page .custom-dd-input {
+        font-size: 12px !important;
+        height: 26px !important;
+        line-height: 26px !important;
+        padding: 0 2px !important;
+    }
+
+    .payment-receive-page .custom-dd-clear-icon,
+    .payment-receive-page .custom-dd-arrow {
+        font-size: 12px !important;
+        padding: 0 3px !important;
+    }
+
+    @@media (min-width: 768px) {
+        .payment-receive-page #AgainstBillList.against-bill-fullwidth {
+            position: relative;
+            z-index: 2;
+        }
     }
 
     .btn-filter-action {
@@ -43,18 +104,13 @@
         border-radius: 3px;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.08);
         cursor: pointer;
+        height: 28px;
     }
 
     .btn-filter-action:hover {
         background: linear-gradient(180deg, #e9ecef 0%, #dbe0e5 100%);
         color: #000;
         border-color: #9da6b0;
-    }
-
-    .due-invoices-card {
-        border: 1px solid #c2c9d1;
-        background-color: #ffffff;
-        min-height: 100%;
     }
 
     .due-invoices-card .table th {
@@ -167,60 +223,64 @@
 
             <!-- Right: Due Invoices Grid -->
             <div class="col-12 col-xl-5 col-lg-5">
-                <div class="card due-invoices-card rounded shadow-sm p-2">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-bold small text-secondary">Due Invoices</span>
-                        <span id="dueInvoicesCountBadge" class="badge bg-secondary">0 Invoices</span>
+                <fieldset class="border rounded p-2 mb-2 bg-white main-info-fieldset due-invoices-card">
+                    <legend class="w-100 px-2 fs-6 fw-bold text-dark mb-1 d-flex justify-content-between align-items-center" style="float: none; font-size: 14px;">
+                        <span>Due Invoices</span>
+                        <span id="dueInvoicesCountBadge" class="badge bg-secondary" style="font-size: 11px; font-weight: 500;">0 Invoices</span>
+                    </legend>
+
+                    <div class="js-DueInvoices-grid-container">
+                        @await Html.PartialAsync("_CustomGrid", new GridModel
+                        {
+                            GridId = "DueInvoices-grid",
+                            AjaxUrl = "/PaymentReceiveEntry/GetDueInvoices",
+                            AjaxMethod = "GET",
+                            ServerSide = false,
+                            ShowCheckbox = true,
+                            CheckColumnData = "billNo",
+                            CheckAllId = "dueInvoicesCheckAll",
+                            ShowPagination = true,
+                            PageLengths = new[] { 10, 25, 50, -1 },
+                            DefaultPageLength = 10,
+                            ShowSearchBox = true,
+                            CustomGridWrapper = false,
+                            Bordered = true,
+                            Striped = true,
+                            Compact = true,
+                            Columns = new List<GridColumn>
+                            {
+                                new() { Data = "billNo", Header = "Invoice No.", Width = "30%", Align = "left", RenderFn = "renderDueInvoiceNo" },
+                                new() { Data = "billDate", Header = "Date", Width = "24%", Align = "center" },
+                                new() { Data = "billAmount", Header = "Amount", Width = "23%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                                new() { Data = "due", Header = "Due", Width = "23%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true }
+                            }
+                        })
                     </div>
 
-                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                        <table class="table table-bordered table-sm table-hover mb-0" id="DueInvoicesTable">
-                            <thead>
-                                <tr class="text-center">
-                                    <th style="width: 10%;">
-                                        <div class="form-check d-flex justify-content-center m-0">
-                                            <input class="form-check-input" type="checkbox" id="dueInvoicesSelectAll" title="Select All">
-                                        </div>
-                                    </th>
-                                    <th style="width: 35%;">Invoice No.</th>
-                                    <th style="width: 20%;">Date</th>
-                                    <th style="width: 18%;" class="text-end">Amount</th>
-                                    <th style="width: 17%;" class="text-end">Due</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dueInvoicesTableBody">
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-3">
-                                        <em>Select a customer from the top grid to load due invoices.</em>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3" class="text-end fw-bold">Grand Total:</td>
-                                    <td class="text-end fw-bold" id="dueTotalAmount">0.00</td>
-                                    <td class="text-end fw-bold" id="dueTotalDue">0.00</td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                    <!-- Grand Total Summary Bar -->
+                    <div class="d-flex justify-content-between align-items-center bg-light border border-top-0 px-2 py-1 small fw-bold rounded-bottom">
+                        <span>Grand Total:</span>
+                        <div class="d-flex gap-3">
+                            <span>Amount: <span id="dueTotalAmount" class="text-primary">0.00</span></span>
+                            <span>Due: <span id="dueTotalDue" class="text-danger">0.00</span></span>
+                        </div>
                     </div>
-                    <div class="small text-muted mt-1" id="dueInvoicesInfo">Showing 0 to 0 of 0 entries</div>
-                </div>
+                </fieldset>
             </div>
         </div>
 
         <!-- Section 3: Bottom Filter By & Search Results -->
         <div class="card rounded shadow-sm mb-3">
             <div class="card-body p-2">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <span class="fw-bold text-dark small">Filter By:</span>
-                    <div style="width: 140px;">
-                        <input type="date" class="form-control form-control-sm" id="filterFromDate"
-                               value="@(DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd"))" />
-                    </div>
-                    <div style="width: 140px;">
-                        <input type="date" class="form-control form-control-sm" id="filterToDate"
-                               value="@(DateTime.Now.ToString("yyyy-MM-dd"))" />
+                <div class="d-flex justify-content-start align-items-center mb-2 gap-2 flex-wrap">
+                    <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
+                    <div class="input-group input-group-sm" style="width: 340px;">
+                        <span class="input-group-text">Date From</span>
+                        <input type="text" class="form-control custom-datepicker" id="filterFromDate"
+                               value="@(DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
+                        <span class="input-group-text">To</span>
+                        <input type="text" class="form-control custom-datepicker" id="filterToDate"
+                               value="@(DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
                     </div>
                     <button type="button" class="btn-filter-action" id="btnFilterSearch">Search</button>
                     <button type="button" class="btn-filter-action" id="btnFilterPreview">Preview</button>
