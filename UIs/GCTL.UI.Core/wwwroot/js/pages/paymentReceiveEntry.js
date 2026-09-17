@@ -8,6 +8,8 @@
             formContainer: ".js-PaymentReceiveEntry-form-container",
             customerGridId: "CustomerList-grid",
             customerGridSelector: "#CustomerList-grid",
+            dueInvoicesGridId: "DueInvoices-grid",
+            dueInvoicesGridSelector: "#DueInvoices-grid",
             receivedGridId: "PaymentReceivedHistory-grid",
             receivedGridSelector: "#PaymentReceivedHistory-grid",
             saveSelector: ".js-PaymentReceiveEntry-save",
@@ -24,6 +26,7 @@
         var deleteUrl = base + "/Delete";
         var selectedItemsToDelete = [];
         var currentDueInvoices = [];
+        var selectedInvoicesMap = {};
         //#endregion
 
         // Prevent DataTables intrusive alert popups
@@ -36,7 +39,7 @@
                 $.fn.dataTable.ext.errMode = 'none';
             }
 
-            // Ensure renderCustomerId is available globally
+            // Ensure renderers are available globally
             window.gctlRenderers = window.gctlRenderers || {};
             if (!window.gctlRenderers.renderCustomerId) {
                 window.gctlRenderers.renderCustomerId = function (data, type, row) {
@@ -44,9 +47,20 @@
                     return '<a class="custom-grid-link js-select-customer fw-bold text-primary" data-id="' + id + '" style="cursor:pointer; text-decoration:underline;">' + id + '</a>';
                 };
             }
+            if (!window.gctlRenderers.renderDueInvoiceNo) {
+                window.gctlRenderers.renderDueInvoiceNo = function (data, type, row) {
+                    var billNo = data || (row ? row.billNo : '');
+                    return '<span class="fw-bold text-primary">' + (billNo || '') + '</span>';
+                };
+            }
+            if (!window.gctlRenderers.formatCurrency) {
+                window.gctlRenderers.formatCurrency = function (data) {
+                    return formatCurrency(data);
+                };
+            }
 
             // Listen for DataTables error event to log safely without alerting user
-            $(settings.customerGridSelector + ', ' + settings.receivedGridSelector).on('error.dt', function (e, dtSettings, techNote, message) {
+            $(settings.customerGridSelector + ', ' + settings.receivedGridSelector + ', ' + settings.dueInvoicesGridSelector).on('error.dt', function (e, dtSettings, techNote, message) {
                 console.warn('DataTables warning suppressed:', message);
             });
 
@@ -55,9 +69,53 @@
                 if (!$.fn.DataTable || !$.fn.DataTable.isDataTable(settings.customerGridSelector)) {
                     $.gctlGrid.initFromModel({ gridId: settings.customerGridId });
                 }
+
+                if (!$.fn.DataTable || !$.fn.DataTable.isDataTable(settings.dueInvoicesGridSelector)) {
+                    $.gctlGrid.initFromModel({
+                        gridId: settings.dueInvoicesGridId,
+                        ajaxData: function (d) {
+                            d.customerId = $('#CustomerId').val() || '';
+                        },
+                        onLoaded: function (json) {
+                            var list = (json && json.data) ? json.data : (Array.isArray(json) ? json : []);
+                            currentDueInvoices = list;
+                            var count = list.length;
+                            $('#dueInvoicesCountBadge').text(count + ' Invoices');
+
+                            var totalAmount = 0;
+                            var totalDue = 0;
+                            list.forEach(function (item) {
+                                totalAmount += parseFloat(item.billAmount || 0);
+                                totalDue += parseFloat(item.due != null ? item.due : (item.Due != null ? item.Due : 0));
+                            });
+                            $('#dueTotalAmount').text(formatCurrency(totalAmount));
+                            $('#dueTotalDue').text(formatCurrency(totalDue));
+                        }
+                    });
+                }
+            }
+
+            // Initialize custom-datepicker if needed
+            if (window.custom_Datepicker && window.custom_Datepicker.init) {
+                $('.custom-datepicker').each(function () {
+                    window.custom_Datepicker.init(this);
+                });
+            }
+
+            // Initialize custom-select-single (customDropdownSingle from custom-select-2.js)
+            if (window.initCustomDropdowns) {
+                window.initCustomDropdowns(settings.formContainer || document, false);
             }
 
             //#region Date Formatting Utilities
+            function setDatepickerVal(selector, val) {
+                if (window.setDate) {
+                    window.setDate(selector, val);
+                } else {
+                    $(selector).val(val);
+                }
+            }
+
             function formatDateForInput(dateStr) {
                 if (!dateStr) return '';
                 var d = new Date(dateStr);
@@ -131,10 +189,11 @@
 
                 if (!customerId) return;
 
-                // Populate Main Information fields (both Customer ID and Name)
+                // Populate Main Information fields
                 $('#CustomerId').val(customerId);
                 $('#CustomerNameDisplay').val(customerName);
-                $('#BillingAddressDisplay').val(customerAddress);
+                $('#BillingAddressDisplay').text(customerAddress || '').attr('title', customerAddress || '');
+                $('#BillingAddressHidden').val(customerAddress || '');
 
                 // Reset bill & payment selection
                 $('#AgainstBillList').val('');
@@ -146,116 +205,133 @@
             }
             //#endregion
 
-            //#region Due Invoices (Middle Right Grid)
+            //#region Due Invoices (CustomGrid with Server Data & Pagination)
             function loadDueInvoices(customerId, preSelectedBills) {
-                var $tbody = $('#dueInvoicesTableBody');
-                $tbody.html('<tr><td colspan="5" class="text-center py-3 text-muted"><i class="fa fa-spinner fa-spin me-1"></i> Loading due invoices...</td></tr>');
+                selectedInvoicesMap = {};
+                $('#dueInvoicesCheckAll').prop('checked', false);
 
-                $.ajax({
-                    url: base + '/GetDueInvoices',
-                    type: 'GET',
-                    data: { customerId: customerId },
-                    success: function (res) {
-                        var list = res && res.data ? res.data : (Array.isArray(res) ? res : []);
-                        currentDueInvoices = list;
-                        renderDueInvoicesTable(list, preSelectedBills);
-                    },
-                    error: function () {
-                        $tbody.html('<tr><td colspan="5" class="text-center text-danger py-3">Failed to load due invoices.</td></tr>');
-                    }
-                });
-            }
-
-            function renderDueInvoicesTable(invoices, preSelectedBills) {
-                var $tbody = $('#dueInvoicesTableBody');
-                $tbody.empty();
-
-                var preSelectedList = [];
-                if (preSelectedBills) {
-                    preSelectedList = preSelectedBills.split(',').map(b => b.trim());
-                }
-
-                if (!invoices || invoices.length === 0) {
-                    $tbody.html('<tr><td colspan="5" class="text-center text-muted py-3"><em>No due invoices found for this customer.</em></td></tr>');
+                if (!customerId) {
+                    currentDueInvoices = [];
                     $('#dueInvoicesCountBadge').text('0 Invoices');
-                    $('#dueInvoicesInfo').text('Showing 0 to 0 of 0 entries');
                     $('#dueTotalAmount').text('0.00');
                     $('#dueTotalDue').text('0.00');
+                    if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.dueInvoicesGridSelector)) {
+                        $(settings.dueInvoicesGridSelector).DataTable().clear().draw();
+                    }
                     return;
                 }
 
-                var totalAmount = 0;
-                var totalDue = 0;
+                var dtUrl = base + '/GetDueInvoices?customerId=' + encodeURIComponent(customerId);
+                if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.dueInvoicesGridSelector)) {
+                    var dt = $(settings.dueInvoicesGridSelector).DataTable();
+                    dt.ajax.url(dtUrl).load(function (json) {
+                        var list = (json && json.data) ? json.data : (Array.isArray(json) ? json : []);
+                        currentDueInvoices = list;
+                        var count = list.length;
+                        $('#dueInvoicesCountBadge').text(count + ' Invoices');
 
-                invoices.forEach(function (inv, idx) {
-                    var billAmount = parseFloat(inv.billAmount || 0);
-                    var dueAmount = parseFloat(inv.due != null ? inv.due : (inv.Due != null ? inv.Due : 0));
-                    totalAmount += billAmount;
-                    totalDue += dueAmount;
+                        var totalAmount = 0;
+                        var totalDue = 0;
+                        list.forEach(function (item) {
+                            totalAmount += parseFloat(item.billAmount || 0);
+                            totalDue += parseFloat(item.due != null ? item.due : (item.Due != null ? item.Due : 0));
+                        });
+                        $('#dueTotalAmount').text(formatCurrency(totalAmount));
+                        $('#dueTotalDue').text(formatCurrency(totalDue));
 
-                    var isChecked = preSelectedList.includes(inv.billNo);
-
-                    var $tr = $(`
-                        <tr class="align-middle">
-                            <td class="text-center">
-                                <div class="form-check d-flex justify-content-center m-0">
-                                    <input class="form-check-input js-due-invoice-checkbox" type="checkbox"
-                                           data-billno="${inv.billNo}"
-                                           data-amount="${billAmount}"
-                                           data-due="${dueAmount}"
-                                           ${isChecked ? 'checked' : ''} />
-                                </div>
-                            </td>
-                            <td><span class="fw-bold text-primary">${inv.billNo}</span></td>
-                            <td class="text-center">${inv.billDate || ''}</td>
-                            <td class="text-end">${formatCurrency(billAmount)}</td>
-                            <td class="text-end">${formatCurrency(dueAmount)}</td>
-                        </tr>
-                    `);
-
-                    $tbody.append($tr);
-                });
-
-                $('#dueInvoicesCountBadge').text(`${invoices.length} Invoices`);
-                $('#dueInvoicesInfo').text(`Showing 1 to ${invoices.length} of ${invoices.length} entries`);
-                $('#dueTotalAmount').text(formatCurrency(totalAmount));
-                $('#dueTotalDue').text(formatCurrency(totalDue));
-
-                // If any preselected, update totals
-                if (preSelectedList.length > 0) {
-                    updateSelectedInvoicesState();
+                        if (preSelectedBills) {
+                            var preList = typeof preSelectedBills === 'string'
+                                ? preSelectedBills.split(',').map(function (b) { return b.trim(); })
+                                : preSelectedBills;
+                            list.forEach(function (item) {
+                                if (preList.includes(item.billNo)) {
+                                    var dueVal = parseFloat(item.due != null ? item.due : (item.Due != null ? item.Due : 0));
+                                    selectedInvoicesMap[item.billNo] = {
+                                        invoiceNo: item.billNo,
+                                        amount: dueVal
+                                    };
+                                }
+                            });
+                            syncDueInvoiceCheckboxes();
+                            updateSelectedInvoicesState();
+                        }
+                    });
                 }
             }
 
-            // Individual invoice checkbox click
-            $("body").off('change', '.js-due-invoice-checkbox').on('change', '.js-due-invoice-checkbox', function () {
-                updateSelectedInvoicesState();
+            // Sync checkboxes on currently active page with selectedInvoicesMap
+            function syncDueInvoiceCheckboxes() {
+                var $cbs = $(settings.dueInvoicesGridSelector).find('.form-check-input.checkbox, input[type="checkbox"].checkbox');
+                var allChecked = $cbs.length > 0;
+                $cbs.each(function () {
+                    var billNo = $(this).val() || $(this).data('id');
+                    var isSel = !!selectedInvoicesMap[billNo];
+                    $(this).prop('checked', isSel);
+                    if (isSel) {
+                        $(this).closest('tr').addClass('selected-row');
+                    } else {
+                        $(this).closest('tr').removeClass('selected-row');
+                        allChecked = false;
+                    }
+                });
+
+                $('#dueInvoicesCheckAll').prop('checked', allChecked && $cbs.length > 0);
+            }
+
+            // Listen for draw.dt on DueInvoices grid to maintain checkbox state across pagination
+            $(settings.dueInvoicesGridSelector).on('draw.dt', function () {
+                syncDueInvoiceCheckboxes();
             });
 
-            // Select All checkbox click
-            $("body").off('change', '#dueInvoicesSelectAll').on('change', '#dueInvoicesSelectAll', function () {
+            // Individual invoice checkbox click
+            $(settings.dueInvoicesGridSelector).off('change', '.form-check-input.checkbox, input[type="checkbox"].checkbox')
+                .on('change', '.form-check-input.checkbox, input[type="checkbox"].checkbox', function () {
+                    var isChecked = $(this).prop('checked');
+                    var billNo = $(this).val() || $(this).data('id');
+                    if (!billNo) return;
+
+                    if (isChecked) {
+                        var item = currentDueInvoices.find(function (x) { return x.billNo === billNo; });
+                        var dueVal = item ? parseFloat(item.due != null ? item.due : (item.Due != null ? item.Due : 0)) : 0;
+                        selectedInvoicesMap[billNo] = {
+                            invoiceNo: billNo,
+                            amount: dueVal
+                        };
+                    } else {
+                        delete selectedInvoicesMap[billNo];
+                    }
+
+                    syncDueInvoiceCheckboxes();
+                    updateSelectedInvoicesState();
+                });
+
+            // Master Check All in DueInvoices grid
+            $("body").off('click', '#dueInvoicesCheckAll').on('click', '#dueInvoicesCheckAll', function () {
                 var isChecked = $(this).prop('checked');
-                $('.js-due-invoice-checkbox').prop('checked', isChecked);
+                if (isChecked) {
+                    currentDueInvoices.forEach(function (item) {
+                        if (item.billNo) {
+                            var dueVal = parseFloat(item.due != null ? item.due : (item.Due != null ? item.Due : 0));
+                            selectedInvoicesMap[item.billNo] = {
+                                invoiceNo: item.billNo,
+                                amount: dueVal
+                            };
+                        }
+                    });
+                } else {
+                    selectedInvoicesMap = {};
+                }
+
+                syncDueInvoiceCheckboxes();
                 updateSelectedInvoicesState();
             });
 
             function updateSelectedInvoicesState() {
-                var selectedBills = [];
-                var selectedInvoiceItems = [];
+                var selectedList = Object.values(selectedInvoicesMap);
+                var selectedBills = selectedList.map(function (x) { return x.invoiceNo; });
                 var totalDueSum = 0;
-
-                $('.js-due-invoice-checkbox:checked').each(function () {
-                    var billNo = $(this).data('billno');
-                    var due = parseFloat($(this).data('due') || 0);
-
-                    if (billNo) {
-                        selectedBills.push(billNo);
-                        selectedInvoiceItems.push({
-                            invoiceNo: billNo,
-                            amount: due
-                        });
-                        totalDueSum += due;
-                    }
+                selectedList.forEach(function (x) {
+                    totalDueSum += (x.amount || 0);
                 });
 
                 // Update Against/Bill List input
@@ -264,15 +340,18 @@
                 // Auto populate Payment Amount with sum of selected due amounts
                 if (selectedBills.length > 0) {
                     $('#Amount').val(totalDueSum.toFixed(2));
+                } else {
+                    $('#Amount').val('');
                 }
 
                 // Store serialized JSON in hidden field
-                $('#SelectedInvoicesJson').val(JSON.stringify(selectedInvoiceItems));
+                $('#SelectedInvoicesJson').val(JSON.stringify(selectedList));
 
-                // Update select all checkbox state
-                var totalCount = $('.js-due-invoice-checkbox').length;
-                var checkedCount = $('.js-due-invoice-checkbox:checked').length;
-                $('#dueInvoicesSelectAll').prop('checked', totalCount > 0 && totalCount === checkedCount);
+                // Update check-all checkbox state
+                var $cbs = $(settings.dueInvoicesGridSelector).find('.form-check-input.checkbox, input[type="checkbox"].checkbox');
+                var totalCount = $cbs.length;
+                var checkedCount = $cbs.filter(':checked').length;
+                $('#dueInvoicesCheckAll').prop('checked', totalCount > 0 && totalCount === checkedCount);
             }
             //#endregion
 
@@ -390,30 +469,24 @@
                             $('#PaymentReceiveId').val(data.paymentReceiveId || '');
 
                             if (data.paymentReceiveDate) {
-                                $('#PaymentReceiveDate').val(formatDateForInput(data.paymentReceiveDate));
+                                setDatepickerVal('#PaymentReceiveDate', formatDateForInput(data.paymentReceiveDate));
                             }
 
                             $('#CustomerId').val(data.customerId || '');
                             $('#CustomerNameDisplay').val(data.customerName || '');
-                            $('#BillingAddressDisplay').val(data.billingAddress || '');
+                            $('#BillingAddressDisplay').text(data.billingAddress || '').attr('title', data.billingAddress || '');
+                            $('#BillingAddressHidden').val(data.billingAddress || '');
                             $('#AgainstBillList').val(data.againstBillList || '');
 
-                            if (data.paymentTypeId) {
-                                $('#PaymentTypeId').val(data.paymentTypeId);
+                            if (window.setSelect) {
+                                if (data.paymentTypeId) window.setSelect('#PaymentTypeId', data.paymentTypeId);
+                                if (data.paymentModeCode) window.setSelect('#PaymentModeCode', data.paymentModeCode);
+                                window.setSelect('#Receivedby', data.receivedby || '');
+                            } else {
+                                if (data.paymentTypeId) $('#PaymentTypeId').val(data.paymentTypeId).trigger('change');
+                                if (data.paymentModeCode) $('#PaymentModeCode').val(data.paymentModeCode).trigger('change');
+                                $('#Receivedby').val(data.receivedby || '').trigger('change');
                             }
-                            if (data.paymentModeCode) {
-                                $('#PaymentModeCode').val(data.paymentModeCode);
-                            }
-
-                            $('#MrNo').val(data.mrNo || '');
-                            if (data.mrDate) {
-                                $('#MrDate').val(formatDateForInput(data.mrDate));
-                            }
-
-                            $('#Amount').val(data.amount != null ? parseFloat(data.amount).toFixed(2) : '');
-                            $('#BankFeeOnlineCharge').val(data.bankFeeOnlineCharge != null ? parseFloat(data.bankFeeOnlineCharge).toFixed(2) : '');
-                            $('#Remarks').val(data.remarks || '');
-                            $('#Receivedby').val(data.receivedby || '');
 
                             if (data.creationDate) {
                                 $('#creationDateSpan').text(data.creationDate);
@@ -453,26 +526,36 @@
                 $('#Tc').val('');
                 $('#CustomerId').val('');
                 $('#CustomerNameDisplay').val('');
-                $('#BillingAddressDisplay').val('');
+                $('#BillingAddressDisplay').text('').attr('title', '');
+                $('#BillingAddressHidden').val('');
                 $('#AgainstBillList').val('');
-                $('#PaymentTypeId').val('01');
-                $('#PaymentModeCode').val('001');
-                $('#PaymentReceiveDate').val(formatDateForInput(new Date()));
-                $('#MrDate').val(formatDateForInput(new Date()));
+                if (window.setSelect) {
+                    window.setSelect('#PaymentTypeId', '01');
+                    window.setSelect('#PaymentModeCode', '001');
+                    window.setSelect('#Receivedby', '');
+                } else {
+                    $('#PaymentTypeId').val('01').trigger('change');
+                    $('#PaymentModeCode').val('001').trigger('change');
+                    $('#Receivedby').val('').trigger('change');
+                }
+                setDatepickerVal('#PaymentReceiveDate', formatDateForInput(new Date()));
+                setDatepickerVal('#MrDate', formatDateForInput(new Date()));
                 $('#Amount').val('');
                 $('#BankFeeOnlineCharge').val('');
                 $('#Remarks').val('');
-                $('#Receivedby').val('');
                 $('#SelectedInvoicesJson').val('[]');
                 $('#modifyDateSpan').text('');
 
                 // Clear Due Invoices Table
-                $('#dueInvoicesTableBody').html('<tr><td colspan="5" class="text-center text-muted py-3"><em>Select a customer from the top grid to load due invoices.</em></td></tr>');
+                selectedInvoicesMap = {};
+                currentDueInvoices = [];
                 $('#dueInvoicesCountBadge').text('0 Invoices');
-                $('#dueInvoicesInfo').text('Showing 0 to 0 of 0 entries');
                 $('#dueTotalAmount').text('0.00');
                 $('#dueTotalDue').text('0.00');
-                $('#dueInvoicesSelectAll').prop('checked', false);
+                $('#dueInvoicesCheckAll').prop('checked', false);
+                if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.dueInvoicesGridSelector)) {
+                    $(settings.dueInvoicesGridSelector).DataTable().clear().draw();
+                }
 
                 // Fetch new sequence numbers
                 $.get(base + '/GetNextNumbers', function (res) {

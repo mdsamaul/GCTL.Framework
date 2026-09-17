@@ -2,13 +2,13 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 <div class="payment-receive-setup-wrapper">
-    <div asp-validation-summary="ModelOnly" class="text-danger small mb-1"></div>
-
     <input type="hidden" asp-for="Tc" id="Tc" />
     <input type="hidden" asp-for="SelectedInvoicesJson" id="SelectedInvoicesJson" />
 
     <fieldset class="border rounded p-2 mb-2 bg-white main-info-fieldset">
         <legend class="w-auto px-2 fs-6 fw-bold text-dark mb-1" style="float: none; font-size: 14px;">Main Information</legend>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-1"></div>
 
         <!-- Row 1: Payment Receive No. & Payment Receive Date -->
         <div class="row g-2 mb-2 align-items-center">
@@ -28,27 +28,24 @@
                         Payment Receive Date<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <input type="date" asp-for="PaymentReceiveDate" id="PaymentReceiveDate" class="form-control form-control-sm"
-                               value="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" required />
+                        <input type="text" asp-for="PaymentReceiveDate" id="PaymentReceiveDate" class="form-control form-control-sm custom-datepicker"
+                               value="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Row 2: Customer (ID + Name) & Billing Address -->
+        <!-- Row 2: Customer (Name only) & Billing Address (as text) -->
         <div class="row g-2 mb-2 align-items-center">
             <div class="col-md-6">
                 <div class="row g-1 align-items-center">
-                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="CustomerId">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="CustomerNameDisplay">
                         Customer<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <div class="input-group input-group-sm">
-                            <input type="text" asp-for="CustomerId" id="CustomerId" class="form-control form-control-sm bg-light fw-bold text-primary"
-                                   style="max-width: 110px;" placeholder="Customer ID" readonly required />
-                            <input type="text" asp-for="CustomerName" id="CustomerNameDisplay" class="form-control form-control-sm bg-light fw-bold text-dark"
-                                   placeholder="Click customer in top grid" readonly />
-                        </div>
+                        <input type="hidden" asp-for="CustomerId" id="CustomerId" />
+                        <input type="text" asp-for="CustomerName" id="CustomerNameDisplay" class="form-control form-control-sm bg-light fw-bold text-dark"
+                               placeholder="Click customer in top grid" readonly required />
                     </div>
                 </div>
             </div>
@@ -58,8 +55,8 @@
                         Billing Address:
                     </label>
                     <div class="col-sm-7">
-                        <input type="text" asp-for="BillingAddress" id="BillingAddressDisplay" class="form-control form-control-sm bg-light text-muted"
-                               placeholder="Customer Billing Address" readonly />
+                        <input type="hidden" asp-for="BillingAddress" id="BillingAddressHidden" />
+                        <span id="BillingAddressDisplay" class="small text-secondary fw-semibold d-inline-block text-truncate w-100" style="line-height: 28px;" title="@Model?.BillingAddress">@Model?.BillingAddress</span>
                     </div>
                 </div>
             </div>
@@ -84,7 +81,7 @@
                         Payment Type<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <select asp-for="PaymentTypeId" asp-items="ViewBag.PaymentTypes as SelectList" id="PaymentTypeId" class="form-select form-select-sm" required>
+                        <select asp-for="PaymentTypeId" asp-items="ViewBag.PaymentTypes as SelectList" id="PaymentTypeId" class="form-select form-select-sm custom-select-single" required>
                         </select>
                     </div>
                 </div>
@@ -95,7 +92,7 @@
                         Payment Mode<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <select asp-for="PaymentModeCode" asp-items="ViewBag.PaymentModes as SelectList" id="PaymentModeCode" class="form-select form-select-sm" required>
+                        <select asp-for="PaymentModeCode" asp-items="ViewBag.PaymentModes as SelectList" id="PaymentModeCode" class="form-select form-select-sm custom-select-single" required>
                         </select>
                     </div>
                 </div>
@@ -120,14 +117,14 @@
                         Money Receipt Date<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <input type="date" asp-for="MrDate" id="MrDate" class="form-control form-control-sm"
-                               value="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" required />
+                        <input type="text" asp-for="MrDate" id="MrDate" class="form-control form-control-sm custom-datepicker"
+                               value="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Row 6: Payment Amount & Bank Fee/Online Charge -->
+        <!-- Row 6: Payment Amount & Bank Fee/Online Charge (Left-aligned input) -->
         <div class="row g-2 mb-2 align-items-center">
             <div class="col-md-6">
                 <div class="row g-1 align-items-center">
@@ -135,7 +132,7 @@
                         Payment Amount<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <input type="number" step="0.01" asp-for="Amount" id="Amount" class="form-control form-control-sm text-end"
+                        <input type="number" step="0.01" asp-for="Amount" id="Amount" class="form-control form-control-sm text-start"
                                placeholder="Enter Payment Amount" required />
                     </div>
                 </div>
@@ -146,7 +143,7 @@
                         Bank Fee/Online Charge
                     </label>
                     <div class="col-sm-7">
-                        <input type="number" step="0.01" asp-for="BankFeeOnlineCharge" id="BankFeeOnlineCharge" class="form-control form-control-sm text-end"
+                        <input type="number" step="0.01" asp-for="BankFeeOnlineCharge" id="BankFeeOnlineCharge" class="form-control form-control-sm text-start"
                                placeholder="Enter Bank Fee/Online Charge" />
                     </div>
                 </div>
@@ -171,7 +168,7 @@
                         Received by
                     </label>
                     <div class="col-sm-7">
-                        <select asp-for="Receivedby" asp-items="ViewBag.Employees as SelectList" id="Receivedby" class="form-select form-select-sm">
+                        <select asp-for="Receivedby" asp-items="ViewBag.Employees as SelectList" id="Receivedby" class="form-select form-select-sm custom-select-single">
                             <option value="">--Select Received by--</option>
                         </select>
                     </div>
@@ -179,8 +176,8 @@
             </div>
         </div>
 
-        <!-- Row 8: Centered Submit Button -->
-        <div class="d-flex justify-content-center my-3">
+        <!-- Row 8: Submit Button (Aligned to the Right) -->
+        <div class="d-flex justify-content-end my-2 pe-1">
             <button type="button" class="btn btn-sm btn-light border shadow-sm px-4 fw-bold js-PaymentReceiveEntry-save" id="btnSubmit">
                 <i class="far fa-save me-1 text-primary"></i> Submit
             </button>
