@@ -175,6 +175,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CF_PaymentReceiveEntry]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CF_ShipmentStatus]",
          "ObjectType": 0
       },
@@ -455,6 +459,14 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[PaymentReceive]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PaymentReceiveDetails]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[RMG_Def_Supplier]",
          "ObjectType": 0
       },
@@ -576,6 +588,14 @@
       },
       {
          "Name": "[dbo].[GetLedgerTree]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[prc_GetCustomerDueInvoiceList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerListForPaymentReceive]",
          "ObjectType": 1
       },
       {

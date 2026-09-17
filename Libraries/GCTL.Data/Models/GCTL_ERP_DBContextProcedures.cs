@@ -117,6 +117,53 @@ namespace GCTL.Data.Models
             return _;
         }
 
+        public virtual async Task<List<prc_GetCustomerDueInvoiceListResult>> prc_GetCustomerDueInvoiceListAsync(string customerId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = 50,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<prc_GetCustomerDueInvoiceListResult>("EXEC @returnValue = [dbo].[prc_GetCustomerDueInvoiceList] @CustomerId = @CustomerId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerListForPaymentReceiveResult>> Proc_CustomerListForPaymentReceiveAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerListForPaymentReceiveResult>("EXEC @returnValue = [dbo].[Proc_CustomerListForPaymentReceive]", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
         public virtual async Task<List<sp_GetAllCustomerDeliveryInfoResult>> sp_GetAllCustomerDeliveryInfoAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
