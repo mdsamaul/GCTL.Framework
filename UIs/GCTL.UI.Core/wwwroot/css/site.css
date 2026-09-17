@@ -469,7 +469,11 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     transition: transform 0.25s ease;
 }
 
-.menu-link[aria-expanded="true"] .menu-arrow {
+.menu-link[aria-expanded="true"] .menu-arrow,
+.menu-link[aria-expanded="true"] .level1-arrow,
+.menu-link[aria-expanded="true"] .sub-menu-arrow,
+.menu-link:not(.collapsed)[data-bs-toggle="collapse"] .level1-arrow,
+.menu-link:not(.collapsed)[data-bs-toggle="collapse"] .sub-menu-arrow {
     transform: rotate(90deg);
 }
 
@@ -486,7 +490,8 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     width: 100% !important;
 }
 
-.app-sidebar.collapsed .menu-link .menu-item-icon {
+.app-sidebar.collapsed .menu-link .menu-item-icon,
+.app-sidebar.collapsed .menu-link .menu-level1-icon {
     font-size: 1.25rem !important;
     margin-bottom: 2px !important;
     width: auto !important;
@@ -506,7 +511,9 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     max-width: 80px !important;
 }
 
-.app-sidebar.collapsed .menu-link .menu-arrow {
+.app-sidebar.collapsed .menu-link .menu-arrow,
+.app-sidebar.collapsed .menu-link .level1-arrow,
+.app-sidebar.collapsed .menu-link .sub-menu-arrow {
     display: none !important;
 }
 
@@ -573,75 +580,88 @@ input, select, textarea, .form-control, table, th, td, .k-grid, .dx-datagrid, .g
     border-left-color: #93c5fd;
 }
 
-/* SSMS Tree Expander Box [+] / [-] */
-.tree-expander {
+/* Sidebar Level 1 Icon */
+.app-sidebar:not(.collapsed) .menu-level1-icon {
+    font-size: 15px;
+    width: 18px;
+    height: 18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 11px;
-    height: 11px;
-    min-width: 11px;
-    border: 1px solid #7f9db9;
-    background-color: #ffffff;
-    margin-right: 4px;
-    cursor: pointer;
     flex-shrink: 0;
-    position: relative;
-    box-sizing: border-box;
-    border-radius: 1px;
-    z-index: 2;
+    color: #475569;
+    transition: color 0.15s ease;
 }
 
-.tree-expander:hover {
-    border-color: #0078d7;
+.app-sidebar:not(.collapsed) .tree-link:hover .menu-level1-icon,
+.app-sidebar:not(.collapsed) .tree-link.active .menu-level1-icon,
+.app-sidebar:not(.collapsed) .menu-item.direct-active .menu-level1-icon {
+    color: #0b63ce;
 }
 
-/* Minus horizontal line */
-.tree-expander::before {
-    content: '';
-    position: absolute;
-    width: 5px;
-    height: 1px;
-    background-color: #222222;
-}
-
-/* Plus vertical line (present only when collapsed) */
-.tree-expander::after {
-    content: '';
-    position: absolute;
-    width: 1px;
-    height: 5px;
-    background-color: #222222;
-}
-
-/* When expanded (aria-expanded="true"), hide vertical line -> [-] */
-[aria-expanded="true"] > .tree-expander::after,
-[aria-expanded="true"] .tree-expander::after {
-    display: none !important;
-}
-
-/* When collapsed (aria-expanded="false"), show vertical line -> [+] */
-[aria-expanded="false"] > .tree-expander::after,
-[aria-expanded="false"] .tree-expander::after {
-    display: block !important;
-}
-
-/* Spacer for leaf items (without children) to align icons with parent rows */
-.tree-spacer,
-.tree-expander-spacer {
-    display: inline-block;
-    width: 11px;
-    min-width: 11px;
+/* Level 1 Right-side Expand Arrow */
+.app-sidebar:not(.collapsed) .level1-arrow {
+    font-size: 11px;
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    margin-left: auto;
     margin-right: 4px;
     flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
 }
 
-/* Tree Node Icon Wrapper */
-/* Tree Node Icons - completely removed per user request (only +/- tree-expander is displayed) */
+.app-sidebar:not(.collapsed) [aria-expanded="true"] > .level1-arrow,
+.app-sidebar:not(.collapsed) [aria-expanded="true"] .level1-arrow,
+.app-sidebar:not(.collapsed) .menu-link:not(.collapsed)[data-bs-toggle="collapse"] > .level1-arrow,
+.app-sidebar:not(.collapsed) .menu-link:not(.collapsed)[data-bs-toggle="collapse"] .level1-arrow {
+    transform: rotate(90deg);
+    color: #0b63ce;
+}
+
+/* Level 2 & Level 3 Left-side Sub-menu Toggle Arrow */
+.app-sidebar:not(.collapsed) .sub-menu-arrow {
+    font-size: 10px;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    color: #64748b;
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease;
+}
+
+.app-sidebar:not(.collapsed) [aria-expanded="true"] > .sub-menu-arrow,
+.app-sidebar:not(.collapsed) [aria-expanded="true"] .sub-menu-arrow,
+.app-sidebar:not(.collapsed) .menu-link:not(.collapsed)[data-bs-toggle="collapse"] > .sub-menu-arrow,
+.app-sidebar:not(.collapsed) .menu-link:not(.collapsed)[data-bs-toggle="collapse"] .sub-menu-arrow {
+    transform: rotate(90deg);
+    color: #0b63ce;
+}
+
+.app-sidebar:not(.collapsed) .tree-link:hover .sub-menu-arrow,
+.app-sidebar:not(.collapsed) .tree-link:hover .level1-arrow {
+    color: #0b63ce;
+}
+
+/* Subtree leaf node link padding for clean hierarchy alignment */
+.app-sidebar:not(.collapsed) .tree-submenu .tree-node.is-leaf .tree-link {
+    padding-left: 6px !important;
+}
+
+/* Cleanup unused icon classes */
 .tree-node-icon,
 .ssms-folder-icon,
 .ssms-db-icon,
 .ssms-server-icon,
+.tree-expander,
+.tree-spacer,
 .flyout-icon {
     display: none !important;
 }
