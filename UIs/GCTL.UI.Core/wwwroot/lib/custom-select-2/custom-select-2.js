@@ -136,9 +136,9 @@
 
             // Infinite Scroll: fetch next page when user scrolls to bottom of panel
             var checkScroll = function () {
-                if (self.options.isAjax && self.hasMore && !self.isLoadingMore) {
+                if (self.hasMore && !self.isLoadingMore) {
                     var el = self.$panel[0];
-                    if (el && (el.scrollTop + el.clientHeight >= el.scrollHeight - 40)) {
+                    if (el && (el.scrollTop + el.clientHeight >= el.scrollHeight - 50)) {
                         self._loadNextPage();
                     }
                 }
@@ -213,10 +213,6 @@
             this.$wrapper.addClass('open');
             if (!this.options.isAjax) {
                 this._filterLocal(this.$input.val());
-            } else if (!this.data.length) {
-                this._ajaxSearch(this.$input.val());
-            } else {
-                this._renderList(this.data);
             }
         }
 
@@ -291,6 +287,23 @@
             }, this.options.ajaxDelay);
         }
 
+        _appendItemRow(item) {
+            var self = this;
+            var isSelected = this.selected.indexOf(item.id) !== -1;
+            var $row = $('<div class="custom-dd-option' + (isSelected ? ' selected' : '') + '"></div>');
+            if (this.isMulti) {
+                $row.append('<input type="checkbox" class="custom-dd-opt-checkbox" ' + (isSelected ? 'checked' : '') + ' />');
+            }
+            $row.append('<span class="custom-dd-opt-text"></span>');
+            $row.find('.custom-dd-opt-text').text(item.text);
+            $row.attr('data-id', item.id);
+            $row.on('click', function (e) {
+                e.stopPropagation();
+                self._selectItem(item);
+            });
+            this.$list.append($row);
+        }
+
         _loadNextPage() {
             var self = this;
             if (this.isLoadingMore || !this.hasMore) return;
@@ -300,71 +313,82 @@
             var $loader = $('<div class="custom-dd-more-loader p-1 text-center text-muted small border-top"><span class="spinner-border spinner-border-sm me-1"></span> Loading more...</div>');
             this.$list.append($loader);
 
-            var payload = {
-                term: this._currentTerm,
-                page: this.page,
-                pageSize: this.options.pageSize || 10
-            };
-            if (this.options.parentSelector) {
-                payload[this.options.parentParamName] = $(this.options.parentSelector).val();
-            }
-            if (typeof this.options.ajaxDataMapper === 'function') {
-                payload = this.options.ajaxDataMapper(payload, this);
-            }
-
-            $.ajax({
-                url: this.options.ajaxUrl,
-                method: this.options.ajaxMethod,
-                data: payload
-            }).done(function (resp) {
-                $loader.remove();
-                self.isLoadingMore = false;
-
-                if (typeof resp === 'string') {
-                    try { resp = JSON.parse(resp); } catch (e) {}
+            if (this.options.isAjax) {
+                var payload = {
+                    term: this._currentTerm,
+                    page: this.page,
+                    pageSize: this.options.pageSize || 10
+                };
+                if (this.options.parentSelector) {
+                    payload[this.options.parentParamName] = $(this.options.parentSelector).val();
+                }
+                if (typeof this.options.ajaxDataMapper === 'function') {
+                    payload = this.options.ajaxDataMapper(payload, this);
                 }
 
-                var results;
-                if (typeof self.options.ajaxResultsMapper === 'function') {
-                    results = self.options.ajaxResultsMapper(resp, self);
-                } else {
-                    results = resp.results || resp.Results || resp.data || resp.Data || resp;
-                }
+                $.ajax({
+                    url: this.options.ajaxUrl,
+                    method: this.options.ajaxMethod,
+                    data: payload
+                }).done(function (resp) {
+                    $loader.remove();
+                    self.isLoadingMore = false;
 
-                var pagination = resp.pagination || resp.Pagination;
-                var more = pagination ? (pagination.more !== undefined ? pagination.more : pagination.More) : false;
-                self.hasMore = !!more;
+                    if (typeof resp === 'string') {
+                        try { resp = JSON.parse(resp); } catch (e) {}
+                    }
 
-                var newItems = (results || []).map(function (r) {
-                    var id = r.id !== undefined ? r.id : r.Id;
-                    var text = r.text !== undefined ? r.text : (r.name !== undefined ? r.name : (r.Name !== undefined ? r.Name : id));
-                    return { id: String(id), text: text };
-                });
+                    var results;
+                    if (typeof self.options.ajaxResultsMapper === 'function') {
+                        results = self.options.ajaxResultsMapper(resp, self);
+                    } else {
+                        results = resp.results || resp.Results || resp.data || resp.Data || resp;
+                    }
 
-                if (newItems.length) {
-                    newItems.forEach(function (item) {
-                        if (!self.data.some(function (d) { return d.id === item.id; })) {
-                            self.data.push(item);
-                            var isSelected = self.selected.indexOf(item.id) !== -1;
-                            var $row = $('<div class="custom-dd-option' + (isSelected ? ' selected' : '') + '"></div>');
-                            if (self.isMulti) {
-                                $row.append('<input type="checkbox" class="custom-dd-opt-checkbox" ' + (isSelected ? 'checked' : '') + ' />');
-                            }
-                            $row.append('<span class="custom-dd-opt-text"></span>');
-                            $row.find('.custom-dd-opt-text').text(item.text);
-                            $row.attr('data-id', item.id);
-                            $row.on('click', function (e) {
-                                e.stopPropagation();
-                                self._selectItem(item);
-                            });
-                            self.$list.append($row);
-                        }
+                    var pagination = resp.pagination || resp.Pagination;
+                    var more = pagination ? (pagination.more !== undefined ? pagination.more : pagination.More) : false;
+                    self.hasMore = !!more;
+
+                    var newItems = (results || []).map(function (r) {
+                        var id = r.id !== undefined ? r.id : r.Id;
+                        var text = r.text !== undefined ? r.text : (r.name !== undefined ? r.name : (r.Name !== undefined ? r.Name : id));
+                        return { id: String(id), text: text };
                     });
-                }
-            }).fail(function () {
-                $loader.remove();
-                self.isLoadingMore = false;
-            });
+
+                    if (newItems.length) {
+                        newItems.forEach(function (item) {
+                            if (!self.data.some(function (d) { return d.id === item.id; })) {
+                                self.data.push(item);
+                                self._appendItemRow(item);
+                            }
+                        });
+                    }
+                }).fail(function () {
+                    $loader.remove();
+                    self.isLoadingMore = false;
+                });
+            } else {
+                // Client-side pagination for static / local items
+                var pageSize = this.options.pageSize || 10;
+                var startIndex = (this.page - 1) * pageSize;
+                var endIndex = this.page * pageSize;
+                var all = this._allCurrentItems || [];
+                var nextItems = all.slice(startIndex, endIndex);
+
+                setTimeout(function () {
+                    $loader.remove();
+                    self.isLoadingMore = false;
+                    self.hasMore = endIndex < all.length;
+
+                    if (nextItems.length) {
+                        nextItems.forEach(function (item) {
+                            if (!self.$list.find('.custom-dd-option[data-id="' + item.id + '"]').length) {
+                                self._appendItemRow(item);
+                            }
+                        });
+                    }
+                }, 120);
+            }
         }
 
         _filterLocal(term) {
@@ -378,25 +402,48 @@
         _renderList(items) {
             var self = this;
             this.$list.empty();
-            if (!items.length) {
+            if (!items || !items.length) {
                 this.$list.append('<div class="custom-dd-empty">No results found</div>');
+                this.hasMore = false;
                 return;
             }
-            items.forEach(function (item) {
-                var isSelected = self.selected.indexOf(item.id) !== -1;
-                var $row = $('<div class="custom-dd-option' + (isSelected ? ' selected' : '') + '"></div>');
-                if (self.isMulti) {
-                    $row.append('<input type="checkbox" class="custom-dd-opt-checkbox" ' + (isSelected ? 'checked' : '') + ' />');
+
+            this._allCurrentItems = items;
+            this.page = 1;
+            var pageSize = this.options.pageSize || 10;
+            if (!this.options.isAjax) {
+                this.hasMore = this._allCurrentItems.length > pageSize;
+            }
+
+            var displayItems = this.options.isAjax ? items : this._allCurrentItems.slice(0, pageSize);
+
+            // If an item is already selected but beyond first 10, ensure it appears at top
+            if (this.selected.length) {
+                var selId = String(this.selected[0]);
+                var selInDisplay = displayItems.some(function (d) { return d.id === selId; });
+                if (!selInDisplay) {
+                    var selItem = this._allCurrentItems.find(function (d) { return d.id === selId; });
+                    if (selItem) {
+                        displayItems = [selItem].concat(displayItems.filter(function (d) { return d.id !== selId; }).slice(0, pageSize - 1));
+                    }
                 }
-                $row.append('<span class="custom-dd-opt-text"></span>');
-                $row.find('.custom-dd-opt-text').text(item.text);
-                $row.attr('data-id', item.id);
-                $row.on('click', function (e) {
-                    e.stopPropagation();
-                    self._selectItem(item);
-                });
-                self.$list.append($row);
+            }
+
+            displayItems.forEach(function (item) {
+                self._appendItemRow(item);
             });
+        }
+
+        destroy() {
+            if (this.$wrapper) {
+                this.$wrapper.remove();
+            }
+            $(document).off('click.' + this._id);
+            if (this.options.parentSelector) {
+                $(this.options.parentSelector).off('change.customCascade-' + this._id);
+            }
+            this.$original.removeData('customDdInstance');
+            this.$original.show();
         }
 
         setDisabled(disabled) {
@@ -479,6 +526,9 @@
 
             this._addSelected(existing);
             this._syncOriginalSelect();
+            if (this.options.isAjax) {
+                this._hasFetchedInitially = false;
+            }
             if (this.data.length) {
                 this._renderList(this.data);
             }
@@ -598,7 +648,7 @@
             var self = this;
             this.$list.empty();
 
-            if (this.options.showSelectAll && items.length) {
+            if (this.options.showSelectAll && items && items.length) {
                 var allIds = items.map(function (i) { return i.id; });
                 var allSelected = allIds.every(function (id) { return self.selected.indexOf(id) !== -1; });
                 var $selectAllRow = $('<div class="custom-dd-option custom-dd-select-all"></div>');
@@ -612,23 +662,23 @@
                 this.$list.append('<div class="custom-dd-divider"></div>');
             }
 
-            if (!items.length) {
+            if (!items || !items.length) {
                 this.$list.append('<div class="custom-dd-empty">No results found</div>');
+                this.hasMore = false;
                 return;
             }
 
-            items.forEach(function (item) {
-                var isSelected = self.selected.indexOf(item.id) !== -1;
-                var $row = $('<div class="custom-dd-option' + (isSelected ? ' selected' : '') + '"></div>');
-                $row.append('<input type="checkbox" class="custom-dd-opt-checkbox" ' + (isSelected ? 'checked' : '') + ' />');
-                $row.append('<span class="custom-dd-opt-text"></span>');
-                $row.find('.custom-dd-opt-text').text(item.text);
-                $row.attr('data-id', item.id);
-                $row.on('click', function (e) {
-                    e.stopPropagation();
-                    self._selectItem(item);
-                });
-                self.$list.append($row);
+            this._allCurrentItems = items;
+            this.page = 1;
+            var pageSize = this.options.pageSize || 10;
+            if (!this.options.isAjax) {
+                this.hasMore = this._allCurrentItems.length > pageSize;
+            }
+
+            var displayItems = this.options.isAjax ? items : this._allCurrentItems.slice(0, pageSize);
+
+            displayItems.forEach(function (item) {
+                self._appendItemRow(item);
             });
         }
 
