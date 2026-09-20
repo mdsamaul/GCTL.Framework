@@ -1,5 +1,32 @@
 let selectedBalance = [];
 
+// Global Renderers for _CustomGrid
+window.gctlRenderers = window.gctlRenderers || {};
+window.gctlRenderers.formatDate = function (data) {
+    if (!data) return '';
+    if (typeof data === 'string' && data.includes('/')) return data;
+    try {
+        var d = new Date(data);
+        if (isNaN(d.getTime())) return data;
+        var day = ('0' + d.getDate()).slice(-2);
+        var month = ('0' + (d.getMonth() + 1)).slice(-2);
+        var year = d.getFullYear();
+        return day + '/' + month + '/' + year;
+    } catch (e) {
+        return data;
+    }
+};
+window.gctlRenderers.formatCurrency = window.gctlRenderers.formatCurrency || function (data, type) {
+    if (data === null || data === undefined || data === '' || isNaN(data)) {
+        return (type === 'sort' || type === 'type') ? 0 : '0.00';
+    }
+    var num = parseFloat(data);
+    if (type === 'sort' || type === 'type') {
+        return num;
+    }
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 $(document).ready(function () {
     console.log("Opening Balance Page Loaded");
 
@@ -68,6 +95,14 @@ $(document).on('input', '.form-control', function () {
     }
 });
 
+$(document).on('input change', '#OpeningDate, input[name="OpeningDate"]', function () {
+    if ($('#OpeningDate').val()) {
+        $('#OpeningDate').removeClass('is-invalid');
+        $('#OpeningDate').next('.flatpickr-input').removeClass('is-invalid');
+        $('#OpeningDate-error').text('');
+    }
+});
+
 $('#CompanyCode, #BranchCode, #SubSusidiaryLedgerCodeNo').on('change', function () {
     const $selection = $(this).next('.select2-container').find('.select2-selection');
     if ($(this).val()) {
@@ -82,19 +117,37 @@ $('#TrType').on('change', function () {
 });
 
 // Account Head Dropdown
-function LoadGeneralLedgerDropdown() {
+function LoadGeneralLedgerDropdown(selectedValue, selectedText) {
+    var $el = $('#SubSusidiaryLedgerCodeNo');
+    if ($el.attr('data-ajax-url')) {
+        if (selectedValue) {
+            if (typeof window.setCustomDropdownValue === 'function') {
+                window.setCustomDropdownValue('SubSusidiaryLedgerCodeNo', selectedValue, selectedText);
+            } else {
+                $el.val(selectedValue).trigger('change');
+            }
+        }
+        return;
+    }
+
     $.ajax({
         url: '/openingUI-General-Ledger-dropdown',
         method: 'GET',
         success: function (response) {
-            var $general = $('#SubSusidiaryLedgerCodeNo');
-            $general.empty().append('<option value="">Select Account Head</option>');
+            var items = response.data || response || [];
+            $el.empty().append('<option value="">-- Select Account Head --</option>');
 
-            $.each(response.data, function (index, general) {
-                $general.append(
-                    '<option value="' + general.id + '">' + general.name + '</option>'
+            $.each(items, function (index, general) {
+                var id = general.id !== undefined ? general.id : general.Id;
+                var name = general.name !== undefined ? general.name : general.Name;
+                $el.append(
+                    '<option value="' + id + '">' + name + '</option>'
                 );
             });
+
+            if (selectedValue) {
+                $el.val(selectedValue).trigger('change');
+            }
 
             if (typeof window.reinitCustomDropdownById === 'function') {
                 window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
@@ -107,28 +160,33 @@ function LoadGeneralLedgerDropdown() {
 }
 
 // Company Dropdown
-function LoadCompanyDropdown() {
+function LoadCompanyDropdown(selectedCompanyId) {
     $.ajax({
         url: '/openingUI-company-dropdown',
         method: 'GET',
         success: function (response) {
+            var items = response.data || response || [];
             var $company = $('#CompanyCode');
-            $company.empty().append('<option value="">Select Company</option>');
+            $company.empty().append('<option value="">-- Select Company --</option>');
 
-            $.each(response.data, function (index, company) {
+            $.each(items, function (index, company) {
+                var id = company.id !== undefined ? company.id : company.Id;
+                var name = company.name !== undefined ? company.name : company.Name;
                 $company.append(
-                    '<option value="' + company.id + '">' + company.name + '</option>'
+                    '<option value="' + id + '">' + name + '</option>'
                 );
             });
 
+            if (selectedCompanyId) {
+                $company.val(selectedCompanyId).trigger('change');
+            } else if (items && items.length > 0) {
+                // Auto-select first company since company is readonly
+                var firstId = items[0].id !== undefined ? items[0].id : items[0].Id;
+                $company.val(firstId).trigger('change');
+            }
+
             if (typeof window.reinitCustomDropdownById === 'function') {
                 window.reinitCustomDropdownById('CompanyCode');
-            }
-            if (response.data.length === 1) {
-                $company.val(response.data[0].id).trigger('change');
-                if (typeof window.reinitCustomDropdownById === 'function') {
-                    window.reinitCustomDropdownById('CompanyCode');
-                }
             }
         },
         error: function (xhr, status, error) {
@@ -150,11 +208,14 @@ function LoadBranchDropdown(companyCode, callback) {
         method: 'GET',
         data: { companycode: companyCode },
         success: function (response) {
+            var items = response.data || response || [];
             var $branch = $('#BranchCode');
-            $branch.empty().append('<option value="">Select Branch</option>');
+            $branch.empty().append('<option value="">-- Select Branch --</option>');
 
-            $.each(response.data, function (index, branch) {
-                $branch.append('<option value="' + branch.id + '">' + branch.name + '</option>');
+            $.each(items, function (index, branch) {
+                var id = branch.id !== undefined ? branch.id : branch.Id;
+                var name = branch.name !== undefined ? branch.name : branch.Name;
+                $branch.append('<option value="' + id + '">' + name + '</option>');
             });
 
             if (typeof window.reinitCustomDropdownById === 'function') {
@@ -182,7 +243,7 @@ function OpeningBalanceValidate(BalanceData) {
         toastr.error("Please Select an Account Head.");
         return false;
     }
-    if (!BalanceData.OpeningBalance) {
+    if (!BalanceData.OpeningBalance && BalanceData.OpeningBalance !== 0) {
         toastr.error("Please Enter Opening Balance.");
         $('#OpeningBalance').addClass('is-invalid');
         return false;
@@ -190,6 +251,12 @@ function OpeningBalanceValidate(BalanceData) {
     if (!BalanceData.TrType) {
         toastr.error("Please Select a Tr Type.");
         $('#TrType').addClass('is-invalid');
+        return false;
+    }
+    if (!BalanceData.OpeningDate) {
+        toastr.error("Please Select Opening Date.");
+        $('#OpeningDate').addClass('is-invalid');
+        $('#OpeningDate').next('.flatpickr-input').addClass('is-invalid');
         return false;
     }
     return true;
@@ -206,6 +273,7 @@ function SaveOrUpdateOpeningBalance() {
         SubSusidiaryLedgerCodeNo: $("#SubSusidiaryLedgerCodeNo").val(),
         OpeningBalance: $("#OpeningBalance").val() ? parseFloat($("#OpeningBalance").val()) : 0,
         TrType: $("#TrType").val(),
+        OpeningDate: $("#OpeningDate").val() || null
     };
 
     if (!OpeningBalanceValidate(BalanceData)) {
@@ -260,9 +328,20 @@ $(document).on('click', '.js-openingbalance-edit', function (e) {
                     window.reinitCustomDropdownById('BranchCode');
                 }
             });
-            $('#SubSusidiaryLedgerCodeNo').val(data.subSusidiaryLedgerCodeNo || '').trigger('change');
+            if (data.subSusidiaryLedgerCodeNo) {
+                if (typeof window.setCustomDropdownValue === 'function') {
+                    window.setCustomDropdownValue('SubSusidiaryLedgerCodeNo', data.subSusidiaryLedgerCodeNo, data.accountHead || data.subSusidiaryLedgerCodeNo);
+                } else {
+                    $('#SubSusidiaryLedgerCodeNo').val(data.subSusidiaryLedgerCodeNo).trigger('change');
+                }
+            } else {
+                if (typeof window.clearCustomDropdownById === 'function') {
+                    window.clearCustomDropdownById('SubSusidiaryLedgerCodeNo');
+                } else {
+                    $('#SubSusidiaryLedgerCodeNo').val('').trigger('change');
+                }
+            }
             if (typeof window.reinitCustomDropdownById === 'function') {
-                window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
                 window.reinitCustomDropdownById('CompanyCode');
             }
 
@@ -274,6 +353,21 @@ $(document).on('click', '.js-openingbalance-edit', function (e) {
                 window.reinitCustomDropdownById('TrType');
             }
             $('#OpeningBalance').val(data.openingBalance || '');
+
+            if (data.openingDate) {
+                let dateIso = data.openingDate.split('T')[0];
+                if (window.custom_Datepicker && typeof window.custom_Datepicker.setValue === 'function') {
+                    window.custom_Datepicker.setValue('#OpeningDate', dateIso);
+                } else {
+                    $('#OpeningDate').val(dateIso);
+                }
+            } else {
+                if (window.custom_Datepicker && typeof window.custom_Datepicker.setValue === 'function') {
+                    window.custom_Datepicker.setValue('#OpeningDate', '');
+                } else {
+                    $('#OpeningDate').val('');
+                }
+            }
 
             if (data.lDate) {
                 let entryDate = new Date(data.lDate).toLocaleString('en-GB', {
@@ -371,18 +465,41 @@ $(document).on("click", "#deleteModal .js-delete, #deleteModal .js-gc-delete-con
 // Clear Form
 function ClearOpeningBalanceForm() {
     $("#BlanceautoId").val("");
-    $("#CompanyCode").val("").trigger('change');
+
+    var defaultCompany = $("#CompanyCode option:not([value='']):first").val();
+    if (defaultCompany) {
+        $("#CompanyCode").val(defaultCompany).trigger('change');
+    } else {
+        LoadCompanyDropdown();
+    }
+    if (typeof window.reinitCustomDropdownById === 'function') {
+        window.reinitCustomDropdownById('CompanyCode');
+    }
+
     $("#BranchCode").val("").trigger('change');
     $("#SubSusidiaryLedgerCodeNo").val("").trigger('change');
     $("#OpeningBalance").val("");
     $("#TrType").val("").trigger('change');
 
-    if (typeof window.clearAllCustomDropdowns === 'function') {
-        window.clearAllCustomDropdowns('#VoucherFormView');
+    if (window.custom_Datepicker && typeof window.custom_Datepicker.setValue === 'function') {
+        window.custom_Datepicker.setValue('#OpeningDate', '');
+    } else {
+        $("#OpeningDate").val("");
+    }
+
+    if (typeof window.clearCustomDropdownById === 'function') {
+        window.clearCustomDropdownById('BranchCode');
+        window.clearCustomDropdownById('SubSusidiaryLedgerCodeNo');
+        window.clearCustomDropdownById('TrType');
+    } else if (typeof window.reinitCustomDropdownById === 'function') {
+        window.reinitCustomDropdownById('BranchCode');
+        window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
+        window.reinitCustomDropdownById('TrType');
     }
 
     $(".form-control").removeClass("is-invalid is-valid");
     $(".invalid-feedback, .valid-feedback").remove();
+    $('#OpeningDate').next('.flatpickr-input').removeClass('is-invalid');
     $('#BlancedisplayModifyDate').text('');    
     $('#BlancedisplayLDate').text('');  
     $('#entryUpdateDateSection').addClass('d-none').hide(); // Hide entire row including hr and labels
@@ -390,7 +507,6 @@ function ClearOpeningBalanceForm() {
     $("#selectAllOpeningBalance").prop("checked", false);
 
     selectedBalance = [];
-    LoadCompanyDropdown();
 }
 
 function getBangladeshDateTime() {

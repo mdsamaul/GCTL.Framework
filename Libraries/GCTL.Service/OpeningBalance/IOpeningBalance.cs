@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.OpeningBalance;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
@@ -26,6 +26,7 @@ namespace GCTL.Service.OpeningBalance
         Task<List<CommonChoiceVM>> GetBranchDropdownInfo(string companycode);
 
         Task<List<CommonChoiceVM>> GetGenetalLedegerDropdownInfo();
+        Task<(List<CommonChoiceVM> Items, int TotalCount)> GetGeneralLedgerDropdownPagedAsync(string term = "", int page = 1, int pageSize = 10);
 
         #endregion
     }

@@ -1,4 +1,4 @@
-﻿
+
 
 namespace GCTL.Core.ViewModels.OpeningBalance
 {
@@ -17,6 +17,9 @@ namespace GCTL.Core.ViewModels.OpeningBalance
         public decimal? OpeningBalance { get; set; }
 
         public string TrType { get; set; }
+
+        public DateTime? OpeningDate { get; set; }
+        public string? OpeningDateStr => OpeningDate.HasValue ? OpeningDate.Value.ToString("dd/MM/yyyy") : "";
 
         public string? LUser { get; set; }
 

@@ -107,6 +107,15 @@ namespace GCTL.UI.Core.ViewModels
         public string ClearBtnStyle { get; set; } = "";
         public string PrintBtnStyle { get; set; } = "";
         public string FavtBtnStyle { get; set; } = "";
+
+        // ================= Tooltips =================
+        public string SaveBtnTooltip { get; set; } = "Save";
+        public string DeleteBtnTooltip { get; set; } = "Delete";
+        public string ClearBtnTooltip { get; set; } = "Clear";
+        public string PrintBtnTooltip { get; set; } = "Export";
+        public string FavtBtnTooltip { get; set; } = "Favorite";
+        public string ExcelBtnTooltip { get; set; } = "Export to Excel";
+        public string PdfBtnTooltip { get; set; } = "Export to PDF";
     }
 
     public class ToolbarButton

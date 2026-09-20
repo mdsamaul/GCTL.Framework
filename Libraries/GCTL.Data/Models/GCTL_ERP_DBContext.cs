@@ -364,6 +364,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("Main_CompanyCode");
             entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
             entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.OpeningDate).HasColumnType("smalldatetime");
             entity.Property(e => e.SubSusidiaryLedgerCodeNo).HasMaxLength(50);
             entity.Property(e => e.TrType).HasMaxLength(50);
             entity.Property(e => e.UserInfoEmployeeId)
