@@ -25,8 +25,7 @@ public class GenericRepository<T> : IRepository<T> where T : class
 
     public IEnumerable<T> GetAll() => _context.Set<T>().ToList();
 
-    public IQueryable<T> FindBy(Expression<Func<T, bool>> expression) =>
-        _context.Set<T>().Where(expression);
+    public IQueryable<T> FindBy(Expression<Func<T, bool>> expression) => _context.Set<T>().Where(expression);
 
     public IQueryable<T> Get(FormattableString sql) =>
         _context.Set<T>().FromSqlInterpolated(sql);
@@ -624,6 +623,7 @@ public class GenericRepository<T> : IRepository<T> where T : class
     }
 
     #endregion
+
 }
 
 /* ====================================================================================================

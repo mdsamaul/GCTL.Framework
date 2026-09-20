@@ -1,9 +1,7 @@
-﻿using GCTL.Core.Data;
-using GCTL.Core.ViewModels;
+﻿using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.BranchAddress;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
-using GCTL.Core.ViewModels.VendorInfo;
 using System;
 using System.Collections.Generic;
 using System.Linq;

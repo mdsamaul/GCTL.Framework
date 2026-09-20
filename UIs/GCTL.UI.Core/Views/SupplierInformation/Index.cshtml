@@ -221,7 +221,7 @@
                             ClearBtnClass = "js-SupplierInformation-clear"
                         })
                     </div>
-                    <div class="card-body">
+                    <div class="card-body px-2">
                         <form asp-action="Setup" method="post" id="SupplierInformation-form" asp-controller="SupplierInformation">
                             <div class="js-SupplierInformation-form-container">
                                 @await Html.PartialAsync("_Setup", Model.Setup)

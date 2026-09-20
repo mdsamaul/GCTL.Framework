@@ -341,11 +341,11 @@ namespace GCTL.Service.BranchAddress
             try
             {
                 var data = await (
-            from cp in contactPersonrepository.All()
-            join d in desiRepo.All()
+                from cp in contactPersonrepository.All()
+                join d in desiRepo.All()
                 on cp.DesignationCode equals d.DesignationCode into dg
-            from d in dg.DefaultIfEmpty()
-            select new ContactPersonTableDto1
+                from d in dg.DefaultIfEmpty()
+                select new ContactPersonTableDto1
             {
                 Id = cp.Cpid,
                 Name = cp.ContactPersonName ?? "",
@@ -357,7 +357,7 @@ namespace GCTL.Service.BranchAddress
                 return new CommonReturnViewModel
                 {
                     Success = true,
-                    Message = "Contact persons fetched successfully",
+                    Message = "Contact persons successfully",
                     Data = data
                 };
             }
