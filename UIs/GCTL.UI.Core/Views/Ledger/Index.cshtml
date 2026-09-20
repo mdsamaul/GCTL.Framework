@@ -893,21 +893,51 @@
                 $.gctlGrid.initFromModel({ gridId: 'modalSubSidiaryLedgerTable' });
             }
 
-            // Restore active tab from localStorage
-            var activeTab = localStorage.getItem('activeLedgerTab');
-            if (activeTab) {
-                var tab = new bootstrap.Tab(document.querySelector('#' + activeTab));
-                tab.show();
-            }
-
+            // Tab switch handler: Save active tab and adjust DataTable column widths
             $('[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-                // Save active tab to localStorage
+                sessionStorage.setItem('activeLedgerTab', e.target.id);
                 localStorage.setItem('activeLedgerTab', e.target.id);
                 
                 if ($.fn.dataTable) {
                     $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
                 }
             });
+
+            // Detect whether current page load is a reload (F5 / refresh) or fresh navigation from another menu/controller
+            var isReload = false;
+            try {
+                if (window.performance) {
+                    var navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
+                    if (navEntries && navEntries.length > 0) {
+                        isReload = navEntries[0].type === 'reload';
+                    } else if (performance.navigation) {
+                        isReload = performance.navigation.type === 1;
+                    }
+                }
+            } catch (e) {
+                console.error("Error checking navigation type:", e);
+            }
+
+            if (isReload) {
+                // On page reload, stay on whichever tab was currently active
+                var savedTabId = sessionStorage.getItem('activeLedgerTab') || localStorage.getItem('activeLedgerTab');
+                if (savedTabId && savedTabId !== 'group-tab') {
+                    var targetTab = document.querySelector('#' + savedTabId);
+                    if (targetTab) {
+                        var tab = new bootstrap.Tab(targetTab);
+                        tab.show();
+                    }
+                }
+            } else {
+                // When navigating from another menu or controller, always select the first tab (Group Ledger)
+                sessionStorage.setItem('activeLedgerTab', 'group-tab');
+                localStorage.setItem('activeLedgerTab', 'group-tab');
+                var groupTab = document.querySelector('#group-tab');
+                if (groupTab && !$(groupTab).hasClass('active')) {
+                    var tab = new bootstrap.Tab(groupTab);
+                    tab.show();
+                }
+            }
         });
     </script>
 }
