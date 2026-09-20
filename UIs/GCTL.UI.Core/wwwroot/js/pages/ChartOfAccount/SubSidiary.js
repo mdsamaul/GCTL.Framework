@@ -105,6 +105,15 @@ function ForSubSidiGRLDropdown(selectedId = null) {
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
+                if (window.ChartOfAccountsFilter) {
+                    window.ChartOfAccountsFilter.setFilters({
+                        groupLedgerCode: selectedGroupCode || '',
+                        controlLedgerCode: '',
+                        subcontrolLedgerCode: '',
+                        subSididaryLedger: ''
+                    });
+                }
+
                 if (!selectedGroupCode) {
                     $('#forsidiarygroupcode, #forsidiarygroupshortName').val('');
                     $('#forsidiaryControlCode, #forsidiaryCLShortName').val('');
@@ -180,6 +189,15 @@ function getControlLedger(selectedGroupCode, selectedId = null) {
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
+                if (window.ChartOfAccountsFilter) {
+                    window.ChartOfAccountsFilter.setFilters({
+                        groupLedgerCode: $('#forsidiarygroupName').val() || '',
+                        controlLedgerCode: selectedControlCode || '',
+                        subcontrolLedgerCode: '',
+                        subSididaryLedger: ''
+                    });
+                }
+
                 if (!selectedControlCode) {
                     $('#forsidiaryControlCode, #forsidiaryCLShortName').val('');
                     $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName').val('');
@@ -248,6 +266,15 @@ function getSubControllerLedger(selectedControlCode, selectedId = null) {
                 selectedSubControlCodeSSL = selectedSubControlCode || "";
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
+
+                if (window.ChartOfAccountsFilter) {
+                    window.ChartOfAccountsFilter.setFilters({
+                        groupLedgerCode: $('#forsidiarygroupName').val() || '',
+                        controlLedgerCode: $('#forsidiaryControlName').val() || '',
+                        subcontrolLedgerCode: selectedSubControlCode || '',
+                        subSididaryLedger: ''
+                    });
+                }
 
                 if (!selectedSubControlCode) {
                     $('#forsidiaryGeneralLedgerCodeNo, #forsidiarySubCRLshortName, #SusidiaryLedgerCodeNo').val('');
@@ -462,6 +489,9 @@ function SubSidiaryLedgerFormClear() {
     selectedGroupCodeSSL = "";
     selectedControlCodeSSL = "";
     selectedSubControlCodeSSL = "";
+    if (window.ChartOfAccountsFilter) {
+        window.ChartOfAccountsFilter.clearFilters();
+    }
 
     let $ctrlSelect = $('#forsidiaryControlName');
     $ctrlSelect.find('option:not(:first)').remove();

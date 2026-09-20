@@ -199,6 +199,10 @@ function ClearGroupLedgerForm() {
     $('#groupLedgerTable tbody tr').removeClass('selected-row');
     $('#groupledger-check-all').prop('checked', false);
 
+    if (window.ChartOfAccountsFilter) {
+        window.ChartOfAccountsFilter.clearFilters();
+    }
+
     LoadNextGroupLedgerCode();
 }
 //#endregion
