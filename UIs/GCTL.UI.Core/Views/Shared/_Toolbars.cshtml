@@ -181,11 +181,15 @@
 
         @if (Model.ShowSave)
         {
+            var saveTooltip = !string.IsNullOrWhiteSpace(Model.SaveBtnTooltip) ? Model.SaveBtnTooltip : "Save";
             <button type="@saveBtnType"
                     id="@Model.SaveBtnId"
                     class="btn toolbar-btn toolbar-btn-save @Model.SaveBtnClass"
                     disabled="@(!Model.EnableSave)"
-                    style="@Model.SaveBtnStyle">
+                    style="@Model.SaveBtnStyle"
+                    title="@saveTooltip"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="bottom">
                 <i class="fas fa-save"></i>
                 <span>Save</span>
             </button>
@@ -193,11 +197,15 @@
 
         @if (Model.ShowDelete)
         {
+            var deleteTooltip = !string.IsNullOrWhiteSpace(Model.DeleteBtnTooltip) ? Model.DeleteBtnTooltip : "Delete";
             <button type="@deleteBtnType"
                     id="@Model.DeleteBtnId"
                     class="btn toolbar-btn toolbar-btn-delete @Model.DeleteBtnClass"
                     disabled="@(!Model.EnableDelete)"
-                    style="@Model.DeleteBtnStyle">
+                    style="@Model.DeleteBtnStyle"
+                    title="@deleteTooltip"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="bottom">
                 <i class="fas fa-trash-alt"></i>
                 <span>Delete</span>
             </button>
@@ -205,11 +213,15 @@
 
         @if (Model.ShowClear)
         {
+            var clearTooltip = !string.IsNullOrWhiteSpace(Model.ClearBtnTooltip) ? Model.ClearBtnTooltip : "Clear";
             <button type="@clearBtnType"
                     id="@Model.ClearBtnId"
                     class="btn toolbar-btn toolbar-btn-clear @Model.ClearBtnClass"
                     disabled="@(!Model.EnableClear)"
-                    style="@Model.ClearBtnStyle">
+                    style="@Model.ClearBtnStyle"
+                    title="@clearTooltip"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="bottom">
                 <i class="fas fa-redo"></i>
                 <span>Clear</span>
             </button>
@@ -217,7 +229,13 @@
 
         @if (Model.ShowPrint)
         {
-            <div class="dropdown">
+            var printTooltip = !string.IsNullOrWhiteSpace(Model.PrintBtnTooltip) ? Model.PrintBtnTooltip : "Export";
+            var excelTooltip = !string.IsNullOrWhiteSpace(Model.ExcelBtnTooltip) ? Model.ExcelBtnTooltip : "Export to Excel";
+            var pdfTooltip = !string.IsNullOrWhiteSpace(Model.PdfBtnTooltip) ? Model.PdfBtnTooltip : "Export to PDF";
+            <div class="dropdown d-inline-block"
+                 data-bs-toggle="tooltip"
+                 data-bs-placement="bottom"
+                 title="@printTooltip">
 
                 <button type="@printBtnType"
                         id="@Model.PrintBtnId"
@@ -235,7 +253,8 @@
                     <li>
                         <a class="dropdown-item d-flex align-items-center @Model.ExcelBtnClass"
                            href="#"
-                           id="@(Model.PrintBtnId)ExcelBtn">
+                           id="@(Model.PrintBtnId)ExcelBtn"
+                           title="@excelTooltip">
 
                             <i class="fas fa-file-excel text-success me-2"></i>
                             Excel
@@ -245,7 +264,8 @@
                     <li>
                         <a class="dropdown-item d-flex align-items-center @Model.PdfBtnClass"
                            href="#"
-                           id="@(Model.PrintBtnId)PdfBtn">
+                           id="@(Model.PrintBtnId)PdfBtn"
+                           title="@pdfTooltip">
 
                             <i class="fas fa-file-pdf text-danger me-2"></i>
                             PDF
@@ -259,11 +279,15 @@
 
         @if (Model.ShowFavorite)
         {
+            var favtTooltip = !string.IsNullOrWhiteSpace(Model.FavtBtnTooltip) ? Model.FavtBtnTooltip : "Favorite";
             <button type="@favtBtnType"
                     id="@Model.FavtBtnId"
                     class="btn toolbar-btn toolbar-btn-fav @Model.FavtBtnClass"
                     disabled="@(!Model.EnableFavorite)"
-                    style="@Model.FavtBtnStyle">
+                    style="@Model.FavtBtnStyle"
+                    title="@favtTooltip"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="bottom">
                 <i class="fas fa-star"></i>
                 <span>Favorite</span>
             </button>
