@@ -16,6 +16,16 @@ window.gctlRenderers.formatDate = function (data) {
         return data;
     }
 };
+window.gctlRenderers.formatCurrency = window.gctlRenderers.formatCurrency || function (data, type) {
+    if (data === null || data === undefined || data === '' || isNaN(data)) {
+        return (type === 'sort' || type === 'type') ? 0 : '0.00';
+    }
+    var num = parseFloat(data);
+    if (type === 'sort' || type === 'type') {
+        return num;
+    }
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 $(document).ready(function () {
     console.log("Opening Balance Page Loaded");
