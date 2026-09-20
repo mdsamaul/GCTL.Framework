@@ -64,6 +64,15 @@ function LoadGroupLedgerDropdown(selectedId = null) {
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
+                if (window.ChartOfAccountsFilter) {
+                    window.ChartOfAccountsFilter.setFilters({
+                        groupLedgerCode: selectedGroupCode || '',
+                        controlLedgerCode: '',
+                        subcontrolLedgerCode: '',
+                        subSididaryLedger: ''
+                    });
+                }
+
                 if (!selectedGroupCode) {
                     $('#GroupLedgerCodeNo').val('');
                     $('#GroupLedgerShortName').val('');
@@ -256,6 +265,9 @@ function ClearControlLedgerForm() {
     $('#controlledger-check-all').prop('checked', false);
 
     selectedGroupCodeCL = "";
+    if (window.ChartOfAccountsFilter) {
+        window.ChartOfAccountsFilter.clearFilters();
+    }
     LoadGroupLedgerDropdown();
 }
 //#endregion

@@ -285,6 +285,6 @@ namespace GCTL.Data.Models
             });
         }
 
-      //  public virtual DbSet<CfPaymentReceiveEntry> CfPaymentReceiveEntries { get; set; }
     }
 }
+

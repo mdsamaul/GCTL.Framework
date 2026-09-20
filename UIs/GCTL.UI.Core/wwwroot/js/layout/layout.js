@@ -520,3 +520,27 @@ $(function () {
         restoreSidebarScroll();
     });
 });
+
+// Global Tooltip Auto-initialization
+$(function () {
+    function initGlobalTooltips() {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (el) {
+                if (!bootstrap.Tooltip.getInstance(el)) {
+                    new bootstrap.Tooltip(el, {
+                        boundary: 'window',
+                        trigger: 'hover'
+                    });
+                }
+            });
+        } else if ($.fn && $.fn.tooltip) {
+            $('[data-bs-toggle="tooltip"]').tooltip({ trigger: 'hover' });
+        }
+    }
+
+    initGlobalTooltips();
+    $(document).ajaxComplete(function () {
+        initGlobalTooltips();
+    });
+});

@@ -85,9 +85,50 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
             }
         }
 
-        public async Task<List<GeneralLedgerVM>> GetAllAsync()
+        public async Task<List<GeneralLedgerVM>> GetAllAsync(string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "", string subSididaryLedger = "")
         {
-            var entity = await _repository.All().ToListAsync();
+            IQueryable<AccSubSubsidiaryLedger> generalQuery;
+
+            if (string.IsNullOrEmpty(groupLedgerCode) &&
+                string.IsNullOrEmpty(controlLedgerCode) &&
+                string.IsNullOrEmpty(subcontrolLedgerCode) &&
+                string.IsNullOrEmpty(subSididaryLedger))
+            {
+                generalQuery = _repository.All();
+            }
+            else
+            {
+                var query = from general in _repository.All()
+                            join subsidi in _subsidiaryLedger.All() on general.SubsidiaryLedgerCodeNo equals subsidi.SusidiaryLedgerCodeNo
+                            join subcrl in _subcontrolLedger.All() on subsidi.GeneralLedgerCodeNo equals subcrl.GeneralLedgerCodeNo
+                            join cl in _controlLedger.All() on subcrl.SubControlLedgerCodeNo equals cl.SubControlLedgerCodeNo
+                            join gr in _groupLedger.All() on cl.ControlLedgerCodeNo equals gr.ControlLedgerCodeNo
+                            select new { general, subsidi, subcrl, cl, gr };
+
+                if (!string.IsNullOrEmpty(groupLedgerCode))
+                {
+                    query = query.Where(x => x.gr.ControlLedgerCodeNo == groupLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(controlLedgerCode))
+                {
+                    query = query.Where(x => x.cl.SubControlLedgerCodeNo == controlLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(subcontrolLedgerCode))
+                {
+                    query = query.Where(x => x.subcrl.GeneralLedgerCodeNo == subcontrolLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(subSididaryLedger))
+                {
+                    query = query.Where(x => x.subsidi.SusidiaryLedgerCodeNo == subSididaryLedger);
+                }
+
+                generalQuery = query.Select(x => x.general);
+            }
+
+            var entity = await generalQuery.ToListAsync();
             var cashFlows = await _cashFlow.All().ToDictionaryAsync(c => c.CashFlowTypeId, c => c.CashFlowTypeName);
 
             var result = entity.Select(model => new GeneralLedgerVM

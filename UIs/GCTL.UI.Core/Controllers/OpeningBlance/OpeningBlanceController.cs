@@ -50,23 +50,12 @@ namespace GCTL.Controllers.OpeningBlance
             {
                 var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder);
 
-                if (result.Data == null || !result.Data.Any())
-                {
-                    return Ok(new
-                    {
-                        draw,
-                        data = new List<OpeningBalanceVM>(),
-                        recordsTotal = 0,
-                        recordsFiltered = 0
-                    });
-                }
-
                 return Ok(new
                 {
                     draw,
-                    data = result.Data,
-                    recordsTotal = result.TotalCount,
-                    recordsFiltered = result.TotalCount
+                    data = result?.Data ?? new List<OpeningBalanceVM>(),
+                    recordsTotal = result?.TotalCount ?? 0,
+                    recordsFiltered = result?.TotalCount ?? 0
                 });
             }
             catch (Exception ex)
@@ -211,6 +200,18 @@ namespace GCTL.Controllers.OpeningBlance
         {
             var list = await _service.GetGenetalLedegerDropdownInfo();
             return Ok(new { data = list });
+        }
+
+        [HttpGet]
+        [Route("openingUI-General-Ledger-dropdown-paged")]
+        public async Task<IActionResult> GeneralLedgerDropdownPaged(string term = "", int page = 1, int pageSize = 10)
+        {
+            var (items, totalCount) = await _service.GetGeneralLedgerDropdownPagedAsync(term, page, pageSize);
+            return Ok(new
+            {
+                results = items.Select(x => new { id = x.Id, text = x.Name }),
+                pagination = new { more = (page * pageSize) < totalCount }
+            });
         }
 
 

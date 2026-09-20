@@ -82,9 +82,49 @@ namespace GCTL.Service.ChartOfAccounts.SubSidiaryLedger
             }
         }
 
-        public async Task<List<SubsidiaryLedgerVM>> GetAllAsync()
+        public async Task<List<SubsidiaryLedgerVM>> GetAllAsync(string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "", string subSididaryLedger = "")
         {
-            var entity = await _repository.All().ToListAsync();
+            IQueryable<AccSubsidiaryLedger> subslQuery;
+
+            if (string.IsNullOrEmpty(groupLedgerCode) &&
+                string.IsNullOrEmpty(controlLedgerCode) &&
+                string.IsNullOrEmpty(subcontrolLedgerCode) &&
+                string.IsNullOrEmpty(subSididaryLedger))
+            {
+                subslQuery = _repository.All();
+            }
+            else
+            {
+                var query = from subsl in _repository.All()
+                            join subcrl in _subcontrolLedger.All() on subsl.GeneralLedgerCodeNo equals subcrl.GeneralLedgerCodeNo
+                            join cl in _controlLedger.All() on subcrl.SubControlLedgerCodeNo equals cl.SubControlLedgerCodeNo
+                            join gr in _groupLedger.All() on cl.ControlLedgerCodeNo equals gr.ControlLedgerCodeNo
+                            select new { subsl, subcrl, cl, gr };
+
+                if (!string.IsNullOrEmpty(groupLedgerCode))
+                {
+                    query = query.Where(x => x.gr.ControlLedgerCodeNo == groupLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(controlLedgerCode))
+                {
+                    query = query.Where(x => x.cl.SubControlLedgerCodeNo == controlLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(subcontrolLedgerCode))
+                {
+                    query = query.Where(x => x.subsl.GeneralLedgerCodeNo == subcontrolLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(subSididaryLedger))
+                {
+                    query = query.Where(x => x.subsl.SusidiaryLedgerCodeNo == subSididaryLedger);
+                }
+
+                subslQuery = query.Select(x => x.subsl);
+            }
+
+            var entity = await subslQuery.ToListAsync();
 
             var result = entity.Select(model => new SubsidiaryLedgerVM
             {
