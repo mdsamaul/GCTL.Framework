@@ -266,7 +266,9 @@
                     </label>
                     <select id="SubSusidiaryLedgerCodeNo" name="SubSusidiaryLedgerCodeNo"
                             class="form-select form-select-sm custom-select-single"
-                            data-placeholder="-- Select Account Head --">
+                            data-placeholder="-- Select Account Head --"
+                            data-ajax-url="/openingUI-General-Ledger-dropdown-paged"
+                            data-page-size="10">
                         <option value="">-- Select Account Head --</option>
                     </select>
                     <span class="text-danger small field-validation" id="SubSusidiaryLedgerCodeNo-error"></span>

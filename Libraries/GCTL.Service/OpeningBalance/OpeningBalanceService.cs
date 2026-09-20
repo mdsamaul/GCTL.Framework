@@ -116,13 +116,16 @@ namespace GCTL.Service.OpeningBalance
 
         public async Task<OpeningBalanceVM> GetByIdAsync(int id)
         {
-            var data = await (from openbalance in _repository.All()
-                              join company in _company.All()
-                                  on openbalance.CompanyCode equals company.CompanyCode
-                              join branch in _branch.All()
-                                  on openbalance.BranchCode equals branch.BranchCode
-                                join accounthead in _generalLedger.All()
-                                  on openbalance.SubSusidiaryLedgerCodeNo equals accounthead.SubSusidiaryLedgerCodeNo
+            var data = await (from openbalance in _repository.All().AsNoTracking()
+                              join company in _company.All().AsNoTracking()
+                                  on openbalance.CompanyCode equals company.CompanyCode into compJoin
+                              from company in compJoin.DefaultIfEmpty()
+                              join branch in _branch.All().AsNoTracking()
+                                  on openbalance.BranchCode equals branch.BranchCode into branchJoin
+                              from branch in branchJoin.DefaultIfEmpty()
+                              join accounthead in _generalLedger.All().AsNoTracking()
+                                  on openbalance.SubSusidiaryLedgerCodeNo equals accounthead.SubSusidiaryLedgerCodeNo into ahJoin
+                              from accounthead in ahJoin.DefaultIfEmpty()
                               where openbalance.AutoId == id
                               select new OpeningBalanceVM
                               {
@@ -133,13 +136,27 @@ namespace GCTL.Service.OpeningBalance
                                   OpeningDate = openbalance.OpeningDate,
                                   LDate = openbalance.Ldate,
                                   ModifyDate = openbalance.ModifyDate,
-                                  CompanyCode = company.CompanyCode,
-                                  BranchCode = branch.BranchCode,
-                                  SubSusidiaryLedgerCodeNo = accounthead.SubSusidiaryLedgerCodeNo,
+                                  CompanyCode = company != null ? company.CompanyCode : openbalance.CompanyCode,
+                                  BranchCode = branch != null ? branch.BranchCode : openbalance.BranchCode,
+                                  CompanyName = company != null ? company.CompanyName : null,
+                                  BranchName = branch != null ? branch.BranchName : null,
+                                  SubSusidiaryLedgerCodeNo = openbalance.SubSusidiaryLedgerCodeNo,
+                                  AccountHead = accounthead != null ? accounthead.SubSubsidiaryLedgerName : null
                               }).FirstOrDefaultAsync();
 
-            return data;
+            if (data != null && !string.IsNullOrEmpty(data.AccountHead) && data.AccountHead.StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+            {
+                var customer = await _salesCustomer.All().AsNoTracking()
+                    .Where(c => c.CustomerId == data.AccountHead)
+                    .Select(c => new { c.CustomerId, c.CustomerName })
+                    .FirstOrDefaultAsync();
+                if (customer != null && !string.IsNullOrEmpty(customer.CustomerName))
+                {
+                    data.AccountHead = $"{customer.CustomerName} ({data.AccountHead})";
+                }
+            }
 
+            return data;
         }
 
 
@@ -577,6 +594,94 @@ namespace GCTL.Service.OpeningBalance
                     Id = e.SubSusidiaryLedgerCodeNo,
                     Name = e.SubSubsidiaryLedgerName
                 }).OrderBy(x => x.Name).ToListAsync();
+            }
+        }
+
+        public async Task<(List<CommonChoiceVM> Items, int TotalCount)> GetGeneralLedgerDropdownPagedAsync(string term = "", int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (pageSize <= 0) pageSize = 10;
+                if (page < 1) page = 1;
+
+                var baseQuery = from gl in _generalLedger.All().AsNoTracking()
+                                join ssl in _subsidiary.All().AsNoTracking()
+                                    on gl.SubsidiaryLedgerCodeNo equals ssl.SusidiaryLedgerCodeNo into subsidiar
+                                from ssl in subsidiar.DefaultIfEmpty()
+                                join scl in _subcontrol.All().AsNoTracking()
+                                    on ssl.GeneralLedgerCodeNo equals scl.GeneralLedgerCodeNo into subcontrolGroup
+                                from scl in subcontrolGroup.DefaultIfEmpty()
+                                select new
+                                {
+                                    Id = gl.SubSusidiaryLedgerCodeNo,
+                                    LedgerName = gl.SubSubsidiaryLedgerName,
+                                    GeneralLedgerName = scl != null ? scl.GeneralLedgerName : null
+                                };
+
+                if (!string.IsNullOrWhiteSpace(term))
+                {
+                    var t = term.Trim();
+                    baseQuery = baseQuery.Where(x =>
+                        (x.LedgerName != null && EF.Functions.Like(x.LedgerName, $"%{t}%")) ||
+                        (x.Id != null && EF.Functions.Like(x.Id, $"%{t}%")) ||
+                        (x.GeneralLedgerName != null && EF.Functions.Like(x.GeneralLedgerName, $"%{t}%"))
+                    );
+                }
+
+                int totalCount = await baseQuery.CountAsync();
+
+                var pagedRows = await baseQuery
+                    .OrderBy(x => x.LedgerName)
+                    .ThenBy(x => x.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var cusIds = pagedRows
+                    .Where(x => !string.IsNullOrEmpty(x.LedgerName) && x.LedgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+                    .Select(x => x.LedgerName)
+                    .Distinct()
+                    .ToList();
+
+                Dictionary<string, string> customerMap = new();
+                if (cusIds.Count > 0)
+                {
+                    var customers = await _salesCustomer.All().AsNoTracking()
+                        .Where(c => cusIds.Contains(c.CustomerId))
+                        .Select(c => new { c.CustomerId, c.CustomerName })
+                        .ToListAsync();
+
+                    foreach (var c in customers)
+                    {
+                        if (!string.IsNullOrEmpty(c.CustomerId) && !customerMap.ContainsKey(c.CustomerId))
+                        {
+                            customerMap[c.CustomerId] = c.CustomerName ?? c.CustomerId;
+                        }
+                    }
+                }
+
+                var items = pagedRows.Select(x =>
+                {
+                    string ledgerName = x.LedgerName ?? "";
+                    string generalName = !string.IsNullOrEmpty(x.GeneralLedgerName) ? $" ({x.GeneralLedgerName})" : "";
+                    string name;
+                    if (ledgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && customerMap.TryGetValue(ledgerName, out var cName))
+                    {
+                        name = $"{cName} ({ledgerName}){generalName}";
+                    }
+                    else
+                    {
+                        name = $"{ledgerName}{generalName}".Trim();
+                    }
+                    return new CommonChoiceVM { Id = x.Id, Name = name };
+                }).ToList();
+
+                return (items, totalCount);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetGeneralLedgerDropdownPagedAsync: {ex}");
+                return (new List<CommonChoiceVM>(), 0);
             }
         }
 

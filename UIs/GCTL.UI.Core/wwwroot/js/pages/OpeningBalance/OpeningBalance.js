@@ -117,25 +117,36 @@ $('#TrType').on('change', function () {
 });
 
 // Account Head Dropdown
-function LoadGeneralLedgerDropdown(selectedValue) {
+function LoadGeneralLedgerDropdown(selectedValue, selectedText) {
+    var $el = $('#SubSusidiaryLedgerCodeNo');
+    if ($el.attr('data-ajax-url')) {
+        if (selectedValue) {
+            if (typeof window.setCustomDropdownValue === 'function') {
+                window.setCustomDropdownValue('SubSusidiaryLedgerCodeNo', selectedValue, selectedText);
+            } else {
+                $el.val(selectedValue).trigger('change');
+            }
+        }
+        return;
+    }
+
     $.ajax({
         url: '/openingUI-General-Ledger-dropdown',
         method: 'GET',
         success: function (response) {
             var items = response.data || response || [];
-            var $general = $('#SubSusidiaryLedgerCodeNo');
-            $general.empty().append('<option value="">-- Select Account Head --</option>');
+            $el.empty().append('<option value="">-- Select Account Head --</option>');
 
             $.each(items, function (index, general) {
                 var id = general.id !== undefined ? general.id : general.Id;
                 var name = general.name !== undefined ? general.name : general.Name;
-                $general.append(
+                $el.append(
                     '<option value="' + id + '">' + name + '</option>'
                 );
             });
 
             if (selectedValue) {
-                $general.val(selectedValue).trigger('change');
+                $el.val(selectedValue).trigger('change');
             }
 
             if (typeof window.reinitCustomDropdownById === 'function') {
@@ -317,9 +328,20 @@ $(document).on('click', '.js-openingbalance-edit', function (e) {
                     window.reinitCustomDropdownById('BranchCode');
                 }
             });
-            $('#SubSusidiaryLedgerCodeNo').val(data.subSusidiaryLedgerCodeNo || '').trigger('change');
+            if (data.subSusidiaryLedgerCodeNo) {
+                if (typeof window.setCustomDropdownValue === 'function') {
+                    window.setCustomDropdownValue('SubSusidiaryLedgerCodeNo', data.subSusidiaryLedgerCodeNo, data.accountHead || data.subSusidiaryLedgerCodeNo);
+                } else {
+                    $('#SubSusidiaryLedgerCodeNo').val(data.subSusidiaryLedgerCodeNo).trigger('change');
+                }
+            } else {
+                if (typeof window.clearCustomDropdownById === 'function') {
+                    window.clearCustomDropdownById('SubSusidiaryLedgerCodeNo');
+                } else {
+                    $('#SubSusidiaryLedgerCodeNo').val('').trigger('change');
+                }
+            }
             if (typeof window.reinitCustomDropdownById === 'function') {
-                window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
                 window.reinitCustomDropdownById('CompanyCode');
             }
 
@@ -465,7 +487,11 @@ function ClearOpeningBalanceForm() {
         $("#OpeningDate").val("");
     }
 
-    if (typeof window.reinitCustomDropdownById === 'function') {
+    if (typeof window.clearCustomDropdownById === 'function') {
+        window.clearCustomDropdownById('BranchCode');
+        window.clearCustomDropdownById('SubSusidiaryLedgerCodeNo');
+        window.clearCustomDropdownById('TrType');
+    } else if (typeof window.reinitCustomDropdownById === 'function') {
         window.reinitCustomDropdownById('BranchCode');
         window.reinitCustomDropdownById('SubSusidiaryLedgerCodeNo');
         window.reinitCustomDropdownById('TrType');

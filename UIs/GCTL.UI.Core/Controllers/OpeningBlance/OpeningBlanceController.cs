@@ -202,6 +202,18 @@ namespace GCTL.Controllers.OpeningBlance
             return Ok(new { data = list });
         }
 
+        [HttpGet]
+        [Route("openingUI-General-Ledger-dropdown-paged")]
+        public async Task<IActionResult> GeneralLedgerDropdownPaged(string term = "", int page = 1, int pageSize = 10)
+        {
+            var (items, totalCount) = await _service.GetGeneralLedgerDropdownPagedAsync(term, page, pageSize);
+            return Ok(new
+            {
+                results = items.Select(x => new { id = x.Id, text = x.Name }),
+                pagination = new { more = (page * pageSize) < totalCount }
+            });
+        }
+
 
         [HttpGet]
         [Route("openingUI-company-dropdown")]

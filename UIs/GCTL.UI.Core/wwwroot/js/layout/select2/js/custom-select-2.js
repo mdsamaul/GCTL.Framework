@@ -34,11 +34,18 @@ $(function () {
             destroyInstance($el);
         }
 
+        var ajaxUrl = $el.data('ajax-url') || $el.data('ajaxUrl') || $el.attr('data-ajax-url');
+        var isAjax = !!ajaxUrl;
+        var pageSize = parseInt($el.data('page-size') || $el.attr('data-page-size') || 10, 10);
+
         var options = {
             placeholder: $el.data('placeholder') || 'Select',
             showClear: true,
             showCopyId: true,
-            items: getItems($el)
+            isAjax: isAjax,
+            ajaxUrl: ajaxUrl,
+            pageSize: pageSize,
+            items: isAjax ? null : getItems($el)
         };
 
         if ($el.data('parent')) {
@@ -56,12 +63,19 @@ $(function () {
             destroyInstance($el);
         }
 
+        var ajaxUrl = $el.data('ajax-url') || $el.data('ajaxUrl') || $el.attr('data-ajax-url');
+        var isAjax = !!ajaxUrl;
+        var pageSize = parseInt($el.data('page-size') || $el.attr('data-page-size') || 10, 10);
+
         var options = {
             placeholder: $el.data('placeholder') || 'Select',
             showClear: true,
             showCopyId: true,
             copyAsJsonArray: true,
-            items: getItems($el)
+            isAjax: isAjax,
+            ajaxUrl: ajaxUrl,
+            pageSize: pageSize,
+            items: isAjax ? null : getItems($el)
         };
 
         if ($el.data('parent')) {
@@ -120,6 +134,8 @@ $(function () {
 
     // Ekta single select ke id diye reinit korar jonno (dorkar hole)
     function reinitById(id) {
+        if (!id) return;
+        if (id.startsWith('#')) id = id.substring(1);
         var $el = $('#' + id);
         if (!$el.length) return;
         if ($el.hasClass('custom-select-multi') || $el.prop('multiple')) {
@@ -131,6 +147,8 @@ $(function () {
 
     // Ekta select clear korar jonno (id diye)
     function clearById(id) {
+        if (!id) return;
+        if (id.startsWith('#')) id = id.substring(1);
         var $el = $('#' + id);
         if (!$el.length) return;
         var instance = $el.data('customDdInstance');
@@ -143,6 +161,25 @@ $(function () {
                 initMulti($el, true);
             } else {
                 initSingle($el, true);
+            }
+        }
+    }
+
+    // Ekta select e value set korar jonno (id, value, text)
+    function setValueById(id, value, text) {
+        if (!id) return;
+        if (id.startsWith('#')) id = id.substring(1);
+        var $el = $('#' + id);
+        if (!$el.length) return;
+        var instance = $el.data('customDdInstance');
+        if (instance && typeof instance.setValue === 'function') {
+            instance.setValue(value, text);
+        } else {
+            if (value !== undefined && value !== null) {
+                if ($el.find("option[value='" + value + "']").length === 0 && text) {
+                    $el.append(new Option(text, value, true, true));
+                }
+                $el.val(value).trigger('change');
             }
         }
     }
@@ -160,10 +197,12 @@ $(function () {
     // Example: window.reinitCustomDropdownById('CompanyCode');
     // Example: window.clearCustomDropdownById('CompanyCode');
     // Example: window.clearAllCustomDropdowns('.js-branch-form-container');
+    // Example: window.setCustomDropdownValue('SubSusidiaryLedgerCodeNo', '00000001', 'Cash');
     window.initCustomDropdowns = initCustomDropdowns;
     window.reinitCustomDropdownById = reinitById;
     window.clearCustomDropdownById = clearById;
     window.clearAllCustomDropdowns = clearAll;
+    window.setCustomDropdownValue = setValueById;
 
     // Page load hote e shob select initialize (first time)
     initCustomDropdowns(document, false);
