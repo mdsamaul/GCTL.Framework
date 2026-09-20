@@ -805,6 +805,46 @@
 </div>
 @section Scripts {
 
+    <script>
+        window.ChartOfAccountsFilter = {
+            groupLedgerCode: '',
+            controlLedgerCode: '',
+            subcontrolLedgerCode: '',
+            subSididaryLedger: '',
+            getFilters: function () {
+                return {
+                    groupLedgerCode: this.groupLedgerCode || '',
+                    controlLedgerCode: this.controlLedgerCode || '',
+                    subcontrolLedgerCode: this.subcontrolLedgerCode || '',
+                    subSididaryLedger: this.subSididaryLedger || ''
+                };
+            },
+            setFilters: function (f) {
+                if (f.groupLedgerCode !== undefined) this.groupLedgerCode = f.groupLedgerCode;
+                if (f.controlLedgerCode !== undefined) this.controlLedgerCode = f.controlLedgerCode;
+                if (f.subcontrolLedgerCode !== undefined) this.subcontrolLedgerCode = f.subcontrolLedgerCode;
+                if (f.subSididaryLedger !== undefined) this.subSididaryLedger = f.subSididaryLedger;
+                this.reloadAllGrids();
+            },
+            clearFilters: function () {
+                this.groupLedgerCode = '';
+                this.controlLedgerCode = '';
+                this.subcontrolLedgerCode = '';
+                this.subSididaryLedger = '';
+                this.reloadAllGrids();
+            },
+            reloadAllGrids: function () {
+                if ($.gctlGrid) {
+                    $.gctlGrid.reload('groupLedgerTable', true);
+                    $.gctlGrid.reload('controlLedgerTable', true);
+                    $.gctlGrid.reload('subControlLedgerTable', true);
+                    $.gctlGrid.reload('subSidiaryLedgerTable', true);
+                    $.gctlGrid.reload('generalLedgerTable', true);
+                }
+            }
+        };
+    </script>
+
     @* ================= Scripts ================= *@
     <script src="~/js/pages/ChartOfAccount/Group.js" asp-append-version="true"></script>
     <script src="~/js/pages/ChartOfAccount/Control.js" asp-append-version="true"></script>
@@ -822,11 +862,29 @@
     <script>
         $(document).ready(function () {
             if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: 'groupLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'controlLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'subControlLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'subSidiaryLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'generalLedgerTable' });
+                var coaFilterData = function (d) {
+                    if (window.ChartOfAccountsFilter) {
+                        var f = window.ChartOfAccountsFilter.getFilters();
+                        d.groupLedgerCode = f.groupLedgerCode;
+                        d.controlLedgerCode = f.controlLedgerCode;
+                        d.subcontrolLedgerCode = f.subcontrolLedgerCode;
+                        d.subSididaryLedger = f.subSididaryLedger;
+                        d.subsidiaryLedgerCode = f.subSididaryLedger;
+                    }
+                };
+
+                $.gctlGrid.initFromModel({
+                    gridId: 'groupLedgerTable',
+                    ajaxData: function (d) {
+                        if (window.ChartOfAccountsFilter) {
+                            d.groupLedgerCode = window.ChartOfAccountsFilter.groupLedgerCode || '';
+                        }
+                    }
+                });
+                $.gctlGrid.initFromModel({ gridId: 'controlLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'subControlLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'subSidiaryLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'generalLedgerTable', ajaxData: coaFilterData });
                 
                 // Initialize Modal Grids
                 $.gctlGrid.initFromModel({ gridId: 'modalGroupLedgerTable' });

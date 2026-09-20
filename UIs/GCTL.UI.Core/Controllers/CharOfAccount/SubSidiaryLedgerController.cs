@@ -181,9 +181,10 @@ namespace GCTL.Controllers.CharOfAccount
 
         [HttpPost]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "", string subSididaryLedger = "", string subsidiaryLedgerCode = "")
         {
-            var data = await _service.GetAllAsync();
+            var subLedger = !string.IsNullOrEmpty(subSididaryLedger) ? subSididaryLedger : subsidiaryLedgerCode;
+            var data = await _service.GetAllAsync(groupLedgerCode, controlLedgerCode, subcontrolLedgerCode, subLedger);
             return Ok(new { data = data });
         }
 

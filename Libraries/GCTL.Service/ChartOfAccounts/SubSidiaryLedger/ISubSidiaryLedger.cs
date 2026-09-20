@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
@@ -7,7 +7,7 @@ namespace GCTL.Service.ChartOfAccounts.SubSidiaryLedger
 {
     public interface ISubSidiaryLedger
     {
-        Task<List<SubsidiaryLedgerVM>> GetAllAsync();
+        Task<List<SubsidiaryLedgerVM>> GetAllAsync(string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "", string subSididaryLedger = "");
         Task<SubsidiaryLedgerVM> GetByIdAsync(int id);
         Task<bool> SaveAsync(SubsidiaryLedgerVM model);
         Task<bool> UpdateAsync(SubsidiaryLedgerVM model);

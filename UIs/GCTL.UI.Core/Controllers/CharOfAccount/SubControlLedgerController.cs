@@ -180,9 +180,9 @@ namespace GCTL.Controllers.CharOfAccount
 
         [HttpPost]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "")
         {
-            var data = await _service.GetAllAsync();
+            var data = await _service.GetAllAsync(groupLedgerCode, controlLedgerCode, subcontrolLedgerCode);
             return Ok(new { data = data });
         }
 

@@ -1,4 +1,4 @@
-﻿using GCTL.Core.ViewModels.ChartOfAccount;
+using GCTL.Core.ViewModels.ChartOfAccount;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 
@@ -6,7 +6,7 @@ namespace GCTL.Service.ChartOfAccounts.GroupLedger
 {
     public interface IGroupLedger
     {
-        Task<List<GroupLedgerVM>> GetAllAsync();
+        Task<List<GroupLedgerVM>> GetAllAsync(string groupLedgerCode = "");
         Task<GroupLedgerVM> GetByIdAsync(int id);
         Task<bool> SaveAsync(GroupLedgerVM model);
         Task<bool> UpdateAsync(GroupLedgerVM model);
