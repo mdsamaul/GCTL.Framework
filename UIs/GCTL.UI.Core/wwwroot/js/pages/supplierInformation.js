@@ -47,9 +47,7 @@
         $(() => {
 
             if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({
-                    gridId: 'SupplierInformation-grid'
-                });
+                $.gctlGrid.initFromModel({ gridId: 'SupplierInformation-grid' });
             }
 
             select2DD();
@@ -692,7 +690,7 @@
                 url: "/SupplierInformation/BankAccountInfoClearTableTemp",
                 type: "GET",
                 success: function (res) {
-                    console.log(res);
+                   // console.log(res);
                     ResetBankAccountInfoForm();
                     loadBankAccountInfoTable();
                 },

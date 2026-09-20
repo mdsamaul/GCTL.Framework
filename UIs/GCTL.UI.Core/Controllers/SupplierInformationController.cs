@@ -498,12 +498,16 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
+        #region GetContactPersonsForTable
+
         [HttpGet]
         public async Task<IActionResult> GetContactPersonsForTable()
         {
             var result = await supplierInformationService.GetContactPersonsForTableAsync();
             return Json(result);
         }
+
+        #endregion
 
     }
 }
