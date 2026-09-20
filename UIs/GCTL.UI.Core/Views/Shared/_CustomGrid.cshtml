@@ -6,7 +6,7 @@
     var tableClasses = string.Join(" ", new[]
     {
         "table", "table-bordered", "align-middle", "table-common", "custom-grid-table",
-        Model.Compact ? "table-sm" : "",
+        Model.Compact ? "table-sm custom-grid-compact" : "",
         Model.Striped ? "table-striped" : "",
         Model.Bordered ? "table-bordered" : "",
         Model.Hover ? "table-hover" : "",
@@ -81,7 +81,7 @@
         }
         <div class="@(Model.IsCollapsible ? "collapse" + (Model.IsCollapsedDefault ? "" : " show") : "")" id="@collapseId">
             <div class="card-body p-2">
-                <div class="table-responsive @Model.ContainerCssClass">
+                <div class="table-responsive @(Model.Compact ? "custom-grid-compact-container" : "") @Model.ContainerCssClass">
                     <table id="@Model.GridId"
                            class="@tableClasses mb-0"
                            style="width:100%;"
@@ -139,7 +139,7 @@
 }
 else
 {
-    <div class="table-responsive @(Model.CustomGridWrapper ? "custom-grid-wrapper p-1" : "") @Model.ContainerCssClass">
+    <div class="table-responsive @(Model.CustomGridWrapper ? "custom-grid-wrapper p-1" : "") @(Model.Compact ? "custom-grid-compact-container" : "") @Model.ContainerCssClass">
         <table id="@Model.GridId"
                class="@tableClasses mb-0"
                style="width:100%;"
