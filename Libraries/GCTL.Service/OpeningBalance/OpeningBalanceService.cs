@@ -101,12 +101,14 @@ namespace GCTL.Service.OpeningBalance
 
             var result = entity.Select(model => new OpeningBalanceVM
             {
+                autoId = model.AutoId,
                 ComOpeningBalanceCode = model.ComOpeningBalanceCode,
                 CompanyCode = model.CompanyCode,
                 BranchCode = model.BranchCode,
                 SubSusidiaryLedgerCodeNo = model.SubSusidiaryLedgerCodeNo,
                 OpeningBalance = model.OpeningBalance,
-                TrType = model.TrType
+                TrType = model.TrType,
+                OpeningDate = model.OpeningDate
             }).ToList();
 
             return result;
@@ -124,9 +126,11 @@ namespace GCTL.Service.OpeningBalance
                               where openbalance.AutoId == id
                               select new OpeningBalanceVM
                               {
+                                  autoId = openbalance.AutoId,
                                   ComOpeningBalanceCode = openbalance.ComOpeningBalanceCode,                                
                                   OpeningBalance = openbalance.OpeningBalance,
                                   TrType = openbalance.TrType,
+                                  OpeningDate = openbalance.OpeningDate,
                                   LDate = openbalance.Ldate,
                                   ModifyDate = openbalance.ModifyDate,
                                   CompanyCode = company.CompanyCode,
@@ -246,61 +250,153 @@ namespace GCTL.Service.OpeningBalance
         //}
 
 
-        public async Task<PaginationService<OpeningBalanceVM, OpeningBalanceVM>.PaginationResult<OpeningBalanceVM>>GetPaginatedAsync( int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "ComOpeningBalanceCode", string sortOrder = "desc")
+        public async Task<PaginationService<OpeningBalanceVM, OpeningBalanceVM>.PaginationResult<OpeningBalanceVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "ComOpeningBalanceCode", string sortOrder = "desc")
         {
+            var baseQuery = from ob in _repository.All().AsNoTracking()
+                            join c in _company.All().AsNoTracking() on ob.CompanyCode equals c.CompanyCode into compJoin
+                            from comp in compJoin.DefaultIfEmpty()
+                            join b in _branch.All().AsNoTracking() on ob.BranchCode equals b.BranchCode into branchJoin
+                            from br in branchJoin.DefaultIfEmpty()
+                            join gl in _generalLedger.All().AsNoTracking() on ob.SubSusidiaryLedgerCodeNo equals gl.SubSusidiaryLedgerCodeNo into ledgerJoin
+                            from gl in ledgerJoin.DefaultIfEmpty()
+                            select new
+                            {
+                                ob.AutoId,
+                                ob.ComOpeningBalanceCode,
+                                ob.CompanyCode,
+                                ob.BranchCode,
+                                ob.SubSusidiaryLedgerCodeNo,
+                                ob.OpeningBalance,
+                                ob.TrType,
+                                ob.OpeningDate,
+                                ob.Lip,
+                                ob.Lmac,
+                                ob.Ldate,
+                                ob.ModifyDate,
+                                CompanyName = comp != null ? comp.CompanyName : null,
+                                BranchName = br != null ? br.BranchName : null,
+                                LedgerName = gl != null ? gl.SubSubsidiaryLedgerName : null
+                            };
 
-            var query = from ob in _repository.All() // Acc_Company_Opening_Balance
-                        join c in _company.All() on ob.CompanyCode equals c.CompanyCode into companyJoin
-                        from comp in companyJoin.DefaultIfEmpty()
-                        join b in _branch.All() on ob.BranchCode equals b.BranchCode into branchJoin
-                        from br in branchJoin.DefaultIfEmpty()
-                        join gl in _generalLedger.All() on ob.SubSusidiaryLedgerCodeNo equals gl.SubSusidiaryLedgerCodeNo into ledgerJoin
-                        from gl in ledgerJoin.DefaultIfEmpty()
-                        join sc in _salesCustomer.All() on gl.SubSubsidiaryLedgerName equals sc.CustomerId into customerGroup
-                        from customer in customerGroup.DefaultIfEmpty()
-                        join ssl in _subsidiary.All() on gl.SubsidiaryLedgerCodeNo equals ssl.SusidiaryLedgerCodeNo into subsidiar
-                        from ssl in subsidiar.DefaultIfEmpty()
-                        join scl in _subcontrol.All() on ssl.GeneralLedgerCodeNo equals scl.GeneralLedgerCodeNo into subcontrolGroup
-                        from scl in subcontrolGroup.DefaultIfEmpty()
-                        select new OpeningBalanceVM
-                        {
-                            autoId = ob.AutoId,
-                            ComOpeningBalanceCode = ob.ComOpeningBalanceCode,
-                            CompanyCode = ob.CompanyCode,
-                            BranchCode = ob.BranchCode,
-                            SubSusidiaryLedgerCodeNo = ob.SubSusidiaryLedgerCodeNo,
-                            OpeningBalance = ob.OpeningBalance,
-                            TrType = ob.TrType == "Dr" || ob.TrType == "Debit" ? "Debit" : (ob.TrType == "Cr" || ob.TrType == "Credit" ? "Credit" : ob.TrType),
-                            LIP = ob.Lip,
-                            LMAC = ob.Lmac,
-                            LDate = ob.Ldate,
-                            ModifyDate = ob.ModifyDate,
-                            CompanyName = comp != null ? comp.CompanyName : null,
-                            BranchName = br != null ? br.BranchName : null,
-                            AccountHead = gl != null ? (gl.SubSubsidiaryLedgerName.StartsWith("CUS")
-                            ? (customer.CustomerName ?? gl.SubSubsidiaryLedgerName) + " (" + gl.SubSubsidiaryLedgerName + ") (" + (scl.GeneralLedgerName ?? "") + ")"
-                            : gl.SubSubsidiaryLedgerName + " (" + (scl.GeneralLedgerName ?? "") + ")")
-                        : null
-                        };
+            int totalItems;
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim();
+                baseQuery = baseQuery.Where(x =>
+                    (x.ComOpeningBalanceCode != null && EF.Functions.Like(x.ComOpeningBalanceCode, $"%{term}%")) ||
+                    (x.CompanyName != null && EF.Functions.Like(x.CompanyName, $"%{term}%")) ||
+                    (x.BranchName != null && EF.Functions.Like(x.BranchName, $"%{term}%")) ||
+                    (x.TrType != null && EF.Functions.Like(x.TrType, $"%{term}%")) ||
+                    (x.LedgerName != null && EF.Functions.Like(x.LedgerName, $"%{term}%"))
+                );
+                totalItems = await baseQuery.CountAsync();
+            }
+            else
+            {
+                // Instant count on single table in 1-2 ms without any joins
+                totalItems = await _repository.All().AsNoTracking().CountAsync();
+            }
 
+            bool isAsc = string.Equals(sortOrder, "asc", StringComparison.OrdinalIgnoreCase);
+            var sortedQuery = (sortColumn?.ToLower()) switch
+            {
+                "comopeningbalancecode" => isAsc ? baseQuery.OrderBy(x => x.ComOpeningBalanceCode) : baseQuery.OrderByDescending(x => x.ComOpeningBalanceCode),
+                "openingdate" => isAsc ? baseQuery.OrderBy(x => x.OpeningDate) : baseQuery.OrderByDescending(x => x.OpeningDate),
+                "openingdatestr" => isAsc ? baseQuery.OrderBy(x => x.OpeningDate) : baseQuery.OrderByDescending(x => x.OpeningDate),
+                "accounthead" => isAsc ? baseQuery.OrderBy(x => x.LedgerName) : baseQuery.OrderByDescending(x => x.LedgerName),
+                "openingbalance" => isAsc ? baseQuery.OrderBy(x => x.OpeningBalance) : baseQuery.OrderByDescending(x => x.OpeningBalance),
+                "trtype" => isAsc ? baseQuery.OrderBy(x => x.TrType) : baseQuery.OrderByDescending(x => x.TrType),
+                "companyname" => isAsc ? baseQuery.OrderBy(x => x.CompanyName) : baseQuery.OrderByDescending(x => x.CompanyName),
+                "branchname" => isAsc ? baseQuery.OrderBy(x => x.BranchName) : baseQuery.OrderByDescending(x => x.BranchName),
+                "autoid" => isAsc ? baseQuery.OrderBy(x => x.AutoId) : baseQuery.OrderByDescending(x => x.AutoId),
+                _ => isAsc ? baseQuery.OrderBy(x => x.AutoId) : baseQuery.OrderByDescending(x => x.AutoId)
+            };
 
             if (pageSize == -1)
             {
-                pageSize = await query.CountAsync();
+                pageSize = totalItems > 0 ? totalItems : 10;
                 pageNumber = 1;
             }
+            if (pageSize <= 0) pageSize = 10;
+            if (pageNumber < 1) pageNumber = 1;
 
-            // PaginationService
-            var paginatedResult = await PaginationService<OpeningBalanceVM, OpeningBalanceVM> .GetPaginatedData(query, pageNumber, pageSize, searchTerm, sortColumn, sortOrder,
-                    term => sc =>
-                        EF.Functions.Like(sc.CompanyName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.BranchName ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.TrType ?? "", $"%{term}%") ||
-                        EF.Functions.Like(sc.AccountHead ?? "", $"%{term}%"),
-                    ob => ob 
-             );
+            var pagedItems = await sortedQuery
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
-            return paginatedResult;
+            // Resolve customer names in memory for just the 10 rows on this page (if any are CUS ledgers)
+            var cusCodes = pagedItems
+                .Where(x => !string.IsNullOrEmpty(x.LedgerName) && x.LedgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.LedgerName!)
+                .Distinct()
+                .ToList();
+
+            Dictionary<string, string> customerMap = new();
+            if (cusCodes.Count > 0)
+            {
+                var customers = await _salesCustomer.All().AsNoTracking()
+                    .Where(c => cusCodes.Contains(c.CustomerId))
+                    .Select(c => new { c.CustomerId, c.CustomerName })
+                    .ToListAsync();
+
+                foreach (var c in customers)
+                {
+                    if (!string.IsNullOrEmpty(c.CustomerId) && !customerMap.ContainsKey(c.CustomerId))
+                    {
+                        customerMap[c.CustomerId] = c.CustomerName ?? c.CustomerId;
+                    }
+                }
+            }
+
+            var data = pagedItems.Select(x =>
+            {
+                string trType = x.TrType == "Dr" || x.TrType == "Debit" ? "Debit" : (x.TrType == "Cr" || x.TrType == "Credit" ? "Credit" : (x.TrType ?? ""));
+                string ledgerName = x.LedgerName ?? "";
+                string accountHead = ledgerName;
+                if (ledgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && customerMap.TryGetValue(ledgerName, out var cName))
+                {
+                    accountHead = $"{cName} ({ledgerName})";
+                }
+
+                return new OpeningBalanceVM
+                {
+                    autoId = x.AutoId,
+                    ComOpeningBalanceCode = x.ComOpeningBalanceCode,
+                    CompanyCode = x.CompanyCode,
+                    BranchCode = x.BranchCode,
+                    SubSusidiaryLedgerCodeNo = x.SubSusidiaryLedgerCodeNo,
+                    OpeningBalance = x.OpeningBalance,
+                    TrType = trType,
+                    OpeningDate = x.OpeningDate,
+                    LIP = x.Lip,
+                    LMAC = x.Lmac,
+                    LDate = x.Ldate,
+                    ModifyDate = x.ModifyDate,
+                    CompanyName = x.CompanyName,
+                    BranchName = x.BranchName,
+                    AccountHead = accountHead
+                };
+            }).ToList();
+
+            int totalPages = pageSize > 0 ? (int)Math.Ceiling((double)totalItems / pageSize) : 1;
+            int startItem = totalItems == 0 ? 0 : (pageNumber - 1) * pageSize + 1;
+            int endItem = Math.Min(pageNumber * pageSize, totalItems);
+
+            return new PaginationService<OpeningBalanceVM, OpeningBalanceVM>.PaginationResult<OpeningBalanceVM>
+            {
+                Data = data,
+                TotalCount = totalItems,
+                PaginationInfo = new PaginationService<OpeningBalanceVM, OpeningBalanceVM>.PaginationInfo
+                {
+                    StartItem = startItem,
+                    EndItem = endItem,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    CurrentPage = pageNumber,
+                    PageNumbers = Enumerable.Range(1, Math.Max(1, totalPages)).ToList()
+                }
+            };
         }
 
 
@@ -323,6 +419,7 @@ namespace GCTL.Service.OpeningBalance
                     SubSusidiaryLedgerCodeNo = model.SubSusidiaryLedgerCodeNo,
                     OpeningBalance = model.OpeningBalance,
                     TrType = model.TrType,
+                    OpeningDate = model.OpeningDate,
                     Luser = model.LUser,
                     Ldate = DateTime.Now,
                     Lip = GetLocalIP() ?? "",
@@ -360,6 +457,7 @@ namespace GCTL.Service.OpeningBalance
                 entity.SubSusidiaryLedgerCodeNo = model.SubSusidiaryLedgerCodeNo;
                 entity.OpeningBalance = model.OpeningBalance;
                 entity.TrType = model.TrType;
+                entity.OpeningDate = model.OpeningDate;
                 entity.Luser = model.LUser;
                 entity.ModifyDate = DateTime.Now;
                 entity.Lip = GetLocalIP() ?? "";
@@ -416,25 +514,70 @@ namespace GCTL.Service.OpeningBalance
         //}
         public async Task<List<CommonChoiceVM>> GetGenetalLedegerDropdownInfo()
         {
-            var dropdowndata = await (from gl in _generalLedger.All()
-                                      join ssl in _subsidiary.All()
-                                        on gl.SubsidiaryLedgerCodeNo equals ssl.SusidiaryLedgerCodeNo
-                                      join scl in _subcontrol.All()
-                                        on ssl.GeneralLedgerCodeNo equals scl.GeneralLedgerCodeNo
-                                      join customer in _salesCustomer.All()
-                                        on gl.SubSubsidiaryLedgerName equals customer.CustomerId into customerforgl
-                                     from customer in customerforgl.DefaultIfEmpty()
-                                      select new CommonChoiceVM
-                                      {
-                                          Id = gl.SubSusidiaryLedgerCodeNo,
-                                          //Name = $"{gl.SubSubsidiaryLedgerName} ({scl.GeneralLedgerName})"
-                                          Name = gl.SubSubsidiaryLedgerName.StartsWith("CUS")
-                                                 ? $"{(customer.CustomerName ?? gl.SubSubsidiaryLedgerName)} ({gl.SubSubsidiaryLedgerName}) ({scl.GeneralLedgerName})"
-                                                 : $"{gl.SubSubsidiaryLedgerName} ({scl.GeneralLedgerName})"
+            try
+            {
+                var ledgers = await (from gl in _generalLedger.All().AsNoTracking()
+                                     join ssl in _subsidiary.All().AsNoTracking()
+                                         on gl.SubsidiaryLedgerCodeNo equals ssl.SusidiaryLedgerCodeNo into subsidiar
+                                     from ssl in subsidiar.DefaultIfEmpty()
+                                     join scl in _subcontrol.All().AsNoTracking()
+                                         on ssl.GeneralLedgerCodeNo equals scl.GeneralLedgerCodeNo into subcontrolGroup
+                                     from scl in subcontrolGroup.DefaultIfEmpty()
+                                     select new
+                                     {
+                                         Id = gl.SubSusidiaryLedgerCodeNo,
+                                         LedgerName = gl.SubSubsidiaryLedgerName,
+                                         GeneralLedgerName = scl != null ? scl.GeneralLedgerName : null
+                                     }).ToListAsync();
 
-                                      }).ToListAsync();
+                var cusIds = ledgers
+                    .Where(x => !string.IsNullOrEmpty(x.LedgerName) && x.LedgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+                    .Select(x => x.LedgerName)
+                    .Distinct()
+                    .ToList();
 
-            return dropdowndata;
+                Dictionary<string, string> customerMap = new();
+                if (cusIds.Count > 0)
+                {
+                    var customers = await _salesCustomer.All().AsNoTracking()
+                        .Where(c => cusIds.Contains(c.CustomerId))
+                        .Select(c => new { c.CustomerId, c.CustomerName })
+                        .ToListAsync();
+
+                    foreach (var c in customers)
+                    {
+                        if (!string.IsNullOrEmpty(c.CustomerId) && !customerMap.ContainsKey(c.CustomerId))
+                        {
+                            customerMap[c.CustomerId] = c.CustomerName ?? c.CustomerId;
+                        }
+                    }
+                }
+
+                return ledgers.Select(x =>
+                {
+                    string ledgerName = x.LedgerName ?? "";
+                    string generalName = !string.IsNullOrEmpty(x.GeneralLedgerName) ? $" ({x.GeneralLedgerName})" : "";
+                    string name;
+                    if (ledgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && customerMap.TryGetValue(ledgerName, out var cName))
+                    {
+                        name = $"{cName} ({ledgerName}){generalName}";
+                    }
+                    else
+                    {
+                        name = $"{ledgerName}{generalName}".Trim();
+                    }
+                    return new CommonChoiceVM { Id = x.Id, Name = name };
+                }).OrderBy(x => x.Name).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetGenetalLedegerDropdownInfo: {ex}");
+                return await _generalLedger.All().AsNoTracking().Select(e => new CommonChoiceVM
+                {
+                    Id = e.SubSusidiaryLedgerCodeNo,
+                    Name = e.SubSubsidiaryLedgerName
+                }).OrderBy(x => x.Name).ToListAsync();
+            }
         }
 
         #endregion

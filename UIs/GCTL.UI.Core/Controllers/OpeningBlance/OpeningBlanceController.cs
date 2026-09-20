@@ -50,23 +50,12 @@ namespace GCTL.Controllers.OpeningBlance
             {
                 var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder);
 
-                if (result.Data == null || !result.Data.Any())
-                {
-                    return Ok(new
-                    {
-                        draw,
-                        data = new List<OpeningBalanceVM>(),
-                        recordsTotal = 0,
-                        recordsFiltered = 0
-                    });
-                }
-
                 return Ok(new
                 {
                     draw,
-                    data = result.Data,
-                    recordsTotal = result.TotalCount,
-                    recordsFiltered = result.TotalCount
+                    data = result?.Data ?? new List<OpeningBalanceVM>(),
+                    recordsTotal = result?.TotalCount ?? 0,
+                    recordsFiltered = result?.TotalCount ?? 0
                 });
             }
             catch (Exception ex)
