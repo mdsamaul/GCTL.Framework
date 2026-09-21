@@ -27,8 +27,8 @@
     {
         showCheckAll = (bool)(showCheckAllProp.GetValue(Model) ?? true);
     }
-    else if (string.IsNullOrEmpty(Model.CheckAllId) || 
-             Model.CheckAllId.Equals("none", StringComparison.OrdinalIgnoreCase) || 
+    else if (string.IsNullOrEmpty(Model.CheckAllId) ||
+             Model.CheckAllId.Equals("none", StringComparison.OrdinalIgnoreCase) ||
              Model.CheckAllId.Equals("false", StringComparison.OrdinalIgnoreCase))
     {
         showCheckAll = false;

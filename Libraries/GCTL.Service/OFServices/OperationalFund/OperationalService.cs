@@ -95,21 +95,12 @@ namespace GCTL.Service.OperationalFund
             if (!string.IsNullOrEmpty(shipmentmodeid))
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
 
-            int a = await query.CountAsync();
-
-            if (request.PageSize == -1)
-            {
-                request.PageSize = a;
-                request.PageNumber = 1;
-            }
-
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(JobEntryListVM.JobDate);
             if (string.IsNullOrEmpty(request.SortOrder))
                 request.SortOrder = "desc";
 
-            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.JobNo);
-
+            return await PaginationService<JobEntryListVM>.GetPaginatedData(query, request);
         }
 
         public async Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "")
@@ -294,8 +285,10 @@ namespace GCTL.Service.OperationalFund
 
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(RequisitionVM.JobNo);
+            if (string.IsNullOrEmpty(request.SortOrder))
+                request.SortOrder = "desc";
 
-            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.TC);
+            return await PaginationService<RequisitionVM>.GetPaginatedData(query, request);
         }
 
         public async Task<PaginationService<RequisitionVM, RequisitionVM>.PaginationResult<RequisitionVM>> GetAllRequisition(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "OFRNo", string sortOrder = "desc")
