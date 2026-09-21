@@ -94,26 +94,47 @@
                 },
                 drawCallback: function () {
                     var dt = this.api();
+                    $table.removeClass('gctl-table-loading');
+                    $table.find('tbody').css('min-height', '');
                     applyStriping();
                     applyHighlight(dt);
+                    if (settings.extraOptions && typeof settings.extraOptions.drawCallback === 'function') {
+                        settings.extraOptions.drawCallback.call(this);
+                    }
                 },
                 destroy: true
             }, settings.extraOptions);
 
-            // Shimmer Skeleton placeholder on preXhr
+            // Shimmer Skeleton on initial load & In-Place Seamless Transition on reloads
+            var isFirstLoad = true;
             if (settings.showSkeletonLoading) {
                 $table.off('preXhr.dt.gctlSkeleton').on('preXhr.dt.gctlSkeleton', function () {
-                    var colCount = settings.columns.length || $table.find('thead th').length || 6;
-                    var skeletonHtml = '';
-                    for (var i = 0; i < (settings.pageLength || 10); i++) {
-                        skeletonHtml += '<tr class="skeleton-row">';
-                        for (var j = 0; j < colCount; j++) {
-                            var width = j === 0 ? '16px' : (40 + (j * 15) % 45) + '%';
-                            skeletonHtml += '<td><span class="skeleton-box" style="width:' + width + ';"></span></td>';
+                    var $tbody = $table.find('tbody');
+                    var existingRows = $tbody.find('tr:not(.skeleton-row)');
+
+                    if (!isFirstLoad && existingRows.length > 0) {
+                        // In-place transition: preserve exact height & keep existing multi-line rows in place
+                        var currentHeight = $tbody.outerHeight();
+                        if (currentHeight > 0) {
+                            $tbody.css('min-height', currentHeight + 'px');
                         }
-                        skeletonHtml += '</tr>';
+                        $table.addClass('gctl-table-loading');
+                    } else {
+                        // Cold / First Load: Show skeleton placeholder rows
+                        var colCount = settings.columns.length || $table.find('thead th').length || 6;
+                        var targetCount = settings.pageLength > 0 ? settings.pageLength : 5;
+                        if (targetCount > 10) targetCount = 10;
+                        var skeletonHtml = '';
+                        for (var i = 0; i < targetCount; i++) {
+                            skeletonHtml += '<tr class="skeleton-row">';
+                            for (var j = 0; j < colCount; j++) {
+                                var width = j === 0 ? '16px' : (40 + (j * 15) % 45) + '%';
+                                skeletonHtml += '<td><span class="skeleton-box" style="width:' + width + ';"></span></td>';
+                            }
+                            skeletonHtml += '</tr>';
+                        }
+                        $tbody.html(skeletonHtml);
                     }
-                    $table.find('tbody').html(skeletonHtml);
                 });
             }
 
@@ -164,7 +185,16 @@
             var dataTable = $table.DataTable(dtOptions);
 
             $table.off('xhr.dt.gctlGrid').on('xhr.dt.gctlGrid', function (e, s, json, xhr) {
+                isFirstLoad = false;
+                $table.removeClass('gctl-table-loading');
+                $table.find('tbody').css('min-height', '');
                 settings.onLoaded(json);
+            });
+
+            $table.off('error.dt.gctlGrid').on('error.dt.gctlGrid', function () {
+                isFirstLoad = false;
+                $table.removeClass('gctl-table-loading');
+                $table.find('tbody').css('min-height', '');
             });
 
             // Master Checkbox click handler

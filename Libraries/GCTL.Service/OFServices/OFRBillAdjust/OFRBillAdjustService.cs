@@ -360,18 +360,12 @@ namespace GCTL.Service.OFRBillAdjust
                             ShipmentMode = exp != null ? exp.ExpenseType : ""
                         }).AsNoTracking();
 
-            if (request.PageSize == -1)
-            {
-                request.PageSize = await query.CountAsync();
-                request.PageNumber = 1;
-            }
-
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(OFRBillAdjustBottomGridVM.OFRNo);
             if (string.IsNullOrEmpty(request.SortOrder))
                 request.SortOrder = "desc";
 
-            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.TC);
+            return await PaginationService<OFRBillAdjustBottomGridVM>.GetPaginatedData(query, request);
         }
 
         #endregion
@@ -419,20 +413,12 @@ namespace GCTL.Service.OFRBillAdjust
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
             }
 
-            int a = await query.CountAsync();
-
-            if (request.PageSize == -1)
-            {
-                request.PageSize = a;
-                request.PageNumber = 1;
-            }
-
             if (string.IsNullOrEmpty(request.SortColumn))
                 request.SortColumn = nameof(OFRApprovalTopGridVM.JobDate);
             if (string.IsNullOrEmpty(request.SortOrder))
                 request.SortOrder = "desc";
 
-            return await DeferredPaginationService.GetPaginatedDataAsync(query, request, keySelector: x => x.TC);
+            return await PaginationService<OFRApprovalTopGridVM>.GetPaginatedData(query, request);
         }
         #endregion
 
