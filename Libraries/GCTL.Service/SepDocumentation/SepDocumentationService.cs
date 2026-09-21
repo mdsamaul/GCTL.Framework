@@ -1061,6 +1061,16 @@ namespace GCTL.Service.SepDocumentation
                     customerName = customer ?? "";
                 }
 
+                string shipmentMode = "";
+                if (!string.IsNullOrEmpty(job.ExpenseTypeId))
+                {
+                    var mode = await _shipmentModeRepository.All()
+                        .Where(s => s.ExpenseTypeId == job.ExpenseTypeId)
+                        .Select(s => s.ExpenseType)
+                        .FirstOrDefaultAsync();
+                    shipmentMode = mode ?? "";
+                }
+
                 return new SepJobUploadDetailsDto
                 {
                     Success = true,
@@ -1068,6 +1078,8 @@ namespace GCTL.Service.SepDocumentation
                     Date = job.Date.HasValue ? job.Date.Value.ToString("dd/MM/yyyy") : "",
                     CustomerName = customerName,
                     CustomerAddress = job.CustomerAddress ?? "",
+                    ShipmentMode = shipmentMode,
+                    BeNo = job.Beno ?? "",
                     Message = "Success"
                 };
             }

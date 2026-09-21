@@ -595,6 +595,10 @@
          "ObjectType": 1
       },
       {
+         "Name": "[dbo].[prc_LoadGridPaymentReceived]",
+         "ObjectType": 1
+      },
+      {
          "Name": "[dbo].[Proc_CustomerListForPaymentReceive]",
          "ObjectType": 1
       },

@@ -509,9 +509,16 @@
         }
 
         setValue(id, text) {
-            if (id === null || id === undefined || id === '') {
+            if (id === null || id === undefined || id === '' || (Array.isArray(id) && id.length === 0)) {
                 this.clear();
                 return;
+            }
+            if (Array.isArray(id)) {
+                id = id.filter(function (v) { return v && String(v).trim() !== ''; });
+                if (id.length === 0) {
+                    this.clear();
+                    return;
+                }
             }
             id = String(id);
             text = text || (this.$original.find('option[value="' + id + '"]').text()) || id;
@@ -560,8 +567,13 @@
 
             var initVal = this.$original.val();
             if (initVal) {
-                var initText = this.$original.find('option:selected').text() || initVal;
-                this.setValue(initVal, initText);
+                var hasValidInit = Array.isArray(initVal)
+                    ? initVal.some(function (v) { return v && String(v).trim() !== ''; })
+                    : (String(initVal).trim() !== '');
+                if (hasValidInit) {
+                    var initText = this.$original.find('option:selected').text() || initVal;
+                    this.setValue(initVal, initText);
+                }
             }
 
             return this;
@@ -622,6 +634,7 @@
         }
 
         _addSelected(item) {
+            if (!item || !item.id || String(item.id).trim() === '') return;
             if (this.selected.indexOf(item.id) === -1) this.selected.push(item.id);
             this._renderTags();
         }
@@ -685,6 +698,10 @@
         _renderTags() {
             var self = this;
             this.$tagsArea.empty();
+
+            this.selected = (this.selected || []).filter(function (id) {
+                return id && String(id).trim() !== '';
+            });
 
             var count = this.selected.length;
 
@@ -756,7 +773,7 @@
 
         if (instance.isMulti) {
             var arr = Array.isArray(value) ? value : (value ? [String(value)] : []);
-            instance.selected = arr.map(String);
+            instance.selected = arr.map(String).filter(function (s) { return s && s.trim() !== ''; });
             instance._renderTags();
         } else {
             instance.selected = value ? [String(value)] : [];

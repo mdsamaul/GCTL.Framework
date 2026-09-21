@@ -66,4 +66,12 @@ public partial class PaymentReceive
     public string CompanyCode { get; set; }
 
     public string EmployeeId { get; set; }
+
+    public decimal? Ait { get; set; }
+
+    public string AitchallanNo { get; set; }
+
+    public string AitinvoiceNo { get; set; }
+
+    public string AitchallanUpload { get; set; }
 }

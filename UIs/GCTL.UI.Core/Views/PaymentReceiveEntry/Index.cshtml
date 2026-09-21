@@ -7,7 +7,8 @@
 }
 
 <style>
-    .payment-receive-page .form-control-sm,
+    .payment-receive-page input.form-control-sm,
+    .payment-receive-page select.form-control-sm,
     .payment-receive-page .form-select-sm,
     .payment-receive-page .custom-datepicker,
     .payment-receive-page .flatpickr-input {
@@ -15,6 +16,20 @@
         min-height: 28px !important;
         font-size: 12px !important;
         padding: 2px 6px !important;
+    }
+
+    .payment-receive-page textarea.form-control-sm,
+    .payment-receive-page textarea#AgainstBillList,
+    .payment-receive-page textarea#Remarks,
+    .main-info-fieldset textarea.form-control-sm,
+    .main-info-fieldset textarea#AgainstBillList,
+    .main-info-fieldset textarea#Remarks {
+        height: auto !important;
+        min-height: 52px !important;
+        font-size: 12px !important;
+        padding: 4px 6px !important;
+        line-height: 1.4 !important;
+        resize: vertical;
     }
 
     .payment-receive-page .col-form-label-sm {
@@ -56,6 +71,7 @@
     /* Custom Dropdown (custom-select-2) matching 100% width and 28px height */
     .payment-receive-page select[style*="display: none"],
     .payment-receive-page select.custom-select-single[style*="display: none"],
+    .payment-receive-page select.custom-select-multi[style*="display: none"],
     .payment-receive-page select.select2-hidden-accessible {
         display: none !important;
     }
@@ -65,13 +81,40 @@
     }
 
     .payment-receive-page .custom-dd-box {
-        height: 28px !important;
         min-height: 28px !important;
-        max-height: 28px !important;
         padding: 0 6px !important;
         border: 1px solid #ced4da !important;
         border-radius: 4px !important;
         background-color: #fff !important;
+    }
+
+    .payment-receive-page .custom-dd-wrapper:not(.custom-dd-multi) .custom-dd-box {
+        height: 28px !important;
+        max-height: 28px !important;
+    }
+
+    .payment-receive-page .custom-dd-wrapper.custom-dd-multi .custom-dd-box {
+        height: auto !important;
+        min-height: 28px !important;
+        max-height: 56px !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 2px !important;
+    }
+
+    .payment-receive-page .custom-dd-tag {
+        font-size: 11px !important;
+        padding: 1px 5px !important;
+        margin: 1px !important;
+        height: 20px !important;
+        line-height: 18px !important;
+        border-radius: 3px !important;
+        background-color: #e9ecef !important;
+        border: 1px solid #ced4da !important;
+        display: inline-flex !important;
+        align-items: center !important;
     }
 
     .payment-receive-page .custom-dd-input {
@@ -88,10 +131,57 @@
     }
 
     @@media (min-width: 768px) {
-        .payment-receive-page #AgainstBillList.against-bill-fullwidth {
-            position: relative;
-            z-index: 2;
+        .payment-receive-page .against-bill-label,
+        .main-info-fieldset .against-bill-label {
+            width: 20.833333% !important;
+            flex: 0 0 20.833333% !important;
+            max-width: 20.833333% !important;
         }
+        .payment-receive-page .against-bill-container,
+        .main-info-fieldset .against-bill-container {
+            width: 79.166667% !important;
+            flex: 0 0 79.166667% !important;
+            max-width: 79.166667% !important;
+        }
+        .payment-receive-page #AgainstBillList,
+        .main-info-fieldset #AgainstBillList {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 52px !important;
+            height: auto !important;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .payment-receive-page .against-bill-label,
+        .main-info-fieldset .against-bill-label {
+            width: 100% !important;
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            text-align: start !important;
+        }
+        .payment-receive-page .against-bill-container,
+        .main-info-fieldset .against-bill-container {
+            width: 100% !important;
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+        .payment-receive-page #AgainstBillList,
+        .main-info-fieldset #AgainstBillList {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 52px !important;
+        }
+    }
+
+    /* Floating Bill List Popover (Top layer, outside table overflow) */
+    #gctl-bill-list-floating-popover {
+        position: fixed !important;
+        z-index: 99999999 !important;
+        background: #ffffff !important;
+        border: 1px solid #c2c9d1 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2) !important;
     }
 
     .btn-filter-action {
@@ -166,6 +256,38 @@
         font-size: 11.5px !important;
         padding: 3px 4px !important;
     }
+
+    /* Prominent Selected Row Highlight for CustomerList-grid */
+    #CustomerList-grid tbody tr {
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    #CustomerList-grid tbody tr.selected-row > td,
+    #CustomerList-grid tbody tr.is-selected > td,
+    #CustomerList-grid tbody tr.table-active > td {
+        background-color: #dbeafe !important; /* Premium soft vibrant blue */
+        color: #1e3a8a !important;
+        font-weight: 600 !important;
+    }
+
+    #CustomerList-grid tbody tr.selected-row:hover > td,
+    #CustomerList-grid tbody tr.is-selected:hover > td,
+    #CustomerList-grid tbody tr.table-active:hover > td {
+        background-color: #bfdbfe !important;
+    }
+
+    #CustomerList-grid tbody tr.selected-row > td:first-child,
+    #CustomerList-grid tbody tr.is-selected > td:first-child,
+    #CustomerList-grid tbody tr.table-active > td:first-child {
+        border-left: 4px solid #0d6efd !important;
+    }
+
+    #CustomerList-grid tbody tr.selected-row .custom-grid-link,
+    #CustomerList-grid tbody tr.is-selected .custom-grid-link {
+        color: #0b5ed7 !important;
+        font-weight: 700 !important;
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -203,6 +325,8 @@
                         ServerSide = false,
                         CheckAllId = "none",
                         ShowCheckbox = false,
+                        UseRadio = false,
+                        SelectRowHighlight = true,
                         DefaultSortColumn = "customerId",
                         DefaultSortDirection = "asc",
                         PageLengths = new[] { 5, 10, 25, 50, -1 },
@@ -213,14 +337,14 @@
                         Columns = new List<GridColumn>
                         {
                             new() { Data = "customerId", Header = "Customer ID", Width = "7%", IsEditLink = true, EditSelectorClass = "js-select-customer", Align = "center" },
-                            new() { Data = "customerName", Header = "Customer", Width = "22.5%", Align = "left" },
-                            new() { Data = "customerAddress", Header = "Billing Address", Width = "27.5%", Align = "left" },
+                            new() { Data = "customerName", Header = "Customer", Width = "21%", Align = "left" },
+                            new() { Data = "customerAddress", Header = "Billing Address", Width = "25%", Align = "left" },
                             new() { Data = "totalSales", Header = "Net Sales<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "due", Header = "Total Due", Width = "7%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "lastSalesAmount", Header = "Last Sales<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "lastSalesDate", Header = "Last Sales<br/>Date", Width = "7%", Align = "center" },
-                            new() { Data = "lastPaymentAmount", Header = "Last Payment<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "lastPaymentDate", Header = "Last Payment<br/>Date", Width = "7%", Align = "center" }
+                            new() { Data = "due", Header = "Total Due", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastSalesAmount", Header = "Last Sales<br/>Value", Width = "8%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastSalesDate", Header = "Last Sales<br/>Date", Width = "8%", Align = "center" },
+                            new() { Data = "lastPaymentAmount", Header = "Last Payment<br/>Value", Width = "8%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastPaymentDate", Header = "Last Payment<br/>Date", Width = "8%", Align = "center" }
                         }
                     }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
                 </div>
@@ -269,7 +393,7 @@
                                 new() { Data = "billNo", Header = "Invoice No.", Width = "30%", Align = "left", RenderFn = "renderDueInvoiceNo" },
                                 new() { Data = "billDate", Header = "Date", Width = "24%", Align = "center" },
                                 new() { Data = "billAmount", Header = "Amount", Width = "23%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                                new() { Data = "due", Header = "Due", Width = "23%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true }
+                                new() { Data = "due", Header = "Due", Width = "23%", Align = "right", RenderFn = "renderDueColumn", TabularNumber = true }
                             }
                         })
                     </div>
@@ -289,31 +413,30 @@
         <!-- Section 3: Bottom Filter By & Search Results -->
         <div class="card rounded shadow-sm mb-3">
             <div class="card-body p-2">
-                <div class="d-flex justify-content-start align-items-center mb-2 gap-2 flex-wrap">
-                    <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
-                    <div class="input-group input-group-sm" style="width: 340px;">
-                        <span class="input-group-text">Date From</span>
-                        <input type="text" class="form-control custom-datepicker" id="filterFromDate"
-                               value="@(DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
-                        <span class="input-group-text">To</span>
-                        <input type="text" class="form-control custom-datepicker" id="filterToDate"
-                               value="@(DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                    <div class="d-flex justify-content-start align-items-center gap-2 flex-wrap">
+                        <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
+                        <div class="input-group input-group-sm" style="width: 340px;">
+                            <span class="input-group-text">Date From</span>
+                            <input type="text" class="form-control custom-datepicker" id="filterFromDate"
+                                   value="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))"
+                                   data-default-date="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
+                            <span class="input-group-text">To</span>
+                            <input type="text" class="form-control custom-datepicker" id="filterToDate"
+                                   value="@(DateTime.Now.ToString("yyyy-MM-dd"))"
+                                   data-default-date="@(DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
+                        </div>
                     </div>
-                    <button type="button" class="btn-filter-action" id="btnFilterSearch">Search</button>
-                    <button type="button" class="btn-filter-action" id="btnFilterPreview">Preview</button>
+                    <span class="text-muted small fst-italic">Grid reloads automatically when dates change</span>
                 </div>
 
                 <!-- Bottom Grid for Filtered Payment Received -->
-                <div id="paymentReceivedGridContainer" style="display: none;">
+                <div id="paymentReceivedGridContainer">
                     <hr class="my-2" />
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-bold small text-secondary">Payment Received Records</span>
-                        <button type="button" class="btn-close btn-sm" id="btnCloseReceivedGrid" aria-label="Close"></button>
-                    </div>
                     @await Html.PartialAsync("_CustomGrid", new GridModel
                     {
                         GridId = "PaymentReceivedHistory-grid",
-                        AjaxUrl = "/PaymentReceiveEntry/SearchPaymentReceived",
+                        AjaxUrl = $"/PaymentReceiveEntry/SearchPaymentReceived?fromDate={new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1):yyyy-MM-dd}&toDate={DateTime.Now:yyyy-MM-dd}",
                         AjaxMethod = "GET",
                         ServerSide = false,
                         ShowCheckbox = true,
@@ -326,14 +449,19 @@
                         Compact = true,
                         Columns = new List<GridColumn>
                         {
-                            new() { Data = "paymentReceiveId", Header = "Receive ID", Width = "12%", IsEditLink = true, EditSelectorClass = "js-PaymentReceiveEntry-edit", IdField = "paymentReceiveId" },
-                            new() { Data = "paymentReceiveDate", Header = "Receive Date", Width = "10%", Align = "center" },
-                            new() { Data = "customerId", Header = "Customer ID", Width = "10%" },
-                            new() { Data = "customerName", Header = "Customer Name", Width = "22%" },
-                            new() { Data = "customerAddress", Header = "Address", Width = "22%" },
-                            new() { Data = "amount", Header = "Amount", Width = "10%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "paymentType", Header = "Type", Width = "7%" },
-                            new() { Data = "paymentModeName", Header = "Mode", Width = "7%" }
+                            new() { Data = "paymentReceiveId", Header = "Payment Receive No.", Width = "11%", IsEditLink = true, EditSelectorClass = "js-PaymentReceiveEntry-edit", IdField = "paymentReceiveId" },
+                            new() { Data = "paymentReceiveDate", Header = "Receive Date", Width = "7%", Align = "center" },
+                            new() { Data = "customerId", Header = "Customer ID", Width = "8%", Align = "center" },
+                            new() { Data = "customerName", Header = "Customer",Align="left", Width = "15%" },
+                            new() { Data = "paymentType", Header = "Payment Type", Width = "7%", Align = "center" },
+                            // new() { Data = "receiveVia", Header = "Receive Via", Width = "7%", Align = "center" },
+                            new() { Data = "paymentModeName", Header = "Payment Mode", Width = "8%", Align = "center" },
+                            new() { Data = "amount", Header = "Amount", Width = "7%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "bankCharge", Header = "Bank Charge", Width = "6%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "billList", Header = "Bill List", Width = "6%", Align = "center", RenderFn = "renderBillListPopover" },
+                            new() { Data = "receivedby", Header = "Received by", Width = "10%" },
+                            new() { Data = "status", Header = "Status", Width = "5%", Align = "center", RenderFn = "renderStatusBadge" },
+                            new() { Data = "aitChallanUpload", Header = "AIT Challan", Width = "7%", Align = "center", RenderFn = "renderAITChallan" }
                         }
                     })
                 </div>
@@ -350,8 +478,8 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/app.input.validation.js" defer></script>
-    <script src="~/js/pages/paymentReceiveEntry.js" defer></script>
+    <script src="~/js/app.input.validation.js" asp-append-version="true" defer></script>
+    <script src="~/js/pages/paymentReceiveEntry.js" asp-append-version="true" defer></script>
     <script type="text/javascript">
         // Prevent DataTables intrusive alert popups
         if (window.jQuery && window.jQuery.fn && window.jQuery.fn.dataTable) {
@@ -365,6 +493,81 @@
             var id = data || (row ? (row.customerId || row.CustomerID || '') : '');
             return '<a class="custom-grid-link js-select-customer fw-bold text-primary" data-id="' + id + '" style="cursor:pointer; text-decoration:underline;">' + id + '</a>';
         };
+
+        window.gctlRenderers.renderBillListPopover = function (data, type, row) {
+            var billsStr = data || (row ? (row.billList || row.AgainstBillList || '') : '');
+            if (!billsStr || !billsStr.trim()) {
+                return '<span class="text-muted small">-</span>';
+            }
+            var bills = billsStr.split(/[\r\n,;]+/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+            if (bills.length === 0) {
+                return '<span class="text-muted small">-</span>';
+            }
+            var rawBills = encodeURIComponent(JSON.stringify(bills));
+            return '<div class="bill-list-wrapper d-inline-block">' +
+                   '<button type="button" class="btn btn-xs btn-outline-secondary js-toggle-bill-list py-0 px-2" data-bills-json="' + rawBills + '" style="font-size:11px; height:22px; line-height:20px;" title="Click to view ' + bills.length + ' invoices">' +
+                   '<i class="fas fa-list-ul text-secondary"></i>' +
+                   '</button>' +
+                   '</div>';
+        };
+        window.gctlRenderers.renderBillList = window.gctlRenderers.renderBillListPopover;
+
+        window.gctlRenderers.renderStatusBadge = function (data) {
+            return '<span class="text-success fw-semibold" style="font-size:12px;">' + (data || 'Approved') + '</span>';
+        };
+
+        window.gctlRenderers.renderAITChallan = function (data, type, row) {
+            var fileUrl = data || (row ? (row.aitChallanUpload || row.AITChallanUpload) : '');
+            var challanNo = row ? (row.aitChallanNo || row.AITChallanNo || '') : '';
+            if (fileUrl) {
+                return '<a href="' + fileUrl + '" target="_blank" class="text-primary text-decoration-underline fw-semibold small" title="Challan: ' + (challanNo || 'View') + '"><i class="fas fa-file-pdf text-danger me-1"></i>' + (challanNo || 'View') + '</a>';
+            }
+            return challanNo ? ('<span class="small fw-semibold text-secondary">' + challanNo + '</span>') : '<span class="text-muted small">-</span>';
+        };
+
+        function setTodayDateDirectly() {
+            var today = new Date();
+            var y = today.getFullYear();
+            var m = ('0' + (today.getMonth() + 1)).slice(-2);
+            var d = ('0' + today.getDate()).slice(-2);
+            var dmy = d + '/' + m + '/' + y; // e.g. "21/09/2026"
+            var ymd = y + '-' + m + '-' + d; // e.g. "2026-09-21"
+
+            var isEdit = ($('#Tc').val() && parseInt($('#Tc').val()) > 0);
+            var targets = isEdit ? ['#filterToDate'] : ['#PaymentReceiveDate', '#MrDate', '#filterToDate'];
+
+            targets.forEach(function (sel) {
+                var $inp = $(sel);
+                if (!$inp.length) return;
+
+                $inp.val(ymd);
+                $inp.attr('value', ymd);
+                $inp.attr('data-default-date', ymd);
+
+                var fp = $inp.data('customFpInstance') || ($inp[0] ? $inp[0]._flatpickr : null);
+                if (fp) {
+                    try { fp.setDate(ymd, false); } catch (e) { }
+                    if (fp.altInput) {
+                        fp.altInput.value = dmy;
+                    }
+                }
+
+                // Directly update visible altInput sibling in DOM
+                var nextInp = $inp.next('input')[0];
+                if (nextInp && (nextInp.classList.contains('input') || nextInp.classList.contains('flatpickr-alt-input') || nextInp.classList.contains('custom-datepicker'))) {
+                    nextInp.value = dmy;
+                }
+            });
+        }
+
+        $(function () {
+            setTodayDateDirectly();
+            setTimeout(setTodayDateDirectly, 50);
+            setTimeout(setTodayDateDirectly, 150);
+            setTimeout(setTodayDateDirectly, 300);
+            setTimeout(setTodayDateDirectly, 600);
+            setTimeout(setTodayDateDirectly, 1200);
+        });
 
         (function waitForJQuery() {
             if (window.jQuery && typeof $.paymentReceiveEntry === "function") {
