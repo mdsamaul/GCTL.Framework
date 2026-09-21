@@ -70,6 +70,8 @@ namespace GCTL.UI.Core.Controllers
                     MrDate = DateTime.Now,
                     CreationDate = DateTime.Now.ToString("dd/MM/yyyy")
                 };
+
+                model.CustomerList = await _paymentReceiveService.GetCustomerListForPaymentReceiveAsync();
             }
             catch (Exception ex)
             {

@@ -13,6 +13,7 @@ using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 
 namespace GCTL.Service.PaymentReceiveEntry
@@ -23,34 +24,46 @@ namespace GCTL.Service.PaymentReceiveEntry
         private readonly IRepository<CoreAccessCode> _accessCodeRepository;
         private readonly ICommonService _commonService;
         private readonly IDeleteHistoryService _deleteHistoryService;
+        private readonly IMemoryCache _cache;
 
         private const string TableName = "PaymentReceive";
         private const string DetailsTableName = "PaymentReceiveDetails";
+        private const string CustomerListCacheKey = "PaymentReceive_CustomerList";
 
         public PaymentReceiveEntryService(
             IConfiguration configuration,
             IRepository<CoreAccessCode> accessCodeRepository,
             ICommonService commonService,
-            IDeleteHistoryService deleteHistoryService)
+            IDeleteHistoryService deleteHistoryService,
+            IMemoryCache cache)
         {
             _connectionString = configuration.GetConnectionString("connection")
                 ?? throw new InvalidOperationException("Connection string 'connection' not found.");
             _accessCodeRepository = accessCodeRepository;
             _commonService = commonService;
             _deleteHistoryService = deleteHistoryService;
+            _cache = cache;
         }
 
         #region Stored Procedures
         public async Task<List<CustomerPaymentListViewModel>> GetCustomerListForPaymentReceiveAsync()
         {
+            if (_cache.TryGetValue(CustomerListCacheKey, out List<CustomerPaymentListViewModel>? cached) && cached != null)
+            {
+                return cached;
+            }
+
             try
             {
                 using var con = new SqlConnection(_connectionString);
-                var list = await con.QueryAsync<CustomerPaymentListViewModel>(
+                var list = (await con.QueryAsync<CustomerPaymentListViewModel>(
                     "Proc_CustomerListForPaymentReceive",
-                    commandType: CommandType.StoredProcedure
-                );
-                return list.ToList();
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 15
+                )).ToList();
+
+                _cache.Set(CustomerListCacheKey, list, TimeSpan.FromSeconds(30));
+                return list;
             }
             catch (Exception ex)
             {
@@ -348,6 +361,7 @@ namespace GCTL.Service.PaymentReceiveEntry
                     await SaveDetailsAsync(con, tran, entityVM);
 
                     tran.Commit();
+                    _cache.Remove(CustomerListCacheKey);
                     return true;
                 }
                 catch
@@ -441,6 +455,7 @@ namespace GCTL.Service.PaymentReceiveEntry
                     await SaveDetailsAsync(con, tran, entityVM);
 
                     tran.Commit();
+                    _cache.Remove(CustomerListCacheKey);
                     return true;
                 }
                 catch
@@ -554,6 +569,7 @@ namespace GCTL.Service.PaymentReceiveEntry
                     }
 
                     tran.Commit();
+                    _cache.Remove(CustomerListCacheKey);
                     return (true, "Deleted Successfully");
                 }
                 catch

@@ -237,17 +237,11 @@
                 if (!$.fn.DataTable || !$.fn.DataTable.isDataTable(settings.customerGridSelector)) {
                     var isLaptop = window.innerWidth <= 1600 || (window.screen && window.screen.availWidth <= 1600);
                     var defaultPageLen = isLaptop ? 5 : 10;
-                    var customerTable = $.gctlGrid.initFromModel({
+                    $.gctlGrid.initFromModel({
                         gridId: settings.customerGridId,
                         pageLength: defaultPageLen,
                         lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, 'All']]
                     });
-
-                    if (customerTable && customerTable.page && customerTable.page.len) {
-                        if (customerTable.page.len() !== defaultPageLen) {
-                            customerTable.page.len(defaultPageLen).draw(false);
-                        }
-                    }
                 }
 
                 if (!$.fn.DataTable || !$.fn.DataTable.isDataTable(settings.dueInvoicesGridSelector)) {
