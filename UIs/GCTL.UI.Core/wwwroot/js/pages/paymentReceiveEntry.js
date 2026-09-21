@@ -15,7 +15,7 @@
             saveSelector: ".js-PaymentReceiveEntry-save",
             clearSelector: ".js-PaymentReceiveEntry-clear",
             deleteSelector: ".js-PaymentReceiveEntry-delete-confirm",
-            finalDeleteSelector: ".js-confirm-delete, .btn-confirm-delete",
+            finalDeleteSelector: ".js-PaymentReceiveEntry-delete, .js-delete, .js-gc-delete-confirm, #deleteModal .btn-danger, .js-confirm-delete, .btn-confirm-delete",
             deleteModal: "#deleteModal",
             printSelector: ".js-PaymentReceiveEntry-print",
             load: function () { }
@@ -286,9 +286,9 @@
                 }
             }
 
-            // Initialize custom-datepicker if needed
+            // Initialize custom-datepicker if needed (avoid altInput reinitialization)
             if (window.custom_Datepicker && window.custom_Datepicker.init) {
-                $('.custom-datepicker').each(function () {
+                $('input.custom-datepicker:not(.flatpickr-alt-input):not([type="hidden"])').each(function () {
                     window.custom_Datepicker.init(this);
                 });
             }
@@ -338,57 +338,105 @@
             }
 
             function setDatepickerVal(selector, val) {
+                var $el = $(selector);
+                if (!$el.length) return;
+
                 if (!val) {
-                    if (window.setDate) {
-                        window.setDate(selector, '');
+                    var fp = $el.data('customFpInstance') || ($el[0] ? $el[0]._flatpickr : null);
+                    if (fp) {
+                        fp.clear();
                     } else {
-                        $(selector).val('');
+                        $el.val('');
                     }
                     return;
                 }
 
-                var dateVal = (val instanceof Date) ? formatDateForInput(val) : String(val);
-                if (dateVal.includes('T')) {
-                    dateVal = dateVal.split('T')[0];
+                // Ensure flatpickr is initialized on the element
+                if (!$el.data('customFpInstance') && window.custom_Datepicker && window.custom_Datepicker.init) {
+                    window.custom_Datepicker.init($el[0]);
                 }
 
-                if (window.setDate) {
-                    window.setDate(selector, dateVal);
+                var dateObj = null;
+                var dateIso = '';
+                var dateDisplay = '';
+
+                if (val instanceof Date) {
+                    dateObj = val;
                 } else {
-                    $(selector).val(dateVal);
+                    var s = String(val).trim();
+                    if (s.includes('T')) s = s.split('T')[0];
+                    // Check DD/MM/YYYY
+                    var dmyMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if (dmyMatch) {
+                        dateObj = new Date(parseInt(dmyMatch[3], 10), parseInt(dmyMatch[2], 10) - 1, parseInt(dmyMatch[1], 10));
+                    } else {
+                        var parsed = new Date(s);
+                        if (!isNaN(parsed.getTime())) {
+                            dateObj = parsed;
+                        }
+                    }
                 }
 
-                var $el = $(selector);
-                var fp = $el.data('customFpInstance');
+                if (dateObj && !isNaN(dateObj.getTime())) {
+                    var year = dateObj.getFullYear();
+                    var month = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+                    var day = ('0' + dateObj.getDate()).slice(-2);
+                    dateIso = `${year}-${month}-${day}`;
+                    dateDisplay = `${day}/${month}/${year}`;
+                } else {
+                    dateIso = String(val);
+                    dateDisplay = String(val);
+                }
+
+                $el.val(dateIso);
+                $el.attr('value', dateIso);
+
+                var fp = $el.data('customFpInstance') || ($el[0] ? $el[0]._flatpickr : null);
                 if (fp) {
                     try {
-                        fp.setDate(dateVal, true);
+                        if (dateObj && !isNaN(dateObj.getTime())) {
+                            fp.setDate(dateObj, false);
+                        } else {
+                            fp.setDate(dateIso, false);
+                        }
                     } catch (e) { }
+
+                    if (fp.altInput && dateDisplay) {
+                        fp.altInput.value = dateDisplay;
+                    }
+                } else if (window.setDate) {
+                    try {
+                        window.setDate(selector, dateObj || dateIso);
+                    } catch (e) {
+                        $el.val(dateIso);
+                    }
+                }
+
+                // Direct DOM update on visible input next to hidden input
+                var nextInp = $el.next('input')[0];
+                if (nextInp && (nextInp.classList.contains('input') || nextInp.classList.contains('flatpickr-alt-input') || nextInp.classList.contains('custom-datepicker'))) {
+                    nextInp.value = dateDisplay;
                 }
             }
 
-            function ensureDefaultDates() {
+            function ensureDefaultDates(force) {
+                var isEdit = ($('#Tc').val() && parseInt($('#Tc').val()) > 0);
                 var today = new Date();
-                var $recDate = $('#PaymentReceiveDate');
-                var recFp = $recDate.data('customFpInstance');
-                var recVal = $recDate.val();
-                if (!recVal || !recFp || !recFp.selectedDates || recFp.selectedDates.length === 0) {
+                if (!isEdit || force) {
                     setDatepickerVal('#PaymentReceiveDate', today);
-                }
-
-                var $mrDate = $('#MrDate');
-                var mrFp = $mrDate.data('customFpInstance');
-                var mrVal = $mrDate.val();
-                if (!mrVal || !mrFp || !mrFp.selectedDates || mrFp.selectedDates.length === 0) {
                     setDatepickerVal('#MrDate', today);
                 }
+                if ($('#filterToDate').length) {
+                    setDatepickerVal('#filterToDate', today);
+                }
             }
 
-            // Ensure Money Receipt Date & Payment Receive Date default to current date
+            // Ensure Money Receipt Date, Payment Receive Date & To Date default to current date
             ensureDefaultDates();
             setTimeout(ensureDefaultDates, 50);
             setTimeout(ensureDefaultDates, 150);
             setTimeout(ensureDefaultDates, 300);
+            setTimeout(ensureDefaultDates, 600);
 
             function formatCurrency(val) {
                 if (val === null || val === undefined || val === '') return '0.00';
@@ -494,12 +542,12 @@
                 $('#BillingAddressDisplay').text(customerAddress || '').attr('title', customerAddress || '');
                 $('#BillingAddressHidden').val(customerAddress || '');
 
-                // Ensure dates default to current date if empty
-                if (!$('#PaymentReceiveDate').val()) {
-                    setDatepickerVal('#PaymentReceiveDate', new Date());
-                }
-                if (!$('#MrDate').val()) {
-                    setDatepickerVal('#MrDate', new Date());
+                // Ensure Payment Receive Date & Money Receipt Date always default to current date
+                var isEditMode = ($('#Tc').val() && parseInt($('#Tc').val()) > 0);
+                if (!isEditMode) {
+                    var today = new Date();
+                    setDatepickerVal('#PaymentReceiveDate', today);
+                    setDatepickerVal('#MrDate', today);
                 }
 
                 // Reset bill & payment selection
@@ -513,7 +561,7 @@
             //#endregion
 
             //#region Due Invoices (CustomGrid with Server Data & Pagination)
-            function loadDueInvoices(customerId, preSelectedBills) {
+            function loadDueInvoices(customerId, preSelectedBills, isEditMode, preSelectedAit) {
                 selectedInvoicesMap = {};
                 $('#dueInvoicesCheckAll').prop('checked', false);
 
@@ -548,7 +596,7 @@
 
                         if (preSelectedBills) {
                             var preList = typeof preSelectedBills === 'string'
-                                ? preSelectedBills.split(',').map(function (b) { return b.trim(); })
+                                ? preSelectedBills.split(/[\r\n,;]+/).map(function (b) { return b.trim(); }).filter(Boolean)
                                 : preSelectedBills;
                             isManualCheckboxMode = true;
                             list.forEach(function (item) {
@@ -562,13 +610,24 @@
                                 }
                             });
                             syncDueInvoiceCheckboxes();
-                            syncManualCheckboxState();
+                            if (!isEditMode) {
+                                syncManualCheckboxState();
+                            } else {
+                                var selCount = Object.keys(selectedInvoicesMap).length;
+                                if (selCount > 0) {
+                                    $('#dueInvoicesCountBadge').text(selCount + ' of ' + count + ' Selected');
+                                }
+                            }
                         } else {
                             // New customer selection: start fresh
                             selectedInvoicesMap = {};
                             fifoAllocationMap = {};
                             isManualCheckboxMode = false;
                             populateAITInvoiceDropdown(currentDueInvoices, []);
+                        }
+
+                        if (isEditMode && preSelectedAit) {
+                            populateAITInvoiceDropdown(currentDueInvoices, preSelectedAit);
                         }
                     });
                 }
@@ -959,7 +1018,8 @@
                 var url = $(settings.formSelector).attr("action") || saveUrl;
 
                 var $submitBtn = $(this);
-                $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i> Submitting...');
+                var isEdit = ($('#Tc').val() && parseInt($('#Tc').val()) > 0);
+                $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i> ' + (isEdit ? 'Updating...' : 'Submitting...'));
 
                 $.ajax({
                     url: url,
@@ -971,7 +1031,7 @@
                         $submitBtn.prop('disabled', false).html('<i class="far fa-save me-1 text-primary"></i> Submit');
 
                         if (response.isSuccess) {
-                            toastr.success(response.message || "Saved Successfully.");
+                            toastr.success(response.message || (isEdit ? "Updated Successfully." : "Saved Successfully."));
 
                             // Reload customer list grid
                             reloadCustomerGrid();
@@ -983,10 +1043,13 @@
                             resetForm();
                         } else {
                             toastr.error(response.message || "Failed to save record.");
+                            if (isEdit) {
+                                $submitBtn.html('<i class="fas fa-edit me-1 text-primary"></i> Update');
+                            }
                         }
                     },
                     error: function () {
-                        $submitBtn.prop('disabled', false).html('<i class="far fa-save me-1 text-primary"></i> Submit');
+                        $submitBtn.prop('disabled', false).html(isEdit ? '<i class="fas fa-edit me-1 text-primary"></i> Update' : '<i class="far fa-save me-1 text-primary"></i> Submit');
                         toastr.error("An error occurred while saving.");
                     }
                 });
@@ -1055,9 +1118,19 @@
             //#endregion
 
             //#region Edit (Load from Bottom Grid)
-            $("body").off('click', '.js-PaymentReceiveEntry-edit').on('click', '.js-PaymentReceiveEntry-edit', function (e) {
+            $("body").off('click', '.js-PaymentReceiveEntry-edit, #PaymentReceivedHistory-grid tbody tr td:nth-child(2) a')
+                .on('click', '.js-PaymentReceiveEntry-edit, #PaymentReceivedHistory-grid tbody tr td:nth-child(2) a', function (e) {
                 e.preventDefault();
-                var id = $(this).data('id');
+                var id = $(this).data('id') || $(this).attr('data-id') || $(this).text().trim();
+                if (!id) {
+                    var $row = $(this).closest('tr');
+                    if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.receivedGridSelector)) {
+                        var rowData = $(settings.receivedGridSelector).DataTable().row($row).data();
+                        if (rowData) {
+                            id = rowData.paymentReceiveId || rowData.PaymentReceiveId || '';
+                        }
+                    }
+                }
                 if (!id) return;
 
                 $.ajax({
@@ -1090,7 +1163,7 @@
                             $('#Remarks').val(data.remarks || '');
 
                             // AIT fields
-                            $('#AIT').val(data.ait != null ? Number(data.ait).toFixed(5) : '0.00000');
+                            $('#AIT').val(data.ait != null ? Number(data.ait).toFixed(2) : '0.00');
                             $('#AITChallanNo').val(data.aitChallanNo || '');
                             $('#AITChallanUpload').val(data.aitChallanUpload || '');
                             if (data.aitChallanUpload) {
@@ -1120,17 +1193,21 @@
                                 $('#modifyDateSpan').text(data.lastUpdateDate);
                             }
 
-                            // Load due invoices and pre-select against bills
+                            var savedAit = (data.aitInvoiceNo || '').split(/[\r\n,;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+
+                            // Load due invoices and pre-select against bills without wiping amount or against bill list
                             if (data.customerId) {
-                                loadDueInvoices(data.customerId, data.againstBillList);
+                                loadDueInvoices(data.customerId, data.againstBillList, true, savedAit);
                             }
 
-                            if (data.aitInvoiceNo) {
+                            if (savedAit.length > 0) {
                                 setTimeout(function () {
-                                    var savedAit = (data.aitInvoiceNo || '').split(/[\r\n,;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
                                     populateAITInvoiceDropdown(currentDueInvoices, savedAit);
                                 }, 300);
                             }
+
+                            // Change button to Update
+                            $('#btnSubmit, .js-PaymentReceiveEntry-save').html('<i class="fas fa-edit me-1 text-primary"></i> Update');
 
                             // Set delete button data-id
                             $(settings.deleteSelector).data('id', data.paymentReceiveId);
@@ -1173,6 +1250,7 @@
                 }
                 setDatepickerVal('#PaymentReceiveDate', new Date());
                 setDatepickerVal('#MrDate', new Date());
+                setDatepickerVal('#filterToDate', new Date());
                 $('#Amount').val('');
                 $('#BankFeeOnlineCharge').val('');
                 $('#AIT').val('0.00000');
@@ -1218,34 +1296,73 @@
                 // Clear active row highlight
                 $('#CustomerList-grid tbody tr').removeClass('table-active bg-primary-subtle');
                 $(settings.deleteSelector).data('id', '');
+                $('#btnSubmit, .js-PaymentReceiveEntry-save').html('<i class="far fa-save me-1 text-primary"></i> Submit');
             }
             //#endregion
 
             //#region Delete
+            function hideDeleteModal() {
+                var $modal = $(settings.deleteModal);
+                if ($modal.length === 0) $modal = $("#deleteModal, #delete-modal").first();
+                if ($modal.length > 0) {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        var modalInstance = bootstrap.Modal.getInstance($modal[0]);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        } else {
+                            $modal.modal("hide");
+                        }
+                    } else {
+                        $modal.modal("hide");
+                    }
+                }
+                setTimeout(function () {
+                    $('body').removeClass('modal-open').css('overflow', '');
+                    $('.modal-backdrop').remove();
+                }, 350);
+            }
+
             $("body").off("click", settings.deleteSelector).on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
                 selectedItemsToDelete = [];
 
-                // Check bottom grid selection if open
-                if ($('#paymentReceivedGridContainer').is(':visible')) {
+                // 1. Check bottom grid selection (via DataTables API or DOM checkboxes)
+                if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.receivedGridSelector)) {
+                    var dt = $(settings.receivedGridSelector).DataTable();
+                    dt.$('tbody input[type="checkbox"]:checked').each(function () {
+                        var $chk = $(this);
+                        var val = $chk.attr('data-id') || $chk.val();
+                        if (!val || val === 'on') {
+                            var rowData = dt.row($chk.closest('tr')).data();
+                            if (rowData) {
+                                val = rowData.paymentReceiveId || rowData.PaymentReceiveId;
+                            }
+                        }
+                        if (val && val !== 'on' && !selectedItemsToDelete.includes(String(val).trim())) {
+                            selectedItemsToDelete.push(String(val).trim());
+                        }
+                    });
+                } else {
                     $(settings.receivedGridSelector).find("tbody input[type='checkbox']:checked").each(function () {
-                        var val = $(this).val();
-                        if (val && !selectedItemsToDelete.includes(val)) {
-                            selectedItemsToDelete.push(val);
+                        var $chk = $(this);
+                        var val = $chk.attr('data-id') || $chk.val();
+                        if (val && val !== 'on' && !selectedItemsToDelete.includes(String(val).trim())) {
+                            selectedItemsToDelete.push(String(val).trim());
                         }
                     });
                 }
 
-                // If nothing checked in bottom grid, check current form PaymentReceiveId
+                // 2. If nothing checked in bottom grid, check currently loaded form record
                 if (selectedItemsToDelete.length === 0) {
-                    var btnId = $(this).data('id');
+                    var btnId = $(this).data('id') || $(this).attr('data-id');
                     var formId = $("#PaymentReceiveId").val();
                     var tc = $("#Tc").val();
+                    var isUpdateMode = $('#btnSubmit, .js-PaymentReceiveEntry-save').text().toLowerCase().includes('update');
 
                     if (btnId) {
-                        selectedItemsToDelete.push(btnId);
-                    } else if (formId && tc) {
-                        selectedItemsToDelete.push(formId);
+                        selectedItemsToDelete.push(String(btnId).trim());
+                    } else if (formId && (tc || isUpdateMode)) {
+                        selectedItemsToDelete.push(String(formId).trim());
                     }
                 }
 
@@ -1253,20 +1370,36 @@
                     var count = selectedItemsToDelete.length;
                     var titleText = count > 1
                         ? `Are you sure you want to delete these ${count} records? This process cannot be undone.`
-                        : `Are you sure you want to delete this payment receive record (${selectedItemsToDelete[0]})?`;
+                        : `Are you sure you want to delete payment receive record "${selectedItemsToDelete[0]}"? This process cannot be undone.`;
 
                     var $modal = $(settings.deleteModal);
                     if ($modal.length === 0) $modal = $("#deleteModal, #delete-modal").first();
-                    $modal.find('.modal-title, .title, .confirmation-text').text(titleText);
-                    $modal.modal("show");
+                    $modal.find('.modal-title, .title, .confirmation-text, p.title').text(titleText);
+                    
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance($modal[0]).show();
+                    } else {
+                        $modal.modal("show");
+                    }
                 } else {
-                    toastr.info("Please select a record to delete.");
+                    toastr.info("Please select a record from the grid or load a record to delete.");
                 }
             });
 
-            $("body").off("click", settings.finalDeleteSelector).on("click", settings.finalDeleteSelector, function (e) {
+            var deleteConfirmSelectors = "#deleteModal .btn-danger, #deleteModal .js-delete, #deleteModal .js-PaymentReceiveEntry-delete, " + settings.finalDeleteSelector;
+            $("body").off("click", deleteConfirmSelectors).on("click", deleteConfirmSelectors, function (e) {
+                e.stopPropagation();
                 e.preventDefault();
-                if (!selectedItemsToDelete || selectedItemsToDelete.length === 0) return;
+                e.stopImmediatePropagation();
+
+                if (!selectedItemsToDelete || selectedItemsToDelete.length === 0) {
+                    hideDeleteModal();
+                    return;
+                }
+
+                var $btn = $(this);
+                var originalHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Deleting...');
 
                 $.ajax({
                     url: deleteUrl,
@@ -1274,26 +1407,31 @@
                     contentType: "application/json",
                     data: JSON.stringify(selectedItemsToDelete),
                     success: function (res) {
-                        var $modal = $(settings.deleteModal);
-                        if ($modal.length === 0) $modal = $("#deleteModal, #delete-modal").first();
-                        $modal.modal("hide");
+                        hideDeleteModal();
+                        $btn.prop('disabled', false).html(originalHtml);
 
                         if (res.success) {
                             toastr.success(res.message || "Deleted Successfully.");
+                            selectedItemsToDelete = [];
+                            $('#PaymentReceivedHistory-check-all, ' + settings.receivedGridSelector + ' th input[type="checkbox"]').prop('checked', false);
                             reloadCustomerGrid();
-                            if ($('#paymentReceivedGridContainer').is(':visible')) {
-                                reloadReceivedGrid();
-                            }
+                            reloadReceivedGrid();
                             resetForm();
+                            $(settings.deleteSelector).data('id', '');
                         } else {
                             toastr.error(res.message || "Delete Failed.");
                         }
                     },
-                    error: function () {
-                        var $modal = $(settings.deleteModal);
-                        if ($modal.length === 0) $modal = $("#deleteModal, #delete-modal").first();
-                        $modal.modal("hide");
-                        toastr.error("An error occurred during deletion.");
+                    error: function (xhr) {
+                        hideDeleteModal();
+                        $btn.prop('disabled', false).html(originalHtml);
+
+                        var msg = "An error occurred during deletion.";
+                        try {
+                            var errRes = JSON.parse(xhr.responseText);
+                            if (errRes && errRes.message) msg = errRes.message;
+                        } catch (e) { }
+                        toastr.error(msg);
                     }
                 });
             });
@@ -1309,7 +1447,12 @@
             }
 
             function reloadReceivedGrid() {
-                if ($.gctlGrid) {
+                var fromDate = $('#filterFromDate').val();
+                var toDate = $('#filterToDate').val();
+                if (fromDate && toDate && $.fn.DataTable && $.fn.DataTable.isDataTable(settings.receivedGridSelector)) {
+                    var newUrl = base + `/SearchPaymentReceived?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
+                    $(settings.receivedGridSelector).DataTable().ajax.url(newUrl).load(null, false);
+                } else if ($.gctlGrid) {
                     $.gctlGrid.reload(settings.receivedGridId);
                 } else if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.receivedGridSelector)) {
                     $(settings.receivedGridSelector).DataTable().ajax.reload(null, false);

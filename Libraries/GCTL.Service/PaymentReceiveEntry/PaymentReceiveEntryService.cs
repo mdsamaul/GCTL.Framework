@@ -190,7 +190,7 @@ namespace GCTL.Service.PaymentReceiveEntry
                     FROM PaymentReceive p
                     LEFT OUTER JOIN Sales_Customer c ON p.CustomerID = c.CustomerID
                     LEFT OUTER JOIN Sales_Def_PaymentType pt ON p.PaymentTypeID = pt.PaymentTypeID
-                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeCode
+                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeID
                     ORDER BY p.AutoID DESC";
 
                 var list = await con.QueryAsync<PaymentReceiveEntrySetupViewModel>(sql);
@@ -246,7 +246,7 @@ namespace GCTL.Service.PaymentReceiveEntry
                     FROM PaymentReceive p
                     LEFT OUTER JOIN Sales_Customer c ON p.CustomerID = c.CustomerID
                     LEFT OUTER JOIN Sales_Def_PaymentType pt ON p.PaymentTypeID = pt.PaymentTypeID
-                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeCode
+                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeID
                     WHERE p.PaymentReceiveID = @Code OR CAST(p.AutoID as nvarchar) = @Code";
 
                 var model = await con.QueryFirstOrDefaultAsync<PaymentReceiveEntrySetupViewModel>(sql, new { Code = code });
@@ -405,11 +405,12 @@ namespace GCTL.Service.PaymentReceiveEntry
                             DepositedACNo = ISNULL(DepositedACNo, ''),
                             TransfterMobileNo = ISNULL(TransfterMobileNo, ''),
                             DepositMobileNo = ISNULL(DepositMobileNo, '')
-                        WHERE PaymentReceiveID = @PaymentReceiveId";
+                        WHERE PaymentReceiveID = @PaymentReceiveId OR (AutoID = @Tc AND @Tc > 0)";
 
                     await con.ExecuteAsync(updateHeaderSql, new
                     {
                         PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty,
+                        Tc = entityVM.Tc ?? 0,
                         PaymentReceiveDate = entityVM.PaymentReceiveDate ?? DateTime.Now,
                         MrNo = entityVM.MrNo ?? string.Empty,
                         MrDate = entityVM.MrDate ?? DateTime.Now,
@@ -525,11 +526,32 @@ namespace GCTL.Service.PaymentReceiveEntry
 
                 try
                 {
-                    const string deleteDetailsSql = @"DELETE FROM PaymentReceiveDetails WHERE PaymentReceiveID IN @Ids";
-                    await con.ExecuteAsync(deleteDetailsSql, new { Ids = ids }, tran);
+                    var cleanIds = ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().ToList();
+                    if (!cleanIds.Any())
+                        return (false, "No data found to delete");
 
-                    const string deleteHeaderSql = @"DELETE FROM PaymentReceive WHERE PaymentReceiveID IN @Ids OR CAST(AutoID as nvarchar) IN @Ids";
-                    await con.ExecuteAsync(deleteHeaderSql, new { Ids = ids }, tran);
+                    // 1. Resolve matching PaymentReceiveIDs (both from PaymentReceiveID directly and from AutoID)
+                    var directIds = (await con.QueryAsync<string>(
+                        @"SELECT DISTINCT PaymentReceiveID FROM PaymentReceive WHERE PaymentReceiveID IN @Ids",
+                        new { Ids = cleanIds }, tran)).ToList();
+
+                    var autoIds = (await con.QueryAsync<string>(
+                        @"SELECT DISTINCT PaymentReceiveID FROM PaymentReceive WHERE CAST(AutoID as nvarchar(50)) IN @Ids",
+                        new { Ids = cleanIds }, tran)).ToList();
+
+                    var allReceiveIds = cleanIds.Union(directIds).Union(autoIds)
+                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                        .Distinct()
+                        .ToList();
+
+                    if (allReceiveIds.Any())
+                    {
+                        const string deleteDetailsSql = @"DELETE FROM PaymentReceiveDetails WHERE PaymentReceiveID IN @AllIds";
+                        await con.ExecuteAsync(deleteDetailsSql, new { AllIds = allReceiveIds }, tran);
+
+                        const string deleteHeaderSql = @"DELETE FROM PaymentReceive WHERE PaymentReceiveID IN @AllIds OR CAST(AutoID as nvarchar(50)) IN @CleanIds";
+                        await con.ExecuteAsync(deleteHeaderSql, new { AllIds = allReceiveIds, CleanIds = cleanIds }, tran);
+                    }
 
                     tran.Commit();
                     return (true, "Deleted Successfully");
@@ -543,7 +565,7 @@ namespace GCTL.Service.PaymentReceiveEntry
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in DeleteTab: {ex.Message}");
-                return (false, "Delete Failed");
+                return (false, $"Delete Failed: {ex.Message}");
             }
         }
 
@@ -653,28 +675,28 @@ namespace GCTL.Service.PaymentReceiveEntry
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.TitleCheck);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.TitleCheck);
         }
 
         public async Task<bool> SavePermissionAsync(string accessCode)
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.CheckAdd);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.CheckAdd);
         }
 
         public async Task<bool> UpdatePermissionAsync(string accessCode)
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.CheckEdit);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.CheckEdit);
         }
 
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.CheckDelete);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.CheckDelete);
         }
         #endregion
     }
