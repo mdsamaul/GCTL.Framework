@@ -192,6 +192,8 @@ namespace GCTL.UI.Core.Controllers
                 modelVM.AgainstBillList ??= string.Empty;
                 modelVM.PaymentTypeId = string.IsNullOrWhiteSpace(modelVM.PaymentTypeId) ? "01" : modelVM.PaymentTypeId;
                 modelVM.PaymentModeCode = string.IsNullOrWhiteSpace(modelVM.PaymentModeCode) ? "001" : modelVM.PaymentModeCode;
+                modelVM.PaymentReceiveDate ??= DateTime.Now;
+                modelVM.MrDate ??= DateTime.Now;
                 modelVM.MrNo ??= string.Empty;
                 modelVM.AIT ??= 0;
                 modelVM.AITChallanNo ??= string.Empty;

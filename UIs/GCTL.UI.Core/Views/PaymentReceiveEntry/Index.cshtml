@@ -256,6 +256,38 @@
         font-size: 11.5px !important;
         padding: 3px 4px !important;
     }
+
+    /* Prominent Selected Row Highlight for CustomerList-grid */
+    #CustomerList-grid tbody tr {
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    #CustomerList-grid tbody tr.selected-row > td,
+    #CustomerList-grid tbody tr.is-selected > td,
+    #CustomerList-grid tbody tr.table-active > td {
+        background-color: #dbeafe !important; /* Premium soft vibrant blue */
+        color: #1e3a8a !important;
+        font-weight: 600 !important;
+    }
+
+    #CustomerList-grid tbody tr.selected-row:hover > td,
+    #CustomerList-grid tbody tr.is-selected:hover > td,
+    #CustomerList-grid tbody tr.table-active:hover > td {
+        background-color: #bfdbfe !important;
+    }
+
+    #CustomerList-grid tbody tr.selected-row > td:first-child,
+    #CustomerList-grid tbody tr.is-selected > td:first-child,
+    #CustomerList-grid tbody tr.table-active > td:first-child {
+        border-left: 4px solid #0d6efd !important;
+    }
+
+    #CustomerList-grid tbody tr.selected-row .custom-grid-link,
+    #CustomerList-grid tbody tr.is-selected .custom-grid-link {
+        color: #0b5ed7 !important;
+        font-weight: 700 !important;
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -293,6 +325,8 @@
                         ServerSide = false,
                         CheckAllId = "none",
                         ShowCheckbox = false,
+                        UseRadio = false,
+                        SelectRowHighlight = true,
                         DefaultSortColumn = "customerId",
                         DefaultSortDirection = "asc",
                         PageLengths = new[] { 5, 10, 25, 50, -1 },
@@ -303,14 +337,14 @@
                         Columns = new List<GridColumn>
                         {
                             new() { Data = "customerId", Header = "Customer ID", Width = "7%", IsEditLink = true, EditSelectorClass = "js-select-customer", Align = "center" },
-                            new() { Data = "customerName", Header = "Customer", Width = "22.5%", Align = "left" },
-                            new() { Data = "customerAddress", Header = "Billing Address", Width = "27.5%", Align = "left" },
+                            new() { Data = "customerName", Header = "Customer", Width = "21%", Align = "left" },
+                            new() { Data = "customerAddress", Header = "Billing Address", Width = "25%", Align = "left" },
                             new() { Data = "totalSales", Header = "Net Sales<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "due", Header = "Total Due", Width = "7%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "lastSalesAmount", Header = "Last Sales<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "lastSalesDate", Header = "Last Sales<br/>Date", Width = "7%", Align = "center" },
-                            new() { Data = "lastPaymentAmount", Header = "Last Payment<br/>Value", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "lastPaymentDate", Header = "Last Payment<br/>Date", Width = "7%", Align = "center" }
+                            new() { Data = "due", Header = "Total Due", Width = "7.5%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastSalesAmount", Header = "Last Sales<br/>Value", Width = "8%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastSalesDate", Header = "Last Sales<br/>Date", Width = "8%", Align = "center" },
+                            new() { Data = "lastPaymentAmount", Header = "Last Payment<br/>Value", Width = "8%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "lastPaymentDate", Header = "Last Payment<br/>Date", Width = "8%", Align = "center" }
                         }
                     }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
                 </div>

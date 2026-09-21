@@ -28,7 +28,7 @@
                         Payment Receive Date<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <input type="text" asp-for="PaymentReceiveDate" id="PaymentReceiveDate" class="form-control form-control-sm custom-datepicker"
+                        <input type="text" asp-for="PaymentReceiveDate" asp-format="{0:yyyy-MM-dd}" id="PaymentReceiveDate" class="form-control form-control-sm custom-datepicker"
                                value="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
                     </div>
                 </div>
@@ -121,7 +121,7 @@
                         Money Receipt Date<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <input type="text" asp-for="MrDate" id="MrDate" class="form-control form-control-sm custom-datepicker"
+                        <input type="text" asp-for="MrDate" asp-format="{0:yyyy-MM-dd}" id="MrDate" class="form-control form-control-sm custom-datepicker"
                                value="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
                     </div>
                 </div>

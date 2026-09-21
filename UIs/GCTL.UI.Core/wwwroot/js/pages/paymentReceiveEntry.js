@@ -327,23 +327,68 @@
             }
 
             //#region Date Formatting Utilities
-            function setDatepickerVal(selector, val) {
-                if (window.setDate) {
-                    window.setDate(selector, val);
-                } else {
-                    $(selector).val(val);
-                }
-            }
-
-            function formatDateForInput(dateStr) {
-                if (!dateStr) return '';
-                var d = new Date(dateStr);
-                if (isNaN(d.getTime())) return dateStr;
+            function formatDateForInput(dateVal) {
+                if (!dateVal) return '';
+                var d = (dateVal instanceof Date) ? dateVal : new Date(dateVal);
+                if (isNaN(d.getTime())) return String(dateVal);
                 var year = d.getFullYear();
                 var month = ('0' + (d.getMonth() + 1)).slice(-2);
                 var day = ('0' + d.getDate()).slice(-2);
                 return `${year}-${month}-${day}`;
             }
+
+            function setDatepickerVal(selector, val) {
+                if (!val) {
+                    if (window.setDate) {
+                        window.setDate(selector, '');
+                    } else {
+                        $(selector).val('');
+                    }
+                    return;
+                }
+
+                var dateVal = (val instanceof Date) ? formatDateForInput(val) : String(val);
+                if (dateVal.includes('T')) {
+                    dateVal = dateVal.split('T')[0];
+                }
+
+                if (window.setDate) {
+                    window.setDate(selector, dateVal);
+                } else {
+                    $(selector).val(dateVal);
+                }
+
+                var $el = $(selector);
+                var fp = $el.data('customFpInstance');
+                if (fp) {
+                    try {
+                        fp.setDate(dateVal, true);
+                    } catch (e) { }
+                }
+            }
+
+            function ensureDefaultDates() {
+                var today = new Date();
+                var $recDate = $('#PaymentReceiveDate');
+                var recFp = $recDate.data('customFpInstance');
+                var recVal = $recDate.val();
+                if (!recVal || !recFp || !recFp.selectedDates || recFp.selectedDates.length === 0) {
+                    setDatepickerVal('#PaymentReceiveDate', today);
+                }
+
+                var $mrDate = $('#MrDate');
+                var mrFp = $mrDate.data('customFpInstance');
+                var mrVal = $mrDate.val();
+                if (!mrVal || !mrFp || !mrFp.selectedDates || mrFp.selectedDates.length === 0) {
+                    setDatepickerVal('#MrDate', today);
+                }
+            }
+
+            // Ensure Money Receipt Date & Payment Receive Date default to current date
+            ensureDefaultDates();
+            setTimeout(ensureDefaultDates, 50);
+            setTimeout(ensureDefaultDates, 150);
+            setTimeout(ensureDefaultDates, 300);
 
             function formatCurrency(val) {
                 if (val === null || val === undefined || val === '') return '0.00';
@@ -363,18 +408,53 @@
 
             // Also allow clicking anywhere on the row in CustomerList-grid
             $("body").off('click', '#CustomerList-grid tbody tr').on('click', '#CustomerList-grid tbody tr', function (e) {
-                if ($(e.target).is('input, button')) return;
+                if ($(e.target).is('button, a')) return;
                 var $link = $(this).find('a.js-select-customer, a[data-id]');
                 var clickedId = $link.length ? ($link.data('id') || $link.text().trim()) : '';
                 selectCustomerFromRow($(this), clickedId);
             });
 
+            // Maintain selected row highlight across pagination and search
+            $('#CustomerList-grid').on('draw.dt', function () {
+                syncCustomerGridSelection();
+            });
+
+            function syncCustomerGridSelection() {
+                var currentId = $('#CustomerId').val();
+                if (!currentId) {
+                    $('#CustomerList-grid tbody tr').removeClass('selected-row is-selected table-active');
+                    return;
+                }
+                $('#CustomerList-grid tbody tr').each(function () {
+                    var $r = $(this);
+                    var rowId = '';
+                    if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.customerGridSelector)) {
+                        var d = $(settings.customerGridSelector).DataTable().row($r).data();
+                        if (d) {
+                            rowId = d.customerId || d.CustomerID || '';
+                        }
+                    }
+                    if (!rowId) {
+                        var $link = $r.find('a.js-select-customer, a[data-id]');
+                        rowId = $link.length ? ($link.data('id') || $link.text().trim()) : '';
+                    }
+                    if (!rowId) {
+                        rowId = $r.find('td:first-child').text().trim();
+                    }
+                    if (rowId && rowId === currentId) {
+                        $r.addClass('selected-row is-selected table-active');
+                    } else {
+                        $r.removeClass('selected-row is-selected table-active');
+                    }
+                });
+            }
+
             function selectCustomerFromRow($row, passedCustomerId) {
                 if (!$row || $row.length === 0) return;
 
                 // Highlight selected row
-                $('#CustomerList-grid tbody tr').removeClass('table-active bg-primary-subtle');
-                $row.addClass('table-active bg-primary-subtle');
+                $('#CustomerList-grid tbody tr').removeClass('selected-row is-selected table-active bg-primary-subtle');
+                $row.addClass('selected-row is-selected table-active');
 
                 var rowData = null;
                 if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.customerGridSelector)) {
@@ -400,10 +480,10 @@
                         customerId = $link.data('id') || $link.text().trim();
                     }
                     if (!customerId) {
-                        customerId = $cells.eq(0).text().trim();
+                        customerId = $cells.eq(1).text().trim() || $cells.eq(0).text().trim();
                     }
-                    if (!customerName) customerName = $cells.eq(1).text().trim();
-                    if (!customerAddress) customerAddress = $cells.eq(2).text().trim();
+                    if (!customerName) customerName = $cells.eq(2).text().trim() || $cells.eq(1).text().trim();
+                    if (!customerAddress) customerAddress = $cells.eq(3).text().trim() || $cells.eq(2).text().trim();
                 }
 
                 if (!customerId) return;
@@ -413,6 +493,14 @@
                 $('#CustomerNameDisplay').val(customerName);
                 $('#BillingAddressDisplay').text(customerAddress || '').attr('title', customerAddress || '');
                 $('#BillingAddressHidden').val(customerAddress || '');
+
+                // Ensure dates default to current date if empty
+                if (!$('#PaymentReceiveDate').val()) {
+                    setDatepickerVal('#PaymentReceiveDate', new Date());
+                }
+                if (!$('#MrDate').val()) {
+                    setDatepickerVal('#MrDate', new Date());
+                }
 
                 // Reset bill & payment selection
                 $('#AgainstBillList').val('');
@@ -991,6 +1079,7 @@
                             $('#BillingAddressHidden').val(data.billingAddress || '');
                             $('#AgainstBillList').val(data.againstBillList || '');
                             alignAgainstBillWidth();
+                            syncCustomerGridSelection();
 
                             $('#MrNo').val(data.mrNo || '');
                             if (data.mrDate) {
@@ -1072,6 +1161,7 @@
                 $('#BillingAddressDisplay').text('').attr('title', '');
                 $('#BillingAddressHidden').val('');
                 $('#AgainstBillList').val('');
+                syncCustomerGridSelection();
                 if (window.setSelect) {
                     window.setSelect('#PaymentTypeId', '01');
                     window.setSelect('#PaymentModeCode', '001');
@@ -1081,8 +1171,8 @@
                     $('#PaymentModeCode').val('001').trigger('change');
                     $('#Receivedby').val('').trigger('change');
                 }
-                setDatepickerVal('#PaymentReceiveDate', formatDateForInput(new Date()));
-                setDatepickerVal('#MrDate', formatDateForInput(new Date()));
+                setDatepickerVal('#PaymentReceiveDate', new Date());
+                setDatepickerVal('#MrDate', new Date());
                 $('#Amount').val('');
                 $('#BankFeeOnlineCharge').val('');
                 $('#AIT').val('0.00000');
