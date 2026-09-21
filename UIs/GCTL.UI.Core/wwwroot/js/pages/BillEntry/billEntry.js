@@ -10,7 +10,7 @@ function getTodayDateStr() {
 // Example usage: Populate with sample data
 $(document).ready(function () {
 
-    showDev('loaded')
+    // showDev('loaded')
 
     if (typeof setDate === 'function') {
         setDate('#billDate', getTodayDateStr());
@@ -92,8 +92,6 @@ $(document).ready(function () {
         const jobId = $(this).val();
         if (jobId) {
             PopulateTheForm(jobId);
-            PopulateExpDetailsTable(jobId);
-            populateChargeTblFunc(jobId);
         }
     });
 
@@ -101,10 +99,9 @@ $(document).ready(function () {
     $(document).on('click', '.job-detail-link, .btn-view-job', function (e) {
         e.preventDefault();
         const jobId = $(this).data('id');
-
-        PopulateTheForm(jobId);
-        PopulateExpDetailsTable(jobId);
-        populateChargeTblFunc(jobId);
+        if (jobId) {
+            PopulateTheForm(jobId);
+        }
     });
 
     // Customer change: load customer address and related delivery addresses
@@ -147,10 +144,14 @@ $(document).ready(function () {
                 clearForm();
                 populateForm(response);
 
+                PopulateExpDetailsTable(response.id, billNo);
+                populateChargeTblFunc(response.id, billNo);
+
                 if (response.id) {
-                    PopulateExpDetailsTable(response.id);
-                    populateChargeTblFunc(response.id);
+                    $('input[name="jobSelect"]').prop('checked', false);
+                    $('input[name="jobSelect"][value="' + response.id + '"]').prop('checked', true);
                 }
+
                 toastr.info("Loaded Bill: " + billNo);
             },
             error: function () {
@@ -227,12 +228,13 @@ $(document).ready(function () {
             var $row = $(this);
             var isChecked = $row.find('.includeChk').is(':checked');
             if (isChecked) {
-                var chcVal = $row.find('.billAmtInput').length ? parseFloat($row.find('.billAmtInput').val()) : parseFloat($row.data('billamt'));
+                var chcVal = $row.find('.chcBillAmtInput').length ? parseFloat($row.find('.chcBillAmtInput').val()) : parseFloat($row.data('billamt'));
                 if (isNaN(chcVal)) chcVal = 0;
+                var descVal = $row.find('.chcDescInput').length ? $row.find('.chcDescInput').val() : String($row.data('desc') || '');
                 chcItems.push({
                     chcid: String($row.data('chcid') || ''),
                     billHead: String($row.data('billhead') || ''),
-                    description: String($row.data('desc') || ''),
+                    description: descVal,
                     billAmount: chcVal,
                     isReceiptable: String($row.data('isrec') || '')
                 });
@@ -285,13 +287,14 @@ $(document).ready(function () {
                 $btn.prop('disabled', false);
                 if (response.success) {
                     toastr.success(response.message || "Bill saved successfully!");
-                    if (response.data) {
-                        $('#billNo').val(response.data);
-                    }
+                    clearForm();
+                    $('input[name="jobSelect"]').prop('checked', false);
                     if (jobGrid) {
                         jobGrid.ajax.reload();
                     }
-                    if (window.BillHistoryTable) {
+                    if (billHistoryGrid) {
+                        billHistoryGrid.ajax.reload();
+                    } else if (window.BillHistoryTable) {
                         window.BillHistoryTable.ajax.reload();
                     } else if ($.fn.DataTable && $.fn.DataTable.isDataTable('#BillHistoryTable')) {
                         $('#BillHistoryTable').DataTable().ajax.reload();
@@ -315,7 +318,7 @@ $(document).ready(function () {
         $('#chargeTableBody tr').each(function () {
             var $row = $(this);
             if ($row.find('.includeChk').is(':checked')) {
-                var amt = $row.find('.billAmtInput').length ? parseFloat($row.find('.billAmtInput').val()) : parseFloat($row.data('billamt'));
+                var amt = $row.find('.chcBillAmtInput').length ? parseFloat($row.find('.chcBillAmtInput').val()) : parseFloat($row.data('billamt'));
                 if (!isNaN(amt)) {
                     total += amt;
                 }
@@ -343,6 +346,7 @@ $(document).ready(function () {
     }
 
     $(document).on('change', '#chargeTableBody .includeChk', calculateTotalBillAmount);
+    $(document).on('input change', '#chargeTableBody .chcBillAmtInput', calculateTotalBillAmount);
     $(document).on('change', '#expenceDetailTableBody .includeExpenseChk', calculateTotalBillAmount);
     $(document).on('input change', '#expenceDetailTableBody .expBillAmtInput', calculateTotalBillAmount);
     //#endregion
@@ -485,7 +489,7 @@ function DeleteCharge(tc) {
                 // Optionally refresh table here
                 var tc = $('#sdId').val();
 
-                populateChargeTblFunc(tc);
+                populateChargeTblFunc(tc, $('#billNo').val());
 
             } else {
                 toastr.error("Delete failed: " + (response.error || ""));
@@ -523,12 +527,12 @@ function AddCostHead() {
             tc: tc
         },
         success: function (response) {
-            showDev(response)
+            // showDev(response)
             if (response.success) {
                 toastr.success("Cost added successfully!");
                 // Optionally refresh table or clear inputs
 
-                populateChargeTblFunc(response.sepTC)
+                populateChargeTblFunc(response.sepTC, $('#billNo').val());
                 //callHelp(response.sepTC)
             } else {
                 toastr.error("Failed to add cost: " + (response.error || ""));
@@ -541,7 +545,7 @@ function AddCostHead() {
 }
 
 function callHelp(jobId) {
-    showDev(jobId);
+    // showDev(jobId);
 
 }
 
@@ -643,7 +647,7 @@ function clearForm() {
 //#region Function to populate the form with data
 function populateBottomForm(data) {
 
-    showDev(data);
+    // showDev(data);
 
     // Date fields
     if (typeof setDate === 'function') {
@@ -683,25 +687,34 @@ function populateBottomForm(data) {
 function populateForm(data) {
     console.log(data);
 
-    showDev(data);
+    // showDev(data);
 
     $('#sdId').val(data.id || '');
 
-    // New ones
+    // Text & Numeric inputs
     $('#billNo').val(data.billNo || '').prop('readonly', true);
     $('#customerAddress').val(data.customerAddress || '');
     $('#lcNo').val(data.lcNo || '');
     $('#lcValCurrencyId').val(data.lcValCurrencyId || '').trigger('change');
-    $('#bdtRate').val(data.bdtRate || '');
-    $('#bdtTotal').val(data.bdtTotal || '');
-    $('#invoiceValue').val(data.invoiceValue || '');
+    $('#bdtRate').val(data.bdtRate != null ? data.bdtRate : '');
+    $('#bdtTotal').val(data.bdtTotal != null ? data.bdtTotal : '');
+    $('#invoiceValue').val(data.invoiceValue != null ? data.invoiceValue : '');
     $('#invValCurrencyId').val(data.invValCurrencyId || '').trigger('change');
+    $('#invBdtRate').val(data.invBdtRate != null ? data.invBdtRate : '');
+    $('#invBdtTotal').val(data.invBdtTotal != null ? data.invBdtTotal : '');
+    $('#noTransport').val(data.noTransport != null ? data.noTransport : '');
+    $('#demarageDay').val(data.demarageDay != null ? data.demarageDay : '');
+    $('#undertakingNo').val(data.undertakingNo || '');
+    $('#efrNo').val(data.efrNo || '');
+    $('#rotNo').val(data.rotNo || '');
+    $('#hawb').val(data.hawb || '');
+    $('#packQty').val(data.packQty != null ? data.packQty : '');
     $('#consoleNo').val(data.consoleNo || '');
     $('#destinationId').val(data.destinationId || '').trigger('change');
-    $('#agComm').val(data.agComm || '');
-    $('#onInvVal').val(data.onInvVal || '');
-    $('#amount').val(data.amount || '');
-    $('#disc').val(data.specialDiscount || '');
+    $('#agComm').val(data.agComm != null ? data.agComm : '');
+    $('#onInvVal').val(data.onInvVal != null ? data.onInvVal : '');
+    $('#amount').val(data.amount != null ? data.amount : '');
+    $('#disc').val(data.specialDiscount != null ? data.specialDiscount : '');
     $('#headId').val(data.headId || '').trigger('change');
 
     // Dates using setDate
@@ -714,9 +727,15 @@ function populateForm(data) {
         setDate('#lcDate', data.lcDate || '', true);
         setDate('#invoiceDate', data.invoiceDate || '', true);
         setDate('#ipDate', data.ipDate || '', true);
+        setDate('#arrivalDate', data.arrivalDate || '', true);
         setDate('#blDate', data.blDate || '', true);
         setDate('#beDate', data.beDate || '', true);
+        setDate('#efrDate', data.efrDate || '', true);
         setDate('#dischargeDate', data.dischargeDate || '', true);
+        setDate('#etaDeliveryDate', data.etaDeliveryDate || '', true);
+        setDate('#actualDeliveryDate', data.actualDeliveryDate || '', true);
+        setDate('#unstuffingDate', data.unstuffingDate || '', true);
+        setDate('#etdDate', data.etdDate || '', true);
     } else {
         $('#billDate').val(targetBillDate);
         $('#jobDate').val(data.jobDate || '');
@@ -725,9 +744,15 @@ function populateForm(data) {
         $('#lcDate').val(data.lcDate || '');
         $('#invoiceDate').val(data.invoiceDate || '');
         $('#ipDate').val(data.ipDate || '');
+        $('#arrivalDate').val(data.arrivalDate || '');
         $('#blDate').val(data.blDate || '');
         $('#beDate').val(data.beDate || '');
+        $('#efrDate').val(data.efrDate || '');
         $('#dischargeDate').val(data.dischargeDate || '');
+        $('#etaDeliveryDate').val(data.etaDeliveryDate || '');
+        $('#actualDeliveryDate').val(data.actualDeliveryDate || '');
+        $('#unstuffingDate').val(data.unstuffingDate || '');
+        $('#etdDate').val(data.etdDate || '');
     }
 
     window._isPopulatingBillForm = true;
@@ -744,7 +769,7 @@ function populateForm(data) {
     window._isPopulatingBillForm = false;
     $('#portId').val(data.portId || '').trigger('change');
     $('#lcExpNo').val(data.lcExpNo || '');
-    $('#lcValue').val(data.lcValue || '');
+    $('#lcValue').val(data.lcValue != null ? data.lcValue : '');
     $('#ipEpNo').val(data.ipEpNo || '');
     $('#importerId').val(data.importerId || '').trigger('change');
     $('#invoiceNo').val(data.invoiceNo || '');
@@ -754,10 +779,14 @@ function populateForm(data) {
     $('#containerSize').val(data.containerSize || '');
     $('#lcaNo').val(data.lcaNo || '');
     $('#materialDescription').val(data.materialDescription || '');
-    $('#quantity').val(data.quantity || '');
+    $('#quantity').val(data.quantity != null ? data.quantity : '');
     $('#quantityUnitId').val(data.quantityUnitId || '').trigger('change');
-    $('#weight').val(data.weight || '');
+    $('#weight').val(data.weight != null ? data.weight : '');
     $('#weightUnitId').val(data.weightUnitId || '').trigger('change');
+    $('#packQtyUnitId').val(data.packQtyUnitId || '').trigger('change');
+    $('#placeOfLoadingId').val(data.placeOfLoadingId || '').trigger('change');
+    $('#shedYardId').val(data.shedYardId || '').trigger('change');
+    $('#freightChargeId').val(data.freightChargeId || '').trigger('change');
     $('#forwarderId').val(data.forwarderId || '').trigger('change');
     $('#vesselRottNo').val(data.vesselRottNo || '');
     $('#remarks').val(data.remarks || '');
@@ -780,20 +809,23 @@ var jsonChargeData = [
     { slNo: 3, isRec: "Yes", chc: "Head C", description: "Transport", billAmt: 200, include: true }
 ];
 
-// Function to populate table
 function populateChargeTable(data) {
     var tbody = $("#chargeTableBody");
     tbody.empty(); // clear old rows
 
     $.each(data, function (index, item) {
-        var isIncluded = (item.include !== false);
+        var isIncluded = (item.include === true);
         var row = `
-                <tr data-tc="${item.tc || ''}" data-chcid="${item.chcid || ''}" data-billhead="${item.chc || ''}" data-desc="${item.description || ''}" data-billamt="${item.billAmt || 0}" data-isrec="${item.isRec || ''}">
+                <tr data-tc="${item.tc || ''}" data-chcid="${item.chcid || ''}" data-billhead="${item.chc || ''}" data-desc="${item.description || ''}" data-billamt="${item.billAmt != null ? item.billAmt : 0}" data-isrec="${item.isRec || ''}">
                     <td class="text-center">${item.serialNo || (index + 1)}</td>
                     <td class="text-center">${item.isRec || ''}</td>
                     <td class="text-start ps-2">${item.chc || ''}</td>
-                    <td class="text-start ps-2">${item.description || ''}</td>
-                    <td class="text-end pe-2">${item.billAmt || 0}</td>
+                    <td class="text-start ps-2">
+                        <input type="text" class="form-control form-control-sm chcDescInput" value="${item.description || ''}" />
+                    </td>
+                    <td class="text-end pe-2">
+                        <input type="number" step="0.01" class="form-control form-control-sm text-end chcBillAmtInput" value="${item.billAmt != null ? item.billAmt : 0}" />
+                    </td>
                     <td class="text-center">
                         <input type="checkbox" class="form-check-input m-0 shadow-none includeChk" ${isIncluded ? "checked" : ""}>
                     </td>
@@ -814,7 +846,7 @@ function populateExpenseTable(data) {
     tbody.empty(); // clear old rows
 
     $.each(data, function (i, item) {
-        var isIncluded = (item.include !== false);
+        var isIncluded = (item.include === true);
         var row = `
                 <tr data-headid="${item.expenseHeadId || ''}" data-head="${item.head || ''}" data-confirmamt="${item.confirmAmt || 0}" data-billamt="${item.billAmt || 0}">
                     <td class="text-center">${item.serialNo || (i + 1)}</td>
@@ -841,50 +873,35 @@ function populateExpenseTable(data) {
 
 //#region popilate tables
 
-function populateChargeTblFunc(jobId) {
-
-
+function populateChargeTblFunc(jobId, billNo) {
     $.ajax({
         url: '/JobBillEntry/GetChrgTblData',
         type: 'GET',
-        data: { id: jobId },
+        data: { id: jobId, billNo: billNo || '' },
         success: function (data) {
-
-            showDev(data, 'chrg tbl')
+            // showDev(data, 'chrg tbl');
             if (data.success) {
                 populateChargeTable(data.data);
             }
-
-
-
-
-
         },
         error: function () {
-            alert('Error loading job details');
+            alert('Error loading charge details');
         }
     });
 }
 
-function PopulateExpDetailsTable(jobId) {
+function PopulateExpDetailsTable(jobId, billNo) {
     $.ajax({
         url: '/JobBillEntry/GetExpDetailTbl',
         type: 'GET',
-        data: { id: jobId },
+        data: { id: jobId, billNo: billNo || '' },
         success: function (data) {
-
-
             if (data.success) {
-                populateExpenseTable(data.data)
+                populateExpenseTable(data.data);
             }
-
-
-
-
-
         },
         error: function () {
-            alert('Error loading job details');
+            alert('Error loading expense details');
         }
     });
 }
@@ -895,12 +912,14 @@ function PopulateTheForm(jobId) {
         data: { id: jobId },
         success: function (data) {
             clearForm();
-            showDev(data);
+            // showDev(data);
             populateForm(data);
+            if (data.jobNo) {
+                $('#billNo').val(data.billNo || data.jobNo);
+            }
 
-
-
-
+            PopulateExpDetailsTable(jobId);
+            populateChargeTblFunc(jobId);
         },
         error: function () {
             alert('Error loading job details');

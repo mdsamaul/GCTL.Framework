@@ -190,7 +190,22 @@ namespace GCTL.Service.BillService
                     h.Bdtrate,
                     h.ConsoleNo,
                     h.MinimumAgencyCom,
-                    h.CommOnInvoiceValue
+                    h.CommOnInvoiceValue,
+                    h.AssessableRate,
+                    h.AssessableValue,
+                    h.UndertakingNo,
+                    h.Ata,
+                    h.Shiparriveddate,
+                    h.Hawb,
+                    h.PackingQuantity,
+                    h.PackingUnitType,
+                    h.Eta,
+                    h.DateOfClearence,
+                    h.UnStuffingLocationDate,
+                    h.PlaceOfLoadingId,
+                    h.Etddate,
+                    h.ShedYardId,
+                    h.FreightCharge
                 })
                 .FirstOrDefaultAsync();
 
@@ -206,9 +221,9 @@ namespace GCTL.Service.BillService
                 BeDate = job.Bedate.HasValue ? job.Bedate.Value.ToString("yyyy-MM-dd") : string.Empty,
                 BeNo = job.Beno ?? string.Empty,
                 BillDate = string.Empty,
-                BillNo = job.BillNo ?? string.Empty,
+                BillNo = job.JobNo ?? string.Empty,
                 BlDate = job.Bldate.HasValue ? job.Bldate.Value.ToString("yyyy-MM-dd") : string.Empty,
-                BlNo = string.Empty,
+                BlNo = job.BillNo ?? string.Empty,
                 ConsoleNo = job.ConsoleNo ?? string.Empty,
                 ContainerNo = job.ContainerNo ?? string.Empty,
                 ContainerSize = job.ContainerSize ?? string.Empty,
@@ -252,62 +267,90 @@ namespace GCTL.Service.BillService
                 UpdatedAt = job.ModifyDate ?? job.Ldate,
                 VesselRottNo = job.VesselRottNo ?? string.Empty,
                 Weight = job.Quntity2,
-                WeightUnitId = job.Unit2
+                WeightUnitId = job.Unit2,
+
+                InvBdtRate = job.AssessableRate,
+                InvBdtTotal = job.AssessableValue ?? ((job.InvoiceValue ?? 0m) * (job.AssessableRate ?? 0m)),
+                NoTransport = null,
+                DemarageDay = null,
+                UndertakingNo = job.UndertakingNo,
+                ArrivalDate = job.Ata.HasValue ? job.Ata.Value.ToString("yyyy-MM-dd") : (job.Shiparriveddate.HasValue ? job.Shiparriveddate.Value.ToString("yyyy-MM-dd") : string.Empty),
+                EfrNo = string.Empty,
+                EfrDate = string.Empty,
+                RotNo = job.VesselRottNo ?? string.Empty,
+                Hawb = job.Hawb ?? string.Empty,
+                PackQty = job.PackingQuantity,
+                PackQtyUnitId = job.PackingUnitType ?? string.Empty,
+                EtaDeliveryDate = job.Eta.HasValue ? job.Eta.Value.ToString("yyyy-MM-dd") : string.Empty,
+                ActualDeliveryDate = job.DateOfClearence.HasValue ? job.DateOfClearence.Value.ToString("yyyy-MM-dd") : (job.Ata.HasValue ? job.Ata.Value.ToString("yyyy-MM-dd") : string.Empty),
+                UnstuffingDate = job.UnStuffingLocationDate.HasValue ? job.UnStuffingLocationDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                PlaceOfLoadingId = job.PlaceOfLoadingId ?? string.Empty,
+                EtdDate = job.Etddate.HasValue ? job.Etddate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                ShedYardId = job.ShedYardId ?? string.Empty,
+                FreightChargeId = job.FreightCharge ?? string.Empty
             };
         }
 
-        public async Task<List<ExpenseDetailDto>> GetExpenseDetailsAsync(decimal id)
+        public async Task<List<ExpenseDetailDto>> GetExpenseDetailsAsync(decimal id, string? billNo = null)
         {
-            var job = await _sepDocumentationRepository.All()
-                .Where(e => e.Tc == id)
-                .Select(h => new { h.Tc, h.JobNo, h.BillNo })
-                .FirstOrDefaultAsync();
+            GCTL.Data.Models.SepDocumentation? job = null;
+            if (id > 0)
+            {
+                job = await _sepDocumentationRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Tc == id);
+            }
+
+            if (job == null && !string.IsNullOrWhiteSpace(billNo))
+            {
+                var bill = await _billEntryRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(b => b.BillNo == billNo);
+                if (bill != null && !string.IsNullOrWhiteSpace(bill.JobNo))
+                {
+                    job = await _sepDocumentationRepository.All().AsNoTracking()
+                        .FirstOrDefaultAsync(e => e.JobNo == bill.JobNo);
+                }
+            }
 
             if (job == null || string.IsNullOrEmpty(job.JobNo))
             {
-                return new List<ExpenseDetailDto>();
-            }
-
-            // If bill already saved, check if child expense details exist for this BillNo
-            if (!string.IsNullOrEmpty(job.BillNo))
-            {
-                var savedDetails = await _billDetailRepository.All().AsNoTracking()
-                    .Where(d => d.BillNo == job.BillNo)
-                    .ToListAsync();
-
-                if (savedDetails.Any())
+                if (!string.IsNullOrWhiteSpace(billNo))
                 {
-                    var expHeadDict = await _expHeadRepository.All().AsNoTracking()
-                        .ToDictionaryAsync(h => h.ExpenseHeadId, h => h);
-                    var stDict = await _stRepository.All().AsNoTracking()
-                        .ToDictionaryAsync(s => s.ServiceTypeId, s => s.ServiceTypeName);
+                    var savedDetailsOnly = await _billDetailRepository.All().AsNoTracking()
+                        .Where(d => d.BillNo == billNo)
+                        .ToListAsync();
 
-                    var savedList = new List<ExpenseDetailDto>();
-                    int seq = 1;
-                    foreach (var d in savedDetails)
+                    if (savedDetailsOnly.Any())
                     {
-                        expHeadDict.TryGetValue(d.ExpenseHeadId ?? string.Empty, out var eh);
-                        string stName = string.Empty;
-                        if (eh != null && !string.IsNullOrEmpty(eh.ServiceTypeId))
-                        {
-                            stDict.TryGetValue(eh.ServiceTypeId, out stName);
-                        }
+                        var expHeadDict = await _expHeadRepository.All().AsNoTracking()
+                            .ToDictionaryAsync(h => h.ExpenseHeadId, h => h);
+                        var stDict = await _stRepository.All().AsNoTracking()
+                            .ToDictionaryAsync(s => s.ServiceTypeId, s => s.ServiceTypeName);
 
-                        savedList.Add(new ExpenseDetailDto
+                        int seq = 1;
+                        return savedDetailsOnly.Select(d =>
                         {
-                            ExpenseHeadId = d.ExpenseHeadId,
-                            SerialNo = eh?.SerialNo ?? (seq++).ToString(),
-                            Head = d.BillHead ?? eh?.ExpenseHead ?? string.Empty,
-                            IsRec = eh != null ? (eh.IsReceiptable == "Y" ? "Yes" : eh.IsReceiptable == "N" ? "No" : string.Empty) : string.Empty,
-                            ServiceType = stName ?? string.Empty,
-                            ConfirmAmt = d.ActualAmount ?? 0m,
-                            BillAmt = d.ExpenseBillAmount ?? d.ActualAmount ?? 0m,
-                            Include = true
-                        });
+                            expHeadDict.TryGetValue(d.ExpenseHeadId ?? string.Empty, out var eh);
+                            string stName = string.Empty;
+                            if (eh != null && !string.IsNullOrEmpty(eh.ServiceTypeId))
+                            {
+                                stDict.TryGetValue(eh.ServiceTypeId, out stName);
+                            }
+                            return new ExpenseDetailDto
+                            {
+                                ExpenseHeadId = d.ExpenseHeadId,
+                                SerialNo = eh?.SerialNo ?? (seq++).ToString(),
+                                Head = d.BillHead ?? eh?.ExpenseHead ?? string.Empty,
+                                IsRec = eh != null ? (eh.IsReceiptable == "Y" ? "Yes" : eh.IsReceiptable == "N" ? "No" : string.Empty) : string.Empty,
+                                ServiceType = stName,
+                                ConfirmAmt = d.ActualAmount ?? 0m,
+                                BillAmt = d.ExpenseBillAmount ?? d.ActualAmount ?? 0m,
+                                Include = true
+                            };
+                        }).ToList();
                     }
-
-                    return savedList;
                 }
+
+                return new List<ExpenseDetailDto>();
             }
 
             var query = from fr in _ofrdRepository.All().AsNoTracking()
@@ -320,25 +363,100 @@ namespace GCTL.Service.BillService
                         from st in serviceTypes.DefaultIfEmpty()
                         select new
                         {
-                            ServiceTypeId = fr.ServiceTypeId ?? (eh != null ? eh.ServiceTypeId : string.Empty),
-                            IsReceiptable = eh != null ? eh.IsReceiptable : string.Empty,
-                            ExpenseHeadId = fr.ExpenseHeadId ?? (eh != null ? eh.ExpenseHeadId : string.Empty),
-                            SerialNo = eh != null ? eh.SerialNo : string.Empty,
-                            Head = eh != null ? eh.ExpenseHead : string.Empty,
-                            IsRec = eh != null
-                                    ? (eh.IsReceiptable == "Y" ? "Yes" : eh.IsReceiptable == "N" ? "No" : string.Empty)
-                                    : string.Empty,
-                            ServiceType = st != null ? st.ServiceTypeName : string.Empty,
+                            frServiceTypeId = fr.ServiceTypeId,
+                            ehServiceTypeId = eh.ServiceTypeId,
+                            frExpenseHeadId = fr.ExpenseHeadId,
+                            ehExpenseHeadId = eh.ExpenseHeadId,
+                            SerialNo = eh.SerialNo,
+                            Head = eh.ExpenseHead,
+                            IsReceiptable = eh.IsReceiptable,
+                            ServiceType = st.ServiceTypeName,
                             ConfirmAmt = fr.ActualAmount,
                             BillAmt = fr.ActualAmount
                         };
 
-            var list = await query.ToListAsync();
+            var rawOfrList = await query.ToListAsync();
 
-            var orderedList = list
-                .OrderBy(x => x.ServiceTypeId ?? string.Empty)
-                .ThenByDescending(x => x.IsRec ?? string.Empty)
+            var ofrList = rawOfrList.Select(x => new
+            {
+                ServiceTypeId = x.frServiceTypeId ?? x.ehServiceTypeId ?? string.Empty,
+                IsReceiptable = x.IsReceiptable ?? string.Empty,
+                ExpenseHeadId = x.frExpenseHeadId ?? x.ehExpenseHeadId ?? string.Empty,
+                SerialNo = x.SerialNo ?? string.Empty,
+                Head = x.Head ?? string.Empty,
+                IsRec = x.IsReceiptable == "Y" ? "Yes" : (x.IsReceiptable == "N" ? "No" : string.Empty),
+                ServiceType = x.ServiceType ?? string.Empty,
+                ConfirmAmt = x.ConfirmAmt,
+                BillAmt = x.BillAmt
+            }).ToList();
+
+            if (!string.IsNullOrWhiteSpace(billNo))
+            {
+                var savedDetails = await _billDetailRepository.All().AsNoTracking()
+                    .Where(d => d.BillNo == billNo)
+                    .ToListAsync();
+
+                var savedDict = savedDetails
+                    .Where(d => !string.IsNullOrEmpty(d.ExpenseHeadId))
+                    .GroupBy(d => d.ExpenseHeadId)
+                    .ToDictionary(g => g.Key!, g => g.First());
+
+                var handledHeadIds = new HashSet<string>();
+                var result = new List<ExpenseDetailDto>();
+
+                foreach (var item in ofrList)
+                {
+                    CfBillEntryDetail? savedItem = null;
+                    bool isPresentInBill = !string.IsNullOrEmpty(item.ExpenseHeadId) && savedDict.TryGetValue(item.ExpenseHeadId, out savedItem);
+                    if (isPresentInBill)
+                    {
+                        handledHeadIds.Add(item.ExpenseHeadId!);
+                    }
+
+                    result.Add(new ExpenseDetailDto
+                    {
+                        ExpenseHeadId = item.ExpenseHeadId,
+                        SerialNo = item.SerialNo,
+                        Head = item.Head,
+                        IsRec = item.IsRec,
+                        ServiceType = item.ServiceType,
+                        ConfirmAmt = item.ConfirmAmt ?? 0.00m,
+                        BillAmt = isPresentInBill && savedItem != null ? (savedItem.ExpenseBillAmount ?? savedItem.ActualAmount ?? item.BillAmt ?? 0m) : (item.ConfirmAmt ?? 0m),
+                        Include = isPresentInBill
+                    });
+                }
+
+                foreach (var saved in savedDetails)
+                {
+                    if (!string.IsNullOrEmpty(saved.ExpenseHeadId) && handledHeadIds.Contains(saved.ExpenseHeadId))
+                        continue;
+
+                    result.Add(new ExpenseDetailDto
+                    {
+                        ExpenseHeadId = saved.ExpenseHeadId,
+                        SerialNo = string.Empty,
+                        Head = saved.BillHead ?? string.Empty,
+                        IsRec = string.Empty,
+                        ServiceType = string.Empty,
+                        ConfirmAmt = saved.ActualAmount ?? 0m,
+                        BillAmt = saved.ExpenseBillAmount ?? saved.ActualAmount ?? 0m,
+                        Include = true
+                    });
+                }
+
+                return result
+                    .OrderBy(x => x.ServiceType ?? string.Empty)
+                    .ThenBy(x => x.IsRec == "Yes" ? 0 : (x.IsRec == "No" ? 1 : 2))
+                    .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                    .ThenBy(x => x.SerialNo ?? string.Empty)
+                    .ToList();
+            }
+
+            return ofrList
+                .OrderBy(x => x.ServiceType ?? string.Empty)
+                .ThenBy(x => x.IsRec == "Yes" ? 0 : (x.IsRec == "No" ? 1 : 2))
                 .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                .ThenBy(x => x.SerialNo ?? string.Empty)
                 .Select(x => new ExpenseDetailDto
                 {
                     ExpenseHeadId = x.ExpenseHeadId,
@@ -348,84 +466,136 @@ namespace GCTL.Service.BillService
                     ServiceType = x.ServiceType,
                     ConfirmAmt = x.ConfirmAmt ?? 0.00m,
                     BillAmt = x.BillAmt,
-                    Include = true
+                    Include = false
                 })
                 .ToList();
-
-            return orderedList;
         }
 
-        public async Task<List<ChargeTableItemDto>> GetChargeTableDataAsync(decimal id)
+        public async Task<List<ChargeTableItemDto>> GetChargeTableDataAsync(decimal id, string? billNo = null)
         {
-            var job = await _sepDocumentationRepository.All().AsNoTracking()
-                .Where(e => e.Tc == id)
-                .Select(h => new
-                {
-                    h.Tc,
-                    h.JobNo,
-                    h.BillNo,
-                    CustomerId = h.CustomerId,
-                    ShipmentMode = h.ExpenseTypeId
-                })
-                .FirstOrDefaultAsync();
-
-            if (job == null || string.IsNullOrEmpty(job.JobNo))
+            GCTL.Data.Models.SepDocumentation? job = null;
+            if (id > 0)
             {
-                return new List<ChargeTableItemDto>();
+                job = await _sepDocumentationRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Tc == id);
             }
 
-            // If bill already saved, check if child CHC details exist for this BillNo
-            if (!string.IsNullOrEmpty(job.BillNo))
+            CfBillEntry? bill = null;
+            if (!string.IsNullOrWhiteSpace(billNo))
             {
-                var savedChcs = await _billChcRepository.All().AsNoTracking()
-                    .Where(c => c.BillNo == job.BillNo)
-                    .ToListAsync();
-
-                if (savedChcs.Any())
-                {
-                    int seq = 1;
-                    return savedChcs.Select(c => new ChargeTableItemDto
-                    {
-                        Chcid = c.Chcid,
-                        SerialNo = (seq++).ToString(),
-                        IsRec = c.IsReceiptable == "Y" ? "Yes" : (c.IsReceiptable == "N" ? "No" : (c.IsReceiptable ?? string.Empty)),
-                        Chc = c.BillHead ?? string.Empty,
-                        Description = c.ChcheadDescription ?? string.Empty,
-                        BillAmt = c.BillAmount,
-                        Tc = c.Tc,
-                        Include = true
-                    }).ToList();
-                }
+                bill = await _billEntryRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(b => b.BillNo == billNo);
             }
+
+            if (job == null && bill != null && !string.IsNullOrWhiteSpace(bill.JobNo))
+            {
+                job = await _sepDocumentationRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.JobNo == bill.JobNo);
+            }
+
+            string customerId = bill?.CustomerId ?? job?.CustomerId ?? string.Empty;
+            string expenseTypeId = bill?.ExpenseTypeId ?? job?.ExpenseTypeId ?? string.Empty;
 
             var query = from cwde in _cwcdeRepository.All().AsNoTracking()
-                            where cwde.CustomerId == job.CustomerId && cwde.ExpenseTypeId == job.ShipmentMode
-
+                        where cwde.CustomerId == customerId && cwde.ExpenseTypeId == expenseTypeId
                         join chc in _cRepository.All().AsNoTracking()
                             on cwde.Chcid equals chc.Chcid into gj
                         from subChc in gj.DefaultIfEmpty()
-
                         select new
                         {
-                            Chcid = cwde.Chcid ?? (subChc.Chcid != null ? subChc.Chcid : string.Empty),
-                            ExpenseTypeId = subChc.Chcid != null ? subChc.ExpenseTypeId : (cwde.ExpenseTypeId ?? string.Empty),
-                            IsRec =
-                            subChc.Chcid != null
-                                    ? (subChc.IsReceiptable == "Y" ? "Yes" : subChc.IsReceiptable == "N" ? "No" : string.Empty)
-                                    : string.Empty,
-                            SerialNo = subChc.Chcid != null ? (subChc.SerialNo ?? string.Empty) : string.Empty,
-                            Chc = subChc.Chcid != null ? (subChc.Chchead ?? string.Empty) : string.Empty,
-                            Description = subChc.Chcid != null ? (subChc.ChcheadDescription ?? string.Empty) : string.Empty,
+                            CwdeChcid = cwde.Chcid,
+                            ChcId = subChc.Chcid,
+                            ExpenseTypeId = subChc.ExpenseTypeId,
+                            CwdeExpenseTypeId = cwde.ExpenseTypeId,
+                            IsReceiptable = subChc.IsReceiptable,
+                            SerialNo = subChc.SerialNo,
+                            Chc = subChc.Chchead,
+                            Description = subChc.ChcheadDescription,
                             BillAmt = cwde.BillAmount,
                             Tc = cwde.Tc
                         };
 
-            var list = await query.ToListAsync();
+            var rawList = await query.ToListAsync();
 
-            var orderedList = list
-                //.OrderBy(x => x.ExpenseTypeId ?? string.Empty)
-                .OrderByDescending(x => x.IsRec ?? string.Empty)
+            var baseList = rawList.Select(x => new
+            {
+                Chcid = x.CwdeChcid ?? x.ChcId ?? string.Empty,
+                ExpenseTypeId = x.ExpenseTypeId ?? x.CwdeExpenseTypeId ?? string.Empty,
+                IsRec = x.IsReceiptable == "Y" ? "Yes" : (x.IsReceiptable == "N" ? "No" : string.Empty),
+                SerialNo = x.SerialNo ?? string.Empty,
+                Chc = x.Chc ?? string.Empty,
+                Description = x.Description ?? string.Empty,
+                BillAmt = x.BillAmt,
+                Tc = x.Tc
+            }).ToList();
+
+            if (!string.IsNullOrWhiteSpace(billNo))
+            {
+                var savedChcs = await _billChcRepository.All().AsNoTracking()
+                    .Where(c => c.BillNo == billNo)
+                    .ToListAsync();
+
+                var savedDict = savedChcs
+                    .Where(c => !string.IsNullOrEmpty(c.Chcid))
+                    .GroupBy(c => c.Chcid)
+                    .ToDictionary(g => g.Key, g => g.First());
+
+                var handledChcIds = new HashSet<string>();
+                var result = new List<ChargeTableItemDto>();
+
+                foreach (var item in baseList)
+                {
+                    ChargeTableItemDto? savedItemDto = null;
+                    CfBillEntryDetailsChchead? savedItem = null;
+                    bool isPresentInBill = !string.IsNullOrEmpty(item.Chcid) && savedDict.TryGetValue(item.Chcid, out savedItem);
+                    if (isPresentInBill)
+                    {
+                        handledChcIds.Add(item.Chcid!);
+                    }
+
+                    result.Add(new ChargeTableItemDto
+                    {
+                        Chcid = item.Chcid,
+                        SerialNo = item.SerialNo,
+                        IsRec = item.IsRec,
+                        Chc = item.Chc,
+                        Description = isPresentInBill && savedItem != null && !string.IsNullOrEmpty(savedItem.ChcheadDescription) ? savedItem.ChcheadDescription : item.Description,
+                        BillAmt = isPresentInBill && savedItem != null ? (savedItem.BillAmount ?? item.BillAmt) : item.BillAmt,
+                        Tc = isPresentInBill && savedItem != null ? savedItem.Tc : item.Tc,
+                        Include = isPresentInBill
+                    });
+                }
+
+                int extraSeq = 1;
+                foreach (var saved in savedChcs)
+                {
+                    if (!string.IsNullOrEmpty(saved.Chcid) && handledChcIds.Contains(saved.Chcid))
+                        continue;
+
+                    result.Add(new ChargeTableItemDto
+                    {
+                        Chcid = saved.Chcid,
+                        SerialNo = (extraSeq++).ToString(),
+                        IsRec = saved.IsReceiptable == "Y" ? "Yes" : (saved.IsReceiptable == "N" ? "No" : (saved.IsReceiptable ?? string.Empty)),
+                        Chc = saved.BillHead ?? string.Empty,
+                        Description = saved.ChcheadDescription ?? string.Empty,
+                        BillAmt = saved.BillAmount,
+                        Tc = saved.Tc,
+                        Include = true
+                    });
+                }
+
+                return result
+                    .OrderBy(x => x.IsRec == "Yes" ? 0 : (x.IsRec == "No" ? 1 : 2))
+                    .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                    .ThenBy(x => x.SerialNo ?? string.Empty)
+                    .ToList();
+            }
+
+            return baseList
+                .OrderBy(x => x.IsRec == "Yes" ? 0 : (x.IsRec == "No" ? 1 : 2))
                 .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                .ThenBy(x => x.SerialNo ?? string.Empty)
                 .Select(x => new ChargeTableItemDto
                 {
                     Chcid = x.Chcid,
@@ -435,11 +605,9 @@ namespace GCTL.Service.BillService
                     Description = x.Description,
                     BillAmt = x.BillAmt,
                     Tc = x.Tc,
-                    Include = true
+                    Include = false
                 })
                 .ToList();
-
-            return orderedList;
         }
 
         public async Task<CommonReturnViewModel> AddCostAsync(AddCostRequestDto request, UserInfoViewModel? userInfo)
@@ -700,7 +868,27 @@ namespace GCTL.Service.BillService
                 Amount = bill.BillAmount,
                 SpecialDiscount = bill.SpecialDiscount,
                 CreatedAt = bill.Ldate ?? doc?.Ldate,
-                UpdatedAt = bill.ModifyDate ?? doc?.ModifyDate
+                UpdatedAt = bill.ModifyDate ?? doc?.ModifyDate,
+
+                InvBdtRate = bill.AssessableRate ?? doc?.AssessableRate,
+                InvBdtTotal = bill.AssessableValue ?? doc?.AssessableValue ?? ((bill.InvoiceValue ?? doc?.InvoiceValue ?? 0m) * (bill.AssessableRate ?? doc?.AssessableRate ?? 0m)),
+                NoTransport = bill.NumberOfTransport,
+                DemarageDay = bill.NumberOfDemerageDay,
+                UndertakingNo = bill.UndertakingNo ?? doc?.UndertakingNo,
+                ArrivalDate = bill.ArrivalDate.HasValue ? bill.ArrivalDate.Value.ToString("yyyy-MM-dd") : (doc?.Ata.HasValue == true ? doc.Ata.Value.ToString("yyyy-MM-dd") : (doc?.Shiparriveddate.HasValue == true ? doc.Shiparriveddate.Value.ToString("yyyy-MM-dd") : string.Empty)),
+                EfrNo = bill.Efrno ?? string.Empty,
+                EfrDate = bill.Efrdate.HasValue ? bill.Efrdate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                RotNo = bill.Rotno ?? doc?.VesselRottNo ?? string.Empty,
+                Hawb = doc?.Hawb ?? string.Empty,
+                PackQty = doc?.PackingQuantity,
+                PackQtyUnitId = doc?.PackingUnitType ?? string.Empty,
+                EtaDeliveryDate = doc?.Eta.HasValue == true ? doc.Eta.Value.ToString("yyyy-MM-dd") : string.Empty,
+                ActualDeliveryDate = bill.DeliveryDate.HasValue ? bill.DeliveryDate.Value.ToString("yyyy-MM-dd") : (doc?.DateOfClearence.HasValue == true ? doc.DateOfClearence.Value.ToString("yyyy-MM-dd") : (doc?.Ata.HasValue == true ? doc.Ata.Value.ToString("yyyy-MM-dd") : string.Empty)),
+                UnstuffingDate = doc?.UnStuffingLocationDate.HasValue == true ? doc.UnStuffingLocationDate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                PlaceOfLoadingId = doc?.PlaceOfLoadingId ?? string.Empty,
+                EtdDate = doc?.Etddate.HasValue == true ? doc.Etddate.Value.ToString("yyyy-MM-dd") : string.Empty,
+                ShedYardId = doc?.ShedYardId ?? string.Empty,
+                FreightChargeId = doc?.FreightCharge ?? string.Empty
             };
         }
 
@@ -848,9 +1036,9 @@ namespace GCTL.Service.BillService
                     await _billEntryRepository.UpdateAsync(bill);
                 }
 
-                // Update SepDocumentation.BillNo
-                doc.BillNo = billNo;
-                await _sepDocumentationRepository.UpdateAsync(doc);
+                // NOTE: SepDocumentation.BillNo (BL No) update commented out pending supervisor discussion
+                // doc.BillNo = billNo;
+                // await _sepDocumentationRepository.UpdateAsync(doc);
 
                 // Clear existing child records for this BillNo
                 var existingChcs = await _billChcRepository.All()
@@ -946,6 +1134,8 @@ namespace GCTL.Service.BillService
                 };
             }
 
+            await _billEntryRepository.BeginTransactionAsync();
+
             try
             {
                 var billsToDelete = await _billEntryRepository.All()
@@ -954,6 +1144,7 @@ namespace GCTL.Service.BillService
 
                 if (!billsToDelete.Any())
                 {
+                    await _billEntryRepository.RollbackTransactionAsync();
                     return new CommonReturnViewModel
                     {
                         Success = false,
@@ -961,6 +1152,8 @@ namespace GCTL.Service.BillService
                     };
                 }
 
+                // NOTE: SepDocumentation BL No update commented out pending supervisor discussion
+                /*
                 var jobNos = billsToDelete
                     .Where(b => !string.IsNullOrEmpty(b.JobNo))
                     .Select(b => b.JobNo)
@@ -970,15 +1163,20 @@ namespace GCTL.Service.BillService
                 if (jobNos.Any())
                 {
                     var docsToReset = await _sepDocumentationRepository.All()
-                        .Where(d => jobNos.Contains(d.JobNo) && (billNos.Contains(d.BillNo) || d.BillNo != null))
+                        .Where(d => jobNos.Contains(d.JobNo))
                         .ToListAsync();
 
                     foreach (var doc in docsToReset)
                     {
-                        doc.BillNo = null;
-                        await _sepDocumentationRepository.UpdateAsync(doc);
+                        if (billNos.Contains(doc.BillNo))
+                        {
+                            var matchedBill = billsToDelete.FirstOrDefault(b => b.JobNo == doc.JobNo && !string.IsNullOrEmpty(b.Blno));
+                            doc.BillNo = matchedBill?.Blno ?? string.Empty;
+                            await _sepDocumentationRepository.UpdateAsync(doc);
+                        }
                     }
                 }
+                */
 
                 // Delete child records for all deleted bills
                 var childChcs = await _billChcRepository.All()
@@ -1002,6 +1200,8 @@ namespace GCTL.Service.BillService
                     await _billEntryRepository.DeleteAsync(bill);
                 }
 
+                await _billEntryRepository.CommitTransactionAsync();
+
                 return new CommonReturnViewModel
                 {
                     Success = true,
@@ -1010,6 +1210,7 @@ namespace GCTL.Service.BillService
             }
             catch (Exception ex)
             {
+                await _billEntryRepository.RollbackTransactionAsync();
                 return new CommonReturnViewModel
                 {
                     Success = false,

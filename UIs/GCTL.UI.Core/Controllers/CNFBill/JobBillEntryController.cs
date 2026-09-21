@@ -135,9 +135,9 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetExpDetailTbl(int id)
+        public async Task<IActionResult> GetExpDetailTbl(int? id, string? billNo = null)
         {
-            var details = await _billService.GetExpenseDetailsAsync(id);
+            var details = await _billService.GetExpenseDetailsAsync(id ?? 0, billNo);
             if (details == null)
             {
                 return Json(new { success = false });
@@ -147,11 +147,11 @@ namespace GCTL.UI.Core.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetChrgTblData(int id)
+        public async Task<IActionResult> GetChrgTblData(int? id, string? billNo = null)
         {
             try
             {
-                var data = await _billService.GetChargeTableDataAsync(id);
+                var data = await _billService.GetChargeTableDataAsync(id ?? 0, billNo);
                 if (data == null)
                 {
                     return Json(new { success = false });

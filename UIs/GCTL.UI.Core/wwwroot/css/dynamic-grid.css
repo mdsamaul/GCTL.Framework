@@ -4,46 +4,46 @@
    across all screen resolutions (1300px-1400px laptops, 4K monitors, & mobile).
    ========================================================================== */
 
-:root {
+/*:root {*/
     /* Standardized Typography Tokens */
-    --ratio-font-header: 12.5px; /* 12.5px */
-    --ratio-font-body: 12.5px;   /* 12.5px */
-    --ratio-font-label: 12px;    /* 12px */
-    --ratio-font-input: 13px;    /* 13px */
+    /*--ratio-font-header: 12.5px;*/ /* 12.5px */
+    /*--ratio-font-body: 12.5px;*/   /* 12.5px */
+    /*--ratio-font-label: 12px;*/    /* 12px */
+    /*--ratio-font-input: 13px;*/    /* 13px */
 
     /* Standardized Spacing & Padding Tokens */
-    --ratio-card-padding-x: 1rem;     /* 16px */
-    --ratio-header-padding-y: 0.625rem;/* 10px */
-    --ratio-cell-padding-y: 0.45rem;   /* 7px */
-    --ratio-cell-padding-x: 13px;   /* 13px */
-    --ratio-form-gap: 0.75rem;        /* 12px */
-}
+    /*--ratio-card-padding-x: 1rem;*/     /* 16px */
+    /*--ratio-header-padding-y: 0.625rem;*//* 10px */
+    /*--ratio-cell-padding-y: 0.45rem;*/   /* 7px */
+    /*--ratio-cell-padding-x: 13px;*/   /* 13px */
+    /*--ratio-form-gap: 0.75rem;*/        /* 12px */
+/*}*/
 
 /* Card Container Styling */
-.dynamic-grid-card {
+/*.dynamic-grid-card {
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     background: #ffffff;
     transition: all 0.2s ease-in-out;
     border-radius: 0.5rem;
     overflow: hidden;
-}
+}*/
 
 /* Card Header Uniform Padding Rules */
-.dynamic-grid-header {
+/*.dynamic-grid-header {
     padding-top: var(--ratio-header-padding-y) !important;
     padding-bottom: var(--ratio-header-padding-y) !important;
     padding-left: var(--ratio-card-padding-x) !important;
     padding-right: var(--ratio-card-padding-x) !important;
-}
+}*/
 
 /* Form Container & Control Sizing for Universal Resolution Parity */
-.form-container-responsive {
+/*.form-container-responsive {
     padding: 0.25rem 0;
-}
+}*/
 
 /* Centered Setup Form Layout with Fluid Percentage Action Slots */
-.setup-form-container-centered {
+/*.setup-form-container-centered {
     padding-left: clamp(10px, 3.8%, 38px);
     padding-right: 0;
     width: 100%;
@@ -61,10 +61,10 @@
     border-radius: 4px !important;
     box-sizing: border-box !important;
     box-shadow: none;
-}
+}*/
 
 /* Global Quick-Add (+) Button styling and position within .field-fixed-width gap */
-.field-fixed-width {
+/*.field-fixed-width {
     width: calc(100% - 32px) !important;
     padding-right: 0 !important;
     position: relative !important;
@@ -141,24 +141,24 @@
         width: 28px !important;
         min-width: 28px !important;
     }
-}
+}*/
 
 /* DualInput 50%-50% Equal Width with gap-2 */
-.dual-input-group {
+/*.dual-input-group {
     display: flex !important;
     flex-wrap: nowrap !important;
     align-items: stretch !important;
     width: 100% !important;
-    gap: 0.5rem !important; /* Bootstrap gap-2 (8px) */
-}
+    gap: 0.5rem !important;*/ /* Bootstrap gap-2 (8px) */
+/*}*/
 
 /* Remove Bootstrap .input-group negative margin between attached items */
-.dual-input-group > * {
+/*.dual-input-group > * {
     margin-left: 0 !important;
-}
+}*/
 
 /* Hide raw select element if CustomDropdown or Select2 replaced it */
-.dual-input-group > select[style*="display: none"],
+/*.dual-input-group > select[style*="display: none"],
 .dual-input-group > select.custom-select-single[style*="display: none"],
 .dual-input-group > select.select2-hidden-accessible {
     display: none !important;
@@ -168,10 +168,10 @@
     margin: 0 !important;
     border: 0 !important;
     flex: 0 0 0% !important;
-}
+}*/
 
 /* First control (left input): 50% width with gap accounted for, restore full rounded corners */
-.dual-input-group > input:first-child,
+/*.dual-input-group > input:first-child,
 .dual-input-group > select:first-child,
 .dual-input-group > .form-control:first-child {
     flex: 0 0 calc((100% - 0.5rem) / 2) !important;
@@ -180,10 +180,10 @@
     min-width: calc((100% - 0.5rem) / 2) !important;
     border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
     box-sizing: border-box !important;
-}
+}*/
 
 /* Second control (right input / select / custom-dd-wrapper / select2): 50% width, restore full rounded corners */
-.dual-input-group > input:nth-child(2),
+/*.dual-input-group > input:nth-child(2),
 .dual-input-group > input:last-child,
 .dual-input-group > select:nth-child(2),
 .dual-input-group > .custom-dd-wrapper,
@@ -198,10 +198,10 @@
     margin-left: 0 !important;
     border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
     box-sizing: border-box !important;
-}
+}*/
 
 /* Ensure custom-dd-wrapper and its box inside dual-input-group have proper border-radius and width */
-.dual-input-group > .custom-dd-wrapper,
+/*.dual-input-group > .custom-dd-wrapper,
 .dual-input-group > select + .custom-dd-wrapper {
     width: calc((100% - 0.5rem) / 2) !important;
     max-width: calc((100% - 0.5rem) / 2) !important;
@@ -211,10 +211,10 @@
 .dual-input-group > select + .custom-dd-wrapper .custom-dd-box {
     border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
     width: 100% !important;
-}
+}*/
 
 /* Ensure Select2 inside dual-input-group has all rounded corners and full width */
-.dual-input-group .select2-container,
+/*.dual-input-group .select2-container,
 .dual-input-group .select2-container *,
 .dual-input-group select + .select2-container,
 .dual-input-group select + .select2-container *,
@@ -234,10 +234,10 @@
 
 .form-container-responsive .form-group {
     margin-bottom: var(--ratio-form-gap) !important;
-}
+}*/
 
 /* Toolbar & Action Buttons Responsive Fluid Scaling */
-.toolbar-container {
+/*.toolbar-container {
     overflow: hidden;
     width: 100%;
     gap: 0.5rem;
@@ -293,18 +293,18 @@
         padding-left: 0.5rem !important;
         padding-right: 0.5rem !important;
     }
-}
+}*/
 
 /* Responsive Table Scroll Container */
-.dynamic-grid-card .table-responsive {
+/*.dynamic-grid-card .table-responsive {
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 #f8fafc;
-}
+}*/
 
 /* Modern Gradient Table Header */
-.dynamic-grid-table {
+/*.dynamic-grid-table {
     margin-bottom: 0 !important;
     width: 100%;
 }
@@ -312,10 +312,10 @@
 .dynamic-grid-table thead {
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
     border-bottom: 2px solid #e2e8f0;
-}
+}*/
 
 /* Table Header - Centered & Scaled */
-.dynamic-grid-table thead th {
+/*.dynamic-grid-table thead th {
     font-size: var(--ratio-font-header);
     font-weight: 700;
     text-transform: none;
@@ -326,10 +326,10 @@
     border: none;
     text-align: center !important;
     vertical-align: middle !important;
-}
+}*/
 
 /* Row Hover & Cell Styling - Vertically Centered & Scaled */
-.dynamic-grid-table tbody tr {
+/*.dynamic-grid-table tbody tr {
     transition: background-color 0.15s ease-in-out;
     border-bottom: 1px solid #f1f5f9;
 }
@@ -347,10 +347,10 @@
     vertical-align: middle !important;
     font-size: var(--ratio-font-body);
     color: #334155;
-}
+}*/
 
 /* Dynamic Primary Key Link Styling */
-.dynamic-grid-link {
+/*.dynamic-grid-link {
     color: #2563eb;
     font-weight: 600;
     text-decoration: none;
@@ -360,10 +360,10 @@
 .dynamic-grid-link:hover {
     color: #1d4ed8;
     text-decoration: underline;
-}
+}*/
 
 /* Custom Checkbox Styling */
-.dynamic-grid-card .form-check-input {
+/*.dynamic-grid-card .form-check-input {
     width: 1.15em;
     height: 1.15em;
     cursor: pointer;
@@ -381,10 +381,10 @@
 .dynamic-grid-card .form-check-input:focus {
     border-color: #2563eb;
     box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
-}
+}*/
 
 /* Universal Application-Wide Modern Pagination System */
-.pagination,
+/*.pagination,
 #paginationNumbers {
     gap: 0.25rem !important;
     display: inline-flex !important;
@@ -402,8 +402,8 @@ a.page-link,
 #paginationLast {
     border-radius: 0.375rem !important;
     color: #475569 !important;
-    font-size: 13px !important; /* 13px */
-    font-weight: 600 !important;
+    font-size: 13px !important;*/ /* 13px */
+    /*font-weight: 600 !important;
     border: 1px solid #e2e8f0 !important;
     padding: 0.3rem 0.65rem !important;
     min-width: 32px;
@@ -448,10 +448,10 @@ button.page-link:disabled {
     color: #94a3b8 !important;
     cursor: not-allowed !important;
     opacity: 0.75;
-}
+}*/
 
 /* Clean Empty State */
-.dynamic-grid-empty-state {
+/*.dynamic-grid-empty-state {
     padding: 2.5rem 1rem;
     text-align: center;
 }
@@ -460,10 +460,10 @@ button.page-link:disabled {
     font-size: 2.5rem;
     color: #cbd5e1;
     margin-bottom: 0.75rem;
-}
+}*/
 
 /* Universal Application-Wide Modern Table System */
-table,
+/*table,
 .table,
 .table-responsive table,
 #JobSettingsTable,
@@ -490,8 +490,8 @@ table thead th,
 #JobSettingsTable thead th,
 .dyn-tableDrag thead th,
 .table-bordered thead th {
-    font-size: 13px; /* 14px default */
-    font-weight: 700 !important;
+    font-size: 13px;*/ /* 14px default */
+    /*font-weight: 700 !important;
     color: #475569 !important;
     padding: 0.4rem 0.65rem !important;
     border-bottom: 2px solid #cbd5e1 !important;
@@ -506,8 +506,8 @@ table tbody td,
 #JobSettingsTable tbody td,
 .dyn-tableDrag tbody td,
 .table-bordered tbody td {
-    font-size: 13px; /* 14px default */
-    padding: 0.35rem 0.65rem !important;
+    font-size: 13px;*/ /* 14px default */
+    /*padding: 0.35rem 0.65rem !important;
     vertical-align: middle !important;
     color: #334155 !important;
     border-color: #f1f5f9 !important;
@@ -546,13 +546,13 @@ table tbody tr:hover,
 .dyn-tableDrag tbody tr:hover,
 .table-bordered tbody tr:hover {
     background-color: #f8fafc !important;
-}
+}*/
 
 /* Fit-to-Content Job No Column Width */
-#JobSettingsTable th[data-sort="JobNo"],
+/*#JobSettingsTable th[data-sort="JobNo"],
 #JobSettingsTable td:first-child,
 .dynamic-grid-table th[data-field="JobNo"],
 .dynamic-grid-table td[data-field="JobNo"] {
     width: 1% !important;
     white-space: nowrap !important;
-}
+}*/
