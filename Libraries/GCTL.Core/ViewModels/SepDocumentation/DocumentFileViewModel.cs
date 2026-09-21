@@ -70,6 +70,8 @@ namespace GCTL.Core.ViewModels.SepDocumentation
         public string Date { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public string CustomerAddress { get; set; } = string.Empty;
+        public string ShipmentMode { get; set; } = string.Empty;
+        public string BeNo { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
     }
 

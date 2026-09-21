@@ -615,26 +615,32 @@ $(document).ready(function () {
             $('#uploadJobDateDisplay').val('');
             $('#uploadCustomerDisplay').val('');
             $('#uploadAddressDisplay').val('');
+            $('#uploadShipmentModeDisplay').val('');
+            $('#uploadBeNoDisplay').val('');
             $('#docEntryDate').text('');
             $('#docModifyDate').text('');
             renderDocumentTable([]);
             return;
         }
 
-        // Fetch job details (date, customer, address)
+        // Fetch job details (date, customer, address, shipmentMode, beNo)
         $.ajax({
             url: '/SepDocUpdate/GetJobDetailsForUpload',
             type: 'GET',
             data: { jobNo: jobNo },
             success: function (res) {
-                if (res.success) {
+                if (res.success) {                    
                     $('#uploadJobDateDisplay').val(res.date || '');
                     $('#uploadCustomerDisplay').val(res.customerName || '');
                     $('#uploadAddressDisplay').val(res.customerAddress || '');
+                    $('#uploadShipmentModeDisplay').val(res.shipmentMode || '');
+                    $('#uploadBeNoDisplay').val(res.beNo || '');
                 } else {
                     $('#uploadJobDateDisplay').val('');
                     $('#uploadCustomerDisplay').val('');
                     $('#uploadAddressDisplay').val('');
+                    $('#uploadShipmentModeDisplay').val('');
+                    $('#uploadBeNoDisplay').val('');
                 }
             },
             error: function () {
