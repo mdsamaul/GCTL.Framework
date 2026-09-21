@@ -420,7 +420,7 @@
                     setDatepickerVal('#PaymentReceiveDate', today);
                     setDatepickerVal('#MrDate', today);
                 }
-                if ($('#filterToDate').length) {
+                if ($('#filterToDate').length && !$('#filterToDate').val()) {
                     setDatepickerVal('#filterToDate', today);
                 }
             }
@@ -943,15 +943,18 @@
                     }
                 }
 
+                // Ensure all selected values are always in options
+                selectedArray.forEach(addInvoice);
+
+                // Cap options at max 200 items to prevent UI freeze from generating thousands of DOM nodes
+                var maxOptions = 200;
                 if (Array.isArray(invoices)) {
-                    invoices.forEach(function (inv) {
+                    for (var i = 0; i < invoices.length && uniqueInvoices.length < maxOptions; i++) {
+                        var inv = invoices[i];
                         var no = typeof inv === 'string' ? inv : (inv.billNo || inv.invoiceNo || inv.BillNo || '');
                         addInvoice(no);
-                    });
+                    }
                 }
-
-                // Ensure selected values are in options
-                selectedArray.forEach(addInvoice);
 
                 // Build clean options (NO empty option!)
                 var optionsHtml = '';
@@ -1075,19 +1078,37 @@
             }
             //#endregion
 
-            //#region Bottom Filter By: Auto reload on date change
-            function reloadReceivedGridWithDates() {
-                var fromDate = $('#filterFromDate').val();
-                var toDate = $('#filterToDate').val();
-                if (!fromDate || !toDate) return;
-                var newUrl = base + `/SearchPaymentReceived?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
-                if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.receivedGridSelector)) {
-                    $(settings.receivedGridSelector).DataTable().ajax.url(newUrl).load();
-                } else if ($.gctlGrid) {
-                    $.gctlGrid.initFromModel({
-                        gridId: settings.receivedGridId,
-                        ajaxUrl: newUrl
-                    });
+            //#region Bottom Filter By: Auto reload on date change (debounced)
+            var filterDebounceTimer = null;
+            var lastFilterUrl = '';
+            function reloadReceivedGridWithDates(immediate) {
+                if (filterDebounceTimer) {
+                    clearTimeout(filterDebounceTimer);
+                    filterDebounceTimer = null;
+                }
+
+                var doReload = function () {
+                    var fromDate = $('#filterFromDate').val();
+                    var toDate = $('#filterToDate').val();
+                    if (!fromDate || !toDate) return;
+                    var newUrl = base + `/SearchPaymentReceived?fromDate=${encodeURIComponent(fromDate)}&toDate=${encodeURIComponent(toDate)}`;
+                    if (newUrl === lastFilterUrl) return;
+                    lastFilterUrl = newUrl;
+
+                    if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.receivedGridSelector)) {
+                        $(settings.receivedGridSelector).DataTable().ajax.url(newUrl).load();
+                    } else if ($.gctlGrid) {
+                        $.gctlGrid.initFromModel({
+                            gridId: settings.receivedGridId,
+                            ajaxUrl: newUrl
+                        });
+                    }
+                };
+
+                if (immediate) {
+                    doReload();
+                } else {
+                    filterDebounceTimer = setTimeout(doReload, 150);
                 }
             }
 
@@ -1244,7 +1265,6 @@
                 }
                 setDatepickerVal('#PaymentReceiveDate', new Date());
                 setDatepickerVal('#MrDate', new Date());
-                setDatepickerVal('#filterToDate', new Date());
                 $('#Amount').val('');
                 $('#BankFeeOnlineCharge').val('');
                 $('#AIT').val('0.00000');

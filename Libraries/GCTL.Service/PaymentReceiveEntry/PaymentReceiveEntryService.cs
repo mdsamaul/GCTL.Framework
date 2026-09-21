@@ -79,13 +79,23 @@ namespace GCTL.Service.PaymentReceiveEntry
                 if (string.IsNullOrWhiteSpace(customerId))
                     return new List<CustomerDueInvoiceViewModel>();
 
+                var cleanId = customerId.Trim();
+                var cacheKey = $"DueInvoices_{cleanId}";
+                if (_cache.TryGetValue(cacheKey, out List<CustomerDueInvoiceViewModel>? cached) && cached != null)
+                {
+                    return cached;
+                }
+
                 using var con = new SqlConnection(_connectionString);
-                var list = await con.QueryAsync<CustomerDueInvoiceViewModel>(
+                var list = (await con.QueryAsync<CustomerDueInvoiceViewModel>(
                     "prc_GetCustomerDueInvoiceList",
-                    new { CustomerId = customerId },
-                    commandType: CommandType.StoredProcedure
-                );
-                return list.ToList();
+                    new { CustomerId = cleanId },
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 15
+                )).ToList();
+
+                _cache.Set(cacheKey, list, TimeSpan.FromSeconds(30));
+                return list;
             }
             catch (Exception ex)
             {
@@ -98,13 +108,22 @@ namespace GCTL.Service.PaymentReceiveEntry
         {
             try
             {
+                var cacheKey = $"GridPaymentReceived_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}";
+                if (_cache.TryGetValue(cacheKey, out List<PaymentReceivedGridItemViewModel>? cached) && cached != null)
+                {
+                    return cached;
+                }
+
                 using var con = new SqlConnection(_connectionString);
-                var list = await con.QueryAsync<PaymentReceivedGridItemViewModel>(
+                var list = (await con.QueryAsync<PaymentReceivedGridItemViewModel>(
                     "prc_LoadGridPaymentReceived",
                     new { FromDate = fromDate, ToDate = toDate },
-                    commandType: CommandType.StoredProcedure
-                );
-                return list.ToList();
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 15
+                )).ToList();
+
+                _cache.Set(cacheKey, list, TimeSpan.FromSeconds(15));
+                return list;
             }
             catch (Exception ex)
             {
@@ -362,6 +381,10 @@ namespace GCTL.Service.PaymentReceiveEntry
 
                     tran.Commit();
                     _cache.Remove(CustomerListCacheKey);
+                    if (!string.IsNullOrWhiteSpace(entityVM.CustomerId))
+                    {
+                        _cache.Remove($"DueInvoices_{entityVM.CustomerId.Trim()}");
+                    }
                     return true;
                 }
                 catch
@@ -456,6 +479,10 @@ namespace GCTL.Service.PaymentReceiveEntry
 
                     tran.Commit();
                     _cache.Remove(CustomerListCacheKey);
+                    if (!string.IsNullOrWhiteSpace(entityVM.CustomerId))
+                    {
+                        _cache.Remove($"DueInvoices_{entityVM.CustomerId.Trim()}");
+                    }
                     return true;
                 }
                 catch
