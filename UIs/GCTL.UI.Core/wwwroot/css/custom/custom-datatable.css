@@ -377,19 +377,36 @@ td:hover .btn-copy-code {
     opacity: 1;
 }
 
-/* Skeleton Shimmer Loading Placeholder */
+/* Table In-Place Seamless Reloading State (Normal Appearance) */
+table.gctl-table-loading tbody {
+    /* Retain completely normal appearance during seamless in-place reload */
+}
+
+/* Skeleton Shimmer Loading Placeholder (Initial Cold Load) */
 .skeleton-row td {
+    height: 35px !important;
+    vertical-align: middle !important;
     background-color: #ffffff !important;
+    padding: 0.3rem 0.5rem !important;
+}
+
+div.dt-container table.dataTable.custom-grid-compact .skeleton-row td,
+div.dt-container table.dataTable.table-sm .skeleton-row td,
+.custom-grid-table.custom-grid-compact .skeleton-row td,
+.custom-grid-table.table-sm .skeleton-row td {
+    height: 22px !important;
+    padding: 1px 4px !important;
 }
 
 .skeleton-box {
     display: inline-block;
-    height: 12px;
+    height: 14px;
     width: 100%;
     background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
     background-size: 200% 100%;
     border-radius: 3px;
     animation: shimmer 1.5s infinite;
+    vertical-align: middle;
 }
 
 @keyframes shimmer {
