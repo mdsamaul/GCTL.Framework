@@ -79,30 +79,24 @@
                     return formatCurrency(data);
                 };
             }
-            if (!window.gctlRenderers.renderBillListPopover) {
-                window.gctlRenderers.renderBillListPopover = function (data, type, row) {
-                    var billsStr = data || (row ? (row.billList || row.AgainstBillList || '') : '');
-                    if (!billsStr || !billsStr.trim()) {
-                        return '<span class="text-muted small">-</span>';
-                    }
-                    var bills = billsStr.split(/[\r\n,;]+/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
-                    if (bills.length === 0) {
-                        return '<span class="text-muted small">-</span>';
-                    }
-                    var listHtml = '<div class="bill-list-popover-menu shadow" style="display:none; position:absolute; z-index:99999; background:#fff; border:1px solid #c2c9d1; border-radius:4px; max-height:160px; overflow-y:auto; padding:5px 8px; font-size:11.5px; text-align:left; min-width:180px; left:50%; transform:translateX(-50%); top:100%; margin-top:3px;">';
-                    bills.forEach(function (b) {
-                        listHtml += '<div class="py-1 border-bottom text-dark fw-semibold" style="font-family:monospace; white-space:nowrap;">' + b + '</div>';
-                    });
-                    listHtml += '</div>';
+            window.gctlRenderers.renderBillListPopover = function (data, type, row) {
+                var billsStr = data || (row ? (row.billList || row.AgainstBillList || '') : '');
+                if (!billsStr || !billsStr.trim()) {
+                    return '<span class="text-muted small">-</span>';
+                }
+                var bills = billsStr.split(/[\r\n,;]+/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+                if (bills.length === 0) {
+                    return '<span class="text-muted small">-</span>';
+                }
+                var rawBills = encodeURIComponent(JSON.stringify(bills));
+                return '<div class="bill-list-wrapper d-inline-block">' +
+                       '<button type="button" class="btn btn-xs btn-outline-secondary js-toggle-bill-list py-0 px-2" data-bills-json="' + rawBills + '" style="font-size:11px; height:22px; line-height:20px;" title="Click to view ' + bills.length + ' invoices">' +
+                       '<i class="fas fa-list-ul text-secondary"></i>' +
+                       '</button>' +
+                       '</div>';
+            };
+            window.gctlRenderers.renderBillList = window.gctlRenderers.renderBillListPopover;
 
-                    return '<div class="bill-list-wrapper position-relative d-inline-block">' +
-                           '<button type="button" class="btn btn-xs btn-outline-secondary js-toggle-bill-list py-0 px-2" style="font-size:11px; height:22px; line-height:20px;" title="Click to view ' + bills.length + ' invoices">' +
-                           '<i class="fas fa-list-ul text-secondary"></i>' +
-                           '</button>' +
-                           listHtml +
-                           '</div>';
-                };
-            }
             if (!window.gctlRenderers.renderStatusBadge) {
                 window.gctlRenderers.renderStatusBadge = function (data) {
                     return '<span class="text-success fw-semibold" style="font-size:12px;">' + (data || 'Approved') + '</span>';
@@ -119,16 +113,118 @@
                 };
             }
 
+            // Floating Bill List Popover (appended to body to prevent table overflow clipping & z-index/stacking overlap)
+            function getFloatingBillListPopover() {
+                var $popover = $('#gctl-bill-list-floating-popover');
+                if ($popover.length === 0) {
+                    $popover = $('<div id="gctl-bill-list-floating-popover" class="shadow-lg" style="display:none; position:fixed; z-index:99999999; background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; max-height:240px; overflow-y:auto; padding:6px 10px; font-size:11.5px; text-align:left; min-width:220px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.3), 0 8px 10px -6px rgba(0,0,0,0.2) !important;"></div>').appendTo('body');
+                }
+                return $popover;
+            }
+
             // Toggle bill list popover
             $("body").off('click', '.js-toggle-bill-list').on('click', '.js-toggle-bill-list', function (e) {
                 e.stopPropagation();
-                var $menu = $(this).siblings('.bill-list-popover-menu');
-                $('.bill-list-popover-menu').not($menu).hide();
-                $menu.toggle();
+                var btn = this;
+                var $btn = $(btn);
+                var $popover = getFloatingBillListPopover();
+
+                // If clicking the same button that is currently open, toggle off
+                if ($popover.is(':visible') && $popover.data('trigger-btn') === btn) {
+                    $popover.hide().removeData('trigger-btn');
+                    return;
+                }
+
+                // Extract bills
+                var bills = [];
+                var rawJson = $btn.attr('data-bills-json');
+                if (rawJson) {
+                    try {
+                        bills = JSON.parse(decodeURIComponent(rawJson));
+                    } catch (err) { }
+                }
+                if (!bills || bills.length === 0) {
+                    var rawAttr = $btn.attr('data-bills');
+                    if (rawAttr) {
+                        bills = rawAttr.split('|||');
+                    } else {
+                        var $menu = $btn.siblings('.bill-list-popover-menu');
+                        if ($menu.length) {
+                            bills = $menu.find('div').map(function () { return $(this).text().trim(); }).get();
+                        }
+                    }
+                }
+
+                if (!bills || bills.length === 0) {
+                    return;
+                }
+
+                var contentHtml = '<div class="d-flex justify-content-between align-items-center pb-1 mb-2 border-bottom bg-light px-2 py-1 rounded" style="margin:-6px -10px 6px -10px;">' +
+                                  '<span class="fw-bold text-dark" style="font-size:11.5px;"><i class="fas fa-file-invoice text-primary me-1"></i>Invoices (' + bills.length + ')</span>' +
+                                  '<span class="js-close-bill-popover text-muted ms-2" style="cursor:pointer; font-size:15px; line-height:1; font-weight:bold;" title="Close">&times;</span>' +
+                                  '</div>' +
+                                  '<div class="bill-list-items" style="max-height:180px; overflow-y:auto;">';
+
+                bills.forEach(function (b) {
+                    contentHtml += '<div class="py-1 border-bottom text-dark fw-semibold d-flex align-items-center" style="font-family:monospace; font-size:11.5px; white-space:nowrap;">' +
+                                   '<i class="fas fa-file-alt text-secondary me-2 small"></i>' +
+                                   $('<div>').text(b).html() +
+                                   '</div>';
+                });
+                contentHtml += '</div>';
+
+                $popover.html(contentHtml).data('trigger-btn', btn);
+
+                // Position calculation relative to viewport
+                var rect = btn.getBoundingClientRect();
+                $popover.css({ display: 'block', visibility: 'hidden', top: 0, left: 0 });
+                var popWidth = $popover.outerWidth() || 220;
+                var popHeight = $popover.outerHeight() || 180;
+
+                var left = rect.left + (rect.width / 2) - (popWidth / 2);
+                if (left < 10) left = 10;
+                if (left + popWidth > window.innerWidth - 10) {
+                    left = window.innerWidth - popWidth - 10;
+                }
+
+                var top = rect.bottom + 4;
+                // If it goes past bottom of viewport and fits above, flip to top
+                if (top + popHeight > window.innerHeight - 10 && (rect.top - popHeight - 4) > 10) {
+                    top = rect.top - popHeight - 4;
+                }
+
+                $popover.css({
+                    top: Math.round(top) + 'px',
+                    left: Math.round(left) + 'px',
+                    visibility: 'visible'
+                });
             });
 
-            $(document).on('click', function () {
-                $('.bill-list-popover-menu').hide();
+            // Close popover when clicking anywhere outside
+            $(document).on('click', function (e) {
+                var $popover = $('#gctl-bill-list-floating-popover');
+                if ($popover.is(':visible')) {
+                    if (!$(e.target).closest('#gctl-bill-list-floating-popover, .js-toggle-bill-list').length) {
+                        $popover.hide().removeData('trigger-btn');
+                    }
+                }
+            });
+
+            // Close popover on close button click
+            $("body").off('click', '.js-close-bill-popover').on('click', '.js-close-bill-popover', function (e) {
+                e.stopPropagation();
+                $('#gctl-bill-list-floating-popover').hide().removeData('trigger-btn');
+            });
+
+            // Close popover on window scroll, resize, or table scroll
+            $(window).on('scroll resize', function () {
+                $('#gctl-bill-list-floating-popover').hide().removeData('trigger-btn');
+            });
+            $("body").on('scroll', '.dataTables_scrollBody, .table-responsive, .custom-grid-card', function () {
+                $('#gctl-bill-list-floating-popover').hide().removeData('trigger-btn');
+            });
+            $(document).on('draw.dt', function () {
+                $('#gctl-bill-list-floating-popover').hide().removeData('trigger-btn');
             });
 
             // Listen for DataTables error event to log safely without alerting user

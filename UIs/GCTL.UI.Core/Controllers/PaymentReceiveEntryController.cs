@@ -187,6 +187,22 @@ namespace GCTL.UI.Core.Controllers
                     }
                 }
 
+                modelVM.PaymentReceiveId ??= string.Empty;
+                modelVM.CustomerId ??= string.Empty;
+                modelVM.AgainstBillList ??= string.Empty;
+                modelVM.PaymentTypeId = string.IsNullOrWhiteSpace(modelVM.PaymentTypeId) ? "01" : modelVM.PaymentTypeId;
+                modelVM.PaymentModeCode = string.IsNullOrWhiteSpace(modelVM.PaymentModeCode) ? "001" : modelVM.PaymentModeCode;
+                modelVM.MrNo ??= string.Empty;
+                modelVM.AIT ??= 0;
+                modelVM.AITChallanNo ??= string.Empty;
+                modelVM.AITInvoiceNo ??= string.Empty;
+                modelVM.AITChallanUpload ??= string.Empty;
+                modelVM.Remarks ??= string.Empty;
+                modelVM.Receivedby ??= string.Empty;
+                modelVM.CompanyCode = string.IsNullOrWhiteSpace(LoginInfo?.CompanyCode) ? "001" : LoginInfo.CompanyCode;
+                modelVM.EmployeeId = LoginInfo?.EmployeeId ?? string.Empty;
+                modelVM.BankFeeOnlineCharge ??= 0;
+
                 if (!isUpdate)
                 {
                     var hasSavePermission = await _paymentReceiveService.SavePermissionAsync(LoginInfo?.AccessCode ?? string.Empty);

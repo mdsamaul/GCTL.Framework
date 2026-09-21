@@ -295,38 +295,51 @@ namespace GCTL.Service.PaymentReceiveEntry
                             PaymentReceiveID, PaymentReceiveDate, MRNo, MRDate, CustomerID,
                             AgainstBillList, PaymentTypeID, PaymentModeCode, Amount, BankFeeOnlineCharge,
                             AIT, AITChallanNo, AITInvoiceNo, AITChallanUpload,
-                            Remarks, Receivedby, LUser, LDate, LIP, LMAC, CompanyCode, EmployeeID
+                            Remarks, Receivedby, LUser, LDate, LIP, LMAC, CompanyCode, EmployeeID,
+                            ChequeNo, ChequeBank, IsChequeVerified, TransferredBank, TransferredACName,
+                            TransferredACNo, DepositedACNo, TransfterMobileNo, DepositMobileNo
                         ) VALUES (
                             @PaymentReceiveId, @PaymentReceiveDate, @MrNo, @MrDate, @CustomerId,
                             @AgainstBillList, @PaymentTypeId, @PaymentModeCode, @Amount, @BankFeeOnlineCharge,
                             @AIT, @AITChallanNo, @AITInvoiceNo, @AITChallanUpload,
-                            @Remarks, @Receivedby, @Luser, GETDATE(), @Lip, @Lmac, @CompanyCode, @EmployeeId
+                            @Remarks, @Receivedby, @Luser, GETDATE(), @Lip, @Lmac, @CompanyCode, @EmployeeId,
+                            @ChequeNo, @ChequeBank, @IsChequeVerified, @TransferredBank, @TransferredACName,
+                            @TransferredACNo, @DepositedACNo, @TransfterMobileNo, @DepositMobileNo
                         );
                         SELECT SCOPE_IDENTITY();";
 
                     var newId = await con.ExecuteScalarAsync<decimal>(insertHeaderSql, new
                     {
-                        entityVM.PaymentReceiveId,
+                        PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty,
                         PaymentReceiveDate = entityVM.PaymentReceiveDate ?? DateTime.Now,
-                        entityVM.MrNo,
+                        MrNo = entityVM.MrNo ?? string.Empty,
                         MrDate = entityVM.MrDate ?? DateTime.Now,
-                        entityVM.CustomerId,
-                        entityVM.AgainstBillList,
+                        CustomerId = entityVM.CustomerId ?? string.Empty,
+                        AgainstBillList = entityVM.AgainstBillList ?? string.Empty,
                         PaymentTypeId = string.IsNullOrWhiteSpace(entityVM.PaymentTypeId) ? "01" : entityVM.PaymentTypeId,
                         PaymentModeCode = string.IsNullOrWhiteSpace(entityVM.PaymentModeCode) ? "001" : entityVM.PaymentModeCode,
                         Amount = entityVM.Amount ?? 0,
                         BankFeeOnlineCharge = entityVM.BankFeeOnlineCharge ?? 0,
                         AIT = entityVM.AIT ?? 0,
-                        entityVM.AITChallanNo,
-                        entityVM.AITInvoiceNo,
-                        entityVM.AITChallanUpload,
-                        entityVM.Remarks,
-                        entityVM.Receivedby,
-                        entityVM.Luser,
-                        entityVM.Lip,
-                        entityVM.Lmac,
-                        CompanyCode = entityVM.CompanyCode ?? "001",
-                        entityVM.EmployeeId
+                        AITChallanNo = entityVM.AITChallanNo ?? string.Empty,
+                        AITInvoiceNo = entityVM.AITInvoiceNo ?? string.Empty,
+                        AITChallanUpload = entityVM.AITChallanUpload ?? string.Empty,
+                        Remarks = entityVM.Remarks ?? string.Empty,
+                        Receivedby = entityVM.Receivedby ?? string.Empty,
+                        Luser = entityVM.Luser ?? string.Empty,
+                        Lip = entityVM.Lip ?? string.Empty,
+                        Lmac = entityVM.Lmac ?? string.Empty,
+                        CompanyCode = string.IsNullOrWhiteSpace(entityVM.CompanyCode) ? "001" : entityVM.CompanyCode,
+                        EmployeeId = entityVM.EmployeeId ?? string.Empty,
+                        ChequeNo = string.Empty,
+                        ChequeBank = string.Empty,
+                        IsChequeVerified = string.Empty,
+                        TransferredBank = string.Empty,
+                        TransferredACName = string.Empty,
+                        TransferredACNo = string.Empty,
+                        DepositedACNo = string.Empty,
+                        TransfterMobileNo = string.Empty,
+                        DepositMobileNo = string.Empty
                     }, tran);
 
                     entityVM.Tc = newId;
@@ -380,35 +393,48 @@ namespace GCTL.Service.PaymentReceiveEntry
                             ModifyDate = GETDATE(),
                             LUser = @Luser,
                             LIP = @Lip,
-                            LMAC = @Lmac
+                            LMAC = @Lmac,
+                            CompanyCode = @CompanyCode,
+                            EmployeeID = @EmployeeId,
+                            ChequeNo = ISNULL(ChequeNo, ''),
+                            ChequeBank = ISNULL(ChequeBank, ''),
+                            IsChequeVerified = ISNULL(IsChequeVerified, ''),
+                            TransferredBank = ISNULL(TransferredBank, ''),
+                            TransferredACName = ISNULL(TransferredACName, ''),
+                            TransferredACNo = ISNULL(TransferredACNo, ''),
+                            DepositedACNo = ISNULL(DepositedACNo, ''),
+                            TransfterMobileNo = ISNULL(TransfterMobileNo, ''),
+                            DepositMobileNo = ISNULL(DepositMobileNo, '')
                         WHERE PaymentReceiveID = @PaymentReceiveId";
 
                     await con.ExecuteAsync(updateHeaderSql, new
                     {
-                        entityVM.PaymentReceiveId,
+                        PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty,
                         PaymentReceiveDate = entityVM.PaymentReceiveDate ?? DateTime.Now,
-                        entityVM.MrNo,
+                        MrNo = entityVM.MrNo ?? string.Empty,
                         MrDate = entityVM.MrDate ?? DateTime.Now,
-                        entityVM.CustomerId,
-                        entityVM.AgainstBillList,
+                        CustomerId = entityVM.CustomerId ?? string.Empty,
+                        AgainstBillList = entityVM.AgainstBillList ?? string.Empty,
                         PaymentTypeId = string.IsNullOrWhiteSpace(entityVM.PaymentTypeId) ? "01" : entityVM.PaymentTypeId,
                         PaymentModeCode = string.IsNullOrWhiteSpace(entityVM.PaymentModeCode) ? "001" : entityVM.PaymentModeCode,
                         Amount = entityVM.Amount ?? 0,
                         BankFeeOnlineCharge = entityVM.BankFeeOnlineCharge ?? 0,
                         AIT = entityVM.AIT ?? 0,
-                        entityVM.AITChallanNo,
-                        entityVM.AITInvoiceNo,
-                        entityVM.AITChallanUpload,
-                        entityVM.Remarks,
-                        entityVM.Receivedby,
-                        entityVM.Luser,
-                        entityVM.Lip,
-                        entityVM.Lmac
+                        AITChallanNo = entityVM.AITChallanNo ?? string.Empty,
+                        AITInvoiceNo = entityVM.AITInvoiceNo ?? string.Empty,
+                        AITChallanUpload = entityVM.AITChallanUpload ?? string.Empty,
+                        Remarks = entityVM.Remarks ?? string.Empty,
+                        Receivedby = entityVM.Receivedby ?? string.Empty,
+                        Luser = entityVM.Luser ?? string.Empty,
+                        Lip = entityVM.Lip ?? string.Empty,
+                        Lmac = entityVM.Lmac ?? string.Empty,
+                        CompanyCode = string.IsNullOrWhiteSpace(entityVM.CompanyCode) ? "001" : entityVM.CompanyCode,
+                        EmployeeId = entityVM.EmployeeId ?? string.Empty
                     }, tran);
 
                     // Delete existing details
                     const string deleteDetailsSql = @"DELETE FROM PaymentReceiveDetails WHERE PaymentReceiveID = @PaymentReceiveId";
-                    await con.ExecuteAsync(deleteDetailsSql, new { entityVM.PaymentReceiveId }, tran);
+                    await con.ExecuteAsync(deleteDetailsSql, new { PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty }, tran);
 
                     // Re-insert detail invoices
                     await SaveDetailsAsync(con, tran, entityVM);
@@ -478,8 +504,8 @@ namespace GCTL.Service.PaymentReceiveEntry
                 {
                     await con.ExecuteAsync(insertDetailSql, new
                     {
-                        entityVM.PaymentReceiveId,
-                        item.InvoiceNo,
+                        PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty,
+                        InvoiceNo = item.InvoiceNo?.Trim() ?? string.Empty,
                         Amount = item.Amount
                     }, tran);
                 }
