@@ -68,6 +68,26 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
         public decimal? Amount { get; set; }
         public string HeadId { get; set; }
         public decimal? SpecialDiscount { get; set; }
+
+        public decimal? InvBdtRate { get; set; }
+        public decimal? InvBdtTotal { get; set; }
+        public int? NoTransport { get; set; }
+        public int? DemarageDay { get; set; }
+        public string? UndertakingNo { get; set; }
+        public string? ArrivalDate { get; set; }
+        public string? EfrNo { get; set; }
+        public string? EfrDate { get; set; }
+        public string? RotNo { get; set; }
+        public string? Hawb { get; set; }
+        public decimal? PackQty { get; set; }
+        public string? PackQtyUnitId { get; set; }
+        public string? EtaDeliveryDate { get; set; }
+        public string? ActualDeliveryDate { get; set; }
+        public string? UnstuffingDate { get; set; }
+        public string? PlaceOfLoadingId { get; set; }
+        public string? EtdDate { get; set; }
+        public string? ShedYardId { get; set; }
+        public string? FreightChargeId { get; set; }
     }
 
     public class ExpenseDetailDto
@@ -79,7 +99,7 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
         public string ServiceType { get; set; } = string.Empty;
         public decimal? ConfirmAmt { get; set; }
         public decimal? BillAmt { get; set; }
-        public bool Include { get; set; } = true;
+        public bool Include { get; set; } = false;
     }
 
     public class ChargeTableItemDto

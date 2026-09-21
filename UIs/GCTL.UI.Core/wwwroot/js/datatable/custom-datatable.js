@@ -68,6 +68,7 @@
 
             var dtOptions = $.extend(true, {
                 autoWidth: false,
+                deferRender: true,
                 serverSide: settings.serverSide,
                 columnDefs: [{ targets: '_all', orderSequence: ['asc', 'desc'] }].concat(settings.columnDefs),
                 columns: settings.columns,

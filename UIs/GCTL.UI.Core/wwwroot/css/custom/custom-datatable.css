@@ -377,28 +377,19 @@ td:hover .btn-copy-code {
     opacity: 1;
 }
 
-/* Table In-Place Seamless Reloading State (Normal Appearance) */
-table.gctl-table-loading tbody {
-    /* Retain completely normal appearance during seamless in-place reload */
-}
-
-/* Skeleton Shimmer Loading Placeholder (Initial Cold Load) */
+/* Skeleton Shimmer Loading Placeholder */
 .skeleton-row td {
-    height: 35px !important;
-    vertical-align: middle !important;
     background-color: #ffffff !important;
-    padding: 0.3rem 0.5rem !important;
 }
 
 .skeleton-box {
     display: inline-block;
-    height: 14px;
+    height: 12px;
     width: 100%;
     background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
     background-size: 200% 100%;
     border-radius: 3px;
     animation: shimmer 1.5s infinite;
-    vertical-align: middle;
 }
 
 @keyframes shimmer {
@@ -483,6 +474,126 @@ div.dt-container table.dataTable thead th div.dt-column-header,
         transform: translateY(-50%) !important;
     }
 
+/* ==========================================================================
+   Compact Design System (Activated by Model.Compact / .custom-grid-compact / .table-sm)
+   Applies ultra-compact metrics across table headers, rows, inputs, and pagination.
+   ========================================================================== */
 
+/* Compact Header Cells - Single line gets comfortable padding */
+div.dt-container table.dataTable.custom-grid-compact thead th,
+div.dt-container table.dataTable.table-sm thead th,
+.custom-grid-table.custom-grid-compact thead th,
+.custom-grid-table.table-sm thead th {
+    padding: 6px 5px !important;
+    font-size: 11.5px !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+}
 
- 
+/* Compact Header Cells - Double line (with <br>) gets tight padding */
+div.dt-container table.dataTable.custom-grid-compact thead th:has(br),
+div.dt-container table.dataTable.table-sm thead th:has(br),
+.custom-grid-table.custom-grid-compact thead th:has(br),
+.custom-grid-table.table-sm thead th:has(br) {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    line-height: 1.15 !important;
+}
+
+/* Compact Body Rows & Cells */
+div.dt-container table.dataTable.custom-grid-compact tbody td,
+div.dt-container table.dataTable.table-sm tbody td,
+.custom-grid-table.custom-grid-compact tbody td,
+.custom-grid-table.table-sm tbody td {
+    padding: 1px 4px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+}
+
+/* Compact Inputs, Selects inside Cells */
+div.dt-container table.dataTable.custom-grid-compact tbody td input:not([type="checkbox"]):not([type="radio"]),
+div.dt-container table.dataTable.custom-grid-compact tbody td select,
+div.dt-container table.dataTable.table-sm tbody td input:not([type="checkbox"]):not([type="radio"]),
+div.dt-container table.dataTable.table-sm tbody td select,
+.custom-grid-table.custom-grid-compact tbody td input:not([type="checkbox"]):not([type="radio"]),
+.custom-grid-table.custom-grid-compact tbody td select,
+.custom-grid-table.table-sm tbody td input:not([type="checkbox"]):not([type="radio"]),
+.custom-grid-table.table-sm tbody td select {
+    height: 22px !important;
+    font-size: 11.5px !important;
+    padding: 0 4px !important;
+    line-height: 20px !important;
+}
+
+/* Compact Checkboxes & Radios */
+div.dt-container table.dataTable.custom-grid-compact .form-check-input,
+div.dt-container table.dataTable.table-sm .form-check-input,
+.custom-grid-table.custom-grid-compact .form-check-input,
+.custom-grid-table.table-sm .form-check-input {
+    margin: 0 !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Compact Buttons inside Cells */
+div.dt-container table.dataTable.custom-grid-compact tbody td .btn,
+div.dt-container table.dataTable.table-sm tbody td .btn,
+.custom-grid-table.custom-grid-compact tbody td .btn,
+.custom-grid-table.table-sm tbody td .btn {
+    padding: 0 3px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+}
+
+/* Compact DataTables Layout & Toolbar */
+div.dt-container:has(table.custom-grid-compact) .dt-layout-row,
+div.dt-container:has(table.table-sm) .dt-layout-row,
+.custom-grid-compact-container .dt-layout-row {
+    margin-bottom: 0.15rem !important;
+}
+
+div.dt-container:has(table.custom-grid-compact) .dt-search input,
+div.dt-container:has(table.table-sm) .dt-search input,
+.custom-grid-compact-container .dt-search input {
+    height: 24px !important;
+    font-size: 11.5px !important;
+    padding: 0.1rem 0.4rem 0.1rem 1.6rem !important;
+    background-size: 11px 11px !important;
+}
+
+div.dt-container:has(table.custom-grid-compact) .dt-length select,
+div.dt-container:has(table.table-sm) .dt-length select,
+.custom-grid-compact-container .dt-length select {
+    height: 24px !important;
+    font-size: 11.5px !important;
+    padding: 0.05rem 1.2rem 0.05rem 0.3rem !important;
+    min-width: 48px !important;
+}
+
+/* Compact Pagination Info & Controls */
+div.dt-container:has(table.custom-grid-compact) .dt-info,
+div.dt-container:has(table.table-sm) .dt-info,
+.custom-grid-compact-container .dt-info,
+div.dt-container:has(table.custom-grid-compact) .dt-paging,
+div.dt-container:has(table.table-sm) .dt-paging,
+.custom-grid-compact-container .dt-paging {
+    font-size: 11px !important;
+}
+
+div.dt-container:has(table.custom-grid-compact) .pagination,
+div.dt-container:has(table.table-sm) .pagination,
+.custom-grid-compact-container .pagination {
+    gap: 1px !important;
+    margin-bottom: 0 !important;
+}
+
+div.dt-container:has(table.custom-grid-compact) .pagination .page-link,
+div.dt-container:has(table.table-sm) .pagination .page-link,
+.custom-grid-compact-container .pagination .page-link {
+    font-size: 11px !important;
+    padding: 0 4px !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    line-height: 20px !important;
+}

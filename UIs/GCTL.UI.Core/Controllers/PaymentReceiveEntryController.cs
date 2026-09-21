@@ -70,6 +70,8 @@ namespace GCTL.UI.Core.Controllers
                     MrDate = DateTime.Now,
                     CreationDate = DateTime.Now.ToString("dd/MM/yyyy")
                 };
+
+                model.CustomerList = await _paymentReceiveService.GetCustomerListForPaymentReceiveAsync();
             }
             catch (Exception ex)
             {
@@ -296,9 +298,11 @@ namespace GCTL.UI.Core.Controllers
                 DateTime dtFrom = DateTime.Now.AddMonths(-1);
                 DateTime dtTo = DateTime.Now;
 
+                string[] formats = { "dd/MM/yyyy", "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy" };
+
                 if (!string.IsNullOrWhiteSpace(fromDate))
                 {
-                    if (DateTime.TryParseExact(fromDate, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var f))
+                    if (DateTime.TryParseExact(fromDate.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var f))
                         dtFrom = f;
                     else if (DateTime.TryParse(fromDate, out var f2))
                         dtFrom = f2;
@@ -306,7 +310,7 @@ namespace GCTL.UI.Core.Controllers
 
                 if (!string.IsNullOrWhiteSpace(toDate))
                 {
-                    if (DateTime.TryParseExact(toDate, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var t))
+                    if (DateTime.TryParseExact(toDate.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var t))
                         dtTo = t;
                     else if (DateTime.TryParse(toDate, out var t2))
                         dtTo = t2;

@@ -32,6 +32,7 @@ using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
 using GCTL.Service.CustomerType;
+using GCTL.Service.CustomerWiseApprovalRate;
 using GCTL.Service.DailyJobUpdateEntry;
 using GCTL.Service.DeleteHistories;
 using GCTL.Service.Departments;
@@ -210,6 +211,7 @@ namespace GCTL.Framework.Extensions
             //services.AddScoped<IJobService, JobService>();
             services.AddScoped<IBillService, BillService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
+            services.AddScoped<ICustomerWiseApprovalRateService, CustomerWiseApprovalRateService>();
 
             services.AddScoped<IAccessCodeService, AccessCodeService>();
 

@@ -12,8 +12,8 @@ namespace GCTL.Service.BillService
     {
         Task<PaginationResponse<JobDto>> GetBillPagedAsync(PaginationRequest request, string? customerName, string? shipmentMode, string? dateFrom, string? dateTo);
         Task<BillEntryJobVM> GetJobDetailAsync(decimal id);
-        Task<List<ExpenseDetailDto>> GetExpenseDetailsAsync(decimal id);
-        Task<List<ChargeTableItemDto>> GetChargeTableDataAsync(decimal id);
+        Task<List<ExpenseDetailDto>> GetExpenseDetailsAsync(decimal id, string? billNo = null);
+        Task<List<ChargeTableItemDto>> GetChargeTableDataAsync(decimal id, string? billNo = null);
         Task<CommonReturnViewModel> AddCostAsync(AddCostRequestDto request, UserInfoViewModel? userInfo);
         Task<CommonReturnViewModel> DeleteChargeAsync(decimal tc, UserInfoViewModel? userInfo);
         Task<PaginationResponse<BillHistoryDto>> GetBillHistoryPagedAsync(PaginationRequest request);
