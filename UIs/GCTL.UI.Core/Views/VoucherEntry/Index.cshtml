@@ -639,6 +639,13 @@
     #VoucherEntryTempGrid tbody tr:last-child td {
         border-bottom: none !important;
     }
+
+    #dateFrom + input.flatpickr-alt-input,
+    #dateTo + input.flatpickr-alt-input {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        font-size: 13px !important;
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -682,11 +689,15 @@
             <div class="col-md-12">
                 <div class="d-flex justify-content-start align-items-center mb-2 gap-2">
                     <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
-                    <div class="input-group input-group-sm" style="width: 320px;">
+                    <div class="input-group input-group-sm" style="width: 350px;">
                         <span class="input-group-text">Date From</span>
-                        <input type="date" class="form-control" id="dateFrom">
+                        <input type="text" class="form-control custom-datepicker" id="dateFrom"
+                               value="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))"
+                               data-default-date="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
                         <span class="input-group-text">To</span>
-                        <input type="date" class="form-control" id="dateTo">
+                        <input type="text" class="form-control custom-datepicker" id="dateTo"
+                               value="@DateTime.Now.ToString("yyyy-MM-dd")"
+                               data-default-date="@DateTime.Now.ToString("yyyy-MM-dd")" placeholder="DD/MM/YYYY" />
                     </div>
                 </div>
                 <div class="table-responsive grid-no-horizontal-scroll">

@@ -486,6 +486,8 @@
             window.jQuery.fn.dataTable.ext.errMode = 'none';
         }
 
+        window.initialCustomerList = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CustomerList, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+
         // Register custom renderers in global gctlRenderers registry
         window.gctlRenderers = window.gctlRenderers || {};
 

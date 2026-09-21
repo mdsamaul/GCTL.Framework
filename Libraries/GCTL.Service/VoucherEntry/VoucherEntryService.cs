@@ -537,12 +537,16 @@ namespace GCTL.Service.VoucherEntry
                     BranchCode = main.BranchCode   // add this field to VM if missing
                 });
 
-            if (startDate.HasValue && endDate.HasValue)
-                query = query.Where(x => x.VoucherDate >= startDate.Value && x.VoucherDate <= endDate.Value);
-            else if (startDate.HasValue)
-                query = query.Where(x => x.VoucherDate >= startDate.Value);
-            else if (endDate.HasValue)
-                query = query.Where(x => x.VoucherDate <= endDate.Value);
+            if (startDate.HasValue)
+            {
+                var sDate = startDate.Value.Date;
+                query = query.Where(x => x.VoucherDate >= sDate);
+            }
+            if (endDate.HasValue)
+            {
+                var eDate = endDate.Value.Date.AddDays(1);
+                query = query.Where(x => x.VoucherDate < eDate);
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {

@@ -145,6 +145,26 @@ namespace GCTL_App.Controllers.VoucherEntry
         {
             try
             {
+                if (Request.HasFormContentType)
+                {
+                    string[] dateFormats = { "yyyy-MM-dd", "dd/MM/yyyy", "yyyy/MM/dd", "MM/dd/yyyy" };
+                    if (!fromDate.HasValue && Request.Form.TryGetValue("fromDate", out var rawFrom) && !string.IsNullOrWhiteSpace(rawFrom))
+                    {
+                        if (DateTime.TryParseExact(rawFrom.ToString().Trim(), dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedFrom))
+                            fromDate = parsedFrom;
+                        else if (DateTime.TryParse(rawFrom.ToString().Trim(), out var pFrom))
+                            fromDate = pFrom;
+                    }
+
+                    if (!toDate.HasValue && Request.Form.TryGetValue("toDate", out var rawTo) && !string.IsNullOrWhiteSpace(rawTo))
+                    {
+                        if (DateTime.TryParseExact(rawTo.ToString().Trim(), dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedTo))
+                            toDate = parsedTo;
+                        else if (DateTime.TryParse(rawTo.ToString().Trim(), out var pTo))
+                            toDate = pTo;
+                    }
+                }
+
                 var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder, fromDate, toDate);
 
                 if (result.Data == null || !result.Data.Any())
