@@ -144,6 +144,38 @@ namespace GCTL.Data.Models
             return _;
         }
 
+        public virtual async Task<List<prc_LoadGridPaymentReceivedResult>> prc_LoadGridPaymentReceivedAsync(DateTime? fromDate, DateTime? toDate, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<prc_LoadGridPaymentReceivedResult>("EXEC @returnValue = [dbo].[prc_LoadGridPaymentReceived] @FromDate = @FromDate, @ToDate = @ToDate", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
         public virtual async Task<List<Proc_CustomerListForPaymentReceiveResult>> Proc_CustomerListForPaymentReceiveAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter

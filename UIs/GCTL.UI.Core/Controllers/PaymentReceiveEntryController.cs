@@ -70,6 +70,8 @@ namespace GCTL.UI.Core.Controllers
                     MrDate = DateTime.Now,
                     CreationDate = DateTime.Now.ToString("dd/MM/yyyy")
                 };
+
+                model.CustomerList = await _paymentReceiveService.GetCustomerListForPaymentReceiveAsync();
             }
             catch (Exception ex)
             {
@@ -133,11 +135,77 @@ namespace GCTL.UI.Core.Controllers
                     return Json(new { isSuccess = false, message = "Please enter a valid Payment Amount." });
                 }
 
+                if (Request.Form.ContainsKey("AITInvoiceNo"))
+                {
+                    var aitInvoices = Request.Form["AITInvoiceNo"];
+                    if (aitInvoices.Count > 0)
+                    {
+                        var joined = string.Join(", ", aitInvoices.Where(s => !string.IsNullOrWhiteSpace(s)));
+                        if (!string.IsNullOrWhiteSpace(joined))
+                        {
+                            modelVM.AITInvoiceNo = joined;
+                        }
+                    }
+                }
+
                 modelVM.ToAudit(LoginInfo, (modelVM.Tc ?? 0) > 0);
                 modelVM.CompanyCode = LoginInfo?.CompanyCode ?? "001";
                 modelVM.EmployeeId = LoginInfo?.EmployeeId;
 
                 var isUpdate = (modelVM.Tc != null && modelVM.Tc > 0) || await _paymentReceiveService.IsExistAsync(modelVM.PaymentReceiveId);
+
+                if (modelVM.AITChallanFile != null && modelVM.AITChallanFile.Length > 0)
+                {
+                    try
+                    {
+                        var env = HttpContext.RequestServices.GetService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+                        var webRoot = env?.WebRootPath ?? System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot");
+                        var uploadFolder = System.IO.Path.Combine(webRoot, "uploads", "aitchallans");
+                        if (!System.IO.Directory.Exists(uploadFolder))
+                        {
+                            System.IO.Directory.CreateDirectory(uploadFolder);
+                        }
+
+                        var ext = System.IO.Path.GetExtension(modelVM.AITChallanFile.FileName);
+                        var fileName = $"{modelVM.PaymentReceiveId}_AIT_{DateTime.Now:yyyyMMddHHmmss}{ext}";
+                        var filePath = System.IO.Path.Combine(uploadFolder, fileName);
+                        using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                        {
+                            await modelVM.AITChallanFile.CopyToAsync(stream);
+                        }
+                        modelVM.AITChallanUpload = $"/uploads/aitchallans/{fileName}";
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error uploading AIT Challan: {ex.Message}");
+                    }
+                }
+                else if (isUpdate && string.IsNullOrEmpty(modelVM.AITChallanUpload))
+                {
+                    var existing = await _paymentReceiveService.GetByIdAsync(modelVM.PaymentReceiveId);
+                    if (existing != null)
+                    {
+                        modelVM.AITChallanUpload = existing.AITChallanUpload;
+                    }
+                }
+
+                modelVM.PaymentReceiveId ??= string.Empty;
+                modelVM.CustomerId ??= string.Empty;
+                modelVM.AgainstBillList ??= string.Empty;
+                modelVM.PaymentTypeId = string.IsNullOrWhiteSpace(modelVM.PaymentTypeId) ? "01" : modelVM.PaymentTypeId;
+                modelVM.PaymentModeCode = string.IsNullOrWhiteSpace(modelVM.PaymentModeCode) ? "001" : modelVM.PaymentModeCode;
+                modelVM.PaymentReceiveDate ??= DateTime.Now;
+                modelVM.MrDate ??= DateTime.Now;
+                modelVM.MrNo ??= string.Empty;
+                modelVM.AIT ??= 0;
+                modelVM.AITChallanNo ??= string.Empty;
+                modelVM.AITInvoiceNo ??= string.Empty;
+                modelVM.AITChallanUpload ??= string.Empty;
+                modelVM.Remarks ??= string.Empty;
+                modelVM.Receivedby ??= string.Empty;
+                modelVM.CompanyCode = string.IsNullOrWhiteSpace(LoginInfo?.CompanyCode) ? "001" : LoginInfo.CompanyCode;
+                modelVM.EmployeeId = LoginInfo?.EmployeeId ?? string.Empty;
+                modelVM.BankFeeOnlineCharge ??= 0;
 
                 if (!isUpdate)
                 {
@@ -230,9 +298,11 @@ namespace GCTL.UI.Core.Controllers
                 DateTime dtFrom = DateTime.Now.AddMonths(-1);
                 DateTime dtTo = DateTime.Now;
 
+                string[] formats = { "dd/MM/yyyy", "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy" };
+
                 if (!string.IsNullOrWhiteSpace(fromDate))
                 {
-                    if (DateTime.TryParseExact(fromDate, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var f))
+                    if (DateTime.TryParseExact(fromDate.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var f))
                         dtFrom = f;
                     else if (DateTime.TryParse(fromDate, out var f2))
                         dtFrom = f2;
@@ -240,7 +310,7 @@ namespace GCTL.UI.Core.Controllers
 
                 if (!string.IsNullOrWhiteSpace(toDate))
                 {
-                    if (DateTime.TryParseExact(toDate, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var t))
+                    if (DateTime.TryParseExact(toDate.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var t))
                         dtTo = t;
                     else if (DateTime.TryParse(toDate, out var t2))
                         dtTo = t2;

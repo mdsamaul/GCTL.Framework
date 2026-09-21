@@ -28,8 +28,9 @@
                         Payment Receive Date<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <input type="text" asp-for="PaymentReceiveDate" id="PaymentReceiveDate" class="form-control form-control-sm custom-datepicker"
-                               value="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
+                        <input type="text" asp-for="PaymentReceiveDate" asp-format="{0:yyyy-MM-dd}" id="PaymentReceiveDate" class="form-control form-control-sm custom-datepicker"
+                               value="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))"
+                               data-default-date="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
                     </div>
                 </div>
             </div>
@@ -50,32 +51,30 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="row g-1 align-items-center">
-                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1">
+                <div class="row g-1 align-items-start">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1 pt-1">
                         Billing Address:
                     </label>
                     <div class="col-sm-7">
                         <input type="hidden" asp-for="BillingAddress" id="BillingAddressHidden" />
-                        <span id="BillingAddressDisplay" class="small text-secondary fw-semibold d-inline-block text-truncate w-100" style="line-height: 28px;" title="@Model?.BillingAddress">@Model?.BillingAddress</span>
+                        <div id="BillingAddressDisplay" class="small text-secondary fw-semibold text-break pt-1" style="font-size: 11.5px; line-height: 1.35; white-space: normal; word-break: break-word;" title="@Model?.BillingAddress">@Model?.BillingAddress</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Row 3: Against/Bill List (Aligned with left column, spans to right column end) -->
-        <div class="row g-2 mb-2 align-items-center">
-            <div class="col-md-6">
-                <div class="row g-1 align-items-center">
-                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AgainstBillList">
+        <!-- Row 3: Against/Bill List (2 rows, full width across to right edge) -->
+        <div class="row g-2 mb-2 align-items-start">
+            <div class="col-12">
+                <div class="row g-1 align-items-start">
+                    <label class="col-form-label col-form-label-sm text-sm-end fw-semibold pe-1 against-bill-label" for="AgainstBillList">
                         Against/Bill List
                     </label>
-                    <div class="col-sm-7 position-relative">
-                        <input type="text" asp-for="AgainstBillList" id="AgainstBillList" class="form-control form-control-sm against-bill-fullwidth"
-                               placeholder="Enter Against/Bill List" />
+                    <div class="against-bill-container">
+                        <textarea asp-for="AgainstBillList" id="AgainstBillList" rows="2" class="form-control form-control-sm"
+                                  placeholder="Enter Against/Bill List"></textarea>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6 d-none d-md-block" style="pointer-events: none;">
             </div>
         </div>
 
@@ -113,7 +112,7 @@
                         Money Receipt No.
                     </label>
                     <div class="col-sm-7">
-                        <input type="text" asp-for="MrNo" id="MrNo" class="form-control form-control-sm" placeholder="Enter MR No." />
+                        <input type="text" asp-for="MrNo" id="MrNo" class="form-control form-control-sm bg-light" placeholder="Enter MR No." readonly />
                     </div>
                 </div>
             </div>
@@ -123,14 +122,15 @@
                         Money Receipt Date<span class="text-danger">*</span>
                     </label>
                     <div class="col-sm-7">
-                        <input type="text" asp-for="MrDate" id="MrDate" class="form-control form-control-sm custom-datepicker"
-                               value="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
+                        <input type="text" asp-for="MrDate" asp-format="{0:yyyy-MM-dd}" id="MrDate" class="form-control form-control-sm custom-datepicker"
+                               value="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))"
+                               data-default-date="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Row 6: Payment Amount & Bank Fee/Online Charge (Left-aligned input) -->
+        <!-- Row 6: Payment Amount & Bank Fee/Online Charge -->
         <div class="row g-2 mb-2 align-items-center">
             <div class="col-md-6">
                 <div class="row g-1 align-items-center">
@@ -156,20 +156,84 @@
             </div>
         </div>
 
-        <!-- Row 7: Remarks & Received by -->
+        <!-- Row 7: AIT & AIT Challan No -->
         <div class="row g-2 mb-2 align-items-center">
             <div class="col-md-6">
                 <div class="row g-1 align-items-center">
-                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Remarks">
-                        Remarks
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AIT">
+                        AIT
                     </label>
                     <div class="col-sm-7">
-                        <input type="text" asp-for="Remarks" id="Remarks" class="form-control form-control-sm" placeholder="Enter Remarks" />
+                        <input type="number" step="0.01" asp-for="AIT" id="AIT" class="form-control form-control-sm text-start"
+                               placeholder="0.00" value="@(Model?.AIT != null ? Model.AIT.Value.ToString("0.00") : "0.00")" />
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AITChallanNo">
+                        AIT Challan No
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="AITChallanNo" id="AITChallanNo" class="form-control form-control-sm"
+                               placeholder="Enter AIT Challan No" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 8: AIT Invoice No. & AIT Challan Upload -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AITInvoiceNo">
+                        AIT Invoice No.
+                    </label>
+                    <div class="col-sm-7">
+                        <select id="AITInvoiceNo" name="AITInvoiceNo" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="Select Invoice No.">
+                            @if (!string.IsNullOrEmpty(Model?.AITInvoiceNo))
+                            {
+                                var savedInvoices = Model.AITInvoiceNo.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                                foreach (var inv in savedInvoices)
+                                {
+                                    <option value="@inv.Trim()" selected>@inv.Trim()</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AITChallanFile">
+                        AIT Challan Upload
+                    </label>
+                    <div class="col-sm-7 d-flex align-items-center gap-1">
+                        <input type="file" id="AITChallanFile" name="AITChallanFile" class="form-control form-control-sm" />
+                        <input type="hidden" asp-for="AITChallanUpload" id="AITChallanUpload" />
+                        @if (!string.IsNullOrEmpty(Model?.AITChallanUpload))
+                        {
+                            <a href="@Model.AITChallanUpload" target="_blank" class="btn btn-xs btn-outline-info text-nowrap py-1 px-2" id="AITChallanFileLink" title="View Uploaded Challan"><i class="fas fa-file-download"></i> View</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 9: Remarks & Received by -->
+        <div class="row g-2 mb-2 align-items-start">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-start">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Remarks">
+                        Remarks
+                    </label>
+                    <div class="col-sm-7">
+                        <textarea asp-for="Remarks" id="Remarks" rows="2" class="form-control form-control-sm" placeholder="Enter Remarks"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-start">
                     <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Receivedby">
                         Received by
                     </label>

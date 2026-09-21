@@ -805,6 +805,46 @@
 </div>
 @section Scripts {
 
+    <script>
+        window.ChartOfAccountsFilter = {
+            groupLedgerCode: '',
+            controlLedgerCode: '',
+            subcontrolLedgerCode: '',
+            subSididaryLedger: '',
+            getFilters: function () {
+                return {
+                    groupLedgerCode: this.groupLedgerCode || '',
+                    controlLedgerCode: this.controlLedgerCode || '',
+                    subcontrolLedgerCode: this.subcontrolLedgerCode || '',
+                    subSididaryLedger: this.subSididaryLedger || ''
+                };
+            },
+            setFilters: function (f) {
+                if (f.groupLedgerCode !== undefined) this.groupLedgerCode = f.groupLedgerCode;
+                if (f.controlLedgerCode !== undefined) this.controlLedgerCode = f.controlLedgerCode;
+                if (f.subcontrolLedgerCode !== undefined) this.subcontrolLedgerCode = f.subcontrolLedgerCode;
+                if (f.subSididaryLedger !== undefined) this.subSididaryLedger = f.subSididaryLedger;
+                this.reloadAllGrids();
+            },
+            clearFilters: function () {
+                this.groupLedgerCode = '';
+                this.controlLedgerCode = '';
+                this.subcontrolLedgerCode = '';
+                this.subSididaryLedger = '';
+                this.reloadAllGrids();
+            },
+            reloadAllGrids: function () {
+                if ($.gctlGrid) {
+                    $.gctlGrid.reload('groupLedgerTable', true);
+                    $.gctlGrid.reload('controlLedgerTable', true);
+                    $.gctlGrid.reload('subControlLedgerTable', true);
+                    $.gctlGrid.reload('subSidiaryLedgerTable', true);
+                    $.gctlGrid.reload('generalLedgerTable', true);
+                }
+            }
+        };
+    </script>
+
     @* ================= Scripts ================= *@
     <script src="~/js/pages/ChartOfAccount/Group.js" asp-append-version="true"></script>
     <script src="~/js/pages/ChartOfAccount/Control.js" asp-append-version="true"></script>
@@ -822,11 +862,29 @@
     <script>
         $(document).ready(function () {
             if ($.gctlGrid) {
-                $.gctlGrid.initFromModel({ gridId: 'groupLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'controlLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'subControlLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'subSidiaryLedgerTable' });
-                $.gctlGrid.initFromModel({ gridId: 'generalLedgerTable' });
+                var coaFilterData = function (d) {
+                    if (window.ChartOfAccountsFilter) {
+                        var f = window.ChartOfAccountsFilter.getFilters();
+                        d.groupLedgerCode = f.groupLedgerCode;
+                        d.controlLedgerCode = f.controlLedgerCode;
+                        d.subcontrolLedgerCode = f.subcontrolLedgerCode;
+                        d.subSididaryLedger = f.subSididaryLedger;
+                        d.subsidiaryLedgerCode = f.subSididaryLedger;
+                    }
+                };
+
+                $.gctlGrid.initFromModel({
+                    gridId: 'groupLedgerTable',
+                    ajaxData: function (d) {
+                        if (window.ChartOfAccountsFilter) {
+                            d.groupLedgerCode = window.ChartOfAccountsFilter.groupLedgerCode || '';
+                        }
+                    }
+                });
+                $.gctlGrid.initFromModel({ gridId: 'controlLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'subControlLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'subSidiaryLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'generalLedgerTable', ajaxData: coaFilterData });
                 
                 // Initialize Modal Grids
                 $.gctlGrid.initFromModel({ gridId: 'modalGroupLedgerTable' });
@@ -835,21 +893,51 @@
                 $.gctlGrid.initFromModel({ gridId: 'modalSubSidiaryLedgerTable' });
             }
 
-            // Restore active tab from localStorage
-            var activeTab = localStorage.getItem('activeLedgerTab');
-            if (activeTab) {
-                var tab = new bootstrap.Tab(document.querySelector('#' + activeTab));
-                tab.show();
-            }
-
+            // Tab switch handler: Save active tab and adjust DataTable column widths
             $('[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-                // Save active tab to localStorage
+                sessionStorage.setItem('activeLedgerTab', e.target.id);
                 localStorage.setItem('activeLedgerTab', e.target.id);
                 
                 if ($.fn.dataTable) {
                     $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
                 }
             });
+
+            // Detect whether current page load is a reload (F5 / refresh) or fresh navigation from another menu/controller
+            var isReload = false;
+            try {
+                if (window.performance) {
+                    var navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
+                    if (navEntries && navEntries.length > 0) {
+                        isReload = navEntries[0].type === 'reload';
+                    } else if (performance.navigation) {
+                        isReload = performance.navigation.type === 1;
+                    }
+                }
+            } catch (e) {
+                console.error("Error checking navigation type:", e);
+            }
+
+            if (isReload) {
+                // On page reload, stay on whichever tab was currently active
+                var savedTabId = sessionStorage.getItem('activeLedgerTab') || localStorage.getItem('activeLedgerTab');
+                if (savedTabId && savedTabId !== 'group-tab') {
+                    var targetTab = document.querySelector('#' + savedTabId);
+                    if (targetTab) {
+                        var tab = new bootstrap.Tab(targetTab);
+                        tab.show();
+                    }
+                }
+            } else {
+                // When navigating from another menu or controller, always select the first tab (Group Ledger)
+                sessionStorage.setItem('activeLedgerTab', 'group-tab');
+                localStorage.setItem('activeLedgerTab', 'group-tab');
+                var groupTab = document.querySelector('#group-tab');
+                if (groupTab && !$(groupTab).hasClass('active')) {
+                    var tab = new bootstrap.Tab(groupTab);
+                    tab.show();
+                }
+            }
         });
     </script>
 }

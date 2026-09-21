@@ -13,6 +13,7 @@ using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 
 namespace GCTL.Service.PaymentReceiveEntry
@@ -23,34 +24,46 @@ namespace GCTL.Service.PaymentReceiveEntry
         private readonly IRepository<CoreAccessCode> _accessCodeRepository;
         private readonly ICommonService _commonService;
         private readonly IDeleteHistoryService _deleteHistoryService;
+        private readonly IMemoryCache _cache;
 
         private const string TableName = "PaymentReceive";
         private const string DetailsTableName = "PaymentReceiveDetails";
+        private const string CustomerListCacheKey = "PaymentReceive_CustomerList";
 
         public PaymentReceiveEntryService(
             IConfiguration configuration,
             IRepository<CoreAccessCode> accessCodeRepository,
             ICommonService commonService,
-            IDeleteHistoryService deleteHistoryService)
+            IDeleteHistoryService deleteHistoryService,
+            IMemoryCache cache)
         {
             _connectionString = configuration.GetConnectionString("connection")
                 ?? throw new InvalidOperationException("Connection string 'connection' not found.");
             _accessCodeRepository = accessCodeRepository;
             _commonService = commonService;
             _deleteHistoryService = deleteHistoryService;
+            _cache = cache;
         }
 
         #region Stored Procedures
         public async Task<List<CustomerPaymentListViewModel>> GetCustomerListForPaymentReceiveAsync()
         {
+            if (_cache.TryGetValue(CustomerListCacheKey, out List<CustomerPaymentListViewModel>? cached) && cached != null)
+            {
+                return cached;
+            }
+
             try
             {
                 using var con = new SqlConnection(_connectionString);
-                var list = await con.QueryAsync<CustomerPaymentListViewModel>(
+                var list = (await con.QueryAsync<CustomerPaymentListViewModel>(
                     "Proc_CustomerListForPaymentReceive",
-                    commandType: CommandType.StoredProcedure
-                );
-                return list.ToList();
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 15
+                )).ToList();
+
+                _cache.Set(CustomerListCacheKey, list, TimeSpan.FromSeconds(30));
+                return list;
             }
             catch (Exception ex)
             {
@@ -66,13 +79,23 @@ namespace GCTL.Service.PaymentReceiveEntry
                 if (string.IsNullOrWhiteSpace(customerId))
                     return new List<CustomerDueInvoiceViewModel>();
 
+                var cleanId = customerId.Trim();
+                var cacheKey = $"DueInvoices_{cleanId}";
+                if (_cache.TryGetValue(cacheKey, out List<CustomerDueInvoiceViewModel>? cached) && cached != null)
+                {
+                    return cached;
+                }
+
                 using var con = new SqlConnection(_connectionString);
-                var list = await con.QueryAsync<CustomerDueInvoiceViewModel>(
+                var list = (await con.QueryAsync<CustomerDueInvoiceViewModel>(
                     "prc_GetCustomerDueInvoiceList",
-                    new { CustomerId = customerId },
-                    commandType: CommandType.StoredProcedure
-                );
-                return list.ToList();
+                    new { CustomerId = cleanId },
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 15
+                )).ToList();
+
+                _cache.Set(cacheKey, list, TimeSpan.FromSeconds(30));
+                return list;
             }
             catch (Exception ex)
             {
@@ -85,13 +108,22 @@ namespace GCTL.Service.PaymentReceiveEntry
         {
             try
             {
+                var cacheKey = $"GridPaymentReceived_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}";
+                if (_cache.TryGetValue(cacheKey, out List<PaymentReceivedGridItemViewModel>? cached) && cached != null)
+                {
+                    return cached;
+                }
+
                 using var con = new SqlConnection(_connectionString);
-                var list = await con.QueryAsync<PaymentReceivedGridItemViewModel>(
+                var list = (await con.QueryAsync<PaymentReceivedGridItemViewModel>(
                     "prc_LoadGridPaymentReceived",
                     new { FromDate = fromDate, ToDate = toDate },
-                    commandType: CommandType.StoredProcedure
-                );
-                return list.ToList();
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 15
+                )).ToList();
+
+                _cache.Set(cacheKey, list, TimeSpan.FromSeconds(15));
+                return list;
             }
             catch (Exception ex)
             {
@@ -174,6 +206,10 @@ namespace GCTL.Service.PaymentReceiveEntry
                         pm.PaymentModeName,
                         p.Amount,
                         p.BankFeeOnlineCharge,
+                        p.AIT,
+                        p.AITChallanNo,
+                        p.AITInvoiceNo,
+                        p.AITChallanUpload,
                         p.Remarks,
                         p.Receivedby,
                         FORMAT(p.LDate, 'dd/MM/yyyy') as CreationDate,
@@ -186,7 +222,7 @@ namespace GCTL.Service.PaymentReceiveEntry
                     FROM PaymentReceive p
                     LEFT OUTER JOIN Sales_Customer c ON p.CustomerID = c.CustomerID
                     LEFT OUTER JOIN Sales_Def_PaymentType pt ON p.PaymentTypeID = pt.PaymentTypeID
-                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeCode
+                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeID
                     ORDER BY p.AutoID DESC";
 
                 var list = await con.QueryAsync<PaymentReceiveEntrySetupViewModel>(sql);
@@ -224,6 +260,10 @@ namespace GCTL.Service.PaymentReceiveEntry
                         pm.PaymentModeName,
                         p.Amount,
                         p.BankFeeOnlineCharge,
+                        p.AIT,
+                        p.AITChallanNo,
+                        p.AITInvoiceNo,
+                        p.AITChallanUpload,
                         p.Remarks,
                         p.Receivedby,
                         FORMAT(p.LDate, 'dd/MM/yyyy') as CreationDate,
@@ -238,7 +278,7 @@ namespace GCTL.Service.PaymentReceiveEntry
                     FROM PaymentReceive p
                     LEFT OUTER JOIN Sales_Customer c ON p.CustomerID = c.CustomerID
                     LEFT OUTER JOIN Sales_Def_PaymentType pt ON p.PaymentTypeID = pt.PaymentTypeID
-                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeCode
+                    LEFT OUTER JOIN Sales_Def_PaymentMode pm ON p.PaymentModeCode = pm.PaymentModeID
                     WHERE p.PaymentReceiveID = @Code OR CAST(p.AutoID as nvarchar) = @Code";
 
                 var model = await con.QueryFirstOrDefaultAsync<PaymentReceiveEntrySetupViewModel>(sql, new { Code = code });
@@ -286,33 +326,52 @@ namespace GCTL.Service.PaymentReceiveEntry
                         INSERT INTO PaymentReceive (
                             PaymentReceiveID, PaymentReceiveDate, MRNo, MRDate, CustomerID,
                             AgainstBillList, PaymentTypeID, PaymentModeCode, Amount, BankFeeOnlineCharge,
-                            Remarks, Receivedby, LUser, LDate, LIP, LMAC, CompanyCode, EmployeeID
+                            AIT, AITChallanNo, AITInvoiceNo, AITChallanUpload,
+                            Remarks, Receivedby, LUser, LDate, LIP, LMAC, CompanyCode, EmployeeID,
+                            ChequeNo, ChequeBank, IsChequeVerified, TransferredBank, TransferredACName,
+                            TransferredACNo, DepositedACNo, TransfterMobileNo, DepositMobileNo
                         ) VALUES (
                             @PaymentReceiveId, @PaymentReceiveDate, @MrNo, @MrDate, @CustomerId,
                             @AgainstBillList, @PaymentTypeId, @PaymentModeCode, @Amount, @BankFeeOnlineCharge,
-                            @Remarks, @Receivedby, @Luser, GETDATE(), @Lip, @Lmac, @CompanyCode, @EmployeeId
+                            @AIT, @AITChallanNo, @AITInvoiceNo, @AITChallanUpload,
+                            @Remarks, @Receivedby, @Luser, GETDATE(), @Lip, @Lmac, @CompanyCode, @EmployeeId,
+                            @ChequeNo, @ChequeBank, @IsChequeVerified, @TransferredBank, @TransferredACName,
+                            @TransferredACNo, @DepositedACNo, @TransfterMobileNo, @DepositMobileNo
                         );
                         SELECT SCOPE_IDENTITY();";
 
                     var newId = await con.ExecuteScalarAsync<decimal>(insertHeaderSql, new
                     {
-                        entityVM.PaymentReceiveId,
+                        PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty,
                         PaymentReceiveDate = entityVM.PaymentReceiveDate ?? DateTime.Now,
-                        entityVM.MrNo,
+                        MrNo = entityVM.MrNo ?? string.Empty,
                         MrDate = entityVM.MrDate ?? DateTime.Now,
-                        entityVM.CustomerId,
-                        entityVM.AgainstBillList,
+                        CustomerId = entityVM.CustomerId ?? string.Empty,
+                        AgainstBillList = entityVM.AgainstBillList ?? string.Empty,
                         PaymentTypeId = string.IsNullOrWhiteSpace(entityVM.PaymentTypeId) ? "01" : entityVM.PaymentTypeId,
                         PaymentModeCode = string.IsNullOrWhiteSpace(entityVM.PaymentModeCode) ? "001" : entityVM.PaymentModeCode,
                         Amount = entityVM.Amount ?? 0,
                         BankFeeOnlineCharge = entityVM.BankFeeOnlineCharge ?? 0,
-                        entityVM.Remarks,
-                        entityVM.Receivedby,
-                        entityVM.Luser,
-                        entityVM.Lip,
-                        entityVM.Lmac,
-                        CompanyCode = entityVM.CompanyCode ?? "001",
-                        entityVM.EmployeeId
+                        AIT = entityVM.AIT ?? 0,
+                        AITChallanNo = entityVM.AITChallanNo ?? string.Empty,
+                        AITInvoiceNo = entityVM.AITInvoiceNo ?? string.Empty,
+                        AITChallanUpload = entityVM.AITChallanUpload ?? string.Empty,
+                        Remarks = entityVM.Remarks ?? string.Empty,
+                        Receivedby = entityVM.Receivedby ?? string.Empty,
+                        Luser = entityVM.Luser ?? string.Empty,
+                        Lip = entityVM.Lip ?? string.Empty,
+                        Lmac = entityVM.Lmac ?? string.Empty,
+                        CompanyCode = string.IsNullOrWhiteSpace(entityVM.CompanyCode) ? "001" : entityVM.CompanyCode,
+                        EmployeeId = entityVM.EmployeeId ?? string.Empty,
+                        ChequeNo = string.Empty,
+                        ChequeBank = string.Empty,
+                        IsChequeVerified = string.Empty,
+                        TransferredBank = string.Empty,
+                        TransferredACName = string.Empty,
+                        TransferredACNo = string.Empty,
+                        DepositedACNo = string.Empty,
+                        TransfterMobileNo = string.Empty,
+                        DepositMobileNo = string.Empty
                     }, tran);
 
                     entityVM.Tc = newId;
@@ -321,6 +380,11 @@ namespace GCTL.Service.PaymentReceiveEntry
                     await SaveDetailsAsync(con, tran, entityVM);
 
                     tran.Commit();
+                    _cache.Remove(CustomerListCacheKey);
+                    if (!string.IsNullOrWhiteSpace(entityVM.CustomerId))
+                    {
+                        _cache.Remove($"DueInvoices_{entityVM.CustomerId.Trim()}");
+                    }
                     return true;
                 }
                 catch
@@ -357,41 +421,68 @@ namespace GCTL.Service.PaymentReceiveEntry
                             PaymentModeCode = @PaymentModeCode,
                             Amount = @Amount,
                             BankFeeOnlineCharge = @BankFeeOnlineCharge,
+                            AIT = @AIT,
+                            AITChallanNo = @AITChallanNo,
+                            AITInvoiceNo = @AITInvoiceNo,
+                            AITChallanUpload = @AITChallanUpload,
                             Remarks = @Remarks,
                             Receivedby = @Receivedby,
                             ModifyDate = GETDATE(),
                             LUser = @Luser,
                             LIP = @Lip,
-                            LMAC = @Lmac
-                        WHERE PaymentReceiveID = @PaymentReceiveId";
+                            LMAC = @Lmac,
+                            CompanyCode = @CompanyCode,
+                            EmployeeID = @EmployeeId,
+                            ChequeNo = ISNULL(ChequeNo, ''),
+                            ChequeBank = ISNULL(ChequeBank, ''),
+                            IsChequeVerified = ISNULL(IsChequeVerified, ''),
+                            TransferredBank = ISNULL(TransferredBank, ''),
+                            TransferredACName = ISNULL(TransferredACName, ''),
+                            TransferredACNo = ISNULL(TransferredACNo, ''),
+                            DepositedACNo = ISNULL(DepositedACNo, ''),
+                            TransfterMobileNo = ISNULL(TransfterMobileNo, ''),
+                            DepositMobileNo = ISNULL(DepositMobileNo, '')
+                        WHERE PaymentReceiveID = @PaymentReceiveId OR (AutoID = @Tc AND @Tc > 0)";
 
                     await con.ExecuteAsync(updateHeaderSql, new
                     {
-                        entityVM.PaymentReceiveId,
+                        PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty,
+                        Tc = entityVM.Tc ?? 0,
                         PaymentReceiveDate = entityVM.PaymentReceiveDate ?? DateTime.Now,
-                        entityVM.MrNo,
+                        MrNo = entityVM.MrNo ?? string.Empty,
                         MrDate = entityVM.MrDate ?? DateTime.Now,
-                        entityVM.CustomerId,
-                        entityVM.AgainstBillList,
+                        CustomerId = entityVM.CustomerId ?? string.Empty,
+                        AgainstBillList = entityVM.AgainstBillList ?? string.Empty,
                         PaymentTypeId = string.IsNullOrWhiteSpace(entityVM.PaymentTypeId) ? "01" : entityVM.PaymentTypeId,
                         PaymentModeCode = string.IsNullOrWhiteSpace(entityVM.PaymentModeCode) ? "001" : entityVM.PaymentModeCode,
                         Amount = entityVM.Amount ?? 0,
                         BankFeeOnlineCharge = entityVM.BankFeeOnlineCharge ?? 0,
-                        entityVM.Remarks,
-                        entityVM.Receivedby,
-                        entityVM.Luser,
-                        entityVM.Lip,
-                        entityVM.Lmac
+                        AIT = entityVM.AIT ?? 0,
+                        AITChallanNo = entityVM.AITChallanNo ?? string.Empty,
+                        AITInvoiceNo = entityVM.AITInvoiceNo ?? string.Empty,
+                        AITChallanUpload = entityVM.AITChallanUpload ?? string.Empty,
+                        Remarks = entityVM.Remarks ?? string.Empty,
+                        Receivedby = entityVM.Receivedby ?? string.Empty,
+                        Luser = entityVM.Luser ?? string.Empty,
+                        Lip = entityVM.Lip ?? string.Empty,
+                        Lmac = entityVM.Lmac ?? string.Empty,
+                        CompanyCode = string.IsNullOrWhiteSpace(entityVM.CompanyCode) ? "001" : entityVM.CompanyCode,
+                        EmployeeId = entityVM.EmployeeId ?? string.Empty
                     }, tran);
 
                     // Delete existing details
                     const string deleteDetailsSql = @"DELETE FROM PaymentReceiveDetails WHERE PaymentReceiveID = @PaymentReceiveId";
-                    await con.ExecuteAsync(deleteDetailsSql, new { entityVM.PaymentReceiveId }, tran);
+                    await con.ExecuteAsync(deleteDetailsSql, new { PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty }, tran);
 
                     // Re-insert detail invoices
                     await SaveDetailsAsync(con, tran, entityVM);
 
                     tran.Commit();
+                    _cache.Remove(CustomerListCacheKey);
+                    if (!string.IsNullOrWhiteSpace(entityVM.CustomerId))
+                    {
+                        _cache.Remove($"DueInvoices_{entityVM.CustomerId.Trim()}");
+                    }
                     return true;
                 }
                 catch
@@ -456,8 +547,8 @@ namespace GCTL.Service.PaymentReceiveEntry
                 {
                     await con.ExecuteAsync(insertDetailSql, new
                     {
-                        entityVM.PaymentReceiveId,
-                        item.InvoiceNo,
+                        PaymentReceiveId = entityVM.PaymentReceiveId ?? string.Empty,
+                        InvoiceNo = item.InvoiceNo?.Trim() ?? string.Empty,
                         Amount = item.Amount
                     }, tran);
                 }
@@ -477,13 +568,35 @@ namespace GCTL.Service.PaymentReceiveEntry
 
                 try
                 {
-                    const string deleteDetailsSql = @"DELETE FROM PaymentReceiveDetails WHERE PaymentReceiveID IN @Ids";
-                    await con.ExecuteAsync(deleteDetailsSql, new { Ids = ids }, tran);
+                    var cleanIds = ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().ToList();
+                    if (!cleanIds.Any())
+                        return (false, "No data found to delete");
 
-                    const string deleteHeaderSql = @"DELETE FROM PaymentReceive WHERE PaymentReceiveID IN @Ids OR CAST(AutoID as nvarchar) IN @Ids";
-                    await con.ExecuteAsync(deleteHeaderSql, new { Ids = ids }, tran);
+                    // 1. Resolve matching PaymentReceiveIDs (both from PaymentReceiveID directly and from AutoID)
+                    var directIds = (await con.QueryAsync<string>(
+                        @"SELECT DISTINCT PaymentReceiveID FROM PaymentReceive WHERE PaymentReceiveID IN @Ids",
+                        new { Ids = cleanIds }, tran)).ToList();
+
+                    var autoIds = (await con.QueryAsync<string>(
+                        @"SELECT DISTINCT PaymentReceiveID FROM PaymentReceive WHERE CAST(AutoID as nvarchar(50)) IN @Ids",
+                        new { Ids = cleanIds }, tran)).ToList();
+
+                    var allReceiveIds = cleanIds.Union(directIds).Union(autoIds)
+                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                        .Distinct()
+                        .ToList();
+
+                    if (allReceiveIds.Any())
+                    {
+                        const string deleteDetailsSql = @"DELETE FROM PaymentReceiveDetails WHERE PaymentReceiveID IN @AllIds";
+                        await con.ExecuteAsync(deleteDetailsSql, new { AllIds = allReceiveIds }, tran);
+
+                        const string deleteHeaderSql = @"DELETE FROM PaymentReceive WHERE PaymentReceiveID IN @AllIds OR CAST(AutoID as nvarchar(50)) IN @CleanIds";
+                        await con.ExecuteAsync(deleteHeaderSql, new { AllIds = allReceiveIds, CleanIds = cleanIds }, tran);
+                    }
 
                     tran.Commit();
+                    _cache.Remove(CustomerListCacheKey);
                     return (true, "Deleted Successfully");
                 }
                 catch
@@ -495,7 +608,7 @@ namespace GCTL.Service.PaymentReceiveEntry
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in DeleteTab: {ex.Message}");
-                return (false, "Delete Failed");
+                return (false, $"Delete Failed: {ex.Message}");
             }
         }
 
@@ -605,28 +718,28 @@ namespace GCTL.Service.PaymentReceiveEntry
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.TitleCheck);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.TitleCheck);
         }
 
         public async Task<bool> SavePermissionAsync(string accessCode)
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.CheckAdd);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.CheckAdd);
         }
 
         public async Task<bool> UpdatePermissionAsync(string accessCode)
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.CheckEdit);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.CheckEdit);
         }
 
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
             if (string.IsNullOrEmpty(accessCode)) return true;
             return await _accessCodeRepository.All()
-                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.MenuId == "079") && x.CheckDelete);
+                .AnyAsync(x => x.AccessCodeId == accessCode && (x.Title == "Payment Receive Entry" || x.Title == "Payment Receive" || x.MenuId == "079" || x.MenuId == "79" || x.Title.Contains("Payment Receive")) && x.CheckDelete);
         }
         #endregion
     }

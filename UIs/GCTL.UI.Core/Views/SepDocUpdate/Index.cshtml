@@ -1614,40 +1614,78 @@
                 <div class="card mb-3 border rounded shadow-sm">
                     <div class="card-header bg-light fw-bold py-2 px-3 border-bottom">Main Information</div>
                     <div class="card-body px-3 py-3">
-                        <div class="row g-3 pe-5 me-5">
-                            <!-- Left Column: Job No & Customer -->
-                            <div class="col-12 col-md-6">
-                                <div class="row mb-2 align-items-center">
-                                    <label class="col-sm-3 col-form-label form-label text-sm-end fw-bold" for="uploadJobNo">Job No <span class="text-danger">*</span></label>
-                                    <div class="col-sm-9">
-                                        <select class="form-select form-select-sm custom-select-single" id="uploadJobNo" data-placeholder="-- Select Job No --" asp-items="ViewBag.JobNos as SelectList">
-                                            <option value="">-- Select Job No --</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row mb-2 align-items-center">
-                                    <label class="col-sm-3 col-form-label form-label text-sm-end fw-bold" for="uploadCustomerDisplay">Customer</label>
-                                    <div class="col-sm-9">
-                                        <input type="text" class="form-control form-control-sm bg-light" id="uploadCustomerDisplay" readonly />
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- Selector Row: Job No -->
+                        <div class="row sep-doc-fields-row mb-2">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadJobNo",
+                                LabelText = "Job No",
+                                FieldType = FieldType.Select,
+                                Placeholder = "-- Select Job No --",
+                                SelectItems = ViewBag.JobNos as SelectList,
+                                IsRequired = true,
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                        </div>
 
-                            <!-- Right Column: Date & Address -->
-                            <div class="col-12 col-md-6">
-                                <div class="row mb-2 align-items-center">
-                                    <label class="col-sm-3 col-form-label form-label text-sm-end fw-bold" for="uploadJobDateDisplay">Date</label>
-                                    <div class="col-sm-9">
-                                        <input type="text" class="form-control form-control-sm bg-light" id="uploadJobDateDisplay" readonly />
-                                    </div>
-                                </div>
-                                <div class="row mb-2 align-items-start">
-                                    <label class="col-sm-3 col-form-label form-label text-sm-end fw-bold" for="uploadAddressDisplay">Address</label>
-                                    <div class="col-sm-9">
-                                        <textarea class="form-control form-control-sm bg-light" id="uploadAddressDisplay" rows="2" readonly style="resize: none;"></textarea>
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- Top 3 Detail Fields: Job Date, Shipment Mode, Bill of Entry No -->
+                        <div class="row sep-doc-fields-row mb-2">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadJobDateDisplay",
+                                LabelText = "Job Date",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadShipmentModeDisplay",
+                                LabelText = "Shipment Mode",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadBeNoDisplay",
+                                LabelText = "Bill of Entry No",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                        </div>
+
+                        <!-- Below 2 Detail Fields: Customer, Customer Address -->
+                        <div class="row sep-doc-fields-row">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadCustomerDisplay",
+                                LabelText = "Customer",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadAddressDisplay",
+                                LabelText = "Customer Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 2,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-8",
+                                ReserveActionSlot = false
+                            })
                         </div>
                     </div>
                 </div>

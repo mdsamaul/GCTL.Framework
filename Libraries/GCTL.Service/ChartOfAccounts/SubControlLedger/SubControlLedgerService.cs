@@ -80,9 +80,42 @@ namespace GCTL.Service.ChartOfAccounts.SubControlLedger
             }
         }
 
-        public async Task<List<SubControlLedgerVM>> GetAllAsync()
+        public async Task<List<SubControlLedgerVM>> GetAllAsync(string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "")
         {
-            var entity = await _repository.All().ToListAsync();
+            IQueryable<AccGeneralLedger> subcrlQuery;
+
+            if (string.IsNullOrEmpty(groupLedgerCode) &&
+                string.IsNullOrEmpty(controlLedgerCode) &&
+                string.IsNullOrEmpty(subcontrolLedgerCode))
+            {
+                subcrlQuery = _repository.All();
+            }
+            else
+            {
+                var query = from subcrl in _repository.All()
+                            join cl in _controlLedger.All() on subcrl.SubControlLedgerCodeNo equals cl.SubControlLedgerCodeNo
+                            join gr in _groupLedger.All() on cl.ControlLedgerCodeNo equals gr.ControlLedgerCodeNo
+                            select new { subcrl, cl, gr };
+
+                if (!string.IsNullOrEmpty(groupLedgerCode))
+                {
+                    query = query.Where(x => x.gr.ControlLedgerCodeNo == groupLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(controlLedgerCode))
+                {
+                    query = query.Where(x => x.cl.SubControlLedgerCodeNo == controlLedgerCode);
+                }
+
+                if (!string.IsNullOrEmpty(subcontrolLedgerCode))
+                {
+                    query = query.Where(x => x.subcrl.GeneralLedgerCodeNo == subcontrolLedgerCode);
+                }
+
+                subcrlQuery = query.Select(x => x.subcrl);
+            }
+
+            var entity = await subcrlQuery.ToListAsync();
 
             var result = entity.Select(model => new SubControlLedgerVM
             {

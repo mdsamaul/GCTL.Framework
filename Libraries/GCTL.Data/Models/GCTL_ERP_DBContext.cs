@@ -364,6 +364,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("Main_CompanyCode");
             entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
             entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.OpeningDate).HasColumnType("smalldatetime");
             entity.Property(e => e.SubSusidiaryLedgerCodeNo).HasMaxLength(50);
             entity.Property(e => e.TrType).HasMaxLength(50);
             entity.Property(e => e.UserInfoEmployeeId)
@@ -4349,6 +4350,18 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("AutoID");
+            entity.Property(e => e.Ait)
+                .HasColumnType("decimal(18, 5)")
+                .HasColumnName("AIT");
+            entity.Property(e => e.AitchallanNo)
+                .HasMaxLength(100)
+                .HasColumnName("AITChallanNo");
+            entity.Property(e => e.AitchallanUpload)
+                .HasMaxLength(250)
+                .HasColumnName("AITChallanUpload");
+            entity.Property(e => e.AitinvoiceNo)
+                .HasMaxLength(50)
+                .HasColumnName("AITInvoiceNo");
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BankFeeOnlineCharge).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.ChequeBank).HasMaxLength(50);

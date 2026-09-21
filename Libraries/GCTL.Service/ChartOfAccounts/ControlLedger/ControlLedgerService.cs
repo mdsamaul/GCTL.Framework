@@ -78,9 +78,21 @@ namespace GCTL.Service.ChartOfAccounts.ControlLedger
             }
         }
 
-        public async Task<List<ControlLedgerVM>> GetAllAsync()
+        public async Task<List<ControlLedgerVM>> GetAllAsync(string groupLedgerCode = "", string controlLedgerCode = "")
         {
-            var entity = await _repository.All().ToListAsync();
+            var query = _repository.All();
+
+            if (!string.IsNullOrEmpty(groupLedgerCode))
+            {
+                query = query.Where(x => x.ControlLedgerCodeNo == groupLedgerCode);
+            }
+
+            if (!string.IsNullOrEmpty(controlLedgerCode))
+            {
+                query = query.Where(x => x.SubControlLedgerCodeNo == controlLedgerCode);
+            }
+
+            var entity = await query.ToListAsync();
 
             var result = entity.Select(model => new ControlLedgerVM
             {

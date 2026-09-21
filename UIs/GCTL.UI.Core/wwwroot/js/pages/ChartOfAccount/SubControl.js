@@ -89,6 +89,15 @@ function LoadDropdownGRLCRL(selectedId = null) {
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
 
+                if (window.ChartOfAccountsFilter) {
+                    window.ChartOfAccountsFilter.setFilters({
+                        groupLedgerCode: selectedGroupCode || '',
+                        controlLedgerCode: '',
+                        subcontrolLedgerCode: '',
+                        subSididaryLedger: ''
+                    });
+                }
+
                 if (!selectedGroupCode) {
                     $('#groupcode, #groupshortName').val('');
                     $('#ConRLCode, #CLShortName').val('');
@@ -144,6 +153,15 @@ function LoadControlLedgerDropdown(groupCode, selectedControlCode = null) {
 
                 $(this).removeClass('border-error');
                 $(this).siblings('.custom-dd-wrapper').removeClass('border-error');
+
+                if (window.ChartOfAccountsFilter) {
+                    window.ChartOfAccountsFilter.setFilters({
+                        groupLedgerCode: $('#groupName').val() || '',
+                        controlLedgerCode: selectedControl || '',
+                        subcontrolLedgerCode: '',
+                        subSididaryLedger: ''
+                    });
+                }
 
                 if (!selectedControl) {
                     $('#ConRLCode, #CLShortName').val('');
@@ -345,6 +363,9 @@ function SubControlLedgerFormClear() {
 
     selectedGroupLedgerCodeForSubControl = "";
     selectedControlLedgerCodeForSubControl = "";
+    if (window.ChartOfAccountsFilter) {
+        window.ChartOfAccountsFilter.clearFilters();
+    }
 
     let $conSelect = $('#ConRLName');
     $conSelect.find('option:not(:first)').remove();

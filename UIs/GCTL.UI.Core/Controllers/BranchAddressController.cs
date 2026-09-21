@@ -174,7 +174,7 @@ namespace GCTL.UI.Core.Controllers
                     if (hasSavePermission)
                     {
                         await branchAddressService.SaveAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.VendorId });
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.VendorBranchId });
                     }
                     else
                     {
@@ -258,11 +258,15 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
+        #region GetContactPersonsForTable
+
         [HttpGet]
         public async Task<IActionResult> GetContactPersonsForTable()
         {
             var result = await branchAddressService.GetContactPersonsForTableAsync();
             return Json(result);
         }
+
+        #endregion
     }
 }
