@@ -16,10 +16,10 @@ $(document).ready(function () {
     setDate("#StartDate", new Date());
     setDate("#EndDate", new Date());
     
-    // Set default dates for the grid filter
+    // Set default dates for the grid filter (Date From: 1st of current month, Date To: Current Date)
     var now = new Date();
-    var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+    var firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     var formatYYYYMMDD = function(date) {
         var d = new Date(date),
             month = '' + (d.getMonth() + 1),
@@ -29,13 +29,45 @@ $(document).ready(function () {
         if (day.length < 2) day = '0' + day;
         return [year, month, day].join('-');
     };
-    $('#dateFrom').val(formatYYYYMMDD(firstDay));
-    $('#dateTo').val(formatYYYYMMDD(now));
 
-    // Reload grid on date change
+    if (typeof setDate === "function") {
+        if (!$('#dateFrom').val()) {
+            setDate("#dateFrom", firstDayOfMonth);
+        }
+        if (!$('#dateTo').val()) {
+            setDate("#dateTo", now);
+        }
+    } else {
+        if (!$('#dateFrom').val()) $('#dateFrom').val(formatYYYYMMDD(firstDayOfMonth));
+        if (!$('#dateTo').val()) $('#dateTo').val(formatYYYYMMDD(now));
+    }
+
+    // Reload grid on date change (debounced)
+    var filterDateTimer = null;
+    function triggerGridDateReload() {
+        if (filterDateTimer) clearTimeout(filterDateTimer);
+        filterDateTimer = setTimeout(function () {
+            LoadVoucherEntriesTable();
+        }, 150);
+    }
+
     $('#dateFrom, #dateTo').on('change', function () {
-        LoadVoucherEntriesTable();
+        triggerGridDateReload();
     });
+
+    // Also listen to flatpickr onChange
+    setTimeout(function () {
+        $('#dateFrom, #dateTo').each(function () {
+            var fp = $(this).data('customFpInstance') || this._flatpickr;
+            if (fp) {
+                var origChange = fp.config.onChange;
+                fp.config.onChange = function (selectedDates, dateStr, instance) {
+                    if (origChange) origChange(selectedDates, dateStr, instance);
+                    triggerGridDateReload();
+                };
+            }
+        });
+    }, 300);
 
     LoadVoucherTypeDropdown();
     LoadAccountHeadDropdown();
