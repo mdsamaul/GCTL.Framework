@@ -11,6 +11,15 @@ namespace GCTL.Core.ViewModels.PaymentReceiveEntry
         public string? CustomerAddress { get; set; }
         public decimal? Amount { get; set; }
         public string? PaymentType { get; set; }
+        public string? ReceiveVia { get; set; }
         public string? PaymentModeName { get; set; }
+        public decimal? BankCharge { get; set; }
+        public string? BillList { get; set; }
+        public string? Receivedby { get; set; }
+        public string? Status { get; set; }
+        public decimal? AIT { get; set; }
+        public string? AITChallanNo { get; set; }
+        public string? AITInvoiceNo { get; set; }
+        public string? AITChallanUpload { get; set; }
     }
 }

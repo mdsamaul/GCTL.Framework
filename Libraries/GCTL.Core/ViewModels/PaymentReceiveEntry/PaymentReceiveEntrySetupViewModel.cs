@@ -65,6 +65,20 @@ namespace GCTL.Core.ViewModels.PaymentReceiveEntry
         [Display(Name = "Bank Fee/Online Charge")]
         public decimal? BankFeeOnlineCharge { get; set; }
 
+        [Display(Name = "AIT")]
+        public decimal? AIT { get; set; }
+
+        [Display(Name = "AIT Challan No")]
+        public string? AITChallanNo { get; set; }
+
+        [Display(Name = "AIT Invoice No.")]
+        public string? AITInvoiceNo { get; set; }
+
+        [Display(Name = "AIT Challan Upload")]
+        public string? AITChallanUpload { get; set; }
+
+        public Microsoft.AspNetCore.Http.IFormFile? AITChallanFile { get; set; }
+
         [Display(Name = "Remarks")]
         public string? Remarks { get; set; }
 
