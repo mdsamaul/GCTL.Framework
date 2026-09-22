@@ -162,7 +162,10 @@ namespace GCTL.Service.DocumentationReport
                     ShipmentMode = GetString("ExpenseType"),
                     PortName = GetString("PortName"),
                     JobDate = GetString("JobDate"),
-                    ShipmentStatus = GetString("ShipmentStatus")
+                    DocReceivedDate = GetString("DocReceivedDate"),
+                    ShipmentStatus = GetString("ShipmentStatus"),
+                    Weight = !string.IsNullOrEmpty(GetString("Quntity1")) ? GetString("Quntity1") : GetString("Quntity2"),
+                    DateOfClearence = GetString("DateOfClearence")
                 };
 
                 result.Add(item);

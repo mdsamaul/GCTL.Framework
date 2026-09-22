@@ -73,6 +73,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CfDailyJobUpdateEntry> CfDailyJobUpdateEntries { get; set; }
 
+    public virtual DbSet<CfDefDeliveryStatusType> CfDefDeliveryStatusTypes { get; set; }
+
     public virtual DbSet<CfDefExpenseHead> CfDefExpenseHeads { get; set; }
 
     public virtual DbSet<CfDefExpenseType> CfDefExpenseTypes { get; set; }
@@ -1347,6 +1349,39 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.UpdateStatus)
                 .IsRequired()
                 .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<CfDefDeliveryStatusType>(entity =>
+        {
+            entity.HasKey(e => e.Tc);
+
+            entity.ToTable("CF_Def_DeliveryStatusType");
+
+            entity.Property(e => e.Tc).HasColumnName("TC");
+            entity.Property(e => e.CompanyCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.DeliveryStatus).HasMaxLength(100);
+            entity.Property(e => e.DeliveryStatusTypeId)
+                .HasMaxLength(50)
+                .HasColumnName("DeliveryStatusTypeID");
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<CfDefExpenseHead>(entity =>
@@ -4360,7 +4395,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(250)
                 .HasColumnName("AITChallanUpload");
             entity.Property(e => e.AitinvoiceNo)
-                .HasMaxLength(50)
+                .HasMaxLength(500)
                 .HasColumnName("AITInvoiceNo");
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BankFeeOnlineCharge).HasColumnType("decimal(18, 2)");
@@ -4669,6 +4704,8 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.CustomerAddress).HasMaxLength(200);
             entity.Property(e => e.CustomerCode).HasMaxLength(50);
             entity.Property(e => e.CustomerCompany).HasMaxLength(50);
+            entity.Property(e => e.CustomerDigitalSignature).HasColumnType("image");
+            entity.Property(e => e.CustomerPhoto).HasColumnType("image");
             entity.Property(e => e.CustomerType).HasMaxLength(50);
             entity.Property(e => e.Designation1).HasMaxLength(50);
             entity.Property(e => e.Designation2).HasMaxLength(50);
@@ -5604,6 +5641,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ZipCode).HasMaxLength(100);
         });
 
+        OnModelCreatingGeneratedFunctions(modelBuilder);
         OnModelCreatingPartial(modelBuilder);
     }
 

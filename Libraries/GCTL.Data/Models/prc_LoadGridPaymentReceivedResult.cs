@@ -10,7 +10,7 @@ namespace GCTL.Data.Models
     {
         [StringLength(50)]
         public string PaymentReceiveID { get; set; }
-        [StringLength(4000)]
+        [StringLength(10)]
         public string PaymentReceiveDate { get; set; }
         [StringLength(50)]
         public string CustomerID { get; set; }
@@ -25,7 +25,7 @@ namespace GCTL.Data.Models
         [StringLength(250)]
         public string PaymentModeName { get; set; }
         [Column("Amount", TypeName = "decimal(18,2)")]
-        public decimal? Amount { get; set; }
+        public decimal Amount { get; set; }
         [Column("BankCharge", TypeName = "decimal(18,2)")]
         public decimal BankCharge { get; set; }
         [StringLength(2147483647)]
@@ -35,10 +35,10 @@ namespace GCTL.Data.Models
         [StringLength(8)]
         public string Status { get; set; }
         [Column("AIT", TypeName = "decimal(18,5)")]
-        public decimal? AIT { get; set; }
+        public decimal AIT { get; set; }
         [StringLength(100)]
         public string AITChallanNo { get; set; }
-        [StringLength(50)]
+        [StringLength(500)]
         public string AITInvoiceNo { get; set; }
         [StringLength(250)]
         public string AITChallanUpload { get; set; }

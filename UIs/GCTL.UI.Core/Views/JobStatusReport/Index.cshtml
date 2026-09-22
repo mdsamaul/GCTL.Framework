@@ -1,1 +1,536 @@
-﻿<h1>Job Status Report</h1>
+@{
+    ViewData["Title"] = "Job Status Dashboard";
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --pending: #ff9800;
+        --delivered: #4caf50;
+        --transit: #9c27b0;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .job-status-dashboard {
+        color: var(--text-main);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Main Container */
+    .dashboard-container {
+        padding: 10px 0 30px 0;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .page-title {
+        margin-bottom: 15px;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--secondary);
+    }
+
+    /* Status Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 16px 18px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 4px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+
+    .stat-card.active-card {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0, 51, 102, 0.18) !important;
+        border-top: 2px solid rgba(0, 86, 179, 0.15);
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+        font-size: 0.82rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin: 0 0 4px 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-info p {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 0;
+        line-height: 1;
+    }
+
+    /* Filter Section - One Line Design */
+    .filter-section {
+        background: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.88rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .filter-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #475569;
+        margin: 0;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.83rem;
+        outline: none;
+        background-color: #ffffff;
+        color: var(--text-main);
+        height: 35px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.15);
+    }
+
+    .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-search {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.83rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 35px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .btn-search:hover {
+        background: #004494;
+        box-shadow: 0 4px 10px rgba(0, 86, 179, 0.3);
+    }
+
+    .btn-export-rep {
+        background: var(--delivered);
+        color: white;
+        border: none;
+        padding: 7px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.83rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 35px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .btn-export-rep:hover {
+        background: #3d8b40;
+        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Grid Display */
+    .grid-container {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+    }
+
+    .table-scroll-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .job-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-bottom: 0;
+    }
+
+    .job-table thead {
+        background: var(--secondary);
+        color: white;
+    }
+
+    .job-table th {
+        padding: 12px 12px;
+        text-align: left;
+        font-weight: 600;
+        white-space: nowrap;
+        border: none;
+        font-size: 0.82rem;
+        letter-spacing: 0.2px;
+    }
+
+    .job-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        font-size: 0.82rem;
+    }
+
+    .job-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .job-no-link {
+        color: var(--primary);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .job-no-link:hover {
+        text-decoration: underline;
+    }
+
+    .status-badge {
+        padding: 4px 11px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .status-badge.pending {
+        background: #fff7ed;
+        color: #c2410c;
+        border: 1px solid #fed7aa;
+    }
+
+    .status-badge.delivered {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .status-badge.transit {
+        background: #faf5ff;
+        color: #7e22ce;
+        border: 1px solid #e9d5ff;
+    }
+
+    /* Grid Pagination Footer */
+    .grid-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        background: #fafbfc;
+        border-top: 1px solid var(--border);
+        font-size: 0.82rem;
+    }
+
+    .pagination-btns {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .page-btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--text-main);
+        border-radius: 5px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.15s ease;
+    }
+
+    .page-btn:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: #f0f7ff;
+    }
+
+    .page-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-group {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="job-status-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card active-card" data-status-filter="all" title="Click to view all jobs">
+                <div class="stat-icon" style="background: var(--primary);">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Jobs</h3>
+                    <p id="statTotalJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--pending);" data-status-filter="pending" title="Click to filter Pending jobs">
+                <div class="stat-icon" style="background: var(--pending);">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Pending</h3>
+                    <p id="statPendingJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--transit);" data-status-filter="transit" title="Click to filter In Transit jobs">
+                <div class="stat-icon" style="background: var(--transit);">
+                    <i class="fas fa-truck-fast"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>In Transit</h3>
+                    <p id="statTransitJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--delivered);" data-status-filter="delivered" title="Click to filter Delivered jobs">
+                <div class="stat-icon" style="background: var(--delivered);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Delivered</h3>
+                    <p id="statDeliveredJobs">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar (One Line Design) -->
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+            
+            <div class="filter-group">
+                <label for="filterFromDate">From</label>
+                <input type="date" id="filterFromDate" />
+            </div>
+
+            <div class="filter-group">
+                <label for="filterToDate">To</label>
+                <input type="date" id="filterToDate" />
+            </div>
+
+            <div class="filter-group">
+                <select id="filterCustomerId">
+                    <option value="">-- select customer --</option>
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Customers)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <select id="filterShipmentMode">
+                    <option value="">-- Shipment Mode --</option>
+                    @if (ViewBag.ShipmentModes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <select id="filterPortType">
+                    <option value="">-- Port Type --</option>
+                    @if (ViewBag.PortTypes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.PortTypes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <select id="filterJobStatus">
+                    <option value="">-- Job Status --</option>
+                    @if (ViewBag.JobStatuses != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.JobStatuses)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <select id="filterExportFormat">
+                    <option value="PDF">PDF Format</option>
+                    <option value="Excel">Excel Format</option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="button" class="btn-search" id="btnSearch">
+                    <i class="fas fa-search"></i> SEARCH
+                </button>
+                <button type="button" class="btn-export-rep" id="btnExport">
+                    <i class="fas fa-download"></i> EXPORT
+                </button>
+            </div>
+        </div>
+
+        <!-- Job Grid -->
+        <div class="grid-container">
+            <div class="table-scroll-wrapper">
+                <table class="job-table" id="jobStatusTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">SL</th>
+                            <th>Job No.</th>
+                            <th>Service Type</th>
+                            <th>Port Type</th>
+                            <th>Date Received</th>
+                            <th>Vessel Name</th>
+                            <th>Weight</th>
+                            <th>Container</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobStatusTableBody">
+                        <tr id="loadingRow">
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="fas fa-circle-notch fa-spin fa-2x mb-2 text-primary"></i>
+                                <div>Loading job status data...</div>
+                            </td>
+                        </tr>
+                        <tr id="emptyRow" style="display: none;">
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="fas fa-folder-open fa-2x mb-2 text-secondary opacity-50"></i>
+                                <div>No job records found matching the filter criteria.</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Pagination -->
+            <div class="grid-footer">
+                <div class="table-info" id="tableInfo">Showing 0 to 0 of 0 entries</div>
+                <div class="pagination-btns" id="paginationBtns"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/jobStatusReport.js" asp-append-version="true"></script>
+}

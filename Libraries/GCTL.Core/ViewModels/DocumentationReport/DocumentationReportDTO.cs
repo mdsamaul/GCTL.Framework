@@ -36,9 +36,13 @@ namespace GCTL.Core.ViewModels.DocumentationReport
         public string CompanyName { get; set; } = string.Empty;
         public string Address1 { get; set; } = string.Empty;
         public string ShipmentMode { get; set; } = string.Empty;
+        public string ExpenseType { get => ShipmentMode; set => ShipmentMode = value; }
         public string PortName { get; set; } = string.Empty;
         public string JobDate { get; set; } = string.Empty;
+        public string DocReceivedDate { get; set; } = string.Empty;
         public string ShipmentStatus { get; set; } = string.Empty;
+        public string Weight { get; set; } = string.Empty;
+        public string DateOfClearence { get; set; } = string.Empty;
     }
 
     public class DocumentationReportFilterVM

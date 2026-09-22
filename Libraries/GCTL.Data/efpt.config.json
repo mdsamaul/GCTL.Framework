@@ -143,6 +143,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CF_Def_DeliveryStatusType]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CF_Def_ExpenseHead]",
          "ObjectType": 0
       },
@@ -579,6 +583,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[DocumentationReport]",
+         "ObjectType": 1
+      },
+      {
          "Name": "[dbo].[FullEmployeeDetailsGetByid]",
          "ObjectType": 1
       },
@@ -621,6 +629,10 @@
       {
          "Name": "[dbo].[usp_GetHolidayList]",
          "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[SplitString]",
+         "ObjectType": 2
       }
    ],
    "UiHint": null,
