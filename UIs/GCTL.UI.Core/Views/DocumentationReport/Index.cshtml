@@ -1,1 +1,229 @@
-﻿<h1>Documentation Report</h1>
+@model GCTL.Core.ViewModels.DocumentationReport.DocumentationReportFilterVM
+@{
+    ViewData["Title"] = "Documentation Report";
+}
+
+<style>
+    .doc-report-container {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .doc-section-header {
+        font-weight: 700;
+        font-size: 13.5px;
+        color: #1a3353;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 6px;
+        margin-bottom: 14px;
+        text-transform: capitalize;
+        letter-spacing: 0.5px;
+        width: 35vw;
+    }
+
+    .doc-form-row {
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+    .doc-form-label {
+        font-weight: 600;
+        font-size: 12.5px;
+        color: #334155;
+        white-space: nowrap;
+        margin-bottom: 0;
+    }
+
+    .doc-form-control-wrap {
+        position: relative;
+    }
+
+    .doc-radio-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #334155;
+        cursor: pointer;
+    }
+
+    /* Custom select wrapper width override */
+    .custom-dd-wrapper {
+        width: 100% !important;
+    }
+
+    /* User Custom Button Styling */
+    #btnPreview, #downloadReport {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        min-width: 120px;
+        min-height: 25px;
+        position: relative;
+        overflow: visible;
+    }
+
+    #btnPreview:hover,
+    #downloadReport:hover {
+        background-color: rgba(173, 255, 47, 0.2) !important;
+        color: #1e90ff !important;
+        border-color: #1e90ff !important;
+        box-shadow: 0 4px 10px rgba(30, 144, 255, 0.5) !important;
+    }
+
+    #btnPreview i,
+    #btnPreview span,
+    #downloadReport i,
+    #downloadReport span {
+        transition: transform 0.3s ease;
+        display: inline-block;
+        transform: scale(1);
+        margin-right: 2px;
+    }
+
+    #btnPreview:hover i,
+    #downloadReport:hover i {
+        transform: scale(1.3);
+    }
+</style>
+
+<div class="container-fluid px-3 py-2 doc-report-container">
+    <!-- Main Card aligned strictly from the Left -->
+    <div class="row">
+        <div class="col-12 col-xl-11 col-xxl-10">
+            <div class="card shadow-sm border rounded">
+                <!-- Top Toolbar matching project pattern -->
+                <div class="card-header p-0">
+                    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                    {
+                        Title = "Documentation Report",
+                        ShowSave = false,
+                        ShowDelete = false,
+                        ShowClear = true,
+                        ShowPrint = true,
+                        ShowFavorite = true,
+                        ClearBtnId = "btnClear",
+                        ClearBtnClass = "js-docreport-clear"
+                    })
+                </div>
+
+                <div class="card-body p-3">
+                    <form id="docReportForm" autocomplete="off" onsubmit="return false;">
+                        <!-- Section 1: Search By -->
+                        <div class="doc-section-header">Search By:</div>
+
+                        <div class="row g-2">
+                            <!-- Left Column -->
+                            <div class="col-12 col-md-6 pe-md-3">
+                                <!-- Shipment Mode (Multi-Select) -->
+                                <div class="row doc-form-row">
+                                    <label for="ShipmentMode" class="col-sm-4 doc-form-label px-0 text-end">Shipment Mode</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <select id="ShipmentMode" name="ShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Shipment Mode --" asp-items="ViewBag.ShipmentModes as SelectList">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Port Type (Multi-Select) -->
+                                <div class="row doc-form-row">
+                                    <label for="PortType" class="col-sm-4 doc-form-label px-0 text-end">Port Type</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <select id="PortType" name="PortType" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Port Type --" asp-items="ViewBag.PortTypes as SelectList">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- From Date -->
+                                <div class="row doc-form-row">
+                                    <label for="FromDate" class="col-sm-4 doc-form-label px-0 text-end">From Date</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <input type="text" id="FromDate" name="FromDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" />
+                                    </div>
+                                </div>
+
+                                <!-- Customer (Single-Select) -->
+                                <div class="row doc-form-row">
+                                    <label for="CustomerId" class="col-sm-4 doc-form-label px-0 text-end">Customer</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <select id="CustomerId" name="CustomerId" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Customer --" asp-items="ViewBag.Customers as SelectList">
+                                            <option value="">-- Select Customer --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-12 col-md-6 ps-md-3">
+                                <!-- Spacer row opposite to Shipment Mode -->
+                                <div class="row doc-form-row d-none d-md-flex" style="visibility: hidden;">
+                                    <label class="col-sm-4 doc-form-label px-0 text-end">&nbsp;</label>
+                                    <div class="col-sm-8">&nbsp;</div>
+                                </div>
+
+                                <!-- Job Status (Single-Select) -->
+                                <div class="row doc-form-row">
+                                    <label for="JobStatus" class="col-sm-4 doc-form-label px-0 text-end">Job Status</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <select id="JobStatus" name="JobStatus" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Job Status --" asp-items="ViewBag.JobStatuses as SelectList">
+                                            <option value="">-- Select Job Status --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- To Date -->
+                                <div class="row doc-form-row">
+                                    <label for="ToDate" class="col-sm-4 doc-form-label px-0 text-end">To Date</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <input type="text" id="ToDate" name="ToDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" />
+                                    </div>
+                                </div>
+
+                                <!-- Job No (Single-Select, cascades with Customer) -->
+                                <div class="row doc-form-row">
+                                    <label for="JobNo" class="col-sm-4 doc-form-label px-0 text-end">Job No</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <select id="JobNo" name="JobNo" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Job No --" asp-items="ViewBag.JobNos as SelectList">
+                                            <option value="">-- Select Job No --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Report Option -->
+                        <div class="doc-section-header mt-3">Report Option:</div>
+
+                        <div class="row g-2 pb-3">
+                            <!-- Left Column: Export Report Format (aligned exactly like top fields) -->
+                            <div class="col-12 col-md-6 pe-md-3">
+                                <div class="row doc-form-row">
+                                    <label for="reportText" class="col-sm-4 doc-form-label px-0 text-end">Export Report Format</label>
+                                    <div class="col-sm-8 doc-form-control-wrap">
+                                        <select id="reportText" class="form-select form-select-sm custom-select-single">
+                                            <option value="downloadPdf">Pdf</option>
+                                            <option value="downloadExcel">Excel</option>
+                                            <option value="downloadWord">Word</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Buttons aligned flush to the bottom right edge -->
+                            <div class="col-12 col-md-6 ps-md-3">
+                                <div class="row doc-form-row">
+                                    <div class="col-12 d-flex justify-content-end align-items-center gap-2">
+                                        <button type="button" id="downloadReport" class="btn btn-sm common-btn btn-outline-secondary">
+                                            <i class="fas fa-file-export fa-export"></i> <span>Export Report</span>
+                                        </button>
+                                        <button type="button" id="btnPreview" class="btn btn-sm btn-outline-secondary common-btn px-4">
+                                            <i class="fas fa-eye preview-icon" title="Preview"></i> <span>Preview</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>                       
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/documentationReport.js" asp-append-version="true"></script>
+}
