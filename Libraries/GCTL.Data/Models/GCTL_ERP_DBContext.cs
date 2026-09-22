@@ -4360,7 +4360,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(250)
                 .HasColumnName("AITChallanUpload");
             entity.Property(e => e.AitinvoiceNo)
-                .HasMaxLength(50)
+                .HasMaxLength(500)
                 .HasColumnName("AITInvoiceNo");
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.BankFeeOnlineCharge).HasColumnType("decimal(18, 2)");
@@ -4669,6 +4669,8 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.CustomerAddress).HasMaxLength(200);
             entity.Property(e => e.CustomerCode).HasMaxLength(50);
             entity.Property(e => e.CustomerCompany).HasMaxLength(50);
+            entity.Property(e => e.CustomerDigitalSignature).HasColumnType("image");
+            entity.Property(e => e.CustomerPhoto).HasColumnType("image");
             entity.Property(e => e.CustomerType).HasMaxLength(50);
             entity.Property(e => e.Designation1).HasMaxLength(50);
             entity.Property(e => e.Designation2).HasMaxLength(50);

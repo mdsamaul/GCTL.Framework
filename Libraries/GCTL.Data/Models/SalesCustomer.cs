@@ -94,4 +94,8 @@ public partial class SalesCustomer
     public DateTime? OpeningDate { get; set; }
 
     public string ShortName { get; set; }
+
+    public byte[] CustomerPhoto { get; set; }
+
+    public byte[] CustomerDigitalSignature { get; set; }
 }
