@@ -1,35 +1,32 @@
 /**
- * Job Status Report / Dashboard Page Script
+ * Job Status Dashboard Page Script
+ * Sea & Air DataTables with Custom Multi/Single Select Filters
  * Formosa Logistics Limited
  */
 (function ($) {
     'use strict';
 
-    let allData = [];
-    let displayedData = [];
-    let currentCardFilter = 'all';
-    let currentPage = 1;
-    const pageSize = 10;
+    let seaTable = null;
+    let airTable = null;
 
     $(document).ready(function () {
         initDefaultDates();
-        loadJobStatusData();
+        initDataTables();
         bindEvents();
+        loadJobStatusData();
     });
 
     function initDefaultDates() {
-        // By default, set the From date to the 1st of current month and To date to today
-        const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        var now = new Date();
+        var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        const formatDate = (d) => {
-            const month = '' + (d.getMonth() + 1);
-            const day = '' + d.getDate();
-            const year = d.getFullYear();
-            return [year, month.padStart(2, '0'), day.padStart(2, '0')].join('-');
+        var formatDate = function (d) {
+            var day = String(d.getDate()).padStart(2, '0');
+            var month = String(d.getMonth() + 1).padStart(2, '0');
+            var year = d.getFullYear();
+            return day + '/' + month + '/' + year;
         };
 
-        // If not already set, provide initial date range
         if (!$('#filterFromDate').val()) {
             $('#filterFromDate').val(formatDate(firstDay));
         }
@@ -38,66 +35,213 @@
         }
     }
 
+    function initDataTables() {
+        // Destroy existing instances if any
+        if ($.fn.DataTable.isDataTable('#seaJobTable')) {
+            $('#seaJobTable').DataTable().destroy();
+        }
+        if ($.fn.DataTable.isDataTable('#airJobTable')) {
+            $('#airJobTable').DataTable().destroy();
+        }
+
+        // Initialize Sea Freight DataTable
+        seaTable = $('#seaJobTable').DataTable({
+            processing: true,
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[0, 'asc']],
+            autoWidth: false,
+            language: {
+                emptyTable: "No sea freight records found matching the filter criteria.",
+                search: "_INPUT_",
+                searchPlaceholder: "Search sea jobs..."
+            },
+            columns: [
+                { data: 'sl', className: 'text-center', width: '45px' },
+                { 
+                    data: 'jobNo', 
+                    className: 'job-no-cell',
+                    render: function (data) {
+                        return escapeHtml(data);
+                    }
+                },
+                { data: 'jobDate' },
+                { data: 'expenseType' },
+                { data: 'portName' },
+                { data: 'docReceivedDate' },
+                { data: 'invoiceNo' },
+                { data: 'invoiceValue' },
+                { data: 'containerPkgs' },
+                { data: 'billNo' },
+                { data: 'vesselName' },
+                { data: 'containerNo' },
+                { data: 'etdDate' },
+                { data: 'shipArrivedDate' },
+                { data: 'dischargeDate' },
+                { data: 'actualDeliveryDate' },
+                {
+                    data: 'shipmentStatus',
+                    className: 'text-center',
+                    render: function (data, type, row) {
+                        var cls = row.statusClass || 'pending';
+                        return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
+                    }
+                }
+            ]
+        });
+
+        // Initialize Air Freight DataTable
+        airTable = $('#airJobTable').DataTable({
+            processing: true,
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[0, 'asc']],
+            autoWidth: false,
+            language: {
+                emptyTable: "No air freight records found matching the filter criteria.",
+                search: "_INPUT_",
+                searchPlaceholder: "Search air jobs..."
+            },
+            columns: [
+                { data: 'sl', className: 'text-center', width: '45px' },
+                { 
+                    data: 'jobNo', 
+                    className: 'job-no-cell',
+                    render: function (data) {
+                        return escapeHtml(data);
+                    }
+                },
+                { data: 'jobDate' },
+                { data: 'expenseType' },
+                { data: 'portName' },
+                { data: 'docReceivedDate' },
+                { data: 'invoiceNo' },
+                { data: 'invoiceValue' },
+                { data: 'materialNamePkgsQty' },
+                { data: 'lcNo' },
+                { data: 'hawbNo' },
+                { data: 'mawbNo' },
+                { data: 'etdDate' },
+                { data: 'flightActualDeliveryDate' },
+                { data: 'actualDeliveryDate' },
+                {
+                    data: 'shipmentStatus',
+                    className: 'text-center',
+                    render: function (data, type, row) {
+                        var cls = row.statusClass || 'pending';
+                        return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
+                    }
+                }
+            ]
+        });
+
+        // Auto recalculate column sizing on tab switch
+        $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function () {
+            if ($.fn.DataTable) {
+                $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
+    }
+
     function bindEvents() {
+        // Search Button Click
         $('#btnSearch').on('click', function (e) {
             e.preventDefault();
-            currentPage = 1;
             loadJobStatusData();
         });
 
-        // Search on Enter key in date inputs
+        // Search on Enter key in Date inputs
         $('#filterFromDate, #filterToDate').on('keypress', function (e) {
             if (e.which === 13) {
                 $('#btnSearch').trigger('click');
             }
         });
 
-        // Export button click
+        // Stat Card Click to Filter by Status
+        $('.stat-card').on('click', function () {
+            var statusFilter = $(this).data('status-filter') || '';
+            $('.stat-card').removeClass('active-card');
+            $(this).addClass('active-card');
+
+            setDropdownValue('filterJobStatus', statusFilter);
+            loadJobStatusData();
+        });
+
+        // Export Report Click
         $('#btnExport').on('click', function (e) {
             e.preventDefault();
             exportReport();
         });
-
-        // Interactive stat card click filtering
-        $('.stat-card').on('click', function () {
-            const filter = $(this).data('status-filter') || 'all';
-            $('.stat-card').removeClass('active-card');
-            $(this).addClass('active-card');
-            currentCardFilter = filter;
-            applyCardFilter();
-        });
     }
 
-    function applyCardFilter() {
-        if (currentCardFilter === 'all') {
-            displayedData = allData;
-        } else {
-            displayedData = allData.filter(function (item) {
-                return (item.statusClass || '').toLowerCase() === currentCardFilter.toLowerCase();
-            });
+    /**
+     * Helper to safely extract value from custom-select-multi or custom-select-single
+     */
+    function getDropdownValue(id) {
+        var $el = $('#' + id);
+        if (!$el.length) return '';
+
+        // Check customDropdown instance if available
+        var inst = $el.data('customDdInstance');
+        if (inst) {
+            if (Array.isArray(inst.selected)) {
+                return inst.selected.filter(function (v) { return !!v; }).join(',');
+            }
+            if (inst.selected !== undefined && inst.selected !== null) {
+                return String(inst.selected).trim();
+            }
         }
-        currentPage = 1;
-        renderTablePage();
+
+        var val = $el.val();
+        if (Array.isArray(val)) {
+            return val.filter(function (v) { return !!v; }).join(',');
+        }
+
+        return (val || '').trim();
+    }
+
+    /**
+     * Helper to set value of a dropdown
+     */
+    function setDropdownValue(id, value) {
+        var $el = $('#' + id);
+        if (!$el.length) return;
+
+        $el.val(value);
+        var inst = $el.data('customDdInstance');
+        if (inst && typeof inst.setSelected === 'function') {
+            inst.setSelected(value);
+        }
+        $el.trigger('change');
     }
 
     function getFilterParams() {
         return {
             FromDate: $('#filterFromDate').val() || '',
             ToDate: $('#filterToDate').val() || '',
-            CustomerId: $('#filterCustomerId').val() || '',
-            ShipmentMode: $('#filterShipmentMode').val() || '',
-            PortType: $('#filterPortType').val() || '',
-            JobStatus: $('#filterJobStatus').val() || '',
+            CustomerId: getDropdownValue('filterCustomerId'),
+            ShipmentMode: getDropdownValue('filterShipmentMode'),
+            PortType: getDropdownValue('filterPortType'),
+            JobStatus: getDropdownValue('filterJobStatus'),
             ReportOption: 'Job Report'
         };
     }
 
     function loadJobStatusData() {
-        const filters = getFilterParams();
+        var filters = getFilterParams();
 
-        $('#loadingRow').show();
-        $('#emptyRow').hide();
-        $('.job-data-row').remove();
+        // Highlight matching stat card
+        highlightStatCard(filters.JobStatus);
+
+        // Show table processing state
+        if (seaTable) {
+            seaTable.processing(true);
+        }
+        if (airTable) {
+            airTable.processing(true);
+        }
 
         $.ajax({
             url: '/JobStatusReport/GetData',
@@ -105,163 +249,82 @@
             contentType: 'application/json',
             data: JSON.stringify(filters),
             success: function (res) {
-                $('#loadingRow').hide();
-
                 if (res && res.success) {
+                    // 1. Update Animated Counter for Stat Cards
                     animateCounter('#statTotalJobs', res.total || 0);
                     animateCounter('#statPendingJobs', res.pending || 0);
                     animateCounter('#statTransitJobs', res.transit || 0);
                     animateCounter('#statDeliveredJobs', res.delivered || 0);
 
-                    allData = res.data || [];
-                    currentCardFilter = 'all';
-                    $('.stat-card').removeClass('active-card');
-                    $('.stat-card[data-status-filter="all"]').addClass('active-card');
-                    applyCardFilter();
+                    // 2. Update Sea Freight DataTable
+                    var seaData = res.seaData || [];
+                    $('#seaCountBadge').text(seaData.length.toLocaleString());
+                    if (seaTable) {
+                        seaTable.clear().rows.add(seaData).draw();
+                    }
+
+                    // 3. Update Air Freight DataTable
+                    var airData = res.airData || [];
+                    $('#airCountBadge').text(airData.length.toLocaleString());
+                    if (airTable) {
+                        airTable.clear().rows.add(airData).draw();
+                    }
+
+                    // Auto-adjust column headers
+                    setTimeout(function () {
+                        if ($.fn.DataTable) {
+                            $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
+                        }
+                    }, 100);
                 } else {
-                    allData = [];
-                    displayedData = [];
-                    renderTablePage();
+                    clearTables();
                     showError(res ? res.message : 'Failed to retrieve data.');
                 }
             },
-            error: function (xhr, status, err) {
-                $('#loadingRow').hide();
-                allData = [];
-                displayedData = [];
-                renderTablePage();
+            error: function () {
+                clearTables();
                 showError('Error connecting to server. Please try again.');
+            },
+            complete: function () {
+                if (seaTable) seaTable.processing(false);
+                if (airTable) airTable.processing(false);
             }
         });
     }
 
-    function renderTablePage() {
-        $('.job-data-row').remove();
-
-        const totalRecords = displayedData.length;
-        if (totalRecords === 0) {
-            $('#emptyRow').show();
-            $('#tableInfo').text('Showing 0 to 0 of 0 entries');
-            $('#paginationBtns').empty();
-            return;
-        }
-
-        $('#emptyRow').hide();
-
-        const totalPages = Math.ceil(totalRecords / pageSize) || 1;
-        if (currentPage > totalPages) currentPage = totalPages;
-        if (currentPage < 1) currentPage = 1;
-
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = Math.min(startIndex + pageSize, totalRecords);
-        const pageItems = displayedData.slice(startIndex, endIndex);
-
-        const rowsHtml = pageItems.map(function (item, index) {
-            const sl = startIndex + index + 1;
-            const badgeClass = item.statusClass || 'pending';
-            const badgeText = item.status || 'Pending';
-
-            return `
-                <tr class="job-data-row">
-                    <td>${sl}</td>
-                    <td>
-                        <span class="job-no-link">${escapeHtml(item.jobNo)}</span>
-                    </td>
-                    <td>${escapeHtml(item.serviceType)}</td>
-                    <td>${escapeHtml(item.portType)}</td>
-                    <td>${escapeHtml(item.dateReceived)}</td>
-                    <td>${escapeHtml(item.vesselName)}</td>
-                    <td>${escapeHtml(item.weight)}</td>
-                    <td>${escapeHtml(item.container)}</td>
-                    <td>
-                        <span class="status-badge ${badgeClass}">${escapeHtml(badgeText)}</span>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        $('#jobStatusTableBody').append(rowsHtml);
-
-        // Update Info
-        $('#tableInfo').text(`Showing ${startIndex + 1} to ${endIndex} of ${totalRecords.toLocaleString()} entries`);
-
-        // Render Pagination
-        renderPagination(totalPages);
+    function clearTables() {
+        if (seaTable) seaTable.clear().draw();
+        if (airTable) airTable.clear().draw();
+        $('#seaCountBadge').text('0');
+        $('#airCountBadge').text('0');
     }
 
-    function renderPagination(totalPages) {
-        const $btns = $('#paginationBtns').empty();
-        if (totalPages <= 1) return;
-
-        // Prev button
-        const $prev = $('<button type="button" class="page-btn"><i class="fas fa-chevron-left"></i></button>')
-            .prop('disabled', currentPage === 1)
-            .on('click', function () {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderTablePage();
-                }
-            });
-        $btns.append($prev);
-
-        // Page numbers
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, startPage + 4);
-        if (endPage - startPage < 4) {
-            startPage = Math.max(1, endPage - 4);
+    function highlightStatCard(status) {
+        $('.stat-card').removeClass('active-card');
+        var s = (status || '').toLowerCase().trim();
+        if (!s) {
+            $('.stat-card[data-status-filter=""]').addClass('active-card');
+        } else if (s.indexOf('pend') !== -1) {
+            $('.stat-card[data-status-filter="Pending"]').addClass('active-card');
+        } else if (s.indexOf('transit') !== -1) {
+            $('.stat-card[data-status-filter="In Transit"]').addClass('active-card');
+        } else if (s.indexOf('deliver') !== -1) {
+            $('.stat-card[data-status-filter="Delivered"]').addClass('active-card');
         }
-
-        if (startPage > 1) {
-            $btns.append(createPageBtn(1));
-            if (startPage > 2) {
-                $btns.append('<span class="px-1 text-muted">...</span>');
-            }
-        }
-
-        for (let p = startPage; p <= endPage; p++) {
-            $btns.append(createPageBtn(p));
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                $btns.append('<span class="px-1 text-muted">...</span>');
-            }
-            $btns.append(createPageBtn(totalPages));
-        }
-
-        // Next button
-        const $next = $('<button type="button" class="page-btn"><i class="fas fa-chevron-right"></i></button>')
-            .prop('disabled', currentPage === totalPages)
-            .on('click', function () {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderTablePage();
-                }
-            });
-        $btns.append($next);
-    }
-
-    function createPageBtn(page) {
-        const $btn = $(`<button type="button" class="page-btn ${page === currentPage ? 'active' : ''}">${page}</button>`);
-        $btn.on('click', function () {
-            currentPage = page;
-            renderTablePage();
-        });
-        return $btn;
     }
 
     function animateCounter(selector, target) {
-        const $el = $(selector);
-        const current = parseInt($el.text().replace(/,/g, ''), 10) || 0;
-        const duration = 600;
-        const steps = 25;
-        const stepTime = duration / steps;
-        const diff = target - current;
+        var $el = $(selector);
+        var current = parseInt($el.text().replace(/,/g, ''), 10) || 0;
+        var duration = 500;
+        var steps = 20;
+        var stepTime = duration / steps;
+        var diff = target - current;
 
-        let step = 0;
-        const timer = setInterval(function () {
+        var step = 0;
+        var timer = setInterval(function () {
             step++;
-            const val = Math.round(current + (diff * (step / steps)));
+            var val = Math.round(current + (diff * (step / steps)));
             $el.text(val.toLocaleString());
             if (step >= steps) {
                 clearInterval(timer);
@@ -271,10 +334,10 @@
     }
 
     function exportReport() {
-        const filters = getFilterParams();
-        const exportFormat = $('#filterExportFormat').val() || 'PDF';
+        var filters = getFilterParams();
+        var exportFormat = $('#filterExportFormat').val() || 'PDF';
 
-        const queryParams = $.param({
+        var queryParams = $.param({
             FromDate: filters.FromDate,
             ToDate: filters.ToDate,
             CustomerId: filters.CustomerId,
@@ -285,7 +348,6 @@
             exportFormat: exportFormat
         });
 
-        // Trigger native browser file download
         window.location.href = '/JobStatusReport/Export?' + queryParams;
     }
 
