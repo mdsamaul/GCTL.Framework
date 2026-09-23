@@ -43,6 +43,89 @@ namespace GCTL.Data.Models
             _context = context;
         }
 
+        public virtual async Task<List<DocumentationReportResult>> DocumentationReportAsync(string dateUse, string fromDate, string toDate, string customerID, string portId, string expenseTypeID, string jobNo, string jobStatus, string reportOption, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "fromDate",
+                    Size = 50,
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "toDate",
+                    Size = 50,
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerID",
+                    Size = 50,
+                    Value = customerID ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortId",
+                    Size = 50,
+                    Value = portId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ExpenseTypeID",
+                    Size = 50,
+                    Value = expenseTypeID ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "JobNo",
+                    Size = -1,
+                    Value = jobNo ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "JobStatus",
+                    Size = 50,
+                    Value = jobStatus ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ReportOption",
+                    Size = 50,
+                    Value = reportOption ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<DocumentationReportResult>("EXEC @returnValue = [dbo].[DocumentationReport] @DateUse = @DateUse, @fromDate = @fromDate, @toDate = @toDate, @CustomerID = @CustomerID, @PortId = @PortId, @ExpenseTypeID = @ExpenseTypeID, @JobNo = @JobNo, @JobStatus = @JobStatus, @ReportOption = @ReportOption", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
         public virtual async Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
