@@ -90,7 +90,7 @@
         line-height: 1;
     }
 
-    /* Filter Section - One Line Design */
+    /* Filter Section - One Line Design with Auto Refresh */
     .filter-section {
         background: white;
         padding: 12px 18px;
@@ -144,7 +144,6 @@
         transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    /* Ensure custom-dd-wrapper fits the one-line design */
     .filter-group .custom-dd-wrapper {
         width: 100% !important;
     }
@@ -154,7 +153,6 @@
         height: 33px !important;
         padding: 3px 8px !important;
         font-size: 0.82rem !important;
-        border: 1px solid var(--border) !important;
         border-radius: 6px !important;
     }
 
@@ -164,33 +162,11 @@
         gap: 8px;
     }
 
-    .btn-search {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 6px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 0.82rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        height: 33px;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-    }
-
-    .btn-search:hover {
-        background: #004494;
-        box-shadow: 0 4px 10px rgba(0, 86, 179, 0.3);
-    }
-
     .btn-export-rep {
         background: var(--delivered);
         color: white;
         border: none;
-        padding: 6px 15px;
+        padding: 6px 16px;
         border-radius: 6px;
         cursor: pointer;
         font-weight: 600;
@@ -248,11 +224,55 @@
         box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
     }
 
+    /* Portal Banner */
+    .portal-banner {
+        background: #fde9d9;
+        border: 1px solid #fbd2b3;
+        color: #8a3c00;
+        font-weight: 700;
+        font-size: 0.86rem;
+        padding: 7px 14px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .portal-banner i {
+        font-size: 1rem;
+    }
+
+    /* Yellow Highlight Column Header */
+    .th-highlight-yellow {
+        background-color: #ffff99 !important;
+        color: #333333 !important;
+        border-bottom: 2px solid #e6e600 !important;
+    }
+
+    .custom-grid-table th {
+        font-size: 0.76rem !important;
+        font-weight: 600 !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        padding: 6px 8px !important;
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .custom-grid-table td {
+        font-size: 0.77rem !important;
+        vertical-align: middle !important;
+        padding: 5px 8px !important;
+        white-space: nowrap !important;
+    }
+
     /* Badges in tables */
     .status-badge {
         padding: 3px 9px;
         border-radius: 20px;
-        font-size: 0.73rem;
+        font-size: 0.72rem;
         font-weight: 600;
         display: inline-block;
         white-space: nowrap;
@@ -279,6 +299,21 @@
     .job-no-cell {
         color: var(--primary);
         font-weight: 600;
+    }
+
+    /* Customer Group in Table */
+    .customer-group-row {
+        background-color: #003366 !important;
+        color: white !important;
+        font-weight: 700 !important;
+        font-size: 0.82rem !important;
+        letter-spacing: 0.5px;
+    }
+
+    .customer-group-row td {
+        background-color: #003366 !important;
+        color: white !important;
+        padding: 6px 12px !important;
     }
 
     @@media (max-width: 1200px) {
@@ -344,25 +379,25 @@
             </div>
         </div>
 
-        <!-- Filter Bar (One Line Design) -->
+        <!-- Filter Bar (One Line Design with Instant Auto-Refresh) -->
         <div class="filter-section">
             <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
             
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker auto-filter" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group">
                 <label for="filterToDate">To</label>
-                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" />
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker auto-filter" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- Customer (Single Select) -->
             <div class="filter-group">
-                <select id="filterCustomerId" class="form-select form-select-sm custom-select-single" data-placeholder="-- select customer --">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- select customer --">
                     <option value="">-- select customer --</option>
                     @if (ViewBag.Customers != null)
                     {
@@ -376,7 +411,7 @@
 
             <!-- Shipment Mode (Multi-Select with checkboxes) -->
             <div class="filter-group">
-                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Shipment Mode --">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi auto-filter" multiple="multiple" data-placeholder="-- Shipment Mode --">
                     @if (ViewBag.ShipmentModes != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
@@ -389,7 +424,7 @@
 
             <!-- Port Type (Multi-Select with checkboxes) -->
             <div class="filter-group">
-                <select id="filterPortType" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Port Type --">
+                <select id="filterPortType" class="form-select form-select-sm custom-select-multi auto-filter" multiple="multiple" data-placeholder="-- Port Type --">
                     @if (ViewBag.PortTypes != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.PortTypes)
@@ -402,7 +437,7 @@
 
             <!-- Job Status (Single Select) -->
             <div class="filter-group">
-                <select id="filterJobStatus" class="form-select form-select-sm custom-select-single" data-placeholder="-- Job Status --">
+                <select id="filterJobStatus" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- Job Status --">
                     <option value="">-- Job Status --</option>
                     <option value="Pending">Pending</option>
                     <option value="In Transit">In Transit</option>
@@ -411,20 +446,17 @@
             </div>
 
             <!-- Export Format (Single Select) -->
-            <div class="filter-group">
+            <div class="filter-group" style="max-width: 140px;">
                 <select id="filterExportFormat" class="form-select form-select-sm custom-select-single">
                     <option value="PDF">PDF Format</option>
                     <option value="Excel">Excel Format</option>
                 </select>
             </div>
 
-            <!-- Actions -->
+            <!-- Actions (Export button only, search is automatic) -->
             <div class="filter-actions">
-                <button type="button" class="btn-search" id="btnSearch">
-                    <i class="fas fa-search"></i> SEARCH
-                </button>
-                <button type="button" class="btn-export-rep" id="btnExport">
-                    <i class="fas fa-download"></i> EXPORT
+                <button type="button" class="btn-export-rep" id="btnExport" title="Export grouped report by customer">
+                    <i class="fas fa-file-export"></i> EXPORT
                 </button>
             </div>
         </div>
@@ -434,13 +466,13 @@
             <div class="tabs-header">
                 <ul class="nav nav-pills job-mode-tabs" id="jobModeTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="sea-tab" data-bs-toggle="pill" data-bs-target="#sea-tab-pane" type="button" role="tab" aria-controls="sea-tab-pane" aria-selected="true">
+                        <button class="nav-link active" id="sea-tab" data-bs-toggle="pill" data-bs-target="#sea-tab-pane" type="button" role="tab" aria-controls="sea-tab-pane" aria-selected="true" data-tab-mode="Sea">
                             <i class="fas fa-ship me-2"></i> Sea Freight Jobs
                             <span class="badge rounded-pill bg-primary ms-2" id="seaCountBadge">0</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="air-tab" data-bs-toggle="pill" data-bs-target="#air-tab-pane" type="button" role="tab" aria-controls="air-tab-pane" aria-selected="false">
+                        <button class="nav-link" id="air-tab" data-bs-toggle="pill" data-bs-target="#air-tab-pane" type="button" role="tab" aria-controls="air-tab-pane" aria-selected="false" data-tab-mode="Air">
                             <i class="fas fa-plane-departure me-2"></i> Air Freight Jobs
                             <span class="badge rounded-pill bg-info text-dark ms-2" id="airCountBadge">0</span>
                         </button>
@@ -449,29 +481,42 @@
             </div>
 
             <div class="tab-content p-3" id="jobModeTabsContent">
-                <!-- Sea Freight Tab Pane -->
+                <!-- Sea Freight Tab Pane (All 26 Columns) -->
                 <div class="tab-pane fade show active" id="sea-tab-pane" role="tabpanel" aria-labelledby="sea-tab">
+                    <div class="portal-banner">
+                        <i class="fas fa-anchor"></i>
+                        <span>From Formosa recommended Customer Portal Website (Sea Port): Both for Import &amp; Export</span>
+                    </div>
                     <div class="table-responsive">
                         <table id="seaJobTable" class="table table-bordered table-striped table-hover custom-grid-table w-100">
                             <thead>
                                 <tr>
-                                    <th style="width: 45px;">SL</th>
+                                    <th style="width: 40px;">Sl. No.</th>
                                     <th>Job No.</th>
                                     <th>Job Date</th>
-                                    <th>Service Type</th>
-                                    <th>Port Name</th>
-                                    <th>Doc Received</th>
-                                    <th>Invoice No.</th>
+                                    <th>Shipment Mode</th>
+                                    <th>Port</th>
+                                    <th>Doc's Rec. Dt.</th>
+                                    <th>Invoice No</th>
                                     <th>Invoice Value</th>
-                                    <th>Container/Pkgs</th>
-                                    <th>Bill / BL No.</th>
-                                    <th>Vessel Name</th>
-                                    <th>Container No.</th>
+                                    <th class="th-highlight-yellow">Container /Pkgs</th>
+                                    <th>Shipper</th>
+                                    <th>B/L No.</th>
                                     <th>ETD</th>
-                                    <th>Arrival Date</th>
-                                    <th>Discharge</th>
-                                    <th>Delivery Date</th>
-                                    <th>Status</th>
+                                    <th>Final IGM Rec. Dt.</th>
+                                    <th>Ship Arrived</th>
+                                    <th>Unstaff/Discharge</th>
+                                    <th>Docs. Bank Sign</th>
+                                    <th>B/E No.</th>
+                                    <th>B/E Date</th>
+                                    <th>Est. Delivery Dt.</th>
+                                    <th>Actual Delivery Dt.</th>
+                                    <th>Shipment Status</th>
+                                    <th>Remarks</th>
+                                    <th>Term</th>
+                                    <th>Vessel Name &amp; R-No</th>
+                                    <th>Container No.</th>
+                                    <th>Forwarder Name &amp; Phone No.</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -479,28 +524,37 @@
                     </div>
                 </div>
 
-                <!-- Air Freight Tab Pane -->
+                <!-- Air Freight Tab Pane (All 21 Columns) -->
                 <div class="tab-pane fade" id="air-tab-pane" role="tabpanel" aria-labelledby="air-tab">
+                    <div class="portal-banner">
+                        <i class="fas fa-plane"></i>
+                        <span>From Formosa recommended Customer Portal Website (Air Port): Both for Import &amp; Export</span>
+                    </div>
                     <div class="table-responsive">
                         <table id="airJobTable" class="table table-bordered table-striped table-hover custom-grid-table w-100">
                             <thead>
                                 <tr>
-                                    <th style="width: 45px;">SL</th>
+                                    <th style="width: 40px;">SL. No</th>
                                     <th>Job No.</th>
                                     <th>Job Date</th>
-                                    <th>Service Type</th>
-                                    <th>Port Name</th>
-                                    <th>Doc Received</th>
+                                    <th>Shipment Mode</th>
+                                    <th>Port</th>
+                                    <th>Doc's Receive Date</th>
                                     <th>Invoice No.</th>
                                     <th>Invoice Value</th>
-                                    <th>Material/Qty</th>
-                                    <th>LC No.</th>
-                                    <th>HAWB No.</th>
+                                    <th class="th-highlight-yellow">Material Name &amp; Pkgs Qty</th>
+                                    <th>Express Name, Country</th>
+                                    <th>L/C No.</th>
+                                    <th>Express/HAWB No.</th>
                                     <th>MAWB No.</th>
-                                    <th>ETD Date</th>
-                                    <th>Flight Delivery</th>
-                                    <th>Actual Delivery</th>
-                                    <th>Status</th>
+                                    <th>ETD</th>
+                                    <th class="th-highlight-yellow">Flight Actual Arrival Dt.</th>
+                                    <th class="th-highlight-yellow">Arrival Notice Rcvd From Express Dt.</th>
+                                    <th>Bill of Entry No</th>
+                                    <th>Bill of Entry Date</th>
+                                    <th>Actual Delivery Date</th>
+                                    <th>Shipment Status</th>
+                                    <th>Remarks</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

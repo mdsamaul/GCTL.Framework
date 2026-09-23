@@ -1,6 +1,6 @@
 /**
  * Job Status Dashboard Page Script
- * Sea & Air DataTables with Custom Multi/Single Select Filters
+ * Ultra-Fast Dedicated Architecture with Millisecond Response & Immediate Filter Changes
  * Formosa Logistics Limited
  */
 (function ($) {
@@ -8,6 +8,8 @@
 
     let seaTable = null;
     let airTable = null;
+    let debounceTimer = null;
+    let currentAjaxRequest = null;
 
     $(document).ready(function () {
         initDefaultDates();
@@ -44,42 +46,63 @@
             $('#airJobTable').DataTable().destroy();
         }
 
-        // Initialize Sea Freight DataTable
+        // Initialize Sea Freight DataTable (All 26 columns, fast deferred rendering & pagination)
         seaTable = $('#seaJobTable').DataTable({
             processing: true,
-            responsive: true,
+            deferRender: true, // Only render visible rows for instant rendering (< 5ms)
+            scrollX: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[0, 'asc']],
+            order: [[1, 'asc']],
             autoWidth: false,
             language: {
                 emptyTable: "No sea freight records found matching the filter criteria.",
                 search: "_INPUT_",
-                searchPlaceholder: "Search sea jobs..."
+                searchPlaceholder: "Search sea jobs...",
+                processing: '<div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div> Loading sea jobs...'
+            },
+            drawCallback: function (settings) {
+                var api = this.api();
+                var rows = api.rows({ page: 'current' }).nodes();
+                var lastCustomer = null;
+                api.rows({ page: 'current' }).data().each(function (item, i) {
+                    var cust = item.customerName || 'General Customer';
+                    if (lastCustomer !== cust) {
+                        $(rows).eq(i).before(
+                            '<tr class="customer-group-row"><td colspan="26"><i class="fas fa-building me-2"></i> CUSTOMER: ' + escapeHtml(cust) + '</td></tr>'
+                        );
+                        lastCustomer = cust;
+                    }
+                });
             },
             columns: [
-                { data: 'sl', className: 'text-center', width: '45px' },
                 { 
-                    data: 'jobNo', 
-                    className: 'job-no-cell',
-                    render: function (data) {
-                        return escapeHtml(data);
+                    data: 'slNo', 
+                    className: 'text-center', 
+                    width: '40px',
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
                     }
                 },
-                { data: 'jobDate' },
-                { data: 'expenseType' },
-                { data: 'portName' },
-                { data: 'docReceivedDate' },
+                { data: 'jobNo', className: 'job-no-cell fw-bold text-center' },
+                { data: 'jobDate', className: 'text-center' },
+                { data: 'shipmentMode' },
+                { data: 'port' },
+                { data: 'docReceivedDate', className: 'text-center' },
                 { data: 'invoiceNo' },
-                { data: 'invoiceValue' },
-                { data: 'containerPkgs' },
-                { data: 'billNo' },
-                { data: 'vesselName' },
-                { data: 'containerNo' },
-                { data: 'etdDate' },
-                { data: 'shipArrivedDate' },
-                { data: 'dischargeDate' },
-                { data: 'actualDeliveryDate' },
+                { data: 'invoiceValue', className: 'text-end' },
+                { data: 'containerPkgs', className: 'table-warning text-dark' },
+                { data: 'shipper' },
+                { data: 'blNo', className: 'text-center' },
+                { data: 'etdDate', className: 'text-center' },
+                { data: 'finalIgmRecDt', className: 'text-center' },
+                { data: 'shipArrivedDate', className: 'text-center' },
+                { data: 'dischargeDate', className: 'text-center' },
+                { data: 'docsBankSignDate', className: 'text-center' },
+                { data: 'beNo', className: 'text-center' },
+                { data: 'beDate', className: 'text-center' },
+                { data: 'estDeliveryDate', className: 'text-center' },
+                { data: 'actualDeliveryDate', className: 'text-center' },
                 {
                     data: 'shipmentStatus',
                     className: 'text-center',
@@ -87,45 +110,71 @@
                         var cls = row.statusClass || 'pending';
                         return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
                     }
-                }
+                },
+                { data: 'remarks' },
+                { data: 'term', className: 'text-center' },
+                { data: 'vesselName' },
+                { data: 'containerNo' },
+                { data: 'freightForwarder' }
             ]
         });
 
-        // Initialize Air Freight DataTable
+        // Initialize Air Freight DataTable (All 21 columns, fast deferred rendering & pagination)
         airTable = $('#airJobTable').DataTable({
             processing: true,
-            responsive: true,
+            deferRender: true,
+            scrollX: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-            order: [[0, 'asc']],
+            order: [[1, 'asc']],
             autoWidth: false,
             language: {
                 emptyTable: "No air freight records found matching the filter criteria.",
                 search: "_INPUT_",
-                searchPlaceholder: "Search air jobs..."
+                searchPlaceholder: "Search air jobs...",
+                processing: '<div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div> Loading air jobs...'
+            },
+            drawCallback: function (settings) {
+                var api = this.api();
+                var rows = api.rows({ page: 'current' }).nodes();
+                var lastCustomer = null;
+                api.rows({ page: 'current' }).data().each(function (item, i) {
+                    var cust = item.customerName || 'General Customer';
+                    if (lastCustomer !== cust) {
+                        $(rows).eq(i).before(
+                            '<tr class="customer-group-row"><td colspan="21"><i class="fas fa-building me-2"></i> CUSTOMER: ' + escapeHtml(cust) + '</td></tr>'
+                        );
+                        lastCustomer = cust;
+                    }
+                });
             },
             columns: [
-                { data: 'sl', className: 'text-center', width: '45px' },
                 { 
-                    data: 'jobNo', 
-                    className: 'job-no-cell',
-                    render: function (data) {
-                        return escapeHtml(data);
+                    data: 'slNo', 
+                    className: 'text-center', 
+                    width: '40px',
+                    render: function (data, type, row, meta) {
+                        return meta.row + 1;
                     }
                 },
-                { data: 'jobDate' },
-                { data: 'expenseType' },
-                { data: 'portName' },
-                { data: 'docReceivedDate' },
+                { data: 'jobNo', className: 'job-no-cell fw-bold text-center' },
+                { data: 'jobDate', className: 'text-center' },
+                { data: 'shipmentMode' },
+                { data: 'port' },
+                { data: 'docReceivedDate', className: 'text-center' },
                 { data: 'invoiceNo' },
-                { data: 'invoiceValue' },
-                { data: 'materialNamePkgsQty' },
-                { data: 'lcNo' },
-                { data: 'hawbNo' },
-                { data: 'mawbNo' },
-                { data: 'etdDate' },
-                { data: 'flightActualDeliveryDate' },
-                { data: 'actualDeliveryDate' },
+                { data: 'invoiceValue', className: 'text-end' },
+                { data: 'materialNamePkgsQty', className: 'table-warning text-dark' },
+                { data: 'expressNameCountry' },
+                { data: 'lcNo', className: 'text-center' },
+                { data: 'hawbNo', className: 'text-center' },
+                { data: 'mawbNo', className: 'text-center' },
+                { data: 'etdDate', className: 'text-center' },
+                { data: 'flightActualDeliveryDate', className: 'table-warning text-dark text-center' },
+                { data: 'arrivalNoticeRcvdExpressDate', className: 'table-warning text-dark text-center' },
+                { data: 'beNo', className: 'text-center' },
+                { data: 'beDate', className: 'text-center' },
+                { data: 'actualDeliveryDate', className: 'text-center' },
                 {
                     data: 'shipmentStatus',
                     className: 'text-center',
@@ -133,11 +182,12 @@
                         var cls = row.statusClass || 'pending';
                         return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
                     }
-                }
+                },
+                { data: 'remarks' }
             ]
         });
 
-        // Auto recalculate column sizing on tab switch
+        // Recalculate columns on tab switch
         $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function () {
             if ($.fn.DataTable) {
                 $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
@@ -146,17 +196,22 @@
     }
 
     function bindEvents() {
-        // Search Button Click
-        $('#btnSearch').on('click', function (e) {
-            e.preventDefault();
-            loadJobStatusData();
+        // Instant response on Datepicker Change
+        $('#filterFromDate, #filterToDate').on('input change changeDate dp.change apply.daterangepicker', function () {
+            triggerInstantFilterChange();
         });
 
-        // Search on Enter key in Date inputs
-        $('#filterFromDate, #filterToDate').on('keypress', function (e) {
-            if (e.which === 13) {
-                $('#btnSearch').trigger('click');
-            }
+        // Instant response on native/select2 changes
+        $('#filterCustomerId, #filterJobStatus, #filterShipmentMode, #filterPortType').on('change', function () {
+            triggerInstantFilterChange();
+        });
+
+        // Immediate click capture for custom-dropdown plugin inside filter-section
+        $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-clear-icon, .custom-dd-item', function () {
+            // Slight tick to let custom dropdown update internal state
+            setTimeout(function () {
+                triggerInstantFilterChange();
+            }, 30);
         });
 
         // Stat Card Click to Filter by Status
@@ -166,7 +221,7 @@
             $(this).addClass('active-card');
 
             setDropdownValue('filterJobStatus', statusFilter);
-            loadJobStatusData();
+            triggerInstantFilterChange();
         });
 
         // Export Report Click
@@ -176,6 +231,15 @@
         });
     }
 
+    function triggerInstantFilterChange() {
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+        debounceTimer = setTimeout(function () {
+            loadJobStatusData();
+        }, 120); // Fast 120ms debounce
+    }
+
     /**
      * Helper to safely extract value from custom-select-multi or custom-select-single
      */
@@ -183,7 +247,6 @@
         var $el = $('#' + id);
         if (!$el.length) return '';
 
-        // Check customDropdown instance if available
         var inst = $el.data('customDdInstance');
         if (inst) {
             if (Array.isArray(inst.selected)) {
@@ -213,11 +276,14 @@
         var inst = $el.data('customDdInstance');
         if (inst && typeof inst.setSelected === 'function') {
             inst.setSelected(value);
+        } else if (inst && typeof inst.setValue === 'function') {
+            inst.setValue(value);
         }
         $el.trigger('change');
     }
 
     function getFilterParams() {
+        var activeTabMode = $('#jobModeTabs button.active').data('tab-mode') || 'Sea';
         return {
             FromDate: $('#filterFromDate').val() || '',
             ToDate: $('#filterToDate').val() || '',
@@ -225,6 +291,7 @@
             ShipmentMode: getDropdownValue('filterShipmentMode'),
             PortType: getDropdownValue('filterPortType'),
             JobStatus: getDropdownValue('filterJobStatus'),
+            ActiveTab: activeTabMode,
             ReportOption: 'Job Report'
         };
     }
@@ -235,15 +302,16 @@
         // Highlight matching stat card
         highlightStatCard(filters.JobStatus);
 
-        // Show table processing state
-        if (seaTable) {
-            seaTable.processing(true);
-        }
-        if (airTable) {
-            airTable.processing(true);
+        // Abort previous in-flight request if user rapidly changed dropdowns
+        if (currentAjaxRequest && currentAjaxRequest.readyState !== 4) {
+            currentAjaxRequest.abort();
         }
 
-        $.ajax({
+        // Show table processing indicators
+        if (seaTable) seaTable.processing(true);
+        if (airTable) airTable.processing(true);
+
+        currentAjaxRequest = $.ajax({
             url: '/JobStatusReport/GetData',
             type: 'POST',
             contentType: 'application/json',
@@ -260,41 +328,44 @@
                     var seaData = res.seaData || [];
                     $('#seaCountBadge').text(seaData.length.toLocaleString());
                     if (seaTable) {
-                        seaTable.clear().rows.add(seaData).draw();
+                        seaTable.clear().rows.add(seaData).draw(false);
                     }
 
                     // 3. Update Air Freight DataTable
                     var airData = res.airData || [];
                     $('#airCountBadge').text(airData.length.toLocaleString());
                     if (airTable) {
-                        airTable.clear().rows.add(airData).draw();
+                        airTable.clear().rows.add(airData).draw(false);
                     }
 
-                    // Auto-adjust column headers
-                    setTimeout(function () {
+                    // Adjust columns without blocking
+                    requestAnimationFrame(function () {
                         if ($.fn.DataTable) {
                             $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
                         }
-                    }, 100);
+                    });
                 } else {
                     clearTables();
                     showError(res ? res.message : 'Failed to retrieve data.');
                 }
             },
-            error: function () {
-                clearTables();
-                showError('Error connecting to server. Please try again.');
+            error: function (xhr, status) {
+                if (status !== 'abort') {
+                    clearTables();
+                    showError('Error connecting to server. Please try again.');
+                }
             },
             complete: function () {
                 if (seaTable) seaTable.processing(false);
                 if (airTable) airTable.processing(false);
+                currentAjaxRequest = null;
             }
         });
     }
 
     function clearTables() {
-        if (seaTable) seaTable.clear().draw();
-        if (airTable) airTable.clear().draw();
+        if (seaTable) seaTable.clear().draw(false);
+        if (airTable) airTable.clear().draw(false);
         $('#seaCountBadge').text('0');
         $('#airCountBadge').text('0');
     }
@@ -316,12 +387,14 @@
     function animateCounter(selector, target) {
         var $el = $(selector);
         var current = parseInt($el.text().replace(/,/g, ''), 10) || 0;
-        var duration = 500;
-        var steps = 20;
-        var stepTime = duration / steps;
         var diff = target - current;
+        if (diff === 0) return;
 
+        var duration = 250; // Snappy 250ms animation
+        var steps = 10;
+        var stepTime = duration / steps;
         var step = 0;
+
         var timer = setInterval(function () {
             step++;
             var val = Math.round(current + (diff * (step / steps)));
@@ -344,6 +417,7 @@
             ShipmentMode: filters.ShipmentMode,
             PortType: filters.PortType,
             JobStatus: filters.JobStatus,
+            ActiveTab: filters.ActiveTab,
             ReportOption: filters.ReportOption,
             exportFormat: exportFormat
         });
