@@ -250,10 +250,33 @@
         border-bottom: 2px solid #e6e600 !important;
     }
 
+    .job-table-outer {
+        width: 100%;
+        overflow: visible;
+    }
+
     .table-responsive {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
         width: 100%;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 7px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
     }
 
     .custom-grid-table {
@@ -279,19 +302,49 @@
         white-space: nowrap !important;
     }
 
-    /* Prevent any phantom or empty duplicate header row */
-    .dataTables_scrollBody thead,
-    .dataTables_scrollBody thead tr,
-    .dataTables_scrollBody thead th {
-        height: 0px !important;
-        min-height: 0px !important;
-        max-height: 0px !important;
-        padding: 0px !important;
-        margin: 0px !important;
-        border: none !important;
-        line-height: 0px !important;
-        font-size: 0px !important;
-        visibility: hidden !important;
+    /* Fixed Controls (Length, Search, Info, Pagination) */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        position: static !important;
+        flex-shrink: 0;
+    }
+
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_filter label {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 0.82rem !important;
+        color: #475569 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_length select {
+        width: auto !important;
+        display: inline-block !important;
+        font-size: 0.82rem !important;
+        padding: 2px 24px 2px 8px !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 200px !important;
+        display: inline-block !important;
+        font-size: 0.82rem !important;
+        padding: 4px 8px !important;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        font-size: 0.8rem !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+        padding-top: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination {
+        margin: 0 !important;
+        font-size: 0.82rem !important;
     }
 
     /* Badges in tables */
@@ -499,7 +552,7 @@
                         <i class="fas fa-anchor"></i>
                         <span>From Formosa recommended Customer Portal Website (Sea Port): Both for Import &amp; Export</span>
                     </div>
-                    <div class="table-responsive">
+                    <div class="job-table-outer">
                         <table id="seaJobTable" class="table table-bordered table-striped table-hover custom-grid-table w-100">
                             <thead>
                                 <tr>
@@ -542,7 +595,7 @@
                         <i class="fas fa-plane"></i>
                         <span>From Formosa recommended Customer Portal Website (Air Port): Both for Import &amp; Export</span>
                     </div>
-                    <div class="table-responsive">
+                    <div class="job-table-outer">
                         <table id="airJobTable" class="table table-bordered table-striped table-hover custom-grid-table w-100">
                             <thead>
                                 <tr>

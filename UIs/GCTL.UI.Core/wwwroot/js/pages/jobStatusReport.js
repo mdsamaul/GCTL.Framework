@@ -50,6 +50,7 @@
         seaTable = $('#seaJobTable').DataTable({
             processing: true,
             deferRender: true, // Only render visible rows for instant rendering (< 5ms)
+            dom: '<"d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"lf><"table-responsive"rt><"d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2"ip>',
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
@@ -108,6 +109,7 @@
         airTable = $('#airJobTable').DataTable({
             processing: true,
             deferRender: true,
+            dom: '<"d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"lf><"table-responsive"rt><"d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2"ip>',
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
