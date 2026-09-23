@@ -75,7 +75,7 @@ namespace GCTL.Service.JobStatusReport
                 string sql = @"
                     SELECT 
                         COUNT(d.JobNo) AS TotalJob,
-                        SUM(CASE WHEN ISNULL(d.ShipmentStatus, '') = '' THEN 1 ELSE 0 END) AS PendingJob,
+                        SUM(CASE WHEN ISNULL(d.ShipmentStatus, '') = '' OR ISNULL(d.ShipmentStatus, '') NOT IN ('01','02','03','04','05','06','07','08','09','10','11','12','13','14') THEN 1 ELSE 0 END) AS PendingJob,
                         SUM(CASE WHEN ISNULL(d.ShipmentStatus, '') IN ('01','02','03','04','05','07','08','09','10','11','12','13') THEN 1 ELSE 0 END) AS TransitJob,
                         SUM(CASE WHEN ISNULL(d.ShipmentStatus, '') IN ('06','14') THEN 1 ELSE 0 END) AS DeliveredJob
                     FROM Sep_Documentation d WITH (NOLOCK)
@@ -117,9 +117,47 @@ namespace GCTL.Service.JobStatusReport
                 using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
 
-                // High-performance single-pass query with aggregated CTE and NOLOCK
+                // High-performance single-pass query with FilteredDocs CTE and NOLOCK
                 string query = @"
-                    ;WITH Updates AS (
+                    ;WITH FilteredDocs AS (
+                        SELECT 
+                            d.JobNo,
+                            d.Date AS RawJobDate,
+                            ISNULL(e.ExpenseType, 'Sea Freight') AS ExpenseType,
+                            ISNULL(p.PortName, '') AS PortName,
+                            d.DocReceivedDate AS RawDocReceivedDate,
+                            ISNULL(d.InvoiceNo, '') AS InvoiceNo,
+                            ISNULL(CONVERT(varchar(50), d.InvoiceValue), '') AS InvoiceValue,
+                            CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS ContainerPkgs,
+                            '' AS Shipper,
+                            ISNULL(d.BillNo, '') AS BillNo,
+                            d.ShipmentStatus AS RawShipmentStatus,
+                            ISNULL(d.BENo, '') AS BeNo,
+                            ISNULL(d.Remarks, '') AS Remarks,
+                            ISNULL(d.Term, '') AS Term,
+                            CONCAT(d.VesselName, ' ', d.Vessel_RottNo) AS VesselName,
+                            ISNULL(d.ContainerNo, '') AS ContainerNo,
+                            CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder,
+                            ISNULL(d.CustomerID, '') AS CustomerID,
+                            ISNULL(c.CustomerName, 'General Customer') AS CustomerName,
+                            ISNULL(c.CustomerAddress, '') AS CustomerAddress
+                        FROM Sep_Documentation d WITH (NOLOCK)
+                        LEFT JOIN Sales_Customer c WITH (NOLOCK) ON d.CustomerID = c.CustomerID
+                        LEFT OUTER JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
+                        LEFT OUTER JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
+                        WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+                          AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
+                          AND (@PortTypeId = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+                          AND (@ShipmentTypeId = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+                          AND (
+                              @JobStatus = '' 
+                              OR (@JobStatus = 'Pending' AND (ISNULL(d.ShipmentStatus, '') = '' OR ISNULL(d.ShipmentStatus, '') NOT IN ('07','08','09','10','11','12','13','14')))
+                              OR (@JobStatus IN ('In Transit', 'transit') AND ISNULL(d.ShipmentStatus, '') IN ('07','08','09','10','11','12','13'))
+                              OR (@JobStatus = 'Delivered' AND ISNULL(d.ShipmentStatus, '') = '14')
+                          )
+                          AND (e.ExpenseType IS NULL OR e.ExpenseType NOT LIKE '%Air%')
+                    ),
+                    Updates AS (
                         SELECT 
                             du.JobNo,
                             MAX(CASE WHEN du.UpdateStatus = '07' THEN du.UpdateDateTime END) AS EtdDate,
@@ -131,54 +169,22 @@ namespace GCTL.Service.JobStatusReport
                             MAX(CASE WHEN du.UpdateStatus = '13' THEN du.UpdateDateTime END) AS EstimatedDeliveryDate,
                             MAX(CASE WHEN du.UpdateStatus = '14' THEN du.UpdateDateTime END) AS ActualDeliveryDate
                         FROM CF_DailyJobUpdateEntry du WITH (NOLOCK)
+                        WHERE du.JobNo IN (SELECT JobNo FROM FilteredDocs)
                         GROUP BY du.JobNo
                     )
                     SELECT 
-                        d.JobNo,
-                        d.Date AS RawJobDate,
-                        ISNULL(e.ExpenseType, 'Sea Freight') AS ExpenseType,
-                        ISNULL(p.PortName, '') AS PortName,
-                        d.DocReceivedDate AS RawDocReceivedDate,
-                        ISNULL(d.InvoiceNo, '') AS InvoiceNo,
-                        ISNULL(CONVERT(varchar(50), d.InvoiceValue), '') AS InvoiceValue,
-                        CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS ContainerPkgs,
-                        '' AS Shipper,
-                        ISNULL(d.BillNo, '') AS BillNo,
-                        d.ShipmentStatus AS RawShipmentStatus,
+                        f.*,
                         u.EtdDate,
                         u.FinalIgmRecDt,
                         u.ShipArrivedDate,
                         u.DischargeDate,
                         u.DocsBankSignDate,
-                        ISNULL(d.BENo, '') AS BeNo,
                         u.BeDate,
                         u.EstimatedDeliveryDate,
-                        u.ActualDeliveryDate,
-                        ISNULL(d.Remarks, '') AS Remarks,
-                        ISNULL(d.Term, '') AS Term,
-                        CONCAT(d.VesselName, ' ', d.Vessel_RottNo) AS VesselName,
-                        ISNULL(d.ContainerNo, '') AS ContainerNo,
-                        CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder,
-                        ISNULL(d.CustomerID, '') AS CustomerID,
-                        ISNULL(c.CustomerName, 'General Customer') AS CustomerName,
-                        ISNULL(c.CustomerAddress, '') AS CustomerAddress
-                    FROM Sep_Documentation d WITH (NOLOCK)
-                    LEFT JOIN Sales_Customer c WITH (NOLOCK) ON d.CustomerID = c.CustomerID
-                    LEFT OUTER JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
-                    LEFT OUTER JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
-                    LEFT OUTER JOIN Updates u ON d.JobNo = u.JobNo
-                    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-                      AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
-                      AND (@PortTypeId = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-                      AND (@ShipmentTypeId = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
-                      AND (
-                          @JobStatus = '' 
-                          OR (@JobStatus = 'Pending' AND ISNULL(d.ShipmentStatus, '') = '')
-                          OR (@JobStatus IN ('In Transit', 'transit') AND ISNULL(d.ShipmentStatus, '') IN ('07','08','09','10','11','12','13'))
-                          OR (@JobStatus = 'Delivered' AND ISNULL(d.ShipmentStatus, '') = '14')
-                      )
-                      AND (e.ExpenseType IS NULL OR e.ExpenseType NOT LIKE '%Air%')
-                    ORDER BY d.JobNo ASC";
+                        u.ActualDeliveryDate
+                    FROM FilteredDocs f
+                    LEFT OUTER JOIN Updates u ON f.JobNo = u.JobNo
+                    ORDER BY f.JobNo ASC";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.Add(new SqlParameter("@DateUse", dateUse));
@@ -357,7 +363,43 @@ namespace GCTL.Service.JobStatusReport
                 await conn.OpenAsync();
 
                 string query = @"
-                    ;WITH Updates AS (
+                    ;WITH FilteredDocs AS (
+                        SELECT 
+                            d.JobNo,
+                            d.Date AS RawJobDate,
+                            ISNULL(e.ExpenseType, 'Air Freight') AS ExpenseType,
+                            ISNULL(p.PortName, '') AS PortName,
+                            d.DocReceivedDate AS RawDocReceivedDate,
+                            ISNULL(d.InvoiceNo, '') AS InvoiceNo,
+                            ISNULL(CONVERT(varchar(50), d.InvoiceValue), '') AS InvoiceValue,
+                            CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS MaterialNamePkgsQty,
+                            '' AS ExpressNameCountry,
+                            ISNULL(d.LCNo, '') AS LcNo,
+                            ISNULL(d.HAWB, '') AS HawbNo,
+                            ISNULL(d.MAWB, '') AS MawbNo,
+                            d.ShipmentStatus AS RawShipmentStatus,
+                            ISNULL(d.BENo, '') AS BeNo,
+                            ISNULL(d.Remarks, '') AS Remarks,
+                            ISNULL(d.CustomerID, '') AS CustomerID,
+                            ISNULL(c.CustomerName, 'General Customer') AS CustomerName,
+                            ISNULL(c.CustomerAddress, '') AS CustomerAddress
+                        FROM Sep_Documentation d WITH (NOLOCK)
+                        LEFT JOIN Sales_Customer c WITH (NOLOCK) ON d.CustomerID = c.CustomerID
+                        LEFT OUTER JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
+                        LEFT OUTER JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
+                        WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+                          AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
+                          AND (@PortTypeId = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+                          AND (@ShipmentTypeId = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+                          AND (
+                              @JobStatus = '' 
+                              OR (@JobStatus = 'Pending' AND (ISNULL(d.ShipmentStatus, '') = '' OR ISNULL(d.ShipmentStatus, '') NOT IN ('01','02','03','04','05','06')))
+                              OR (@JobStatus IN ('In Transit', 'transit') AND ISNULL(d.ShipmentStatus, '') IN ('01','02','03','04','05'))
+                              OR (@JobStatus = 'Delivered' AND ISNULL(d.ShipmentStatus, '') = '06')
+                          )
+                          AND (e.ExpenseType LIKE '%Air%' OR ISNULL(d.HAWB, '') <> '' OR ISNULL(d.MAWB, '') <> '')
+                    ),
+                    Updates AS (
                         SELECT 
                             du.JobNo,
                             MAX(CASE WHEN du.UpdateStatus = '01' THEN du.UpdateDateTime END) AS EtdDate,
@@ -367,50 +409,20 @@ namespace GCTL.Service.JobStatusReport
                             MAX(CASE WHEN du.UpdateStatus = '05' THEN du.UpdateDateTime END) AS BeDate,
                             MAX(CASE WHEN du.UpdateStatus = '06' THEN du.UpdateDateTime END) AS ActualDeliveryDate
                         FROM CF_DailyJobUpdateEntry du WITH (NOLOCK)
+                        WHERE du.JobNo IN (SELECT JobNo FROM FilteredDocs)
                         GROUP BY du.JobNo
                     )
                     SELECT 
-                        d.JobNo,
-                        d.Date AS RawJobDate,
-                        ISNULL(e.ExpenseType, 'Air Freight') AS ExpenseType,
-                        ISNULL(p.PortName, '') AS PortName,
-                        d.DocReceivedDate AS RawDocReceivedDate,
-                        ISNULL(d.InvoiceNo, '') AS InvoiceNo,
-                        ISNULL(CONVERT(varchar(50), d.InvoiceValue), '') AS InvoiceValue,
-                        CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS MaterialNamePkgsQty,
-                        '' AS ExpressNameCountry,
-                        ISNULL(d.LCNo, '') AS LcNo,
-                        ISNULL(d.HAWB, '') AS HawbNo,
-                        ISNULL(d.MAWB, '') AS MawbNo,
-                        d.ShipmentStatus AS RawShipmentStatus,
+                        f.*,
                         u.EtdDate,
                         u.FlightActualDeliveryDate,
                         u.ArrivalNoticeRcvdExpressDate,
                         u.DocsBankSignDate,
-                        ISNULL(d.BENo, '') AS BeNo,
                         u.BeDate,
-                        u.ActualDeliveryDate,
-                        ISNULL(d.Remarks, '') AS Remarks,
-                        ISNULL(d.CustomerID, '') AS CustomerID,
-                        ISNULL(c.CustomerName, 'General Customer') AS CustomerName,
-                        ISNULL(c.CustomerAddress, '') AS CustomerAddress
-                    FROM Sep_Documentation d WITH (NOLOCK)
-                    LEFT JOIN Sales_Customer c WITH (NOLOCK) ON d.CustomerID = c.CustomerID
-                    LEFT OUTER JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
-                    LEFT OUTER JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
-                    LEFT OUTER JOIN Updates u ON d.JobNo = u.JobNo
-                    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-                      AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
-                      AND (@PortTypeId = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-                      AND (@ShipmentTypeId = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
-                      AND (
-                          @JobStatus = '' 
-                          OR (@JobStatus = 'Pending' AND ISNULL(d.ShipmentStatus, '') = '')
-                          OR (@JobStatus IN ('In Transit', 'transit') AND ISNULL(d.ShipmentStatus, '') IN ('01','02','03','04','05'))
-                          OR (@JobStatus = 'Delivered' AND ISNULL(d.ShipmentStatus, '') = '06')
-                      )
-                      AND (e.ExpenseType LIKE '%Air%' OR ISNULL(d.HAWB, '') <> '' OR ISNULL(d.MAWB, '') <> '')
-                    ORDER BY d.JobNo ASC";
+                        u.ActualDeliveryDate
+                    FROM FilteredDocs f
+                    LEFT OUTER JOIN Updates u ON f.JobNo = u.JobNo
+                    ORDER BY f.JobNo ASC";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.Add(new SqlParameter("@DateUse", dateUse));

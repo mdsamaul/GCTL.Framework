@@ -91,32 +91,106 @@ namespace GCTL.UI.Core.Controllers
             {
                 filter ??= new JobStatusReportFilterVM();
 
-                // Run summary, Sea and Air jobs simultaneously in parallel
-                var summaryTask = _reportService.GetSummaryAsync(filter.CustomerId);
-                var seaTask = _reportService.GetSeaJobsAsync(filter);
-                var airTask = _reportService.GetAirJobsAsync(filter);
+                string activeMode = (filter.ActiveTab ?? "").Trim();
+                string shipmentModeVal = (filter.ShipmentMode ?? "").Trim();
 
-                await Task.WhenAll(summaryTask, seaTask, airTask);
+                // Accurately determine whether Sea or Air is requested
+                bool isAirMode;
+                if (string.Equals(shipmentModeVal, "Sea", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(activeMode, "Sea", StringComparison.OrdinalIgnoreCase))
+                {
+                    isAirMode = false;
+                }
+                else if (string.Equals(shipmentModeVal, "Air", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(activeMode, "Air", StringComparison.OrdinalIgnoreCase))
+                {
+                    isAirMode = true;
+                }
+                else if (shipmentModeVal == "0001" || shipmentModeVal == "0002" || shipmentModeVal == "0003")
+                {
+                    isAirMode = true;
+                }
+                else if (!string.IsNullOrWhiteSpace(shipmentModeVal))
+                {
+                    isAirMode = false; // Expense types like 0004, 0005, etc. are Sea
+                }
+                else
+                {
+                    isAirMode = true; // Default fallback to Air
+                }
 
-                var summary = summaryTask.Result;
-                var seaJobs = seaTask.Result;
-                var airJobs = airTask.Result;
+                activeMode = isAirMode ? "Air" : "Sea";
 
-                // Calculate status counts
-                int calculatedTotal = seaJobs.Count + airJobs.Count;
-                int calculatedDelivered = seaJobs.Count(x => x.StatusClass == "delivered") + airJobs.Count(x => x.StatusClass == "delivered");
-                int calculatedTransit = seaJobs.Count(x => x.StatusClass == "transit") + airJobs.Count(x => x.StatusClass == "transit");
-                int calculatedPending = seaJobs.Count(x => x.StatusClass == "pending") + airJobs.Count(x => x.StatusClass == "pending");
+                // Translate ShipmentMode if "Air" or "Sea" is selected
+                string actualShipmentTypeId = "";
+                if (!string.Equals(shipmentModeVal, "Air", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(shipmentModeVal, "Sea", StringComparison.OrdinalIgnoreCase))
+                {
+                    actualShipmentTypeId = shipmentModeVal;
+                }
 
-                bool hasSpecificFilter = !string.IsNullOrWhiteSpace(filter.FromDate) ||
-                                         !string.IsNullOrWhiteSpace(filter.ShipmentMode) ||
-                                         !string.IsNullOrWhiteSpace(filter.PortType) ||
-                                         !string.IsNullOrWhiteSpace(filter.JobStatus);
+                var baseFilter = new JobStatusReportFilterVM
+                {
+                    FromDate = filter.FromDate,
+                    ToDate = filter.ToDate,
+                    CustomerId = filter.CustomerId,
+                    ShipmentMode = actualShipmentTypeId,
+                    PortType = filter.PortType,
+                    ActiveTab = activeMode,
+                    ReportOption = filter.ReportOption,
+                    JobStatus = ""
+                };
 
-                int totalCount = hasSpecificFilter ? calculatedTotal : (summary.TotalJobs > 0 ? summary.TotalJobs : calculatedTotal);
-                int pendingCount = hasSpecificFilter ? calculatedPending : (summary.PendingJobs > 0 ? summary.PendingJobs : calculatedPending);
-                int transitCount = hasSpecificFilter ? calculatedTransit : (summary.TransitJobs > 0 ? summary.TransitJobs : calculatedTransit);
-                int deliveredCount = hasSpecificFilter ? calculatedDelivered : (summary.DeliveredJobs > 0 ? summary.DeliveredJobs : calculatedDelivered);
+                List<SeaJobReportItemDTO> allSea = new();
+                List<AirJobReportItemDTO> allAir = new();
+
+                if (isAirMode)
+                {
+                    allAir = await _reportService.GetAirJobsAsync(baseFilter);
+                }
+                else
+                {
+                    allSea = await _reportService.GetSeaJobsAsync(baseFilter);
+                }
+
+                int totalCount = isAirMode ? allAir.Count : allSea.Count;
+                int pendingCount = isAirMode ? allAir.Count(x => x.StatusClass == "pending") : allSea.Count(x => x.StatusClass == "pending");
+                int transitCount = isAirMode ? allAir.Count(x => x.StatusClass == "transit") : allSea.Count(x => x.StatusClass == "transit");
+                int deliveredCount = isAirMode ? allAir.Count(x => x.StatusClass == "delivered") : allSea.Count(x => x.StatusClass == "delivered");
+
+                // Filter by JobStatus if requested
+                var seaJobs = allSea;
+                var airJobs = allAir;
+                string status = (filter.JobStatus ?? "").Trim().ToLower();
+
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    if (status.Contains("pend"))
+                    {
+                        if (isAirMode) airJobs = allAir.Where(x => x.StatusClass == "pending").ToList();
+                        else seaJobs = allSea.Where(x => x.StatusClass == "pending").ToList();
+                    }
+                    else if (status.Contains("transit"))
+                    {
+                        if (isAirMode) airJobs = allAir.Where(x => x.StatusClass == "transit").ToList();
+                        else seaJobs = allSea.Where(x => x.StatusClass == "transit").ToList();
+                    }
+                    else if (status.Contains("deliver"))
+                    {
+                        if (isAirMode) airJobs = allAir.Where(x => x.StatusClass == "delivered").ToList();
+                        else seaJobs = allSea.Where(x => x.StatusClass == "delivered").ToList();
+                    }
+                }
+
+                // Re-sequence SlNo
+                if (isAirMode)
+                {
+                    for (int i = 0; i < airJobs.Count; i++) airJobs[i].SlNo = i + 1;
+                }
+                else
+                {
+                    for (int i = 0; i < seaJobs.Count; i++) seaJobs[i].SlNo = i + 1;
+                }
 
                 return Json(new
                 {
@@ -126,7 +200,9 @@ namespace GCTL.UI.Core.Controllers
                     transit = transitCount,
                     delivered = deliveredCount,
                     seaData = seaJobs,
-                    airData = airJobs
+                    airData = airJobs,
+                    rawSeaData = allSea,
+                    rawAirData = allAir
                 });
             }
             catch (Exception ex)
@@ -153,17 +229,51 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 filter ??= new JobStatusReportFilterVM();
+                string activeMode = (filter.ActiveTab ?? "").Trim();
+                string shipmentModeVal = (filter.ShipmentMode ?? "").Trim();
+
+                bool isAirMode;
+                if (string.Equals(shipmentModeVal, "Sea", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(activeMode, "Sea", StringComparison.OrdinalIgnoreCase))
+                {
+                    isAirMode = false;
+                }
+                else if (string.Equals(shipmentModeVal, "Air", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(activeMode, "Air", StringComparison.OrdinalIgnoreCase))
+                {
+                    isAirMode = true;
+                }
+                else if (shipmentModeVal == "0001" || shipmentModeVal == "0002" || shipmentModeVal == "0003")
+                {
+                    isAirMode = true;
+                }
+                else if (!string.IsNullOrWhiteSpace(shipmentModeVal))
+                {
+                    isAirMode = false;
+                }
+                else
+                {
+                    isAirMode = true;
+                }
+
+                filter.ActiveTab = isAirMode ? "Air" : "Sea";
+
+                if (string.Equals(shipmentModeVal, "Air", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(shipmentModeVal, "Sea", StringComparison.OrdinalIgnoreCase))
+                {
+                    filter.ShipmentMode = "";
+                }
 
                 if (string.Equals(exportFormat, "Excel", StringComparison.OrdinalIgnoreCase))
                 {
                     var bytes = await _reportService.GenerateExcelReportAsync(filter);
-                    string fileName = $"JobStatusReport_{filter.ActiveTab ?? "All"}_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+                    string fileName = $"JobStatusReport_{filter.ActiveTab}_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
                     return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
                 }
                 else
                 {
                     var bytes = await _reportService.GeneratePdfReportAsync(filter);
-                    string fileName = $"JobStatusReport_{filter.ActiveTab ?? "All"}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                    string fileName = $"JobStatusReport_{filter.ActiveTab}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
                     return File(bytes, "application/pdf", fileName);
                 }
             }
