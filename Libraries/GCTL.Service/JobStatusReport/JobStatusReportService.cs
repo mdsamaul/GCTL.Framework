@@ -18,10 +18,47 @@ namespace GCTL.Service.JobStatusReport
     public class JobStatusReportService : IJobStatusReportService
     {
         private readonly string _connectionString;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment? _webHostEnvironment;
+        private byte[]? _logoBytes;
+        private bool _logoLoaded;
 
-        public JobStatusReportService(IConfiguration configuration)
+        public JobStatusReportService(IConfiguration configuration, Microsoft.AspNetCore.Hosting.IWebHostEnvironment? env = null)
         {
             _connectionString = configuration.GetConnectionString("connection") ?? string.Empty;
+            _webHostEnvironment = env;
+        }
+
+        private byte[]? GetLogoBytes()
+        {
+            if (_logoLoaded) return _logoBytes;
+            _logoLoaded = true;
+
+            try
+            {
+                var candidatePaths = new List<string?>
+                {
+                    _webHostEnvironment?.WebRootPath != null ? Path.Combine(_webHostEnvironment.WebRootPath, "images", "fermosa-wX200.png") : null,
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "UIs", "GCTL.UI.Core", "wwwroot", "images", "fermosa-wX200.png"),
+                    @"D:\Project\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png"
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    {
+                        _logoBytes = File.ReadAllBytes(path);
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully without throwing
+            }
+
+            return _logoBytes;
         }
 
         #region 1. Summary Counts (Fast with NOLOCK)
@@ -576,20 +613,20 @@ namespace GCTL.Service.JobStatusReport
 
             ws.Range(2, 1, 2, totalCols).Merge();
             var subCell = ws.Cell(2, 1);
-            subCell.Value = "From Formosa recommended Customer Portal Website (Sea Port): Both for Import & Export";
+            subCell.Value = "Job Status Report - Formosa Logistics (Sea Port)";
             subCell.Style.Font.Bold = true;
             subCell.Style.Font.FontSize = 11;
             subCell.Style.Font.FontName = "Times New Roman";
-            subCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#FDE9D9");
             subCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
             ws.Range(3, 1, 3, totalCols).Merge();
             var infoCell = ws.Cell(3, 1);
             string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
-                ? $"Date: {filter.FromDate} to {filter.ToDate}" : $"Printed: {DateTime.Now:dd/MM/yyyy hh:mm tt}";
-            infoCell.Value = $"Report Mode: Sea Freight | {dateRangeStr}";
-            infoCell.Style.Font.FontSize = 9;
-            infoCell.Style.Font.Italic = true;
+                ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
+            infoCell.Value = dateRangeStr;
+            infoCell.Style.Font.FontSize = 9.5;
+            infoCell.Style.Font.Bold = true;
+            infoCell.Style.Font.FontName = "Times New Roman";
             infoCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
             string[] seaHeaders = new string[]
@@ -621,8 +658,8 @@ namespace GCTL.Service.JobStatusReport
                 custHeaderCell.Value = $"CUSTOMER: {group.Key.ToUpper()}  (Total Jobs: {group.Count()})";
                 custHeaderCell.Style.Font.Bold = true;
                 custHeaderCell.Style.Font.FontSize = 10;
-                custHeaderCell.Style.Font.FontColor = XLColor.White;
-                custHeaderCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#003366");
+                custHeaderCell.Style.Font.FontColor = XLColor.Black;
+                custHeaderCell.Style.Fill.PatternType = XLFillPatternValues.None;
                 custHeaderCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 custHeaderCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 ws.Row(currRow).Height = 22;
@@ -702,20 +739,20 @@ namespace GCTL.Service.JobStatusReport
 
             ws.Range(2, 1, 2, totalCols).Merge();
             var subCell = ws.Cell(2, 1);
-            subCell.Value = "From Formosa recommended Customer Portal Website (Air Port): Both for Import & Export";
+            subCell.Value = "Job Status Report - Formosa Logistics (Air Port)";
             subCell.Style.Font.Bold = true;
             subCell.Style.Font.FontSize = 11;
             subCell.Style.Font.FontName = "Times New Roman";
-            subCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#FDE9D9");
             subCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
             ws.Range(3, 1, 3, totalCols).Merge();
             var infoCell = ws.Cell(3, 1);
             string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
-                ? $"Date: {filter.FromDate} to {filter.ToDate}" : $"Printed: {DateTime.Now:dd/MM/yyyy hh:mm tt}";
-            infoCell.Value = $"Report Mode: Air Freight | {dateRangeStr}";
-            infoCell.Style.Font.FontSize = 9;
-            infoCell.Style.Font.Italic = true;
+                ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
+            infoCell.Value = dateRangeStr;
+            infoCell.Style.Font.FontSize = 9.5;
+            infoCell.Style.Font.Bold = true;
+            infoCell.Style.Font.FontName = "Times New Roman";
             infoCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
             string[] airHeaders = new string[]
@@ -747,8 +784,8 @@ namespace GCTL.Service.JobStatusReport
                 custHeaderCell.Value = $"CUSTOMER: {group.Key.ToUpper()}  (Total Jobs: {group.Count()})";
                 custHeaderCell.Style.Font.Bold = true;
                 custHeaderCell.Style.Font.FontSize = 10;
-                custHeaderCell.Style.Font.FontColor = XLColor.White;
-                custHeaderCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#003366");
+                custHeaderCell.Style.Font.FontColor = XLColor.Black;
+                custHeaderCell.Style.Fill.PatternType = XLFillPatternValues.None;
                 custHeaderCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 custHeaderCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 ws.Row(currRow).Height = 22;
@@ -850,23 +887,35 @@ namespace GCTL.Service.JobStatusReport
                     page.MarginVertical(10);
                     page.Size(PageSizes.A4.Landscape());
 
-                    page.Header().Column(col =>
+                    page.Header().Column(headerCol =>
                     {
-                        col.Item().AlignCenter().Text("Formosa Logistics Limited").FontSize(13).Bold();
-                        string subTitle = activeTab == "air"
-                            ? "Customer Portal Website (Air Port) - Job Status Report"
-                            : (activeTab == "sea"
-                                ? "Customer Portal Website (Sea Port) - Job Status Report"
-                                : "Customer Portal Website (Sea & Air) - Job Status Report");
-                        col.Item().AlignCenter().Text(subTitle).FontSize(9.5f).Bold().Underline();
+                        var logoBytes = GetLogoBytes();
 
-                        col.Item().PaddingTop(2).PaddingBottom(4).Row(row =>
+                        headerCol.Item().Row(r =>
                         {
-                            string dateRange = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
-                                ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "All Dates";
-                            row.RelativeItem().AlignLeft().Text(dateRange).FontSize(8);
-                            row.RelativeItem().AlignRight().Text($"Generated: {DateTime.Now:dd/MM/yyyy hh:mm tt}").FontSize(8);
+                            if (logoBytes != null && logoBytes.Length > 0)
+                            {
+                                r.ConstantItem(100).AlignMiddle().Height(28).Image(logoBytes).FitArea();
+                            }
+                            else
+                            {
+                                r.ConstantItem(100);
+                            }
+
+                            r.RelativeItem().Column(c =>
+                            {
+                                c.Item().AlignCenter().Text("Formosa Logistics Limited").FontSize(13).Bold();
+                                c.Item().AlignCenter().Text("Job Status Report - Formosa Logistics").FontSize(10f).Bold();
+
+                                string dateRange = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
+                                    ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
+                                c.Item().PaddingTop(1).AlignCenter().Text(dateRange).FontSize(8.5f).SemiBold();
+                            });
+
+                            r.ConstantItem(100);
                         });
+
+                        headerCol.Item().PaddingTop(3).LineHorizontal(0.5f).LineColor(Colors.Grey.Medium);
                     });
 
                     page.Content().Column(col =>
@@ -893,13 +942,13 @@ namespace GCTL.Service.JobStatusReport
 
                     page.Footer().Row(row =>
                     {
-                        row.RelativeItem().AlignLeft().Text($"Job Status Report - Formosa Logistics").FontSize(7).FontColor(Colors.Grey.Medium);
+                        row.RelativeItem().AlignLeft().Text($"Printed: {DateTime.Now:dd/MM/yyyy hh:mm tt}").FontSize(7.5f).FontColor(Colors.Grey.Darken1);
                         row.RelativeItem().AlignRight().Text(txt =>
                         {
-                            txt.Span("Page ").FontSize(7).FontColor(Colors.Grey.Medium);
-                            txt.CurrentPageNumber().FontSize(7).FontColor(Colors.Grey.Medium);
-                            txt.Span(" of ").FontSize(7).FontColor(Colors.Grey.Medium);
-                            txt.TotalPages().FontSize(7).FontColor(Colors.Grey.Medium);
+                            txt.Span("Page ").FontSize(7.5f).FontColor(Colors.Grey.Darken1);
+                            txt.CurrentPageNumber().FontSize(7.5f).FontColor(Colors.Grey.Darken1);
+                            txt.Span(" of ").FontSize(7.5f).FontColor(Colors.Grey.Darken1);
+                            txt.TotalPages().FontSize(7.5f).FontColor(Colors.Grey.Darken1);
                         });
                     });
                 });
@@ -912,13 +961,13 @@ namespace GCTL.Service.JobStatusReport
         {
             var customerGroups = seaJobs.GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "General Customer" : x.CustomerName.Trim()).ToList();
 
-            foreach (var group in customerGroups)
+            for (int groupIdx = 0; groupIdx < customerGroups.Count; groupIdx++)
             {
-                col.Item().PaddingTop(6).PaddingBottom(2).Background(Colors.Blue.Darken3).Padding(3).Row(r =>
+                var group = customerGroups[groupIdx];
+                if (groupIdx > 0)
                 {
-                    r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(7.5f).Bold().FontColor(Colors.White);
-                    r.RelativeItem().AlignRight().Text("Sea Freight").FontSize(7f).Bold().FontColor(Colors.White);
-                });
+                    col.Item().PaddingTop(8);
+                }
 
                 col.Item().Table(table =>
                 {
@@ -954,6 +1003,11 @@ namespace GCTL.Service.JobStatusReport
 
                     table.Header(h =>
                     {
+                        h.Cell().ColumnSpan(26).PaddingTop(4).PaddingBottom(3).Row(r =>
+                        {
+                            r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(8f).Bold().FontColor(Colors.Black);
+                            r.RelativeItem().AlignRight().Text("Sea Freight").FontSize(7.5f).Bold().FontColor(Colors.Black);
+                        });
                         void Head(string text)
                         {
                             h.Cell().Element(c => c
@@ -1045,13 +1099,13 @@ namespace GCTL.Service.JobStatusReport
         {
             var customerGroups = airJobs.GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "General Customer" : x.CustomerName.Trim()).ToList();
 
-            foreach (var group in customerGroups)
+            for (int groupIdx = 0; groupIdx < customerGroups.Count; groupIdx++)
             {
-                col.Item().PaddingTop(6).PaddingBottom(2).Background(Colors.Indigo.Darken3).Padding(3).Row(r =>
+                var group = customerGroups[groupIdx];
+                if (groupIdx > 0)
                 {
-                    r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(7.5f).Bold().FontColor(Colors.White);
-                    r.RelativeItem().AlignRight().Text("Air Freight").FontSize(7f).Bold().FontColor(Colors.White);
-                });
+                    col.Item().PaddingTop(8);
+                }
 
                 col.Item().Table(table =>
                 {
@@ -1082,6 +1136,11 @@ namespace GCTL.Service.JobStatusReport
 
                     table.Header(h =>
                     {
+                        h.Cell().ColumnSpan(21).PaddingTop(4).PaddingBottom(3).Row(r =>
+                        {
+                            r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(8f).Bold().FontColor(Colors.Black);
+                            r.RelativeItem().AlignRight().Text("Air Freight").FontSize(7.5f).Bold().FontColor(Colors.Black);
+                        });
                         void Head(string text)
                         {
                             h.Cell().Element(c => c
