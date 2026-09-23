@@ -4,9 +4,9 @@ using GCTL.Core.Interfaces.Services;
 using GCTL.Data.Context;
 using GCTL.Data.Models;
 using GCTL.Service.AdmissionTypes;
-using GCTL.Service.BillService;
 using GCTL.Service.BankBranchInformations;
 using GCTL.Service.BankInformations;
+using GCTL.Service.BillService;
 using GCTL.Service.BloodGroups;
 using GCTL.Service.BranchAddress;
 using GCTL.Service.BranchesTypeInfo;
@@ -31,6 +31,7 @@ using GCTL.Service.CurrencyType;
 using GCTL.Service.CustomerRelationshipManagement.AddContactPerson;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesDeliveryLocation;
+using GCTL.Service.CustomerReport;
 using GCTL.Service.CustomerType;
 using GCTL.Service.CustomerWiseApprovalRate;
 using GCTL.Service.DailyJobUpdateEntry;
@@ -206,6 +207,8 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IClientInformationEntryService, ClientInformationEntryService>();
             services.AddScoped<ICompanyInfoSupService, CompanyInfoSupService>();
             services.AddScoped<ICustomerTypeService, CustomerTypeService>();
+            services.AddScoped<ICustomerReportService, CustomerReportService>();
+
 
             services.AddScoped<IMenuTabService, MenuTabService>();
 
