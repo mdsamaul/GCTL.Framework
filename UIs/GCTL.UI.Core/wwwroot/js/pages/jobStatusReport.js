@@ -183,6 +183,17 @@
         return ($el.val() || '').trim();
     }
 
+    function formatAmount(val) {
+        if (val === null || val === undefined || val === '') return '';
+        var num = parseFloat(String(val).replace(/,/g, ''));
+        if (isNaN(num)) return escapeHtml(val);
+        if (num === 0) return '0';
+        if (num % 1 === 0) {
+            return num.toLocaleString('en-US');
+        }
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     /**
      * Initialize both DataTables with full responsive options and column definitions
      */
@@ -225,8 +236,14 @@
                 { data: 'port' },
                 { data: 'docReceivedDate', className: 'text-center' },
                 { data: 'invoiceNo' },
-                { data: 'invoiceValue', className: 'text-end' },
-                { data: 'containerPkgs', className: 'table-warning text-dark' },
+                { 
+                    data: 'invoiceValue', 
+                    className: 'text-end',
+                    render: function (data) {
+                        return formatAmount(data);
+                    }
+                },
+                { data: 'containerPkgs' },
                 { data: 'shipper' },
                 { data: 'blNo', className: 'text-center' },
                 { data: 'etdDate', className: 'text-center' },
@@ -285,15 +302,21 @@
                 { data: 'port' },
                 { data: 'docReceivedDate', className: 'text-center' },
                 { data: 'invoiceNo' },
-                { data: 'invoiceValue', className: 'text-end' },
-                { data: 'materialNamePkgsQty', className: 'table-warning text-dark' },
+                { 
+                    data: 'invoiceValue', 
+                    className: 'text-end',
+                    render: function (data) {
+                        return formatAmount(data);
+                    }
+                },
+                { data: 'materialNamePkgsQty' },
                 { data: 'expressNameCountry' },
                 { data: 'lcNo', className: 'text-center' },
                 { data: 'hawbNo', className: 'text-center' },
                 { data: 'mawbNo', className: 'text-center' },
                 { data: 'etdDate', className: 'text-center' },
-                { data: 'flightActualDeliveryDate', className: 'table-warning text-dark text-center' },
-                { data: 'arrivalNoticeRcvdExpressDate', className: 'table-warning text-dark text-center' },
+                { data: 'flightActualDeliveryDate', className: 'text-center' },
+                { data: 'arrivalNoticeRcvdExpressDate', className: 'text-center' },
                 { data: 'beNo', className: 'text-center' },
                 { data: 'beDate', className: 'text-center' },
                 { data: 'actualDeliveryDate', className: 'text-center' },

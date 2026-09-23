@@ -672,6 +672,7 @@ namespace GCTL.Service.JobStatusReport
                 custHeaderCell.Style.Font.FontSize = 10;
                 custHeaderCell.Style.Font.FontColor = XLColor.Black;
                 custHeaderCell.Style.Fill.PatternType = XLFillPatternValues.None;
+                custHeaderCell.Style.Border.OutsideBorder = XLBorderStyleValues.None;
                 custHeaderCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 custHeaderCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 ws.Row(currRow).Height = 22;
@@ -691,7 +692,19 @@ namespace GCTL.Service.JobStatusReport
                     ws.Cell(currRow, 5).Value = item.Port;
                     ws.Cell(currRow, 6).Value = item.DocReceivedDate;
                     ws.Cell(currRow, 7).Value = item.InvoiceNo;
-                    ws.Cell(currRow, 8).Value = item.InvoiceValue;
+
+                    string rawInv = Convert.ToString(item.InvoiceValue)?.Replace(",", "").Trim() ?? "";
+                    if (decimal.TryParse(rawInv, NumberStyles.Any, CultureInfo.InvariantCulture, out var decInv))
+                    {
+                        ws.Cell(currRow, 8).Value = decInv;
+                        ws.Cell(currRow, 8).Style.NumberFormat.Format = decInv % 1 == 0 ? "#,##0" : "#,##0.00";
+                    }
+                    else
+                    {
+                        ws.Cell(currRow, 8).Value = item.InvoiceValue;
+                    }
+                    ws.Cell(currRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
                     ws.Cell(currRow, 9).Value = item.ContainerPkgs;
                     ws.Cell(currRow, 10).Value = item.Shipper;
                     ws.Cell(currRow, 11).Value = item.BLNo;
@@ -720,13 +733,16 @@ namespace GCTL.Service.JobStatusReport
                         cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
                         cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                        if (c == 1 || c == 2 || c == 3 || c == 6 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20 || c == 21 || c == 23)
+                        if (c == 8)
+                        {
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        }
+                        else if (c == 1 || c == 2 || c == 3 || c == 6 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20 || c == 21 || c == 23)
                         {
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         }
                     }
 
-                    ws.Cell(currRow, 9).Style.Fill.BackgroundColor = XLColor.FromHtml("#FFFF99");
                     currRow++;
                 }
 
@@ -798,6 +814,7 @@ namespace GCTL.Service.JobStatusReport
                 custHeaderCell.Style.Font.FontSize = 10;
                 custHeaderCell.Style.Font.FontColor = XLColor.Black;
                 custHeaderCell.Style.Fill.PatternType = XLFillPatternValues.None;
+                custHeaderCell.Style.Border.OutsideBorder = XLBorderStyleValues.None;
                 custHeaderCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 custHeaderCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 ws.Row(currRow).Height = 22;
@@ -817,7 +834,19 @@ namespace GCTL.Service.JobStatusReport
                     ws.Cell(currRow, 5).Value = item.Port;
                     ws.Cell(currRow, 6).Value = item.DocReceivedDate;
                     ws.Cell(currRow, 7).Value = item.InvoiceNo;
-                    ws.Cell(currRow, 8).Value = item.InvoiceValue;
+
+                    string rawInvAir = Convert.ToString(item.InvoiceValue)?.Replace(",", "").Trim() ?? "";
+                    if (decimal.TryParse(rawInvAir, NumberStyles.Any, CultureInfo.InvariantCulture, out var decInvAir))
+                    {
+                        ws.Cell(currRow, 8).Value = decInvAir;
+                        ws.Cell(currRow, 8).Style.NumberFormat.Format = decInvAir % 1 == 0 ? "#,##0" : "#,##0.00";
+                    }
+                    else
+                    {
+                        ws.Cell(currRow, 8).Value = item.InvoiceValue;
+                    }
+                    ws.Cell(currRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
                     ws.Cell(currRow, 9).Value = item.MaterialNamePkgsQty;
                     ws.Cell(currRow, 10).Value = item.ExpressNameCountry;
                     ws.Cell(currRow, 11).Value = item.LCNo;
@@ -841,15 +870,15 @@ namespace GCTL.Service.JobStatusReport
                         cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
                         cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                        if (c == 1 || c == 2 || c == 3 || c == 6 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20)
+                        if (c == 8)
+                        {
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        }
+                        else if (c == 1 || c == 2 || c == 3 || c == 6 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20)
                         {
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         }
                     }
-
-                    ws.Cell(currRow, 9).Style.Fill.BackgroundColor = XLColor.FromHtml("#FFFF99");
-                    ws.Cell(currRow, 15).Style.Fill.BackgroundColor = XLColor.FromHtml("#FFFF99");
-                    ws.Cell(currRow, 16).Style.Fill.BackgroundColor = XLColor.FromHtml("#FFFF99");
 
                     currRow++;
                 }
@@ -869,8 +898,8 @@ namespace GCTL.Service.JobStatusReport
                 cell.Style.Font.Bold = true;
                 cell.Style.Font.FontSize = 8.5;
                 cell.Style.Font.FontName = "Times New Roman";
-                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECEF");
-                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                cell.Style.Fill.PatternType = XLFillPatternValues.None;
+                cell.Style.Alignment.Horizontal = (i + 1 == 8) ? XLAlignmentHorizontalValues.Right : XLAlignmentHorizontalValues.Center;
                 cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 cell.Style.Alignment.WrapText = true;
                 cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -976,10 +1005,13 @@ namespace GCTL.Service.JobStatusReport
             for (int groupIdx = 0; groupIdx < customerGroups.Count; groupIdx++)
             {
                 var group = customerGroups[groupIdx];
-                if (groupIdx > 0)
+
+                // Customer header: completely outside the table, NO top border, NO bottom border
+                col.Item().PaddingTop(groupIdx > 0 ? 10 : 2).PaddingBottom(3).Row(r =>
                 {
-                    col.Item().PaddingTop(8);
-                }
+                    r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(8f).Bold().FontColor(Colors.Black);
+                    r.RelativeItem().AlignRight().Text("Sea Freight").FontSize(7.5f).Bold().FontColor(Colors.Black);
+                });
 
                 col.Item().Table(table =>
                 {
@@ -1015,21 +1047,15 @@ namespace GCTL.Service.JobStatusReport
 
                     table.Header(h =>
                     {
-                        h.Cell().ColumnSpan(26).PaddingTop(4).PaddingBottom(3).Row(r =>
-                        {
-                            r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(8f).Bold().FontColor(Colors.Black);
-                            r.RelativeItem().AlignRight().Text("Sea Freight").FontSize(7.5f).Bold().FontColor(Colors.Black);
-                        });
-                        void Head(string text)
+                        void Head(string text, bool right = false)
                         {
                             h.Cell().Element(c => c
                                 .Border(0.4f)
-                                .BorderColor(Colors.Grey.Darken1)
-                                .Background(Colors.Grey.Lighten3)
+                                .BorderColor(Colors.Grey.Medium)
                                 .PaddingHorizontal(1)
                                 .PaddingVertical(1.5f)
-                                .AlignCenter()
                                 .AlignMiddle()
+                                .Element(e => right ? e.AlignRight() : e.AlignCenter())
                                 .Text(text).Bold().FontSize(4.6f).WrapAnywhere());
                         }
 
@@ -1040,7 +1066,7 @@ namespace GCTL.Service.JobStatusReport
                         Head("Port");
                         Head("Doc Rec.");
                         Head("Inv No");
-                        Head("Inv Val");
+                        Head("Inv Val", right: true);
                         Head("Cont/Pkgs");
                         Head("Shipper");
                         Head("B/L No.");
@@ -1064,7 +1090,7 @@ namespace GCTL.Service.JobStatusReport
                     int sl = 1;
                     foreach (var item in group)
                     {
-                        void Cell(string val, bool center = false)
+                        void Cell(string val, bool center = false, bool right = false)
                         {
                             table.Cell().Element(c => c
                                 .Border(0.3f)
@@ -1072,7 +1098,7 @@ namespace GCTL.Service.JobStatusReport
                                 .PaddingHorizontal(1)
                                 .PaddingVertical(1)
                                 .AlignMiddle()
-                                .Element(e => center ? e.AlignCenter() : e.AlignLeft())
+                                .Element(e => right ? e.AlignRight() : (center ? e.AlignCenter() : e.AlignLeft()))
                                 .Text(val ?? "").FontSize(4.4f).WrapAnywhere());
                         }
 
@@ -1083,7 +1109,7 @@ namespace GCTL.Service.JobStatusReport
                         Cell(item.Port);
                         Cell(item.DocReceivedDate, true);
                         Cell(item.InvoiceNo);
-                        Cell(item.InvoiceValue, true);
+                        Cell(FormatAmount(item.InvoiceValue), right: true);
                         Cell(item.ContainerPkgs);
                         Cell(item.Shipper);
                         Cell(item.BLNo, true);
@@ -1114,10 +1140,13 @@ namespace GCTL.Service.JobStatusReport
             for (int groupIdx = 0; groupIdx < customerGroups.Count; groupIdx++)
             {
                 var group = customerGroups[groupIdx];
-                if (groupIdx > 0)
+
+                // Customer header: completely outside the table, NO top border, NO bottom border
+                col.Item().PaddingTop(groupIdx > 0 ? 10 : 2).PaddingBottom(3).Row(r =>
                 {
-                    col.Item().PaddingTop(8);
-                }
+                    r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(8f).Bold().FontColor(Colors.Black);
+                    r.RelativeItem().AlignRight().Text("Air Freight").FontSize(7.5f).Bold().FontColor(Colors.Black);
+                });
 
                 col.Item().Table(table =>
                 {
@@ -1148,21 +1177,15 @@ namespace GCTL.Service.JobStatusReport
 
                     table.Header(h =>
                     {
-                        h.Cell().ColumnSpan(21).PaddingTop(4).PaddingBottom(3).Row(r =>
-                        {
-                            r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(8f).Bold().FontColor(Colors.Black);
-                            r.RelativeItem().AlignRight().Text("Air Freight").FontSize(7.5f).Bold().FontColor(Colors.Black);
-                        });
-                        void Head(string text)
+                        void Head(string text, bool right = false)
                         {
                             h.Cell().Element(c => c
                                 .Border(0.4f)
-                                .BorderColor(Colors.Grey.Darken1)
-                                .Background(Colors.Grey.Lighten3)
+                                .BorderColor(Colors.Grey.Medium)
                                 .PaddingHorizontal(1)
                                 .PaddingVertical(1.5f)
-                                .AlignCenter()
                                 .AlignMiddle()
+                                .Element(e => right ? e.AlignRight() : e.AlignCenter())
                                 .Text(text).Bold().FontSize(4.8f).WrapAnywhere());
                         }
 
@@ -1173,7 +1196,7 @@ namespace GCTL.Service.JobStatusReport
                         Head("Port");
                         Head("Doc Rec.");
                         Head("Inv No.");
-                        Head("Inv Val");
+                        Head("Inv Val", right: true);
                         Head("Material & Qty");
                         Head("Express/Country");
                         Head("L/C No.");
@@ -1192,7 +1215,7 @@ namespace GCTL.Service.JobStatusReport
                     int sl = 1;
                     foreach (var item in group)
                     {
-                        void Cell(string val, bool center = false)
+                        void Cell(string val, bool center = false, bool right = false)
                         {
                             table.Cell().Element(c => c
                                 .Border(0.3f)
@@ -1200,7 +1223,7 @@ namespace GCTL.Service.JobStatusReport
                                 .PaddingHorizontal(1)
                                 .PaddingVertical(1)
                                 .AlignMiddle()
-                                .Element(e => center ? e.AlignCenter() : e.AlignLeft())
+                                .Element(e => right ? e.AlignRight() : (center ? e.AlignCenter() : e.AlignLeft()))
                                 .Text(val ?? "").FontSize(4.6f).WrapAnywhere());
                         }
 
@@ -1211,7 +1234,7 @@ namespace GCTL.Service.JobStatusReport
                         Cell(item.Port);
                         Cell(item.DocReceivedDate, true);
                         Cell(item.InvoiceNo);
-                        Cell(item.InvoiceValue, true);
+                        Cell(FormatAmount(item.InvoiceValue), right: true);
                         Cell(item.MaterialNamePkgsQty);
                         Cell(item.ExpressNameCountry);
                         Cell(item.LCNo, true);
@@ -1232,6 +1255,18 @@ namespace GCTL.Service.JobStatusReport
         #endregion
 
         #region Helper Date Parsers & Formatters
+        private static string FormatAmount(object? val)
+        {
+            if (val == null) return "";
+            string str = val.ToString()?.Trim() ?? "";
+            if (string.IsNullOrEmpty(str)) return "";
+            if (decimal.TryParse(str.Replace(",", ""), NumberStyles.Any, CultureInfo.InvariantCulture, out var dec))
+            {
+                if (dec == 0) return "0";
+                return dec % 1 == 0 ? dec.ToString("#,##0", CultureInfo.InvariantCulture) : dec.ToString("#,##0.00", CultureInfo.InvariantCulture);
+            }
+            return str;
+        }
         private static string FormatDt(object? val, string fmt = "dd/MM/yyyy hh:mm tt")
         {
             if (val == null || val == DBNull.Value) return "";
