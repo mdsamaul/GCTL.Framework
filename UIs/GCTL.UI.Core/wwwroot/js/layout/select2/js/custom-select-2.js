@@ -82,6 +82,10 @@ $(function () {
             options.parentSelector = $el.data('parent');
         }
 
+        if ($el.data('count-threshold') !== undefined) {
+            options.countThreshold = parseInt($el.data('count-threshold'), 10);
+        }
+
         var instance = new customDropdownMulti('#' + $el.attr('id'), options).init();
         $el.data('customDdInstance', instance);
         return instance;
