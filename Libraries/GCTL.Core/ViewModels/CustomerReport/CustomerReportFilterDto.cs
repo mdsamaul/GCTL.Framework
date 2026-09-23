@@ -8,21 +8,16 @@ namespace GCTL.Core.ViewModels.CustomerReport
 {
     public class CustomerReportFilterDto
     {
-        public List<string> CustomerName { get; set; }
-        public List<string> CustomerType { get; set; }
+        public List<string> CustomerId { get; set; }      // renamed from CustomerName
+        public List<string> CustomerTypeId { get; set; }
         public string CustomerAddress { get; set; }
-
         public string Phone { get; set; }
-
         public string Email { get; set; }
         public string Fax { get; set; }
         public string ContactPersonName { get; set; }
-
         public string DesignationCode { get; set; }
         public string Designation { get; set; }
-
         public string ContactPersonMobile { get; set; }
-
         public string ContactPersonEmail { get; set; }
     }
 }

@@ -40,6 +40,7 @@ using GCTL.Service.Departments;
 using GCTL.Service.Designations;
 using GCTL.Service.Districts;
 using GCTL.Service.DocumentationReport;
+using GCTL.Service.JobStatusReport;
 using GCTL.Service.EmailService;
 using GCTL.Service.EmployeeContactInfos;
 using GCTL.Service.EmployeeOfficialInfo;
@@ -270,6 +271,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IOFRAdjustApproval, OFRAdjustApprovalService>();
             services.AddScoped<IPaymentReceiveEntryService, PaymentReceiveEntryService>();
             services.AddScoped<IDocumentationReportService, DocumentationReportService>();
+            services.AddScoped<IJobStatusReportService, JobStatusReportService>();
             services.AddMemoryCache();
         }
 

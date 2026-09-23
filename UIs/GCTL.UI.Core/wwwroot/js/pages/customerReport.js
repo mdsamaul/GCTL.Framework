@@ -24,43 +24,145 @@
             processing: true,
             responsive: true,
             pageLength: 10,
-            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "All"]
+            ],
+
             order: [[0, 'asc']],
             autoWidth: false,
+
             language: {
                 emptyTable: "No customer records found matching the filter criteria.",
                 search: "_INPUT_",
                 searchPlaceholder: "Search customers..."
             },
+
             columns: [
-                { data: 'sl', className: 'text-center', width: '45px' },
+                {
+                    data: 'sl',
+                    className: 'text-center align-middle',
+                    width: '45px'
+                },
                 {
                     data: 'customerId',
-                    className: 'job-no-cell',
+                    className: 'text-center align-middle job-no-cell',
+                    width: '50px',
                     render: function (data) {
                         return escapeHtml(data);
                     }
                 },
-                { data: 'name', render: function (data) { return escapeHtml(data); } },
-                { data: 'address', render: function (data) { return escapeHtml(data); } },
-                { data: 'phone' },
-                { data: 'fax' },
-                { data: 'email' },
+                {
+                    data: 'name',
+                    className: 'text-center align-middle',
+                    width: '180px',
+                    render: function (data) {
+                        return escapeHtml(data);
+                    }
+                },
+                {
+                    data: 'address',
+                    className: 'text-center align-middle',
+                    width: '200px',
+                    render: function (data) {
+                        return escapeHtml(data);
+                    }
+                },
+                {
+                    data: 'phone',
+                    className: 'text-center align-middle',
+                    width: '130px'
+                },
+                {
+                    data: 'fax',
+                    className: 'text-center align-middle',
+                    width: '120px'
+                },
+                {
+                    data: 'email',
+                    className: 'text-center align-middle',
+                    width: '160px'
+                },
                 {
                     data: 'photo',
-                    className: 'text-center',
+                    className: 'text-center align-middle',
+                    width: '100px',
                     orderable: false,
                     render: function (data) {
                         if (data) {
-                            return '<img src="data:image/jpeg;base64,' + data + '" alt="Photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />';
+                            return `
+                            <img src="data:image/jpeg;base64,${data}"
+                                 alt="Photo"
+                                 style="width:36px;
+                                        height:36px;
+                                        border-radius:6px;
+                                        object-fit:cover;" />
+                        `;
                         }
+
                         return '<span class="text-muted">-</span>';
                     }
                 },
-                { data: 'contactPerson', render: function (data) { return escapeHtml(data); } }
+                {
+                    data: 'contactPerson',
+                    className: 'text-center align-middle',
+                    width: '200px',
+                    render: function (data) {
+                        return escapeHtml(data);
+                    }
+                }
             ]
         });
     }
+
+    // function initDataTable() {
+    //     // Destroy existing instance if any
+    //     if ($.fn.DataTable.isDataTable('#seacustomerTable')) {
+    //         $('#seacustomerTable').DataTable().destroy();
+    //     }
+
+    //     customerTable = $('#seacustomerTable').DataTable({
+    //         processing: true,
+    //         responsive: true,
+    //         pageLength: 10,
+    //         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+    //         order: [[0, 'asc']],
+    //         autoWidth: false,
+    //         language: {
+    //             emptyTable: "No customer records found matching the filter criteria.",
+    //             search: "_INPUT_",
+    //             searchPlaceholder: "Search customers..."
+    //         },
+    //         columns: [
+    //             { data: 'sl', className: 'text-center', width: '45px' },
+    //             {
+    //                 data: 'customerId',
+    //                 className: 'job-no-cell',
+    //                 render: function (data) {
+    //                     return escapeHtml(data);
+    //                 }
+    //             },
+    //             { data: 'name', render: function (data) { return escapeHtml(data); } },
+    //             { data: 'address', render: function (data) { return escapeHtml(data); } },
+    //             { data: 'phone' },
+    //             { data: 'fax' },
+    //             { data: 'email' },
+    //             {
+    //                 data: 'photo',
+    //                 className: 'text-center',
+    //                 orderable: false,
+    //                 render: function (data) {
+    //                     if (data) {
+    //                         return '<img src="data:image/jpeg;base64,' + data + '" alt="Photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />';
+    //                     }
+    //                     return '<span class="text-muted">-</span>';
+    //                 }
+    //             },
+    //             { data: 'contactPerson', render: function (data) { return escapeHtml(data); } }
+    //         ]
+    //     });
+    // }
 
     function bindEvents() {
         // Search Button Click
@@ -146,7 +248,7 @@
         var filters = getFilterParams();
 
         // Highlight matching stat card
-        highlightStatCard(filters.CustomerType);
+        highlightStatCard(filters.CustomerTypeId);
 
         if (customerTable) {
             customerTable.processing(true);
@@ -159,13 +261,11 @@
             data: JSON.stringify(filters),
             success: function (res) {
                 if (res && res.success) {
-                    // Update Animated Counter for Stat Cards
                     animateCounter('#statTotalcustomer', res.total || 0);
                     animateCounter('#statinHouse', res.inHouse || 0);
                     animateCounter('#statgeneral', res.general || 0);
                     animateCounter('#statCustomerType', res.customerType || 0);
 
-                    // Update Customer DataTable
                     var data = res.data || [];
                     if (customerTable) {
                         customerTable.clear().rows.add(data).draw();
@@ -230,15 +330,22 @@
         }, stepTime);
     }
 
+    function getFilterParams() {
+        return {
+            CustomerId: getDropdownValueArray('filterCustomer'),
+            CustomerTypeId: getDropdownValueArray('filterCustomerType')
+        };
+    }
+
     function exportReport() {
         var filters = getFilterParams();
         var exportFormat = $('#filterExportFormat').val() || 'PDF';
 
         var queryParams = $.param({
-            CustomerName: filters.CustomerName,
-            CustomerType: filters.CustomerType,
+            CustomerId: filters.CustomerId,
+            CustomerTypeId: filters.CustomerTypeId,
             exportFormat: exportFormat
-        }, true); // traditional: true so arrays serialize as repeated keys (CustomerName=a&CustomerName=b)
+        }, true); // traditional: true so arrays serialize correctly for List<string> binding
 
         window.location.href = '/CustomerReport/Export?' + queryParams;
     }

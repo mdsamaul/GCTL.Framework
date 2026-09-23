@@ -301,6 +301,13 @@
             width: 100%;
         }
     }
+
+    /* Hide native <select> once custom dropdown widget has initialized it */
+    select.custom-select-multi,
+    select.custom-select-single {
+        display: none !important;
+    }
+
 </style>
 
 <div class="customer-report-dashboard">
@@ -378,22 +385,20 @@
             </div> 
 
             <!-- Export Format (Single Select) -->
-            <div class="filter-group">
+            <div class="filter-group" style="max-width: 140px;">
                 <select id="filterExportFormat" class="form-select form-select-sm custom-select-single">
                     <option value="PDF">PDF Format</option>
                     <option value="Excel">Excel Format</option>
                 </select>
             </div>
 
-            <!-- Actions -->
+            <!-- Actions (Export button only, search is automatic) -->
             <div class="filter-actions">
-                <button type="button" class="btn-search" id="btnSearch">
-                    <i class="fas fa-search"></i> SEARCH
-                </button>
-                <button type="button" class="btn-export-rep" id="btnExport">
-                    <i class="fas fa-download"></i> EXPORT
+                <button type="button" class="btn-export-rep" id="btnExport" title="Export grouped report by customer">
+                    <i class="fas fa-file-export"></i> EXPORT
                 </button>
             </div>
+
         </div>
 
         <div class="job-tables-card">
@@ -402,18 +407,19 @@
                 <!-- Sea Freight Tab Pane -->
                 <div class="tab-pane fade show active" id="sea-tab-pane" role="tabpanel" aria-labelledby="sea-tab">
                     <div class="table-responsive">
-                        <table id="seacustomerTable" class="table table-bordered table-striped table-hover custom-grid-table w-100">
+                        <table id="seacustomerTable"
+                               class="table table-bordered table-striped table-hover custom-grid-table w-100 text-center align-middle">
                             <thead>
                                 <tr>
                                     <th style="width: 45px;">SL</th>
-                                    <th>Customer ID</th>
-                                    <th>Name</th>
-                                    <th>Address</th>
-                                    <th>Phone</th>
-                                    <th>fax</th>
-                                    <th>Email</th>
-                                    <th>Photo</th>
-                                    <th>Contact Person</th>
+                                    <th style="width: 50px;">Customer ID</th>
+                                    <th style="width: 180px;">Name</th>
+                                    <th style="width: 200px;">Address</th>
+                                    <th style="width: 130px;">Phone</th>
+                                    <th style="width: 120px;">Fax</th>
+                                    <th style="width: 160px;">Email</th>
+                                    <th style="width: 100px;">Photo</th>
+                                    <th style="width: 200px;">Contact Person</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

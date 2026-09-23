@@ -24,6 +24,87 @@ namespace GCTL.Service.CustomerReport
         }
 
         #region Fetch Customer Report Data
+        //public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter)
+        //{
+        //    var result = new List<CustomerReportResultDto>();
+
+        //    if (string.IsNullOrEmpty(_connectionString))
+        //    {
+        //        return result;
+        //    }
+
+        //    using var connection = new SqlConnection(_connectionString);
+        //    await connection.OpenAsync();
+
+        //    using var command = new SqlCommand("Sales_GetCustomerReport", connection);
+        //    command.CommandType = CommandType.StoredProcedure;
+
+        //    string customerIds = filter.CustomerName != null && filter.CustomerName.Any()
+        //        ? string.Join(",", filter.CustomerName)
+        //        : string.Empty;
+
+        //    string customerTypeIds = filter.CustomerType != null && filter.CustomerType.Any()
+        //        ? string.Join(",", filter.CustomerType)
+        //        : string.Empty;
+
+        //    command.Parameters.Add(new SqlParameter("@CustomerID", string.IsNullOrWhiteSpace(customerIds) ? "" : customerIds.Trim()));
+        //    command.Parameters.Add(new SqlParameter("@CustomerTypeID", string.IsNullOrWhiteSpace(customerTypeIds) ? "" : customerTypeIds.Trim()));
+        //    command.Parameters.Add(new SqlParameter("@CompanyCode", DBNull.Value));
+
+        //    using var reader = await command.ExecuteReaderAsync();
+
+        //    int sl = 1;
+        //    while (await reader.ReadAsync())
+        //    {
+        //        string GetString(string col)
+        //        {
+        //            try
+        //            {
+        //                int idx = reader.GetOrdinal(col);
+        //                return reader.IsDBNull(idx) ? string.Empty : reader.GetValue(idx).ToString()?.Trim() ?? string.Empty;
+        //            }
+        //            catch
+        //            {
+        //                return string.Empty;
+        //            }
+        //        }
+
+        //        byte[] GetBytes(string col)
+        //        {
+        //            try
+        //            {
+        //                int idx = reader.GetOrdinal(col);
+        //                if (reader.IsDBNull(idx)) return null;
+        //                return (byte[])reader.GetValue(idx);
+        //            }
+        //            catch
+        //            {
+        //                return null;
+        //            }
+        //        }
+
+        //        var item = new CustomerReportResultDto
+        //        {
+        //            CustomerId = GetString("CustomerID"),
+        //            CustomerName = GetString("CustomerName"),
+        //            CustomerAddress = GetString("Address"),
+        //            Phone = GetString("Phone"),
+        //            Fax = GetString("FAX"),
+        //            Email = GetString("Email"),
+        //            CustomerPhoto = GetBytes("Photo"),
+        //            ContactPerson = GetString("ContactPerson"),
+        //            Designation = GetString("Designation"),
+        //            CustomerTypeId = GetString("CustomerTypeID"),
+        //            CustomerType = GetString("CustomerTypeName")
+        //        };
+
+        //        result.Add(item);
+        //        sl++;
+        //    }
+
+        //    return result;
+        //}
+
         public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter)
         {
             var result = new List<CustomerReportResultDto>();
@@ -39,12 +120,12 @@ namespace GCTL.Service.CustomerReport
             using var command = new SqlCommand("Sales_GetCustomerReport", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            string customerIds = filter.CustomerName != null && filter.CustomerName.Any()
-                ? string.Join(",", filter.CustomerName)
+            string customerIds = filter.CustomerId != null && filter.CustomerId.Any()
+                ? string.Join(",", filter.CustomerId)
                 : string.Empty;
 
-            string customerTypeIds = filter.CustomerType != null && filter.CustomerType.Any()
-                ? string.Join(",", filter.CustomerType)
+            string customerTypeIds = filter.CustomerTypeId != null && filter.CustomerTypeId.Any()
+                ? string.Join(",", filter.CustomerTypeId)
                 : string.Empty;
 
             command.Parameters.Add(new SqlParameter("@CustomerID", string.IsNullOrWhiteSpace(customerIds) ? "" : customerIds.Trim()));
@@ -53,7 +134,6 @@ namespace GCTL.Service.CustomerReport
 
             using var reader = await command.ExecuteReaderAsync();
 
-            int sl = 1;
             while (await reader.ReadAsync())
             {
                 string GetString(string col)
@@ -63,10 +143,7 @@ namespace GCTL.Service.CustomerReport
                         int idx = reader.GetOrdinal(col);
                         return reader.IsDBNull(idx) ? string.Empty : reader.GetValue(idx).ToString()?.Trim() ?? string.Empty;
                     }
-                    catch
-                    {
-                        return string.Empty;
-                    }
+                    catch { return string.Empty; }
                 }
 
                 byte[] GetBytes(string col)
@@ -77,13 +154,10 @@ namespace GCTL.Service.CustomerReport
                         if (reader.IsDBNull(idx)) return null;
                         return (byte[])reader.GetValue(idx);
                     }
-                    catch
-                    {
-                        return null;
-                    }
+                    catch { return null; }
                 }
 
-                var item = new CustomerReportResultDto
+                result.Add(new CustomerReportResultDto
                 {
                     CustomerId = GetString("CustomerID"),
                     CustomerName = GetString("CustomerName"),
@@ -96,14 +170,12 @@ namespace GCTL.Service.CustomerReport
                     Designation = GetString("Designation"),
                     CustomerTypeId = GetString("CustomerTypeID"),
                     CustomerType = GetString("CustomerTypeName")
-                };
-
-                result.Add(item);
-                sl++;
+                });
             }
 
             return result;
         }
+
         #endregion
 
         #region Generate PDF Report
@@ -117,9 +189,9 @@ namespace GCTL.Service.CustomerReport
                 string companyAddress = "21, Hazaribagh, Dhaka-1209";
 
                 string customerHeader = "All";
-                if (filter.CustomerName != null && filter.CustomerName.Any())
+                if (filter.CustomerId != null && filter.CustomerId.Any())
                 {
-                    var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerName))?.CustomerName;
+                    var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerId))?.CustomerId;
                     if (!string.IsNullOrWhiteSpace(matched))
                         customerHeader = matched;
                 }
@@ -253,9 +325,9 @@ namespace GCTL.Service.CustomerReport
             string companyAddress = "21, Hazaribagh, Dhaka-1209";
 
             string customerHeader = "All";
-            if (filter.CustomerName != null && filter.CustomerName.Any())
+            if (filter.CustomerId != null && filter.CustomerId.Any())
             {
-                var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerName))?.CustomerName;
+                var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerId))?.CustomerId;
                 if (!string.IsNullOrWhiteSpace(matched))
                     customerHeader = matched;
             }
