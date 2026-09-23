@@ -195,6 +195,7 @@ namespace GCTL.UI.Core.Controllers
                 return Json(new
                 {
                     success = true,
+                    mode = activeMode,
                     total = totalCount,
                     pending = pendingCount,
                     transit = transitCount,
@@ -210,6 +211,7 @@ namespace GCTL.UI.Core.Controllers
                 return Json(new
                 {
                     success = false,
+                    mode = "Air",
                     message = ex.Message,
                     total = 0,
                     pending = 0,

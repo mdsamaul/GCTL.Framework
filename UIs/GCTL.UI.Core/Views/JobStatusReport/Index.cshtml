@@ -422,13 +422,13 @@
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker auto-filter" placeholder="DD/MM/YYYY" autocomplete="off" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker auto-filter" value="@DateTime.Now.ToString("01/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group">
                 <label for="filterToDate">To</label>
-                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker auto-filter" placeholder="DD/MM/YYYY" autocomplete="off" />
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- Customer (Single Select) -->
