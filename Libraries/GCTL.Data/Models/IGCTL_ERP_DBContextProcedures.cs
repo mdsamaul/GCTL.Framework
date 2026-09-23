@@ -13,6 +13,7 @@ namespace GCTL.Data.Models
 {
     public partial interface IGCTL_ERP_DBContextProcedures
     {
+        Task<List<DocumentationReportResult>> DocumentationReportAsync(string dateUse, string fromDate, string toDate, string customerID, string portId, string expenseTypeID, string jobNo, string jobStatus, string reportOption, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<GetExpenseHeadReportResult>> GetExpenseHeadReportAsync(string expenseTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<GetLedgerTreeResult>> GetLedgerTreeAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);

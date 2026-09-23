@@ -1,0 +1,518 @@
+@{
+    ViewData["Title"] = "Job Status Dashboard";
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --pending: #ff9800;
+        --delivered: #4caf50;
+        --transit: #9c27b0;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .job-status-dashboard {
+        color: var(--text-main);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Main Container */
+    .dashboard-container {
+        padding: 6px 0 25px 0;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Status Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 14px 18px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 4px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+
+    .stat-card.active-card {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0, 51, 102, 0.18) !important;
+        border-top: 2px solid rgba(0, 86, 179, 0.2);
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin: 0 0 4px 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-info p {
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 0;
+        line-height: 1;
+    }
+
+    /* Filter Section - One Line Design */
+    .filter-section {
+        background: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.86rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .filter-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #475569;
+        margin: 0;
+    }
+
+    .filter-group input.form-control,
+    .filter-group select.form-select {
+        width: 100%;
+        padding: 5px 9px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.82rem;
+        outline: none;
+        background-color: #ffffff;
+        color: var(--text-main);
+        height: 33px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    /* Ensure custom-dd-wrapper fits the one-line design */
+    .filter-group .custom-dd-wrapper {
+        width: 100% !important;
+    }
+
+    .filter-group .custom-dd-input {
+        min-height: 33px !important;
+        height: 33px !important;
+        padding: 3px 8px !important;
+        font-size: 0.82rem !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 6px !important;
+    }
+
+    .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-search {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 33px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .btn-search:hover {
+        background: #004494;
+        box-shadow: 0 4px 10px rgba(0, 86, 179, 0.3);
+    }
+
+    .btn-export-rep {
+        background: var(--delivered);
+        color: white;
+        border: none;
+        padding: 6px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 33px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .btn-export-rep:hover {
+        background: #3d8b40;
+        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Card Wrapper for Tabs and DataTables */
+    .job-tables-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    .tabs-header {
+        background: #f8fafc;
+        border-bottom: 1px solid var(--border);
+        padding: 10px 16px 0 16px;
+    }
+
+    .job-mode-tabs .nav-link {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #475569;
+        border-radius: 8px 8px 0 0;
+        padding: 8px 18px;
+        margin-right: 6px;
+        background: transparent;
+        border: 1px solid transparent;
+        border-bottom: none;
+        transition: all 0.2s;
+    }
+
+    .job-mode-tabs .nav-link:hover {
+        color: var(--primary);
+        background: rgba(0, 86, 179, 0.05);
+    }
+
+    .job-mode-tabs .nav-link.active {
+        color: var(--primary) !important;
+        background: white !important;
+        border-color: var(--border) var(--border) white !important;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
+    }
+
+    /* Badges in tables */
+    .status-badge {
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .status-badge.pending {
+        background: #fff7ed;
+        color: #c2410c;
+        border: 1px solid #fed7aa;
+    }
+
+    .status-badge.delivered {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .status-badge.transit {
+        background: #faf5ff;
+        color: #7e22ce;
+        border: 1px solid #e9d5ff;
+    }
+
+    .job-no-cell {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-group {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="job-status-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Stats Grid (4 Cards) -->
+        <div class="stats-grid">
+            <div class="stat-card active-card" data-status-filter="" title="Click to view all jobs">
+                <div class="stat-icon" style="background: var(--primary);">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Jobs</h3>
+                    <p id="statTotalJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--pending);" data-status-filter="Pending" title="Click to filter Pending jobs">
+                <div class="stat-icon" style="background: var(--pending);">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Pending</h3>
+                    <p id="statPendingJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--transit);" data-status-filter="In Transit" title="Click to filter In Transit jobs">
+                <div class="stat-icon" style="background: var(--transit);">
+                    <i class="fas fa-truck-fast"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>In Transit</h3>
+                    <p id="statTransitJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--delivered);" data-status-filter="Delivered" title="Click to filter Delivered jobs">
+                <div class="stat-icon" style="background: var(--delivered);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Delivered</h3>
+                    <p id="statDeliveredJobs">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar (One Line Design) -->
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+            
+            <!-- From Date -->
+            <div class="filter-group">
+                <label for="filterFromDate">From</label>
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" />
+            </div>
+
+            <!-- To Date -->
+            <div class="filter-group">
+                <label for="filterToDate">To</label>
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" />
+            </div>
+
+            <!-- Customer (Single Select) -->
+            <div class="filter-group">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-single" data-placeholder="-- select customer --">
+                    <option value="">-- select customer --</option>
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Customers)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Shipment Mode (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Shipment Mode --">
+                    @if (ViewBag.ShipmentModes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Port Type (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterPortType" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Port Type --">
+                    @if (ViewBag.PortTypes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.PortTypes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Job Status (Single Select) -->
+            <div class="filter-group">
+                <select id="filterJobStatus" class="form-select form-select-sm custom-select-single" data-placeholder="-- Job Status --">
+                    <option value="">-- Job Status --</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Transit">In Transit</option>
+                    <option value="Delivered">Delivered</option>
+                </select>
+            </div>
+
+            <!-- Export Format (Single Select) -->
+            <div class="filter-group">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single">
+                    <option value="PDF">PDF Format</option>
+                    <option value="Excel">Excel Format</option>
+                </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="filter-actions">
+                <button type="button" class="btn-search" id="btnSearch">
+                    <i class="fas fa-search"></i> SEARCH
+                </button>
+                <button type="button" class="btn-export-rep" id="btnExport">
+                    <i class="fas fa-download"></i> EXPORT
+                </button>
+            </div>
+        </div>
+
+        <!-- Data Tables Container: Sea & Air 2 ta -->
+        <div class="job-tables-card">
+            <div class="tabs-header">
+                <ul class="nav nav-pills job-mode-tabs" id="jobModeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="sea-tab" data-bs-toggle="pill" data-bs-target="#sea-tab-pane" type="button" role="tab" aria-controls="sea-tab-pane" aria-selected="true">
+                            <i class="fas fa-ship me-2"></i> Sea Freight Jobs
+                            <span class="badge rounded-pill bg-primary ms-2" id="seaCountBadge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="air-tab" data-bs-toggle="pill" data-bs-target="#air-tab-pane" type="button" role="tab" aria-controls="air-tab-pane" aria-selected="false">
+                            <i class="fas fa-plane-departure me-2"></i> Air Freight Jobs
+                            <span class="badge rounded-pill bg-info text-dark ms-2" id="airCountBadge">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content p-3" id="jobModeTabsContent">
+                <!-- Sea Freight Tab Pane -->
+                <div class="tab-pane fade show active" id="sea-tab-pane" role="tabpanel" aria-labelledby="sea-tab">
+                    <div class="table-responsive">
+                        <table id="seaJobTable" class="table table-bordered table-striped table-hover custom-grid-table w-100">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;">SL</th>
+                                    <th>Job No.</th>
+                                    <th>Job Date</th>
+                                    <th>Service Type</th>
+                                    <th>Port Name</th>
+                                    <th>Doc Received</th>
+                                    <th>Invoice No.</th>
+                                    <th>Invoice Value</th>
+                                    <th>Container/Pkgs</th>
+                                    <th>Bill / BL No.</th>
+                                    <th>Vessel Name</th>
+                                    <th>Container No.</th>
+                                    <th>ETD</th>
+                                    <th>Arrival Date</th>
+                                    <th>Discharge</th>
+                                    <th>Delivery Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Air Freight Tab Pane -->
+                <div class="tab-pane fade" id="air-tab-pane" role="tabpanel" aria-labelledby="air-tab">
+                    <div class="table-responsive">
+                        <table id="airJobTable" class="table table-bordered table-striped table-hover custom-grid-table w-100">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;">SL</th>
+                                    <th>Job No.</th>
+                                    <th>Job Date</th>
+                                    <th>Service Type</th>
+                                    <th>Port Name</th>
+                                    <th>Doc Received</th>
+                                    <th>Invoice No.</th>
+                                    <th>Invoice Value</th>
+                                    <th>Material/Qty</th>
+                                    <th>LC No.</th>
+                                    <th>HAWB No.</th>
+                                    <th>MAWB No.</th>
+                                    <th>ETD Date</th>
+                                    <th>Flight Delivery</th>
+                                    <th>Actual Delivery</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/jobStatusReport.js" asp-append-version="true"></script>
+}

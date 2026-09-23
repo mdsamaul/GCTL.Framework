@@ -10,7 +10,7 @@ namespace GCTL.Data.Models
     {
         [StringLength(50)]
         public string CustomerID { get; set; }
-        [StringLength(200)]
+        [StringLength(1)]
         public string CustomerAddress { get; set; }
         [StringLength(50)]
         public string BillNo { get; set; }
@@ -22,7 +22,7 @@ namespace GCTL.Data.Models
         public decimal Received { get; set; }
         [Column("Due", TypeName = "decimal(38,2)")]
         public decimal? Due { get; set; }
-        [Column("TotalDue", TypeName = "decimal(38,2)")]
-        public decimal? TotalDue { get; set; }
+        [Column("TotalDue", TypeName = "decimal(2,2)")]
+        public decimal TotalDue { get; set; }
     }
 }
