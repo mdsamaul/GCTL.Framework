@@ -618,6 +618,9 @@
                 countThreshold: 2
             }, options || {}));
             this.isMulti = true;
+            if (this.$original && this.$original.data('count-threshold') !== undefined) {
+                this.options.countThreshold = parseInt(this.$original.data('count-threshold'), 10);
+            }
         }
 
         _selectItem(item) {
@@ -705,10 +708,12 @@
 
             var count = this.selected.length;
 
-            if (this.options.showCountBadge && count > this.options.countThreshold) {
+            if (this.options.showCountBadge && count >= this.options.countThreshold) {
                 var $badge = $('<span class="custom-dd-count-badge"></span>');
                 $badge.text(count + ' selected');
                 this.$tagsArea.append($badge);
+                this.$tagsArea.show();
+                this.$input.attr("placeholder", "");
                 return;
             }
 
