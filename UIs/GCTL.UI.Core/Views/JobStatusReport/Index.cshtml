@@ -250,6 +250,17 @@
         border-bottom: 2px solid #e6e600 !important;
     }
 
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
+    .custom-grid-table {
+        width: 100% !important;
+        margin-bottom: 0 !important;
+    }
+
     .custom-grid-table th {
         font-size: 0.76rem !important;
         font-weight: 600 !important;
@@ -266,6 +277,21 @@
         vertical-align: middle !important;
         padding: 5px 8px !important;
         white-space: nowrap !important;
+    }
+
+    /* Prevent any phantom or empty duplicate header row */
+    .dataTables_scrollBody thead,
+    .dataTables_scrollBody thead tr,
+    .dataTables_scrollBody thead th {
+        height: 0px !important;
+        min-height: 0px !important;
+        max-height: 0px !important;
+        padding: 0px !important;
+        margin: 0px !important;
+        border: none !important;
+        line-height: 0px !important;
+        font-size: 0px !important;
+        visibility: hidden !important;
     }
 
     /* Badges in tables */
@@ -301,20 +327,6 @@
         font-weight: 600;
     }
 
-    /* Customer Group in Table */
-    .customer-group-row {
-        background-color: #003366 !important;
-        color: white !important;
-        font-weight: 700 !important;
-        font-size: 0.82rem !important;
-        letter-spacing: 0.5px;
-    }
-
-    .customer-group-row td {
-        background-color: #003366 !important;
-        color: white !important;
-        padding: 6px 12px !important;
-    }
 
     @@media (max-width: 1200px) {
         .stats-grid {

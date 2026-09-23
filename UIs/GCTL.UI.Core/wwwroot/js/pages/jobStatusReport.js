@@ -50,7 +50,6 @@
         seaTable = $('#seaJobTable').DataTable({
             processing: true,
             deferRender: true, // Only render visible rows for instant rendering (< 5ms)
-            scrollX: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
@@ -60,20 +59,6 @@
                 search: "_INPUT_",
                 searchPlaceholder: "Search sea jobs...",
                 processing: '<div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div> Loading sea jobs...'
-            },
-            drawCallback: function (settings) {
-                var api = this.api();
-                var rows = api.rows({ page: 'current' }).nodes();
-                var lastCustomer = null;
-                api.rows({ page: 'current' }).data().each(function (item, i) {
-                    var cust = item.customerName || 'General Customer';
-                    if (lastCustomer !== cust) {
-                        $(rows).eq(i).before(
-                            '<tr class="customer-group-row"><td colspan="26"><i class="fas fa-building me-2"></i> CUSTOMER: ' + escapeHtml(cust) + '</td></tr>'
-                        );
-                        lastCustomer = cust;
-                    }
-                });
             },
             columns: [
                 { 
@@ -103,7 +88,7 @@
                 { data: 'beDate', className: 'text-center' },
                 { data: 'estDeliveryDate', className: 'text-center' },
                 { data: 'actualDeliveryDate', className: 'text-center' },
-                {
+                { 
                     data: 'shipmentStatus',
                     className: 'text-center',
                     render: function (data, type, row) {
@@ -123,7 +108,6 @@
         airTable = $('#airJobTable').DataTable({
             processing: true,
             deferRender: true,
-            scrollX: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
@@ -133,20 +117,6 @@
                 search: "_INPUT_",
                 searchPlaceholder: "Search air jobs...",
                 processing: '<div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div> Loading air jobs...'
-            },
-            drawCallback: function (settings) {
-                var api = this.api();
-                var rows = api.rows({ page: 'current' }).nodes();
-                var lastCustomer = null;
-                api.rows({ page: 'current' }).data().each(function (item, i) {
-                    var cust = item.customerName || 'General Customer';
-                    if (lastCustomer !== cust) {
-                        $(rows).eq(i).before(
-                            '<tr class="customer-group-row"><td colspan="21"><i class="fas fa-building me-2"></i> CUSTOMER: ' + escapeHtml(cust) + '</td></tr>'
-                        );
-                        lastCustomer = cust;
-                    }
-                });
             },
             columns: [
                 { 
