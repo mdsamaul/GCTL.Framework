@@ -162,6 +162,45 @@
         gap: 8px;
     }
 
+    /* Responsive behavior for Filter Bar
+       - Laptop/medium (<=1199px): label on the left-top (full-width row), filters and export on next line with export aligned right
+       - Large screens (>=1200px): label, filters and export button on a single line
+    */
+    .filter-label {
+        flex: 0 0 100%;
+        text-align: left; /* ensure left-top placement */
+    }
+
+    /* Laptop and smaller tablets */
+    @@media (max-width: 1199px) {
+        .filter-section {
+            flex-wrap: wrap;
+            align-items: flex-start; /* keep label at top-left */
+        }
+        .filter-label {
+            flex: 0 0 100%;
+            margin-bottom: 6px;
+        }
+        .filter-actions {
+            margin-left: auto; /* push export button to the right on the filters row */
+        }
+    }
+
+    /* Large desktop */
+    @@media (min-width: 1200px) {
+        .filter-section {
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+        .filter-label {
+            flex: 0 0 auto;
+            margin-right: 12px;
+        }
+        .filter-actions {
+            margin-left: 12px;
+        }
+    }
+
     .btn-export-rep {
         background: var(--delivered);
         color: white;
@@ -432,7 +471,7 @@
             <!-- Customer (Single Select) -->
             <div class="filter-group">
                 <select id="filterCustomerId" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- select customer --">
-                    <option value="">-- select customer --</option>
+                    <option value="">select customer</option>
                     @if (ViewBag.Customers != null)
                     {
                         string defCust = ViewBag.DefaultCustomerId as string ?? "CUS000001";
@@ -461,8 +500,8 @@
 
             <!-- Port Type (Single Select) -->
             <div class="filter-group">
-                <select id="filterPortType" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- Port Type --">
-                    <option value="">-- Port Type --</option>
+                <select id="filterPortType" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="Port Type">
+                    <option value="">Port Type</option>
                     @if (ViewBag.PortTypes != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.PortTypes)
@@ -476,7 +515,7 @@
             <!-- Job Status (Single Select) -->
             <div class="filter-group">
                 <select id="filterJobStatus" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- Job Status --">
-                    <option value="">-- Job Status --</option>
+                    <option value="">Job Status</option>
                     <option value="Pending">Pending</option>
                     <option value="In Transit">In Transit</option>
                     <option value="Delivered">Delivered</option>
