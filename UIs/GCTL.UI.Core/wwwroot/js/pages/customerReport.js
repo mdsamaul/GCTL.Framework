@@ -1,8 +1,4 @@
-﻿/**
- * Customer Report Dashboard Page Script
- * Customer DataTable with Custom Multi-Select Filters
- * Formosa Logistics Limited
- */
+﻿
 (function ($) {
     'use strict';
 
@@ -43,30 +39,30 @@
                 {
                     data: 'sl',
                     className: 'text-center align-middle',
-                    width: '45px'
+                    width: '35px'
                 },
                 {
                     data: 'customerId',
                     className: 'text-center align-middle job-no-cell',
-                    width: '50px',
+                    width: '40px',
                     render: function (data) {
                         return escapeHtml(data);
                     }
                 },
                 {
                     data: 'name',
-                    className: 'text-center align-middle',
+                    className: 'text-start align-middle',
                     width: '180px',
                     render: function (data) {
-                        return escapeHtml(data);
+                        return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
                     }
                 },
                 {
                     data: 'address',
-                    className: 'text-center align-middle',
+                    className: 'text-start align-middle',
                     width: '200px',
                     render: function (data) {
-                        return escapeHtml(data);
+                        return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
                     }
                 },
                 {
@@ -92,13 +88,13 @@
                     render: function (data) {
                         if (data) {
                             return `
-                            <img src="data:image/jpeg;base64,${data}"
-                                 alt="Photo"
-                                 style="width:36px;
-                                        height:36px;
-                                        border-radius:6px;
-                                        object-fit:cover;" />
-                        `;
+                <img src="data:image/jpeg;base64,${data}"
+                     alt="Photo"
+                     style="width:36px;
+                            height:36px;
+                            border-radius:6px;
+                            object-fit:cover;" />
+            `;
                         }
 
                         return '<span class="text-muted">-</span>';
@@ -106,63 +102,15 @@
                 },
                 {
                     data: 'contactPerson',
-                    className: 'text-center align-middle',
-                    width: '200px',
+                    className: 'text-start align-middle',
+                    width: '250px',
                     render: function (data) {
-                        return escapeHtml(data);
+                        return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
                     }
                 }
             ]
         });
     }
-
-    // function initDataTable() {
-    //     // Destroy existing instance if any
-    //     if ($.fn.DataTable.isDataTable('#seacustomerTable')) {
-    //         $('#seacustomerTable').DataTable().destroy();
-    //     }
-
-    //     customerTable = $('#seacustomerTable').DataTable({
-    //         processing: true,
-    //         responsive: true,
-    //         pageLength: 10,
-    //         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-    //         order: [[0, 'asc']],
-    //         autoWidth: false,
-    //         language: {
-    //             emptyTable: "No customer records found matching the filter criteria.",
-    //             search: "_INPUT_",
-    //             searchPlaceholder: "Search customers..."
-    //         },
-    //         columns: [
-    //             { data: 'sl', className: 'text-center', width: '45px' },
-    //             {
-    //                 data: 'customerId',
-    //                 className: 'job-no-cell',
-    //                 render: function (data) {
-    //                     return escapeHtml(data);
-    //                 }
-    //             },
-    //             { data: 'name', render: function (data) { return escapeHtml(data); } },
-    //             { data: 'address', render: function (data) { return escapeHtml(data); } },
-    //             { data: 'phone' },
-    //             { data: 'fax' },
-    //             { data: 'email' },
-    //             {
-    //                 data: 'photo',
-    //                 className: 'text-center',
-    //                 orderable: false,
-    //                 render: function (data) {
-    //                     if (data) {
-    //                         return '<img src="data:image/jpeg;base64,' + data + '" alt="Photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />';
-    //                     }
-    //                     return '<span class="text-muted">-</span>';
-    //                 }
-    //             },
-    //             { data: 'contactPerson', render: function (data) { return escapeHtml(data); } }
-    //         ]
-    //     });
-    // }
 
     function bindEvents() {
         // Search Button Click
@@ -177,7 +125,14 @@
             $('.stat-card').removeClass('active-card');
             $(this).addClass('active-card');
 
-            setDropdownValue('filterCustomerType', statusFilter);
+            // Text ("General"/"In House") কে dropdown এর actual value ("0"/"1") তে ম্যাপ করা
+            var mappedValue = mapStatusToValue(statusFilter);
+            setDropdownValue('filterCustomerType', mappedValue);
+            loadCustomerData();
+        });
+
+        // Dropdown নিজে থেকে পরিবর্তন হলেও ডাটা রিলোড হবে
+        $('#filterCustomerType, #filterCustomer').on('change', function () {
             loadCustomerData();
         });
 
@@ -186,6 +141,17 @@
             e.preventDefault();
             exportReport();
         });
+    }
+
+    /**
+     * Stat card এর টেক্সট ("General" / "In House") কে dropdown value ("0" / "1") এ কনভার্ট করে
+     */
+    function mapStatusToValue(statusFilter) {
+        if (!statusFilter) return '';
+        var s = statusFilter.toString().toLowerCase().trim();
+        if (s.indexOf('house') !== -1) return '1';
+        if (s.indexOf('general') !== -1) return '0';
+        return statusFilter; // আগে থেকেই "0"/"1" হলে সরাসরি রিটার্ন
     }
 
     /**
@@ -239,8 +205,8 @@
 
     function getFilterParams() {
         return {
-            CustomerName: getDropdownValueArray('filterCustomer'),
-            CustomerType: getDropdownValueArray('filterCustomerType')
+            CustomerId: getDropdownValueArray('filterCustomer'),
+            CustomerTypeId: getDropdownValueArray('filterCustomerType')
         };
     }
 
@@ -301,9 +267,9 @@
 
         if (!s) {
             $('.stat-card[data-status-filter=""]').addClass('active-card');
-        } else if (s.indexOf('house') !== -1) {
+        } else if (s.indexOf('house') !== -1 || s === '1') {
             $('.stat-card[data-status-filter="In House"]').addClass('active-card');
-        } else if (s.indexOf('general') !== -1) {
+        } else if (s.indexOf('general') !== -1 || s === '0') {
             $('.stat-card[data-status-filter="General"]').addClass('active-card');
         } else {
             $('.stat-card[data-status-filter="Customer Type"]').addClass('active-card');
@@ -328,13 +294,6 @@
                 $el.text(target.toLocaleString());
             }
         }, stepTime);
-    }
-
-    function getFilterParams() {
-        return {
-            CustomerId: getDropdownValueArray('filterCustomer'),
-            CustomerTypeId: getDropdownValueArray('filterCustomerType')
-        };
     }
 
     function exportReport() {

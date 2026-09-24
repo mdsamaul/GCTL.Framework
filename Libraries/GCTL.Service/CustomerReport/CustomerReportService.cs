@@ -4,106 +4,27 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GCTL.Service.CustomerReport
 {
     public class CustomerReportService : ICustomerReportService
     {
+        #region Fields & Constructor
+
         private readonly string _connectionString;
 
         public CustomerReportService(
-            IConfiguration configuration)
+            IConfiguration configuration
+            
+            )
         {
             _connectionString = configuration.GetConnectionString("connection") ?? string.Empty;
         }
 
+        #endregion
+
         #region Fetch Customer Report Data
-        //public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter)
-        //{
-        //    var result = new List<CustomerReportResultDto>();
-
-        //    if (string.IsNullOrEmpty(_connectionString))
-        //    {
-        //        return result;
-        //    }
-
-        //    using var connection = new SqlConnection(_connectionString);
-        //    await connection.OpenAsync();
-
-        //    using var command = new SqlCommand("Sales_GetCustomerReport", connection);
-        //    command.CommandType = CommandType.StoredProcedure;
-
-        //    string customerIds = filter.CustomerName != null && filter.CustomerName.Any()
-        //        ? string.Join(",", filter.CustomerName)
-        //        : string.Empty;
-
-        //    string customerTypeIds = filter.CustomerType != null && filter.CustomerType.Any()
-        //        ? string.Join(",", filter.CustomerType)
-        //        : string.Empty;
-
-        //    command.Parameters.Add(new SqlParameter("@CustomerID", string.IsNullOrWhiteSpace(customerIds) ? "" : customerIds.Trim()));
-        //    command.Parameters.Add(new SqlParameter("@CustomerTypeID", string.IsNullOrWhiteSpace(customerTypeIds) ? "" : customerTypeIds.Trim()));
-        //    command.Parameters.Add(new SqlParameter("@CompanyCode", DBNull.Value));
-
-        //    using var reader = await command.ExecuteReaderAsync();
-
-        //    int sl = 1;
-        //    while (await reader.ReadAsync())
-        //    {
-        //        string GetString(string col)
-        //        {
-        //            try
-        //            {
-        //                int idx = reader.GetOrdinal(col);
-        //                return reader.IsDBNull(idx) ? string.Empty : reader.GetValue(idx).ToString()?.Trim() ?? string.Empty;
-        //            }
-        //            catch
-        //            {
-        //                return string.Empty;
-        //            }
-        //        }
-
-        //        byte[] GetBytes(string col)
-        //        {
-        //            try
-        //            {
-        //                int idx = reader.GetOrdinal(col);
-        //                if (reader.IsDBNull(idx)) return null;
-        //                return (byte[])reader.GetValue(idx);
-        //            }
-        //            catch
-        //            {
-        //                return null;
-        //            }
-        //        }
-
-        //        var item = new CustomerReportResultDto
-        //        {
-        //            CustomerId = GetString("CustomerID"),
-        //            CustomerName = GetString("CustomerName"),
-        //            CustomerAddress = GetString("Address"),
-        //            Phone = GetString("Phone"),
-        //            Fax = GetString("FAX"),
-        //            Email = GetString("Email"),
-        //            CustomerPhoto = GetBytes("Photo"),
-        //            ContactPerson = GetString("ContactPerson"),
-        //            Designation = GetString("Designation"),
-        //            CustomerTypeId = GetString("CustomerTypeID"),
-        //            CustomerType = GetString("CustomerTypeName")
-        //        };
-
-        //        result.Add(item);
-        //        sl++;
-        //    }
-
-        //    return result;
-        //}
 
         public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter)
         {
@@ -120,13 +41,8 @@ namespace GCTL.Service.CustomerReport
             using var command = new SqlCommand("Sales_GetCustomerReport", connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            string customerIds = filter.CustomerId != null && filter.CustomerId.Any()
-                ? string.Join(",", filter.CustomerId)
-                : string.Empty;
-
-            string customerTypeIds = filter.CustomerTypeId != null && filter.CustomerTypeId.Any()
-                ? string.Join(",", filter.CustomerTypeId)
-                : string.Empty;
+            string customerIds = filter.CustomerId != null && filter.CustomerId.Any() ? string.Join(",", filter.CustomerId) : string.Empty;
+            string customerTypeIds = filter.CustomerTypeId != null && filter.CustomerTypeId.Any() ? string.Join(",", filter.CustomerTypeId) : string.Empty;
 
             command.Parameters.Add(new SqlParameter("@CustomerID", string.IsNullOrWhiteSpace(customerIds) ? "" : customerIds.Trim()));
             command.Parameters.Add(new SqlParameter("@CustomerTypeID", string.IsNullOrWhiteSpace(customerTypeIds) ? "" : customerTypeIds.Trim()));
@@ -169,7 +85,10 @@ namespace GCTL.Service.CustomerReport
                     ContactPerson = GetString("ContactPerson"),
                     Designation = GetString("Designation"),
                     CustomerTypeId = GetString("CustomerTypeID"),
-                    CustomerType = GetString("CustomerTypeName")
+                    CustomerType = GetString("CustomerTypeName"),
+                    CompanyCode = GetString("CompanyCode"),
+                    CompanyName = GetString("CompanyName"),
+                    CompanyAddress1 = GetString("CompanyAddress1")
                 });
             }
 
@@ -179,22 +98,29 @@ namespace GCTL.Service.CustomerReport
         #endregion
 
         #region Generate PDF Report
+
         public async Task<byte[]> GeneratePdfReportAsync(CustomerReportFilterDto filter)
         {
             try
             {
                 var data = await GetCustomerReportDataAsync(filter);
 
-                string companyName = "Formosa Logistics Limited";
-                string companyAddress = "21, Hazaribagh, Dhaka-1209";
+                var firstItem = data.FirstOrDefault();
+                string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited"; 
+                string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209"; 
 
-                string customerHeader = "All";
-                if (filter.CustomerId != null && filter.CustomerId.Any())
+                string GetTypeLabel(string typeId)
                 {
-                    var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerId))?.CustomerId;
-                    if (!string.IsNullOrWhiteSpace(matched))
-                        customerHeader = matched;
+                    if (string.IsNullOrWhiteSpace(typeId)) return "N/A";
+                    return typeId.Trim() switch
+                    {
+                        "0" => "General",
+                        "1" => "In House",
+                        _ => typeId.Trim()
+                    };
                 }
+
+                var groupedData = data .GroupBy(x => GetTypeLabel(x.CustomerTypeId)) .OrderBy(g => g.Key) .ToList();
 
                 var pdfBytes = Document.Create(container =>
                 {
@@ -204,95 +130,131 @@ namespace GCTL.Service.CustomerReport
                         page.MarginVertical(12);
                         page.Size(PageSizes.A4.Landscape());
 
-                        // Header
                         page.Header().Column(col =>
                         {
                             col.Item().AlignCenter().Text(companyName).FontSize(13).Bold();
                             col.Item().AlignCenter().Text(companyAddress).FontSize(9).FontColor(Colors.Grey.Darken2);
                             col.Item().AlignCenter().Text("Customer Report").FontSize(11).Bold().Underline();
-                            col.Item().PaddingTop(2).PaddingBottom(4).Row(row =>
-                            {
-                                row.RelativeItem().AlignLeft().Text($"Customer: {customerHeader}").FontSize(8.5f).Bold();
-                                row.RelativeItem().AlignRight().Text($"Print Date: {DateTime.Now:dd/MM/yyyy}").FontSize(8);
-                            });
+                            //col.Item().PaddingTop(2).PaddingBottom(4).Row(row =>
+                            //{
+                            //    row.RelativeItem().AlignRight().Text($"Print Date: {DateTime.Now:dd/MM/yyyy}").FontSize(8);
+                            //});
                         });
 
-                        // Content Table
-                        page.Content().Table(table =>
+                        page.Content().Column(mainCol =>
                         {
-                            table.ColumnsDefinition(cols =>
-                            {
-                                cols.RelativeColumn(1.5f);  // SL
-                                cols.RelativeColumn(3.5f);  // Customer ID
-                                cols.RelativeColumn(6.0f);  // Name
-                                cols.RelativeColumn(7.0f);  // Address
-                                cols.RelativeColumn(4.0f);  // Phone
-                                cols.RelativeColumn(3.5f);  // Fax
-                                cols.RelativeColumn(5.0f);  // Email
-                                cols.RelativeColumn(6.5f);  // Contact Person
-                            });
-
-                            // Header Row
-                            table.Header(header =>
-                            {
-                                void BuildHeaderCell(string title)
-                                {
-                                    header.Cell().Element(c => c
-                                        .Border(0.5f)
-                                        .BorderColor(Colors.Grey.Darken1)
-                                        .Background(Colors.Grey.Lighten3)
-                                        .PaddingHorizontal(2)
-                                        .PaddingVertical(3)
-                                        .AlignCenter()
-                                        .AlignMiddle()
-                                        .Text(title)
-                                        .Bold()
-                                        .FontSize(7f)
-                                        .WrapAnywhere());
-                                }
-
-                                BuildHeaderCell("SL");
-                                BuildHeaderCell("Customer ID");
-                                BuildHeaderCell("Name");
-                                BuildHeaderCell("Address");
-                                BuildHeaderCell("Phone");
-                                BuildHeaderCell("Fax");
-                                BuildHeaderCell("Email");
-                                BuildHeaderCell("Contact Person");
-                            });
-
-                            // Data Rows
                             int sl = 1;
-                            foreach (var d in data)
+                            bool isFirstGroup = true;
+
+                            foreach (var group in groupedData)
                             {
-                                void BuildDataCell(string text, bool center = false)
+                                if (!isFirstGroup)
                                 {
-                                    table.Cell().Element(c => c
-                                        .Border(0.5f)
-                                        .BorderColor(Colors.Grey.Lighten1)
-                                        .PaddingHorizontal(2)
-                                        .PaddingVertical(2)
-                                        .AlignMiddle()
-                                        .Element(e => center ? e.AlignCenter() : e.AlignLeft())
-                                        .Text(text ?? "")
-                                        .FontSize(6.5f)
-                                        .WrapAnywhere());
+                                    mainCol.Item().PageBreak();
                                 }
+                                isFirstGroup = false;
 
-                                BuildDataCell(sl.ToString(), true);
-                                BuildDataCell(d.CustomerId, true);
-                                BuildDataCell(d.CustomerName);
-                                BuildDataCell(d.CustomerAddress);
-                                BuildDataCell(d.Phone, true);
-                                BuildDataCell(d.Fax, true);
-                                BuildDataCell(d.Email);
-                                BuildDataCell(d.ContactPerson);
+                                mainCol.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(cols =>
+                                    {
+                                        cols.RelativeColumn(1.1f);
+                                        cols.RelativeColumn(2.5f);
+                                        cols.RelativeColumn(6.0f);
+                                        cols.RelativeColumn(7.0f);
+                                        cols.RelativeColumn(4.5f);
+                                        cols.RelativeColumn(4.0f);
+                                        cols.RelativeColumn(6.0f);
+                                        cols.RelativeColumn(3.0f);
+                                        cols.RelativeColumn(9.5f);
+                                    });
 
-                                sl++;
+                                    table.Header(header =>
+                                    {
+                                        header.Cell().ColumnSpan(9).Element(c => c
+                                            .PaddingTop(6)
+                                            .PaddingBottom(3)
+                                            .Text(text =>
+                                            {
+                                                text.Span("Customer Type: ").FontSize(9).Bold();
+                                                text.Span(group.Key).FontSize(9).Bold();
+                                            }));
+
+                                        void BuildHeaderCell(string title)
+                                        {
+                                            header.Cell().Element(c => c
+                                                .Border(0.5f)
+                                                .BorderColor(Colors.Grey.Darken1)
+                                                .Background(Colors.Grey.Lighten3)
+                                                .PaddingHorizontal(2)
+                                                .PaddingVertical(3)
+                                                .AlignCenter()
+                                                .AlignMiddle()
+                                                .Text(title)
+                                                .Bold()
+                                                .FontSize(7f)
+                                                .WrapAnywhere());
+                                        }
+
+                                        BuildHeaderCell("SL");
+                                        BuildHeaderCell("Customer ID");
+                                        BuildHeaderCell("Name");
+                                        BuildHeaderCell("Address");
+                                        BuildHeaderCell("Phone");
+                                        BuildHeaderCell("Fax");
+                                        BuildHeaderCell("Email");
+                                        BuildHeaderCell("Photo");
+                                        BuildHeaderCell("Contact Person");
+                                    });
+
+                                    foreach (var d in group)
+                                    {
+                                        void BuildDataCell(string text, bool center = false)
+                                        {
+                                            table.Cell().Element(c => c
+                                                .Border(0.5f)
+                                                .BorderColor(Colors.Grey.Lighten1)
+                                                .PaddingHorizontal(2)
+                                                .PaddingVertical(2)
+                                                .AlignMiddle()
+                                                .Element(e => center ? e.AlignCenter() : e.AlignLeft())
+                                                .Text(text ?? "")
+                                                .FontSize(6.5f)
+                                                .WrapAnywhere());
+                                        }
+
+                                        BuildDataCell(sl.ToString(), true);
+                                        BuildDataCell(d.CustomerId, true);
+                                        BuildDataCell(d.CustomerName);
+                                        BuildDataCell(d.CustomerAddress);
+                                        BuildDataCell(d.Phone, true);
+                                        BuildDataCell(d.Fax, true);
+                                        BuildDataCell(d.Email);
+
+                                        table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten1)
+                                            .PaddingHorizontal(2).PaddingVertical(2)
+                                            .AlignCenter().AlignMiddle()
+                                            .Height(28)
+                                            .Column(imgCol =>
+                                            {
+                                                if (d.CustomerPhoto != null && d.CustomerPhoto.Length > 0)
+                                                {
+                                                    imgCol.Item().Image(d.CustomerPhoto).FitArea();
+                                                }
+                                                else
+                                                {
+                                                    imgCol.Item().AlignCenter().Text("-").FontSize(6.5f);
+                                                }
+                                            });
+
+                                        BuildDataCell(d.ContactPerson);
+
+                                        sl++;
+                                    }
+                                });
                             }
                         });
 
-                        // Footer
                         page.Footer().Row(row =>
                         {
                             row.RelativeItem().AlignLeft().Text($"Print Datetime: {DateTime.Now:dd/MM/yyyy hh:mm:ss tt}").FontSize(7).FontColor(Colors.Grey.Medium);
@@ -314,30 +276,45 @@ namespace GCTL.Service.CustomerReport
                 throw;
             }
         }
+
         #endregion
 
         #region Generate Excel Report
+
         public async Task<byte[]> GenerateExcelReportAsync(CustomerReportFilterDto filter)
         {
             var data = await GetCustomerReportDataAsync(filter);
 
-            string companyName = "Formosa Logistics Limited";
-            string companyAddress = "21, Hazaribagh, Dhaka-1209";
+            var firstItem = data.FirstOrDefault();
+            string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
+            string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209";
 
-            string customerHeader = "All";
-            if (filter.CustomerId != null && filter.CustomerId.Any())
+            string GetTypeLabel(string typeId)
             {
-                var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerId))?.CustomerId;
-                if (!string.IsNullOrWhiteSpace(matched))
-                    customerHeader = matched;
+                if (string.IsNullOrWhiteSpace(typeId)) return "N/A";
+                return typeId.Trim() switch
+                {
+                    "0" => "General",
+                    "1" => "In House",
+                    _ => typeId.Trim()
+                };
             }
+
+            var groupedData = data .GroupBy(x => GetTypeLabel(x.CustomerTypeId)) .OrderBy(g => g.Key) .ToList();
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Customer Report");
 
-            const int totalCols = 8;
+            const int totalCols = 9;
 
-            // Row 1: Company Name
+            float[] relativeWidths = { 1.5f, 3.0f, 9.0f, 10.0f, 5.0f, 5.0f, 4.0f, 3.5f, 12.5f };
+            const double scale = 4.5;
+
+            for (int i = 0; i < relativeWidths.Length; i++)
+            {
+                ws.Column(i + 1).Width = relativeWidths[i] * scale;
+            }
+
             var r1 = ws.Range(1, 1, 1, totalCols);
             r1.Merge();
             ws.Cell(1, 1).Value = companyName;
@@ -346,7 +323,6 @@ namespace GCTL.Service.CustomerReport
             ws.Cell(1, 1).Style.Font.FontName = "Times New Roman";
             ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // Row 2: Company Address
             var r2 = ws.Range(2, 1, 2, totalCols);
             r2.Merge();
             ws.Cell(2, 1).Value = companyAddress;
@@ -354,7 +330,6 @@ namespace GCTL.Service.CustomerReport
             ws.Cell(2, 1).Style.Font.FontName = "Times New Roman";
             ws.Cell(2, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // Row 3: Report Title
             var r3 = ws.Range(3, 1, 3, totalCols);
             r3.Merge();
             ws.Cell(3, 1).Value = "Customer Report";
@@ -364,84 +339,119 @@ namespace GCTL.Service.CustomerReport
             ws.Cell(3, 1).Style.Font.Underline = XLFontUnderlineValues.Single;
             ws.Cell(3, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // Row 4: Customer Header
-            var r4 = ws.Range(4, 1, 4, totalCols);
-            r4.Merge();
-            ws.Cell(4, 1).Value = $"Customer: {customerHeader}";
-            ws.Cell(4, 1).Style.Font.Bold = true;
-            ws.Cell(4, 1).Style.Font.FontSize = 10;
-            ws.Cell(4, 1).Style.Font.FontName = "Times New Roman";
-            ws.Cell(4, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-
-            // Row 6: Table Headers
             string[] headers = new string[]
             {
-        "SL",
-        "Customer ID",
-        "Name",
-        "Address",
-        "Phone",
-        "Fax",
-        "Email",
-        "Contact Person"
+              "SL", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
             };
 
-            int startRow = 6;
-            for (int i = 0; i < headers.Length; i++)
-            {
-                var cell = ws.Cell(startRow, i + 1);
-                cell.Value = headers[i];
-                cell.Style.Font.Bold = true;
-                cell.Style.Font.FontSize = 9;
-                cell.Style.Font.FontName = "Times New Roman";
-                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECEF");
-                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                cell.Style.Alignment.WrapText = true;
-                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            }
-
-            int currRow = startRow + 1;
+            int currRow = 5;
             int sl = 1;
-            foreach (var item in data)
-            {
-                ws.Cell(currRow, 1).Value = sl;
-                ws.Cell(currRow, 2).Value = item.CustomerId;
-                ws.Cell(currRow, 3).Value = item.CustomerName;
-                ws.Cell(currRow, 4).Value = item.CustomerAddress;
-                ws.Cell(currRow, 5).Value = item.Phone;
-                ws.Cell(currRow, 6).Value = item.Fax;
-                ws.Cell(currRow, 7).Value = item.Email;
-                ws.Cell(currRow, 8).Value = item.ContactPerson;
+            const int photoColIndex = 8;
+            const double rowHeightForPhoto = 40;
 
-                for (int c = 1; c <= totalCols; c++)
+            var groupPageBreakRows = new List<int>();
+
+            foreach (var group in groupedData)
+            {
+                if (groupPageBreakRows.Count > 0 || currRow > 5)
                 {
-                    var cell = ws.Cell(currRow, c);
+                    groupPageBreakRows.Add(currRow);
+                }
+
+                var groupRange = ws.Range(currRow, 1, currRow, totalCols);
+                groupRange.Merge();
+                ws.Cell(currRow, 1).Value = $"Customer Type: {group.Key}";
+                ws.Cell(currRow, 1).Style.Font.Bold = true;
+                ws.Cell(currRow, 1).Style.Font.FontSize = 10;
+                ws.Cell(currRow, 1).Style.Font.FontName = "Times New Roman";
+                ws.Cell(currRow, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#D9E2F3");
+                ws.Cell(currRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                currRow++;
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    var cell = ws.Cell(currRow, i + 1);
+                    cell.Value = headers[i];
+                    cell.Style.Font.Bold = true;
                     cell.Style.Font.FontSize = 9;
                     cell.Style.Font.FontName = "Times New Roman";
-                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECEF");
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    cell.Style.Alignment.WrapText = true;
+                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+                currRow++;
 
-                    if (c == 1 || c == 2 || c == 5 || c == 6)
+                foreach (var item in group)
+                {
+                    ws.Cell(currRow, 1).Value = sl;
+                    ws.Cell(currRow, 2).Value = item.CustomerId;
+                    ws.Cell(currRow, 3).Value = item.CustomerName;
+                    ws.Cell(currRow, 4).Value = item.CustomerAddress;
+                    ws.Cell(currRow, 5).Value = item.Phone;
+                    ws.Cell(currRow, 6).Value = item.Fax;
+                    ws.Cell(currRow, 7).Value = item.Email;
+                    ws.Cell(currRow, 9).Value = item.ContactPerson;
+
+                    if (item.CustomerPhoto != null && item.CustomerPhoto.Length > 0)
                     {
-                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        try
+                        {
+                            using var imgStream = new MemoryStream(item.CustomerPhoto);
+                            var picture = ws.AddPicture(imgStream)
+                                .MoveTo(ws.Cell(currRow, photoColIndex), 2, 2);
+                            picture.Width = 32;
+                            picture.Height = 32;
+                            ws.Row(currRow).Height = rowHeightForPhoto;
+                        }
+                        catch
+                        {
+                            ws.Cell(currRow, photoColIndex).Value = "-";
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        }
                     }
                     else
                     {
-                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        ws.Cell(currRow, photoColIndex).Value = "-";
+                        ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     }
+
+                    for (int c = 1; c <= totalCols; c++)
+                    {
+                        var cell = ws.Cell(currRow, c);
+                        cell.Style.Font.FontSize = 9;
+                        cell.Style.Font.FontName = "Times New Roman";
+                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        cell.Style.Alignment.WrapText = true;
+
+                        if (c == 1 || c == 2 || c == 5 || c == 6 || c == 8)
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        else
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    }
+
+                    currRow++;
+                    sl++;
                 }
 
                 currRow++;
-                sl++;
             }
 
-            ws.Columns().AdjustToContents();
+            foreach (var breakRow in groupPageBreakRows)
+            {
+                ws.PageSetup.AddHorizontalPageBreak(breakRow - 1);
+            }
+
+            ws.Rows(5, currRow - 1).AdjustToContents();
 
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             return ms.ToArray();
         }
+
         #endregion
+
     }
 }
