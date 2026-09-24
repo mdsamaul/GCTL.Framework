@@ -184,7 +184,7 @@
         box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
     }
 
-    /* Card Wrapper for Tabs and DataTables */
+    /* Card Wrapper for DataTables */
     .job-tables-card {
         background: white;
         border-radius: 10px;
@@ -255,7 +255,7 @@
         vertical-align: middle !important;
         text-align: center !important;
         white-space: nowrap !important;
-        padding: 6px 8px !important;
+        padding: 7px 8px !important;
         background: #ffffff !important;
         color: #334155;
     }
@@ -263,14 +263,16 @@
     .custom-grid-table td {
         font-size: 0.77rem !important;
         vertical-align: middle !important;
+        text-align: center !important;
         padding: 5px 8px !important;
         white-space: nowrap !important;
         background: #ffffff !important;
     }
 
-    .custom-grid-table th.text-end,
+    .custom-grid-table td.amount-cell,
     .custom-grid-table td.text-end {
         text-align: right !important;
+        padding-right: 10px !important;
     }
 
     /* Fixed Controls (Length, Search, Info, Pagination) */
@@ -433,9 +435,10 @@
                     <option value="">-- select customer --</option>
                     @if (ViewBag.Customers != null)
                     {
+                        string defCust = ViewBag.DefaultCustomerId as string ?? "CUS000001";
                         foreach (SelectListItem item in (SelectList)ViewBag.Customers)
                         {
-                            <option value="@item.Value">@item.Text</option>
+                            <option value="@item.Value" selected="@(item.Value == defCust ? "selected" : null)">@item.Text</option>
                         }
                     }
                 </select>
@@ -496,9 +499,15 @@
             </div>
         </div>
 
-        <!-- Data Tables Container (Single Change Updates Table Below, No Tabs) -->
+        <!-- Data Tables Container (Unified Single Container - Dynamically Changes Grid) -->
         <div class="job-tables-card">
             <div class="p-3">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div class="fw-bold text-secondary" id="gridTitle" style="font-size: 0.95rem;">
+                        <i class="fas fa-plane text-primary me-2"></i>Air Freight Jobs
+                    </div>
+                </div>
+
                 <!-- Air Freight Table (21 Columns) - Default Visible -->
                 <div id="airTableContainer" style="display: block;">
                     <div class="job-table-outer">
@@ -512,7 +521,7 @@
                                     <th>Port</th>
                                     <th>Doc's Receive Date</th>
                                     <th>Invoice No.</th>
-                                    <th class="text-end">Invoice Value</th>
+                                    <th>Invoice Value</th>
                                     <th>Material Name &amp; Pkgs Qty</th>
                                     <th>Express Name, Country</th>
                                     <th>L/C No.</th>
@@ -546,7 +555,7 @@
                                     <th>Port</th>
                                     <th>Doc's Rec. Dt.</th>
                                     <th>Invoice No</th>
-                                    <th class="text-end">Invoice Value</th>
+                                    <th>Invoice Value</th>
                                     <th>Container /Pkgs</th>
                                     <th>Shipper</th>
                                     <th>B/L No.</th>

@@ -56,7 +56,9 @@ namespace GCTL.UI.Core.Controllers
                 ViewBag.PortTypes = new SelectList(portTypes ?? Enumerable.Empty<GCTL.Core.ViewModels.Common.CommonSelectModel>(), "Code", "Name");
 
                 var customers = await _customerService.SelectionCustomerAsync();
-                ViewBag.Customers = new SelectList(customers ?? Enumerable.Empty<GCTL.Core.ViewModels.Common.CommonSelectModel>(), "Code", "Name");
+                var custList = customers?.Where(x => !string.IsNullOrWhiteSpace(x.Code) && !string.IsNullOrWhiteSpace(x.Name)).ToList() ?? new();
+                ViewBag.Customers = new SelectList(custList, "Code", "Name");
+                ViewBag.DefaultCustomerId = custList.FirstOrDefault()?.Code ?? "CUS000001";
 
                 ViewBag.JobStatuses = new SelectList(new List<SelectListItem>
                 {
@@ -141,22 +143,44 @@ namespace GCTL.UI.Core.Controllers
                     JobStatus = ""
                 };
 
+                // Truly parallel execution: Summary (prc_JobPortal_JobStatusExceptAll) & Job dataset
+                var summaryTask = _reportService.GetSummaryAsync(filter.CustomerId, actualShipmentTypeId);
+                var airTask = isAirMode ? _reportService.GetAirJobsAsync(baseFilter) : null;
+                var seaTask = !isAirMode ? _reportService.GetSeaJobsAsync(baseFilter) : null;
+
                 List<SeaJobReportItemDTO> allSea = new();
                 List<AirJobReportItemDTO> allAir = new();
 
-                if (isAirMode)
+                if (isAirMode && airTask != null)
                 {
-                    allAir = await _reportService.GetAirJobsAsync(baseFilter);
+                    await Task.WhenAll(summaryTask, airTask);
+                    allAir = airTask.Result;
+                }
+                else if (!isAirMode && seaTask != null)
+                {
+                    await Task.WhenAll(summaryTask, seaTask);
+                    allSea = seaTask.Result;
                 }
                 else
                 {
-                    allSea = await _reportService.GetSeaJobsAsync(baseFilter);
+                    await summaryTask;
                 }
 
-                int totalCount = isAirMode ? allAir.Count : allSea.Count;
-                int pendingCount = isAirMode ? allAir.Count(x => x.StatusClass == "pending") : allSea.Count(x => x.StatusClass == "pending");
-                int transitCount = isAirMode ? allAir.Count(x => x.StatusClass == "transit") : allSea.Count(x => x.StatusClass == "transit");
-                int deliveredCount = isAirMode ? allAir.Count(x => x.StatusClass == "delivered") : allSea.Count(x => x.StatusClass == "delivered");
+                var summary = summaryTask.Result;
+
+                int totalCount = summary.TotalJobs;
+                int pendingCount = summary.PendingJobs;
+                int transitCount = summary.TransitJobs;
+                int deliveredCount = summary.DeliveredJobs;
+
+                // Fallback to dataset counts if SP returned 0 (e.g., if CustomerId was empty)
+                if (totalCount == 0 && (isAirMode ? allAir.Count : allSea.Count) > 0)
+                {
+                    totalCount = isAirMode ? allAir.Count : allSea.Count;
+                    pendingCount = isAirMode ? allAir.Count(x => x.StatusClass == "pending") : allSea.Count(x => x.StatusClass == "pending");
+                    transitCount = isAirMode ? allAir.Count(x => x.StatusClass == "transit") : allSea.Count(x => x.StatusClass == "transit");
+                    deliveredCount = isAirMode ? allAir.Count(x => x.StatusClass == "delivered") : allSea.Count(x => x.StatusClass == "delivered");
+                }
 
                 // Filter by JobStatus if requested
                 var seaJobs = allSea;
@@ -203,7 +227,9 @@ namespace GCTL.UI.Core.Controllers
                     seaData = seaJobs,
                     airData = airJobs,
                     rawSeaData = allSea,
-                    rawAirData = allAir
+                    rawAirData = allAir,
+                    airCount = isAirMode ? allAir.Count : 0,
+                    seaCount = !isAirMode ? allSea.Count : 0
                 });
             }
             catch (Exception ex)

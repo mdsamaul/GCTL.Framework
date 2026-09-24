@@ -89,6 +89,7 @@
         if (mode === 'Sea') {
             $('#seaTableContainer').show();
             $('#airTableContainer').hide();
+            $('#gridTitle').html('<i class="fas fa-ship text-info me-2"></i>Sea Freight Jobs');
             if (seaTable) {
                 requestAnimationFrame(function () {
                     seaTable.columns.adjust();
@@ -97,6 +98,7 @@
         } else {
             $('#airTableContainer').show();
             $('#seaTableContainer').hide();
+            $('#gridTitle').html('<i class="fas fa-plane text-primary me-2"></i>Air Freight Jobs');
             if (airTable) {
                 requestAnimationFrame(function () {
                     airTable.columns.adjust();
@@ -187,10 +189,6 @@
         if (val === null || val === undefined || val === '') return '';
         var num = parseFloat(String(val).replace(/,/g, ''));
         if (isNaN(num)) return escapeHtml(val);
-        if (num === 0) return '0';
-        if (num % 1 === 0) {
-            return num.toLocaleString('en-US');
-        }
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
@@ -214,7 +212,7 @@
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
             autoWidth: false,
-            columnDefs: [{ targets: '_all', defaultContent: '' }],
+            columnDefs: [{ targets: '_all', defaultContent: '', className: 'text-center align-middle' }],
             language: {
                 emptyTable: "No sea freight records found matching the filter criteria.",
                 search: "_INPUT_",
@@ -224,50 +222,50 @@
             columns: [
                 { 
                     data: 'slNo', 
-                    className: 'text-center', 
+                    className: 'text-center align-middle', 
                     width: '40px',
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     }
                 },
-                { data: 'jobNo', className: 'job-no-cell fw-bold text-center' },
-                { data: 'jobDate', className: 'text-center' },
-                { data: 'shipmentMode' },
-                { data: 'port' },
-                { data: 'docReceivedDate', className: 'text-center' },
-                { data: 'invoiceNo' },
+                { data: 'jobNo', className: 'job-no-cell fw-bold text-center align-middle' },
+                { data: 'jobDate', className: 'text-center align-middle' },
+                { data: 'shipmentMode', className: 'text-center align-middle' },
+                { data: 'port', className: 'text-center align-middle' },
+                { data: 'docReceivedDate', className: 'text-center align-middle' },
+                { data: 'invoiceNo', className: 'text-center align-middle' },
                 { 
                     data: 'invoiceValue', 
-                    className: 'text-end',
+                    className: 'text-end align-middle amount-cell',
                     render: function (data) {
                         return formatAmount(data);
                     }
                 },
-                { data: 'containerPkgs' },
-                { data: 'shipper' },
-                { data: 'blNo', className: 'text-center' },
-                { data: 'etdDate', className: 'text-center' },
-                { data: 'finalIgmRecDt', className: 'text-center' },
-                { data: 'shipArrivedDate', className: 'text-center' },
-                { data: 'dischargeDate', className: 'text-center' },
-                { data: 'docsBankSignDate', className: 'text-center' },
-                { data: 'beNo', className: 'text-center' },
-                { data: 'beDate', className: 'text-center' },
-                { data: 'estDeliveryDate', className: 'text-center' },
-                { data: 'actualDeliveryDate', className: 'text-center' },
+                { data: 'containerPkgs', className: 'text-center align-middle' },
+                { data: 'shipper', className: 'text-center align-middle' },
+                { data: 'blNo', className: 'text-center align-middle' },
+                { data: 'etdDate', className: 'text-center align-middle' },
+                { data: 'finalIgmRecDt', className: 'text-center align-middle' },
+                { data: 'shipArrivedDate', className: 'text-center align-middle' },
+                { data: 'dischargeDate', className: 'text-center align-middle' },
+                { data: 'docsBankSignDate', className: 'text-center align-middle' },
+                { data: 'beNo', className: 'text-center align-middle' },
+                { data: 'beDate', className: 'text-center align-middle' },
+                { data: 'estDeliveryDate', className: 'text-center align-middle' },
+                { data: 'actualDeliveryDate', className: 'text-center align-middle' },
                 { 
                     data: 'shipmentStatus',
-                    className: 'text-center',
+                    className: 'text-center align-middle',
                     render: function (data, type, row) {
                         var cls = row.statusClass || 'pending';
                         return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
                     }
                 },
-                { data: 'remarks' },
-                { data: 'term', className: 'text-center' },
-                { data: 'vesselName' },
-                { data: 'containerNo' },
-                { data: 'freightForwarder' }
+                { data: 'remarks', className: 'text-center align-middle' },
+                { data: 'term', className: 'text-center align-middle' },
+                { data: 'vesselName', className: 'text-center align-middle' },
+                { data: 'containerNo', className: 'text-center align-middle' },
+                { data: 'freightForwarder', className: 'text-center align-middle' }
             ]
         });
 
@@ -280,7 +278,7 @@
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
             autoWidth: false,
-            columnDefs: [{ targets: '_all', defaultContent: '' }],
+            columnDefs: [{ targets: '_all', defaultContent: '', className: 'text-center align-middle' }],
             language: {
                 emptyTable: "No air freight records found matching the filter criteria.",
                 search: "_INPUT_",
@@ -290,45 +288,45 @@
             columns: [
                 { 
                     data: 'slNo', 
-                    className: 'text-center', 
+                    className: 'text-center align-middle', 
                     width: '40px',
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     }
                 },
-                { data: 'jobNo', className: 'job-no-cell fw-bold text-center' },
-                { data: 'jobDate', className: 'text-center' },
-                { data: 'shipmentMode' },
-                { data: 'port' },
-                { data: 'docReceivedDate', className: 'text-center' },
-                { data: 'invoiceNo' },
+                { data: 'jobNo', className: 'job-no-cell fw-bold text-center align-middle' },
+                { data: 'jobDate', className: 'text-center align-middle' },
+                { data: 'shipmentMode', className: 'text-center align-middle' },
+                { data: 'port', className: 'text-center align-middle' },
+                { data: 'docReceivedDate', className: 'text-center align-middle' },
+                { data: 'invoiceNo', className: 'text-center align-middle' },
                 { 
                     data: 'invoiceValue', 
-                    className: 'text-end',
+                    className: 'text-end align-middle amount-cell',
                     render: function (data) {
                         return formatAmount(data);
                     }
                 },
-                { data: 'materialNamePkgsQty' },
-                { data: 'expressNameCountry' },
-                { data: 'lcNo', className: 'text-center' },
-                { data: 'hawbNo', className: 'text-center' },
-                { data: 'mawbNo', className: 'text-center' },
-                { data: 'etdDate', className: 'text-center' },
-                { data: 'flightActualDeliveryDate', className: 'text-center' },
-                { data: 'arrivalNoticeRcvdExpressDate', className: 'text-center' },
-                { data: 'beNo', className: 'text-center' },
-                { data: 'beDate', className: 'text-center' },
-                { data: 'actualDeliveryDate', className: 'text-center' },
+                { data: 'materialNamePkgsQty', className: 'text-center align-middle' },
+                { data: 'expressNameCountry', className: 'text-center align-middle' },
+                { data: 'lcNo', className: 'text-center align-middle' },
+                { data: 'hawbNo', className: 'text-center align-middle' },
+                { data: 'mawbNo', className: 'text-center align-middle' },
+                { data: 'etdDate', className: 'text-center align-middle' },
+                { data: 'flightActualDeliveryDate', className: 'text-center align-middle' },
+                { data: 'arrivalNoticeRcvdExpressDate', className: 'text-center align-middle' },
+                { data: 'beNo', className: 'text-center align-middle' },
+                { data: 'beDate', className: 'text-center align-middle' },
+                { data: 'actualDeliveryDate', className: 'text-center align-middle' },
                 {
                     data: 'shipmentStatus',
-                    className: 'text-center',
+                    className: 'text-center align-middle',
                     render: function (data, type, row) {
                         var cls = row.statusClass || 'pending';
                         return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
                     }
                 },
-                { data: 'remarks' }
+                { data: 'remarks', className: 'text-center align-middle' }
             ]
         });
     }
