@@ -35,16 +35,91 @@
                 searchPlaceholder: "Search customers..."
             },
 
+            // columns: [
+            //     {
+            //         data: 'sn',
+            //         className: 'text-center align-middle',
+            //         width: '35px'
+            //     },
+            //     {
+            //         data: 'customerId',
+            //         className: 'text-center align-middle job-no-cell',
+            //         width: '40px',
+            //         render: function (data) {
+            //             return escapeHtml(data);
+            //         }
+            //     },
+            //     {
+            //         data: 'name',
+            //         className: 'text-start align-middle',
+            //         width: '180px',
+            //         render: function (data) {
+            //             return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
+            //         }
+            //     },
+            //     {
+            //         data: 'address',
+            //         className: 'text-start align-middle',
+            //         width: '200px',
+            //         render: function (data) {
+            //             return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
+            //         }
+            //     },
+            //     {
+            //         data: 'phone',
+            //         className: 'text-center align-middle',
+            //         width: '130px'
+            //     },
+            //     {
+            //         data: 'fax',
+            //         className: 'text-center align-middle',
+            //         width: '120px'
+            //     },
+            //     {
+            //         data: 'email',
+            //         className: 'text-center align-middle',
+            //         width: '160px'
+            //     },
+            //     {
+            //         data: 'photo',
+            //         className: 'text-center align-middle',
+            //         width: '100px',
+            //         orderable: false,
+            //         render: function (data) {
+            //             if (data) {
+            //                 return `
+            //     <img src="data:image/jpeg;base64,${data}"
+            //          alt="Photo"
+            //          style="width:36px;
+            //                 height:36px;
+            //                 border-radius:6px;
+            //                 object-fit:cover;" />
+            // `;
+            //             }
+
+            //             return '<span class="text-muted">-</span>';
+            //         }
+            //     },
+            //     {
+            //         data: 'contactPerson',
+            //         className: 'text-start align-middle',
+            //         width: '250px',
+            //         render: function (data) {
+            //             return '<span style="text-align:left; display:block; white-space:pre-line;">' + escapeHtml(data) + '</span>';
+            //         }
+            //     }
+            // ]
+
             columns: [
                 {
-                    data: 'sl',
+                    data: 'sn',
                     className: 'text-center align-middle',
-                    width: '35px'
+                    width: '3%'
                 },
                 {
                     data: 'customerId',
                     className: 'text-center align-middle job-no-cell',
-                    width: '40px',
+                    width: '7%',
                     render: function (data) {
                         return escapeHtml(data);
                     }
@@ -52,63 +127,69 @@
                 {
                     data: 'name',
                     className: 'text-start align-middle',
-                    width: '180px',
+                    width: '15%',
                     render: function (data) {
-                        return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
+                        return '<span style="text-align:left; display:block;">' +
+                            escapeHtml(data) +
+                            '</span>';
                     }
                 },
                 {
                     data: 'address',
                     className: 'text-start align-middle',
-                    width: '200px',
+                    width: '17%',
                     render: function (data) {
-                        return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
+                        return '<span style="text-align:left; display:block;">' +
+                            escapeHtml(data) +
+                            '</span>';
                     }
                 },
                 {
                     data: 'phone',
                     className: 'text-center align-middle',
-                    width: '130px'
+                    width: '8%'
                 },
                 {
                     data: 'fax',
                     className: 'text-center align-middle',
-                    width: '120px'
+                    width: '8%'
                 },
                 {
                     data: 'email',
                     className: 'text-center align-middle',
-                    width: '160px'
+                    width: '9%'
                 },
                 {
                     data: 'photo',
                     className: 'text-center align-middle',
-                    width: '100px',
+                    width: '8%',
                     orderable: false,
                     render: function (data) {
                         if (data) {
                             return `
-                <img src="data:image/jpeg;base64,${data}"
-                     alt="Photo"
-                     style="width:36px;
-                            height:36px;
-                            border-radius:6px;
-                            object-fit:cover;" />
-            `;
+                    <img src="data:image/jpeg;base64,${data}"
+                         alt="Photo"
+                         style="width:36px;
+                                height:36px;
+                                border-radius:6px;
+                                object-fit:cover;" />
+                `;
                         }
-
                         return '<span class="text-muted">-</span>';
                     }
                 },
                 {
                     data: 'contactPerson',
                     className: 'text-start align-middle',
-                    width: '250px',
+                    width: '25%',
                     render: function (data) {
-                        return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
+                        return '<span style="text-align:left; display:block; white-space:pre-line;">' +
+                            escapeHtml(data) +
+                            '</span>';
                     }
                 }
             ]
+
         });
     }
 
@@ -143,20 +224,18 @@
         });
     }
 
-    /**
-     * Stat card এর টেক্সট ("General" / "In House") কে dropdown value ("0" / "1") এ কনভার্ট করে
-     */
+    /* Stat card এর টেক্সট ("General" / "In House") কে dropdown value ("0" / "1") এ কনভার্ট করে */
+
     function mapStatusToValue(statusFilter) {
         if (!statusFilter) return '';
         var s = statusFilter.toString().toLowerCase().trim();
         if (s.indexOf('house') !== -1) return '1';
         if (s.indexOf('general') !== -1) return '0';
-        return statusFilter; // আগে থেকেই "0"/"1" হলে সরাসরি রিটার্ন
+        return statusFilter; 
     }
 
-    /**
-     * Helper to safely extract value from custom-select-multi or custom-select-single
-     */
+    /* Helper to safely extract value from custom-select-multi or custom-select-single */
+
     function getDropdownValue(id) {
         var $el = $('#' + id);
         if (!$el.length) return '';
@@ -179,18 +258,16 @@
         return (val || '').trim();
     }
 
-    /**
-     * Helper to get dropdown value as an array (for multi-select filters expecting List<string>)
-     */
+    /* Helper to get dropdown value as an array (for multi-select filters expecting List<string>) */
+
     function getDropdownValueArray(id) {
         var raw = getDropdownValue(id);
         if (!raw) return [];
         return raw.split(',').filter(function (v) { return !!v; });
     }
 
-    /**
-     * Helper to set value of a dropdown
-     */
+    /* Helper to set value of a dropdown */
+
     function setDropdownValue(id, value) {
         var $el = $('#' + id);
         if (!$el.length) return;

@@ -143,26 +143,26 @@ namespace GCTL.Service.CustomerReport
 
                         page.Content().Column(mainCol =>
                         {
-                            int sl = 1;
+                           // int sl = 1;
                             bool isFirstGroup = true;
 
                             foreach (var group in groupedData)
                             {
-                                if (!isFirstGroup)
-                                {
-                                    mainCol.Item().PageBreak();
-                                }
-                                isFirstGroup = false;
-
+                                //if (!isFirstGroup)
+                                //{
+                                //    mainCol.Item().PageBreak();
+                                //}
+                                //isFirstGroup = false;
+                                int sl = 1;
                                 mainCol.Item().Table(table =>
                                 {
                                     table.ColumnsDefinition(cols =>
                                     {
-                                        cols.RelativeColumn(1.1f);
-                                        cols.RelativeColumn(2.5f);
+                                        cols.RelativeColumn(1.7f);
+                                        cols.RelativeColumn(3.0f);
                                         cols.RelativeColumn(6.0f);
                                         cols.RelativeColumn(7.0f);
-                                        cols.RelativeColumn(4.5f);
+                                        cols.RelativeColumn(3.0f);
                                         cols.RelativeColumn(4.0f);
                                         cols.RelativeColumn(6.0f);
                                         cols.RelativeColumn(3.0f);
@@ -176,8 +176,8 @@ namespace GCTL.Service.CustomerReport
                                             .PaddingBottom(3)
                                             .Text(text =>
                                             {
-                                                text.Span("Customer Type: ").FontSize(9).Bold();
-                                                text.Span(group.Key).FontSize(9).Bold();
+                                                text.Span("Customer Type: ").FontSize(10).Bold();
+                                                text.Span(group.Key).FontSize(10).Bold();
                                             }));
 
                                         void BuildHeaderCell(string title)
@@ -192,11 +192,11 @@ namespace GCTL.Service.CustomerReport
                                                 .AlignMiddle()
                                                 .Text(title)
                                                 .Bold()
-                                                .FontSize(7f)
+                                                .FontSize(8f)
                                                 .WrapAnywhere());
                                         }
 
-                                        BuildHeaderCell("SL");
+                                        BuildHeaderCell("SN");
                                         BuildHeaderCell("Customer ID");
                                         BuildHeaderCell("Name");
                                         BuildHeaderCell("Address");
@@ -219,7 +219,7 @@ namespace GCTL.Service.CustomerReport
                                                 .AlignMiddle()
                                                 .Element(e => center ? e.AlignCenter() : e.AlignLeft())
                                                 .Text(text ?? "")
-                                                .FontSize(6.5f)
+                                                .FontSize(7.5f)
                                                 .WrapAnywhere());
                                         }
 
@@ -229,7 +229,7 @@ namespace GCTL.Service.CustomerReport
                                         BuildDataCell(d.CustomerAddress);
                                         BuildDataCell(d.Phone, true);
                                         BuildDataCell(d.Fax, true);
-                                        BuildDataCell(d.Email);
+                                        BuildDataCell(d.Email, true);
 
                                         table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten1)
                                             .PaddingHorizontal(2).PaddingVertical(2)
@@ -341,11 +341,11 @@ namespace GCTL.Service.CustomerReport
 
             string[] headers = new string[]
             {
-              "SL", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
+              "SN", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
             };
 
             int currRow = 5;
-            int sl = 1;
+           // int sl = 1;
             const int photoColIndex = 8;
             const double rowHeightForPhoto = 40;
 
@@ -353,6 +353,7 @@ namespace GCTL.Service.CustomerReport
 
             foreach (var group in groupedData)
             {
+                int sl = 1;
                 if (groupPageBreakRows.Count > 0 || currRow > 5)
                 {
                     groupPageBreakRows.Add(currRow);
