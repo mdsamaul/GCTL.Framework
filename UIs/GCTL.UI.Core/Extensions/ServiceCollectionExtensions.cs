@@ -215,6 +215,7 @@ namespace GCTL.Framework.Extensions
 
             //services.AddScoped<IJobService, JobService>();
             services.AddScoped<IBillService, BillService>();
+            services.AddScoped<IJobBillEntryReportService, JobBillEntryReportService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
             services.AddScoped<ICustomerWiseApprovalRateService, CustomerWiseApprovalRateService>();
 

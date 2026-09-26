@@ -1,0 +1,336 @@
+@model GCTL.UI.Core.ViewModels.GridModel
+
+@{
+    ViewData["Title"] = "Job Bill Entry Report";
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --pending: #ff9800;
+        --delivered: #4caf50;
+        --transit: #9c27b0;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .job-bill-report-dashboard {
+        color: var(--text-main);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Main Container */
+    .dashboard-container {
+        padding: 6px 0 25px 0;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Stats Grid (4 Cards) */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 14px 18px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 4px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin: 0 0 4px 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-info p {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    /* Filter Section - One Line Design */
+    .filter-section {
+        background: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.86rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 130px;
+    }
+
+    .filter-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #475569;
+        margin: 0;
+    }
+
+    .filter-group input.form-control,
+    .filter-group select.form-select {
+        width: 100%;
+        padding: 5px 9px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.82rem;
+        outline: none;
+        background-color: #ffffff;
+        color: var(--text-main);
+        height: 33px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    /* Custom-dd-wrapper styling */
+    .filter-group .custom-dd-wrapper {
+        width: 100% !important;
+    }
+
+    .filter-group .custom-dd-input {
+        min-height: 33px !important;
+        height: 33px !important;
+        padding: 3px 8px !important;
+        font-size: 0.82rem !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 6px !important;
+    }
+
+    .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-export-rep {
+        background: #2e7d32;
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 33px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .btn-export-rep:hover {
+        background: #1b5e20;
+        box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+    }
+
+    /* Grid Wrapper Card */
+    .job-grid-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+        padding: 14px;
+    }
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-group {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="job-bill-report-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Top 4 KPI Cards -->
+        <div class="stats-grid">
+            <!-- 1. Total Bill -->
+            <div class="stat-card" style="border-color: #0056b3;">
+                <div class="stat-icon" style="background: #0056b3;">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Bill</h3>
+                    <p id="statTotalBill">0</p>
+                </div>
+            </div>
+
+            <!-- 2. Net Service Value -->
+            <div class="stat-card" style="border-color: #2e7d32;">
+                <div class="stat-icon" style="background: #2e7d32;">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Net Service Value</h3>
+                    <p id="statNetServiceValue">0.00</p>
+                </div>
+            </div>
+
+            <!-- 3. Total Due Outstanding -->
+            <div class="stat-card" style="border-color: #ed6c02;">
+                <div class="stat-icon" style="background: #ed6c02;">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Due Outstanding</h3>
+                    <p id="statTotalDue">0.00</p>
+                </div>
+            </div>
+
+            <!-- 4. Last Service Value -->
+            <div class="stat-card" style="border-color: #9c27b0;">
+                <div class="stat-icon" style="background: #9c27b0;">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Last Service Value</h3>
+                    <p id="statLastServiceValue">0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar (One Line Design, Auto-Filter on Change) -->
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+
+            <!-- From Date -->
+            <div class="filter-group">
+                <label for="filterFromDate">From</label>
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" />
+            </div>
+
+            <!-- To Date -->
+            <div class="filter-group">
+                <label for="filterToDate">To</label>
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" />
+            </div>
+
+            <!-- Shipment Mode (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Shipment Mode --">
+                    @if (ViewBag.ShipmentModes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Customer (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Customer --">
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Customers)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Bill No (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterBillNo" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Bill No --">
+                    @if (ViewBag.BillNos != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.BillNos)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Action: PDF Export Only -->
+            <div class="filter-actions">
+                <button type="button" class="btn-export-rep" id="btnExport">
+                    <i class="fas fa-file-pdf"></i> EXPORT PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- CustomGrid Table Container -->
+        <div class="job-grid-card">
+            @await Html.PartialAsync("_CustomGrid", Model)
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/jobBillEntryReport.js" asp-append-version="true"></script>
+}

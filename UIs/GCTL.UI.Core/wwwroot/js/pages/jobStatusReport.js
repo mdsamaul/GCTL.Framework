@@ -1,6 +1,6 @@
 /**
  * Job Status Dashboard Page Script
- * Ultra-Fast Dedicated Architecture with True Millisecond Response & Instant In-Memory Filtering
+ * Ultra-Fast Dedicated Architecture with Millisecond Response, Dual Grid Isolation & Instant Filtering
  * Formosa Logistics Limited
  */
 (function ($) {
@@ -8,11 +8,11 @@
 
     let seaTable = null;
     let airTable = null;
-    let dateDebounceTimer = null;
+    let reloadDebounceTimer = null;
     let currentAjaxRequest = null;
 
     // In-memory dataset cache for instant (< 2ms) filtering and switching
-    const cacheByMode = {
+    const cachedData = {
         'Air': null,
         'Sea': null,
         filterKey: ''
@@ -23,10 +23,13 @@
         initDataTables();
         ensureDefaultAir();
         bindEvents();
-        updateTableVisibility();
+        updateTableVisibility('Air');
         loadJobStatusData(true);
     });
 
+    /**
+     * Ensure "Air Freight" is selected as default if nothing is selected
+     */
     function ensureDefaultAir() {
         var current = getDropdownValue('filterShipmentMode');
         if (!current) {
@@ -34,15 +37,16 @@
         }
     }
 
+    /**
+     * Determines whether the active mode is 'Air' or 'Sea'.
+     * Defaults to 'Air' under all circumstances unless explicitly 'Sea'.
+     */
     function getActiveMode() {
         var modeVal = (getDropdownValue('filterShipmentMode') || '').trim();
-        if (modeVal.toLowerCase() === 'sea') return 'Sea';
-        if (modeVal.toLowerCase() === 'air') return 'Air';
-
-        // Check custom dropdown instance text or input val
         var $sel = $('#filterShipmentMode');
         var inst = $sel.data('customDdInstance');
         var text = '';
+
         if (inst) {
             if (typeof inst.getText === 'function') {
                 var t = inst.getText();
@@ -52,39 +56,60 @@
                 text = inst.$input.val() || '';
             }
         }
-        if (!text) {
+        if (!text && modeVal) {
             text = $sel.find('option[value="' + modeVal + '"]').text() || '';
         }
-        text = text.toLowerCase();
-        if (text.indexOf('sea') !== -1) return 'Sea';
-        if (text.indexOf('air') !== -1) return 'Air';
 
-        // Expense types: 0001=Air Import, 0002=Courier Import, 0003=Air Export
-        if (modeVal === '0001' || modeVal === '0002' || modeVal === '0003') return 'Air';
-        return 'Sea'; // 0004, 0005, etc. are Sea Freight
+        var lowerVal = modeVal.toLowerCase();
+        var lowerText = (text || '').toLowerCase();
+
+        // 1. Explicit Sea checks
+        if (lowerVal === 'sea' || lowerText.indexOf('sea') !== -1) {
+            return 'Sea';
+        }
+        // Known Sea expense types (0004=Sea Import CTG, 0005=Sea Export CTG, 0006=Sea Export Pangaon, etc.)
+        if (['0004', '0005', '0006', '0007', '0008', '0009', '0010', '0011', '0012', '0013', '0014', '0015', '0016', '0017'].indexOf(modeVal) !== -1) {
+            return 'Sea';
+        }
+
+        // 2. Explicit Air checks
+        if (lowerVal === 'air' || lowerText.indexOf('air') !== -1 || ['0001', '0002', '0003'].indexOf(modeVal) !== -1) {
+            return 'Air';
+        }
+
+        // 3. Fallback: Default mode is ALWAYS 'Air'
+        return 'Air';
     }
 
-    function updateTableVisibility() {
-        var mode = getActiveMode();
-        if (mode === 'Air') {
-            $('#airTableContainer').show();
-            $('#seaTableContainer').hide();
-            if (airTable) {
+    /**
+     * Shows the corresponding grid container and hides the other
+     */
+    function updateTableVisibility(targetMode) {
+        var mode = targetMode || getActiveMode();
+        if (mode === 'Sea') {
+            $('#seaTableContainer').show();
+            $('#airTableContainer').hide();
+            $('#gridTitle').html('<i class="fas fa-ship text-info me-2"></i>Sea Freight Jobs');
+            if (seaTable) {
                 requestAnimationFrame(function () {
-                    airTable.columns.adjust().draw(false);
+                    seaTable.columns.adjust();
                 });
             }
         } else {
-            $('#seaTableContainer').show();
-            $('#airTableContainer').hide();
-            if (seaTable) {
+            $('#airTableContainer').show();
+            $('#seaTableContainer').hide();
+            $('#gridTitle').html('<i class="fas fa-plane text-primary me-2"></i>Air Freight Jobs');
+            if (airTable) {
                 requestAnimationFrame(function () {
-                    seaTable.columns.adjust().draw(false);
+                    airTable.columns.adjust();
                 });
             }
         }
     }
 
+    /**
+     * Initialize default date values (First day of month to today)
+     */
     function initDefaultDates() {
         var now = new Date();
         var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -96,14 +121,80 @@
             return day + '/' + month + '/' + year;
         };
 
-        if (!$('#filterFromDate').val()) {
-            $('#filterFromDate').val(formatDate(firstDay));
+        var fromStr = formatDate(firstDay);
+        var toStr = formatDate(now);
+
+        var $from = $('#filterFromDate');
+        var $to = $('#filterToDate');
+
+        if (!$from.val()) {
+            $from.val(fromStr);
         }
-        if (!$('#filterToDate').val()) {
-            $('#filterToDate').val(formatDate(now));
+        if (!$to.val()) {
+            $to.val(toStr);
+        }
+
+        // Sync Flatpickr instances if already initialized by layout
+        var fpFrom = $from.data('customFpInstance') || ($from[0] ? $from[0]._flatpickr : null);
+        if (fpFrom) {
+            if (!fpFrom.selectedDates || !fpFrom.selectedDates.length) {
+                fpFrom.setDate(firstDay, false);
+            }
+            if (fpFrom.altInput && !fpFrom.altInput.value) {
+                fpFrom.altInput.value = fromStr;
+            }
+        }
+
+        var fpTo = $to.data('customFpInstance') || ($to[0] ? $to[0]._flatpickr : null);
+        if (fpTo) {
+            if (!fpTo.selectedDates || !fpTo.selectedDates.length) {
+                fpTo.setDate(now, false);
+            }
+            if (fpTo.altInput && !fpTo.altInput.value) {
+                fpTo.altInput.value = toStr;
+            }
         }
     }
 
+    /**
+     * Safely get the value from datepicker input (checks flatpickr instance, altInput, or raw value)
+     */
+    function getDateValue(id) {
+        var $el = $('#' + id);
+        if (!$el.length) return '';
+
+        var fp = $el.data('customFpInstance') || ($el[0] ? $el[0]._flatpickr : null);
+        if (fp) {
+            if (fp.altInput && fp.altInput.value) {
+                return fp.altInput.value.trim();
+            }
+            if (fp.selectedDates && fp.selectedDates.length > 0) {
+                var d = fp.selectedDates[0];
+                var day = String(d.getDate()).padStart(2, '0');
+                var month = String(d.getMonth() + 1).padStart(2, '0');
+                var year = d.getFullYear();
+                return day + '/' + month + '/' + year;
+            }
+        }
+
+        var $alt = $el.siblings('.flatpickr-alt-input');
+        if ($alt.length && $alt.val()) {
+            return $alt.val().trim();
+        }
+
+        return ($el.val() || '').trim();
+    }
+
+    function formatAmount(val) {
+        if (val === null || val === undefined || val === '') return '';
+        var num = parseFloat(String(val).replace(/,/g, ''));
+        if (isNaN(num)) return escapeHtml(val);
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /**
+     * Initialize both DataTables with full responsive options and column definitions
+     */
     function initDataTables() {
         if ($.fn.DataTable.isDataTable('#seaJobTable')) {
             $('#seaJobTable').DataTable().destroy();
@@ -112,7 +203,7 @@
             $('#airJobTable').DataTable().destroy();
         }
 
-        // Initialize Sea Freight DataTable (All 26 columns, fast deferred rendering & pagination)
+        // Initialize Sea Freight DataTable (All 26 columns)
         seaTable = $('#seaJobTable').DataTable({
             processing: true,
             deferRender: true,
@@ -121,7 +212,7 @@
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
             autoWidth: false,
-            columnDefs: [{ targets: '_all', defaultContent: '' }],
+            columnDefs: [{ targets: '_all', defaultContent: '', className: 'text-center align-middle' }],
             language: {
                 emptyTable: "No sea freight records found matching the filter criteria.",
                 search: "_INPUT_",
@@ -131,48 +222,54 @@
             columns: [
                 { 
                     data: 'slNo', 
-                    className: 'text-center', 
+                    className: 'text-center align-middle', 
                     width: '40px',
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     }
                 },
-                { data: 'jobNo', className: 'job-no-cell fw-bold text-center' },
-                { data: 'jobDate', className: 'text-center' },
-                { data: 'shipmentMode' },
-                { data: 'port' },
-                { data: 'docReceivedDate', className: 'text-center' },
-                { data: 'invoiceNo' },
-                { data: 'invoiceValue', className: 'text-end' },
-                { data: 'containerPkgs', className: 'table-warning text-dark' },
-                { data: 'shipper' },
-                { data: 'blNo', className: 'text-center' },
-                { data: 'etdDate', className: 'text-center' },
-                { data: 'finalIgmRecDt', className: 'text-center' },
-                { data: 'shipArrivedDate', className: 'text-center' },
-                { data: 'dischargeDate', className: 'text-center' },
-                { data: 'docsBankSignDate', className: 'text-center' },
-                { data: 'beNo', className: 'text-center' },
-                { data: 'beDate', className: 'text-center' },
-                { data: 'estDeliveryDate', className: 'text-center' },
-                { data: 'actualDeliveryDate', className: 'text-center' },
+                { data: 'jobNo', className: 'job-no-cell fw-bold text-center align-middle' },
+                { data: 'jobDate', className: 'text-center align-middle' },
+                { data: 'shipmentMode', className: 'text-center align-middle' },
+                { data: 'port', className: 'text-center align-middle' },
+                { data: 'docReceivedDate', className: 'text-center align-middle' },
+                { data: 'invoiceNo', className: 'text-center align-middle' },
+                { 
+                    data: 'invoiceValue', 
+                    className: 'text-end align-middle amount-cell',
+                    render: function (data) {
+                        return formatAmount(data);
+                    }
+                },
+                { data: 'containerPkgs', className: 'text-center align-middle' },
+                { data: 'shipper', className: 'text-center align-middle' },
+                { data: 'blNo', className: 'text-center align-middle' },
+                { data: 'etdDate', className: 'text-center align-middle' },
+                { data: 'finalIgmRecDt', className: 'text-center align-middle' },
+                { data: 'shipArrivedDate', className: 'text-center align-middle' },
+                { data: 'dischargeDate', className: 'text-center align-middle' },
+                { data: 'docsBankSignDate', className: 'text-center align-middle' },
+                { data: 'beNo', className: 'text-center align-middle' },
+                { data: 'beDate', className: 'text-center align-middle' },
+                { data: 'estDeliveryDate', className: 'text-center align-middle' },
+                { data: 'actualDeliveryDate', className: 'text-center align-middle' },
                 { 
                     data: 'shipmentStatus',
-                    className: 'text-center',
+                    className: 'text-center align-middle',
                     render: function (data, type, row) {
                         var cls = row.statusClass || 'pending';
                         return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
                     }
                 },
-                { data: 'remarks' },
-                { data: 'term', className: 'text-center' },
-                { data: 'vesselName' },
-                { data: 'containerNo' },
-                { data: 'freightForwarder' }
+                { data: 'remarks', className: 'text-center align-middle' },
+                { data: 'term', className: 'text-center align-middle' },
+                { data: 'vesselName', className: 'text-center align-middle' },
+                { data: 'containerNo', className: 'text-center align-middle' },
+                { data: 'freightForwarder', className: 'text-center align-middle' }
             ]
         });
 
-        // Initialize Air Freight DataTable (All 21 columns, fast deferred rendering & pagination)
+        // Initialize Air Freight DataTable (All 21 columns)
         airTable = $('#airJobTable').DataTable({
             processing: true,
             deferRender: true,
@@ -181,7 +278,7 @@
             lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
             order: [[1, 'asc']],
             autoWidth: false,
-            columnDefs: [{ targets: '_all', defaultContent: '' }],
+            columnDefs: [{ targets: '_all', defaultContent: '', className: 'text-center align-middle' }],
             language: {
                 emptyTable: "No air freight records found matching the filter criteria.",
                 search: "_INPUT_",
@@ -191,76 +288,93 @@
             columns: [
                 { 
                     data: 'slNo', 
-                    className: 'text-center', 
+                    className: 'text-center align-middle', 
                     width: '40px',
                     render: function (data, type, row, meta) {
                         return meta.row + 1;
                     }
                 },
-                { data: 'jobNo', className: 'job-no-cell fw-bold text-center' },
-                { data: 'jobDate', className: 'text-center' },
-                { data: 'shipmentMode' },
-                { data: 'port' },
-                { data: 'docReceivedDate', className: 'text-center' },
-                { data: 'invoiceNo' },
-                { data: 'invoiceValue', className: 'text-end' },
-                { data: 'materialNamePkgsQty', className: 'table-warning text-dark' },
-                { data: 'expressNameCountry' },
-                { data: 'lcNo', className: 'text-center' },
-                { data: 'hawbNo', className: 'text-center' },
-                { data: 'mawbNo', className: 'text-center' },
-                { data: 'etdDate', className: 'text-center' },
-                { data: 'flightActualDeliveryDate', className: 'table-warning text-dark text-center' },
-                { data: 'arrivalNoticeRcvdExpressDate', className: 'table-warning text-dark text-center' },
-                { data: 'beNo', className: 'text-center' },
-                { data: 'beDate', className: 'text-center' },
-                { data: 'actualDeliveryDate', className: 'text-center' },
+                { data: 'jobNo', className: 'job-no-cell fw-bold text-center align-middle' },
+                { data: 'jobDate', className: 'text-center align-middle' },
+                { data: 'shipmentMode', className: 'text-center align-middle' },
+                { data: 'port', className: 'text-center align-middle' },
+                { data: 'docReceivedDate', className: 'text-center align-middle' },
+                { data: 'invoiceNo', className: 'text-center align-middle' },
+                { 
+                    data: 'invoiceValue', 
+                    className: 'text-end align-middle amount-cell',
+                    render: function (data) {
+                        return formatAmount(data);
+                    }
+                },
+                { data: 'materialNamePkgsQty', className: 'text-center align-middle' },
+                { data: 'expressNameCountry', className: 'text-center align-middle' },
+                { data: 'lcNo', className: 'text-center align-middle' },
+                { data: 'hawbNo', className: 'text-center align-middle' },
+                { data: 'mawbNo', className: 'text-center align-middle' },
+                { data: 'etdDate', className: 'text-center align-middle' },
+                { data: 'flightActualDeliveryDate', className: 'text-center align-middle' },
+                { data: 'arrivalNoticeRcvdExpressDate', className: 'text-center align-middle' },
+                { data: 'beNo', className: 'text-center align-middle' },
+                { data: 'beDate', className: 'text-center align-middle' },
+                { data: 'actualDeliveryDate', className: 'text-center align-middle' },
                 {
                     data: 'shipmentStatus',
-                    className: 'text-center',
+                    className: 'text-center align-middle',
                     render: function (data, type, row) {
                         var cls = row.statusClass || 'pending';
                         return '<span class="status-badge ' + cls + '">' + escapeHtml(data || 'Pending') + '</span>';
                     }
                 },
-                { data: 'remarks' }
+                { data: 'remarks', className: 'text-center align-middle' }
             ]
         });
     }
 
-    function bindEvents() {
-        // Datepicker Text Typing (Debounced 150ms to allow typing)
-        $('#filterFromDate, #filterToDate').on('input change changeDate dp.change apply.daterangepicker', function () {
-            if (dateDebounceTimer) clearTimeout(dateDebounceTimer);
-            dateDebounceTimer = setTimeout(function () {
-                cacheByMode.filterKey = '';
-                cacheByMode['Air'] = null;
-                cacheByMode['Sea'] = null;
-                loadJobStatusData(true);
-            }, 150);
-        });
-
-        // Customer & Port Type dropdown change: immediate reload
-        $('#filterCustomerId, #filterPortType').on('change', function () {
-            cacheByMode.filterKey = '';
-            cacheByMode['Air'] = null;
-            cacheByMode['Sea'] = null;
+    /**
+     * Debounced reload helper to eliminate conflicting rapid triggers
+     */
+    function requestDataReload(debounceMs) {
+        if (reloadDebounceTimer) {
+            clearTimeout(reloadDebounceTimer);
+        }
+        reloadDebounceTimer = setTimeout(function () {
+            cachedData.filterKey = '';
+            cachedData['Air'] = null;
+            cachedData['Sea'] = null;
             loadJobStatusData(true);
+        }, debounceMs !== undefined ? debounceMs : 40);
+    }
+
+    /**
+     * Bind all user interaction events cleanly
+     */
+    function bindEvents() {
+        // 1. Date inputs (typing, picker selection, alt-input change)
+        $(document).on('input change keyup blur', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
+            requestDataReload(150);
         });
 
-        // Job Status dropdown change: INSTANT in-memory filter (0 ms)
+        // 2. Standard select change events
+        $('#filterCustomerId, #filterPortType').on('change', function () {
+            requestDataReload(30);
+        });
+
+        // 3. Shipment Mode change: update visibility immediately, then reload
+        $('#filterShipmentMode').on('change', function () {
+            var mode = getActiveMode();
+            updateTableVisibility(mode);
+            requestDataReload(30);
+        });
+
+        // 4. Job Status dropdown change: Instant in-memory filter (0 ms)
         $('#filterJobStatus').on('change', function () {
             var status = getDropdownValue('filterJobStatus');
             highlightStatCard(status);
             applyStatusFilterInstant(status);
         });
 
-        // Shipment Mode change: switch table and load immediately
-        $('#filterShipmentMode').on('change', function () {
-            onShipmentModeChanged();
-        });
-
-        // Immediate click capture for custom-dropdown options inside filter-section
+        // 5. Delegated custom dropdown option clicks & clear buttons
         $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-clear-icon, .custom-dd-item', function () {
             var $wrapper = $(this).closest('.custom-dd-wrapper');
             var selectId = $wrapper.prev('select').attr('id');
@@ -271,69 +385,53 @@
                     highlightStatCard(status);
                     applyStatusFilterInstant(status);
                 } else if (selectId === 'filterShipmentMode') {
-                    onShipmentModeChanged();
+                    var mode = getActiveMode();
+                    updateTableVisibility(mode);
+                    requestDataReload(30);
                 } else {
-                    cacheByMode.filterKey = '';
-                    loadJobStatusData(true);
+                    requestDataReload(30);
                 }
-            }, 0);
+            }, 30);
         });
 
-        // Stat Card Click: INSTANT in-memory filter (< 1ms, zero server delay)
+        // 6. Stat Cards Click: Instant in-memory filter
         $('.stat-card').on('click', function () {
             var statusFilter = $(this).data('status-filter') || '';
             $('.stat-card').removeClass('active-card');
             $(this).addClass('active-card');
 
-            // Sync dropdown value without triggering a server reload
             silentSetDropdownValue('filterJobStatus', statusFilter);
-
-            // Filter in-memory instantly (< 1ms)
             applyStatusFilterInstant(statusFilter);
         });
 
-        // Export Report Click
+        // 7. Export Button
         $('#btnExport').on('click', function (e) {
             e.preventDefault();
             exportReport();
         });
     }
 
-    function onShipmentModeChanged() {
-        var currentMode = getDropdownValue('filterShipmentMode');
-        if (!currentMode) {
-            setDropdownValue('filterShipmentMode', 'Air');
-        }
-        updateTableVisibility();
-
-        var mode = getActiveMode();
-        var status = getDropdownValue('filterJobStatus');
-
-        // If we already have this mode cached for current filters, render it in 0ms!
-        if (cacheByMode[mode] && cacheByMode[mode].length) {
-            applyStatusFilterInstant(status);
-            updateSummaryCounters(cacheByMode[mode]);
-        } else {
-            // Force fetch data for the newly selected mode
-            loadJobStatusData(true);
-        }
-    }
-
+    /**
+     * Generates a unique key for the current base filter values
+     */
     function getBaseFilterKey() {
         return [
-            $('#filterFromDate').val() || '',
-            $('#filterToDate').val() || '',
+            getDateValue('filterFromDate'),
+            getDateValue('filterToDate'),
             getDropdownValue('filterCustomerId'),
             getDropdownValue('filterPortType'),
             getDropdownValue('filterShipmentMode')
         ].join('|');
     }
 
+    /**
+     * Extracts full filter payload for API requests
+     */
     function getFilterParams() {
         var activeMode = getActiveMode();
         return {
-            FromDate: $('#filterFromDate').val() || '',
-            ToDate: $('#filterToDate').val() || '',
+            FromDate: getDateValue('filterFromDate'),
+            ToDate: getDateValue('filterToDate'),
             CustomerId: getDropdownValue('filterCustomerId'),
             ShipmentMode: getDropdownValue('filterShipmentMode'),
             PortType: getDropdownValue('filterPortType'),
@@ -345,14 +443,13 @@
 
     /**
      * Instant In-Memory Filter (< 1ms)
-     * Filters rows already in memory without any server round-trip!
+     * Filters cached rows without any server round-trip
      */
     function applyStatusFilterInstant(statusFilter) {
         var mode = getActiveMode();
-        var rawList = cacheByMode[mode];
+        var rawList = cachedData[mode];
 
         if (!rawList) {
-            // Not in cache yet, fetch from server
             loadJobStatusData(true);
             return;
         }
@@ -369,51 +466,46 @@
             filtered = rawList.filter(function (x) { return x.statusClass === 'delivered'; });
         }
 
-        // Render table immediately
         renderToActiveTable(mode, filtered);
     }
 
+    /**
+     * Renders rows into the active DataTable and adjusts column widths
+     */
     function renderToActiveTable(mode, dataList) {
-        updateTableVisibility();
+        updateTableVisibility(mode);
 
-        var table = mode === 'Air' ? airTable : seaTable;
+        var table = (mode === 'Air') ? airTable : seaTable;
         if (!table) return;
 
-        // Re-sequence slNo
         var list = dataList || [];
         var prepared = [];
         for (var i = 0; i < list.length; i++) {
-            var row = Object.assign({}, list[i], { slNo: i + 1 });
-            prepared.push(row);
+            prepared.push(Object.assign({}, list[i], { slNo: i + 1 }));
         }
 
         table.clear();
         table.rows.add(prepared);
         table.draw(false);
+
         requestAnimationFrame(function () {
             table.columns.adjust();
         });
     }
 
-    function updateSummaryCounters(rawList) {
-        if (!rawList) return;
-        var total = rawList.length;
-        var pending = 0, transit = 0, delivered = 0;
-
-        for (var i = 0; i < rawList.length; i++) {
-            var cls = rawList[i].statusClass;
-            if (cls === 'pending') pending++;
-            else if (cls === 'transit') transit++;
-            else if (cls === 'delivered') delivered++;
-        }
-
-        // Instant millisecond counter update (no 250ms delay)
-        $('#statTotalJobs').text(total.toLocaleString());
-        $('#statPendingJobs').text(pending.toLocaleString());
-        $('#statTransitJobs').text(transit.toLocaleString());
-        $('#statDeliveredJobs').text(delivered.toLocaleString());
+    /**
+     * Updates top stat summary cards
+     */
+    function updateSummaryCounters(total, pending, transit, delivered) {
+        $('#statTotalJobs').text((total || 0).toLocaleString());
+        $('#statPendingJobs').text((pending || 0).toLocaleString());
+        $('#statTransitJobs').text((transit || 0).toLocaleString());
+        $('#statDeliveredJobs').text((delivered || 0).toLocaleString());
     }
 
+    /**
+     * Loads job status data from backend with instant caching and mode protection
+     */
     function loadJobStatusData(forced) {
         var filters = getFilterParams();
         var currentKey = getBaseFilterKey();
@@ -421,8 +513,8 @@
 
         highlightStatCard(filters.JobStatus);
 
-        // If filter criteria didn't change and we have data cached, filter in-memory (< 1ms)
-        if (!forced && cacheByMode.filterKey === currentKey && cacheByMode[activeMode]) {
+        // If base filters didn't change and we have data cached, filter in-memory (< 1ms)
+        if (!forced && cachedData.filterKey === currentKey && cachedData[activeMode]) {
             applyStatusFilterInstant(filters.JobStatus);
             return;
         }
@@ -432,6 +524,12 @@
             currentAjaxRequest.abort();
         }
 
+        // Show table processing state
+        var table = activeMode === 'Air' ? airTable : seaTable;
+        if (table) {
+            // keep previous rows visible until new rows arrive
+        }
+
         currentAjaxRequest = $.ajax({
             url: '/JobStatusReport/GetData',
             type: 'POST',
@@ -439,30 +537,26 @@
             data: JSON.stringify(filters),
             success: function (res) {
                 if (res && res.success) {
-                    cacheByMode.filterKey = currentKey;
+                    cachedData.filterKey = currentKey;
 
-                    // Cache full list for active mode
+                    // Server returns mode = 'Air' or 'Sea'
+                    var resolvedMode = res.mode || activeMode;
+
                     var fullAir = res.rawAirData || res.airData || [];
                     var fullSea = res.rawSeaData || res.seaData || [];
 
-                    if (activeMode === 'Air') {
-                        cacheByMode['Air'] = fullAir;
-                    } else {
-                        cacheByMode['Sea'] = fullSea;
-                    }
+                    cachedData['Air'] = fullAir;
+                    cachedData['Sea'] = fullSea;
 
-                    // 1. Instant Counter Update
-                    $('#statTotalJobs').text((res.total || 0).toLocaleString());
-                    $('#statPendingJobs').text((res.pending || 0).toLocaleString());
-                    $('#statTransitJobs').text((res.transit || 0).toLocaleString());
-                    $('#statDeliveredJobs').text((res.delivered || 0).toLocaleString());
+                    // 1. Update summary counters
+                    updateSummaryCounters(res.total, res.pending, res.transit, res.delivered);
 
-                    // 2. Render DataTable (< 2ms)
-                    var activeData = activeMode === 'Air' ? (res.airData || []) : (res.seaData || []);
-                    renderToActiveTable(activeMode, activeData);
+                    // 2. Render appropriate DataTable
+                    var activeData = resolvedMode === 'Air' ? (res.airData || []) : (res.seaData || []);
+                    renderToActiveTable(resolvedMode, activeData);
 
-                    // 3. Update visibility and adjust columns
-                    updateTableVisibility();
+                    // 3. Highlight selected stat card
+                    highlightStatCard(filters.JobStatus);
                 } else {
                     clearTables();
                     showError(res ? res.message : 'Failed to retrieve data.');
@@ -500,7 +594,7 @@
     }
 
     /**
-     * Helper to safely extract value from custom-select-multi or custom-select-single
+     * Safely extract value from custom-dropdown or standard select
      */
     function getDropdownValue(id) {
         var $el = $('#' + id);
@@ -525,7 +619,7 @@
     }
 
     /**
-     * Helper to set value of a dropdown
+     * Programmatically set value of a dropdown
      */
     function setDropdownValue(id, value) {
         var $el = $('#' + id);
@@ -542,7 +636,7 @@
     }
 
     /**
-     * Silently update dropdown UI without firing change event (avoids redundant server queries)
+     * Silently update dropdown UI without firing change event
      */
     function silentSetDropdownValue(id, value) {
         var $el = $('#' + id);
@@ -557,6 +651,9 @@
         }
     }
 
+    /**
+     * Export report handler (PDF or Excel)
+     */
     function exportReport() {
         var filters = getFilterParams();
         var exportFormat = getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || 'PDF';

@@ -6,7 +6,7 @@ namespace GCTL.Service.JobStatusReport
 {
     public interface IJobStatusReportService
     {
-        Task<JobStatusSummaryDTO> GetSummaryAsync(string? customerId);
+        Task<JobStatusSummaryDTO> GetSummaryAsync(string? customerId, string? shipmentModeId = null);
         Task<List<SeaJobReportItemDTO>> GetSeaJobsAsync(JobStatusReportFilterVM filter);
         Task<List<AirJobReportItemDTO>> GetAirJobsAsync(JobStatusReportFilterVM filter);
         Task<byte[]> GenerateExcelReportAsync(JobStatusReportFilterVM filter);
