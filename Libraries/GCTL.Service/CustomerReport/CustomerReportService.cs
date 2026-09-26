@@ -13,13 +13,55 @@ namespace GCTL.Service.CustomerReport
         #region Fields & Constructor
 
         private readonly string _connectionString;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment? _webHostEnvironment;
+        private byte[]? _logoBytes;
+        private bool _logoLoaded;
 
         public CustomerReportService(
-            IConfiguration configuration
-            
+            IConfiguration configuration,
+            Microsoft.AspNetCore.Hosting.IWebHostEnvironment? env = null
+
             )
         {
             _connectionString = configuration.GetConnectionString("connection") ?? string.Empty;
+            _webHostEnvironment = env;
+        }
+
+        #endregion
+
+        #region Helper Method to Load Logo Bytes
+
+        private byte[]? GetLogoBytes()
+        {
+            if (_logoLoaded) return _logoBytes;
+            _logoLoaded = true;
+
+            try
+            {
+                var candidatePaths = new List<string?>
+                {
+                    _webHostEnvironment?.WebRootPath != null ? Path.Combine(_webHostEnvironment.WebRootPath, "images", "fermosa-wX200.png") : null,
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "UIs", "GCTL.UI.Core", "wwwroot", "images", "fermosa-wX200.png"),
+                    @"D:\Project\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png"
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    {
+                        _logoBytes = File.ReadAllBytes(path);
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully without throwing
+            }
+
+            return _logoBytes;
         }
 
         #endregion
@@ -106,8 +148,11 @@ namespace GCTL.Service.CustomerReport
                 var data = await GetCustomerReportDataAsync(filter);
 
                 var firstItem = data.FirstOrDefault();
-                string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited"; 
-                string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209"; 
+                string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
+                string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209";
+
+                // Load logo bytes once (uses the existing GetLogoBytes() helper on this service)
+                var logoBytes = GetLogoBytes();
 
                 string GetTypeLabel(string typeId)
                 {
@@ -120,7 +165,7 @@ namespace GCTL.Service.CustomerReport
                     };
                 }
 
-                var groupedData = data .GroupBy(x => GetTypeLabel(x.CustomerTypeId)) .OrderBy(g => g.Key) .ToList();
+                var groupedData = data.GroupBy(x => GetTypeLabel(x.CustomerTypeId)).OrderBy(g => g.Key).ToList();
 
                 var pdfBytes = Document.Create(container =>
                 {
@@ -130,20 +175,36 @@ namespace GCTL.Service.CustomerReport
                         page.MarginVertical(12);
                         page.Size(PageSizes.A4.Landscape());
 
-                        page.Header().Column(col =>
+                        page.Header().Row(row =>
                         {
-                            col.Item().AlignCenter().Text(companyName).FontSize(13).Bold();
-                            col.Item().AlignCenter().Text(companyAddress).FontSize(9).FontColor(Colors.Grey.Darken2);
-                            col.Item().AlignCenter().Text("Customer Report").FontSize(11).Bold().Underline();
-                            //col.Item().PaddingTop(2).PaddingBottom(4).Row(row =>
-                            //{
-                            //    row.RelativeItem().AlignRight().Text($"Print Date: {DateTime.Now:dd/MM/yyyy}").FontSize(8);
-                            //});
+                            // Left slot: logo (only rendered if the file was found)
+                            if (logoBytes != null && logoBytes.Length > 0)
+                            {
+                                row.ConstantItem(70).AlignMiddle().Image(logoBytes).FitArea();
+                            }
+
+                            // Center: company name / address / report title
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().AlignCenter().Text(companyName).FontSize(13).Bold();
+                                col.Item().AlignCenter().Text(companyAddress).FontSize(9).FontColor(Colors.Grey.Darken2);
+                                col.Item().AlignCenter().Text("Customer Report").FontSize(11).Bold().Underline();
+                                //col.Item().PaddingTop(2).PaddingBottom(4).Row(row =>
+                                //{
+                                //    row.RelativeItem().AlignRight().Text($"Print Date: {DateTime.Now:dd/MM/yyyy}").FontSize(8);
+                                //});
+                            });
+
+                            // Right slot: empty, same width as the logo, so the center column stays visually centered
+                            if (logoBytes != null && logoBytes.Length > 0)
+                            {
+                                row.ConstantItem(70);
+                            }
                         });
 
                         page.Content().Column(mainCol =>
                         {
-                           // int sl = 1;
+                            // int sl = 1;
                             bool isFirstGroup = true;
 
                             foreach (var group in groupedData)
@@ -196,7 +257,7 @@ namespace GCTL.Service.CustomerReport
                                                 .WrapAnywhere());
                                         }
 
-                                        BuildHeaderCell("SN");
+                                        BuildHeaderCell("SN.");
                                         BuildHeaderCell("Customer ID");
                                         BuildHeaderCell("Name");
                                         BuildHeaderCell("Address");
@@ -289,6 +350,9 @@ namespace GCTL.Service.CustomerReport
             string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
             string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209";
 
+            // Load logo bytes once (uses the existing GetLogoBytes() helper on this service)
+            var logoBytes = GetLogoBytes();
+
             string GetTypeLabel(string typeId)
             {
                 if (string.IsNullOrWhiteSpace(typeId)) return "N/A";
@@ -300,10 +364,13 @@ namespace GCTL.Service.CustomerReport
                 };
             }
 
-            var groupedData = data .GroupBy(x => GetTypeLabel(x.CustomerTypeId)) .OrderBy(g => g.Key) .ToList();
+            var groupedData = data.GroupBy(x => GetTypeLabel(x.CustomerTypeId)).OrderBy(g => g.Key).ToList();
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Customer Report");
+
+            // Hide gridlines so no cell border shows through around the floated logo image
+            ws.ShowGridLines = false;
 
             const int totalCols = 9;
 
@@ -339,15 +406,57 @@ namespace GCTL.Service.CustomerReport
             ws.Cell(3, 1).Style.Font.Underline = XLFontUnderlineValues.Single;
             ws.Cell(3, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
+            if (logoBytes != null && logoBytes.Length > 0)
+            {
+                ws.Row(1).Height = 20;
+                ws.Row(2).Height = 16;
+                ws.Row(3).Height = 18;
+
+                try
+                {
+                    using var logoStream = new MemoryStream(logoBytes);
+                    var logoPicture = ws.AddPicture(logoStream)
+                        .MoveTo(ws.Cell(1, 1), 4, 14);
+                    logoPicture.Width = 90;
+                    logoPicture.Height = 32;
+                }
+                catch
+                {
+                    // Fallback gracefully without throwing if the image can't be embedded
+                }
+            }
+
             string[] headers = new string[]
             {
-              "SN", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
+               "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
             };
 
             int currRow = 5;
-           // int sl = 1;
+            // int sl = 1;
             const int photoColIndex = 8;
             const double rowHeightForPhoto = 40;
+            const double baseRowHeight = 15;
+            const double lineHeight = 12.5;
+
+            double EstimateRowHeightForColumn(string text, int columnIndex)
+            {
+                if (string.IsNullOrWhiteSpace(text)) return baseRowHeight;
+
+                double colWidthChars = Math.Max(6, ws.Column(columnIndex).Width);
+
+                var explicitLines = text.Split(new[] { "\r\n", "\n", ";" }, StringSplitOptions.RemoveEmptyEntries);
+                int totalWrappedLines = 0;
+
+                foreach (var line in explicitLines)
+                {
+                    var trimmed = line.Trim();
+                    int wrapped = (int)Math.Ceiling(trimmed.Length / colWidthChars);
+                    totalWrappedLines += Math.Max(1, wrapped);
+                }
+
+                totalWrappedLines = Math.Max(1, totalWrappedLines);
+                return Math.Max(baseRowHeight, totalWrappedLines * lineHeight);
+            }
 
             var groupPageBreakRows = new List<int>();
 
@@ -433,6 +542,18 @@ namespace GCTL.Service.CustomerReport
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                     }
 
+                    double neededHeight = baseRowHeight;
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerName, 3));
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerAddress, 4));
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.ContactPerson, 9));
+
+                    if (item.CustomerPhoto != null && item.CustomerPhoto.Length > 0)
+                    {
+                        neededHeight = Math.Max(neededHeight, rowHeightForPhoto);
+                    }
+
+                    ws.Row(currRow).Height = neededHeight;
+
                     currRow++;
                     sl++;
                 }
@@ -444,8 +565,6 @@ namespace GCTL.Service.CustomerReport
             {
                 ws.PageSetup.AddHorizontalPageBreak(breakRow - 1);
             }
-
-            ws.Rows(5, currRow - 1).AdjustToContents();
 
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
