@@ -10,7 +10,6 @@ namespace GCTL.Core.ViewModels.CustomerReport
     {
         public List<CustomerReportResultDto> CustomerName { get; set; }
         public List<CustomerReportResultDto> CustomerType { get; set; }
-
         public int TotalCount { get; set; }
         public int PageNumber { get; set; }
         public int PageSize { get; set; }

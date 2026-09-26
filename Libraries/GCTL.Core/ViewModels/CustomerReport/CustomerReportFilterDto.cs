@@ -8,7 +8,7 @@ namespace GCTL.Core.ViewModels.CustomerReport
 {
     public class CustomerReportFilterDto
     {
-        public List<string> CustomerId { get; set; }      // renamed from CustomerName
+        public List<string> CustomerId { get; set; }   
         public List<string> CustomerTypeId { get; set; }
         public string CustomerAddress { get; set; }
         public string Phone { get; set; }
