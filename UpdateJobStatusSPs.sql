@@ -117,7 +117,9 @@ BEGIN
         d.Term,
         CONCAT(d.VesselName, ' ', d.Vessel_RottNo) AS VesselName,
         d.ContainerNo,
-        CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder
+        CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder,
+        d.CustomerID,
+        ISNULL(c.CustomerName, '') AS CustomerName
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
@@ -200,7 +202,9 @@ BEGIN
         d.Term,
         CONCAT(d.VesselName, ' ', d.Vessel_RottNo) AS VesselName,
         d.ContainerNo,
-        CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder
+        CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder,
+        d.CustomerID,
+        ISNULL(c.CustomerName, '') AS CustomerName
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
@@ -283,7 +287,9 @@ BEGIN
         d.Term,
         CONCAT(d.VesselName, ' ', d.Vessel_RottNo) AS VesselName,
         d.ContainerNo,
-        CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder
+        CONCAT(d.NameOfFreightForwarder, ' ', d.FreightForwarderPhoneNo) AS FreightForwarder,
+        d.CustomerID,
+        ISNULL(c.CustomerName, '') AS CustomerName
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
@@ -358,7 +364,9 @@ BEGIN
         (SELECT CASE WHEN ISNULL(du.UpdateDateTime, '') <> '' AND du.UpdateDateTime <> '1900-01-01'
                      THEN FORMAT(du.UpdateDateTime, 'dd/MM/yyyy hh:mm tt') ELSE '' END
          FROM CF_DailyJobUpdateEntry du WHERE d.JobNo = du.JobNo AND du.UpdateStatus = '06') AS ActualDeliveryDate,
-        d.Remarks
+        d.Remarks,
+        d.CustomerID,
+        ISNULL(c.CustomerName, '') AS CustomerName
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
@@ -433,7 +441,9 @@ BEGIN
         (SELECT CASE WHEN ISNULL(du.UpdateDateTime, '') <> '' AND du.UpdateDateTime <> '1900-01-01'
                      THEN FORMAT(du.UpdateDateTime, 'dd/MM/yyyy hh:mm tt') ELSE '' END
          FROM CF_DailyJobUpdateEntry du WHERE d.JobNo = du.JobNo AND du.UpdateStatus = '06') AS ActualDeliveryDate,
-        d.Remarks
+        d.Remarks,
+        d.CustomerID,
+        ISNULL(c.CustomerName, '') AS CustomerName
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
@@ -508,7 +518,9 @@ BEGIN
         (SELECT CASE WHEN ISNULL(du.UpdateDateTime, '') <> '' AND du.UpdateDateTime <> '1900-01-01'
                      THEN FORMAT(du.UpdateDateTime, 'dd/MM/yyyy hh:mm tt') ELSE '' END
          FROM CF_DailyJobUpdateEntry du WHERE d.JobNo = du.JobNo AND du.UpdateStatus = '06') AS ActualDeliveryDate,
-        d.Remarks
+        d.Remarks,
+        d.CustomerID,
+        ISNULL(c.CustomerName, '') AS CustomerName
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
