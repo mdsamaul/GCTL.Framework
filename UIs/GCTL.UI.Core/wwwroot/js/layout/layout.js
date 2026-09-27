@@ -1,4 +1,4 @@
-﻿
+console.log("layout.js loaded, handleApiResponse type:", typeof handleApiResponse);
 function showDeleteModal(deleteCallback) {
     // Show the modal
     $('#confirmDeleteModal').modal('show');
@@ -123,6 +123,11 @@ window.setField = function (selector, value, disabled = false) {
 
         if ($el.is('select')) {
             $el.prop('disabled', !!disabled);
+            if (typeof window.reinitCustomDropdownById === 'function' && $el.attr('id')) {
+                window.reinitCustomDropdownById($el.attr('id'));
+            } else if ($el.hasClass('select2-hidden-accessible')) {
+                $el.trigger('change.select2');
+            }
         } else {
             $el.prop('readonly', !!disabled);
             $el.prop('disabled', false);
@@ -436,3 +441,106 @@ function hideModal(id) {
 }
 
 //#endregion
+
+function handleApiResponse(response, onSuccessCallback) {
+    if (response.success) {
+        toastr.success(response.message);
+        if (typeof onSuccessCallback === "function") {
+            onSuccessCallback(response.data);
+        }
+    } else {
+        toastr.error(response.message);
+    }
+}
+
+
+$('.table-sm').on('draw.dt', function () {
+    $('.table-sm tbody tr td input[type="checkbox"]').addClass('form-check-input');
+    $('.table-sm thead th input[type="checkbox"]').addClass('form-check-input');
+});
+
+// Preserve and restore sidebar scroll position exactly
+$(function () {
+    var $scrollContainer = $('.sidebar-menu-scroll');
+    if ($scrollContainer.length === 0) {
+        $scrollContainer = $('.app-sidebar');
+    }
+    if ($scrollContainer.length === 0) return;
+
+    var containerEl = $scrollContainer[0];
+    var isRestoring = false;
+
+    function saveSidebarScroll() {
+        if (isRestoring) return;
+        var top = containerEl.scrollTop;
+        if (typeof top === 'number' && !isNaN(top)) {
+            localStorage.setItem('sidebarScrollTop', top);
+            sessionStorage.setItem('sidebarScrollTop', top);
+        }
+    }
+
+    // Save scroll position as the user scrolls
+    containerEl.addEventListener('scroll', saveSidebarScroll, { passive: true });
+
+    // Save immediately before page unloads
+    window.addEventListener('beforeunload', saveSidebarScroll);
+
+    // Save on clicking any menu item link or button
+    $(document).on('click', '.app-sidebar a, .app-sidebar button, .menu-link, .rail-link', function () {
+        saveSidebarScroll();
+    });
+
+    // Restore scroll position
+    function restoreSidebarScroll() {
+        var saved = sessionStorage.getItem('sidebarScrollTop') || localStorage.getItem('sidebarScrollTop');
+        var savedTop = saved !== null && saved !== undefined ? parseInt(saved, 10) : NaN;
+
+        if (!isNaN(savedTop) && savedTop > 0) {
+            isRestoring = true;
+            containerEl.scrollTop = savedTop;
+            setTimeout(function () {
+                containerEl.scrollTop = savedTop;
+                isRestoring = false;
+            }, 50);
+            setTimeout(function () {
+                containerEl.scrollTop = savedTop;
+            }, 200);
+        } else {
+            // If no saved scroll, scroll active item into view
+            var $active = $('.menu-item.direct-active, .menu-link.active').first();
+            if ($active.length > 0) {
+                $active[0].scrollIntoView({ block: 'center', inline: 'nearest' });
+            }
+        }
+    }
+
+    // Execute immediately and after layout rendering
+    restoreSidebarScroll();
+    requestAnimationFrame(function () {
+        restoreSidebarScroll();
+    });
+});
+
+// Global Tooltip Auto-initialization
+$(function () {
+    function initGlobalTooltips() {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (el) {
+                if (!bootstrap.Tooltip.getInstance(el)) {
+                    new bootstrap.Tooltip(el, {
+                        boundary: 'window',
+                        trigger: 'hover'
+                    });
+                }
+            });
+        } else if ($.fn && $.fn.tooltip) {
+            $('[data-bs-toggle="tooltip"]').tooltip({ trigger: 'hover' });
+        }
+    }
+
+    initGlobalTooltips();
+    $(document).ajaxComplete(function () {
+        initGlobalTooltips();
+    });
+});

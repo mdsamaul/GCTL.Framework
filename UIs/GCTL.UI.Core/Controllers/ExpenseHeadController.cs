@@ -1,31 +1,40 @@
-﻿using GCTL.Core.ViewModels.ExpenseHead;
+using GCTL.Core.ViewModels.ExpenseHead;
 using GCTL_App.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using GCTL.Service.ShipmentMode;
 using GCTL.Service.CoreServiceType;
 using GCTL.UI.Core.Controllers;
 using GCTL.Service.ExpenseHead;
+using GCTL.Service.Pagination;
+using GCTL.Core.DataTables;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using GCTL.Core.Helpers;
 
 namespace GCTL.Controllers
 {
     public class ExpenseHeadController : BaseController
     {
+        #region
         private readonly IExpenseHead _service;
         private readonly IShipmentMode _shipmentMode;
         private readonly IServiceType _serviceType;
-        public ExpenseHeadController( IExpenseHead service, IShipmentMode shipmentMode, IServiceType serviceType) : base()
+        public ExpenseHeadController(IExpenseHead service, IShipmentMode shipmentMode, IServiceType serviceType) : base()
         {
             _service = service;
             _shipmentMode = shipmentMode;
             _serviceType = serviceType;
         }
+        #endregion
 
-        public IActionResult Index()
+        #region
+        public async Task<IActionResult> Index()
         {
+            await PopulateDropdowns();
             return View();
         }
-        public IActionResult ExpenseForm()
+        public async Task<IActionResult> ExpenseForm()
         {
+            await PopulateDropdowns();
             return PartialView();
         }
         public IActionResult ExpenseList()
@@ -33,6 +42,17 @@ namespace GCTL.Controllers
             return PartialView();
         }
 
+        private async Task PopulateDropdowns()
+        {
+            var shipmentModes = await _shipmentMode.GetAllExpenseTypesAsync();
+            ViewBag.ShipmentModes = new SelectList(shipmentModes, "ExpenseTypeID", "ExpenseType");
+
+            var serviceTypes = await _serviceType.GetAllCoreServiceAsync();
+            ViewBag.ServiceProviders = new SelectList(serviceTypes.Select(s => new { id = s.ServiceTypeId, name = s.ServiceTypeName }), "id", "name");
+        }
+        #endregion
+
+        #region
         [HttpDelete]
         [Route("expense-head-bulk")]
         public async Task<IActionResult> BulkDeleteExpenseHead([FromBody] List<int> ids)
@@ -91,33 +111,93 @@ namespace GCTL.Controllers
 
 
         [HttpGet]
-        [Route("expense-head-list")]
-        public async Task<IActionResult> GetAllPaginated(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "ExpenseHeadID", string sortOrder = "desc", string expenseType = "",string isReceiptable = "",string serviceType = "")
+        [Route("expense-head/get-by-id/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _service.GetByIdAsync(id);
+            if (result == null)
+                return NotFound(new { message = "Data not found" });
+            return Ok(new { data = result });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetGridData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            string searchTerm = "",
+            string sortColumn = "",
+            string sortOrder = "asc",
+            string expenseType = "",
+            string isReceiptable = "",
+            string serviceType = "")
         {
             try
             {
-                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder,expenseType,isReceiptable,serviceType);
+                var request = new PaginationRequest
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    SearchTerm = searchTerm,
+                    SortColumn = sortColumn,
+                    SortOrder = sortOrder
+                };
+
+                var result = await _service.GetPaginatedAsync(request, expenseType, isReceiptable, serviceType);
 
                 if (result.Data == null || !result.Data.Any())
                 {
                     return Ok(new
                     {
-                        Data = new List<ExpenseHeadVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Expense Head Found."
+                        draw,
+                        data = new List<ExpenseHeadVM>(),
+                        recordsTotal = 0,
+                        recordsFiltered = 0
                     });
                 }
 
-                return Ok(result);
+                return Ok(new
+                {
+                    draw,
+                    data = result.Data,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [Route("expense-head-list")]
+        public async Task<IActionResult> GetAllPaginated(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "ExpenseHeadID", string sortOrder = "desc", string expenseType = "",string isReceiptable = "",string serviceType = "")
+        {
+            try
+            {
+                //var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder,expenseType,isReceiptable,serviceType);
+
+                //if (result.Data == null || !result.Data.Any())
+                //{
+                //    return Ok(new
+                //    {
+                //        Data = new List<ExpenseHeadVM>(),
+                //        TotalCount = 0,
+                //        PaginationInfo = new
+                //        {
+                //            StartItem = 0,
+                //            EndItem = 0,
+                //            TotalItems = 0,
+                //            PageNumbers = new List<int>(),
+                //            TotalPages = 0,
+                //            CurrentPage = 0
+                //        },
+                //        Message = "No Expense Head Found."
+                //    });
+                //}
+
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -139,13 +219,12 @@ namespace GCTL.Controllers
                 if (model == null)
                     return BadRequest(new { message = "Expense Head is required." });
 
-                var result = await _service.SaveAsync(model);
+                model.ToAudit(LoginInfo, false);
 
+                var result = await _service.SaveAsync(model);
 
                 if (!result)
                     return BadRequest(new { message = "Insertion Failed." });
-
-
 
                 return Ok(new { success = true, message = "Data Saved Successfully." });
             }
@@ -170,6 +249,8 @@ namespace GCTL.Controllers
             var typeExists = await _service.IsExistAsync(id);
             if (!typeExists)
                 return NotFound(new { message = $"Expense Head With ID {id} Not Found." });
+
+            model.ToAudit(LoginInfo, true);
 
             var result = await _service.UpdateAsync(model);
 
@@ -235,39 +316,9 @@ namespace GCTL.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
+        #endregion
 
         #region Report
-
-        //[HttpGet("expense-head/excel-report")]
-        //public async Task<IActionResult> GetExcelReport([FromQuery] string expenseTypeId)
-        //{
-        //    try
-        //    {
-        //        var content = await _service.GenerateExcelReportAsync(expenseTypeId);
-        //        return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ExpenseHeadReport.xlsx");
-        //    }
-        //    catch (Exception)
-        //    {
-
-        //        throw;
-        //    }
-
-        //}
-
-        //[HttpGet("expense-head/generate-pdf-report")]
-        //public async Task<IActionResult> GetPdfReport([FromQuery] string expenseTypeId)
-        //{
-        //    try
-        //    {
-        //        var content = await _service.GeneratePdfReportAsync(expenseTypeId);
-        //        return File(content, "application/pdf", "ExpenseHeadReport.pdf");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
 
         [HttpGet("/expense-head/report")]
         public async Task<IActionResult> GetExpenseHeadReport([FromQuery] string expenseTypeId, [FromQuery] string format)
@@ -292,8 +343,6 @@ namespace GCTL.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-
         #endregion
 
     }

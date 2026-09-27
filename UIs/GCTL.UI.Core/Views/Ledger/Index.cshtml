@@ -1,0 +1,944 @@
+
+<style>
+    .custom-width-modal {
+        max-width: 1600px !important;
+    }
+
+    /* Tab Container */
+    .custom-tabs {
+        display: flex;
+        align-items: flex-end;
+        border-bottom: 1px solid #d8dce3;
+    }
+
+        /* Default Tab */
+        .custom-tabs .tab-btn {
+            padding: 5px 15px;
+            margin-right: 4px;
+            border: 1px solid #cfd6df;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            background: linear-gradient(to bottom, #ffffff 0%, #f7f9fb 50%, #edf2f7 100%);
+            color: #495057;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all .25s ease;
+            cursor: pointer;
+        }
+
+            /* Hover */
+            .custom-tabs .tab-btn:hover {
+                background: linear-gradient(to bottom, #ffffff, #f1f5f9);
+                color: #0d6efd;
+            }
+
+            /* Active Tab */
+            .custom-tabs .tab-btn.active {
+                background: linear-gradient(to bottom, #ffffff 0%, #f8fbff 60%, #eef5fc 100%);
+                color: #0d6efd;
+                font-weight: 700;
+                border-color: #bcd4f1;
+                box-shadow: 0 -1px 8px rgba(13,110,253,.08);
+                position: relative;
+                top: 1px;
+            }
+
+                /* Hide bottom border */
+                .custom-tabs .tab-btn.active::after {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    bottom: -2px;
+                    width: 100%;
+                    height: 3px;
+                    background: #fff;
+                }
+
+            .custom-tabs .tab-btn:focus {
+                outline: none;
+                box-shadow: none;
+            }
+
+    /* ==========================================================================
+       Control, Sub-Control, Sub-Sidiary & General Ledger Forms: Responsive 3-Column Equal Width & Quick-Add In-Gap Layout
+       Optimized for Desktop and Laptop (1362x768 / <= 1400px) Screens
+       ========================================================================== */
+    :root {
+        --control-height: 31px;
+        --gap-size: 36px;
+        --btn-width: 20px;
+    }
+
+    .control-ledger-fields-row,
+    .subcontrol-ledger-fields-row,
+    .subsidiary-ledger-fields-row,
+    .general-ledger-fields-row {
+        --control-height: 31px;
+        --gap-size: 36px;
+        --btn-width: 20px;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        row-gap: 12px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* 3 Equal Columns: (100% - 2 * gap) / 3 -> Exactly 0 gap on right side! */
+    .control-ledger-fields-row > [class*="col-"],
+    .control-ledger-fields-row > div,
+    .subcontrol-ledger-fields-row > [class*="col-"],
+    .subcontrol-ledger-fields-row > div,
+    .subsidiary-ledger-fields-row > [class*="col-"],
+    .subsidiary-ledger-fields-row > div,
+    .general-ledger-fields-row > [class*="col-"],
+    .general-ledger-fields-row > div {
+        flex: 0 0 calc((100% - (2 * var(--gap-size))) / 3) !important;
+        max-width: calc((100% - (2 * var(--gap-size))) / 3) !important;
+        width: calc((100% - (2 * var(--gap-size))) / 3) !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+    }
+
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .control-ledger-fields-row .form-label,
+    .subcontrol-ledger-fields-row .form-label,
+    .subsidiary-ledger-fields-row .form-label,
+    .general-ledger-fields-row .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Normalize the required star (*) so it never affects label height */
+    .control-ledger-fields-row .form-label .text-danger,
+    .control-ledger-fields-row .form-label sup,
+    .control-ledger-fields-row .form-label span,
+    .subcontrol-ledger-fields-row .form-label .text-danger,
+    .subcontrol-ledger-fields-row .form-label sup,
+    .subcontrol-ledger-fields-row .form-label span,
+    .subsidiary-ledger-fields-row .form-label .text-danger,
+    .subsidiary-ledger-fields-row .form-label sup,
+    .subsidiary-ledger-fields-row .form-label span,
+    .general-ledger-fields-row .form-label .text-danger,
+    .general-ledger-fields-row .form-label sup,
+    .general-ledger-fields-row .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .control-ledger-fields-row .field-fixed-width,
+    .subcontrol-ledger-fields-row .field-fixed-width,
+    .subsidiary-ledger-fields-row .field-fixed-width,
+    .general-ledger-fields-row .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .control-ledger-fields-row .input-group,
+    .subcontrol-ledger-fields-row .input-group,
+    .subsidiary-ledger-fields-row .input-group,
+    .general-ledger-fields-row .input-group {
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        box-sizing: border-box !important;
+    }
+
+    .control-ledger-fields-row .field-fixed-width > .input-group,
+    .subcontrol-ledger-fields-row .field-fixed-width > .input-group,
+    .subsidiary-ledger-fields-row .field-fixed-width > .input-group,
+    .general-ledger-fields-row .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Uniform height for ALL inputs, selects, custom dropdowns, input-groups, and buttons */
+    .control-ledger-fields-row .form-control,
+    .control-ledger-fields-row .form-select,
+    .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .control-ledger-fields-row select,
+    .control-ledger-fields-row .custom-dd-box,
+    .control-ledger-fields-row .custom-dd-wrapper,
+    .control-ledger-fields-row .detached-action-btn,
+    .control-ledger-fields-row .js-quick-add,
+    .subcontrol-ledger-fields-row .form-control,
+    .subcontrol-ledger-fields-row .form-select,
+    .subcontrol-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subcontrol-ledger-fields-row select,
+    .subcontrol-ledger-fields-row .custom-dd-box,
+    .subcontrol-ledger-fields-row .custom-dd-wrapper,
+    .subcontrol-ledger-fields-row .detached-action-btn,
+    .subcontrol-ledger-fields-row .js-quick-add,
+    .subsidiary-ledger-fields-row .form-control,
+    .subsidiary-ledger-fields-row .form-select,
+    .subsidiary-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subsidiary-ledger-fields-row select,
+    .subsidiary-ledger-fields-row .custom-dd-box,
+    .subsidiary-ledger-fields-row .custom-dd-wrapper,
+    .subsidiary-ledger-fields-row .detached-action-btn,
+    .subsidiary-ledger-fields-row .js-quick-add,
+    .general-ledger-fields-row .form-control,
+    .general-ledger-fields-row .form-select,
+    .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .general-ledger-fields-row select,
+    .general-ledger-fields-row .custom-dd-box,
+    .general-ledger-fields-row .custom-dd-wrapper,
+    .general-ledger-fields-row .detached-action-btn,
+    .general-ledger-fields-row .js-quick-add {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        vertical-align: top !important;
+    }
+
+    .control-ledger-fields-row .form-control,
+    .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subcontrol-ledger-fields-row .form-control,
+    .subcontrol-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .subsidiary-ledger-fields-row .form-control,
+    .subsidiary-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    .general-ledger-fields-row .form-control,
+    .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]) {
+        line-height: calc(var(--control-height) - 2px) !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .control-ledger-fields-row .custom-dd-box,
+    .subcontrol-ledger-fields-row .custom-dd-box,
+    .subsidiary-ledger-fields-row .custom-dd-box,
+    .general-ledger-fields-row .custom-dd-box {
+        display: flex !important;
+        align-items: center !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .control-ledger-fields-row .custom-dd-input,
+    .subcontrol-ledger-fields-row .custom-dd-input,
+    .subsidiary-ledger-fields-row .custom-dd-input,
+    .general-ledger-fields-row .custom-dd-input {
+        height: calc(var(--control-height) - 4px) !important;
+        line-height: calc(var(--control-height) - 4px) !important;
+        margin: 0 !important;
+    }
+
+    .control-ledger-fields-row .field-validation:empty,
+    .subcontrol-ledger-fields-row .field-validation:empty,
+    .subsidiary-ledger-fields-row .field-validation:empty,
+    .general-ledger-fields-row .field-validation:empty {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Position the Quick-Add (+) button directly inside the column gap with zero overlap and NO border */
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        width: var(--btn-width) !important;
+        min-width: var(--btn-width) !important;
+        max-width: var(--btn-width) !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:hover,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add:hover,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add:hover,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:hover,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add:active,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add:active,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add:active,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:focus,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:focus,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn:active,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    /* Icon sizing for the + button */
+    .control-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .control-ledger-fields-row .field-fixed-width > .js-quick-add i,
+    .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add i,
+    .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add i,
+    .general-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+    .general-ledger-fields-row .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Checkbox field styling in General Ledger */
+    .general-ledger-fields-row .form-check {
+        display: flex !important;
+        align-items: center !important;
+        height: var(--control-height) !important;
+        margin-top: 24px !important;
+        margin-bottom: 0 !important;
+    }
+
+    .general-ledger-fields-row .form-check-input {
+        width: 16px !important;
+        height: 16px !important;
+        min-height: 16px !important;
+        max-height: 16px !important;
+        margin-top: 0 !important;
+        margin-right: 8px !important;
+        cursor: pointer !important;
+    }
+
+    .general-ledger-fields-row .form-check-label {
+        font-size: 12.5px !important;
+        cursor: pointer !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ==========================================================================
+       Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
+       ========================================================================== */
+    @@media (max-width: 1400px) {
+        .control-ledger-fields-row,
+        .subcontrol-ledger-fields-row,
+        .subsidiary-ledger-fields-row,
+        .general-ledger-fields-row {
+            --control-height: 28px !important;
+            --gap-size: 34px !important;
+            --btn-width: 18px !important;
+            row-gap: 8px !important;
+        }
+
+        .control-ledger-fields-row .form-label,
+        .subcontrol-ledger-fields-row .form-label,
+        .subsidiary-ledger-fields-row .form-label,
+        .general-ledger-fields-row .form-label {
+            font-size: 11.5px !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            line-height: 18px !important;
+            margin-bottom: 3px !important;
+            font-weight: 500 !important;
+        }
+
+        .control-ledger-fields-row .form-label .text-danger,
+        .control-ledger-fields-row .form-label sup,
+        .control-ledger-fields-row .form-label span,
+        .subcontrol-ledger-fields-row .form-label .text-danger,
+        .subcontrol-ledger-fields-row .form-label sup,
+        .subcontrol-ledger-fields-row .form-label span,
+        .subsidiary-ledger-fields-row .form-label .text-danger,
+        .subsidiary-ledger-fields-row .form-label sup,
+        .subsidiary-ledger-fields-row .form-label span,
+        .general-ledger-fields-row .form-label .text-danger,
+        .general-ledger-fields-row .form-label sup,
+        .general-ledger-fields-row .form-label span {
+            font-size: 12px !important;
+        }
+
+        .general-ledger-fields-row .form-check {
+            margin-top: 21px !important;
+        }
+
+        .general-ledger-fields-row .form-check-label {
+            font-size: 11.5px !important;
+        }
+
+        .control-ledger-fields-row .form-control,
+        .control-ledger-fields-row .form-select,
+        .control-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .control-ledger-fields-row select,
+        .control-ledger-fields-row .custom-dd-box,
+        .control-ledger-fields-row .custom-dd-input,
+        .subcontrol-ledger-fields-row .form-control,
+        .subcontrol-ledger-fields-row .form-select,
+        .subcontrol-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .subcontrol-ledger-fields-row select,
+        .subcontrol-ledger-fields-row .custom-dd-box,
+        .subcontrol-ledger-fields-row .custom-dd-input,
+        .subsidiary-ledger-fields-row .form-control,
+        .subsidiary-ledger-fields-row .form-select,
+        .subsidiary-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .subsidiary-ledger-fields-row select,
+        .subsidiary-ledger-fields-row .custom-dd-box,
+        .subsidiary-ledger-fields-row .custom-dd-input,
+        .general-ledger-fields-row .form-control,
+        .general-ledger-fields-row .form-select,
+        .general-ledger-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+        .general-ledger-fields-row select,
+        .general-ledger-fields-row .custom-dd-box,
+        .general-ledger-fields-row .custom-dd-input {
+            font-size: 12px !important;
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+        }
+
+        .control-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .control-ledger-fields-row .field-fixed-width > .js-quick-add i,
+        .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add i,
+        .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add i,
+        .general-ledger-fields-row .field-fixed-width > .detached-action-btn i,
+        .general-ledger-fields-row .field-fixed-width > .js-quick-add i {
+            font-size: 10px !important;
+        }
+
+        .general-ledger-fields-row .form-check {
+            margin-top: 18px !important;
+        }
+
+        .general-ledger-fields-row .form-check-label {
+            font-size: 11.5px !important;
+        }
+
+        /* Compact card & fieldset for 768px vertical resolution */
+        #controlFormView .card-body,
+        #subcontrolFormView .card-body,
+        #subsidiaryFormView .card-body,
+        #generalFormView .card-body {
+            padding: 8px 12px !important;
+        }
+
+        #controlFormView fieldset,
+        #subcontrolFormView fieldset,
+        #subsidiaryFormView fieldset,
+        #generalFormView fieldset {
+            padding: 8px 10px !important;
+        }
+
+        #controlFormView hr,
+        #subcontrolFormView hr,
+        #subsidiaryFormView hr,
+        #generalFormView hr {
+            margin-top: 6px !important;
+            margin-bottom: 6px !important;
+        }
+
+        #controlFormView .table-toolbar,
+        #subcontrolFormView .table-toolbar,
+        #subsidiaryFormView .table-toolbar,
+        #generalFormView .table-toolbar {
+            padding: 4px 8px !important;
+        }
+    }
+
+    /* Mobile / Small Screens */
+    @@media (max-width: 767.98px) {
+        .control-ledger-fields-row > [class*="col-"],
+        .control-ledger-fields-row > div,
+        .subcontrol-ledger-fields-row > [class*="col-"],
+        .subcontrol-ledger-fields-row > div,
+        .subsidiary-ledger-fields-row > [class*="col-"],
+        .subsidiary-ledger-fields-row > div,
+        .general-ledger-fields-row > [class*="col-"],
+        .general-ledger-fields-row > div {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        .control-ledger-fields-row .field-fixed-width,
+        .subcontrol-ledger-fields-row .field-fixed-width,
+        .subsidiary-ledger-fields-row .field-fixed-width,
+        .general-ledger-fields-row .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .control-ledger-fields-row .field-fixed-width > .input-group,
+        .subcontrol-ledger-fields-row .field-fixed-width > .input-group,
+        .subsidiary-ledger-fields-row .field-fixed-width > .input-group,
+        .general-ledger-fields-row .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .control-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .control-ledger-fields-row .field-fixed-width > .js-quick-add,
+        .subcontrol-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .subcontrol-ledger-fields-row .field-fixed-width > .js-quick-add,
+        .subsidiary-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .subsidiary-ledger-fields-row .field-fixed-width > .js-quick-add,
+        .general-ledger-fields-row .field-fixed-width > .detached-action-btn,
+        .general-ledger-fields-row .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+            border: 0 !important;
+        }
+    }
+
+    /* Bottom Toolbar in Control, Sub-Control, Sub-Sidiary & General Ledger: 0px border */
+    #controlForm .toolbar-container,
+    #subcontrolForm .toolbar-container,
+    #subSidiaryForm .toolbar-container,
+    #subsidiaryForm .toolbar-container,
+    #generalLedgerForm .toolbar-container,
+    #controlFormView .card-body .toolbar-container,
+    #subcontrolFormView .card-body .toolbar-container,
+    #subsidiaryFormView .card-body .toolbar-container,
+    #generalFormView .card-body .toolbar-container,
+    #controlForm .row.no-print .toolbar-container,
+    #subcontrolForm .row.no-print .toolbar-container,
+    #subSidiaryForm .row.no-print .toolbar-container,
+    #subsidiaryForm .row.no-print .toolbar-container,
+    #generalLedgerForm .row.no-print .toolbar-container {
+        border: 0 !important;
+        border-bottom: 0px !important;
+        box-shadow: none !important;
+    }
+</style>
+
+<h2 class="text-center mt-0">Chart Of Accounts</h2>
+
+<div class="container-fluid g-0">
+
+    @* ================= Navigation Tabs ================= *@
+    <div class="custom-tabs mb-3" id="ledgertab" role="tablist">
+        <button class="tab-btn active" id="group-tab" data-bs-toggle="tab" data-bs-target="#group-tab-pane" type="button" role="tab" aria-controls="group-tab-pane" aria-selected="true">Group Ledger</button>
+        <button class="tab-btn" id="controll-tab" data-bs-toggle="tab" data-bs-target="#controll-tab-pane" type="button" role="tab" aria-controls="controll-tab-pane" aria-selected="false">Control Ledger</button>
+        <button class="tab-btn" id="subcontroll-tab" data-bs-toggle="tab" data-bs-target="#subcontroll-tab-pane" type="button" role="tab" aria-controls="subcontroll-tab-pane" aria-selected="false">Sub-Control Ledger</button>
+        <button class="tab-btn" id="subsidiary-tab" data-bs-toggle="tab" data-bs-target="#subsidiary-tab-pane" type="button" role="tab" aria-controls="subsidiary-tab-pane" aria-selected="false">Sub-Sidiary Ledger</button>
+        <button class="tab-btn" id="general-tab" data-bs-toggle="tab" data-bs-target="#general-tab-pane" type="button" role="tab" aria-controls="general-tab-pane" aria-selected="false">General Ledger</button>
+    </div>
+
+    @* ================= Tab Panes ================= *@
+    <div class="tab-content" id="LedgerTabContent">
+
+        @* 1. Group Ledger Tab *@
+        <div class="tab-pane fade show active" id="group-tab-pane" role="tabpanel" aria-labelledby="group-tab">
+            <div id="groupTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div id="groupFormView">
+                            @await Html.PartialAsync("_GroupLedgerForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="groupListView">
+                            @await Html.PartialAsync("_GroupLedgerList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* 2. Control Ledger Tab *@
+        <div class="tab-pane fade" id="controll-tab-pane" role="tabpanel" aria-labelledby="controll-tab">
+            <div id="controllTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div id="controlFormView">
+                            @await Html.PartialAsync("_ControlLedgerForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="controlListView">
+                            @await Html.PartialAsync("_ControlLedgerList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* 3. Sub-Control Ledger Tab *@
+        <div class="tab-pane fade" id="subcontroll-tab-pane" role="tabpanel" aria-labelledby="subcontroll-tab">
+            <div id="subcontrollTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div id="subcontrolFormView">
+                            @await Html.PartialAsync("_SubControlLedgerForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="subcontrolListView">
+                            @await Html.PartialAsync("_SubControlLedgerList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* 4. Sub-Sidiary Ledger Tab *@
+        <div class="tab-pane fade" id="subsidiary-tab-pane" role="tabpanel" aria-labelledby="subsidiary-tab">
+            <div id="subsidiaryTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div id="subsidiaryFormView">
+                            @await Html.PartialAsync("_SubSidiaryLedgerForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="subsidiaryListView">
+                            @await Html.PartialAsync("_SubSidiaryLedgerList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* 5. General Ledger Tab *@
+        <div class="tab-pane fade" id="general-tab-pane" role="tabpanel" aria-labelledby="general-tab">
+            <div id="generalTabView">
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <div id="generalFormView">
+                            @await Html.PartialAsync("_GeneralLedgerForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="generalListView">
+                            @await Html.PartialAsync("_GeneralLedgerList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@* ================= Modals ================= *@
+
+@* 1. Group Ledger Modal *@
+<div class="modal fade" id="GRLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Group Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="groupModalBody">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="modalGroupFormView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalGroupForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="modalGroupListView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalGroupList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* 2. Control Ledger Modal *@
+<div class="modal fade" id="UICRLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered custom-width-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Control Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="controlModalBody">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="modalControlFormView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalControlForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="modalControlListView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalControlList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* 3. Sub-Control Ledger Modal *@
+<div class="modal fade" id="SCRLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered custom-width-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Sub-Control Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="subControlModalBody">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="modalSubControlFormView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalSubControlForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="modalSubControlListView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalSubControlList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* 4. Sub-Sidiary Ledger Modal *@
+<div class="modal fade" id="SSLModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered custom-width-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Sub-Sidiary Ledger</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="subSidiaryModalBody">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="modalSubSidiaryFormView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalSubSidiaryForm.cshtml")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="modalSubSidiaryListView">
+                            @await Html.PartialAsync("~/Views/Ledger/_ModalSubSidiaryList.cshtml")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+
+    <script>
+        window.ChartOfAccountsFilter = {
+            groupLedgerCode: '',
+            controlLedgerCode: '',
+            subcontrolLedgerCode: '',
+            subSididaryLedger: '',
+            getFilters: function () {
+                return {
+                    groupLedgerCode: this.groupLedgerCode || '',
+                    controlLedgerCode: this.controlLedgerCode || '',
+                    subcontrolLedgerCode: this.subcontrolLedgerCode || '',
+                    subSididaryLedger: this.subSididaryLedger || ''
+                };
+            },
+            setFilters: function (f) {
+                if (f.groupLedgerCode !== undefined) this.groupLedgerCode = f.groupLedgerCode;
+                if (f.controlLedgerCode !== undefined) this.controlLedgerCode = f.controlLedgerCode;
+                if (f.subcontrolLedgerCode !== undefined) this.subcontrolLedgerCode = f.subcontrolLedgerCode;
+                if (f.subSididaryLedger !== undefined) this.subSididaryLedger = f.subSididaryLedger;
+                this.reloadAllGrids();
+            },
+            clearFilters: function () {
+                this.groupLedgerCode = '';
+                this.controlLedgerCode = '';
+                this.subcontrolLedgerCode = '';
+                this.subSididaryLedger = '';
+                this.reloadAllGrids();
+            },
+            reloadAllGrids: function () {
+                if ($.gctlGrid) {
+                    $.gctlGrid.reload('groupLedgerTable', true);
+                    $.gctlGrid.reload('controlLedgerTable', true);
+                    $.gctlGrid.reload('subControlLedgerTable', true);
+                    $.gctlGrid.reload('subSidiaryLedgerTable', true);
+                    $.gctlGrid.reload('generalLedgerTable', true);
+                }
+            }
+        };
+    </script>
+
+    @* ================= Scripts ================= *@
+    <script src="~/js/pages/ChartOfAccount/Group.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/Control.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/SubControl.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/SubSidiary.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/General.js" asp-append-version="true"></script>
+
+    @* Modal Scripts *@
+    <script src="~/js/pages/ChartOfAccount/CommonModal.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalGroup.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalControl.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalSubControl.js" asp-append-version="true"></script>
+    <script src="~/js/pages/ChartOfAccount/ModalSubSidiary.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function () {
+            if ($.gctlGrid) {
+                var coaFilterData = function (d) {
+                    if (window.ChartOfAccountsFilter) {
+                        var f = window.ChartOfAccountsFilter.getFilters();
+                        d.groupLedgerCode = f.groupLedgerCode;
+                        d.controlLedgerCode = f.controlLedgerCode;
+                        d.subcontrolLedgerCode = f.subcontrolLedgerCode;
+                        d.subSididaryLedger = f.subSididaryLedger;
+                        d.subsidiaryLedgerCode = f.subSididaryLedger;
+                    }
+                };
+
+                $.gctlGrid.initFromModel({
+                    gridId: 'groupLedgerTable',
+                    ajaxData: function (d) {
+                        if (window.ChartOfAccountsFilter) {
+                            d.groupLedgerCode = window.ChartOfAccountsFilter.groupLedgerCode || '';
+                        }
+                    }
+                });
+                $.gctlGrid.initFromModel({ gridId: 'controlLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'subControlLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'subSidiaryLedgerTable', ajaxData: coaFilterData });
+                $.gctlGrid.initFromModel({ gridId: 'generalLedgerTable', ajaxData: coaFilterData });
+                
+                // Initialize Modal Grids
+                $.gctlGrid.initFromModel({ gridId: 'modalGroupLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'modalControlLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'modalSubControlLedgerTable' });
+                $.gctlGrid.initFromModel({ gridId: 'modalSubSidiaryLedgerTable' });
+            }
+
+            // Tab switch handler: Save active tab and adjust DataTable column widths
+            $('[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                sessionStorage.setItem('activeLedgerTab', e.target.id);
+                localStorage.setItem('activeLedgerTab', e.target.id);
+                
+                if ($.fn.dataTable) {
+                    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                }
+            });
+
+            // Detect whether current page load is a reload (F5 / refresh) or fresh navigation from another menu/controller
+            var isReload = false;
+            try {
+                if (window.performance) {
+                    var navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
+                    if (navEntries && navEntries.length > 0) {
+                        isReload = navEntries[0].type === 'reload';
+                    } else if (performance.navigation) {
+                        isReload = performance.navigation.type === 1;
+                    }
+                }
+            } catch (e) {
+                console.error("Error checking navigation type:", e);
+            }
+
+            if (isReload) {
+                // On page reload, stay on whichever tab was currently active
+                var savedTabId = sessionStorage.getItem('activeLedgerTab') || localStorage.getItem('activeLedgerTab');
+                if (savedTabId && savedTabId !== 'group-tab') {
+                    var targetTab = document.querySelector('#' + savedTabId);
+                    if (targetTab) {
+                        var tab = new bootstrap.Tab(targetTab);
+                        tab.show();
+                    }
+                }
+            } else {
+                // When navigating from another menu or controller, always select the first tab (Group Ledger)
+                sessionStorage.setItem('activeLedgerTab', 'group-tab');
+                localStorage.setItem('activeLedgerTab', 'group-tab');
+                var groupTab = document.querySelector('#group-tab');
+                if (groupTab && !$(groupTab).hasClass('active')) {
+                    var tab = new bootstrap.Tab(groupTab);
+                    tab.show();
+                }
+            }
+        });
+    </script>
+}
+

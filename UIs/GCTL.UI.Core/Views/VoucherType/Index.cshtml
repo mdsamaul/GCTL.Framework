@@ -1,0 +1,16 @@
+﻿<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+
+<div class="row g-2">
+    <div class="col-md-6" id="VoucherFormView">
+        @await Html.PartialAsync("~/Views/VoucherType/_VoucherForm.cshtml")
+    </div>
+    <div class="col-md-6" id="VoucherListView">
+        @await Html.PartialAsync("~/Views/VoucherType/_VoucherList.cshtml")
+    </div>
+</div>
+
+<partial name="~/Views/Shared/DeleteModal.cshtml" />
+
+@section Scripts {
+    <script src="~/js/pages/VoucherType/VoucherType.js" asp-append-version="true"></script>
+}

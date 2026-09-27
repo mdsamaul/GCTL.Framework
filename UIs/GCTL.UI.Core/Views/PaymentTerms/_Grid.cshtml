@@ -6,8 +6,8 @@
             <th class="text-center text-middle" style="width: 10%;">
                 Select <br /> <input type="checkbox" id="PaymentTerms-check-all" />
             </th>
-            <th class="text-center text-middle" style="width: 10%;">ID</th>
-            <th class="text-center text-middle" style="width: 35%;"> Payment Terms Name</th>
+            <th class="text-center text-middle" style="width: 7%;">ID</th>
+            <th class="text-center text-middle" style="width: 38%;"> Payment Terms Name</th>
             <th class="text-center text-middle" style="width: 18%;"> Type</th>
             <th class="text-center text-middle" style="width: 13%;"> Percentise</th>
             <th class="text-center text-middle" style="width: 14%;"> Credit Days</th>
@@ -19,7 +19,7 @@
         @if (Model == null || !Model.Any())
         {
             <tr class="text-center text-middle">
-                <td colspan="8">No Data Available.</td>
+                @* <td colspan="8">No Data Available.</td> *@
             </tr>
         }
         else

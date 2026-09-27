@@ -1,0 +1,266 @@
+@model GCTL.UI.Core.ViewModels.SupplierInformation.SupplierInformationPageViewModel
+
+<style>
+
+    .sup-field-col {
+        position: relative !important;
+    }
+
+    .sup-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sup-field-col .form-label .text-danger,
+    .sup-field-col .form-label sup,
+    .sup-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    .sup-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .sup-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sup-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    .sup-field-col .form-control,
+    .sup-field-col .form-select,
+    .sup-field-col select,
+    .sup-field-col .select2-container,
+    .sup-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    .sup-layout-form-col .card-body {
+        padding: 15px 42px 15px 24px !important;
+    }
+
+    .sup-layout-form-col .card-body .row,
+    .sup-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    .sup-field-col .field-fixed-width > .detached-action-btn,
+    .sup-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
+        min-height: 28px !important;
+        max-height: 34px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .sup-field-col .field-fixed-width > .detached-action-btn:hover,
+    .sup-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .sup-field-col .field-fixed-width > .detached-action-btn:focus,
+    .sup-field-col .field-fixed-width > .js-quick-add:focus,
+    .sup-field-col .field-fixed-width > .detached-action-btn:active,
+    .sup-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .sup-field-col .field-fixed-width > .detached-action-btn i,
+    .sup-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    @@media (max-width: 767.98px) {
+        .sup-field-col .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .sup-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sup-field-col .field-fixed-width > .detached-action-btn,
+        .sup-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
+    }
+
+    @@media (max-width: 1600px) {
+        .sup-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .sup-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .sup-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .sup-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sup-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sup-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .sup-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .sup-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Supplier Information";
+    Model.Breadcrumb = "Supplier Information";
+}
+
+<section class="content px-0">
+    <div class="container-fluid px-0">
+        <div class="row g-3">
+            
+            <!-- Setup Form Column -->
+            <div class="col-12 col-xxl-6 sup-layout-form-col">
+                <div class="card rounded shadow-sm h-100 mb-0">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Supplier Information",
+                            SaveBtnClass = "js-SupplierInformation-save",
+                            DeleteBtnClass = "js-SupplierInformation-delete-confirm",
+                            ClearBtnClass = "js-SupplierInformation-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+                        <form asp-action="Setup" method="post" id="SupplierInformation-form" asp-controller="SupplierInformation">
+                            <div class="js-SupplierInformation-form-container">
+                                @await Html.PartialAsync("_Setup", Model.Setup)
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Column -->
+            <div class="col-12 col-xxl-6 sup-layout-grid-col">
+                <div class="card rounded shadow-sm h-100 mb-0">
+                    <div class="card-body" style="overflow:auto;">
+                        <div class="js-SupplierInformation-grid-container">
+                            @await Html.PartialAsync("_Grid", Model.SupplierInformationList)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/supplierInformation.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "SupplierInformation")'
+        };
+        options.load = () => {
+        };
+
+        $.supplierInformation(options);
+    </script>
+}

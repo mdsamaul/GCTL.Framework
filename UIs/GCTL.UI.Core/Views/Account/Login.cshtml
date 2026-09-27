@@ -1,96 +1,416 @@
 @model LoginViewModel
 @{
+    ViewData["Title"] = "C & F Management System - Login";
     Layout = null;
-    ViewData["Title"] = "Sign In";
 }
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - GCTL HRM</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-</head>
-<body class="auth-page-bg">
-    <!-- Animated Blobs in the Background -->
-    <div class="auth-blob auth-blob-1"></div>
-    <div class="auth-blob auth-blob-2"></div>
 
-    <div class="auth-card-container">
-        <div class="auth-card auth-card-grid">
-            <div class="auth-card-panel auth-card-visual">
-                <div class="auth-visual-image" style="background-image:url('@Url.Content("~/images/auth_illustration.png")');"></div>
-                <div class="auth-visual-copy">
-                    <h4>Secure access made simple</h4>
-                    <p>Sign in to continue to your dashboard and track the latest updates, insights, and workflows in one place.</p>
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="shortcut icon" href="~/images/CoIcon.ico" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            background: #f4f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .login-container {
+            width: 68vw;
+            max-width: 1100px;
+            min-width: 850px;
+            height: 72vh;
+            min-height: 540px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .35);
+        }
+
+            .left-panel {
+                width: 58%;
+                position: relative;
+                background: linear-gradient(rgb(2 133 200 / 75%), rgb(13 162 230 / 90%)), url(/images/login-bg-2.jpg) center center;
+                background-size: cover;
+                background-repeat: no-repeat;
+            }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 45px 50px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-height: 75px;
+            width: auto;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+            margin-bottom: 8px;
+        }
+
+        .logo i {
+            color: #38bdf8;
+            margin-right: 10px;
+        }
+
+        .hero-title {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 18px;
+        }
+
+        .hero-title span {
+            color: #38bdf8;
+        }
+
+        .hero-text {
+            font-size: 13.5px;
+            line-height: 1.75;
+            opacity: .95;
+            margin-bottom: 28px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 14px;
+        }
+
+        .feature i {
+            width: 42px;
+            height: 42px;
+            background: #38bdf8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .right-panel {
+            position: relative;
+            width: 42%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 90%;
+        }
+
+        .login-header {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+
+        .login-header .header-logo-icon {
+            font-size: 32px;
+            color: #38bdf8;
+            margin-bottom: 12px;
+        }
+
+        .login-header h2 {
+            font-size: 30px;
+            color: #0f172a;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .input-group-custom {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .input-group-custom i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .input-group-custom input {
+            width: 100%;
+            padding: 13px 15px 13px 45px;
+            border: 1px solid #dbe4ee;
+            border-radius: 10px;
+            font-size: 14.5px;
+            outline: none;
+            transition: .3s;
+        }
+
+        .input-group-custom input:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 10px rgba(14, 165, 233, .2);
+        }
+
+        .field-validation-error {
+            color: #d9534f;
+            font-size: 13px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .validation-summary-errors {
+            color: #d9534f;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            font-size: 14px;
+        }
+
+        .options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #334155;
+        }
+
+        .options a {
+            text-decoration: none;
+            color: #0284c7;
+            font-weight: 600;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0284c7, #0ea5e9);
+            border: none;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: .3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(14, 165, 233, .3);
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .version {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        @@media(max-width:992px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+                padding: 20px 10px;
+            }
+
+            .login-container {
+                width: 95%;
+                min-width: auto;
+                height: auto;
+                flex-direction: column;
+            }
+
+            .left-panel,
+            .right-panel {
+                width: 100%;
+            }
+
+            .left-panel {
+                height: auto;
+                min-height: 420px;
+            }
+
+            .hero-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="left-panel">
+            <div class="overlay">
+                <div class="logo">                   
+                    <img src="@Url.Content("~/images/gctl.png")" alt="GCTL Infosys" height="70" style="object-fit:contain;display:inline-block;vertical-align:middle;margin-bottom:8px;" />
+                </div>
+
+                <div class="hero-title">
+                    ERP Based C &amp; F Solution for Modern Businesses.
+                </div>
+
+                <div class="hero-text">
+                    Comprehensive Clearing &amp; Forwarding management system. Streamline customs clearance,
+                    track import and export shipments, manage port logistics, handle bill of entry/export documentation,
+                    and automate billing, job costing, and client invoicing from a single unified platform.
+                </div>
+
+                <div class="features">
+                    <div class="feature">
+                        <i class="fas fa-file-contract"></i>
+                        <div>
+                            <b>Customs Clearance</b><br />
+                            B/E &amp; Documentation
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <i class="fas fa-ship"></i>
+                        <div>
+                            <b>Port &amp; Shipping</b><br />
+                            Vessel &amp; Container Tracking
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <i class="fas fa-boxes-stacked"></i>
+                        <div>
+                            <b>Import &amp; Export</b><br />
+                            End-to-End Job Operations
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <i class="fas fa-calculator"></i>
+                        <div>
+                            <b>Billing &amp; Costing</b><br />
+                            Invoicing &amp; Expense Tracking
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="auth-card-panel auth-card-form">
-                <!-- Brand Logo -->
-                <a href="/" class="auth-brand">
-                    <i class="bi bi-box-fill"></i>
-                    <span>GCTL Framework</span>
-                </a>
+        <div class="right-panel">
+            <img src="@Url.Content("~/images/fermosa-wX200.png")"
+                 alt="CNF Logo"
+                 style="position:absolute; top:20px; right:20px; max-height:45px; width:auto; object-fit:contain;" />
 
-                <h3 class="fw-bold mb-2">Welcome Back</h3>
-                <p class="text-muted small mb-4">Please enter your credentials to access your dashboard</p>
+            <div class="login-box">
+                <div class="login-header">
+                    <div class="header-logo-icon">
+                        <i class="fas fa-ship"></i> 
+                    </div>
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to access your C &amp; F System</p>
+                </div>
 
                 <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-                
-                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
-                {
-                    <div class="alert alert-danger py-2 px-3 small mb-4" role="alert">
-                        <div class="d-flex align-items-center mb-1">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            <strong>Authentication Failed</strong>
-                        </div>
-                        <div asp-validation-summary="All" class="text-danger small" style="list-style-type: none; padding-left: 0; margin-bottom: 0;"></div>
+                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div asp-validation-summary="All" class="validation-summary-errors"></div>
+                    }
+
+                    <div class="input-group-custom">
+                        <i class="fas fa-user"></i>
+                        <input asp-for="Email" class="form-control" placeholder="Username" id="txtusername" autocomplete="username" required autofocus />
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
                     </div>
-                }
 
-                <!-- Email Input -->
-                <div class="form-group-animated">
-                    <input asp-for="Email" class="form-control" autocomplete="username" placeholder=" " required />
-                    <label asp-for="Email">Email Address</label>
-                </div>
-
-                <!-- Password Input -->
-                <div class="form-group-animated">
-                    <input asp-for="Password" class="form-control" autocomplete="current-password" placeholder=" " required />
-                    <label asp-for="Password">Password</label>
-                </div>
-
-                <!-- Remember Me & Forgot Password -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label text-muted small">Remember me</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-lock"></i>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Password" id="txtUserPassword" autocomplete="current-password" required />
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
                     </div>
-                    <a href="#" class="text-primary small text-decoration-none fw-semibold">Forgot Password?</a>
-                </div>
 
-                <!-- Submit Button -->
-                <button type="submit" class="btn btn-primary-modern w-100 mb-3">
-                    Sign In <i class="bi bi-arrow-right ms-2"></i>
-                </button>
+                    <div class="options">
+                        <label>
+                            <input asp-for="RememberMe" type="checkbox" /> Remember Me
+                        </label>
+
+                        <a href="#">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="login-btn">
+                        <i class="fas fa-right-to-bracket"></i>&nbsp; Sign In
+                    </button>
                 </form>
 
-                <div class="text-center text-muted small mt-4">
-                    Don't have an account? 
-                    <a asp-controller="Account" asp-action="Register" class="text-primary text-decoration-none fw-semibold">Sign Up</a>
+                <div class="footer-text">
+                    Customs Clearance • Import &amp; Export • Port Logistics • Job Costing
+                </div>
+
+                <div class="version">
+                    C &amp; F Management System Version 2026
                 </div>
             </div>
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/theme-toggle.js" asp-append-version="true"></script>
     <partial name="_ValidationScriptsPartial" />
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 </body>
 </html>
+

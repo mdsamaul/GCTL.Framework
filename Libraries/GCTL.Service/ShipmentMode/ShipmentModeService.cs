@@ -1,7 +1,8 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
+using GCTL.Core.DataTables;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,9 +18,12 @@ namespace GCTL.Service.ShipmentMode
     public class ShipmentModeService : AppService<CfDefExpenseType>, IShipmentMode
     {
         private readonly IRepository<CfDefExpenseType> _repository;
-        public ShipmentModeService(IRepository<CfDefExpenseType> genericRepository) : base(genericRepository)
+        private readonly IRepository<TransportModeType> tMTrepository;
+
+        public ShipmentModeService(IRepository<CfDefExpenseType> genericRepository, IRepository<TransportModeType> tMTrepository) : base(genericRepository)
         {
             _repository = genericRepository;
+            this.tMTrepository = tMTrepository;
         }
         public async Task<bool> BulkDeleteAsync(List<int> ids)
         {
@@ -82,13 +86,15 @@ namespace GCTL.Service.ShipmentMode
             var data = await _repository.All().Where(pt => pt.Tc == id)
                         .Select(pt => new ShipmentModeVM
                         {
+                            TC = pt.Tc,
                             ExpenseTypeID = pt.ExpenseTypeId,
                             ExpenseType = pt.ExpenseType ?? "",
                             ShortName = pt.ShortName ?? "",
-                            LUser = pt.Luser,                         
-                            LIP = pt.Lip,
-                            LMAC = pt.Lmac ?? "",
-                            LDate = pt.Ldate,
+                            transportModeTypeId = pt.TransportModeTypeId ?? "",
+                            Luser = pt.Luser,
+                            Lip = pt.Lip,
+                            Lmac = pt.Lmac ?? "",
+                            Ldate = pt.Ldate,
                             ModifyDate = pt.ModifyDate,
                             ExpenseLedgerCodeNo = pt.ExpenseLedgerCodeNo,
                             RevenueLedgerCodeNo = pt.RevenueLedgerCodeNo,
@@ -107,38 +113,37 @@ namespace GCTL.Service.ShipmentMode
             return last?.ExpenseTypeId;
         }
 
-        public async Task<PaginationService<CfDefExpenseType, ShipmentModeVM>.PaginationResult<ShipmentModeVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "ExpenseTypeID", string sortOrder = "desc")
+        public async Task<PaginationResponse<ShipmentModeVM>> GetPaginatedAsync(PaginationRequest request)
         {
-            var query = _repository.All();
+            var query = from exp in _repository.All().AsNoTracking()
+                        join tmt in tMTrepository.All().AsNoTracking()
+                            on exp.TransportModeTypeId equals tmt.TransportModeId into tmtGroup
+                        from tmt in tmtGroup.DefaultIfEmpty()
+                        select new ShipmentModeVM
+                        {
+                            TC = exp.Tc,
+                            ExpenseTypeID = exp.ExpenseTypeId,
+                            ExpenseType = exp.ExpenseType ?? "",
+                            ShortName = exp.ShortName ?? "",
+                            transportModeTypeId = exp.TransportModeTypeId ?? "",
+                            transportModeType = tmt != null ? tmt.TransportMode : "",
+                            Ldate = exp.Ldate,
+                            ModifyDate = exp.ModifyDate
+                        };
 
-            if (pageSize == -1)
+            if (request.PageSize == -1)
             {
-                pageSize = await query.CountAsync();
-                pageNumber = 1;
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
             }
 
-            var paginatedResult = await PaginationService<CfDefExpenseType, ShipmentModeVM>.GetPaginatedData(
-                query,
-                pageNumber,
-                pageSize,
-                searchTerm,
-                currentSortColumn,
-                sortOrder,
-                term => sc =>
-                    EF.Functions.Like(sc.ExpenseTypeId ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ExpenseType ?? "", $"{term}%") ||
-                    EF.Functions.Like(sc.ShortName ?? "", $"%{term}%"),
-                pt => new ShipmentModeVM
-                {
-                    TC = pt.Tc,
-                    ExpenseTypeID = pt.ExpenseTypeId,
-                    ExpenseType = pt.ExpenseType ?? "",
-                    ShortName = pt.ShortName ?? "",                  
-                    LDate = pt.Ldate,
-                    ModifyDate = pt.ModifyDate,
-                });
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderByDescending(x => x.ExpenseTypeID);
+                request.SortColumn = "";
+            }
 
-            return paginatedResult;
+            return await PaginationService<ShipmentModeVM>.GetPaginatedData(query, request);
         }
 
         public async Task<bool> IsDuplicateAsync(ShipmentModeVM model)
@@ -146,10 +151,14 @@ namespace GCTL.Service.ShipmentMode
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
+            var expenseType = (model.ExpenseType ?? "").Trim().ToLower();
+            var transportModeTypeId = (model.transportModeTypeId ?? "").Trim();
+
             // Compare directly in the DB with trimming and case-insensitivity
             return await _repository.All()
                 .AnyAsync(pm =>
-                    pm.ExpenseType.Trim().ToLower() == model.ExpenseType.Trim().ToLower()
+                    pm.ExpenseType.Trim().ToLower() == expenseType
+                    && (pm.TransportModeTypeId ?? "").Trim() == transportModeTypeId
                     && pm.Tc != model.TC
                 );
         }
@@ -170,11 +179,12 @@ namespace GCTL.Service.ShipmentMode
                     ShortName = model.ShortName ?? "",
                     Luser = "", // Set based on your auth system, e.g., User.Identity.Name
                     Ldate = DateTime.Now,
-                    Lip = GetLocalIP() ?? "",
-                    Lmac = GetMacAddress() ?? "",
+                    Lip = model.Lip ?? "",
+                    Lmac = model.Lmac ?? "",
                     ExpenseLedgerCodeNo = model.ExpenseLedgerCodeNo?? "",
                     RevenueLedgerCodeNo = model.RevenueLedgerCodeNo ?? "",
-                    AdvanceLedgerCode = model.AdvanceLedgerCode ?? ""
+                    AdvanceLedgerCode = model.AdvanceLedgerCode ?? "",
+                    TransportModeTypeId = model.transportModeTypeId ?? ""
                 };
 
                 await _repository.AddAsync(entity);
@@ -192,7 +202,7 @@ namespace GCTL.Service.ShipmentMode
             await _repository.BeginTransactionAsync();
             try
             {
-                var entity = await _repository.GetByIdAsync(model.TC);
+                var entity = await _repository.GetByIdAsync(model.ExpenseTypeID);
                 if (entity == null)
                 {
                     await _repository.RollbackTransactionAsync();
@@ -202,9 +212,10 @@ namespace GCTL.Service.ShipmentMode
                 entity.ExpenseTypeId = model.ExpenseTypeID;
                 entity.ExpenseType = model.ExpenseType;
                 entity.ShortName = model.ShortName ?? "";
+                entity.TransportModeTypeId = model.transportModeTypeId ?? "";
                 entity.Luser = ""; // Set based on your auth system, e.g., User.Identity.Name
-                entity.Lip = GetLocalIP() ?? "";
-                entity.Lmac = GetMacAddress() ?? "";
+                entity.Lip = model.Lip ?? "";
+                entity.Lmac = model.Lmac ?? "";
                 entity.ModifyDate = DateTime.Now;
 
                 await _repository.UpdateAsync(entity);
@@ -242,37 +253,29 @@ namespace GCTL.Service.ShipmentMode
                 ExpenseType = x.ExpenseType
             }).ToList();
         }
-
-
-        #region Ip & Mac
-        public string GetLocalIP()
+        public async Task<List<ShipmentModeVM>> GetShipmentModeDetailsAsync(string transportModeTypeId)
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
+            var data = await _repository.All()
+                .Where(pt => pt.TransportModeTypeId == transportModeTypeId)
+                .Select(pt => new ShipmentModeVM
                 {
-                    return ip.ToString();
-                }
-            }
-            return string.Empty;
+                    TC = pt.Tc,
+                    ExpenseTypeID = pt.ExpenseTypeId,
+                    ExpenseType = pt.ExpenseType ?? "",
+                    transportModeType = tMTrepository.All()
+                        .Where(t => t.TransportModeId == pt.TransportModeTypeId)
+                        .Select(t => t.TransportMode)
+                        .FirstOrDefault(),
+                    transportModeTypeId = pt.TransportModeTypeId ?? "",
+                    ShortName = pt.ShortName ?? "",
+                    Ldate = pt.Ldate,
+                    ModifyDate = pt.ModifyDate
+                })
+                .ToListAsync();
+
+            return data;
         }
 
-        public string GetMacAddress()
-        {
-            var nics = NetworkInterface.GetAllNetworkInterfaces();
-            var macAddress = string.Empty;
-            foreach (var adapter in nics)
-            {
-                if (adapter.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                {
-                    macAddress = adapter.GetPhysicalAddress().ToString();
-                    break;
-                }
-            }
-            return macAddress;
-        }
 
-        #endregion
     }
 }

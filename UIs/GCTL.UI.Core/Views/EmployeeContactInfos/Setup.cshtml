@@ -1,0 +1,174 @@
+@model GCTL.Core.ViewModels.EmployeeContactInfos.EmployeeContactInfosSetupViewModel
+@using GCTL.UI.Core.ViewModels
+
+@{
+    ViewBag.Title = "Employee Contact List";
+    Model.PageTitle = ViewBag.Title;
+    Model.Breadcrumb = "Employee Contact Info";
+}
+
+<style>
+    select.form-control-sm ~ .select2-container--default {
+        width: 100% !important;
+    }
+
+    .form-group {
+        margin-bottom: 0px !important;
+    }
+
+    .input-group {
+        flex-wrap: nowrap !important;
+    }
+
+        .input-group .select2-container {
+            min-width: 0 !important;
+            flex: 1 1 auto !important;
+        }
+
+    .input-group-append {
+        flex-shrink: 0 !important;
+    }
+
+    .input-group-textc {
+        white-space: nowrap;
+        height: 100%;
+    }
+</style>
+
+<div id="customLoadingOverlay" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;">
+    <div style="
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        text-align: center;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p style="margin-top: 10px; margin-bottom: 0;">Loading data...</p>
+    </div>
+</div>
+
+<partial name="_PageHeader" model="Model" />
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-0">
+                    <div class="card-header border-transparent py-1">
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
+                        {
+                            Title = "Employee Contact Info",
+                            SaveBtnClass = "js-EmployeeContactInfos-save",
+                            DeleteBtnClass = "js-EmployeeContactInfos-delete-confirm",
+                            ClearBtnClass = "js-EmployeeContactInfos-clear"
+                        })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <form asp-action="Setup" id="EmployeeContactInfos-form" method="post" enctype="multipart/form-data" asp-controller="EmployeeContactInfos">
+        <div class="container-fluid">
+            <div class="form-group row pt-2">
+                <div class="col-md-12">
+                    <div class="card mb-0">
+                        <div class="card-header py-0">
+                            @await Html.PartialAsync("_TabButton")
+                        </div>
+                        <div class="card-body pt-1">
+                            <div class="js-EmployeeContactInfos-form-container">
+                                @await Html.PartialAsync("_Setup", Model)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body p-2">
+                                <div class="js-EmployeeContactInfos-grid-container">
+                                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                                    {
+                                        GridId = "EmployeeContactInfosTable",
+                                        AjaxUrl = Url.Action("GetAll", "EmployeeContactInfos"),
+                                        AjaxMethod = "POST",
+                                        ServerSide = false,
+                                        ShowCheckbox = true,
+                                        CheckColumnData = "autoId",
+                                        CheckAllId = "EmployeeContactInfos-check-all",
+                                        DefaultSortColumn = "autoId",
+                                        DefaultSortDirection = "desc",
+                                        ShowActionMenu = false, // Disabling Action Menu to use click-to-edit
+                                        Columns = new()
+                                        {
+                                            new() { Data = "autoId", Header = "System ID", Width = "0%", Visible = false },
+                                            new() { Data = "employeeId", Header = "Employee Id", Width = "10%", IsEditLink = true, EditSelectorClass = "js-EmployeeContactInfos-edit", IdField = "autoId" },
+                                            new() { Data = "employeeName", Header = "Name", Width = "20%" },
+                                            new() { Data = "parmanentAddress", Header = "Permanent Address", Width = "25%" },
+                                            new() { Data = "parmanentPostOffice", Header = "Post Office", Width = "15%" },
+                                            new() { Data = "parmanentThana", Header = "Thana", Width = "15%" },
+                                            new() { Data = "districtName", Header = "District", Width = "10%" }
+                                        }
+                                    })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <partial name="_BottomNavigation" />
+            </div>
+        </section>
+    </form>
+</section>
+
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="~/js/pages/employeeContactInfos.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+        var options = {
+        baseUrl: '@Url.Action("", "EmployeeContactInfos")'
+        };
+        options.load = () => { };
+
+        function validateBanglaInput(input) {
+        const banglaRegex = /^[\u0980-\u09FF\s]*$/;
+        if (!banglaRegex.test(input.value)) {
+        input.value = input.value.slice(0, -1);
+        }
+        }
+
+        function validatePasteBangla(event) {
+        const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+        const banglaRegex = /^[\u0980-\u09FF\s]*$/;
+        if (!banglaRegex.test(pastedText)) {
+        event.preventDefault();
+        }
+        }
+    </script>
+}

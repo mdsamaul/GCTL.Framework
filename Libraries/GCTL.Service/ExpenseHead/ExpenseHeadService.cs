@@ -1,9 +1,11 @@
-﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using GCTL.Core.Data;
+using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.ExpenseHead;
 using GCTL.Data.Models;
+using GCTL.Service.CoreServiceType;
 using GCTL.Service.Pagination;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +16,8 @@ using System.Data;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-
+using Core_ServiceType = GCTL.Data.Models.CoreServiceType;
+using SpreadsheetColumn = DocumentFormat.OpenXml.Spreadsheet.Column;
 
 
 
@@ -22,17 +25,24 @@ namespace GCTL.Service.ExpenseHead
 {
     public class ExpenseHeadService : AppService<CfDefExpenseHead>, IExpenseHead
     {
+        #region
         private readonly IRepository<CfDefExpenseHead> _repository;
+        private readonly IRepository<Core_ServiceType> _serviceTypeRepository;
+        private readonly IRepository<CfDefExpenseType> _expenseTypeRepository;
         private readonly GCTL_ERP_DBContext _context;
         private readonly string _connectionString;
 
-        public ExpenseHeadService(IRepository<CfDefExpenseHead> genericRepository, GCTL_ERP_DBContext context, IConfiguration configuration) : base(genericRepository)
+        public ExpenseHeadService(IRepository<CfDefExpenseHead> genericRepository, GCTL_ERP_DBContext context, IConfiguration configuration, IRepository<Core_ServiceType> serviceTypeRepository, IRepository<CfDefExpenseType> expenseTypeRepository) : base(genericRepository)
         {
             _repository = genericRepository;
             _context = context;
             _connectionString = configuration.GetConnectionString("connection");
+            _serviceTypeRepository = serviceTypeRepository;
+            _expenseTypeRepository = expenseTypeRepository;
         }
+        #endregion
 
+        #region
         public async Task<bool> BulkDeleteAsync(List<int> ids)
         {
             await _repository.BeginTransactionAsync();
@@ -66,6 +76,7 @@ namespace GCTL.Service.ExpenseHead
             var data = await _repository.All().Where(pt => pt.Tc == id)
                        .Select(pt => new ExpenseHeadVM
                        {
+                           TC = pt.Tc,
                            ExpenseHeadID = pt.ExpenseHeadId,
                            ExpenseHead = pt.ExpenseHead,
                            ShortName = pt.ShortName,
@@ -74,7 +85,7 @@ namespace GCTL.Service.ExpenseHead
                            IsReceiptable = pt.IsReceiptable,
                            ServiceTypeID = pt.ServiceTypeId,
                            ExpenseTypeID = pt.ExpenseTypeId,
-                           LDate = pt.Ldate,
+                           Ldate = pt.Ldate,
                            ModifyDate = pt.ModifyDate,
                        }).FirstOrDefaultAsync();
             return data;
@@ -89,60 +100,91 @@ namespace GCTL.Service.ExpenseHead
             return last?.ExpenseHeadId;
         }
 
-        public async Task<PaginationService<CfDefExpenseHead, ExpenseHeadVM>.PaginationResult<ExpenseHeadVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "ExpenseHeadID", string sortOrder = "desc", string expenseType = "", string isReceiptable = "", string serviceType = "")
+        public async Task<PaginationResponse<ExpenseHeadVM>> GetPaginatedAsync(PaginationRequest request, string expenseType = "", string isReceiptable = "", string serviceType = "")
         {
-            var query = _repository.All();
+            var totalUnfilteredCount = await _repository.All().CountAsync();
+
+            var query = from eh in _repository.All().AsNoTracking()
+                        join st in _serviceTypeRepository.All().AsNoTracking()
+                            on eh.ServiceTypeId equals st.ServiceTypeId into stGroup
+                        from st in stGroup.DefaultIfEmpty()
+
+                        join et in _expenseTypeRepository.All().AsNoTracking()
+
+                            on eh.ExpenseTypeId equals et.ExpenseTypeId into etGroup
+                        from et in etGroup.DefaultIfEmpty()
+
+                        select new ExpenseHeadVM
+                        {
+                            TC = eh.Tc,
+                            ExpenseHeadID = eh.ExpenseHeadId,
+                            ExpenseHead = eh.ExpenseHead,
+                            ShortName = eh.ShortName,
+                            Amount = eh.Amount,
+                            SerialNo = eh.SerialNo,
+                            IsReceiptable = (eh.IsReceiptable == "Y" || eh.IsReceiptable == "Yes" || eh.IsReceiptable == "YES") ? "Yes" : "No",
+                            ExpenseTypeID = eh.ExpenseTypeId,
+                            Ldate = eh.Ldate,
+                            ModifyDate = eh.ModifyDate,
+                            ServiceTypeID = eh.ServiceTypeId,
+                            ServiceTypeName = st != null ? st.ServiceTypeName : "",
+                            ExpenseType = et != null ? et.ExpenseType : (eh.ExpenseTypeId ?? "")
+                        };
+
             if (!string.IsNullOrEmpty(expenseType))
-                query = query.Where(x => x.ExpenseTypeId == expenseType);
+                query = query.Where(x => x.ExpenseTypeID == expenseType);
 
             if (!string.IsNullOrEmpty(isReceiptable))
-                query = query.Where(x => x.IsReceiptable == isReceiptable);
-
-            if (!string.IsNullOrEmpty(serviceType))
-                query = query.Where(x => x.ServiceTypeId == serviceType);
-
-            if (pageSize == -1)
             {
-                pageSize = await query.CountAsync();
+                var target = (isReceiptable.Equals("Y", StringComparison.OrdinalIgnoreCase) || isReceiptable.Equals("Yes", StringComparison.OrdinalIgnoreCase)) ? "Yes" : "No";
+                query = query.Where(x => x.IsReceiptable == target);
             }
 
-            var paginatedResult = await PaginationService<CfDefExpenseHead, ExpenseHeadVM>.GetPaginatedData(
-                query,
-                pageNumber,
-                pageSize,
-                searchTerm,
-                sortColumn,
-                sortOrder,
-                term => sc =>
-                    EF.Functions.Like(sc.ExpenseHeadId ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ShortName ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ExpenseHead ?? "", $"%{term}%") ||
-                    EF.Functions.Like(sc.ServiceTypeId ?? "", $"%{term}%"),
-                pt => new ExpenseHeadVM
-                {
-                    TC = pt.Tc,
-                    ExpenseHeadID = pt.ExpenseHeadId,
-                    ExpenseHead = pt.ExpenseHead,
-                    ShortName = pt.ShortName,
-                    Amount = pt.Amount,
-                    SerialNo = pt.SerialNo,
-                    IsReceiptable = pt.IsReceiptable,
-                    ExpenseTypeID = pt.ExpenseTypeId,
-                    LDate = pt.Ldate,
-                    ModifyDate = pt.ModifyDate,
-                    ServiceTypeID = pt.ServiceTypeId,
-                    ServiceTypeName = _context.Set<GCTL.Data.Models.CoreServiceType>()
-                                            .Where(cs => cs.ServiceTypeId == pt.ServiceTypeId)
-                                            .Select(cs => cs.ServiceTypeName)
-                                            .FirstOrDefault(),
-                    ExpenseType = _context.Set<CfDefExpenseHead>()
-                                          .Where(et => et.ExpenseTypeId == pt.ExpenseTypeId)
-                                          .Select(et => et.ExpenseTypeId)
-                                          .FirstOrDefault()
-                }
-            );
+            if (!string.IsNullOrEmpty(serviceType))
+                query = query.Where(x => x.ServiceTypeID == serviceType);
 
-            return paginatedResult;
+            if (request.PageSize == -1)
+            {
+                request.PageSize = await query.CountAsync();
+                request.PageNumber = 1;
+            }
+
+            if (string.IsNullOrEmpty(request.SortColumn) || request.SortColumn.Equals("default", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.OrderBy(x => x.ExpenseType)
+                             .ThenBy(x => x.ServiceTypeName)
+                             .ThenByDescending(x => x.IsReceiptable)
+                             .ThenBy(x => (x.SerialNo == null ? "" : x.SerialNo).Length)
+                             .ThenBy(x => x.SerialNo);
+                request.SortColumn = "";
+            }
+            else if (request.SortColumn.Equals("SerialNo", StringComparison.OrdinalIgnoreCase))
+            {
+                if (request.SortOrder?.ToLower() == "desc")
+                {
+                    query = query.OrderByDescending(x => (x.SerialNo == null ? "" : x.SerialNo).Length)
+                                 .ThenByDescending(x => x.SerialNo);
+                }
+                else
+                {
+                    query = query.OrderBy(x => (x.SerialNo == null ? "" : x.SerialNo).Length)
+                                 .ThenBy(x => x.SerialNo);
+                }
+                request.SortColumn = "";
+            }
+
+            var result = await PaginationService<ExpenseHeadVM>.GetPaginatedData(query, request);
+            result.TotalCount = totalUnfilteredCount;
+
+            if (result.Data != null)
+            {
+                foreach (var item in result.Data)
+                {
+                    item.IsReceiptable = (item.IsReceiptable == "Y" || item.IsReceiptable == "Yes" || item.IsReceiptable == "YES") ? "Yes" : "No";
+                }
+            }
+
+            return result;
         }
 
         public async Task<bool> IsDuplicateAsync(ExpenseHeadVM model)
@@ -153,7 +195,10 @@ namespace GCTL.Service.ExpenseHead
             return await _repository.All()
                 .AnyAsync(eh =>
                     eh.Tc != model.TC &&
-                    eh.ExpenseHead.Trim().ToLower() == model.ExpenseHead.Trim().ToLower()
+                    eh.ExpenseHead.Trim().ToLower() == model.ExpenseHead.Trim().ToLower() &&
+                    eh.ExpenseTypeId == model.ExpenseTypeID &&
+                    eh.ServiceTypeId == model.ServiceTypeID &&
+                    eh.IsReceiptable == model.IsReceiptable
                 );
         }
 
@@ -164,30 +209,57 @@ namespace GCTL.Service.ExpenseHead
 
         public async Task<bool> SaveAsync(ExpenseHeadVM model)
         {
+            await _repository.BeginTransactionAsync();
+
             try
             {
+                var lastId = await GetLastExpenseHeadAsync();
+                int.TryParse(model.SerialNo, out int targetSerial);
+                if (targetSerial <= 0)
+                {
+                    targetSerial = await GetNextSerialNoAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable);
+                }
+                else
+                {
+                    // Shift existing records with serial >= targetSerial up by 1
+                    await ShiftSerialsAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable, targetSerial, excludeTc: null);
+                }
+
+                string newId;
+                if (!string.IsNullOrEmpty(lastId) && int.TryParse(lastId, out int lastNumericId))
+                {
+                    int nextId = lastNumericId + 1;
+                    newId = nextId.ToString("D4");
+                }
+                else
+                {
+                    newId = "001";
+                }
+
                 var entity = new CfDefExpenseHead
                 {
-                    ExpenseHeadId = model.ExpenseHeadID,
+                    ExpenseHeadId = newId,
                     ExpenseHead = model.ExpenseHead,
                     ShortName = model.ShortName ?? "",
                     Amount = model.Amount,
-                    SerialNo = model.SerialNo,
+                    SerialNo = targetSerial.ToString(),
                     IsReceiptable = model.IsReceiptable,
                     ServiceTypeId = model.ServiceTypeID,
                     ExpenseTypeId = model.ExpenseTypeID,
-                    Luser = "",
-                    Ldate = DateTime.Now,
-                    Lip = GetLocalIP() ?? "",
-                    Lmac = GetMacAddress() ?? "",
+                    Luser = model.Luser,
+                    Ldate = model.Ldate ?? DateTime.Now,
+                    Lip = !string.IsNullOrEmpty(model.Lip) ? model.Lip : (GetLocalIP() ?? ""),
+                    Lmac = !string.IsNullOrEmpty(model.Lmac) ? model.Lmac : (GetMacAddress() ?? ""),
                     EntryType = model.EntryType ?? "",
                 };
 
                 await _repository.AddAsync(entity);
+                await _repository.CommitTransactionAsync();
                 return true;
             }
             catch (Exception ex)
             {
+                await _repository.RollbackTransactionAsync();
                 Console.WriteLine($"Insertion Failed: {ex.Message}");
                 return false;
             }
@@ -196,6 +268,7 @@ namespace GCTL.Service.ExpenseHead
         public async Task<bool> UpdateAsync(ExpenseHeadVM model)
         {
             await _repository.BeginTransactionAsync();
+
             try
             {
                 var entity = await _repository.GetByIdAsync(model.TC);
@@ -205,18 +278,28 @@ namespace GCTL.Service.ExpenseHead
                     return false;
                 }
 
+                int.TryParse(model.SerialNo, out int targetSerial);
+                if (targetSerial <= 0)
+                {
+                    targetSerial = await GetNextSerialNoAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable);
+                }
+                else
+                {
+                    // Shift existing other records with serial >= targetSerial up by 1
+                    await ShiftSerialsAsync(model.ExpenseTypeID, model.ServiceTypeID, model.IsReceiptable, targetSerial, excludeTc: model.TC);
+                }
+
                 entity.ExpenseHeadId = model.ExpenseHeadID;
                 entity.ExpenseHead = model.ExpenseHead;
                 entity.ShortName = model.ShortName ?? "";
                 entity.Amount = model.Amount;
-                entity.SerialNo = model.SerialNo;
+                entity.SerialNo = targetSerial.ToString();
                 entity.IsReceiptable = model.IsReceiptable;
                 entity.ServiceTypeId = model.ServiceTypeID;
                 entity.ExpenseTypeId = model.ExpenseTypeID;
-                entity.Luser = "";
-                entity.ModifyDate = DateTime.Now;
-                entity.Lip = GetLocalIP() ?? "";
-                entity.Lmac = GetMacAddress() ?? "";
+                entity.ModifyDate = model.ModifyDate ?? DateTime.Now;
+                entity.Lip = !string.IsNullOrEmpty(model.Lip) ? model.Lip : (GetLocalIP() ?? "");
+                entity.Lmac = !string.IsNullOrEmpty(model.Lmac) ? model.Lmac : (GetMacAddress() ?? "");
                 entity.EntryType = model.EntryType ?? "";
 
                 await _repository.UpdateAsync(entity);
@@ -256,55 +339,52 @@ namespace GCTL.Service.ExpenseHead
                 throw new ArgumentException("ExpenseType and IsReceiptable are required.");
 
             isReceiptable = isReceiptable.Trim().ToUpper();
-            if (isReceiptable != "YES" && isReceiptable != "NO")
-                throw new ArgumentException("IsReceiptable must be 'Yes' or 'No'");
+            if (isReceiptable != "Y" && isReceiptable != "N")
+                throw new ArgumentException("IsReceiptable must be 'Y' or 'N'.");
 
             var allRecords = await _repository.GetAllAsync();
 
-            // Filter for the type & service & receiptable
             var filtered = allRecords.Where(e =>
                 e.ExpenseTypeId == expenseType &&
                 (string.IsNullOrEmpty(serviceType) || e.ServiceTypeId == serviceType) &&
                 e.IsReceiptable?.Trim().ToUpper() == isReceiptable
-            ).OrderBy(e => int.TryParse(e.SerialNo, out int s) ? s : 0).ToList();
+            ).ToList();
 
-            int nextSerial = 1;
-
-            if (requestedSerial.HasValue)
+            if (requestedSerial.HasValue && requestedSerial.Value > 0)
             {
-                int req = requestedSerial.Value;
-                if (req <= 0)
-                    throw new ArgumentException("Requested serial must be a positive integer.");
-
-                if (filtered.Any())
-                {
-                    int minSerial = filtered.Min(e => int.Parse(e.SerialNo));
-
-                    if (req >= minSerial)
-                    {
-                        // Shift serials >= requestedSerial
-                        var toShift = filtered.Where(e => int.TryParse(e.SerialNo, out int s) && s >= req)
-                                              .OrderByDescending(e => int.Parse(e.SerialNo))
-                                              .ToList();
-
-                        foreach (var record in toShift)
-                        {
-                            int currentSerial = int.Parse(record.SerialNo);
-                            record.SerialNo = (currentSerial + 1).ToString();
-                            await _repository.UpdateAsync(record);
-                        }
-                    }
-                }
-
-                nextSerial = req;
-            }
-            else if (filtered.Any())
-            {
-                nextSerial = filtered.Max(e => int.TryParse(e.SerialNo, out int s) ? s : 0) + 1;
+                return requestedSerial.Value;
             }
 
-            return nextSerial;
+            if (filtered.Any())
+            {
+                return filtered.Max(e => int.TryParse(e.SerialNo, out int s) ? s : 0) + 1;
+            }
+
+            return 1;
         }
+
+        private async Task ShiftSerialsAsync(string expenseType, string serviceType, string isReceiptable, int targetSerial, int? excludeTc = null)
+        {
+            if (targetSerial <= 0) return;
+
+            var allRecords = await _repository.GetAllAsync();
+
+            var toShift = allRecords.Where(e =>
+                e.ExpenseTypeId == expenseType &&
+                (string.IsNullOrEmpty(serviceType) || e.ServiceTypeId == serviceType) &&
+                e.IsReceiptable?.Trim().ToUpper() == isReceiptable?.Trim().ToUpper() &&
+                (!excludeTc.HasValue || e.Tc != excludeTc.Value) &&
+                int.TryParse(e.SerialNo, out int s) && s >= targetSerial
+            ).OrderByDescending(e => int.TryParse(e.SerialNo, out int s) ? s : 0).ToList();
+
+            foreach (var record in toShift)
+            {
+                int currentSerial = int.TryParse(record.SerialNo, out int cs) ? cs : 0;
+                record.SerialNo = (currentSerial + 1).ToString();
+                await _repository.UpdateAsync(record);
+            }
+        }
+        #endregion
 
         #region Ip & Mac
         public string GetLocalIP()
@@ -338,12 +418,11 @@ namespace GCTL.Service.ExpenseHead
         #endregion
 
         #region Report
-
         public async Task<List<ExpenseHeadReportVM>> GetExpenseHeadReportAsync(string expenseTypeId = "")
         {
             var result = new List<ExpenseHeadReportVM>();
 
-            // SqlConnection 
+            // SqlConnection
             using (var conn = new SqlConnection(_connectionString))
             {
                 await conn.OpenAsync();
@@ -376,9 +455,23 @@ namespace GCTL.Service.ExpenseHead
                 }
             }
 
-            return result;
-        }
+            var orderedList = result
+                .OrderBy(x => x.ExpenseType)
+                .ThenBy(x => x.ServiceProvidedBy)
+                .ThenByDescending(x => x.IsReceiptable)
+                .ThenBy(x => int.TryParse(x.SerialNo, out int s) ? s : int.MaxValue)
+                .ToList();
 
+            foreach (var item in orderedList)
+            {
+                item.IsReceiptable = (item.IsReceiptable == "Y" || item.IsReceiptable == "Yes" || item.IsReceiptable == "YES") ? "Yes" : "No";
+            }
+
+            return orderedList;
+        }
+        #endregion
+
+        #region Gnereate Excel Report
         public async Task<byte[]> GenerateExcelReportAsync(string expenseTypeId = "")
         {
             var data = await GetExpenseHeadReportAsync(expenseTypeId);
@@ -400,7 +493,7 @@ namespace GCTL.Service.ExpenseHead
                 );
                 stylesPart.Stylesheet.Fonts = fonts;
 
-                // Fills 
+                // Fills
                 var fills = new Fills(
                     new Fill(new PatternFill() { PatternType = PatternValues.None }),    // 0: default
                     new Fill(new PatternFill() { PatternType = PatternValues.Gray125 }), // 1: required
@@ -520,13 +613,13 @@ namespace GCTL.Service.ExpenseHead
 
                 // Column widths
                 var columns = new Columns(
-                    new Column() { Min = 1, Max = 1, Width = 20, CustomWidth = true },
-                    new Column() { Min = 2, Max = 2, Width = 40, CustomWidth = true },
-                    new Column() { Min = 3, Max = 3, Width = 15, CustomWidth = true },
-                    new Column() { Min = 4, Max = 4, Width = 12, CustomWidth = true },
-                    new Column() { Min = 5, Max = 5, Width = 15, CustomWidth = true },
-                    new Column() { Min = 6, Max = 6, Width = 20, CustomWidth = true },
-                    new Column() { Min = 7, Max = 7, Width = 25, CustomWidth = true }
+                    new SpreadsheetColumn() { Min = 1, Max = 1, Width = 20, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 2, Max = 2, Width = 40, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 3, Max = 3, Width = 15, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 4, Max = 4, Width = 12, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 5, Max = 5, Width = 15, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 6, Max = 6, Width = 20, CustomWidth = true },
+                    new SpreadsheetColumn() { Min = 7, Max = 7, Width = 25, CustomWidth = true }
                 );
                 worksheetPart.Worksheet.InsertAt(columns, 0);
 
@@ -536,7 +629,9 @@ namespace GCTL.Service.ExpenseHead
 
             return ms.ToArray();
         }
+        #endregion
 
+        #region Generate PDF Report
         public async Task<byte[]> GeneratePdfReportAsync(string expenseTypeId = "")
         {
             var data = await GetExpenseHeadReportAsync(expenseTypeId);
@@ -619,7 +714,7 @@ namespace GCTL.Service.ExpenseHead
 
                                 header.Cell()
                                       .Element(container => container
-                                      .Border(0.25f) 
+                                      .Border(0.25f)
                                       .PaddingLeft(2)
                                       .Element(container => container
                                       .Text("Expense Head").Bold().AlignLeft().FontSize(10)));
@@ -638,7 +733,7 @@ namespace GCTL.Service.ExpenseHead
                                 header.Cell()
                                       .Element(container => container
                                        .Border(0.25f)
-                                      .Text("Is\nReceiptable") 
+                                      .Text("Is\nReceiptable")
                                       .Bold().AlignCenter().FontSize(10));
 
 
@@ -670,7 +765,7 @@ namespace GCTL.Service.ExpenseHead
 
                                 table.Cell()
                                      .Border(0.25f)
-                                     .MinHeight(20) 
+                                     .MinHeight(20)
                                     .PaddingLeft(2)
                                     .BorderColor(QuestPDF.Helpers.Colors.Black)
                                      .Text(d.ExpenseHead ?? "")
@@ -736,9 +831,6 @@ namespace GCTL.Service.ExpenseHead
 
             return pdfBytes;
         }
-
         #endregion
-
-
     }
 }

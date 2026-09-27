@@ -1,0 +1,354 @@
+@using GCTL.UI.Core.ViewModels
+
+<style>
+    .gc-ob-setup {
+        --gc-border: #dde2eb;
+        --gc-control-height: 31px;
+    }
+
+    .gc-ob-setup .form-label {
+        font-size: .8rem !important;
+        font-weight: 600 !important;
+        color: #4b5568 !important;
+        margin-bottom: 4px !important;
+        height: 18px !important;
+        min-height: 18px !important;
+        max-height: 18px !important;
+        line-height: 18px !important;
+        white-space: nowrap !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .gc-ob-setup .row > * {
+        margin-top: .15rem !important;
+        margin-bottom: .35rem !important;
+    }
+
+    /* Nested row alignment in Row 3 */
+    .gc-ob-setup .nested-control-row {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .gc-ob-setup .nested-control-row > * {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ==========================================================================
+       Uniform Control Height (31px) across ALL Inputs, Dropdowns, Datepicker:
+       - Form Controls & Native Selects
+       - Custom Dropdown (.custom-dd-wrapper, .custom-dd-box)
+       - Flatpickr Custom Datepicker (.custom-datepicker, .flatpickr-input)
+       - Select2 Dropdowns (.select2-selection--single)
+       ========================================================================== */
+    .gc-ob-setup #BlanceTypeForm input#OpeningBalance,
+    .gc-ob-setup #BlanceTypeForm .form-control:not(.custom-dd-input),
+    .gc-ob-setup #BlanceTypeForm .form-select,
+    .gc-ob-setup #BlanceTypeForm .custom-datepicker,
+    .gc-ob-setup #BlanceTypeForm .flatpickr-input,
+    .gc-ob-setup #BlanceTypeForm .select2-container,
+    .gc-ob-setup #BlanceTypeForm .select2-container .select2-selection--single {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        font-size: 13px !important;
+        line-height: 29px !important;
+        border-radius: 4px !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    .gc-ob-setup #BlanceTypeForm input#OpeningBalance,
+    .gc-ob-setup #BlanceTypeForm .form-control:not(.custom-dd-input),
+    .gc-ob-setup #BlanceTypeForm .custom-datepicker,
+    .gc-ob-setup #BlanceTypeForm .flatpickr-input {
+        padding: 0 0.5rem !important;
+        border: 1px solid #ced4da !important;
+        background-color: #fff;
+    }
+
+    .gc-ob-setup #BlanceTypeForm .flatpickr-wrapper {
+        width: 100% !important;
+        display: block !important;
+    }
+
+    /* Custom Dropdown (.custom-dd-box) - Single Clean Border, NO Double Border */
+    .gc-ob-setup #BlanceTypeForm .custom-dd-wrapper {
+        width: 100% !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .gc-ob-setup #BlanceTypeForm .custom-dd-box {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        padding: 0 0.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        box-sizing: border-box !important;
+        box-shadow: none !important;
+    }
+
+    .gc-ob-setup #BlanceTypeForm .custom-dd-input,
+    .gc-ob-setup #BlanceTypeForm input.custom-dd-input,
+    .gc-ob-setup #BlanceTypeForm .custom-dd-box input {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0 2px !important;
+        margin: 0 !important;
+        height: 29px !important;
+        min-height: 29px !important;
+        max-height: 29px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
+        flex: 1 1 auto !important;
+    }
+
+    .gc-ob-setup #BlanceTypeForm .custom-dd-clear-icon,
+    .gc-ob-setup #BlanceTypeForm .custom-dd-arrow {
+        height: 29px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        line-height: 1 !important;
+        border: none !important;
+    }
+
+    /* Select2 Container parity */
+    .gc-ob-setup #BlanceTypeForm .select2-container .select2-selection--single {
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 8px !important;
+        border: 1px solid #ced4da !important;
+    }
+
+    .gc-ob-setup #BlanceTypeForm .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 29px !important;
+        height: 29px !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .gc-ob-setup #BlanceTypeForm .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 29px !important;
+        top: 0 !important;
+        right: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    /* Display controls for edit dates */
+    .gc-ob-setup #BlanceTypeForm #BlancedisplayLDate,
+    .gc-ob-setup #BlanceTypeForm #BlancedisplayModifyDate {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        padding: 0 0.5rem !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Company Readonly styling */
+    .company-readonly-wrapper {
+        pointer-events: none;
+    }
+    .company-readonly-wrapper .custom-dd-box,
+    .company-readonly-wrapper select {
+        background-color: #f1f3f5 !important;
+        cursor: not-allowed !important;
+        opacity: 0.88;
+    }
+    .company-readonly-wrapper .custom-dd-input,
+    .company-readonly-wrapper input.custom-dd-input,
+    .company-readonly-wrapper .custom-dd-box input {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* When screen is < 1500px (and >= 900px), shrink inside form to 80% and center it */
+    @@media (min-width: 900px) and (max-width: 1499.98px) {
+        .gc-ob-setup #BlanceTypeForm {
+            width: 80% !important;
+            max-width: 80% !important;
+            margin: 0 auto !important;
+        }
+    }
+</style>
+
+<div class="card shadow-sm rounded-2 gc-ob-setup">
+
+    @await Html.PartialAsync("_Toolbars", new ToobarModel
+    {
+        Title = "Opening Balance Entry",
+        ShowSave = true,
+        SaveBtnId = "BlanceSaveBtn",
+        SaveBtnClass = "js-Blance-save BlanceSaveBtn",
+        EnableSave = true,
+
+        ShowDelete = true,
+        DeleteBtnId = "BlancedeleteBtn",
+        DeleteBtnClass = "js-Blance-delete-confirm BlancedeleteBtn",
+        EnableDelete = true,
+
+        ShowClear = true,
+        ClearBtnId = "btnClear",
+        ClearBtnClass = "js-Blance-clear BlanceresetBtn",
+        EnableClear = true,
+
+        ShowPrint = true,
+        PrintBtnId = "btnPrint",
+        PrintBtnClass = "printBtn",
+        ExcelBtnClass = "export-excel",
+        PdfBtnClass = "export-pdf",
+        EnablePrint = true,
+
+        ShowFavorite = true,
+        FavtBtnId = "btnFav",
+        FavtBtnClass = "BlancefavBtn",
+        EnableFavorite = true
+    })
+
+    <div class="card-body px-2">
+        <form id="BlanceTypeForm">
+            <input type="hidden" id="BlanceautoId" name="autoId" />
+
+            <div class="row g-2">
+                @* 1. Company Code (Readonly) & Right Side Gap *@
+                <div class="col-12 col-md-6 company-readonly-wrapper">
+                    <label for="CompanyCode" class="form-label">
+                        Company<span class="text-danger">*</span>
+                    </label>
+                    <select id="CompanyCode" name="CompanyCode"
+                            class="form-select form-select-sm custom-select-single"
+                            data-placeholder="-- Select Company --">
+                        <option value="">-- Select Company --</option>
+                    </select>
+                    <span class="text-danger small field-validation" id="CompanyCode-error"></span>
+                </div>
+                <div class="col-12 col-md-6 d-none d-md-block">
+                    @* Right side blank gap *@
+                </div>
+
+                @* 2. Branch (Left) & Account Head (Right) *@
+                <div class="col-12 col-md-6">
+                    <label for="BranchCode" class="form-label">
+                        Branch<span class="text-danger">*</span>
+                    </label>
+                    <select id="BranchCode" name="BranchCode"
+                            class="form-select form-select-sm custom-select-single"
+                            data-placeholder="-- Select Branch --">
+                        <option value="">-- Select Branch --</option>
+                    </select>
+                    <span class="text-danger small field-validation" id="BranchCode-error"></span>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="SubSusidiaryLedgerCodeNo" class="form-label">
+                        Account Head<span class="text-danger">*</span>
+                    </label>
+                    <select id="SubSusidiaryLedgerCodeNo" name="SubSusidiaryLedgerCodeNo"
+                            class="form-select form-select-sm custom-select-single"
+                            data-placeholder="-- Select Account Head --"
+                            data-ajax-url="/openingUI-General-Ledger-dropdown-paged"
+                            data-page-size="10">
+                        <option value="">-- Select Account Head --</option>
+                    </select>
+                    <span class="text-danger small field-validation" id="SubSusidiaryLedgerCodeNo-error"></span>
+                </div>
+
+                @* 3. Opening Balance & Tr Type (Left 50% 50% with gap) & Opening Date (Right) *@
+                <div class="col-12 col-md-6">
+                    <div class="row g-2 nested-control-row">
+                        <div class="col-6">
+                            <label for="OpeningBalance" class="form-label">
+                                Opening Balance<span class="text-danger">*</span>
+                            </label>
+                            <input type="number" step="any"
+                                   id="OpeningBalance" name="OpeningBalance"
+                                   class="form-control form-control-sm"
+                                   placeholder="Opening Balance" />
+                            <span class="text-danger small field-validation" id="OpeningBalance-error"></span>
+                        </div>
+                        <div class="col-6">
+                            <label for="TrType" class="form-label">
+                                Tr Type<span class="text-danger">*</span>
+                            </label>
+                            <select id="TrType" name="TrType"
+                                    class="form-select form-select-sm custom-select-single"
+                                    data-placeholder="-- Select --">
+                                <option value="">-- Select --</option>
+                                <option value="Dr">Debit</option>
+                                <option value="Cr">Credit</option>
+                            </select>
+                            <span class="text-danger small field-validation" id="TrType-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="OpeningDate" class="form-label">
+                        Opening Date<span class="text-danger">*</span>
+                    </label>
+                    <input type="text"
+                           id="OpeningDate" name="OpeningDate"
+                           class="form-control form-control-sm custom-datepicker"
+                           placeholder="DD/MM/YYYY"
+                           autocomplete="off" />
+                    <span class="text-danger small field-validation" id="OpeningDate-error"></span>
+                </div>
+            </div>
+
+            @* --- Entry & Update Date Section (Hidden by default; shown only on edit) --- *@
+            <div id="entryUpdateDateSection" class="d-none">
+                <hr class="my-2" />
+
+                <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Entry Date:</label>
+                        <p id="BlancedisplayLDate" class="form-control form-control-sm bg-light mb-0" style="font-size:13px;"></p>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Last Update Date:</label>
+                        <p id="BlancedisplayModifyDate" class="form-control form-control-sm bg-light mb-0" style="font-size:13px;"></p>
+                    </div>
+                </div>
+            </div>
+
+            @* Bottom Save Button *@
+            <div class="col-12 mt-2">
+                @await Html.PartialAsync("_Toolbars", new ToobarModel
+                {
+                    Title = "",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowPrint = false,
+                    ShowFavorite = false,
+                    IsPlain = true,
+                    ReserveActionSlot = true,
+                    SaveBtnType = "submit",
+           Style="border-bottom:0px !important;"
+                })
+            </div>
+
+        </form>
+    </div>
+</div>

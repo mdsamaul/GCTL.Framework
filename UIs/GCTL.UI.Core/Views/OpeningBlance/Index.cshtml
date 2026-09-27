@@ -1,0 +1,49 @@
+﻿<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+
+<style>
+    /* Breakpoint adjustments for 900px - 1500px and >1500px */
+    @@media (min-width: 900px) and (max-width: 1500px) {
+        .ob-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-bottom: 1rem;
+        }
+
+        .ob-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            padding-bottom: 1.5rem !important;
+        }
+    }
+
+    @@media (min-width: 1500.02px) {
+        .ob-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .ob-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+</style>
+
+<div class="row g-2">
+    <div class="col-12 col-xl-6 ob-layout-form-col" id="VoucherFormView">
+        @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceForm.cshtml")
+    </div>
+    <div class="col-12 col-xl-6 ob-layout-grid-col" id="VoucherListView">
+        @await Html.PartialAsync("~/Views/OpeningBlance/_OpeningBlanceList.cshtml")
+    </div>
+</div> 
+
+<partial name="~/Views/Shared/DeleteModal.cshtml" />
+
+@section Scripts {
+    <script src="~/js/pages/OpeningBalance/OpeningBalance.js" asp-append-version="true"></script>
+}

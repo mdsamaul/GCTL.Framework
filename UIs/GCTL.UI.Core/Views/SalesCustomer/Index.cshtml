@@ -1,0 +1,361 @@
+@using GCTL.Core.ViewModels.AddSalesCustomer
+
+<style>
+    .content {
+        margin-right: 0 !important;
+    }
+    .equal-height-container {
+        display: flex;
+    }
+    .fill-height {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+    #delivery-form-container {
+        overflow: visible;
+        flex-grow: 1;
+    }
+    #customer-form-container,
+    #delivery-form-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #customer-form-container .card, #delivery-form-container .card {
+        flex: 1; display: flex;
+        flex-direction: column;
+    }
+    #contactPersonModal .modal-dialog {
+        max-width: 1600px !important;
+        width: 95% !important;
+    }
+
+    /* ==========================================================================
+       Sales Customer Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Vendor Info pattern
+       ========================================================================== */
+    .sc-field-col {
+        position: relative !important;
+    }
+
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .sc-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .form-label .text-danger,
+    .sc-field-col .form-label sup,
+    .sc-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .sc-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Full width for all inputs and select2 containers */
+    .sc-field-col .form-control,
+    .sc-field-col .form-select,
+    .sc-field-col select,
+    .sc-field-col .select2-container,
+    .sc-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
+    .sc-layout-form-col .card-body {
+        padding: 12px 18px !important;
+    }
+
+    .sc-layout-form-col .card-body .row,
+    .sc-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
+    .sc-field-col .field-fixed-width > .detached-action-btn,
+    .sc-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
+        min-height: 28px !important;
+        max-height: 34px !important;
+        width: 20px !important;
+        min-width: 20px !important;
+        max-width: 20px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .sc-field-col .field-fixed-width > .detached-action-btn:hover,
+    .sc-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .sc-field-col .field-fixed-width > .detached-action-btn:focus,
+    .sc-field-col .field-fixed-width > .js-quick-add:focus,
+    .sc-field-col .field-fixed-width > .detached-action-btn:active,
+    .sc-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .sc-field-col .field-fixed-width > .detached-action-btn i,
+    .sc-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .sc-field-col .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .sc-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sc-field-col .field-fixed-width > .detached-action-btn,
+        .sc-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
+    }
+
+    /* Responsive layout:
+       - Laptop / smaller screens (<= 1600px): Form is on Top (100%), Inputs are col-3 (25% width, 2 inputs = 50% width + 50% gap), Grid is on Bottom (100%)
+       - Big screen (> 1600px): Form is on Left (50%), Inputs are 50% (2 per row), Grid is on Right (50%)
+    */
+    @@media (max-width: 1600px) {
+        .sc-layout-form-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem;
+        }
+
+        .sc-layout-grid-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            padding-bottom: 1.5rem !important;
+        }
+
+        .sc-field-col {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+    }
+
+    @@media (min-width: 1600.02px) {
+        .sc-layout-form-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-layout-grid-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .sc-field-col {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .sc-field-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+
+        .sc-toolbar-col {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+        }
+    }
+</style>
+
+@model SalesCustomerViewModel
+@{
+    ViewData["Title"] = "Customer Information";
+}
+<div class="mb-3" style="display:flex;">
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="customerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="customer-info-tab" data-bs-toggle="tab" data-bs-target="#customer-info" type="button" role="tab" aria-controls="customer-info" aria-selected="true">Customer Info</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="delivery-address-tab" data-bs-toggle="tab" data-bs-target="#delivery-address" type="button" role="tab" aria-controls="delivery-address" aria-selected="false">Delivery Address</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="customerTabsContent">
+            <div class="tab-pane fade show active" id="customer-info" role="tabpanel" aria-labelledby="customer-info-tab">
+                <div class="row mt-3">
+                    <div class="col-12 col-xxl-6 pe-1 sc-layout-form-col">
+                        <div id="customer-form-container">
+                            @await Html.PartialAsync("_Setup", Model ?? new SalesCustomerViewModel())
+                        </div>
+                    </div>
+                    <div class="col-10 col-xxl-6 ">
+                        <div id="customer-list-container">
+                            @await Html.PartialAsync("_Table")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="delivery-address" role="tabpanel" aria-labelledby="delivery-address-tab">
+                <div class="row mt-3">
+                    <div class="col-12 col-xxl-6 pe-1 sc-layout-form-col">
+                        <div id="delivery-form-container">
+                            @await Html.PartialAsync("_DLForm", new SalesDeliveryLocationViewModel())
+                        </div>
+                    </div>
+                    <div class="col-10 col-xxl-6">
+                        <div id="delivery-list-container">
+                            @await Html.PartialAsync("_DLTable")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("DeleteModal")
+
+<!-- Modal Contact Person -->
+<div class="modal fade" id="contactPersonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Contact Person</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex gap-1">
+                <div id="partialOne" class="col-md-6">
+                    @await Html.PartialAsync("~/Views/ContactPerson/ContactPersonForm.cshtml")
+                </div>
+                <div id="partialTwo" class="col-md-6">
+                    @await Html.PartialAsync("~/Views/ContactPerson/ContactPersonGrid.cshtml")
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/CustomerRelationshipManagement/salesCustomerData.js" defer></script>
+    <script src="~/js/pages/customerrelationshipmanagement/salesDeliveryLocation.js" defer></script>
+    <script src="~/js/pages/customerrelationshipmanagement/SaleContactPerson.js" defer></script>
+
+     <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.salesCustomerData === "function") {
+                var options = { baseUrl: '@Url.Action("", "SaleContactPerson")' };
+                options.load = () => { };
+                $.salesCustomerData(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script> 
+}

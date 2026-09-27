@@ -1,0 +1,91 @@
+﻿@model GCTL.UI.Core.ViewModels.VendorPrefix.VendorPrefixPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Vendor Prefix";
+    Model.Breadcrumb = "Vendor Prefix";
+}
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="container-fluid">
+        <div class="row">
+
+            <div class="col-md-6 pr-0">
+                <div class="card">
+                    <div class="card-header px-2">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Vendor Prefix",
+                            SaveBtnClass = "js-VendorPrefix-save",
+                            DeleteBtnClass = "js-VendorPrefix-delete-confirm",
+                            ClearBtnClass = "js-VendorPrefix-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+
+                        <form asp-action="Setup" method="post" id="VendorPrefix-form" asp-controller="VendorPrefix">
+
+                            <div class="js-VendorPrefix-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6" style="height:570px;overflow:auto;">
+                <div class="card">
+                    <div class="card-body p-2 pt-3">
+                        <div class="js-VendorPrefix-grid-container">
+
+                            @await Html.PartialAsync("_CustomGrid", new GridModel
+                            {
+                                GridId = "VendorPrefix-grid",
+                                AjaxUrl = "/VendorPrefix/GetTableData", 
+                                ServerSide = false,
+                                ShowCheckbox = true,
+                                CheckboxClass = "checkBox",
+                                CheckColumnData = "vendorPrifixId",
+                                DefaultSortColumn = "vendorPrifixId",
+                                Columns = new()
+                                {
+                                    new() { Data = "vendorPrifixId",IsEditLink=true,EditSelectorClass="js-VendorPrefix-edit", Header = "ID", Width = "10%" },
+                                    new() { Data = "prifixName", Header = "Prifix Name", Width = "55%" },
+                                    new() { Data = "shortName", Header = "Short Name", Width = "32%" }
+                                }
+                            })
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+
+<script src="~/js/app.input.validation.js" defer></script>
+<script src="~/js/pages/vendorPrefix.js" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+    if (window.jQuery && typeof $.vendorPrefix === "function") {
+    var options = { baseUrl: '@Url.Action("", "VendorPrefix")' };
+    options.load = () => { };
+    $.vendorPrefix(options);
+    } else {
+    setTimeout(waitForJQuery, 30);
+    }
+    })();
+</script>

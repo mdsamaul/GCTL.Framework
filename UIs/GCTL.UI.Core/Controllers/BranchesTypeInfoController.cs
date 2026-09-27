@@ -6,7 +6,6 @@ using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using GCTL.Service.BranchesTypeInfo;
 using GCTL.Service.Common;
-using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.BranchesTypeInfo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -41,18 +40,22 @@ namespace GCTL.UI.Core.Controllers
             BranchTypePageViewModel model = new BranchTypePageViewModel()
             {
                 PageUrl = Url.Action(nameof(Index)),
-                //AddUrl = Url.Action(nameof(Setup))
+                
             };
-            commonService.FindMaxNo(ref strMaxNO, "BranchCode", "Core_Branch", 3);
+            commonService.FindMaxNo(ref strMaxNO, "BranchCode", "Core_Branch", 2);
             model.Setup = new BranchTypeSetupViewModel
             {
                 BranchCode = strMaxNO,
             };
+
             var comapanies =  branchTypeInfoService.DropSelection();
             string selectedCompanyCode = comapanies.Count() == 1 ? comapanies.First().Code : null;
             ViewBag.CompanyCodeDD = new SelectList( branchTypeInfoService.DropSelection(), "Code", "Name", selectedCompanyCode);
-           // ViewBag.CompanyCodeDD = new SelectList(branchTypeInfoService.DropSelection(), "Code", "Name");
-
+            
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
 
             return View(model);
         }
@@ -69,7 +72,6 @@ namespace GCTL.UI.Core.Controllers
             model = mapper.Map<BranchTypeSetupViewModel>(result);
             model.Code = id;
 
-            //  ViewBag.Company = new SelectList(_coreCompany.All(), "Code", "Name", model.CompanyCode);
             ViewBag.CompanyCodeDD = new SelectList(branchTypeInfoService.DropSelection(), "Code", "Name");
 
             return View(model);
@@ -79,7 +81,7 @@ namespace GCTL.UI.Core.Controllers
         public IActionResult Setup(string id)
         {
             BranchTypeSetupViewModel model = new BranchTypeSetupViewModel();
-            commonService.FindMaxNo(ref strMaxNO, "BranchCode", "Core_Branch", 3);
+            commonService.FindMaxNo(ref strMaxNO, "BranchCode", "Core_Branch", 2);
             var result = branchTypeInfoService.GetBranchTypeSetupView(id);
             if (result != null)
             {
@@ -105,7 +107,6 @@ namespace GCTL.UI.Core.Controllers
 
             if (ModelState.IsValid)
             {
-
                 if (branchTypeInfoService.IsBranchTypeInfoExistByCode(model.BranchCode))
                 {
                     var hasPermission = branchTypeInfoService.UpdatePermission(LoginInfo.AccessCode);
@@ -119,10 +120,8 @@ namespace GCTL.UI.Core.Controllers
                     }
                     else
                     {
-
                         return Json(new { isSuccess = false, message = "You have no access" });
                     }
-
                 }
                 else
                 {
@@ -137,46 +136,32 @@ namespace GCTL.UI.Core.Controllers
                     }
                     else
                     {
-
                         return Json(new { isSuccess = false, message = "You have no access" });
                     }
-
                 }
-
             }
 
             return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
         }
 
         public async Task<ActionResult> Grid(string CompanyCode)
-        {
-           
+        {       
             var resutl = await branchTypeInfoService.GetCompaniess(CompanyCode);
             return Json(new { data = resutl });
         }
 
         [HttpPost]
-
         public async Task<ActionResult> Delete(string id)
-
         {
-
             var hasPermission = branchTypeInfoService.DeletePermission(LoginInfo.AccessCode);
 
             if (!hasPermission)
-
             {
-
-                return Json(new { success = false, message = "You have no access" });
-
+               return Json(new { success = false, message = "You have no access" });
             }
-
             if (string.IsNullOrWhiteSpace(id))
-
             {
-
                 return Json(new { success = false, message = "No IDs provided" });
-
             }
 
             var results = new List<(bool success, bool refSuccess, string message)>();
@@ -184,7 +169,6 @@ namespace GCTL.UI.Core.Controllers
             var ids = id.Split(",", StringSplitOptions.RemoveEmptyEntries)
 
                  .Select(x => x.Trim())
-
                  .ToList();
             DeleteHistoryViewModel model = new DeleteHistoryViewModel();
             model.ToAudit(LoginInfo);
@@ -194,7 +178,6 @@ namespace GCTL.UI.Core.Controllers
 
             results.Add(result);
 
-
             // Aggregate outcome
 
             bool overallSuccess = results.All(r => r.success);
@@ -203,48 +186,12 @@ namespace GCTL.UI.Core.Controllers
 
             string combinedMessage = overallSuccess
 
-                ? "Deleted Successfully"
+                ? "Delete Successfully"
 
                 : string.Join("; ", results.Where(r => !r.success).Select(r => r.message));
 
             return Json(new { success = overallSuccess, message = combinedMessage, refSuccess = refSuccess });
 
         }
-
-
-
-        //[HttpPost]
-        //public ActionResult Delete(string id)
-        //{
-        //    var hasPermission = branchTypeInfoService.DeletePermission(LoginInfo.AccessCode);
-        //    if (hasPermission)
-        //    {
-        //        bool success = false;
-        //        foreach (var item in id.Split(",", StringSplitOptions.RemoveEmptyEntries))
-        //        {
-        //            success = branchTypeInfoService.DeleteBranchTypeInfo(item);
-        //        }
-
-        //        return Json(new { success = success, message = "Deleted Successfully" });
-        //    }
-        //    else
-        //    {
-        //        return Json(new { isSuccess = false, message = "You have no access" });
-        //    }
-
-        //}
-
-
-
-        //[HttpPost]
-        //public JsonResult CheckAvailability(string name, string code)
-        //{
-        //    if (branchTypeInfoService.IsBranchTypeInfoExist(name, code))
-        //    {
-        //        return Json(new { isSuccess = true, message = "Already Exists" });
-        //    }
-
-        //    return Json(new { isSuccess = false });
-        //}
     }
 }

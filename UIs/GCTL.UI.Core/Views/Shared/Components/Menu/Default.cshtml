@@ -1,3 +1,8 @@
 @model List<GCTL.Core.ViewModels.Menu.MenuDto>
 
-@await Html.PartialAsync("_MenuPartial", Model)
+<div class="sidebar-menu-wrapper d-flex flex-column flex-grow-1 w-100">
+    <div class="sidebar-menu-scroll flex-grow-1">
+        @await Html.PartialAsync("_MenuPartial", Model)
+    </div>
+</div>
+

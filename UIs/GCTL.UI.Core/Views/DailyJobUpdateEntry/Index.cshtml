@@ -1,0 +1,1524 @@
+@* @model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel *@
+@model GCTL.UI.Core.ViewModels.DailyJobUpdateEntry.DailyJobUpdateEntrySetupViewModel
+@{
+    // ViewData["Title"] = "Shipment Entry";
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Shipment Entry";
+    Model.Breadcrumb = "Shipment Entry";
+}
+
+<link href="~/css/selectCSS.css" rel="stylesheet" />
+
+
+<style>
+    /* .sticky-bar {
+                position: sticky;
+                top: 65px;
+                z-index: 1020;
+            } */
+
+    /* Bootstrap form-select-sm style for Select2 */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: calc(1.5em + .5rem + 2px) !important; /* Bootstrap form-select-sm */
+        padding: .25rem .5rem !important;
+        border: 1px solid #ced4da !important;
+        border-radius: .375rem !important;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-container--default .select2-selection__rendered {
+        line-height: normal !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        color: #212529;
+        font-size: .750rem;
+    }
+
+    .select2-container--default .select2-selection__arrow {
+        height: 100% !important;
+        right: 8px;
+    }
+
+    .select2-container--default .select2-selection__clear {
+        margin-right: 18px;
+    }
+
+    /* Focus */
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+    }
+
+    .form-label {
+        padding-left: 0rem !important;
+        line-height: 1.2 !important;
+        text-transform: capitalize !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* ================= Toolbar ================= */
+
+    .toolbar {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        /* gap: 16px; */
+    }
+
+    .toolbar-left {
+        flex-shrink: 0;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    /* Large Screen (default) */
+
+    .toolbar-showing {
+        width: 120px;
+    }
+
+    /* Wrapper for the large-screen filters (customer / shipment / date) */
+    .toolbar-large-filters {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .toolbar-customer {
+        width: 250px;
+    }
+
+    .toolbar-shipment {
+        width: 240px;
+    }
+
+    .toolbar-date {
+        width: 380px;
+    }
+
+    .toolbar-search {
+        width: 300px;
+    }
+
+    /* Small/mid screen filter block - hidden by default on large screens */
+    .sm-topshow {
+        display: none;
+    }
+
+    /* 1350px */
+
+    @@media (max-width:1370px) {
+
+        .sm-topshow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: start;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+        }
+
+            .sm-topshow .toolbar-customer-sm,
+            .sm-topshow .toolbar-shipment-sm {
+                width: 220px;
+            }
+
+            .sm-topshow .toolbar-date-sm {
+                width: 100%;
+                max-width: 420px;
+            }
+
+        .toolbar-right {
+            gap: 8px;
+        }
+        /* Hide large-screen customer/shipment/date filters */
+        .toolbar-large-filters {
+            display: none;
+        }
+
+        .toolbar-customer {
+            width: 225px;
+        }
+
+        .toolbar-search {
+            width: 225px;
+        }
+
+        .toolbar-date {
+            width: 321px;
+        }
+
+        .toolbar .form-control,
+        .toolbar .form-select,
+        .toolbar .input-group-text {
+            font-size: 13px;
+            padding: .25rem .45rem;
+        }
+    }
+
+    /* Tablet */
+
+    @@media (max-width:1200px) {
+
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-right {
+            flex-wrap: wrap;
+        }
+
+        .toolbar-search {
+            width: 100%;
+        }
+
+        .sm-topshow .toolbar-customer-sm,
+        .sm-topshow .toolbar-shipment-sm,
+        .sm-topshow .toolbar-date-sm {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+
+    .timeline {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 20px 30px 10px;
+    }
+
+    .timeline-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        text-align: center;
+    }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: -50%;
+            width: 100%;
+            height: 3px;
+            background-color: #d3d3d3;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .timeline-item:first-child::before {
+            display: none;
+        }
+
+        .timeline-item.completed::before,
+        .timeline-item.active::before {
+            background-color: #d3d3d3;
+        }
+
+        .timeline-item.completed::after,
+        .timeline-item.active::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: -50%;
+            width: 100%;
+            height: 3px;
+            background-color: #28a745;
+            z-index: 1;
+            transform: scaleX(0);
+            transform-origin: left;
+            animation: fillLine 0.6s ease forwards;
+        }
+
+        .timeline-item.completed::after,
+        .timeline-item.active::after {
+            animation-delay: var(--delay, 0s);
+        }
+
+    .timeline-marker {
+        position: relative;
+        z-index: 2;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: #ffffff;
+        border: 3px solid #d3d3d3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #d3d3d3;
+        margin-bottom: 10px;
+        transition: all 0.4s ease;
+    }
+
+
+    .timeline-item.completed .timeline-marker {
+        border-color: #28a745;
+        background-color: #28a745;
+        color: #fff;
+        animation: popIn 0.4s ease;
+    }
+
+    .timeline-item.active .timeline-marker {
+        border-color: #007bff;
+        background-color: #007bff;
+        color: #fff;
+        animation: popIn 0.4s ease, pulse 1.5s ease-in-out infinite;
+    }
+
+    @@keyframes popIn {
+        0% {
+            transform: scale(0.6);
+            opacity: 0;
+        }
+
+        60% {
+            transform: scale(1.15);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(0,123,255,0.4);
+        }
+
+        50% {
+            box-shadow: 0 0 0 8px rgba(0,123,255,0);
+        }
+    }
+
+    .timeline-item.pending .timeline-marker {
+        border-color: #d3d3d3;
+        background-color: #f8f9fa;
+        color: #adb5bd;
+    }
+
+    .timeline-marker {
+        animation-delay: var(--delay, 0s);
+    }
+
+    .timeline-item h6 {
+        position: relative;
+        z-index: 2;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #495057;
+    }
+
+    .timeline-item.pending h6 {
+        color: #adb5bd;
+    }
+
+    .timeline-date {
+        position: relative;
+        z-index: 2;
+        font-size: 11px;
+        color: #6c757d;
+    }
+
+    @@keyframes fillLine {
+        from {
+            transform: scaleX(0);
+        }
+
+        to {
+            transform: scaleX(1);
+        }
+    }
+
+    .timeline-item:first-child::before,
+    .timeline-item:first-child.completed::before,
+    .timeline-item:first-child.active::before,
+    .timeline-item:first-child.pending::before {
+        display: none !important;
+        content: none;
+    }
+
+    .timeline-item:first-child.completed::after,
+    .timeline-item:first-child.active::after {
+        display: none !important;
+        content: none;
+    }
+
+    .form-control-sm,
+    .form-select-sm {
+        font-size: 13px;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+
+    /* ================= Form Fields Row & Layout (Ledger, VendorInfo & SepDocUpdate Standard) ================= */
+    .daily-job-fields-row,
+    .daily-job-form-card .row {
+        --control-height: 30px;
+        --gap-size: 36px;
+        --btn-width: 20px;
+        --bs-gutter-x: var(--gap-size) !important;
+        /* row-gap: 12px !important; */
+    }
+
+    .daily-job-form-card,
+    .daily-job-fields-row,
+    .daily-job-form-card .row,
+    .daily-job-fields-row > div,
+    .daily-job-form-card .row > div {
+        overflow: visible !important;
+    }
+
+    /* Form Card Container: Symmetrical left & right margins (compensates for Column 3 quick-add button) */
+    .daily-job-form-card {
+        padding-left: 24px !important;
+        padding-right: 48px !important;
+        padding-top: 12px !important;
+        padding-bottom: 8px !important;
+    }
+
+    /* Uniform Label Styling & Baseline Alignment */
+    .daily-job-fields-row .form-label,
+    .daily-job-form-card .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        margin-bottom: 4px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .form-label .text-danger,
+    .daily-job-fields-row .form-label sup,
+    .daily-job-fields-row .form-label span,
+    .daily-job-form-card .form-label .text-danger,
+    .daily-job-form-card .form-label sup,
+    .daily-job-form-card .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure input/select container inside field-fixed-width takes 100% of the column width */
+    .daily-job-fields-row .field-fixed-width,
+    .daily-job-form-card .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .input-group,
+    .daily-job-form-card .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .input-group,
+    .daily-job-form-card .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Hide invisible placeholder buttons completely so non-quick-add fields expand to 100% */
+    .daily-job-fields-row .field-fixed-width > .invisible-placeholder-btn,
+    .daily-job-form-card .field-fixed-width > .invisible-placeholder-btn {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+    }
+
+    /* Uniform height & 100% width for all inputs, selects, custom datepickers, and input-groups */
+    .daily-job-fields-row .form-control:not(textarea),
+    .daily-job-fields-row .form-select,
+    .daily-job-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(textarea),
+    .daily-job-fields-row select,
+    .daily-job-fields-row .input-group-text,
+    .daily-job-fields-row .custom-datepicker,
+    .daily-job-form-card .form-control:not(textarea),
+    .daily-job-form-card .form-select,
+    .daily-job-form-card input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(textarea),
+    .daily-job-form-card select,
+    .daily-job-form-card .input-group-text,
+    .daily-job-form-card .custom-datepicker {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .form-control,
+    .daily-job-fields-row .form-select,
+    .daily-job-fields-row select,
+    .daily-job-fields-row .select2-container,
+    .daily-job-fields-row .input-group .select2-container,
+    .daily-job-form-card .form-control,
+    .daily-job-form-card .form-select,
+    .daily-job-form-card select,
+    .daily-job-form-card .select2-container,
+    .daily-job-form-card .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* Textareas take 100% width with row-matching or natural multiline height */
+    .daily-job-fields-row textarea,
+    .daily-job-fields-row .field-fixed-width > textarea,
+    .daily-job-form-card textarea,
+    .daily-job-form-card .field-fixed-width > textarea {
+        min-height: var(--control-height) !important;
+        height: var(--control-height);
+        line-height: 1.3 !important;
+        padding: 4px 8px !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row textarea:not([rows="1"]),
+    .daily-job-fields-row .field-fixed-width > textarea:not([rows="1"]),
+    .daily-job-form-card textarea:not([rows="1"]),
+    .daily-job-form-card .field-fixed-width > textarea:not([rows="1"]) {
+        min-height: 56px !important;
+        height: auto !important;
+    }
+
+    /* Select2 dropdown height and arrow alignment */
+    .daily-job-fields-row .select2-container .select2-selection--single,
+    .daily-job-form-card .select2-container .select2-selection--single {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        display: flex !important;
+        align-items: center !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .select2-container .select2-selection--single .select2-selection__rendered,
+    .daily-job-form-card .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--control-height) - 2px) !important;
+        padding-left: 8px !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+    }
+
+    .daily-job-fields-row .select2-container .select2-selection--single .select2-selection__arrow,
+    .daily-job-form-card .select2-container .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--control-height) - 2px) !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    /* Checkbox Alignment */
+    .daily-job-fields-row .form-check,
+    .daily-job-form-card .form-check {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-height: var(--control-height) !important;
+        margin-top: 24px !important;
+        margin-bottom: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .daily-job-fields-row .form-check .form-check-input,
+    .daily-job-form-card .form-check .form-check-input {
+        margin: 0 !important;
+        float: none !important;
+        width: 16px !important;
+        height: 16px !important;
+        cursor: pointer !important;
+    }
+
+    .daily-job-fields-row .form-check .form-check-label,
+    .daily-job-form-card .form-check .form-check-label {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear 12px right gap and NO border */
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+    .daily-job-fields-row .field-fixed-width > .js-quick-add,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+    .daily-job-form-card .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        width: var(--btn-width) !important;
+        min-width: var(--btn-width) !important;
+        max-width: var(--btn-width) !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):hover,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add:hover,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):hover,
+    .daily-job-form-card .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):focus,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add:focus,
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):active,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add:active,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):focus,
+    .daily-job-form-card .field-fixed-width > .js-quick-add:focus,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):active,
+    .daily-job-form-card .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .daily-job-fields-row .field-fixed-width > .detached-action-btn i,
+    .daily-job-fields-row .field-fixed-width > .js-quick-add i,
+    .daily-job-form-card .field-fixed-width > .detached-action-btn i,
+    .daily-job-form-card .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* ================= Dual Input Group (gap-2 & 50%-50% Equal Width) ================= */
+    .daily-job-fields-row .dual-input-group,
+    .daily-job-form-card .dual-input-group {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        gap: 0.5rem !important; /* gap-2 (8px) */
+    }
+
+    .daily-job-fields-row .dual-input-group > *,
+    .daily-job-form-card .dual-input-group > * {
+        margin-left: 0 !important;
+    }
+
+    .daily-job-fields-row .dual-input-group > select[style*="display: none"],
+    .daily-job-fields-row .dual-input-group > select.custom-select-single[style*="display: none"],
+    .daily-job-fields-row .dual-input-group > select.select2-hidden-accessible,
+    .daily-job-form-card .dual-input-group > select[style*="display: none"],
+    .daily-job-form-card .dual-input-group > select.custom-select-single[style*="display: none"],
+    .daily-job-form-card .dual-input-group > select.select2-hidden-accessible {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        flex: 0 0 0% !important;
+    }
+
+    /* Left Input: 50% width */
+    .daily-job-fields-row .dual-input-group > input:first-child,
+    .daily-job-fields-row .dual-input-group > select:first-child,
+    .daily-job-fields-row .dual-input-group > .form-control:first-child,
+    .daily-job-form-card .dual-input-group > input:first-child,
+    .daily-job-form-card .dual-input-group > select:first-child,
+    .daily-job-form-card .dual-input-group > .form-control:first-child {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    /* Right Input / Select / Dropdown: 50% width */
+    .daily-job-fields-row .dual-input-group > input:nth-child(2),
+    .daily-job-fields-row .dual-input-group > input:last-child,
+    .daily-job-fields-row .dual-input-group > select:nth-child(2),
+    .daily-job-fields-row .dual-input-group > .custom-dd-wrapper,
+    .daily-job-fields-row .dual-input-group > select + .custom-dd-wrapper,
+    .daily-job-fields-row .dual-input-group > .select2-container,
+    .daily-job-fields-row .dual-input-group > select + .select2-container,
+    .daily-job-fields-row .dual-input-group > .select2,
+    .daily-job-form-card .dual-input-group > input:nth-child(2),
+    .daily-job-form-card .dual-input-group > input:last-child,
+    .daily-job-form-card .dual-input-group > select:nth-child(2),
+    .daily-job-form-card .dual-input-group > .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > select + .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > .select2-container,
+    .daily-job-form-card .dual-input-group > select + .select2-container,
+    .daily-job-form-card .dual-input-group > .select2 {
+        flex: 1 1 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        margin-left: 0 !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+    }
+
+    .daily-job-fields-row .dual-input-group > .custom-dd-wrapper,
+    .daily-job-fields-row .dual-input-group > select + .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > .custom-dd-wrapper,
+    .daily-job-form-card .dual-input-group > select + .custom-dd-wrapper {
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+    }
+
+    .daily-job-fields-row .dual-input-group > .custom-dd-wrapper .custom-dd-box,
+    .daily-job-fields-row .dual-input-group > select + .custom-dd-wrapper .custom-dd-box,
+    .daily-job-form-card .dual-input-group > .custom-dd-wrapper .custom-dd-box,
+    .daily-job-form-card .dual-input-group > select + .custom-dd-wrapper .custom-dd-box {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+    }
+
+    .daily-job-fields-row .dual-input-group .select2-container,
+    .daily-job-fields-row .dual-input-group .select2-container *,
+    .daily-job-fields-row .dual-input-group select + .select2-container,
+    .daily-job-fields-row .dual-input-group select + .select2-container *,
+    .daily-job-fields-row .dual-input-group .select2-selection,
+    .daily-job-fields-row .dual-input-group .select2-selection--single,
+    .daily-job-fields-row .dual-input-group .select2-container--bootstrap-5 .select2-selection,
+    .daily-job-form-card .dual-input-group .select2-container,
+    .daily-job-form-card .dual-input-group .select2-container *,
+    .daily-job-form-card .dual-input-group select + .select2-container,
+    .daily-job-form-card .dual-input-group select + .select2-container *,
+    .daily-job-form-card .dual-input-group .select2-selection,
+    .daily-job-form-card .dual-input-group .select2-selection--single,
+    .daily-job-form-card .dual-input-group .select2-container--bootstrap-5 .select2-selection {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+    }
+
+    /* ==========================================================================
+       Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
+       ========================================================================== */
+    @@media (max-width: 1400px) {
+        .daily-job-fields-row,
+        .daily-job-form-card .row {
+            --control-height: 28px !important;
+            --gap-size: 34px !important;
+            --btn-width: 18px !important;
+            row-gap: 10px !important;
+        }
+
+        .daily-job-fields-row .form-label,
+        .daily-job-form-card .form-label {
+            font-size: 11.5px !important;
+            height: 18px !important;
+            min-height: 18px !important;
+            max-height: 18px !important;
+            margin-bottom: 3px !important;
+        }
+
+        .daily-job-fields-row .form-check,
+        .daily-job-form-card .form-check {
+            min-height: 28px !important;
+            margin-top: 21px !important;
+        }
+
+        .daily-job-form-card {
+            padding-left: 20px !important;
+            padding-right: 42px !important;
+        }
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .daily-job-form-card {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        .daily-job-fields-row,
+        .daily-job-form-card .row {
+            --bs-gutter-x: 16px !important;
+        }
+
+        .daily-job-fields-row .field-fixed-width,
+        .daily-job-form-card .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .daily-job-fields-row .field-fixed-width > .input-group,
+        .daily-job-form-card .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .daily-job-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .daily-job-fields-row .field-fixed-width > .js-quick-add,
+        .daily-job-form-card .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .daily-job-form-card .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+            border: 1px solid #ced4da !important;
+            background: #f8f9fa !important;
+        }
+    }
+</style>
+
+
+<section class="content consistent-look">
+   
+        <div class="card rounded shadow-sm mb-3">
+            <div class="card-header p-0">
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "Daily Job Update",
+                    SaveBtnClass = "saveBtn"
+                })
+            </div>
+            <div class="card-body p-0 py-3 px-4">
+                <div class="">
+                    <div id="jobSummary">
+
+                        <!-- Small/Mid screen filters (shown below 1350px) -->
+                        <div class="sm-topshow">
+                            <span class="label-text filter-by-sm">Filter By:</span>
+                            <div class="toolbar-customer-sm">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="customerFilterSm"
+                                        data-placeholder="Select Customer"
+                                        asp-items="ViewBag.CustomerName as SelectList">
+                                    <option value="">All Customers</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-shipment-sm">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="shipmentModeFilterSm"
+                                        data-placeholder="Select Shipment Mode"
+                                        asp-items="ViewBag.ShipmentMode as SelectList">
+                                    <option value="">All Shipment Modes</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-date-sm">
+                                <div class="input-group input-group-sm custom-date-group">
+                                    <span class="input-group-text">From</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateFromSm">
+
+                                    <span class="input-group-text">To</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateToSm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="toolbar mb-4">
+
+                            <!-- Left -->
+                            <div class="toolbar-left">
+                                @* <div class="input-group input-group-sm toolbar-showing">
+                                    <span class="input-group-text">Showing</span>
+
+                                    <select class="form-select" id="pageSizeSelect">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div> *@
+                            </div>
+
+                            <!-- Right -->
+                            <div class="toolbar-right">
+                                <span class="label-text toolbar-large-filters">Filter By:</span>
+                                <!-- Large screen filters (hidden below 1350px) -->
+                                <div class="toolbar-large-filters">
+                                    <div class="toolbar-customer">
+                                        <select class="form-select form-select-sm custom-select-single"
+                                                id="customerFilter"
+                                                data-placeholder="Select Customer"
+                                                asp-items="ViewBag.CustomerName as SelectList">
+                                            <option value="">All Customers</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="toolbar-shipment">
+                                        <select class="form-select form-select-sm custom-select-single"
+                                                id="shipmentModeFilter"
+                                                data-placeholder="Select Shipment Mode"
+                                                asp-items="ViewBag.ShipmentMode as SelectList">
+                                            <option value="">All Shipment Modes</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="toolbar-date">
+                                        <div class="input-group input-group-sm custom-date-group">
+                                            <span class="input-group-text">Date From</span>
+                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateFrom">
+
+                                            <span class="input-group-text">To</span>
+                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateTo">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="toolbar-search">
+                                    @* <input class="form-control form-control-sm"
+                                           id="searchInput"
+                                           type="text"
+                                           placeholder="Search"> *@
+                                </div>
+
+                            </div>
+
+                        </div>
+                        @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                        {
+                            GridId = "JobSettingsTable",
+                            AjaxUrl = "/DailyJobUpdateEntry/GetJobs",
+                            AjaxMethod = "POST",
+                            ServerSide = true,
+                            ShowCheckbox = false,
+                            ShowActionMenu = false,
+                            ShowRowNumbers = false,
+                            DefaultSortColumn = "JobNo",
+                            DefaultSortDirection = "desc",
+                            Columns = new()
+                            {
+                                new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-detail-link", IdField = "id" },
+                                new() { Data = "shipmentMode", Header = "Shipment Mode", Align = "left" },
+                                new() { Data = "jobDateFormatted", Header = "Job Date", Align = "center" },
+                                new() { Data = "customerName", Header = "Customer Name", Align = "left" },
+                                new() { Data = "docReceivedDateFormatted", Header = "Doc Received Date", Align = "center" }
+                            }
+                        })
+
+                    </div>
+
+                    <div class="pt-2 pb-0 bg-white shadow rounded daily-job-form-card">
+                        <div class="row daily-job-fields-row">
+                            @* ---------- Shipment Mode (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "shipmentModeId",
+                                LabelText = "Shipment Mode",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Shipment Mode",
+                                SelectItems = ViewBag.ShipmentMode as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "ShipmentMode"),
+                                QuickAddTarget = "#shipmentModeId",
+                                QuickAddReloadUrl = Url.Action("GetShipmentMode", "Cascading"),
+                                QuickAddTitle = "Add Shipment Mode",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Is Custom Job No (Checkbox) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "isCustomJobNo",
+                                LabelText = "Is Custom Job No",
+                                FieldType = FieldType.Checkbox,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            <div class="col-lg-4 col-md-6"></div>
+
+                            @* ---------- Job No (ReadonlyDisplay) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "jobNo",
+                                LabelText = "Job No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                IsReadonly=true,
+                                ReserveActionSlot = true
+                            })
+
+                            @* <div class="col-lg-4 col-md-6">
+                                <label class="form-label">Job No</label>
+                                <input class="form-control form-control-sm" readonly id="jobNo" />
+                                <span class="text-danger"></span>
+                            </div> *@
+                            @* ---------- Job Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "jobDate",
+                                LabelText = "Job Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Customer Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerId",
+                                LabelText = "Customer Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Customer",
+                                SelectItems = ViewBag.CustomerName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Customer"),
+                                QuickAddTarget = "#customerId",
+                                QuickAddReloadUrl = Url.Action("GetCustomer", "Cascading"),
+                                QuickAddTitle = "Add Customer",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Customer Address (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerAddress",
+                                LabelText = "Customer Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Customer Delivery Address (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "customerDeliveryAddress",
+                                LabelText = "Customer Delivery Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            <div class="col-lg-4 col-md-6"></div>
+
+                            @* ---------- Port Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "portId",
+                                LabelText = "Port Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Port",
+                                SelectItems = ViewBag.PortName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Port"),
+                                QuickAddTarget = "#portId",
+                                QuickAddReloadUrl = Url.Action("GetPort", "Cascading"),
+                                QuickAddTitle = "Add Port",
+                                IsActionDisabled=true,
+                            })
+
+                            @* ---------- Docs Received Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "docsReceivedDate",
+                                LabelText = "Doc's Received Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- LC/EXP No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcExpNo",
+                                LabelText = "LC/EXP No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- L/C Value (DualInput: Number + Unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcValue",
+                                LabelText = "L/C Value",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Amount",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "lcUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    IsRequired = false,
+                                    IsActionDisabled=true,
+                                }
+                            })
+
+                            @* ---------- LC Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcDate",
+                                LabelText = "LC Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- IP/EP No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "ipEpNo",
+                                LabelText = "IP/EP No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- IP Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "ipDate",
+                                LabelText = "IP Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Importer Name (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "importerId",
+                                LabelText = "Importer Name",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Importer",
+                                SelectItems = ViewBag.ImporterName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Importer"),
+                                QuickAddTarget = "#importerId",
+                                QuickAddReloadUrl = Url.Action("GetImporter", "Cascading"),
+                                QuickAddTitle = "Add Importer",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Invoice No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "invoiceNo",
+                                LabelText = "Invoice No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Invoice Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "invoiceDate",
+                                LabelText = "Invoice Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/L No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "blNo",
+                                LabelText = "B/L No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/L Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "blDate",
+                                LabelText = "B/L Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/E No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "beNo",
+                                LabelText = "B/E No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- B/E Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "beDate",
+                                LabelText = "B/E Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Container No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "containerNo",
+                                LabelText = "Container No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Container Size (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "containerSize",
+                                LabelText = "Container Size",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- LCA No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "lcaNo",
+                                LabelText = "LCA No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Discharge Date (Date) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "dischargeDate",
+                                LabelText = "Discharge Date",
+                                FieldType = FieldType.Date,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Material Description (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "materialDescription",
+                                LabelText = "Material Description",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Quantity & Unit (DualInput with QuickAdd on unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "quantity",
+                                LabelText = "Quantity & Unit (PKG)",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Quantity",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                IsActionDisabled=true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "quantityUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    ShowQuickAdd = true,
+                                    QuickAddUrl = Url.Action("Create", "QuantityUnit"),
+                                    QuickAddTarget = "#quantityUnitId",
+                                    QuickAddReloadUrl = Url.Action("GetQuantityUnit", "Cascading"),
+                                    QuickAddTitle = "Add Unit",
+                                    IsRequired = false,
+                                    IsActionDisabled=true
+                                },
+                                
+                            })
+
+                            @* ---------- Weight & Unit (DualInput with QuickAdd on unit) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "weight",
+                                LabelText = "Weight & Unit (KG)",
+                                FieldType = FieldType.DualInput,
+                                Placeholder = "Weight",
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                SecondField = new DynamicFieldColumnModel
+                                {
+                                    InputId = "weightUnitId",
+                                    Placeholder = "Select Unit",
+                                    FieldType = FieldType.Select,
+                                    SelectItems = ViewBag.QuantityUnit as SelectList,
+                                    ShowQuickAdd = true,
+                                    QuickAddUrl = Url.Action("Create", "QuantityUnit"),
+                                    QuickAddTarget = "#weightUnitId",
+                                    QuickAddReloadUrl = Url.Action("GetQuantityUnit", "Cascading"),
+                                    QuickAddTitle = "Add Unit",
+                                    IsRequired = false,
+                                    IsActionDisabled=true
+                                },
+                                IsActionDisabled=true,
+                            })
+
+                            @* ---------- FWDR (Shipping Agent) (Select with QuickAdd) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "forwarderId",
+                                LabelText = "FWDR (Shipping Agent)",
+                                FieldType = FieldType.Select,
+                                Placeholder = "Select Forwarder",
+                                SelectItems = ViewBag.ForwarderName as SelectList,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true,
+                                ShowQuickAdd = true,
+                                QuickAddUrl = Url.Action("Create", "Forwarder"),
+                                QuickAddTarget = "#forwarderId",
+                                QuickAddReloadUrl = Url.Action("GetForwarder", "Cascading"),
+                                QuickAddTitle = "Add Forwarder",
+                                IsActionDisabled=true
+                            })
+
+                            @* ---------- Vessel/Rott No (Text) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "vesselRottNo",
+                                LabelText = "Vessel/Rott No",
+                                FieldType = FieldType.Text,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+
+                            @* ---------- Remarks (Textarea) ---------- *@
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "remarks",
+                                LabelText = "Remarks",
+                                FieldType = FieldType.Textarea,
+                                Rows = 1,
+                                ColumnClass = "col-lg-4 col-md-6",
+                                IsRequired = false,
+                                ReserveActionSlot = true
+                            })
+                        </div>
+
+                        <div class="border-bottom border-2 my-2"></div>
+                        @await Html.PartialAsync("_Setup", Model.Setup)
+
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "",
+                            ShowDelete = false,
+                            ShowClear = false,
+                            ShowPrint = false,
+                            ShowFavorite = false,
+                            IsPlain = true,
+                            SaveBtnClass = "saveBtn",
+                            ReserveActionSlot = true,
+           Style="border-bottom:0px !important;"
+                        })
+                    </div>
+
+                </div>
+            </div>
+            @* </div> *@
+
+        </div>
+        <div class="pb-2 d-none" id="timelineCard">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Shipment Progress Timeline</h5>
+                </div>
+                <div class="card-body p-1">
+                    <div class="timeline" id="shipmentTimeline">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border border-body-emplhsish border-1 opacity-100 mx-auto mb-2">
+
+
+        <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
+            <div class="mb-9">
+                <div id="jobStatusSummary">
+                    <!-- Search and Page Size -->
+                    <div class="toolbar pb-2">
+
+                        <div class="toolbar-left">
+                            @* <div class="input-group input-group-sm toolbar-showing">
+                                <span class="input-group-text">Showing</span>
+                                <select class="form-select" id="statusPageSizeSelect">
+                                    <option>10</option>
+                                    <option>25</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                            </div> *@
+                        </div>
+                        <div class="toolbar-right">
+                            <span class="label-text">Filter By:</span>
+                            <div class="toolbar-item toolbar-customer">
+                                <select class="form-select form-select-sm custom-select-single"
+                                        id="customerLoadGridFilter" data-placeholder="Select Customer"
+                                        asp-items="ViewBag.CustomerName as SelectList">
+                                    <option value="">All Customers</option>
+                                </select>
+                            </div>
+
+                            <div class="toolbar-item toolbar-date">
+                                <div class="input-group input-group-sm custom-date-group">
+                                    <span class="input-group-text">Date From</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridFrom">
+                                    <span class="input-group-text">To</span>
+                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridTo">
+                                </div>
+                            </div>
+
+                            <div class="toolbar-item toolbar-search">
+                                @* <input class="form-control form-control-sm"
+                                       id="statusSearchInput"
+                                       type="text"
+                                       placeholder="Search"> *@
+                            </div>
+                        </div>
+
+                    </div>
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                    {
+                        GridId = "JobStatusTable",
+                        AjaxUrl = "/DailyJobUpdateEntry/GetJobStatuses",
+                        AjaxMethod = "POST",
+                        ServerSide = true,
+                        ShowCheckbox = true,
+                        CheckColumnData = "id",
+                        CheckAllId = "checkAll",
+                        ShowActionMenu = false,
+                        ShowRowNumbers = false,
+                        DefaultSortColumn = "JobNo",
+                        DefaultSortDirection = "desc",
+                        Columns = new()
+                        {
+                            new() { Data = "jobUpdateCode", Header = "ID", Align = "center" },
+                            new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-no-link", IdField = "id", DataAttributes = new List<string> { "jobno" } },
+                            new() { Data = "shipmentStatus", Header = "Shipment Status", Align = "left" },
+                            new() { Data = "dateTimeText", Header = "Date Time", Align = "center" }
+                        }
+                    })
+            </div>
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/pages/DailyJobUpdateEntry.js" asp-append-version="true"></script>
+}

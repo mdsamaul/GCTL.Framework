@@ -1,0 +1,106 @@
+<style>
+    /* Fieldset and Table Header Styling */
+    fieldset {
+        border: 1px solid #dee2e6 !important;
+    }
+
+    .table thead th {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        background-color: #f8f9fa !important;
+        color: #333;
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+
+    .page-link:focus {
+        box-shadow: none;
+    }
+
+    #Appro-tbody td {
+        color: #000 !important;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    /* Radio Button Styling */
+    .Appro-radio {
+        width: 15px;
+        height: 15px;
+        cursor: pointer; /* hover এ pointer */
+        accent-color: #0d6efd; /* modern browsers এ check color (Bootstrap primary blue) */
+        margin: 0 auto; /* center align */
+    }
+
+        /* Optional: hover effect */
+        .Appro-radio:hover {
+            transform: scale(1.2);
+        }
+
+        /* Optional: checked effect */
+        .Appro-radio:checked {
+            border: 2px solid #0d6efd;
+            box-shadow: 0 0 3px #0d6efd;
+        }
+
+    div.dt-layout-end,
+    div.dt-layout-full,
+    div.dt-layout-start {
+        padding: 0;
+    }
+</style>
+<div class="row mb-2">
+    <div class="col-12">
+        <span class="text-dark" style="font-size: 13px; border-bottom: 2px solid #0d6efd; padding-bottom: 2px;">
+            <i class="fas fa-filter me-1"></i> Filter By
+        </span>
+    </div>
+</div>
+<div class="row g-5">
+    <div class="col-lg-4">
+        <div class="row align-items-center gx-2">
+            <label class="col-auto col-form-label fw-semibold">
+                Customer
+            </label>
+            <div class="col">
+                <select id="Customer" class="form-select form-select-sm custom-select-single"></select>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="row align-items-center gx-2">
+            <label class="col-auto col-form-label fw-semibold">
+                Shipment Mode
+            </label>
+            <div class="col">
+                <select id="Appro-ShipmentMode" class="form-select form-select-sm custom-select-single"></select>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "Appro-Table",
+    AjaxUrl = "/OFRApproval/GetAllRequisitionList",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    UseRadio = true,
+    RadioName = "jobSelect",
+    CheckColumnData = "jobNo",
+    DefaultSortColumn = "jobDate",
+    DefaultSortDirection = "desc",
+    PageLengths = [5, 10, 25, 50, 100, -1],
+    DefaultPageLength = 5,
+    CustomGridWrapper = false,
+    Columns = new()
+    {
+        new() { Data = "jobNo", Header = "Job No.", Width = "8%", Align = "left", IsWrapable = false, IsCopyable = true },
+        new() { Data = "jobDate", Header = "Job Date", Width = "8%", RenderFn = "formatDate" },
+        new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "12%" },
+        new() { Data = "customerName", Header = "Customer", Width = "18%", Align = "left" },
+        new() { Data = "customerAddress", Header = "Address", Width = "27%", Align = "left" },
+        new() { Data = "docReceivedDate", Header = "Doc Received Date", Width = "8%", RenderFn = "formatDate" },
+        new() { Data = "invoice", SortField = "invoice", Header = "Invoice No.", Width = "10%", Align = "right" },
+        new() { Data = "beNo", Header = "B/E No.", Width = "9%", Align = "left", IsWrapable = false }
+    }
+})

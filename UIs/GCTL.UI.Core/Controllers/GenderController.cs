@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Gender;
 using GCTL.Service.Common;
@@ -29,7 +29,7 @@ namespace GCTL.UI.Core.Controllers
 
         #region Index
 
-        public async Task<IActionResult> Index(bool child = false)
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 5, string? searchTerm = null)
         {
             var hasPermission = await genderService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
@@ -44,8 +44,48 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
-                var list = await genderService.GetAllAsync();
-                model.GenderList = list ?? new List<GenderSetupViewModel>();
+                var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
+                model.GenderList = list;
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.SexCode != null && x.SexCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.Sex != null && x.Sex.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
+
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Sex Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "SexCode", item.SexCode },
+                        { "Sex Name", item.Sex }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Gender") ?? "/Gender/GetTableData",
+                    primaryKey: "SexCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Gender/Setup/{id}",
+                    gridId: "genderGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "SexCode", "center" },
+                        { "Sex Name", "center" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Sex Name", "auto" }
+                    }
+                );
 
                 commonService.FindMaxNo(ref strMaxNO, "SexCode", "HRM_Def_Sex", 1);
                 model.Setup = new GenderSetupViewModel
@@ -55,7 +95,6 @@ namespace GCTL.UI.Core.Controllers
             }
             catch (Exception ex)
             {
-
                 model.GenderList = new List<GenderSetupViewModel>();
                 model.Setup = new GenderSetupViewModel();
                 Console.WriteLine("Error" + ex.Message);
@@ -90,7 +129,68 @@ namespace GCTL.UI.Core.Controllers
                 model.SexCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await genderService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new GenderPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
+                indexModel.GenderList = list;
+
+                int totalRecords = list.Count;
+                var pagedList = list.Take(5).ToList();
+
+                indexModel.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: 1,
+                    pageSize: 5,
+                    headers: new List<string> { "Code", "Sex Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "SexCode", item.SexCode },
+                        { "Sex Name", item.Sex }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "Gender") ?? "/Gender/GetTableData",
+                    primaryKey: "SexCode",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/Gender/Setup/{id}",
+                    gridId: "genderGridContainer",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "SexCode", "center" },
+                        { "Sex Name", "center" }
+                    },
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Sex Name", "auto" }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                indexModel.GenderList = new List<GenderSetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
 
         #endregion
@@ -99,58 +199,57 @@ namespace GCTL.UI.Core.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Setup(GenderSetupViewModel modelVM)
         {
             try
             {
-                if (await genderService.IsExistAsync(modelVM.Sex, modelVM.SexCode))
-                {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
-                }
-
                 if (!ModelState.IsValid)
                 {
-
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }
 
-                modelVM.ToAudit(LoginInfo, modelVM.AutoId > 0);
-                if (modelVM.AutoId == 0)
-                {
-                    var hasSavePermission = await genderService.SavePermissionAsync(LoginInfo.AccessCode);
-                    if (hasSavePermission)
-                    {
-                        await genderService.SaveAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.SexCode });
+                bool isExist = await genderService.IsExistByCodeAsync(modelVM.SexCode);
 
-                    }
-                    else
-                    {
-                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
-                    }
-                }
-                else
+                if (isExist)
                 {
+                    if (await genderService.IsExistAsync(modelVM.Sex, modelVM.SexCode))
+                    {
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
 
                     var hasUpdatePermission = await genderService.UpdatePermissionAsync(LoginInfo.AccessCode);
-                    if (hasUpdatePermission)
-                    {
-                        await genderService.UpdateAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.SexCode });
-                    }
-                    else
+                    if (!hasUpdatePermission)
                     {
                         return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
                     }
+
+                    modelVM.ToAudit(LoginInfo, true);
+                    await genderService.UpdateAsync(modelVM);
+                    return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.SexCode });
+                }
+                else
+                {
+                    if (await genderService.IsExistAsync(modelVM.Sex))
+                    {
+                        return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    }
+
+                    var hasSavePermission = await genderService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (!hasSavePermission)
+                    {
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
+                    }
+
+                    modelVM.ToAudit(LoginInfo, false);
+                    await genderService.SaveAsync(modelVM);
+                    return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.SexCode });
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error:{ex.Message}");
                 return RedirectToAction("Login", "Accounts");
-
             }
         }
 
@@ -204,19 +303,19 @@ namespace GCTL.UI.Core.Controllers
 
         #endregion
 
-        #region TabeleLodaing
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var list = await genderService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await genderService.GetAllAsync() ?? new List<GenderSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<GenderSetupViewModel>(), error = ex.Message });
             }
         }
 

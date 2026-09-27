@@ -34,4 +34,6 @@ public partial class AccCompanyOpeningBalance
     public string CompanyCode { get; set; }
 
     public string UserInfoEmployeeId { get; set; }
+
+    public DateTime? OpeningDate { get; set; }
 }

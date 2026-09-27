@@ -1,0 +1,24 @@
+@using GCTL.UI.Core.ViewModels
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "salesDeliveryLocationTable",
+    AjaxUrl = "/SalesDeliveryLocation/GetAllPaginated",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "deliveryLocationCode",
+    CheckAllId = "selectAllSalesDeliveryLocation",
+    CheckboxClass = "js-salesdl-check",
+    ShowSearchBox = true,
+    ShowPagination = true,
+    DefaultSortColumn = "deliveryLocationCode",
+    DefaultSortDirection = "desc",
+    Columns = new List<GridColumn>
+    {
+        new() { Data = "deliveryLocationCode", Header = "Del. ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-salesdl-edit", IdField = "deliveryLocationCode", Align = "center", SortField = "DeliveryLocationCode" },
+        new() { Data = "customerName", Header = "Customer Name", Width = "28%", Align = "left", SortField = "CustomerName" },
+        new() { Data = "locationAddress", Header = "Address", Width = "35%", Align = "left", SortField = "LocationAddress" },
+        new() { Data = "contactPersonName", Header = "Contact Person", Width = "27%", Align = "left", Sortable = false }
+    }
+})

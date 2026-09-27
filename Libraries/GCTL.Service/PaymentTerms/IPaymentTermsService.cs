@@ -1,17 +1,13 @@
-﻿using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PaymentTerms;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GCTL.Service.PaymentTerms
 {
     public interface IPaymentTermsService
     {
-
         Task<List<PaymentTermsSetupViewModel>> GetAllAsync();
         Task<PaymentTermsSetupViewModel> GetByIdAsync(string code);
 

@@ -1,0 +1,57 @@
+﻿@model GCTL.UI.Core.ViewModels.ManageNotices.ManageNoticePageViewModel
+
+@{
+    Model.PageTitle = "Manage Notice";
+    Model.Breadcrumb = "Manage Notice";
+    ViewBag.Title = "Manage Notice";
+}
+
+@* <link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" /> *@
+@* <link href="~/lib/bootstrap-multiselect-master/dist/css/bootstrap-multiselect.min.css" rel="stylesheet" /> *@
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    th.no-sort::after,
+    th.no-sort::before {
+        display: none !important;
+    }
+</style>
+
+<section class="content-fluid col-md-12">
+    <div class="card p-0 mb-2">
+        <div class="card-header p-0">
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title = "Manage Notice",
+                SaveBtnClass = "js-notice-save",
+                DeleteBtnClass = "js-notice-delete-confirm",
+                ClearBtnClass = "js-notice-clear"
+            })
+        </div>
+        <div class="card-body p-2">
+            <partial name="_Grid" />
+            <partial name="_noticeGrid" />
+        </div>
+    </div>
+    <partial name="_BottomNavigation" />
+</section>
+
+
+@section Scripts {
+    @* <script src="~/lib/bootstrap-multiselect-master/dist/js/bootstrap-multiselect.min.js"></script> *@
+    <script src="~/js/pages/manageNotice.js" asp-append-version="true"></script>
+
+    <script type="text/javascript">
+        $(function(){
+            $.noticeManagement({
+                baseUrl: '@Url.Action("Index", "ManageNoticeEntry")',
+                load: function(){
+                    console.log("Manage Notice initialized");
+                }
+            });
+        });
+    </script>
+}

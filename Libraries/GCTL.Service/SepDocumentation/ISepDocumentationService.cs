@@ -1,18 +1,40 @@
-﻿using GCTL.Core.ViewModels;
-using GCTL.Data.Models;
-using GCTL.Service.SepDocumentation;
-using System.Collections;
+using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels.SepDocumentation;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GCTL.Service.SepDocumentation
 {
     public interface ISepDocumentationService
     {
-        Task<CommonReturnViewModel> AddDocumentation(GCTL.Data.Models.SepDocumentation model);
-        Task<CommonReturnViewModel> UpdateDocumentation(GCTL.Data.Models.SepDocumentation model);
-        Task<CommonReturnViewModel> DeleteDocumentation(string jobNo);
-        Task<(List<DocumentationResult> Data, int TotalRecords)> GetDocumentationList(int page, int pageSize, string search, string sortColumn, string sortDirection, DateTime? dateFrom, DateTime? dateTo, string customerId);
-        List<SelectListItem> GetAddresses();
+        // --- Grid / detail ---
+        Task<SepDocPagedResult<SepDocJobListDto>> GetJobsPagedAsync(
+            int page, int pageSize, string customerId, string shipmentMode,
+            System.DateTime? dateFrom, System.DateTime? dateTo, string search);
+
+        Task<SepDocumentationEntryViewModel> GetJobDetailAsync(decimal tc);
+
+        Task<SepDocumentationEntryViewModel> GetJobDetailByJobNoAsync(string jobNo);
+
+        // --- Save / delete ---
+        Task<CommonReturnViewModel> SaveDocumentationAsync(SepDocumentationEntryViewModel model, string company, string loginUser);
+
+        Task<CommonReturnViewModel> DeleteDocumentationAsync(List<decimal> ids);
+
+        // --- Transport mode helper (Sea/Air) ---
+        Task<string> GetTransportModeTypeAsync(string shipmentModeId);
+
+        // --- Dropdown helpers (existing) ---
         List<SelectListItem> GetCustomers();
-        GCTL.Data.Models.SepDocumentation GetDocumentationByTC(decimal tc);
+        List<SelectListItem> GetAddresses();
+        Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId);
+        Task<CommonReturnViewModel> GetCustomerInfoAsync(string customerId);
+        Task<string> GenerateJobNoWithoutIdAsync();
+
+        // --- Document Upload Info methods ---
+        Task<SepJobUploadDetailsDto> GetJobDetailsForUploadAsync(string jobNo);
+        Task<List<SepJobDocumentItemDto>> GetJobDocumentsAsync(string jobNo);
+        Task<CommonReturnViewModel> UploadOrUpdateDocumentAsync(SepDocumentUploadRequest request);
+        Task<CommonReturnViewModel> DeleteDocumentsAsync(SepDocDeleteDocRequest request);
     }
 }

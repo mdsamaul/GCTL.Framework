@@ -1,0 +1,18 @@
+@await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+{
+    GridId = "subControlLedgerTable",
+    AjaxUrl = "/SubControlLedger/GetAll",
+    AjaxMethod = "POST",
+    ServerSide = false,
+    ShowCheckbox = true,
+    CheckColumnData = "autoId",
+    CheckAllId = "subcontrolledger-check-all",
+    DefaultSortColumn = "generalLedgerCodeNo",
+    DefaultSortDirection = "desc",
+    Columns = new()
+    {
+        new() { Data = "generalLedgerCodeNo", Header = "ID", Width = "9%", IsEditLink = true, EditSelectorClass = "js-subcontrolledger-edit", IdField = "autoId" },
+        new() { Data = "generalLedgerName", Header = "Sub-Control Ledger Name", Width = "56%" },
+        new() { Data = "shortName", Header = "Short Name", Width = "35%" }
+    }
+})

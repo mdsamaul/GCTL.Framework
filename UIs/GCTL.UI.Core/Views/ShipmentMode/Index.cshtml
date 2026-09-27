@@ -1,13 +1,549 @@
-﻿@{
-    ViewData["Title"] = "Index";
+@model GCTL.UI.Core.ViewModels.ShipmentMode.ShipmentModeSetupVm
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Shipment Setup";
+    Model.Breadcrumb = "Shipment Setup";
 }
 
-<div class="row g-0">
-    <div class="col-6" id="shipmentFormContainer"></div>
-    <div class="col-6" id="shipmentList"></div>
-</div>
+<style>
+    #ShipmentModeDeleteModalBodyHeightFeixd {
+        height: 50px !important;
+    }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .bg-light {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #fff !important;
+    }
+
+    /* ==========================================================================
+       Shipment Setup Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Vendor Info / Chart Of Account pattern
+       ========================================================================== */
+    .sm-field-col {
+        position: relative !important;
+    }
+
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .sm-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sm-field-col .form-label .text-danger,
+    .sm-field-col .form-label sup,
+    .sm-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .sm-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .sm-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sm-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Full width for all inputs and select2 containers */
+    .sm-field-col .form-control,
+    .sm-field-col .form-select,
+    .sm-field-col select,
+    .sm-field-col .select2-container,
+    .sm-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* ==========================================================================
+       Uniform Height (31px) & Typography for ALL Inputs, Selects, and Dropdowns
+       ========================================================================== */
+    .sm-field-col .input-group,
+    .sm-field-col .form-control,
+    .sm-field-col .form-select,
+    .sm-field-col select,
+    .sm-field-col .select2-container,
+    .sm-field-col .select2-container .select2-selection--single,
+    .sm-field-col .select2-container .select2-selection--multiple {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sm-field-col .form-control,
+    .sm-field-col .form-select,
+    .sm-field-col .select2-container .select2-selection--single,
+    .sm-field-col .select2-container .select2-selection--multiple {
+        border-radius: 4px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0 8px !important;
+    }
+
+    /* Select2 container specific height & text alignment matching text inputs */
+    .sm-field-col .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 29px !important;
+        height: 31px !important;
+        font-size: 13px !important;
+        padding-left: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        color: #495057 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .sm-field-col .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 29px !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    .sm-field-col .select2-container--default .select2-selection--single .select2-selection__clear {
+        height: 29px !important;
+        line-height: 29px !important;
+        margin-right: 18px !important;
+        font-size: 13px !important;
+    }
+
+    .sm-field-col .form-control:focus,
+    .sm-field-col .form-select:focus,
+    .sm-field-col .select2-container--default.select2-container--focus .select2-selection--single,
+    .sm-field-col .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+
+    /* Form row gutter & card-body padding: Perfectly balanced left and right gaps with equal width inputs */
+    .sm-layout-form-col .card-body {
+        padding: 14px 48px 14px 24px !important;
+    }
+
+    .sm-layout-form-col .card-body .row,
+    .sm-layout-form-col .row.g-4 {
+        --bs-gutter-x: 32px !important;
+    }
+
+    /* Centered form wrapper for equal left & right gaps */
+    .sm-form-centered-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Quick-Add (+) Button positioned to the right of the input with symmetrical right gap */
+    .sm-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .sm-field-col .field-fixed-width > .detached-action-btn,
+    .sm-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .sm-field-col .field-fixed-width > .invisible-placeholder-btn {
+        visibility: hidden !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    .sm-field-col .field-fixed-width > .detached-action-btn:hover,
+    .sm-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .sm-field-col .field-fixed-width > .detached-action-btn:focus,
+    .sm-field-col .field-fixed-width > .js-quick-add:focus,
+    .sm-field-col .field-fixed-width > .detached-action-btn:active,
+    .sm-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .sm-field-col .field-fixed-width > .detached-action-btn i,
+    .sm-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .sm-field-col .field-fixed-width {
+            gap: 8px !important;
+            width: 100% !important;
+        }
+
+        .sm-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sm-field-col .field-fixed-width > .detached-action-btn,
+        .sm-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
+    }
+
+    /* ==========================================================================
+       Side-by-side flex layout for all screens:
+       - Left: Setup Form (50% width)
+       - Right: Table Grid (50% width)
+       - Form Inputs: 2 per row (50% each inside form card)
+       ========================================================================== */
+    .sm-layout-form-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        margin-bottom: 0 !important;
+    }
+
+    .sm-layout-grid-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-bottom: 0 !important;
+    }
+
+    .sm-field-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+    }
+
+    .sm-toolbar-col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Tab styles matching _GlobalTabs */
+    .custom-tabs {
+        display: flex;
+        align-items: flex-end;
+        border-bottom: 1px solid #d8dce3;
+    }
+
+    .custom-tabs .tab-btn {
+        padding: 5px 15px;
+        margin-right: 4px;
+        border: 1px solid #cfd6df;
+        border-bottom: none;
+        border-radius: 10px 10px 0 0;
+        background: linear-gradient(to bottom, #ffffff 0%, #f7f9fb 50%, #edf2f7 100%);
+        color: #495057;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all .25s ease;
+        cursor: pointer;
+    }
+
+    .custom-tabs .tab-btn:hover {
+        background: linear-gradient(to bottom, #ffffff, #f1f5f9);
+        color: #0d6efd;
+    }
+
+    .custom-tabs .tab-btn.active {
+        background: linear-gradient(to bottom, #ffffff 0%, #f8fbff 60%, #eef5fc 100%);
+        color: #0d6efd;
+        font-weight: 700;
+        border-color: #bcd4f1;
+        box-shadow: 0 -1px 8px rgba(13,110,253,.08);
+        position: relative;
+        top: 1px;
+    }
+
+    .custom-tabs .tab-btn.active::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 100%;
+        height: 3px;
+        background: #fff;
+    }
+
+    .custom-tabs .tab-btn:focus {
+        outline: none;
+        box-shadow: none;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 sm-layout-form-col">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        <!-- Toolbar for Shipment Mode -->
+                        <div id="toolbarEntry">
+                            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                            {
+                                Title = "Shipment Mode",
+                                SaveBtnClass = "js-shipmentmode-save saveBtn",
+                                DeleteBtnClass = "js-shipmentmode-delete-confirm deleteBtn",
+                                ClearBtnClass = "js-shipmentmode-clear clearBtn",
+                                PdfBtnClass = "export-pdf",
+                                ExcelBtnClass = "export-excel",
+                                FavtBtnClass = "favBtn",
+                                ShowExtraContentLaptopOnly = false
+                            })
+                        </div>
+                        <!-- Toolbar for Shipment Status -->
+                        <div id="toolbarUpload" style="display:none;">
+                            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                            {
+                                Title = "Shipment Status",
+                                SaveBtnClass = "js-shipmentstatus-save saveShipmentStatusBtn",
+                                DeleteBtnClass = "js-shipmentstatus-delete-confirm deleteShipmentStatusBtn",
+                                ClearBtnClass = "js-shipmentstatus-clear clearShipmentStatusBtn",
+                                PdfBtnClass = "export-pdf-status",
+                                ExcelBtnClass = "export-excel-status",
+                                FavtBtnClass = "favShipmentStatusBtn",
+                                ShowExtraContentLaptopOnly = false
+                            })
+                        </div>
+                    </div>
+
+                    <!-- Tabs matching VendorInfo _GlobalTabs style -->
+                    <div class="custom-tabs" id="shipmentTabGroup">
+                        <button type="button" class="tab-btn active" id="shipment-type-tab">
+                            Shipment Mode
+                        </button>
+                        <button type="button" class="tab-btn" id="shipment-status-tab">
+                            Shipment Status
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Shipment Mode Form Pane -->
+                        <div id="shipmentModeFormPane">
+                            <form id="shipmentForm">
+                                <div class="js-shipmentmode-form-container" id="shipmentFormContainer">
+                                    <partial name="ShipmentForm" />
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Shipment Status Form Pane -->
+                        <div id="shipmentStatusFormPane" style="display:none;">
+                            <form id="shipmentStatusForm">
+                                <div class="js-shipmentstatus-form-container" id="shipmentStatusFormContainer">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Table Grid Column (50% side-by-side) -->
+            <div class="col-12 col-md-6 sm-layout-grid-col">
+                <!-- Shipment Mode Grid Pane -->
+                <div id="shipmentModeGridPane">
+                    <div class="js-shipmentmode-grid-container" id="shipmentList">
+                        <partial name="ShipmentList" />
+                    </div>
+                </div>
+
+                <!-- Shipment Status Grid Pane -->
+                <div id="shipmentStatusGridPane" style="display:none;">
+                    <div class="js-shipmentstatus-grid-container" id="shipmentStatusList">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
 @section Scripts {
-    <script src="~/js/pages/ShipmentMode.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/ShipmentMode.js" defer></script>
+    <script src="~/js/pages/ShipmentStatus.js" defer></script>
+
+    <script>
+        var statusTabLoaded = false;
+
+        function switchToShipmentModeTab() {
+            $('#shipment-type-tab').addClass('active');
+            $('#shipment-status-tab').removeClass('active');
+            $('#toolbarEntry').show();
+            $('#toolbarUpload').hide();
+            $('#shipmentModeFormPane').show();
+            $('#shipmentStatusFormPane').hide();
+            $('#shipmentModeGridPane').show();
+            $('#shipmentStatusGridPane').hide();
+            if ($.gctlGrid) {
+                $.gctlGrid.reload('shipmentModeTable');
+            }
+        }
+
+        function switchToShipmentStatusTab() {
+            $('#shipment-status-tab').addClass('active');
+            $('#shipment-type-tab').removeClass('active');
+            $('#toolbarUpload').show();
+            $('#toolbarEntry').hide();
+            $('#shipmentStatusFormPane').show();
+            $('#shipmentModeFormPane').hide();
+            $('#shipmentStatusGridPane').show();
+            $('#shipmentModeGridPane').hide();
+
+            if (!statusTabLoaded) {
+                statusTabLoaded = true;
+
+                $.ajax({
+                    url: '/ShipmentStatus/ShipmentStatusForm',
+                    type: 'GET',
+                    success: function (data) {
+                        $('#shipmentStatusFormContainer').html(data);
+                        if (typeof window.initCustomDropdowns === "function") {
+                            window.initCustomDropdowns('#shipmentStatusFormContainer', true);
+                        }
+                        if (typeof getNextShipmentStatusId === "function") {
+                            getNextShipmentStatusId();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Failed to load ShipmentStatusForm:", error);
+                    }
+                });
+
+                $.ajax({
+                    url: '/ShipmentStatus/ShipmentStatusList',
+                    type: 'GET',
+                    success: function (data) {
+                        $('#shipmentStatusList').html(data);
+                        if ($.gctlGrid) {
+                            $.gctlGrid.initFromModel({ gridId: 'shipmentStatusTable' });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Failed to load ShipmentStatusList:", error);
+                    }
+                });
+            } else {
+                if ($.gctlGrid) {
+                    $.gctlGrid.reload('shipmentStatusTable');
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            $('#shipment-type-tab').on('click', function () {
+                switchToShipmentModeTab();
+            });
+
+            $('#shipment-status-tab').on('click', function () {
+                switchToShipmentStatusTab();
+            });
+
+            // Initialize dropdowns and next id on initial load
+            if (typeof window.initCustomDropdowns === "function") {
+                window.initCustomDropdowns('#shipmentFormContainer', true);
+            }
+            if (typeof getNextExpenseTypeId === "function") {
+                getNextExpenseTypeId();
+            }
+        });
+    </script>
 }

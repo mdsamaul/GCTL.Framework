@@ -1,19 +1,40 @@
-﻿<div class="table-responsive">
-    <table id="designation-grid" class="table table-striped table-hover table-bordered table-sm table-common">
+
+<style>
+    table.dataTable.table-sm > tbody > tr > td,
+    table.dataTable.table-sm > thead > tr > th {
+        padding-top: 0.1rem;
+        padding-bottom: 0.1rem;
+    }
+</style>
+<div class="table-responsive-sm overflow-hidden">
+    <table id="designation-grid" class="table table-hover table- table-striped table-bordered align-middle table-sm table-common mb-0">
         <thead>
-            <tr>
-                <th class="text-center text-middle">
-                   Select <br/> <input type="checkbox" id="designation-check-all" />
+            <tr class="text-center align-middle">
+                <th class="text-center align-middle" style="width:44px;">
+                    Select
+                    <input type="checkbox" class="form-check-input" id="designation-check-all" />
                 </th>
-                <th class="text-center">Designation ID</th>
-                <th class=" text-left">Designation </th>
-                <th class="text-center ">Short Name</th>
-                 <th class=" text-left">Designation (বাংলা)</th>
+                <th>ID</th>
+                <th>Designation</th>
+                <th>Short Name</th>
+                <th>Designation (বাংলা)</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Data will be dynamically populated by DataTables -->
-        </tbody>
+        <tbody></tbody>
     </table>
-</div> 
+</div>
 
+@* @await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "designation-grid",
+    CheckAllId = "designation-check-all",
+    Columns = new List<GridColumn>
+    {
+        new() { Header = "ID" },
+        new() { Header = "Designation" },
+        new() { Header = "Short Name" },
+        new() { Header = "Designation", HeaderBangla = "(বাংলা)" }
+    },
+    Bordered = true,
+    Striped =true
+}) *@

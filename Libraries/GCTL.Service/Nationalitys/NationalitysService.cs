@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.Nationalitys;
@@ -51,6 +51,7 @@ namespace GCTL.Service.Nationalitys
             return entity.Select(entityVM => new NationalitysSetupViewModel
             {
                 AutoId = entityVM.AutoId,
+                Tc = (int)entityVM.AutoId,
                 NationalityCode = entityVM.NationalityCode,
                 Nationality = entityVM.Nationality,
                 Ldate = entityVM.Ldate,
@@ -58,9 +59,6 @@ namespace GCTL.Service.Nationalitys
                 Luser = entityVM.Luser,
                 Lip = entityVM.Lip,
                 Lmac = entityVM.Lmac,
-
-
-
             }).ToList();
         }
 
@@ -75,6 +73,7 @@ namespace GCTL.Service.Nationalitys
 
             NationalitysSetupViewModel entityVM = new NationalitysSetupViewModel();
             entityVM.AutoId = entity.AutoId;
+            entityVM.Tc = (int)entity.AutoId;
             entityVM.NationalityCode = entity.NationalityCode;
             entityVM.Nationality = entity.Nationality;
             entityVM.Luser = entity.Luser;
@@ -176,10 +175,12 @@ namespace GCTL.Service.Nationalitys
             if (!ids.Any())
                 return (false, "No Data found to delete");
 
+            var alternateColumn = new List<string> { "NationalityId", "Nationality" };
             var dependencyCheck = await deleteHistoryService.CheckDependenciesAsync(
                 nationalRepository.GetTableName(),
                 ColumnName,
-                ids.Cast<string>().ToList()
+                ids,
+                alternateColumn
             );
 
             if (!dependencyCheck.CanDelete)
@@ -191,24 +192,21 @@ namespace GCTL.Service.Nationalitys
             {
                 var entity = await nationalRepository.All().Where(x => ids.Contains(x.NationalityCode)).ToListAsync();
 
-
                 nationalRepository.Delete(entity);
-                model.tableName = TableName;
+                model.tableName = nationalRepository.GetTableName();
                 await deleteHistoryService.LogDeletedRecordsAsync(
                     entity, model
                 );
 
                 await nationalRepository.CommitTransactionAsync();
-                return (true, "Delete Successfully");
+                return (true, "Deleted Successfully.");
             }
             catch (Exception ex)
             {
                 await nationalRepository.RollbackTransactionAsync();
                 Console.WriteLine(ex.ToString());
                 return (false, "Delete Failed");
-
             }
-
         }
 
         #endregion
@@ -234,22 +232,46 @@ namespace GCTL.Service.Nationalitys
         #region Permission all type
         public async Task<bool> PagePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Nationality" && x.TitleCheck);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Nationality" || x.Title == "Nationalitys" || x.Title == "Nationality "))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.TitleCheck);
         }
 
         public async Task<bool> SavePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Nationality " && x.CheckAdd);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Nationality" || x.Title == "Nationalitys" || x.Title == "Nationality "))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckAdd);
         }
 
         public async Task<bool> UpdatePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Nationality" && x.CheckEdit);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Nationality" || x.Title == "Nationalitys" || x.Title == "Nationality "))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckEdit);
         }
 
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Nationality" && x.CheckDelete);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Nationality" || x.Title == "Nationalitys" || x.Title == "Nationality "))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckDelete);
         }
         #endregion
 

@@ -1,0 +1,184 @@
+@using GCTL.UI.Core.ViewModels
+
+<style>
+    .btn-glass-primary {
+        background: rgba(13, 110, 253, 0.1) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(13, 110, 253, 0.3) !important;
+        color: #0d6efd !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    .btn-glass-primary:hover {
+        background: rgba(13, 110, 253, 0.2) !important;
+        border-color: rgba(13, 110, 253, 0.5) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+        color: #0b5ed7 !important;
+    }
+    .btn-glass-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+</style>
+
+<div class="p-0 pe-5 me-5">
+    <form id="notice-form" class="mt-2 pe-5">
+        <input type="hidden" id="Tc" name="Tc" />
+
+        <div class="row g-2 align-items-start">
+            @* Row 1: Left = NoticeId | Right = Blank *@
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "NoticeId",
+                LabelText = "Notice Id:",
+                FieldType = FieldType.Text,
+                IsReadonly = true,
+                LabelInline = true,
+                LabelColWidth = 4,
+                LabelCssClass = "text-end d-block",
+                ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
+            })
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                FieldType = FieldType.Blank,
+                ColumnClass = "col-lg-6 col-md-6 col-12 d-none d-md-block mb-2"
+            })
+
+            @* Row 2: Left = NoticeTitle | Right = Active? *@
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "NoticeTitle",
+                LabelText = "Notice Title:",
+                FieldType = FieldType.Text,
+                Placeholder = "Enter Notice Title",
+                IsRequired = true,
+                LabelInline = true,
+                LabelColWidth = 4,
+                LabelCssClass = "text-end d-block",
+                ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
+            })
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "Status",
+                LabelText = "Active?",
+                FieldType = FieldType.Checkbox,
+                LabelInline = true,
+                LabelColWidth = 4,
+                LabelCssClass = "text-end d-block",
+                ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
+            })
+
+            @* Row 3: Details (Full Width) *@
+            <div class="col-12 mb-2">
+                <div class="row align-items-start gx-2">
+                    <div class="col-2">
+                        <label class="form-label mb-0 text-end d-block" for="NoticeDesc">Details:</label>
+                    </div>
+                    <div class="col-10">
+                        <textarea class="form-control form-control-sm" id="NoticeDesc" name="NoticeDesc" rows="4" placeholder="Enter Notice Details" style="resize:none;" onkeydown="if(event.keyCode===13) { event.stopPropagation(); }"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "PriorityLevel",
+                LabelText = "Priority Level:",
+                FieldType = FieldType.Select,
+                LabelInline = true,
+                LabelColWidth = 4,
+                LabelCssClass = "text-end d-block",
+                SelectItems = new SelectList(new[]
+                {
+                    new { Value = "0", Text = "Normal" },
+                    new { Value = "1", Text = "Important" }
+                }, "Value", "Text", "0"),
+                ColumnClass = "col-lg-6 col-md-6 col-12 mb-2"
+            })
+
+            @* Row 4: Left = File Upload | Right = Send Email *@
+            <div class="col-lg-6 col-md-6 col-12 mb-2">
+                <div class="row align-items-center gx-2">
+                    <div class="col-4">
+                        <label class="form-label mb-0 text-end d-block" for="fileUpload">File Upload:</label>
+                    </div>
+                    <div class="col-8">
+                        <input type="file" id="fileUpload" class="form-control form-control-sm" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-6 col-12 mb-2">
+                <div class="row align-items-center gx-2">
+                    <div class="col-4"></div>
+                    <div class="col-8">
+                        <button type="button" class="btn btn-sm btn-glass-primary px-4 py-1 d-flex align-items-center justify-content-center gap-2" id="sendMail">
+                            <i class="bi bi-send"></i> Send Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-12 mb-2">
+                <div class="row align-items-center gx-2">
+                    <div class="col-4"></div>
+                    <div class="col-8">
+                        @* <button type="button" class="btn btn-sm btn-glass-primary px-4 py-1 d-flex align-items-center justify-content-center gap-2" id="sendMail">
+                            <i class="bi bi-send"></i> Send Email
+                        </button> *@
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "",
+                            SaveBtnClass = "js-VendorInfo-save",
+                            ShowClear = false,
+                            ShowDelete = false,
+                            ShowFavorite = false,
+                            ShowPrint = false,
+                            IsPlain = true,
+                            ReserveActionSlot = false,
+                            CssClass = "vendor-toolbar-responsive",
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContent = false
+                        })
+                    </div>
+                </div>
+            </div>
+
+            @* Audit Date Info *@
+            <div class="col-12" id="DateInfo" style="display:none;">
+                <div class="container-fluid mx-auto mt-2">
+                    <div class="d-md-flex justify-content-around">
+                        <div style="width:10%"></div>
+                        <div style="width:37%" class="text-center me-3">
+                            <hr class="border border-2 text-dark p-0 m-0">
+                        </div>
+                        <div style="width:6%"></div>
+                        <div style="width:37%" class="text-center p-0 m-0 ms-3">
+                            <hr class="border border-2 text-dark m-0">
+                        </div>
+                        <div style="width:10%"></div>
+                    </div>
+                    <div class="d-md-flex justify-content-around">
+                        <div style="width:10%"></div>
+                        <div style="width:37%" class="text-center me-3">
+                            <p class="mb-0 small">
+                                Entry Date: <span name="LDate" id="LDate"></span>
+                            </p>
+                        </div>
+                        <div style="width:6%"></div>
+                        <div style="width:37%" class="text-center p-0 m-0 ms-3">
+                            <p class="mb-0 small">
+                                Last Update Date: <span name="ModifyDate" id="ModifyDate"></span>
+                            </p>
+                        </div>
+                        <div style="width:10%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

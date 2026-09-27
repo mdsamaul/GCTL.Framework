@@ -1,0 +1,268 @@
+@model GCTL.Core.ViewModels.PaymentReceiveEntry.PaymentReceiveEntrySetupViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="payment-receive-setup-wrapper">
+    <input type="hidden" asp-for="Tc" id="Tc" />
+    <input type="hidden" asp-for="SelectedInvoicesJson" id="SelectedInvoicesJson" />
+
+    <fieldset class="border rounded p-2 mb-2 bg-white main-info-fieldset">
+        <legend class="w-auto px-2 fs-6 fw-bold text-dark mb-1" style="float: none; font-size: 14px;">Main Information</legend>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-1"></div>
+
+        <!-- Row 1: Payment Receive No. & Payment Receive Date -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentReceiveId">
+                        Payment Receive No.
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="PaymentReceiveId" id="PaymentReceiveId" class="form-control form-control-sm bg-light" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentReceiveDate">
+                        Payment Receive Date<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="PaymentReceiveDate" asp-format="{0:yyyy-MM-dd}" id="PaymentReceiveDate" class="form-control form-control-sm custom-datepicker"
+                               value="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))"
+                               data-default-date="@(Model?.PaymentReceiveDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Customer (Name only) & Billing Address (as text) -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="CustomerNameDisplay">
+                        Customer<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="hidden" asp-for="CustomerId" id="CustomerId" />
+                        <input type="text" asp-for="CustomerName" id="CustomerNameDisplay" class="form-control form-control-sm bg-light fw-bold text-dark"
+                               placeholder="Click customer in top grid" readonly required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-start">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1 pt-1">
+                        Billing Address:
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="hidden" asp-for="BillingAddress" id="BillingAddressHidden" />
+                        <div id="BillingAddressDisplay" class="small text-secondary fw-semibold text-break pt-1" style="font-size: 11.5px; line-height: 1.35; white-space: normal; word-break: break-word;" title="@Model?.BillingAddress">@Model?.BillingAddress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Against/Bill List (2 rows, full width across to right edge) -->
+        <div class="row g-2 mb-2 align-items-start">
+            <div class="col-12">
+                <div class="row g-1 align-items-start">
+                    <label class="col-form-label col-form-label-sm text-sm-end fw-semibold pe-1 against-bill-label" for="AgainstBillList">
+                        Against/Bill List
+                    </label>
+                    <div class="against-bill-container">
+                        <textarea asp-for="AgainstBillList" id="AgainstBillList" rows="2" class="form-control form-control-sm"
+                                  placeholder="Enter Against/Bill List"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4: Payment Type & Payment Mode -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentTypeId">
+                        Payment Type<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <select asp-for="PaymentTypeId" asp-items="ViewBag.PaymentTypes as SelectList" id="PaymentTypeId" class="form-select form-select-sm custom-select-single" required>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="PaymentModeCode">
+                        Payment Mode<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <select asp-for="PaymentModeCode" asp-items="ViewBag.PaymentModes as SelectList" id="PaymentModeCode" class="form-select form-select-sm custom-select-single" required>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 5: Money Receipt No. & Money Receipt Date -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="MrNo">
+                        Money Receipt No.
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="MrNo" id="MrNo" class="form-control form-control-sm bg-light" placeholder="Enter MR No." readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="MrDate">
+                        Money Receipt Date<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="MrDate" asp-format="{0:yyyy-MM-dd}" id="MrDate" class="form-control form-control-sm custom-datepicker"
+                               value="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))"
+                               data-default-date="@(Model?.MrDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 6: Payment Amount & Bank Fee/Online Charge -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Amount">
+                        Payment Amount<span class="text-danger">*</span>
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="number" step="0.01" asp-for="Amount" id="Amount" class="form-control form-control-sm text-start"
+                               placeholder="Enter Payment Amount" required />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="BankFeeOnlineCharge">
+                        Bank Fee/Online Charge
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="number" step="0.01" asp-for="BankFeeOnlineCharge" id="BankFeeOnlineCharge" class="form-control form-control-sm text-start"
+                               placeholder="Enter Bank Fee/Online Charge" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 7: AIT & AIT Challan No -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AIT">
+                        AIT
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="number" step="0.01" asp-for="AIT" id="AIT" class="form-control form-control-sm text-start"
+                               placeholder="0.00" value="@(Model?.AIT != null ? Model.AIT.Value.ToString("0.00") : "0.00")" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AITChallanNo">
+                        AIT Challan No
+                    </label>
+                    <div class="col-sm-7">
+                        <input type="text" asp-for="AITChallanNo" id="AITChallanNo" class="form-control form-control-sm"
+                               placeholder="Enter AIT Challan No" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 8: AIT Invoice No. & AIT Challan Upload -->
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AITInvoiceNo">
+                        AIT Invoice No.
+                    </label>
+                    <div class="col-sm-7">
+                        <select id="AITInvoiceNo" name="AITInvoiceNo" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="Select Invoice No.">
+                            @if (!string.IsNullOrEmpty(Model?.AITInvoiceNo))
+                            {
+                                var savedInvoices = Model.AITInvoiceNo.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                                foreach (var inv in savedInvoices)
+                                {
+                                    <option value="@inv.Trim()" selected>@inv.Trim()</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-center">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="AITChallanFile">
+                        AIT Challan Upload
+                    </label>
+                    <div class="col-sm-7 d-flex align-items-center gap-1">
+                        <input type="file" id="AITChallanFile" name="AITChallanFile" class="form-control form-control-sm" />
+                        <input type="hidden" asp-for="AITChallanUpload" id="AITChallanUpload" />
+                        @if (!string.IsNullOrEmpty(Model?.AITChallanUpload))
+                        {
+                            <a href="@Model.AITChallanUpload" target="_blank" class="btn btn-xs btn-outline-info text-nowrap py-1 px-2" id="AITChallanFileLink" title="View Uploaded Challan"><i class="fas fa-file-download"></i> View</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 9: Remarks & Received by -->
+        <div class="row g-2 mb-2 align-items-start">
+            <div class="col-md-6">
+                <div class="row g-1 align-items-start">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Remarks">
+                        Remarks
+                    </label>
+                    <div class="col-sm-7">
+                        <textarea asp-for="Remarks" id="Remarks" rows="2" class="form-control form-control-sm" placeholder="Enter Remarks"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-1 align-items-start">
+                    <label class="col-sm-5 col-form-label col-form-label-sm text-sm-end fw-semibold pe-1" for="Receivedby">
+                        Received by
+                    </label>
+                    <div class="col-sm-7">
+                        <select asp-for="Receivedby" asp-items="ViewBag.Employees as SelectList" id="Receivedby" class="form-select form-select-sm custom-select-single">
+                            <option value="">--Select Received by--</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 8: Submit Button (Aligned to the Right) -->
+        <div class="d-flex justify-content-end my-2 pe-1">
+            <button type="button" class="btn btn-sm btn-light border shadow-sm px-4 fw-bold js-PaymentReceiveEntry-save" id="btnSubmit">
+                <i class="far fa-save me-1 text-primary"></i> Submit
+            </button>
+        </div>
+
+        <!-- Row 9: Creation Date & Last Update Date -->
+        <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2 text-muted small px-2">
+            <div>
+                <span>Creation Date: </span>
+                <span id="creationDateSpan" class="fw-semibold">@(string.IsNullOrEmpty(Model?.CreationDate) ? DateTime.Now.ToString("dd/MM/yyyy") : Model.CreationDate)</span>
+            </div>
+            <div>
+                <span>Last Update Date: </span>
+                <span id="modifyDateSpan" class="fw-semibold">@Model?.LastUpdateDate</span>
+            </div>
+        </div>
+    </fieldset>
+</div>

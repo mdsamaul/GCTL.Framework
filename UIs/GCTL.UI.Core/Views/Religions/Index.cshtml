@@ -1,38 +1,38 @@
 ﻿@model GCTL.UI.Core.ViewModels.Religions.ReligionPageViewModel
+
 @{
-    ViewBag.Title = "Religions";
-    Model.Breadcrumb = "Religion";
     Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Religion Info";
+    Model.Breadcrumb = "Religion Info";
 }
 
-<style type="text/css">
-    .consistent-look .card {
-        min-height: 316px !important;
-    }
-
+<style>
     .dataTables_filter {
         margin-right: 0px;
     }
-
 </style>
 
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
-
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Religion",
+                            Title = "Religion Info",
+                            SaveBtnClass = "js-religion-save",
+                            DeleteBtnClass = "js-religion-delete-confirm",
+                            ClearBtnClass = "js-religion-clear"
                         })
                     </div>
                     <div class="card-body px-2">
-                        <form asp-action="Setup" id="religion-form">
+                        <form asp-action="Setup" method="post" id="religion-form" asp-controller="Religions">
                             <div class="js-religion-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
@@ -40,20 +40,37 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-religion-grid-container">
-                            <partial name="_Grid" />
-                        </div>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "religionTable",
+                    AjaxUrl = "/Religions/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "religionCode",
+                    CheckAllId = "religion-check-all",
+                    DefaultSortColumn = "religionCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "religionCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-religion-edit" },
+                        new() { Data = "religion", Header = "Religion Name", Width = "50%"},
+                        new() { Data = "shortName", Header = "Short Name", Width = "40%"}
+                    }
+                })
             </div>
+
         </div>
+
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
+<partial name="QuickAddModal" />
 
 @section Scripts {
     @{
@@ -62,14 +79,9 @@
     <script src="~/js/pages/religions.js"></script>
     <script type="text/javascript">
         var options = {
-            baseUrl: '@Url.Action("", "Religions")',
-        };
-        options.load = () => {
+            baseUrl: '@Url.Action("", "Religions")'
         };
 
         $.religions(options);
     </script>
 }
-
-
-

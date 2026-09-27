@@ -1,13 +1,11 @@
-﻿
 @model GCTL.UI.Core.ViewModels.BankInformations.BankInformationsPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
-    ViewBag.Title = "Bank Informtion";
-    Model.Breadcrumb = "Bank Informtion";
+    ViewBag.Title = "Bank Information";
+    Model.Breadcrumb = "Bank Information";
 }
 
-<!-- Content Header (Page header) -->
 <style>
     /* Wrapper for tabs */
     .tabwrap {
@@ -24,56 +22,47 @@
         flex-wrap: wrap;
     }
 
-        /* Styling for individual list items (tabs) */
-        .MenuTab li {
-            margin: 0 1px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* padding: 0.4vh; */
-            margin-right: 0.1rem;
-            text-decoration: none;
-            color: #4a4a4a;
-            font-weight: bold;
-            white-space: nowrap;
-            border: 1px solid lightgray;
-            border-bottom: none;
-            /* background: linear-gradient(to right, #d8f4f7, #fff); */
-            background: linear-gradient(to right, #f7fcff, #ffffff) !important;
-            border-radius: 10px 10px 0 0;
-            font-size: 14px;
-            text-align: center;
-            transition: background 0.3s, color 0.3s;
-        }
+    /* Styling for individual list items (tabs) */
+    .MenuTab li {
+        margin: 0 1px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.1rem;
+        text-decoration: none;
+        color: #4a4a4a;
+        font-weight: bold;
+        white-space: nowrap;
+        border: 1px solid lightgray;
+        border-bottom: none;
+        background: linear-gradient(to right, #f7fcff, #ffffff) !important;
+        border-radius: 10px 10px 0 0;
+        font-size: 14px;
+        text-align: center;
+        transition: background 0.3s, color 0.3s;
+    }
 
-            /* Styling for links in the tabs */
-            .MenuTab li a {
-                display: flex;
-                text-decoration: none;
-                color: #4a4a4a;
-                font-weight: bold;
-                white-space: nowrap;
-                border: none;
-                font-size: 14px;
-                text-align: center;
-                padding: 3%;
-            }
+    .MenuTab li a {
+        display: flex;
+        text-decoration: none;
+        color: #4a4a4a;
+        font-weight: bold;
+        white-space: nowrap;
+        border: none;
+        font-size: 14px;
+        text-align: center;
+        padding: 6px 16px;
+    }
 
-            /* Active tab (selected) styling */
-            .MenuTab li.selected {
-                background: linear-gradient(to right, #ffffff, #ffffff);
-                color: #4a4a4a;
-                font-weight: bold;
-                border: 1px solid lightgray;
-                border-radius: 10px 10px 0 0;
-                background-color: white;
-                border-bottom: none;
-            }
-
-   
-    #BankInformationsDeleteModalBodyHeightFeixd {
-        height: 50px !important;
+    .MenuTab li.selected {
+        background: linear-gradient(to right, #ffffff, #ffffff);
+        color: #4a4a4a;
+        font-weight: bold;
+        border: 1px solid lightgray;
+        border-radius: 10px 10px 0 0;
+        background-color: white;
+        border-bottom: none;
     }
 
     .dataTables_filter {
@@ -81,78 +70,90 @@
     }
 </style>
 
+<!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
-
-
-@* @await Html.PartialAsync("_TabButton")
- *@
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-           
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
-                        <!-- First tab set -->
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header dynamic-grid-header">
+                        <!-- Navigation tabs -->
                         <div class="tabwrap" style="z-index: 100; width: 100%;">
                             <ul class="MenuTab">
-                                <li class="selected" style="width: 16%;">
+                                <li class="selected">
                                     <a href="/BankInformations/Index?PageID=41">Bank</a>
                                 </li>
-                                <li style="width: 16%;">
+                                <li>
                                     <a href="/BankBranchInformations/Index?PageID=41">Branch</a>
                                 </li>
-                                <li style="width: 16%;">
+                                <li>
                                     <a href="/BankAccountInfo/Index?PageID=41">A/C Info</a>
                                 </li>
-
                             </ul>
                         </div>
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
-                            Title = "Bank Informtion",
+                            Title = "Bank Information",
+                            SaveBtnClass = "js-bankinformation-save",
+                            DeleteBtnClass = "js-bankinformation-delete-confirm",
+                            ClearBtnClass = "js-bankinformation-clear"
                         })
                     </div>
                     <div class="card-body px-2">
-                        <form asp-action="Setup" method="post" id="BankInformations-form" asp-controller="BankInformations">
-                            <partial name="_Setup" model="Model.Setup" />
+                        <form asp-action="Setup" method="post" id="bankinformation-form" asp-controller="BankInformations">
+                            <div class="js-bankinformation-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
 
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-BankInformations-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.tableDataList)
-                        </div>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "bankInformationTable",
+                    AjaxUrl = "/BankInformations/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "bankId",
+                    CheckAllId = "bankinformation-check-all",
+                    DefaultSortColumn = "bankId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "bankId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-bankinformation-edit" },
+                        new() { Data = "bankName", Header = "Bank Name", Width = "60%"},
+                        new() { Data = "shortName", Header = "Short Name", Width = "30%"}
+                    }
+                })
             </div>
-
 
         </div>
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
-<partial name="DeleteModal" /> 
 
- @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-        <script src="~/js/pages/bankInformations.js"></script>
-        <script type="text/javascript">
-            var options = {
-                baseUrl: '@Url.Action("", "BankInformations")'
-            };
-            options.load = () => {
-            };
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
 
-            $.bankInformations(options);
-        </script>
-}
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/bankInformations.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.bankInformations === "function") {
+                var options = { baseUrl: '@Url.Action("", "BankInformations")' };
+                options.load = () => { };
+                $.bankInformations(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>

@@ -1,0 +1,207 @@
+@model GCTL.Core.ViewModels.BranchAddress.BranchAddressSetupViewModel
+@using GCTL.UI.Core.ViewModels
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-80%, -80%); z-index: 9999;">
+    <img src="/images/Spinner.gif" alt="Loading..." style="width: 80px; height: 80px;" />
+</div>
+
+<div style="padding-top: 10px;">
+
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="Tc" />
+    <input type="hidden" asp-for="VendorBranchId" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
+
+    @* ---------- Row 1: Vendor Name & Address ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "VendorId",
+            LabelText = "Vendor Name",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Vendor Name --",
+            SelectItems = ViewBag.VendorDD as SelectList,
+            IsRequired = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col"
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "LocationAddress",
+            LabelText = "Address",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Address",
+            IsRequired = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            DefaultValue = Model?.LocationAddress,
+            AutoFocus = true
+        })
+    </div>
+
+    @* ---------- Row 2: Country & City ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "CountryId",
+            LabelText = "Country",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Country --",
+            SelectItems = ViewBag.CountryDD as SelectList,
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col"
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "City",
+            LabelText = "City",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter City",
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            DefaultValue = Model?.City
+        })
+    </div>
+
+    @* ---------- Row 3: State/Province & Zip Code ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "StateOrProvince",
+            LabelText = "State/Province",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter State/Province",
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            DefaultValue = Model?.StateOrProvince
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ZipCode",
+            LabelText = "Zip Code",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Zip Code",
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            DefaultValue = Model?.ZipCode
+        })
+    </div>
+
+    @* ---------- Row 4: Phone & Email ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Phone",
+            LabelText = "Phone",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Phone",
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            DefaultValue = Model?.Phone
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Email",
+            LabelText = "Email",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Email",
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            DefaultValue = Model?.Email
+        })
+    </div>
+
+    @* ---------- Row 5: Contact Person & Remarks ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ContactPerson",
+            LabelText = "Contact Person",
+            FieldType = FieldType.MultiSelect,
+            Placeholder = "Select Contact Person",
+            SelectItems = ViewBag.ContactDD as SelectList,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            ReserveActionSlot = false,
+            ShowQuickAdd = true,
+            QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+            QuickAddTarget = "#ContactPerson",
+            QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+            QuickAddTitle = "Contact Person Info"
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Remarks",
+            LabelText = "Remarks",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Remarks",
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            DefaultValue = Model?.Remarks
+        })
+    </div>
+
+    <hr class="my-2" id="sectionBreak" style="display:none;" />
+    <div class="row g-4 mb-1" id="LdateModifyHide" style="display:none;">
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "creationDateSpan",
+            LabelText = "Creation Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            ShowOnInit = Model.Ldate.HasValue,
+            DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : ""
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "modifyDateSpan",
+            LabelText = "Last Update Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 ba-field-col",
+            ShowOnInit = Model.ModifyDate.HasValue,
+            DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : ""
+        })
+
+    </div>
+
+</div>
+
+<div class="row g-4">
+    <div class="col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            SaveBtnClass = "js-BranchAddress-save",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            ReserveActionSlot = false,
+            Style = "border-bottom:0px !important;",
+            ShowExtraContentLaptopOnly = true,
+            ShowExtraContent = false
+        })
+    </div>
+</div>

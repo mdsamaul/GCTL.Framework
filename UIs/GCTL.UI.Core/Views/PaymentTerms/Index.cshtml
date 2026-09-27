@@ -6,71 +6,74 @@
     Model.Breadcrumb = "Payment Terms";
 }
 
-<style>
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
-
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
-<section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+<section class="content consistent-look px-0">
+    <div class="container-fluid px-0">
+        <div class="row g-2">
 
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Payment Terms",
+                            SaveBtnClass = "js-paymentterms-save",
+                            DeleteBtnClass = "js-paymentterms-delete-confirm",
+                            ClearBtnClass = "js-paymentterms-clear"
                         })
                     </div>
                     <div class="card-body px-2">
-
-                        <form asp-action="Setup" method="post" id="PaymentTerms-form" asp-controller="PaymentTerms">
-
-                            <div class="js-PaymentTerms-form-container">
+                        <form asp-action="Setup" method="post" id="paymentterms-form" asp-controller="PaymentTerms">
+                            <div class="js-paymentterms-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-PaymentTerms-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.PaymentTermsList)
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "paymentTermsTable",
+                    AjaxUrl = "/PaymentTerms/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "paymentTermsId",
+                    CheckAllId = "paymentterms-check-all",
+                    DefaultSortColumn = "paymentTermsId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "paymentTermsId", Header = "ID", Width = "7%", IsEditLink = true, EditSelectorClass = "js-paymentterms-edit" },
+                        new() { Data = "paymentTermsName", Header = "Payment Terms Name", Width = "38%"},
+                        new() { Data = "paymentType", Header = "Type", Width = "20%"},
+                        new() { Data = "percentise", Header = "Percentage", Width = "15%", Align = "center" },
+                        new() { Data = "creditDays", Header = "Credit Days", Width = "15%", Align = "center" }
+                    }
+                })
             </div>
 
-
         </div>
-
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/paymentTerms.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "PaymentTerms")'
-        };
-        options.load = () => {
-        };
-
-        $.paymentTerms(options);
+    <script src="~/js/pages/paymentTerms.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.paymentTerms({
+                baseUrl: '/PaymentTerms'
+            });
+        });
     </script>
 }

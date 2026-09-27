@@ -1,181 +1,247 @@
-﻿
+using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.UnitType;
-using GCTL.Service.Pagination;
+using GCTL.Service.Common;
 using GCTL.Service.UnitType;
 using GCTL.UI.Core.Controllers;
-using GCTL_App.Controllers;
+using GCTL.UI.Core.Helpers;
+using GCTL.UI.Core.ViewModels.UnitType;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using System.Linq.Expressions;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.Controllers
 {
     public class UnitTypeController : BaseController
     {
         private readonly IUnitType _service;
-        public UnitTypeController(IUnitType service) : base()
+        private readonly ICommonService _commonService;
+
+        public UnitTypeController(IUnitType service, ICommonService commonService) : base()
         {
             _service = service;
-        }
-        public IActionResult Index()
-        {
-            return View();
-        }
-        public IActionResult UnitForm()
-        {
-             return PartialView();
-        }
-        public IActionResult UnitList()
-        {
-            return PartialView();
+            _commonService = commonService;
         }
 
-        [HttpGet("next-unit-id")]
-        public async Task<string> GetNextUnitId()
+        private async Task<string> GetNextCodeAsync()
         {
-
-            var lastId = await _service.GetLastUnitAsync();
-
-            string newId;
-            if (!string.IsNullOrEmpty(lastId) && int.TryParse(lastId, out int lastNumericId))
+            string strMaxNO = string.Empty;
+            try
             {
-                int nextId = lastNumericId + 1;
-                newId = nextId.ToString("D3");
+                _commonService.FindMaxNo(ref strMaxNO, "UnitTypID", "RMG_Prod_Def_UnitType",0);
+            }
+            catch { }
+
+            if (string.IsNullOrWhiteSpace(strMaxNO) || strMaxNO == "0")
+            {
+                var lastId = await _service.GetLastUnitAsync();
+                if (!string.IsNullOrEmpty(lastId) && int.TryParse(lastId, out int lastNumericId))
+                {
+                    strMaxNO = (lastNumericId + 1).ToString();
+                }
+                else
+                {
+                    strMaxNO = "1";
+                }
+            }
+            return strMaxNO;
+        }
+
+        #region Index
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
+        {
+            var hasPermission = await _service.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var model = new UnitTypePageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index))
+            };
+
+            try
+            {
+                var list = await _service.GetAllAsync() ?? new List<UnitTypeSetupViewModel>();
+                model.TableList = list;
+
+                model.Setup = new UnitTypeSetupViewModel
+                {
+                    UnitTypID = await GetNextCodeAsync()
+                };
+            }
+            catch (Exception ex)
+            {
+                model.TableList = new List<UnitTypeSetupViewModel>();
+                model.Setup = new UnitTypeSetupViewModel();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
+
+
+            return View(model);
+        }
+
+        #endregion
+
+        #region Setup
+
+        public async Task<IActionResult> Setup(string id)
+        {
+            var model = new UnitTypeSetupViewModel();
+            var nextCode = await GetNextCodeAsync();
+
+            if (!string.IsNullOrEmpty(id) && id != "0")
+            {
+                var existing = await _service.GetByIdAsync(id);
+                if (existing != null)
+                {
+                    model = existing;
+                }
+                else
+                {
+                    model.UnitTypID = nextCode;
+                }
             }
             else
             {
-                newId = "001";
+                model.UnitTypID = nextCode;
             }
 
-            return newId;
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_Setup", model);
+            }
+
+            var pageModel = new UnitTypePageViewModel
+            {
+                Setup = model,
+                PageUrl = Url.Action(nameof(Index))
+            };
+
+            var list = await _service.GetAllAsync() ?? new List<UnitTypeSetupViewModel>();
+
+            return View("Index", pageModel);
         }
 
-        [HttpGet]
-        [Route("units")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Setup(UnitTypeSetupViewModel modelVM)
+        {
+            try
+            {
+                if (modelVM.Tc == 0 || modelVM.AutoId == null || modelVM.AutoId == 0)
+                {
+                    if (await _service.IsDuplicateAsync(modelVM))
+                    {
+                        return Json(new { isSuccess = false, message = "Unit Type Name already exists.", isDuplicate = true });
+                    }
+                }
 
+                if (!ModelState.IsValid)
+                {
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                modelVM.ToAudit(LoginInfo, (modelVM.AutoId > 0 || modelVM.Tc > 0));
+
+                if (modelVM.Tc == 0 || modelVM.AutoId == null || modelVM.AutoId == 0)
+                {
+                    var hasSavePermission = await _service.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (!hasSavePermission)
+                    {
+                        return Json(new { isSuccess = false, message = "You have no permission to Save." });
+                    }
+
+                    var nextCode = await GetNextCodeAsync();
+                    modelVM.UnitTypID = nextCode;
+
+                    bool result = await _service.SaveAsync(modelVM);
+                    if (result)
+                    {
+                        var newNextCode = await GetNextCodeAsync();
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = newNextCode });
+                    }
+                    return Json(new { isSuccess = false, message = "Failed to save Unit Type." });
+                }
+                else
+                {
+                    var hasUpdatePermission = await _service.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (!hasUpdatePermission)
+                    {
+                        return Json(new { isSuccess = false, message = "You have no permission to Update." });
+                    }
+
+                    bool result = await _service.UpdateAsync(modelVM);
+                    if (result)
+                    {
+                        var nextCode = await GetNextCodeAsync();
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = nextCode });
+                    }
+                    return Json(new { isSuccess = false, message = "Failed to update Unit Type." });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { isSuccess = false, message = "An error occurred while saving." });
+            }
+        }
+
+        #endregion
+
+        #region Delete
+
+        [HttpPost]
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
+        {
+            if (ids == null || !ids.Any())
+            {
+                return Json(new { isSuccess = false, message = "No records selected to delete." });
+            }
+
+            var hasPermission = await _service.DeletePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return Json(new { isSuccess = false, message = "You have no permission to Delete." });
+            }
+
+            var deleteHistory = new DeleteHistoryViewModel();
+            deleteHistory.ToAudit(LoginInfo);
+            deleteHistory.CompanyCode = LoginInfo.CompanyCode;
+
+            var result = await _service.DeleteTab(ids, deleteHistory);
+            return Json(new { isSuccess = result.succses, message = result.messege });
+        }
+
+        #endregion
+
+        #region Table Loading (Custom DataTable)
+
+        [HttpPost]
         public async Task<IActionResult> GetAll()
         {
-            var data = await _service.GetAllAsync();
-            return Ok(new { data = data });
-        }
-
-        //API to get paginated data
-        [HttpGet]
-        [Route("unit-list")]
-        public async Task<IActionResult> GetAllPaginatedUnits(int page = 1,int pageSize = 10,string searchTerm = "",string currentSortColumn = "UnitTypID", string sortOrder = "desc")
-        {
             try
             {
-                var result = await _service.GetPaginatedAsync(page, pageSize, searchTerm, currentSortColumn, sortOrder);
-
-                if (result.Data == null || !result.Data.Any())
-                {
-                    return Ok(new
-                    {
-                        Data = new List<UnitTypeVM>(),
-                        TotalCount = 0,
-                        PaginationInfo = new
-                        {
-                            StartItem = 0,
-                            EndItem = 0,
-                            TotalItems = 0,
-                            PageNumbers = new List<int>(),
-                            TotalPages = 0,
-                            CurrentPage = 0
-                        },
-                        Message = "No Unit Found."
-                    });
-                }
-
-                return Ok(result);
+                var list = await _service.GetAllAsync() ?? new List<UnitTypeSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
+                return Json(new { data = new List<UnitTypeSetupViewModel>(), error = ex.Message });
             }
         }
 
-        [HttpPost]
-        [Route("unit")]
-        public async Task<IActionResult> AddUnit([FromBody] UnitTypeVM model)
-        {
-            try
-            {
-                if (model == null)
-                    return BadRequest(new { message = "Unit Type is required." });
-
-                var result = await _service.SaveAsync(model);
-
-
-                if (!result)
-                    return BadRequest(new { message = "Insertion Failed." });
-
-
-
-                return Ok(new { success = true, message = "Data Saved Successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
-            }
-        }
-
-        [HttpPut]
-        [Route("unit/{id}")]
-        public async Task<IActionResult> UpdateUnit(int id, [FromBody] UnitTypeVM model)
-        {
-            if (model == null || id != model.TC)
-                return BadRequest(new { message = "Data is invalid." });
-
-            var typeExists = await _service.IsExistAsync(id);
-            if (!typeExists)
-                return NotFound(new { message = $"Unit Type with ID {id} not found." });
-
-            var result = await _service.UpdateAsync(model);
-
-            if (!result)
-                return BadRequest(new { message = "Updated Failed." });
-
-            return Ok(new { success = true, message = "Data updated successfully." });
-        }
-
-        [HttpDelete("unit-list")]
-        public async Task<ActionResult> BulkDelete([FromBody] List<int> ids)
-        {
-            try
-            {
-                if (ids == null || !ids.Any() || ids.Count == 0)
-                {
-                    return Json(new { isSuccess = false, message = "No Data is selected to delete" });
-                }
-
-                var result = await _service.BulkDeleteAsync(ids);
-                if (!result)
-                {
-                    return Json(new { isSuccess = false, message = "No Data found to delete" });
-                }
-                return Json(new { isSuccess = true, message = $"Data Deleted Successfully." });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { isSuccess = false, message = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CheckDuplicate([FromBody] UnitTypeVM model)
-        {
-            var isDuplicate = await _service.IsDuplicateAsync(model);
-
-            if (isDuplicate)
-            {
-                return Ok(new { isDuplicate = true, message = "Data Already Exists." });
-            }
-
-            return Ok(new { isDuplicate = false, message = "No duplicate found." });
-        }
+        #endregion
     }
 }

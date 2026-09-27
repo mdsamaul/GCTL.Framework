@@ -1,0 +1,224 @@
+﻿@* @model List<GCTL.Core.ViewModels.CompanyInfo.CompanyInfoSetupViewModel>
+
+<table id="CompanyInfo-grid" class="table table-striped  table-bordered table-sm table-hover table-common">
+    <thead>
+        <tr >
+            <th class="text-center text-middle" style="width: 4%;">
+                Sel. <br /> <input type="checkbox" id="CompanyInfo-check-all" />
+            </th>
+            <th class="text-center text-middle" style="width: 6%;">ID</th>
+            <th class="text-center text-middle" style="width: 23%;"> Company Name</th>
+            <th class="text-center text-middle" style="width: 12%;"> Short Name</th>
+            <th class="text-center text-middle" style="width: 40%;"> Address</th>
+            <th class="text-center text-middle" style="width: 15%;"> Company For</th>
+
+        </tr>
+    </thead>
+    <tbody>
+
+        @if (Model == null || !Model.Any())
+        {
+            <tr class="text-center text-middle">
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in Model.OrderByDescending(x => x.Tc))
+            {
+                <tr>
+                    <td class="text-center">
+                        <input type="checkbox" class="text-center text-middle checkBox" data-id="@item.Tc" value="@item.CompanyId" />
+                    </td>
+                    <td>
+                        <a href="#" class='btn js-CompanyInfo-edit'
+                           style="text-decoration: underline; color: rebeccapurple;"
+                           data-id="@item.Tc" title="Edit">
+                            @item.CompanyId
+                        </a>
+                    </td>
+
+                    <td class="text-center text-middle">@item.CompanyName</td>
+                    <td class="text-center text-middle">@item.ShortName</td>
+                    <td class="text-center text-middle">@item.CompanyAddress</td>
+                    <td class="text-center text-middle">@item.CompanyForName</td>
+
+                </tr>
+            }
+        }
+
+    </tbody>
+</table> *@
+
+
+@* @model List<GCTL.Core.ViewModels.CompanyInfo.CompanyInfoSetupViewModel>
+
+<style>
+
+    #CompanyInfo-grid {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+        #CompanyInfo-grid th,
+        #CompanyInfo-grid td {
+            vertical-align: middle !important;
+        }
+
+        #CompanyInfo-grid thead th {
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal;
+        }
+
+        #CompanyInfo-grid tbody td {
+            text-align: center;
+            vertical-align: middle !important;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        #CompanyInfo-grid .checkBox,
+        #CompanyInfo-grid #CompanyInfo-check-all {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0;
+        }
+
+        #CompanyInfo-grid .js-CompanyInfo-edit {
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+            text-decoration: underline;
+            color: rebeccapurple;
+            background: transparent;
+            border: 0;
+            vertical-align: middle;
+        }
+
+            #CompanyInfo-grid .js-CompanyInfo-edit:hover {
+                color: #6f42c1;
+                text-decoration: underline;
+            }
+
+        #CompanyInfo-grid .no-data {
+            text-align: center !important;
+            vertical-align: middle !important;
+            height: 50px;
+        }
+</style>
+
+
+<table id="CompanyInfo-grid"
+       class="table table-striped table-bordered table-sm table-hover table-common">
+
+    <thead>
+        <tr>
+            <th style="width: 4%;">
+                Sel.<br />
+                <input type="checkbox"
+                       id="CompanyInfo-check-all" />
+            </th>
+
+            <th style="width: 6%;">
+                ID
+            </th>
+
+            <th style="width: 23%;">
+                Company Name
+            </th>
+
+            <th style="width: 12%;">
+                Short Name
+            </th>
+
+            <th style="width: 40%;">
+                Address
+            </th>
+
+            <th style="width: 15%;">
+                Company For
+            </th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @if (Model == null || !Model.Any())
+        {
+            <tr>
+               
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in Model.OrderByDescending(x => x.Tc))
+            {
+                <tr>
+
+                    <td>
+                        <input type="checkbox"
+                               class="checkBox"
+                               data-id="@item.Tc"
+                               value="@item.CompanyId" />
+                    </td>
+
+                    <td>
+                        <a href="#"
+                           class="js-CompanyInfo-edit"
+                           data-id="@item.Tc"
+                           title="Edit">
+                            @item.CompanyId
+                        </a>
+                    </td>
+
+                    <td>
+                        @item.CompanyName
+                    </td>
+
+                    <td>
+                        @item.ShortName
+                    </td>
+
+                    <td>
+                        @item.CompanyAddress
+                    </td>
+
+                    <td>
+                        @item.CompanyForName
+                    </td>
+
+                </tr>
+            }
+        }
+
+    </tbody>
+</table>
+
+
+<script>
+    $(document).ready(function () {
+
+        $('#CompanyInfo-check-all').on('change', function () {
+
+            const isChecked = $(this).prop('checked');
+
+            $('#CompanyInfo-grid tbody .checkBox')
+                .prop('checked', isChecked);
+        });
+
+        $('#CompanyInfo-grid').on('change', '.checkBox', function () {
+
+            const total = $('#CompanyInfo-grid tbody .checkBox').length;
+
+            const checked = $('#CompanyInfo-grid tbody .checkBox:checked').length;
+
+            $('#CompanyInfo-check-all').prop(
+                'checked',
+                total > 0 && total === checked
+            );
+        });
+
+    });
+</script>
+ *@

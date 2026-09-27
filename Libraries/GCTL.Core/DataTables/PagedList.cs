@@ -29,3 +29,33 @@ public static class PagedListExtensions
     public static PagedList<T> ToPagedList<T>(this IQueryable<T> query, DataTablesOptions options) =>
         PagedList<T>.Create(query, options);
 }
+
+#region new Pagination
+[AttributeUsage(AttributeTargets.Property)]
+public class SearchableAttribute : Attribute { }
+public class PaginationRequest
+{
+    public int PageNumber { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+    public string? SearchTerm { get; set; }
+    public string? SortColumn { get; set; }
+    public string? SortOrder { get; set; } = "desc";
+}
+
+public class PaginationResponse<T>
+{
+    public IEnumerable<T>? Data { get; set; }
+    public int TotalCount { get; set; }
+    public int FilteredCount { get; set; }
+    public PaginationInfo2? PaginationInfo { get; set; }
+
+    public class PaginationInfo2
+    {
+        public int StartItem { get; set; }
+        public int EndItem { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages { get; set; }
+        public int CurrentPage { get; set; }
+    }
+}
+#endregion

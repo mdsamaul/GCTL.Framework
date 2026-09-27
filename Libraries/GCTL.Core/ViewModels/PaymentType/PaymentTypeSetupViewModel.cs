@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GCTL.Core.ViewModels.PaymentType
 {
     public class PaymentTypeSetupViewModel : BaseViewModel
     {
         public int Tc { get; set; }
-        public string PaymentTypeId { get; set; }
-        [Required(ErrorMessage = "Payment Type is required")]
-        public string PaymentType { get; set; }
-        public string ShortName { get; set; }
+        public int? AutoId { get; set; }
+        [Display(Name = "Payment Type ID")]
+        public string? PaymentTypeId { get; set; }
+        [Required(ErrorMessage = "{0} is required.")]
+        [Display(Name = "Payment Type")]
+        public string PaymentType { get; set; } = string.Empty;
+        [Display(Name = "Short Name")]
+        public string? ShortName { get; set; }
     }
 }

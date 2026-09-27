@@ -1,0 +1,784 @@
+@model GCTL.Core.ViewModels.HrmEmployeeOfficialInfo.HrmEmployeeOfficialInfoSetupViewModel
+@using GCTL.UI.Core.ViewModels
+
+@{
+    ViewBag.Title = "Official Info";
+    Model.PageTitle = ViewBag.Title;
+    Model.Breadcrumb = "Official Info";
+}
+
+<div id="customLoadingOverlay" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;">
+    <div style="
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        text-align: center;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p style="margin-top: 10px; margin-bottom: 0;">Loading data...</p>
+    </div>
+</div>
+
+<partial name="_PageHeader" model="Model" />
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-0">
+                    <div class="card-header border-transparent py-1">
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
+                        {
+                            Title = "Official Info",
+                            SaveBtnClass = "js-officialInfo-save",
+                            DeleteBtnClass = "js-officialInfo-delete-confirm",
+                            ClearBtnClass = "js-officialInfo-clear"
+                        })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <form asp-action="Setup" asp-controller="OfficialInfo" method="post" id="officialInfo-form" enctype="multipart/form-data">
+        <div class="container-fluid">
+            <div class="form-group row pt-2">
+                <div class="col-md-12">
+                    <div class="card mb-0">
+                        <div class="card-body pt-1">
+                            <div class="card-header p-0">
+                                @await Html.PartialAsync("_TabButton")
+                            </div>
+
+                            <div style="padding-top: 10px;">
+
+                                <input type="hidden" asp-for="AutoId" />
+
+                                <!-- ==================== HEADER (Employee Info) ==================== -->
+                                <div class="row px-4 pt-2 pb-2 rounded"
+                                     style="background: linear-gradient(to right, #ecf8fe, #ffffff) !important;">
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmployeeId",
+                                            LabelText = "Employee Id",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "Select Employee",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",
+                                            LabelCssClass = "fw-semibold",
+                                            SelectItems = ViewBag.EmployeeDD as SelectList,
+                                            DefaultValue = Model.EmployeeId,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "FullName",
+                                            LabelText = "Employee Name:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,                 
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",      
+                                            LabelCssClass = "form-label mb-0 fw-semibold",
+                                            DefaultValue = Model.EmployeeName
+                                        })
+
+                                    </div>
+
+                                    <!-- Row 3: Designation + Department -->
+                                    <div class="form-group row mt-2">
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DesignationName",
+                                            LabelText = "Designation:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,              
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",
+                                            LabelCssClass = "form-label mb-0 fw-semibold",
+                                            DefaultValue = Model.DesignationName
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DepartmentName",
+                                            LabelText = "Department:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-6",
+                                            LabelInline = true,               
+                                            LabelColWidth = 4,
+                                            LabelColumnClass = "text-end",
+                                            LabelCssClass = "form-label mb-0 fw-semibold",
+                                            DefaultValue = Model.DepartmentName
+                                        })
+                                    </div>
+                                </div>
+
+                                <!-- ==================== MAIN OFFICIAL INFO ==================== -->
+                                @* <div style="position:relative; background: white;" class="row mt-3 py-3 rounded"> *@
+
+                                    <div style="position:relative; background: white; border: 0.5px solid #95b3f4;" class="row my-3 py-3 rounded">
+                                        <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #95b3f4; left: 10px; width:auto;" class="rounded">
+                                        <h5 style="margin:0;"><strong>Company Information</strong></h5>
+                                        </div>
+
+                                        @* <div class="form-group row w-100"> *@
+
+                                    <div class="form-group row w-100">
+
+                                        @* ---- Column 1 ---- *@
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "OfficialInfoCompanyCode",
+                                            LabelText = "Company",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Company ----",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            DefaultValue = Model.OfficialInfoCompanyCode,
+                                            SelectItems = ViewBag.CompanyDD as SelectList,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "OfficialInfoBranchCode",
+                                            LabelText = "Branch",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Branch ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "BranchesTypeInfo"),
+                                            QuickAddTarget = "#OfficialInfoBranchCode",
+                                            QuickAddReloadUrl = Url.Action("GetCompanieBranchSelections", "Cascading"),
+                                            QuickAddTitle = "Branch",
+                                            DefaultValue = Model.OfficialInfoBranchCode,
+                                            SelectItems = ViewBag.BranchDD as SelectList,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DivisionCode",
+                                            LabelText = "Division",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Division ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            DefaultValue = Model.DivisionCode,
+                                            SelectItems = ViewBag.DivisionDD as SelectList,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DepartmentCode",
+                                            LabelText = "Department",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Department ----",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "Departments"),
+                                            QuickAddTarget = "#DepartmentCode",
+                                            QuickAddReloadUrl = Url.Action("GetDepartments", "Cascading"),
+                                            QuickAddTitle = "Department",
+                                            DefaultValue = Model.DepartmentCode,
+                                            SelectItems = ViewBag.DepartmentDD as SelectList,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "DesignationCode",
+                                            LabelText = "Designation",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Designation ----",
+                                            IsRequired = true,
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "Designations"),
+                                            QuickAddTarget = "#DesignationCode",
+                                            QuickAddReloadUrl = Url.Action("GetDesignations", "Cascading"),
+                                            QuickAddTitle = "Designation",
+                                            DefaultValue = Model.DesignationCode,
+                                            SelectItems = ViewBag.DesignationDD as SelectList,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmpTypeCode",
+                                            LabelText = "Employee Type",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Employee Type ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.EmployeeTypeDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "HrmDefEmpType"),
+                                            QuickAddTarget = "#EmpTypeCode",
+                                            QuickAddReloadUrl = Url.Action("GetEmployeeTypes", "Cascading"),
+                                            QuickAddTitle = "Employee Type",
+                                            DefaultValue = Model.EmpTypeCode,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmploymentNatureId",
+                                            LabelText = "Employment Nature",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Nature ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.EmployeeNatureDD as SelectList,
+                                            DefaultValue = Model.EmploymentNatureId,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "GradeCode",
+                                            LabelText = "Grade No",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Grade No ----",
+                                            ColumnClass = "col-lg-4",
+                                            // CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            // SelectItems = ViewBag.GradeDD as SelectList,
+                                            // ShowQuickAdd = true,
+                                            // QuickAddUrl = Url.Action("Index", "Grades"),
+                                            // QuickAddTarget = "#GradeCode",
+                                            // QuickAddReloadUrl = Url.Action("GetGradeDD", "Cascading"),
+                                            // QuickAddTitle = "Grade",
+                                            DefaultValue = Model.GradeCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "PayId",
+                                            LabelText = "Pay ID",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Pay ID",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.PayId,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ShiftCode",
+                                            LabelText = "Shift",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Shift ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.ShiftDD as SelectList,
+                                            DefaultValue = Model.ShiftCode,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ReportingTo",
+                                            LabelText = "Immediate Supervisor",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Immediate Supervisor ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.SupervisorDD as SelectList,
+                                            DefaultValue = Model.ReportingTo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "Hod",
+                                            LabelText = "Head of Department",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Head of Department ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.HeadOfDepartmentDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Setup", "HrmEmployee2"),
+                                            QuickAddTarget = "#Hod",
+                                            QuickAddReloadUrl = Url.Action("GetEmployeeSummary", "Cascading"),
+                                            QuickAddTitle = "Head of Department",
+                                            DefaultValue = Model.Hod,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "MobileNo",
+                                            LabelText = "Official Phone",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Official Phone",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.MobileNo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "Email",
+                                            LabelText = "Official Email",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Official Email",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.Email,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "AttendenceId",
+                                            LabelText = "Attendence ID",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Attendence ID",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.AttendenceId,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ClientId",
+                                            LabelText = "Client",
+                                            FieldType = FieldType.MultiSelect,
+                                            Placeholder = "---- Select Client ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "gc-multiselect",
+                                            SelectItems = ViewBag.ClientDD as SelectList,
+                                            ShowQuickAdd = true,
+                                            QuickAddUrl = Url.Action("Index", "ClientInformationEntry"),
+                                            QuickAddTarget = "#ClientId",
+                                            QuickAddReloadUrl = Url.Action("GetClientInformationEntry", "Cascading"),
+                                            QuickAddTitle = "Client Information Entry",
+                                           // DefaultValue = Model.ClientId,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "EmployeeStatus",
+                                            LabelText = "Employee Status",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Employee Status ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.EmployeeStatusDD as SelectList,
+                                            DefaultValue = Model.EmployeeStatus,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+                                </div>
+
+                                <!-- ==================== OTHERS INFORMATION ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #95b3f4;" class="row my-3 py-3 rounded">
+                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #95b3f4; left: 10px; width:auto;" class="rounded">
+                                        <h5 style="margin:0;"><strong>Others Information</strong></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsLunchBilEligible",
+                                            LabelText = "Is Lunch Bill Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select is Food Bill Eligible ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.LunchBillEligibleDD as SelectList,
+                                            DefaultValue = Model.IsLunchBilEligible,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsOverTimeEligible",
+                                            LabelText = "Is Over Time Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "0%",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligible,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsOverTimeEligibleRegular",
+                                            LabelText = "Is Over Time Eligible (Regular)",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Over Time Eligible (Regular) ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleRegularDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligibleRegular,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsOverTimeEligibleOnlyWeekend",
+                                            LabelText = "Is Over Time Eligible(Weekend)",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Over Time Eligible(Weekend) ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleWeekendDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligibleOnlyWeekend,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsOverTimeEligibleHoliday",
+                                            LabelText = "Is Over Time Eligible(Holiday)",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Over Time Eligible (Holiday) ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleHolidayDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligibleHoliday,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsExtraDutyEligible",
+                                            LabelText = "Is Extra Duty Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "0%",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.ExtraDutyEligibleDD as SelectList,
+                                            DefaultValue = Model.IsExtraDutyEligible,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsGovtHolidayEligible",
+                                            LabelText = "Is Govt. Holiday Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Govt. Holiday Eligible ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.GovtHolidayEligibleDD as SelectList,
+                                            DefaultValue = Model.IsGovtHolidayEligible,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsAttendanceBonusEligible",
+                                            LabelText = "Is Attendance Bonus Eligible",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Attendance Bonus Eligible ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.AttendanceBonusEligibleDD as SelectList,
+                                            DefaultValue = Model.IsAttendanceBonusEligible,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+                                </div>
+
+                                <!-- ==================== JOINING INFORMATION ==================== -->
+                                <div style="position:relative; background: white; border: 0.5px solid #95b3f4;" class="row my-3 py-3 rounded">
+                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #95b3f4; left: 10px; width:auto;" class="rounded">
+                                        <h5 style="margin:0;"><strong>Joining Information</strong></h5>
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "AppointmentLetterNo",
+                                            LabelText = "AppointmentLetter No",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter AppointmentLetter No",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.AppointmentLetterNo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "AppointmentLetterDate",
+                                            LabelText = "Appointment Letter Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Appointment Letter Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                           // DefaultValue = Model.AppointmentLetterDate,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "JoiningDate",
+                                            LabelText = "Joining Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Joining Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                           // DefaultValue = Model.JoiningDate,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "JoiningSalary",
+                                            LabelText = "Joining Salary",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Joining Salary",
+                                            ColumnClass = "col-lg-4",
+                                          //  DefaultValue = Model.JoiningSalary,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ProbationPeriod",
+                                            LabelText = "Probation Period",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Probation Period",
+                                            ColumnClass = "col-lg-2",
+                                            DefaultValue = Model.ProbationPeriod,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ProbationPeriodType",
+                                            LabelText = " ",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Probation Period ----",
+                                            ColumnClass = "col-lg-2",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.ProbationTimeDD as SelectList,
+                                            DefaultValue = Model.ProbationPeriodType,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ConfirmeDate",
+                                            LabelText = "Confirmation Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Confirmation Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                          //  DefaultValue = Model.ConfirmeDate,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ConfirmationRefNo",
+                                            LabelText = "Confirmation Ref/Letter No.",
+                                            FieldType = FieldType.Text,
+                                            Placeholder = "Enter Confirmation Ref/Letter No",
+                                            ColumnClass = "col-lg-4",
+                                            DefaultValue = Model.ConfirmationRefNo,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "ContractEndDate",
+                                            LabelText = "Contract End Date",
+                                            FieldType = FieldType.Date,
+                                            Placeholder = "Enter Contract End Date",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "flatpickr",
+                                           // DefaultValue = Model.ContractEndDate,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+                                </div>
+
+                                @if (Model.AutoId > 0)
+                                {
+                                    <hr />
+                                    <div class="form-group row" id="LdateModifyDate">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "displayLDate",
+                                            LabelText = "Entry Date:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-4",
+                                            ShowOnInit = Model.Ldate.HasValue,
+                                            DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt")
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "displayModifyDate",
+                                            LabelText = "Last Modify Date:",
+                                            FieldType = FieldType.ReadonlyDisplay,
+                                            ColumnClass = "col-lg-4",
+                                            ShowOnInit = Model.ModifyDate.HasValue,
+                                            DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt")
+                                        })
+                                    </div>
+                                }
+
+                                <div class="form-group row mt-2">
+                                    <div class="col-12 d-flex">
+                                       <div class="col-6">
+                                            <a href='@Url.Action("Index")' class="btn btn-default btn-common btn-circle">
+                                                <i class="fas fa-arrow-alt-circle-left">&nbsp;</i>Back To List
+                                            </a>
+                                       </div>
+                                      
+
+                                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                                        {
+                                            Title = "",
+                                            SaveBtnClass = "js-officialInfo-save",
+                                            ShowClear = false,
+                                            ShowDelete = false,
+                                            ShowFavorite = false,
+                                            ShowPrint = false,
+                                            IsPlain = true,
+                                            ReserveActionSlot = true,
+                                            Style="border-bottom:0px !important;"
+                                        })
+                                        @* <button type="button" class="btn btn-default btn-common js-officialInfo-save btn-circle float-right">
+                                            <i class="fas fa-save"></i>
+                                            @if (ViewBag.IsEditMode != null && (bool)ViewBag.IsEditMode)
+                                            {
+                                                <text>Update</text>
+                                            }
+                                            else
+                                            {
+                                                <text>Save</text>
+                                            }
+                                        </button> *@
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body p-2">
+                                <div class="js-officialInfo-grid-container">
+                                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                                    {
+                                        GridId = "officialInfoTable",
+                                        AjaxUrl = Url.Action("GetTableData", "OfficialInfo") ?? "/OfficialInfo/GetTableData",
+                                        AjaxMethod = "GET",
+                                        ServerSide = false,
+                                        ShowCheckbox = true,
+                                        ShowActionMenu = true,
+                                        CheckColumnData = "employeeId",
+                                        CheckAllId = "officialInfo-check-all",
+                                        DefaultSortColumn = "employeeId",
+                                        DefaultSortDirection = "desc",
+                                        Columns = new()
+                                        {
+                                            new() { Data = "employeeId", Header = "Employee ID", Width = "6%", IsEditLink = true, EditSelectorClass = "js-officialInfo-Edit-confirm" },
+                                            new() { Data = "employeeName", Header = "Name", Width = "33%", Align = "left" },
+                                            new() { Data = "departmentName", Header = "Department", Width = "23%" },
+                                            new() { Data = "designationName", Header = "Designation", Width = "23%" },
+                                            new() { Data = "joiningDateStr", Header = "Joining Date", Width = "5%", RenderFn = "formatDate" }
+                                        }
+                                    })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <partial name="_BottomNavigation" />
+            </div>
+        </section>
+    </form>
+</section>
+
+<partial name="DeleteModal" />
+<partial name="_QuickAddModalOfficialInfo" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/officialinfo.js"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "OfficialInfo")'
+        };
+        options.load = () => { };
+        $.officialInfo(options);
+    </script>
+}

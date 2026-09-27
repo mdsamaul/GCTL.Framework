@@ -1,0 +1,146 @@
+@using GCTL.UI.Core.ViewModels
+
+<div class="card shadow-sm rounded-2">
+
+    @* ================= Toolbar Section ================= *@
+    @await Html.PartialAsync("_Toolbars", new ToobarModel
+    {
+        Title = "Group Ledger",
+        ShowSave = true,
+        SaveBtnId = "btnSave",
+        SaveBtnClass = "js-GroupLedger-save",
+        EnableSave = true,
+
+        ShowDelete = true,
+        DeleteBtnId = "deleteBtn",
+        DeleteBtnClass = "js-GroupLedger-delete-confirm deleteBtn",
+        EnableDelete = true,
+
+        ShowClear = true,
+        ClearBtnId = "btnClear",
+        ClearBtnClass = "js-GroupLedger-clear resetBtn",
+        EnableClear = true,
+
+        ShowPrint = true,
+        PrintBtnId = "btnPrint",
+        PrintBtnClass = "printBtn",
+        ExcelBtnClass = "export-excel",
+        PdfBtnClass = "export-pdf",
+        EnablePrint = true,
+
+        ShowFavorite = true,
+        FavtBtnId = "btnFav",
+        FavtBtnClass = "favBtn",
+        EnableFavorite = true
+    })
+
+    <div class="card-body p-0">
+        <form id="groupForm">
+            <fieldset style="padding: 12px; border-radius: 5px;">
+                <input type="hidden" id="autoId" name="autoId" />
+
+                <div class="row control-ledger-fields-row">
+                    @* --- 1. Group Ledger Code (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ControlLedgerCodeNo",
+                        InputName = "ControlLedgerCodeNo",
+                        LabelText = "Group Ledger Code",
+                        IsRequired = true,
+                        IsReadonly = true,
+                        ReserveActionSlot = false
+                    })
+
+                    @* --- 2. Group Ledger Name --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ControlLedgerName",
+                        InputName = "ControlLedgerName",
+                        LabelText = "Group Ledger Name",
+                        Placeholder = "Group Ledger Name",
+                        IsRequired = true,
+                        ReserveActionSlot=false
+                    })
+
+                    @* --- 3. Short Name --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ShortName",
+                        InputName = "ShortName",
+                        Placeholder = "Short Name",
+                        LabelText = "Short Name",
+                        ReserveActionSlot = false
+                    })
+                </div>
+
+                <hr class="my-3 mx-1">
+
+                @* --- Entry & Update Date Section --- *@
+                <div class="row g-3">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "EntryDate",
+                        LabelText = "Entry Date:",
+                        LabelInline = true,
+                        LabelColWidth =4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle="font-size:13px;",
+                        InputStyle = "font-size:13px;"
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "UpdateDate",
+                        LabelText = "Last Update Date:",
+                        LabelInline = true,
+                        LabelColWidth = 4,
+                        LabelColumnClass = "text-end",
+                        LabelStyle = "font-size:13px;",
+                        InputStyle = "font-size:13px;"
+                    })
+                </div>
+
+                @* Bottom Save Button *@
+                <div class="row no-print">
+                    <div class="col-12">
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
+                        {
+                            Title = "",
+                            ShowClear = false,
+                            ShowDelete = false,
+                            ShowPrint = false,
+                            ShowFavorite = false,
+                            IsPlain = true,
+                            ReserveActionSlot = true,
+                            IsMarginRight = true,
+                            SaveBtnType = "submit",
+           Style="border-bottom:0px !important;"
+
+                        })
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+</div>

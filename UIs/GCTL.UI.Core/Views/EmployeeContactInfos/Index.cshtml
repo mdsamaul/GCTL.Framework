@@ -1,0 +1,59 @@
+@model GCTL.UI.Core.ViewModels.EmployeeContactInfos.EmployeeContactInfosPageViewModel
+
+@{
+    ViewBag.Title = "Employee Contact List";
+    Model.PageTitle = ViewBag.Title;
+    Model.Breadcrumb = "Employee Contact Info";
+} 
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+</style>
+
+<partial name="_PageHeader" model="Model" />
+
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header border-transparent">
+                        <h3 class="card-title">@ViewBag.Title</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body p-2 pt-3">
+
+                        <div class="js-EmployeeContactInfos-grid-container">
+
+                            @await Html.PartialAsync("Setup", Model.ListTableData)
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+<partial name="DeleteModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="~/js/pages/employeeContactInfos.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+        var options = {
+            baseUrl: '@Url.Action("", "EmployeeContactInfos")'
+        };
+        options.load = () => {
+        };
+
+        $.employeeContactInfos(options);
+    </script>
+}

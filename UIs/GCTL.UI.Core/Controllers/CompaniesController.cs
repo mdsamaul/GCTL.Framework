@@ -1,12 +1,16 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ClosedXML.Excel;
+using GCTL.Core.Data;
 using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.Companies;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.Companies;
+
+using GCTL.UI.Core.Filters;
 using GCTL.UI.Core.Helpers;
+
 using GCTL.UI.Core.ViewModels.Companies;
 using iText.IO.Font.Constants;
 using iText.Kernel.Font;
@@ -16,196 +20,276 @@ using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 
 namespace GCTL.UI.Core.Controllers
 {
     public class CompaniesController : BaseController
     {
+        #region Ser & Repo
         private readonly ICompanyService companyService;
         private readonly ICommonService commonService;
         private readonly IMapper mapper;
+        private readonly IRepository<CaDefCurrency> caDefCurrencyRepository;
+        private readonly IRepository<CaDefCountry> caDefCountryRepository;
+
         string strMaxNO = string.Empty;
-        public CompaniesController(ICompanyService companyService,
-                                   ICommonService commonService,
-                                   IMapper mapper
-            
-            )
+
+        public CompaniesController(
+            ICommonService commonService,
+            ICompanyService companyService,
+            IMapper mapper
+,
+            IRepository<CaDefCountry> caDefCountryRepository,
+            IRepository<CaDefCurrency> caDefCurrencyRepository)
         {
             this.companyService = companyService;
             this.commonService = commonService;
             this.mapper = mapper;
+            this.caDefCountryRepository = caDefCountryRepository;
+            this.caDefCurrencyRepository = caDefCurrencyRepository;
         }
 
-        public IActionResult Index()
+        #endregion
+
+        #region Index
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            CompanyPageViewModel model = new CompanyPageViewModel()
+            var hasPermission = await companyService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var model = new CompanyPageViewModel
             {
                 PageUrl = Url.Action(nameof(Index))
             };
-            commonService.FindMaxNo(ref strMaxNO, "CompanyCode", "Core_Company", 3);
-            model.Setup = new CompanySetupViewModel
+
+            try
             {
-                CompanyCode = strMaxNO,
-            };
+                commonService.FindMaxNo(ref strMaxNO, "CompanyCode", "Core_Company", 3);
+                model.Setup = new CompanySetupViewModel
+                {
+                    CompanyCode = strMaxNO
+                };
+                ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName");
+                ViewBag.CurrencyDD = new SelectList(caDefCurrencyRepository.All(), "CurrencyId", "CurrencyName");
+            }
+            catch (Exception ex)
+            {
+                model.CompanyList = new List<CompanySetupViewModel>();
+                model.Setup = new CompanySetupViewModel();
+                Console.WriteLine("Error" + ex.Message);
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView(model);
+            }
 
             return View(model);
         }
 
-        public IActionResult Setup(string id)
+        #endregion
+
+        #region Setup
+
+        public async Task<IActionResult> Setup(string id)
         {
             CompanySetupViewModel model = new CompanySetupViewModel();
             commonService.FindMaxNo(ref strMaxNO, "CompanyCode", "Core_Company", 3);
-            var result = companyService.GetCompany(id);
-            if (result != null)
+
+            if (!string.IsNullOrEmpty(id))
             {
-                model = mapper.Map<CompanySetupViewModel>(result);
-                model.Code = id;
+                model = await companyService.GetByIdAsync(id);
+                if (model == null)
+                {
+                    return NotFound();
+                }
             }
             else
             {
                 model.CompanyCode = strMaxNO;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            ViewBag.CountryDD = new SelectList(caDefCountryRepository.All(), "CountryId", "CountryName", model.Country);
+            ViewBag.CurrencyDD = new SelectList(caDefCurrencyRepository.All(), "CurrencyId", "CurrencyName", model.BaseCurrency);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView($"_{nameof(Setup)}", model);
+            }
+
+            // For direct browser URL navigation, render full Index page with pre-selected item
+            var hasPermission = await companyService.PagePermissionAsync(LoginInfo.AccessCode);
+            if (!hasPermission)
+            {
+                return RedirectToAction("Login", "Accounts");
+            }
+
+            var indexModel = new CompanyPageViewModel
+            {
+                PageUrl = Url.Action(nameof(Index)),
+                Setup = model
+            };
+
+            try
+            {
+                var list = await companyService.GetAllAsync() ?? new List<CompanySetupViewModel>();
+                indexModel.CompanyList = list;
+
+            }
+            catch (Exception ex)
+            {
+                indexModel.CompanyList = new List<CompanySetupViewModel>();
+                Console.WriteLine("Error: " + ex.Message);
+            }
+
+            return View("Index", indexModel);
         }
+
+        #endregion
+
+        #region Post Update
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Setup(CompanySetupViewModel model)
+        public async Task<IActionResult> Setup(CompanySetupViewModel modelVM)
         {
-            if (companyService.IsCompanyExist(model.CompanyName, model.CompanyCode))
+            try
             {
-                return Json(new { isSuccess = false, message = "Already Exists" });
-            }
+                bool isExist = !string.IsNullOrEmpty(modelVM.CompanyCode) && await companyService.IsExistByCodeAsync(modelVM.CompanyCode);
 
-            if (ModelState.IsValid)
-            {
-                if (companyService.IsCompanyExistByCode(model.CompanyCode))
+                if (!isExist)
                 {
-                    var hasPermission = companyService.UpdatePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    if (await companyService.IsExistAsync(modelVM.CompanyName, modelVM.CompanyCode))
                     {
-                        CoreCompany company = companyService.GetCompany(model.CompanyCode) ?? new CoreCompany();
-                        model.ToAudit(LoginInfo, model.Id > 0);
-                        mapper.Map(model, company);
-                        companyService.SaveCompany(company);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = model.CompanyCode });
-                    }
-                    else
-                    {
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "Already Exists!", isDuplicate = true });
                     }
                 }
                 else
                 {
-                    var hasPermission = companyService.SavePermission(LoginInfo.AccessCode);
-                    if (hasPermission)
+                    if (await companyService.IsExistAsync(modelVM.CompanyName, modelVM.CompanyCode))
                     {
-                        CoreCompany company = companyService.GetCompany(model.CompanyCode) ?? new CoreCompany();
-                        model.ToAudit(LoginInfo, model.Id > 0);
-                        mapper.Map(model, company);
-                        companyService.SaveCompany(company);
-                        return Json(new { isSuccess = true, message = "Saved Successfully", lastCode = model.CompanyCode });
+                        return Json(new { isSuccess = false, message = "Already Exists!", isDuplicate = true });
+                    }
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
+                    return Json(new { isSuccess = false, message = errorMessage });
+                }
+
+                modelVM.ToAudit(LoginInfo, isExist);
+                if (!isExist)
+                {
+                    var hasSavePermission = await companyService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (hasSavePermission)
+                    {
+                        await companyService.SaveAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.CompanyCode });
                     }
                     else
                     {
-                        return Json(new { isSuccess = false, message = "You have no access" });
+                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
                     }
-
                 }
+                else
+                {
+                    var hasUpdatePermission = await companyService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (hasUpdatePermission)
+                    {
+                        await companyService.UpdateAsync(modelVM);
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.CompanyCode });
+                    }
+                    else
+                    {
+                        return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error:{ex.Message}");
+                return RedirectToAction("Login", "Accounts");
+            }
+        }
 
+        #endregion
+
+        #region CheckAvailability
+        [HttpPost]
+        public async Task<JsonResult> CheckAvailability(string name, string code)
+        {
+            if (await companyService.IsExistAsync(name, code))
+            {
+                return Json(new { isSuccess = true, message = "Already Exists!" });
             }
 
-            return Json(new { success = false, message = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage });
+            return Json(new { isSuccess = false });
         }
+        #endregion
 
-        public ActionResult Grid()
-        {
-            var resutl = companyService.GetCompanies();
-            return Json(new { data = resutl });
-        }
+        #region Delete
 
         [HttpPost]
-        public async Task<ActionResult> Delete(string id)
+        public async Task<IActionResult> Delete([FromBody] List<string> ids)
         {
-            var hasPermission = companyService.DeletePermission(LoginInfo.AccessCode);
+            if (ids == null || ids.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "No IDs provided for delete." });
+            }
 
+            var hasPermission = await companyService.DeletePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
             {
-                return Json(new { success = false, message = "You have no access" });
+                return Json(new { success = false, message = "You have no access." });
             }
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return Json(new { success = false, message = "No IDs provided" });
-            }
-
-            var results = new List<(bool success, bool refSuccess, string message)>();
-
-            var ids = id.Split(",", StringSplitOptions.RemoveEmptyEntries)
-                 .Select(x => x.Trim())
-                 .ToList();
 
             DeleteHistoryViewModel model = new DeleteHistoryViewModel();
             model.ToAudit(LoginInfo);
             model.CompanyCode = LoginInfo.CompanyCode;
 
-            var result = await companyService.DeleteCompany(ids, model);
-
-            results.Add(result);
-
-            // Aggregate outcome
-
-            bool overallSuccess = results.All(r => r.success);
-
-            bool refSuccess = results.All(r => r.refSuccess);
-
-            string combinedMessage = overallSuccess
-
-                ? "Deleted Successfully"
-
-                : string.Join("; ", results.Where(r => !r.success).Select(r => r.message));
-
-            return Json(new { success = overallSuccess, message = combinedMessage, refSuccess = refSuccess });
-
+            var success = await companyService.DeleteTab(ids, model);
+            if (success.succses)
+            {
+                return Json(new { success = true, message = "Deleted Successfully." });
+            }
+            else
+            {
+                return Json(new { success = false, message = success.messege });
+            }
         }
 
+        #endregion
 
-        //[HttpPost]
-        //public ActionResult Delete(string id)
-        //{
-        //    var hasPermission = companyService.DeletePermission(LoginInfo.AccessCode);
-        //    if (hasPermission)
-        //    {
-        //        bool success = false;
-        //        foreach (var item in id.Split(",", StringSplitOptions.RemoveEmptyEntries))
-        //        {
-        //            success = companyService.DeleteCompany(item);
-        //        }
-
-        //        return Json(new { success = success, message = "Deleted Successfully" });
-        //    }
-        //    else
-        //    {
-        //        return Json(new { isSuccess = false, message = "You have no access" });
-        //    }
-        //}
-
+        #region Table Loading (Custom Grid)
 
         [HttpPost]
-        public JsonResult CheckAvailability(string name, string code)
+        public async Task<IActionResult> GetAll()
         {
-            if (companyService.IsCompanyExist(name, code))
+            try
             {
-                return Json(new { isSuccess = true, message = "Already Exists" });
+                var list = await companyService.GetAllAsync() ?? new List<CompanySetupViewModel>();
+                return Json(new { data = list });
             }
-
-            return Json(new { isSuccess = false });
+            catch (Exception ex)
+            {
+                return Json(new { data = new List<CompanySetupViewModel>(), error = ex.Message });
+            }
         }
 
+        public ActionResult Grid()
+        {
+            var result = companyService.GetCompanies();
+            return Json(new { data = result });
+        }
 
-        //
+        #endregion
 
         #region Xls
         public async Task<IActionResult> ExportToExcel()

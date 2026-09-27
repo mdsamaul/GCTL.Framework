@@ -13,6 +13,28 @@ namespace GCTL.Data.Models
 {
     public partial interface IGCTL_ERP_DBContextProcedures
     {
+        Task<List<DocumentationReportResult>> DocumentationReportAsync(string dateUse, string fromDate, string toDate, string customerID, string portId, string expenseTypeID, string jobNo, string jobStatus, string reportOption, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<FullEmployeeDetailsGetByidResult>> FullEmployeeDetailsGetByidAsync(string employeeCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<GetExpenseHeadReportResult>> GetExpenseHeadReportAsync(string expenseTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<GetLedgerTreeResult>> GetLedgerTreeAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<prc_GetCustomerDueInvoiceListResult>> prc_GetCustomerDueInvoiceListAsync(string customerId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<prc_JobPortal_JobStatusExceptAllResult>> prc_JobPortal_JobStatusExceptAllAsync(string customerId, string shipmentModeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<prc_LoadGridPaymentReceivedResult>> prc_LoadGridPaymentReceivedAsync(DateTime? fromDate, DateTime? toDate, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusDeliveredSeaResult>> Proc_CustomerJobStatusDeliveredSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusDeliveryExceptAllResult>> Proc_CustomerJobStatusDeliveryExceptAllAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusFastAirResult>> Proc_CustomerJobStatusFastAirAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, string jobStatus, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusFastSeaResult>> Proc_CustomerJobStatusFastSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, string jobStatus, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusInTransitExceptAllResult>> Proc_CustomerJobStatusInTransitExceptAllAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusInTransitSeaResult>> Proc_CustomerJobStatusInTransitSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusPendingExceptAllResult>> Proc_CustomerJobStatusPendingExceptAllAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerJobStatusPendingReportForSeaResult>> Proc_CustomerJobStatusPendingReportForSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<proc_CustomerJobSummeryResult>> proc_CustomerJobSummeryAsync(string customerId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Proc_CustomerListForPaymentReceiveResult>> Proc_CustomerListForPaymentReceiveAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<Sales_GetCustomerReportResult>> Sales_GetCustomerReportAsync(string customerID, string customerTypeID, string companyCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<sp_GetAllCustomerDeliveryInfoResult>> sp_GetAllCustomerDeliveryInfoAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<sp_GetCustomerReportsInfoResult>> sp_GetCustomerReportsInfoAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<sp_GetVoucherPreviewDataResult>> sp_GetVoucherPreviewDataAsync(string ids, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
+        Task<List<SP_HrmEmployee2_GetPagedListResult>> SP_HrmEmployee2_GetPagedListAsync(int? pageNumber, int? pageSize, string sortColumn, string sortDirection, string searchValue, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
         Task<List<usp_GetHolidayListResult>> usp_GetHolidayListAsync(int? year, int? month, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default);
     }
 }

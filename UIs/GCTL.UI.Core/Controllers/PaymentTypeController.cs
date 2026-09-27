@@ -1,39 +1,70 @@
-﻿using GCTL.Core.Helpers;
+using GCTL.Core.Helpers;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PaymentType;
 using GCTL.Service.Common;
 using GCTL.Service.PaymentType;
+using GCTL.UI.Core.Controllers;
 using GCTL.UI.Core.Helpers;
 using GCTL.UI.Core.ViewModels.PaymentType;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GCTL.UI.Core.Controllers
 {
     public class PaymentTypeController : BaseController
     {
         #region Service & Repository
-        public readonly IPaymentTypeService paymentTypeService;
-        private readonly ICommonService commonService;
-
-        string strMaxNO = string.Empty;
+        private readonly IPaymentTypeService _paymentTypeService;
+        private readonly ICommonService _commonService;
+        private string strMaxNO = string.Empty;
 
         public PaymentTypeController(
             IPaymentTypeService paymentTypeService,
-            ICommonService commonService
-            
-            )
+            ICommonService commonService)
         {
-            this.paymentTypeService = paymentTypeService;
-            this.commonService = commonService;
+            _paymentTypeService = paymentTypeService;
+            _commonService = commonService;
+        }
+
+        #endregion
+
+        #region Get Next Code
+
+        private async Task<string> GetNextCodeAsync()
+        {
+            string strMaxNo = string.Empty;
+            try
+            {
+                _commonService.FindMaxNo(ref strMaxNo, "PaymentTypeID", "Sales_Def_PaymentType", 3);
+            }
+            catch { }
+
+            if (string.IsNullOrWhiteSpace(strMaxNo) || strMaxNo == "000")
+            {
+                var list = await _paymentTypeService.GetAllAsync();
+                if (list != null && list.Any())
+                {
+                    var maxVal = list.Select(x => int.TryParse(x.PaymentTypeId, out int v) ? v : 0).Max();
+                    strMaxNo = (maxVal + 1).ToString("D3");
+                }
+                else
+                {
+                    strMaxNo = "001";
+                }
+            }
+            return strMaxNo;
         }
 
         #endregion
 
         #region Index
-        public async Task<IActionResult> Index(bool child = false)
+
+        public async Task<IActionResult> Index(bool child = false, int page = 1, int pageSize = 10, string? searchTerm = null)
         {
-            var hasPermission = await paymentTypeService.PagePermissionAsync(LoginInfo.AccessCode);
+            var hasPermission = await _paymentTypeService.PagePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
             {
                 return RedirectToAction("Login", "Accounts");
@@ -46,28 +77,65 @@ namespace GCTL.UI.Core.Controllers
 
             try
             {
+                var list = await _paymentTypeService.GetAllAsync() ?? new List<PaymentTypeSetupViewModel>();
+                model.PaymentList = list;
 
-                var list = await paymentTypeService.GetAllAsync();
-                model.PaymentList = list ?? new List<PaymentTypeSetupViewModel>();
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    list = list.Where(x => (x.PaymentTypeId != null && x.PaymentTypeId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.PaymentType != null && x.PaymentType.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                                        || (x.ShortName != null && x.ShortName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+                }
 
-                commonService.FindMaxNo(ref strMaxNO, "PaymentTypeID", "Sales_Def_PaymentType", 3);
+                int totalRecords = list.Count;
+                var pagedList = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-
+                model.DynamicGrid = GridBuilder.BuildGrid(
+                    data: pagedList,
+                    totalRecords: totalRecords,
+                    currentPage: page,
+                    pageSize: pageSize,
+                    headers: new List<string> { "Code", "Payment Type Name", "Short Name" },
+                    rowMapper: item => new Dictionary<string, object?>
+                    {
+                        { "PaymentTypeId", item.PaymentTypeId },
+                        { "Payment Type Name", item.PaymentType },
+                        { "Short Name", item.ShortName }
+                    },
+                    ajaxUrl: Url.Action("GetTableData", "PaymentType") ?? "/PaymentType/GetTableData",
+                    primaryKey: "PaymentTypeId",
+                    hasCheckbox: true,
+                    actionUrlPattern: "/PaymentType/Setup/{id}",
+                    gridId: "paymentTypeGridContainer",
+                    editClass: "js-paymenttype-edit",
+                    columnAlignments: new Dictionary<string, string>
+                    {
+                        { "PaymentTypeId", "center" },
+                        { "Payment Type Name", "left" },
+                        { "Short Name", "left" }
+                    },
+                    searchTerm: searchTerm,
+                    columnWidths: new Dictionary<string, string>
+                    {
+                        { "SelectAll", "120px" },
+                        { "Code", "100px" },
+                        { "Payment Type Name", "auto" },
+                        { "Short Name", "150px" }
+                    }
+                );
 
                 model.Setup = new PaymentTypeSetupViewModel
                 {
-                    PaymentTypeId = strMaxNO
+                    PaymentTypeId = await GetNextCodeAsync()
                 };
-
             }
             catch (Exception ex)
             {
-
                 model.PaymentList = new List<PaymentTypeSetupViewModel>();
                 model.Setup = new PaymentTypeSetupViewModel();
-                Console.WriteLine("Error" + ex.Message);
+                Console.WriteLine("Error: " + ex.Message);
             }
-
 
             if (child)
                 return PartialView(model);
@@ -81,88 +149,143 @@ namespace GCTL.UI.Core.Controllers
 
         public async Task<IActionResult> Setup(string id)
         {
-            PaymentTypeSetupViewModel model = new PaymentTypeSetupViewModel();
-            commonService.FindMaxNo(ref strMaxNO, "PaymentTypeID", "Sales_Def_PaymentType", 3);
+            var model = new PaymentTypeSetupViewModel();
+            var nextCode = await GetNextCodeAsync();
 
-            if (!string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(id) && id != "0")
             {
-
-                model = await paymentTypeService.GetByIdAsync(id);
-                if (model == null)
+                var existing = await _paymentTypeService.GetByIdAsync(id);
+                if (existing != null)
                 {
-
-                    return NotFound();
+                    model = existing;
+                }
+                else
+                {
+                    model.PaymentTypeId = nextCode;
                 }
             }
             else
             {
-
-                model.PaymentTypeId = strMaxNO;
+                model.PaymentTypeId = nextCode;
             }
 
-            return PartialView($"_{nameof(Setup)}", model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_Setup", model);
+            }
+
+            var pageModel = new PaymentTypePageViewModel
+            {
+                Setup = model,
+                PageUrl = Url.Action(nameof(Index))
+            };
+
+            var list = await _paymentTypeService.GetAllAsync() ?? new List<PaymentTypeSetupViewModel>();
+            int totalRecords = list.Count;
+            var pagedList = list.Take(10).ToList();
+
+            pageModel.DynamicGrid = GridBuilder.BuildGrid(
+                data: pagedList,
+                totalRecords: totalRecords,
+                currentPage: 1,
+                pageSize: 10,
+                headers: new List<string> { "Code", "Payment Type Name", "Short Name" },
+                rowMapper: item => new Dictionary<string, object?>
+                {
+                    { "PaymentTypeId", item.PaymentTypeId },
+                    { "Payment Type Name", item.PaymentType },
+                    { "Short Name", item.ShortName }
+                },
+                ajaxUrl: Url.Action("GetTableData", "PaymentType") ?? "/PaymentType/GetTableData",
+                primaryKey: "PaymentTypeId",
+                hasCheckbox: true,
+                actionUrlPattern: "/PaymentType/Setup/{id}",
+                gridId: "paymentTypeGridContainer",
+                editClass: "js-paymenttype-edit",
+                columnAlignments: new Dictionary<string, string>
+                {
+                    { "PaymentTypeId", "center" },
+                    { "Payment Type Name", "left" },
+                    { "Short Name", "left" }
+                },
+                columnWidths: new Dictionary<string, string>
+                {
+                    { "SelectAll", "120px" },
+                    { "Code", "100px" },
+                    { "Payment Type Name", "auto" },
+                    { "Short Name", "150px" }
+                }
+            );
+
+            return View("Index", pageModel);
         }
 
         #endregion
 
-        #region Post Update 
+        #region Save/Update
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> Setup(PaymentTypeSetupViewModel modelVM)
         {
             try
             {
-
-                if (await paymentTypeService.IsExistAsync(modelVM.PaymentType, modelVM.PaymentTypeId))
+                if (modelVM.Tc == 0 || modelVM.AutoId == null || modelVM.AutoId == 0)
                 {
-                    return Json(new { isSuccess = false, message = $"Already Exists!", isDuplicate = true });
+                    if (await _paymentTypeService.IsExistAsync(modelVM.PaymentType, modelVM.PaymentTypeId))
+                    {
+                        return Json(new { isSuccess = false, message = "Payment Type Name already exists.", isDuplicate = true });
+                    }
                 }
-
 
                 if (!ModelState.IsValid)
                 {
-
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
                     return Json(new { isSuccess = false, message = errorMessage });
                 }
 
-                modelVM.ToAudit(LoginInfo, modelVM.Tc > 0);
-                if (modelVM.Tc == 0)
-                {
-                    var hasSavePermission = await paymentTypeService.SavePermissionAsync(LoginInfo.AccessCode);
-                    if (hasSavePermission)
-                    {
-                        await paymentTypeService.SaveAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = modelVM.PaymentTypeId });
+                modelVM.ToAudit(LoginInfo, (modelVM.AutoId > 0 || modelVM.Tc > 0));
 
-                    }
-                    else
+                if (modelVM.Tc == 0 || modelVM.AutoId == null || modelVM.AutoId == 0)
+                {
+                    var hasSavePermission = await _paymentTypeService.SavePermissionAsync(LoginInfo.AccessCode);
+                    if (!hasSavePermission)
                     {
-                        return Json(new { isSuccess = false, message = "You have no access to save.", noSavePermission = true });
+                        return Json(new { isSuccess = false, message = "You have no permission to Save." });
                     }
+
+                    var nextCode = await GetNextCodeAsync();
+                    modelVM.PaymentTypeId = nextCode;
+
+                    bool result = await _paymentTypeService.SaveAsync(modelVM);
+                    if (result)
+                    {
+                        var newNextCode = await GetNextCodeAsync();
+                        return Json(new { isSuccess = true, message = "Saved Successfully.", lastCode = newNextCode });
+                    }
+                    return Json(new { isSuccess = false, message = "Failed to save Payment Type." });
                 }
                 else
                 {
+                    var hasUpdatePermission = await _paymentTypeService.UpdatePermissionAsync(LoginInfo.AccessCode);
+                    if (!hasUpdatePermission)
+                    {
+                        return Json(new { isSuccess = false, message = "You have no permission to Update." });
+                    }
 
-                    var hasUpdatePermission = await paymentTypeService.UpdatePermissionAsync(LoginInfo.AccessCode);
-                    if (hasUpdatePermission)
+                    bool result = await _paymentTypeService.UpdateAsync(modelVM);
+                    if (result)
                     {
-                        await paymentTypeService.UpdateAsync(modelVM);
-                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = modelVM.PaymentTypeId });
+                        var nextCode = await GetNextCodeAsync();
+                        return Json(new { isSuccess = true, message = "Updated Successfully.", lastCode = nextCode });
                     }
-                    else
-                    {
-                        return Json(new { isSuccess = false, message = "You have no access to update.", noUpdatePermission = true });
-                    }
+                    return Json(new { isSuccess = false, message = "Failed to update Payment Type." });
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error:{ex.Message}");
-                return RedirectToAction("Login", "Accounts");
-
+                Console.WriteLine($"Error: {ex.Message}");
+                return Json(new { isSuccess = false, message = "An error occurred while saving." });
             }
         }
 
@@ -173,63 +296,44 @@ namespace GCTL.UI.Core.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete([FromBody] List<string> ids)
         {
-            if (ids == null || ids.Count == 0)
+            if (ids == null || !ids.Any())
             {
-                return BadRequest(new { success = false, message = "No IDs provided for delete." });
+                return Json(new { isSuccess = false, message = "No records selected to delete." });
             }
 
-            var hasPermission = await paymentTypeService.DeletePermissionAsync(LoginInfo.AccessCode);
+            var hasPermission = await _paymentTypeService.DeletePermissionAsync(LoginInfo.AccessCode);
             if (!hasPermission)
             {
-                return Json(new { success = false, message = "You have no access." });
+                return Json(new { isSuccess = false, message = "You have no permission to Delete." });
             }
 
-            DeleteHistoryViewModel model = new DeleteHistoryViewModel();
-            model.ToAudit(LoginInfo);
-            model.CompanyCode = LoginInfo.CompanyCode;
+            var deleteHistory = new DeleteHistoryViewModel();
+            deleteHistory.ToAudit(LoginInfo);
+            deleteHistory.CompanyCode = LoginInfo.CompanyCode;
 
-            var success = await paymentTypeService.DeleteTab(ids, model);
-            if (success.succses)
-            {
-                return Json(new { success = true, message = "Deleted Successfully." });
-            }
-            else
-            {
-                return Json(new { success = false, message = success.messege });
-            }
+            var result = await _paymentTypeService.DeleteTab(ids, deleteHistory);
+            return Json(new { isSuccess = result.succses, message = result.messege });
         }
 
         #endregion
 
-        #region TabeleLodaing
+        #region Table Loading (Custom DataTable)
 
-        [HttpGet]
-        public async Task<IActionResult> GetTableData()
+        [HttpPost]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var list = await paymentTypeService.GetAllAsync();
-                return PartialView("_Grid", list);
+                var list = await _paymentTypeService.GetAllAsync() ?? new List<PaymentTypeSetupViewModel>();
+                return Json(new { data = list });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return Json(new { data = new List<PaymentTypeSetupViewModel>(), error = ex.Message });
             }
         }
 
         #endregion
 
-        #region Chake Degian
-
-        //public IActionResult Index()
-        //{
-        //    PaymentTypePageViewModel model = new PaymentTypePageViewModel
-        //    {
-        //        Setup = new PaymentTypeSetupViewModel()
-        //    };
-        //    return View(model);
-        //}
-
-        #endregion
     }
 }

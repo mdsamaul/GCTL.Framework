@@ -1,4 +1,4 @@
-﻿
+
 
 // Initialize everything when document is ready
 $(document).ready(function () {
@@ -354,11 +354,7 @@ function initializeCheckboxes() {
 
 // Update delete button state based on selection
 function updateDeleteButtonState() {
-    if (selectedItems.length > 0) {
-        $('#deleteSelectedBtn').prop('disabled', false);
-    } else {
-        $('#deleteSelectedBtn').prop('disabled', true);
-    }
+    $('#deleteSelectedBtn').prop('disabled', false);
 }
 
 // Initialize column sorting functionality
@@ -905,46 +901,45 @@ function saveMenuOrder() {
 
 // Function to delete selected menu items
 function deleteSelectedMenuItems() {
-    if (selectedItems.length === 0) {
-        toastr.warning("No items selected for deletion.");
+    let idsToDelete = [...selectedItems];
+
+    const currentAutoId = parseInt($("#AutoId").val()) || 0;
+    if (idsToDelete.length === 0 && currentAutoId > 0) {
+        idsToDelete.push(currentAutoId);
+    }
+
+    if (idsToDelete.length === 0) {
+        toastr.info("Please select at least one item.");
         return;
     }
 
     // Check if any selected items have children
     const hasChildren = checkSelectedItemsHaveChildren();
+    const confirmMsg = hasChildren
+        ? "Some selected items have child menus. Deleting these items will also delete all their children. Are you sure you want to continue?"
+        : "Are you sure to delete?";
 
-    if (hasChildren) {
-        // Show confirmation with warning about deleting parent items
-        if (!confirm("Some selected items have child menus. Deleting these items will also delete all their children. Are you sure you want to continue?")) {
-            return;
-        }
-    } else {
-        // Show standard confirmation
-        if (!confirm("Are you sure you want to delete the selected menu items?")) {
-            return;
-        }
-    }
-
-    // Proceed with deletion
-    $.ajax({
-        url: "/CoreMenuTab/DeleteMultiple",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify(selectedItems),
-        success: function (response) {
-            if (response.success) {
-                toastr.success(`Successfully deleted ${selectedItems.length} menu item(s).`);
-                // Reset selected items and refresh table
-                selectedItems = [];
-                refreshMenuTable();
-            } else {
-                toastr.error(response.message || "Failed to delete menu items.");
+    GcDelete.confirm(confirmMsg, function () {
+        $.ajax({
+            url: "/CoreMenuTab/DeleteMultiple",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(idsToDelete),
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message || `Successfully deleted ${idsToDelete.length} menu item(s).`);
+                    selectedItems = [];
+                    refreshMenuTable();
+                    clearForm();
+                } else {
+                    toastr.error(response.message || "Failed to delete menu items.");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error deleting menu items:", error);
+                toastr.error("An error occurred while deleting menu items.");
             }
-        },
-        error: function (xhr, status, error) {
-            console.error("Error deleting menu items:", error);
-            toastr.error("An error occurred while deleting menu items.");
-        }
+        });
     });
 }
 

@@ -1,0 +1,372 @@
+@model GCTL.Core.ViewModels.SupplierInformation.SupplierInformationSetupViewModel
+@* @using GCTL.UI.Core.TagHelpers *@
+
+<input type="hidden" asp-for="SupplierId" />
+
+<div class="row g-4 mt-1">
+    <!-- Row 1 -->
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SupplierCode",
+        LabelText = "Supplier Code", 
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Supplier Code",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SupplierName",
+        LabelText = "Supplier Name",
+        FieldType = FieldType.Text,
+        AutoFocus = true,
+        IsRequired = true, Placeholder = "Enter Supplier Name",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "ShortName", 
+        LabelText = "Short Name",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Short Name",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SupplierPrefixId",
+        LabelText = "Supplier Prefix",
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Supplier Prefix --", 
+        SelectItems = ViewBag.SupplierPreDD as SelectList,
+        ShowQuickAdd = true, QuickAddUrl = Url.Action("Index", "VendorPrefix"),
+        QuickAddTarget = "#SupplierPrefixId",
+        QuickAddReloadUrl = Url.Action("GetSupplierPre", "Cascading"),
+        QuickAddTitle = "Supplier Prefix",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+
+    <!-- Row 2 -->
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SupplierTypeId", 
+        LabelText = "Supplier Type",
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Supplier Type --",
+        SelectItems = ViewBag.SupplierTypeDD as SelectList,
+        ShowQuickAdd = true,
+        QuickAddUrl = Url.Action("Index", "SupplierType"),
+        QuickAddTarget = "#SupplierTypeId",
+        QuickAddReloadUrl = Url.Action("GetSupplierType", "Cascading"), 
+        QuickAddTitle = "Supplier Type",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SupplierCategoryId",
+        LabelText = "Supplier Category", 
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Supplier Category --",
+        SelectItems = ViewBag.SupplierCatDD as SelectList,
+        ShowQuickAdd = true,
+        QuickAddUrl = Url.Action("Index", "SupplierCategory"),
+        QuickAddTarget = "#SupplierCategoryId",
+        QuickAddReloadUrl = Url.Action("GetSupplierCata", "Cascading"), 
+        QuickAddTitle = "Supplier Category",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SupplierOriginId",
+        LabelText = "Supplier Origin", 
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Supplier Origin --", 
+        SelectItems = ViewBag.SupplierOrgDD as SelectList,
+        ShowQuickAdd = true,
+        QuickAddUrl = Url.Action("Index", "SupplierOrigin"),
+        QuickAddTarget = "#SupplierOriginId",
+        QuickAddReloadUrl = Url.Action("GetSupplierOrgin", "Cascading"),
+        QuickAddTitle = "Supplier Origin",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "CompanyId", 
+        LabelText = "Supplier Company",
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Supplier Company --", 
+        SelectItems = ViewBag.SupplierComDD as SelectList,
+        ShowQuickAdd = true,
+        QuickAddUrl = Url.Action("Index", "CompanyInfo"),
+        QuickAddTarget = "#CompanyId", 
+        QuickAddReloadUrl = Url.Action("GetCompanyeee", "Cascading"),
+        QuickAddTitle = "Supplier Company",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+
+    <!-- Row 3: Addresses -->
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Address", 
+        LabelText = "Head Office Address", 
+        FieldType = FieldType.Textarea,
+        Placeholder = "Enter Head Office Address",
+        ColumnClass = "col-12 sup-field-col mt-0",
+        InputStyle = "resize:none;",
+        Rows = 2,
+        CustomAttributes = new Dictionary<string, string> {}
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "LocalOfficeAddress", 
+        LabelText = "Local Office Address",
+        FieldType = FieldType.Textarea,
+        Placeholder = "Enter Local Office Address",
+        ColumnClass = "col-12 sup-field-col mt-0",
+        InputStyle = "resize:none;",
+        Rows=2,
+        CustomAttributes = new Dictionary<string, string> {}
+    })
+
+    <!-- Row 4 -->
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "CountryId", 
+        LabelText = "Supplier Country",
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Supplier Country --",
+        SelectItems = ViewBag.SCountryDD as SelectList,
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "City",
+        LabelText = "City", FieldType = FieldType.Text,
+        Placeholder = "Enter City",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "State",
+        LabelText = "State / Province",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter State/ province",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "ZipCode", 
+        LabelText = "Zip / Postal Code",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Zip/Postal Code",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+
+    <!-- Row 5 -->
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Phone", 
+        LabelText = "Phone", 
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Phone",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Fax", 
+        LabelText = "Fax", 
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Fax",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Email",
+        LabelText = "Email", 
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Email",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Url", 
+        LabelText = "URL",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter URL",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+
+    <!-- Row 6 -->
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Bin",
+        LabelText = "Bin",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Bin",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "VatregNo",
+        LabelText = "Vat Reg No.",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Vat Reg No.",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SupplierTin",
+        LabelText = "Supplier Tin",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Supplier Tin",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "ExportLicenceNo",
+        LabelText = "Export Licence No.",
+        FieldType = FieldType.Text,
+        Placeholder = "Enter Export Licence No.",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+
+    <!-- Contact Person (Replaces the massive custom HTML block) -->
+ @*    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "ContatPerson1", LabelText = "Contact Person", FieldType = FieldType.MultiSelect,
+        Placeholder = "Select Contact Person", SelectItems = ViewBag.ContactDD as SelectList,
+        ShowQuickAdd = true, QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+        QuickAddTarget = "#ContatPerson1", QuickAddReloadUrl = Url.Action("GetContactPersonInfo", "Cascading"), QuickAddTitle = "Contact Person Info",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0",
+        CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
+    }) *@
+
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+    {
+        InputId = "ContatPerson1",
+        LabelText = "Contact Person",
+        FieldType = FieldType.MultiSelect,
+        Placeholder = "Select Contact Person",
+        SelectItems = ViewBag.ContactDD as SelectList,
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0",
+        ReserveActionSlot = false,
+        ShowQuickAdd = true,
+        QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
+        QuickAddTarget = "#ContatPerson1",
+        QuickAddReloadUrl = Url.Action("GetCountrys", "Cascading"),
+        QuickAddTitle = "Contact Person Info"
+    })
+
+    <!-- Bank Account Section -->
+    <div class="col-12">
+        <fieldset class="card border-2 p-2 w-100 mb-0">
+            <legend class="float-none px-3 w-auto" style="font-size:14px; font-weight:600; margin-bottom:0;">Bank Account Info</legend>
+            <input type="hidden" id="Sbaid" name="name" value="0" />
+            
+            <div class="row g-4 align-items-end mt-1 pb-2">
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+                    InputId = "SupplierBankId", 
+                    LabelText = "Bank Name",
+                    FieldType = FieldType.Select,
+                    Placeholder = "--Select Supplier Bank--", 
+                    SelectItems = ViewBag.SupplierBankDD as SelectList,
+                    ShowQuickAdd = true,
+                    QuickAddUrl = Url.Action("Index", "BankInformations"),
+                    QuickAddTarget = "#SupplierBankId",
+                    QuickAddReloadUrl = Url.Action("GetBank", "Cascading"), 
+                    QuickAddTitle = "Supplier Bank",
+                    ColumnClass = "col-12 col-md-3 sup-field-col"
+                })
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+                    InputId = "SupplierBankBranchId",
+                    LabelText = "Branch",
+                    FieldType = FieldType.Select,
+                    Placeholder = "--Select Supplier Branch--",
+                    SelectItems = ViewBag.SupplierBankBranchDD as SelectList,
+                    ShowQuickAdd = true, 
+                    QuickAddUrl = Url.Action("Index", "BankBranchInformations"),
+                    QuickAddTarget = "#SupplierBankBranchId",
+                    QuickAddReloadUrl = Url.Action("GetBankBranch", "Cascading"),
+                    QuickAddTitle = "Supplier Bank Branch",
+                    ColumnClass = "col-12 col-md-3 sup-field-col"
+                })
+                @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+                    InputId = "AccountNo", 
+                    LabelText = "Account No.",
+                    FieldType = FieldType.Text,
+                    Placeholder = "Enter Bank Account Number",
+                    ColumnClass = "col-12 col-md-3 sup-field-col"
+                })
+
+                <div class="col-12 col-md-3 col-xxl-3 form-actions pb-1" style="display: flex; gap: 10px;">
+                    <button type="button" id="BankAccountInfoSaveBtn" title="Save" style="border:none;background:transparent;cursor:pointer;font-size:18px;color:#555;">
+                        <i class="fa fa-save"></i>
+                    </button>
+                    <button type="button" id="BankAccountInfoDeleteBtn" title="Delete" style="border:none;background:transparent;cursor:pointer;font-size:18px;color:#dc3545;">
+                        <i class="fas fa-trash" style="font-size: 17px;"></i>
+                    </button>
+                    <button type="button" id="BankAccountInfoRefreshBtn" title="Refresh" style="border:none;background:transparent;cursor:pointer;font-size:18px;color:#555;">
+                        <i class="fa fa-sync"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="SupplierBankAccountTemp-grid-container mt-2">
+                @await Html.PartialAsync("_GridBankAccountInfo", Model.bangkInfo)
+            </div>
+        </fieldset>
+    </div>
+
+    <!-- Remaining simple fields before the bank account section -->
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "OpeningBalance",
+        LabelText = "Opening Balance",
+        FieldType = FieldType.Number,
+        Placeholder = "Enter Opening Balance",
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Optype", 
+        LabelText = "Optype",
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Optype --",
+        SelectItems = ViewBag.OptypeDD as SelectList,
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "SalesPersonId",
+        LabelText = "Sales Person",
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Sales Person --",
+        SelectItems = ViewBag.SalesPersonDD as SelectList,
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Active",
+        LabelText = "Active", 
+        FieldType = FieldType.Select,
+        Placeholder = "-- Select Active --", 
+        SelectItems = ViewBag.ActiveDD as SelectList,
+        ColumnClass = "col-12 col-md-6 sup-field-col mt-0"
+    })
+    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel {
+        InputId = "Remarks", 
+        LabelText = "Remarks", 
+        FieldType = FieldType.Textarea,
+        Placeholder = "Enter Remarks",
+        ColumnClass = "col-12 sup-field-col mt-0",
+        InputStyle = "resize:none;",
+        Rows = 2,
+        CustomAttributes = new Dictionary<string, string> { }
+    })
+
+    <div class="col-12 mt-2"><hr id="sectionBreak" class="m-0"/></div>
+
+    <!-- Creation / Update Dates -->
+    <div class="col-12" id="LdateModifyHide">
+        <div class="row pt-2 pb-2">
+            <div class="col-6 d-flex align-items-center">
+                <span class="fw-bold me-2" style="font-size: 13px;">Creation Date:</span>
+                <span id="creationDateSpan" style="font-size: 13px;">
+                    @(Model.Ldate.HasValue? Model.Ldate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </span>
+            </div>
+            <div class="col-6 d-flex align-items-center">
+                <span class="fw-bold me-2" style="font-size: 13px;">Last Update Date:</span>
+                <span id="modifyDateSpan" style="font-size: 13px;">
+                    @(Model.ModifyDate.HasValue? Model.ModifyDate?.ToString("dd/MM/yyyy hh:mm tt") : "")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="col-12 no-print sup-toolbar-col">
+        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-SupplierInformation-save",
+            Style="border-bottom:0px !important; padding-top:0 !important;"
+        })
+    </div>
+</div>

@@ -1,0 +1,251 @@
+@using GCTL.UI.Core.ViewModels
+
+<div class="card shadow-sm rounded-2">
+
+    @* ================= Toolbar Section ================= *@
+    @await Html.PartialAsync("_Toolbars", new ToobarModel
+    {
+        Title = "Sub-Sidiary Ledger",
+        ShowSave = true,
+        SaveBtnId = "btnSave",
+        SaveBtnClass = "js-ModalSubSidiary-save ModalsaveBtn",
+        EnableSave = true,
+
+        ShowDelete = true,
+        DeleteBtnId = "ModalSubSidiarydeleteBtn",
+        DeleteBtnClass = "js-ModalSubSidiary-delete-confirm ModalSubcontroldeleteBtn",
+        EnableDelete = true,
+
+        ShowClear = true,
+        ClearBtnId = "btnClear",
+        ClearBtnClass = "js-ModalSubSidiary-clear ModalSubSidiaryresetBtn",
+        EnableClear = true,
+
+        ShowPrint = true,
+        PrintBtnId = "btnPrint",
+        PrintBtnClass = "printBtn",
+        ExcelBtnClass = "export-excel",
+        PdfBtnClass = "export-pdf",
+        EnablePrint = true,
+
+        ShowFavorite = true,
+        FavtBtnId = "btnFav",
+        FavtBtnClass = "ModalsubSidiaryfavBtn",
+        EnableFavorite = true
+    })
+
+    <div class="card-body">
+        <form id="ModalsubSidiaryForm">
+            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
+                <input type="hidden" id="ModalforsidiaryAutoID" name="autoId" />
+
+                <div class="row g-3 subsidiary-ledger-fields-row control-ledger-fields-row">
+                    @* --- 1. Group Ledger Code (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "Modalforsidiarygroupcode",
+                        InputName = "GLCode",
+                        LabelText = "Group Ledger Code",
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
+
+                    @* --- 2. Group Ledger Name (Select) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Select,
+                        InputId = "ModalforsidiarygroupName",
+                        InputName = "forsidiarygroupName",
+                        LabelText = "Group Ledger Name",
+                        Placeholder = "-- Select Group Ledger --",
+                        IsRequired = true
+                    })
+
+                    @* --- 3. Group Ledger Short Name (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalforsidiarygroupshortName",
+                        InputName = "GLShortName",
+                        LabelText = "Short Name",
+                        IsReadonly = true
+                    })
+
+                    @* --- 4. Control Ledger Code (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalforsidiaryControlCode",
+                        InputName = "CRLCode",
+                        LabelText = "Control Ledger Code",
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
+
+                    @* --- 5. Control Ledger Name (Select) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Select,
+                        InputId = "ModalforsidiaryControlName",
+                        InputName = "CRLName",
+                        LabelText = "Control Ledger Name",
+                        Placeholder = "-- Select Control Ledger --",
+                        IsRequired = true
+                    })
+
+                    @* --- 6. Control Ledger Short Name (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalforsidiaryCLShortName",
+                        InputName = "CRLShortName",
+                        LabelText = "Short Name",
+                        IsReadonly = true
+                    })
+
+                    @* --- 7. Sub-Control Ledger Code (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalforsidiaryGeneralLedgerCodeNo",
+                        InputName = "GeneralLedgerCodeNo",
+                        LabelText = "Sub-Control Ledger Code",
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
+
+                    @* --- 8. Sub-Control Ledger Name (Select) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Select,
+                        InputId = "ModalforsidiaryGeneralLedgerName",
+                        InputName = "forsidiaryGeneralLedgerName",
+                        LabelText = "Sub-Control Ledger Name",
+                        Placeholder = "-- Select Sub-Control Ledger --",
+                        IsRequired = true
+                    })
+
+                    @* --- 9. Sub-Control Ledger Short Name (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalforsidiarySubCRLshortName",
+                        InputName = "SubCRLShortName",
+                        LabelText = "Short Name",
+                        IsReadonly = true
+                    })
+
+                    @* --- 10. Sub-Sidiary Ledger Code (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalSusidiaryLedgerCodeNo",
+                        InputName = "SusidiaryLedgerCodeNo",
+                        LabelText = "Sub-Sidiary Ledger Code",
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
+
+                    @* --- 11. Sub-Sidiary Ledger Name --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalSubsidiaryLedgerName",
+                        InputName = "SubsidiaryLedgerName",
+                        LabelText = "Sub-Sidiary Ledger Name",
+                        IsRequired = true
+                    })
+
+                    @* --- 12. Short Name --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalforsidiaryshortName",
+                        InputName = "ShortName",
+                        LabelText = "Short Name"
+                    })
+                </div>
+
+                <hr class="my-3 mx-1">
+
+                @* --- Entry & Update Date Section --- *@
+                <div class="row g-2 align-items-center">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "ModalSubSidiaryldisplayLDate",
+                        LabelText = "Entry Date :",
+                        LabelInline = true,
+                        LabelColWidth = 5,
+                        LabelStyle = "font-size:12px; white-space: nowrap;",
+                        InputStyle = "font-size:12px; white-space: nowrap;"
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "ModalSubSidiarydisplayModifyDate",
+                        LabelText = "Last Update Date :",
+                        LabelInline = true,
+                        LabelColWidth = 5,
+                        LabelStyle = "font-size:12px; white-space: nowrap;",
+                        InputStyle = "font-size:12px; white-space: nowrap;"
+                    })
+                </div>
+
+                @* Bottom Save Button *@
+                <div class="row mt-3">
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-outline-primary btn-sm ModalsaveBtn">
+                            <i class="fas fa-save me-1"></i> Save
+                        </button>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+</div>

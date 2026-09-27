@@ -1,13 +1,13 @@
-﻿(function ($) {
+(function ($) {
     $.religions = function (options) {
         // Default options
         var settings = $.extend({
             baseUrl: "/",
             formSelector: "#religion-form",
             formContainer: ".js-religion-form-container",
-            gridSelector: "#religion-grid",
+            gridSelector: "#religionTable",
             gridContainer: ".js-religion-grid-container",
-            editSelector: ".js-religion-edit",
+            editSelector: ".js-religion-edit, .js-grid-edit",
             saveSelector: ".js-religion-save",
             selectAllSelector: "#religion-check-all",
             deleteSelector: ".js-religion-delete-confirm",
@@ -38,16 +38,23 @@
         });
 
         $(() => {
-            //settings.load(settings.baseUrl, settings.gridSelector);
-            loadReligions(settings.baseUrl, settings.gridSelector);
-            initialize();
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'religionTable' });
+            }
+
+
+
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
                 e.preventDefault();
                 e.stopImmediatePropagation();
+                let url = saveUrl + ($(this).data("id") ? "/" + $(this).data("id") : "");
 
-                let url = saveUrl + "/" + $(this).data("id") ?? "";
-                loadForm(url);
+                loadForm(url).then((data) => {
+                    console.info("Form Loaded Successfully", data);
+                }).catch((error) => {
+                    console.error("Failed to load form", error);
+                });
 
                 // Setting id on the delete selector for delete
                 var id = $(this).data('id');
@@ -78,15 +85,21 @@
                     data: data,
                     success: function (response) {
                         if (response.isSuccess) {
-                            loadForm(saveUrl)
-                                .then((data) => {
-                                    loadReligions(settings.baseUrl, settings.gridSelector);
-                                    $(settings.lastCodeSelector).val(response.lastCode);
-                                })
-                                .catch((error) => {
-                                    console.log(error)
-                                })
-
+                            var self = this;
+                            var $modalAncestor = $(settings.saveSelector).closest(".modal");
+                            if ($modalAncestor.length && window.GcModal) {
+                                GcModal.markSuccess($modalAncestor, response.lastCode);
+                                GcModal.close($modalAncestor);
+                            } else {
+                                loadForm(saveUrl)
+                                    .then((data) => {
+                                        loadTable();
+                                        $(settings.lastCodeSelector).val(response.lastCode);
+                                    })
+                                    .catch((error) => {
+                                        console.log(error);
+                                    });
+                            }
                             toastr.success(response.message);
                         }
                         else {
@@ -94,7 +107,7 @@
                             console.log(response);
                         }
                     }
-                }
+                };
                 if (settings.haseFile) {
                     options.processData = false;
                     options.contentType = false;
@@ -103,81 +116,68 @@
             });
 
             $("body").on("click", settings.selectAllSelector, function () {
-                $(".checkBox").prop('checked',
-                    $(this).prop('checked'));
+                $(".checkBox").prop('checked', $(this).prop('checked'));
             });
 
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
 
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
                     });
                 }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
                 } else {
-                    toastr.info("Please select at least one item.", 'Warning');
+                    toastr.info("Please select at least one item.");
                 }
             });
 
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-religion-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
-                //event.preventDefault();
-                // Get button that triggered the modal
-                var source = $(event.relatedTarget);
-                var id = source.data("id");
-
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl + "/" + selectedItems,
-                        method: "POST",
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-                                /*settings.load(settings.baseUrl);*/
-                                loadReligions(settings.baseUrl, settings.gridSelector);
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                if (response.success) {
-                                    toastr.warning(response.message, 'Warning');
-                                }
-
-                                if (!response.success) {
-                                    toastr.error(response.message, 'Error');
-                                }
-                                console.log(response);
-                            }
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success || response.isSuccess) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                    });
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             $("body").on("click", settings.topSelector, function (e) {
@@ -185,66 +185,17 @@
                 $("html, body").animate({ scrollTop: 0 }, 500);
             });
 
-
             $("body").on("keyup", settings.decimalSelector, function () {
                 var self = $(this);
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            //$("body").on("keyup", settings.availabilitySelector, function () {
-            //    var self = $(this);
-            //    let code = $(".js-religion-code").val();
-            //    let name = self.val();
-
-            //    // check
-            //    $.ajax({
-            //        url: settings.baseUrl + "/CheckAvailability",
-            //        method: "POST",
-            //        data: { code: code, name: name },
-            //        success: function (response) {
-            //            console.log(response);
-            //            if (response.isSuccess) {
-            //                toastr.error(response.message);
-            //            }
-            //        }
-            //    });
-            //});
         });
 
-        function loadReligions(baseUrl, gridSelector) {
-            var dataTable = $(gridSelector).DataTable({
-                ajax: {
-                    url: baseUrl + "/grid",
-                    type: "GET",
-                    datatype: "json"
-                },
-
-                columnDefs: [
-                    { targets: [0], orderable: false },
-                ],
-                columns: [
-                    {
-                        "data": "religionCode", "className": "text-center", width: "2%", "render": function (data) {
-                            return ` <input type="checkbox" class="checkBox" value="${data}" />`;
-                        }
-                    },
-                    {
-                        "data": "religionCode", width: "7%", "render": function (data) {
-                            return `<a class='btn js-religion-edit' data-id='${data}'><i>${data}</i></a>`;
-                        }
-                    },
-                    { "data": "religion", "autowidth": true, "className": "text-center" },
-                    { "data": "shortName", "autowidth": true, "className": "text-center" },
-                ],
-                lengthChange: true,
-                pageLength: 10,
-                lengthMenu: [
-                    [10, 25, 50, -1],
-                    [10, 25, 50, 'All'],
-                ],
-                order: [[1, "Desc"]],
-                destroy: true
-            });
+        function loadTable() {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         function loadForm(url) {
@@ -252,48 +203,30 @@
                 $.ajax({
                     url: url,
                     type: 'GET',
+                    cache: false,
                     success: function (data) {
                         $(settings.formContainer).empty();
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        initialize();
-                        resolve(data)
+                        resolve(data);
                     },
                     error: function (error) {
-                        reject(error)
+                        reject(error);
                     },
-                })
-            })
-        }
-
-        function initialize() {
-            $(settings.formSelector + ' .selectpicker').select2({
-                language: {
-                    noResults: function () {
-                        //return 'Not found <a class="add_new_item" href="javascript:void(0)">Add New</a>';
-                    }
-                },
-                escapeMarkup: function (markup) {
-                    return markup;
-                }
+                });
             });
         }
 
         function validation() {
-
             var dep = $('#Religion').val();
-
             if (!dep) {
                 toastr.info('Enter Religion');
                 $('#Religion').trigger('focus');
                 return false;
             }
-
             return true;
-
         }
-    }
+    };
 
 }(jQuery));
-

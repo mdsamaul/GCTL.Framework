@@ -1,66 +1,36 @@
 ﻿@model GCTL.UI.Core.ViewModels.Companies.CompanyPageViewModel
+
 @{
-    ViewBag.Title = "Companies";
-    Model.Breadcrumb = "Company";
     Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Company Information";
+    Model.Breadcrumb = "Company Information";
 }
 
 <style>
-
     .dataTables_filter {
         margin-right: 0px;
     }
-
-    .btn-common {
-        border-radius: 14px !important;
-        padding: .375rem 1.35rem !important;
-        box-shadow: 0px 2px 6px #e9e9e9;
-        margin-left: 5px;
-        color: black !important;
-    }
-
-        .btn-common:hover {
-            color: #28a745 !important;
-        }
-
-    .btn-default {
-        border-color: #ddd !important;
-    }
-
-    .form-control[readonly] {
-        background-color: #e9ecef !important;
-    }
-
-        .form-control[readonly]:focus {
-            box-shadow: none;
-            border-color: inherit;
-        }
-
-    .form-control:focus:not(:disabled):not([readonly]) {
-        --bs-focus-ring-width: 0.2rem;
-        --bs-focus-ring-color: rgba(0, 123, 255, 0.25);
-        border-color: #80bdff;
-        box-shadow: 0 0 0 0 rgba(13, 110, 253, .25);
-    }
 </style>
 
-<!-- Content Header (Page header) -->
-<partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
-                     @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                    {
-                    Title = "Companies",
-                   
-                })
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Company Information",
+                            SaveBtnClass = "js-company-save",
+                            DeleteBtnClass = "js-company-delete-confirm",
+                            ClearBtnClass = "js-company-clear"
+                        })
                     </div>
                     <div class="card-body px-2">
-                        <form asp-action="Setup" id="company-form">
+                        <form asp-action="Setup" method="post" id="company-form" asp-controller="Companies">
                             <div class="js-company-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
@@ -68,37 +38,49 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Right Table Grid Column -->
             <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-company-grid-container">
-                            <partial name="_Grid" />
-                        </div>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "companyTable",
+                    AjaxUrl = "/Companies/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "companyCode",
+                    CheckAllId = "company-check-all",
+                    DefaultSortColumn = "companyCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "companyCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-company-edit" },
+                        new() { Data = "companyName", Header = "Company Name", Width = "30%", Align = "left" },
+                        new() { Data = "address1", Header = "Address", Width = "25%", Align = "left" },
+                        new() { Data = "phone1", Header = "Phone", Width = "15%", Align = "center" },
+                        new() { Data = "email", Header = "Email", Width = "20%", Align = "left" }
+                    }
+                })
             </div>
+
         </div>
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
+<partial name="QuickAddModal" />
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/app.input.validation.js"></script>
     <script src="~/js/pages/companies.js"></script>
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Companies")'
         };
-        options.load = () => {
-        };
 
         $.companies(options);
     </script>
 }
-
-
-

@@ -1,458 +1,1286 @@
-﻿using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels.SepDocumentation;
 using GCTL.Data.Models;
-using GCTL.Service.SepDocumentation;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GCTL.Service.SepDocumentation
 {
     public class SepDocumentationService : ISepDocumentationService
     {
-        private readonly IGenericRepository<GCTL.Data.Models.SalesCustomer> _customerRepository;
+        private readonly IGenericRepository<SalesCustomer> _customerRepository;
+        private readonly IGenericRepository<SalesDeliveryLocation> _deliveryLocationRepository;
         private readonly IGenericRepository<GCTL.Data.Models.SepDocumentation> _sepDocumentationRepository;
-        private readonly IGenericRepository<GCTL.Data.Models.SalesDeliveryLocation> _deliveryLocationRepository;
-        private readonly IConfiguration _configuration;
+        private readonly IGenericRepository<CfDefExpenseType> _shipmentModeRepository;
+        private readonly IGenericRepository<SepDocumentInfo> _documentInfoRepository;
 
-      
-
-        public SepDocumentationService(IGenericRepository<GCTL.Data.Models.SalesCustomer> customerRepository, IGenericRepository<GCTL.Data.Models.SalesDeliveryLocation> deliveryLocationRepository, IGenericRepository<GCTL.Data.Models.SepDocumentation> sepDocumentationRepository, IConfiguration configuration)
+        public SepDocumentationService(
+            IGenericRepository<SalesCustomer> customerRepository,
+            IGenericRepository<SalesDeliveryLocation> deliveryLocationRepository,
+            IGenericRepository<GCTL.Data.Models.SepDocumentation> sepDocumentationRepository,
+            IGenericRepository<CfDefExpenseType> shipmentModeRepository,
+            IGenericRepository<SepDocumentInfo> documentInfoRepository
+            )
         {
-            
-
             _customerRepository = customerRepository;
             _deliveryLocationRepository = deliveryLocationRepository;
             _sepDocumentationRepository = sepDocumentationRepository;
-            _configuration = configuration;
+            _shipmentModeRepository = shipmentModeRepository;
+            _documentInfoRepository = documentInfoRepository;
         }
 
-        public async Task<CommonReturnViewModel> AddDocumentation(GCTL.Data.Models.SepDocumentation model)
+        #region Grid
+
+        public async Task<SepDocPagedResult<SepDocJobListDto>> GetJobsPagedAsync(
+            int page, int pageSize, string customerId, string shipmentMode,
+            DateTime? dateFrom, DateTime? dateTo, string search)
         {
             try
             {
-                var exists = await _sepDocumentationRepository.All()
-                .AnyAsync(x => x.InvoiceNo == model.InvoiceNo || x.ExpNo == model.ExpNo);
+                IQueryable<SepDocJobListDto> query =
+                    from d in _sepDocumentationRepository.All().AsNoTracking()
 
-                if (exists)
-                    return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
+                    join c in _customerRepository.All().AsNoTracking()
+                        on d.CustomerId equals c.CustomerId into customers
+                    from c in customers.DefaultIfEmpty()
 
-                model.Ldate = DateTime.Now;
-                model.ModifyDate = DateTime.Now;
+                    join s in _shipmentModeRepository.All().AsNoTracking()
+                        on d.ExpenseTypeId equals s.ExpenseTypeId into modes
+                    from s in modes.DefaultIfEmpty()
 
-                await _sepDocumentationRepository.AddAsync(model);
-
-
-                return new CommonReturnViewModel
-                {
-                    Success = true,
-                    Message =  "Data added successfully" 
-                };
-            }
-            catch (Exception)
-            {
-                return new CommonReturnViewModel
-                {
-                    Success = false,
-                    Message =  "Failed to add data"
-                };
-            }
-            
-        }
-
-        public async Task<CommonReturnViewModel> UpdateDocumentation(GCTL.Data.Models.SepDocumentation model)
-        {
-            try
-            {
-                var existing = await _sepDocumentationRepository.All()
-                .FirstOrDefaultAsync(x => x.Tc == model.Tc);
-
-                if (existing == null)
-                    return new CommonReturnViewModel { Success = false, Message = "Job not found" };
-
-                // Check duplicate ExpNo/InvoiceNo (excluding current record)
-                var duplicate = await _sepDocumentationRepository.All()
-                    .AnyAsync(x => x.Tc != model.Tc &&
-                                  (x.InvoiceNo == model.InvoiceNo || x.ExpNo == model.ExpNo));
-
-                if (duplicate)
-                    return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
-
-                // Update fields
-                existing.Date = model.Date;
-                existing.CustomerId = model.CustomerId;
-                existing.CustomerAddress = model.CustomerAddress;
-                existing.DocReceivedDate = model.DocReceivedDate;
-                existing.ExpNo = model.ExpNo;
-                existing.ExpDate = model.ExpDate;
-                existing.Lcno = model.Lcno;
-                existing.Lcdate = model.Lcdate;
-                existing.Lcvalue = model.Lcvalue;
-                existing.InvoiceNo = model.InvoiceNo;
-                existing.InvoiceDate = model.InvoiceDate;
-                existing.InvoiceValue = model.InvoiceValue;
-                 //existing.BLNo = model.BLNo;
-                existing.Bldate = model.Bldate;
-                existing.Beno = model.Beno;
-                existing.Bedate = model.Bedate;
-                existing.ContainerNo = model.ContainerNo;
-                existing.ContainerSize = model.ContainerSize;
-                existing.MaterialDescription = model.MaterialDescription;
-                existing.Quntity1 = model.Quntity1;
-                existing.Unit1 = model.Unit1;
-                existing.Quntity2 = model.Quntity2;
-                existing.Unit2 = model.Unit2;
-                existing.FwdrShippingAgent = model.FwdrShippingAgent;
-                existing.Dischargedate = model.Dischargedate;
-                existing.Eta = model.Eta;
-                existing.Etactgport = model.Etactgport;
-                existing.UnStuffingLocationDate = model.UnStuffingLocationDate;
-                existing.Etddate = model.Etddate;
-                existing.VesselRottNo = model.VesselRottNo;
-                existing.DateOfClearence = model.DateOfClearence;
-                existing.Ata = model.Ata;
-                existing.PlaceOfLoadingId = model.PlaceOfLoadingId;
-                existing.ShedYardId = model.ShedYardId;
-                existing.Hawb = model.Hawb;
-                existing.Mawb = model.Mawb;
-                existing.NameOfFreightForwarder = model.NameOfFreightForwarder;
-                existing.AssessmentNo = model.AssessmentNo;
-                existing.Rno = model.Rno;
-                existing.ClientStationwiseSlno = model.ClientStationwiseSlno;
-                existing.FreightCharge = model.FreightCharge;
-                existing.ShipmentStatus = model.ShipmentStatus;
-                existing.Remarks = model.Remarks;
-                existing.PackingQuantity = model.PackingQuantity;
-                existing.PackingUnitType = model.PackingUnitType;
-                existing.AssessableRate = model.AssessableRate;
-                existing.AssessableValue = model.AssessableValue;
-                existing.Bdtrate = model.Bdtrate;
-                existing.DeliveryLocationCode = model.DeliveryLocationCode;
-
-
-                existing.ModifyDate = DateTime.Now;
-
-                await _sepDocumentationRepository.UpdateAsync(existing);
-
-
-                return new CommonReturnViewModel
-                {
-                    Success = true,
-                    Message = "Record updated successfully"
-                };
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-            
-        }
-
-        public async Task<CommonReturnViewModel> DeleteDocumentation(string jobNo)
-        {
-            var entity = await _sepDocumentationRepository.All()
-                .FirstOrDefaultAsync(x => x.JobNo == jobNo);
-
-            if (entity == null)
-                return new CommonReturnViewModel { Success = false, Message = "Job not found" };
-
-            await _sepDocumentationRepository.DeleteAsync(entity);
-            
-
-            return new CommonReturnViewModel
-            {
-                Success = true,
-                Message =  "Record deleted successfully" 
-            };
-        }
-
-        public GCTL.Data.Models.SepDocumentation GetDocumentationByTC(decimal tc)
-        {
-            var data  = _sepDocumentationRepository.All().FirstOrDefault(e=>e.Tc == tc);
-            return data ?? new GCTL.Data.Models.SepDocumentation();
-        }
-
-        #region Get Data
-
-        private async Task<bool> CheckAndCreateStoredProcedureAsync(SqlConnection connection)
-        {
-            try
-            {
-                // Check if stored procedure exists
-                var checkQuery = @"
-                        SELECT COUNT(*) 
-                        FROM sys.procedures 
-                        WHERE name = 'SP_GetDocumentationList'";
-
-                var exists = await connection.ExecuteScalarAsync<int>(checkQuery);
-
-                if (exists > 0)
-                {
-                    Console.WriteLine("Stored procedure already exists.");
-                    return true;
-                }
-
-                Console.WriteLine("Stored procedure not found. Creating...");
-
-                // Create the stored procedure
-                var createProcQuery = @"
-                        CREATE or alter PROCEDURE [dbo].[SP_GetDocumentationList]
-                            @Page INT = 1,
-                            @PageSize INT = 10,
-                            @Search NVARCHAR(255) = NULL,
-                            @SortColumn NVARCHAR(50) = 'JobNo',
-                            @SortDirection NVARCHAR(4) = 'asc',
-                            @DateFrom DATE = NULL,
-                            @DateTo DATE = NULL,
-                            @CustomerID NVARCHAR(50) = NULL
-                        AS
-                        BEGIN
-                            SET NOCOUNT ON;
-
-                            DECLARE @Offset INT = (@Page - 1) * @PageSize;
-                            DECLARE @TotalRecords INT;
-
-                            -- Build dynamic query
-                            DECLARE @SQL NVARCHAR(MAX);
-                            DECLARE @CountSQL NVARCHAR(MAX);
-                            DECLARE @WhereClause NVARCHAR(MAX) = ' WHERE 1=1 ';
-    
-                            -- Apply filters
-                            IF @Search IS NOT NULL AND @Search != ''
-                            BEGIN
-                                SET @WhereClause = @WhereClause + 
-                                    ' AND (doc.JobNo LIKE ''%' + @Search + '%'' 
-                                    OR cus.CustomerName LIKE ''%' + @Search + '%''
-                                    OR doc.CustomerAddress11 LIKE ''%' + @Search + '%'')';
-                            END
-
-                            IF @DateFrom IS NOT NULL
-                            BEGIN
-                                SET @WhereClause = @WhereClause + ' AND doc.Date >= ''' + CONVERT(VARCHAR(10), @DateFrom, 23) + '''';
-                            END
-
-                            IF @DateTo IS NOT NULL
-                            BEGIN
-                                SET @WhereClause = @WhereClause + ' AND doc.Date <= ''' + CONVERT(VARCHAR(10), @DateTo, 23) + '''';
-                            END
-
-                            IF @CustomerID IS NOT NULL AND @CustomerID != ''
-                            BEGIN
-                                SET @WhereClause = @WhereClause + ' AND doc.CustomerID = ''' + @CustomerID + '''';
-                            END
-
-                            -- Get total count
-                            SET @CountSQL = '
-                            SELECT @TotalRecords = COUNT(*)
-                            FROM SepDocumentation doc
-                            LEFT JOIN CF_Def_ExpenseType ship ON doc.ExpenseTypeID = ship.ExpenseTypeID
-                            LEFT JOIN SalesCustomer cus ON doc.CustomerID = cus.CustomerID' + @WhereClause;
-
-                            EXEC sp_executesql @CountSQL, N'@TotalRecords INT OUTPUT', @TotalRecords OUTPUT;
-
-                            -- Build order by clause
-                            DECLARE @OrderBy NVARCHAR(100);
-                            SET @OrderBy = CASE @SortColumn
-                                WHEN 'TC' THEN 'doc.tc'
-                                WHEN 'JobNo' THEN 'doc.JobNo'
-                                WHEN 'Date' THEN 'doc.Date'
-                                WHEN 'CustomerName' THEN 'cus.CustomerName'
-                                WHEN 'CustomerAddress11' THEN 'doc.CustomerAddress11'
-                                WHEN 'ShipmentMode' THEN 'ship.ShortName'
-                                WHEN 'DocReceivedDate' THEN 'doc.DocReceivedDate'
-                                WHEN 'LCValue' THEN 'doc.LCValue'
-                                WHEN 'Status' THEN 'doc.Status'
-                                ELSE 'doc.JobNo'
-                            END + ' ' + @SortDirection;
-
-                            -- Get paginated data
-                            SET @SQL = '
-                            SELECT 
-                                doc.tc,
-                                doc.JobNo,
-                                doc.Date,
-                                cus.CustomerName,
-                                doc.CustomerAddress11,
-                                ship.ShortName AS ShipmentMode,
-                                doc.DocReceivedDate,
-                                doc.LCValue,
-       
-                                ' + CAST(@TotalRecords AS NVARCHAR(10)) + ' AS TotalRecords
-                            FROM SepDocumentation doc
-                            LEFT JOIN CF_Def_ExpenseType ship ON doc.ExpenseTypeID = ship.ExpenseTypeID
-                            LEFT JOIN SalesCustomer cus ON doc.CustomerID = cus.CustomerID' 
-                            + @WhereClause + '
-                            ORDER BY ' + @OrderBy + '
-                            OFFSET ' + CAST(@Offset AS NVARCHAR(10)) + ' ROWS
-                            FETCH NEXT ' + CAST(@PageSize AS NVARCHAR(10)) + ' ROWS ONLY';
-
-                            EXEC sp_executesql @SQL;
-	
-	
-	                        --EXEC SP_GetDocumentationList     @Page = 1,    @PageSize = 10,    
-	                        --								@Search = NULL,    @SortColumn = 'JobNo',    
-	                        --								@SortDirection = 'asc',    @DateFrom = NULL,    
-	                        --								@DateTo = NULL,    @CustomerID = 'CUS000004'
-
-
-                        END
-
-
-
-                        ";
-
-                await connection.ExecuteAsync(createProcQuery);
-                Console.WriteLine("Stored procedure created successfully.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error checking/creating stored procedure: {ex.Message}");
-                return false;
-            }
-        }
-
-
-        public async Task<(List<DocumentationResult> Data, int TotalRecords)> GetDocumentationList(int page, int pageSize, string search, string sortColumn, string sortDirection, DateTime? dateFrom, DateTime? dateTo, string customerId)
-        {
-            try
-            {
-                var queryParameters = new DynamicParameters();
-                queryParameters.Add("@Page", page);
-                queryParameters.Add("@PageSize", pageSize);
-                queryParameters.Add("@Search", string.IsNullOrWhiteSpace(search) ? null : search.Trim());
-                queryParameters.Add("@SortColumn", sortColumn);
-                queryParameters.Add("@SortDirection", sortDirection);
-                queryParameters.Add("@DateFrom", dateFrom);
-                queryParameters.Add("@DateTo", dateTo);
-                queryParameters.Add("@CustomerID", string.IsNullOrWhiteSpace(customerId) ? null : customerId);
-
-                var query = BuildQueryString(queryParameters);
-                Console.WriteLine($"Generated Query: {query}");
-
-                using (var connection = new SqlConnection(_configuration.GetConnectionString("connection")))
-                {
-                    await connection.OpenAsync();
-
-                    await CheckAndCreateStoredProcedureAsync(connection);
-
-                    var result = (await connection.QueryAsync<DocumentationResult>(
-                        query,
-                        queryParameters
-                    )).ToList();
-
-                    var data = result.Select(item => new DocumentationResult
+                    select new SepDocJobListDto
                     {
-                        tc = item.tc,
-                        JobNo = item.JobNo,
-                        Date = item.Date,
-                        CustomerName = item.CustomerName,
-                        CustomerAddress = item.CustomerAddress,
-                        ShipmentMode = item.ShipmentMode,
-                        DocReceivedDate = item.DocReceivedDate,
-                        LCValue = item.LCValue,
-                        Status = item.Status
-                    }).ToList();
+                        Tc = d.Tc,
 
-                    var totalRecords = result.FirstOrDefault()?.TotalRecords ?? 0;
+                        CustomerId = d.CustomerId,
+                        ShipmentModeId = d.ExpenseTypeId,
 
-                    return (data, totalRecords);
+                        JobNo = d.JobNo,
+                        JobDate = d.Date,
+                        CustomerName = c != null ? c.CustomerName : "",
+                        CustomerAddress = d.CustomerAddress,
+                        ShipmentMode = s != null ? s.ExpenseType : "",
+                        DocReceivedDate = d.DocReceivedDate,
+                        LCValue = d.Lcvalue,
+                        JobStatus = d.ShipmentStatus
+                    };
+
+                var totalCount = await query.CountAsync();
+
+                if (!string.IsNullOrWhiteSpace(customerId))
+                {
+                    query = query.Where(x => x.CustomerId == customerId);
                 }
+
+                if (!string.IsNullOrWhiteSpace(shipmentMode))
+                {
+                    query = query.Where(x => x.ShipmentModeId == shipmentMode);
+                }
+
+                if (dateFrom.HasValue)
+                    query = query.Where(x => x.JobDate >= dateFrom.Value);
+
+                if (dateTo.HasValue)
+                {
+                    var end = dateTo.Value.Date.AddDays(1);
+                    query = query.Where(x => x.JobDate < end);
+                }
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.Trim();
+                    query = query.Where(x =>
+                        x.JobNo.Contains(search) ||
+                        x.CustomerName.Contains(search) ||
+                        x.ShipmentMode.Contains(search));
+                }
+
+                var filteredCount = await query.CountAsync();
+
+                var data = await query
+                    .OrderByDescending(x => x.Tc)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                foreach (var row in data)
+                {
+                    row.JobDateFormatted = row.JobDate.HasValue ? row.JobDate.Value.ToString("dd/MM/yyyy") : "";
+                    row.DocReceivedDateFormatted = row.DocReceivedDate.HasValue ? row.DocReceivedDate.Value.ToString("dd/MM/yyyy") : "";
+                }
+
+                return new SepDocPagedResult<SepDocJobListDto>
+                {
+                    Data = data,
+                    TotalRecords = totalCount,
+                    FilteredRecords = filteredCount
+                };
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error fetching documentation list: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-                throw;
+                return new SepDocPagedResult<SepDocJobListDto>();
             }
-        }
-
-
-
-
-        private string BuildQueryString(DynamicParameters parameters)
-        {
-            var queryBuilder = new StringBuilder();
-            queryBuilder.Append("EXEC SP_GetDocumentationList ");
-            bool hasParameters = false;
-
-            foreach (var param in parameters.ParameterNames)
-            {
-                var value = parameters.Get<object>(param);
-
-                // Skip null parameters
-                if (value == null || (value is string str && string.IsNullOrWhiteSpace(str)))
-                    continue;
-
-                // Format based on type
-                string formattedValue;
-                if (value is string)
-                    formattedValue = $"'{value}'";
-                else if (value is DateTime dt)
-                    formattedValue = $"'{dt:yyyy-MM-dd}'";
-                else
-                    formattedValue = value.ToString();
-
-                queryBuilder.Append($"@{param} = {formattedValue}, ");
-                hasParameters = true;
-            }
-
-            if (hasParameters)
-                queryBuilder.Length -= 2; // Remove trailing comma and space
-
-            return queryBuilder.ToString();
         }
 
         #endregion
 
+        #region Detail
+
+        public async Task<SepDocumentationEntryViewModel> GetJobDetailAsync(decimal tc)
+        {
+            var h = await _sepDocumentationRepository.All().AsNoTracking().FirstOrDefaultAsync(x => x.Tc == tc);
+            if (h == null) return new SepDocumentationEntryViewModel();
+            return await MapToViewModelAsync(h);
+        }
+
+        public async Task<SepDocumentationEntryViewModel> GetJobDetailByJobNoAsync(string jobNo)
+        {
+            var h = await _sepDocumentationRepository.All().AsNoTracking().FirstOrDefaultAsync(x => x.JobNo == jobNo);
+            if (h == null) return new SepDocumentationEntryViewModel();
+            return await MapToViewModelAsync(h);
+        }
+
+        private async Task<SepDocumentationEntryViewModel> MapToViewModelAsync(GCTL.Data.Models.SepDocumentation h)
+        {
+            var transportModeTypeId = await GetTransportModeTypeAsync(h.ExpenseTypeId);
+
+            return new SepDocumentationEntryViewModel
+            {
+                Tc = h.Tc,
+                JobNo = h.JobNo,
+                PrifixId = h.PrifixId,
+                //IsCustomJobNo = h.IsCustomJobNo == "1" || h.IsCustomJobNo == "true",
+                IsCustomJobNo = h.IsCustomJobNo == "1" || h.IsCustomJobNo == "true" ? "1" : "0",
+                ShipmentModeId = h.ExpenseTypeId,
+                TransportModeTypeId = transportModeTypeId,
+                Date = h.Date,
+                CustomerId = h.CustomerId,
+                CustomerAddress = h.CustomerAddress,
+                DeliveryLocationCode = h.DeliveryLocationCode,
+                PortId = h.PortId,
+                PortNameId = h.PortNameId,
+                DocReceivedDate = h.DocReceivedDate,
+                ExpNo = h.ExpNo,
+                ExpDate = h.ExpDate,
+                LCNo = h.Lcno,
+                LCDate = h.Lcdate,
+                LCValue = h.Lcvalue,
+                CurrencyId = h.CurrencyId,
+                BDTRate = h.Bdtrate,
+                IPNo = h.Ipno,
+                IPDate = h.Ipdate,
+                ImporterID = h.ImporterId,
+                ExporterID = h.ExporterId,
+                InvoiceNo = h.InvoiceNo,
+                InvoiceDate = h.InvoiceDate,
+                InvoiceValue = h.InvoiceValue,
+                InvoiceCurrencyID = h.InvoiceCurrencyId,
+                AssessableRate = h.AssessableRate,
+                AssessableValue = h.AssessableValue,
+                BLNo = h.Beno,          // legacy: BLNo tracked via Beno/Bldate pairing in existing code
+                BLDate = h.Bldate,
+                ContainerNo = h.ContainerNo,
+                ContainerSize = h.ContainerSize,
+                MaterialDescription = h.MaterialDescription,
+                Quntity1 = h.Quntity1,
+                Unit1 = h.Unit1,
+                Quntity2 = h.Quntity2,
+                Unit2 = h.Unit2,
+                FWDR_ShippingAgent = h.FwdrShippingAgent,
+                NameOfFreightForwarder = h.NameOfFreightForwarder,
+                VesselRottNo = h.VesselRottNo,
+                PlaceOfLoadingID = h.PlaceOfLoadingId,
+                ShedYardID = h.ShedYardId,
+                HAWB = h.Hawb,
+                MAWB = h.Mawb,
+                AssessmentNo = h.AssessmentNo,
+                RNo = h.Rno,
+                ClientStationwiseSLNo = h.ClientStationwiseSlno,
+                FreightCharge = h.FreightCharge,
+                LCANo = h.Lcano,
+                Remarks = h.Remarks,
+
+                // shared
+                ETDDate = h.Etddate,
+                ETACTGPORT = h.Etactgport,
+                DocsBankSignDate = h.DocsBankSignDate,
+                BENo = h.Beno,
+                BEDate = h.Bedate,
+                ActualDeliveryDate = h.Ata,
+
+                // sea
+                FinalIgmRecDate = h.FinalIgmRecDate,
+                ShipArrivedDate = h.Shiparriveddate,
+                UnstuffDischargeDate = h.UnStuffingLocationDate,
+                EstimatedDeliveryDate = h.Eta,
+
+                // air
+                FlightArrivalDate = h.Atb,
+                ArrivalNoticeDate = h.ArrivalNoticeDate,
+
+                CreatedAt = h.Ldate,
+                UpdatedAt = h.ModifyDate
+            };
+        }
+
+        #endregion
+
+        #region Save / Delete
+
+        //public async Task<CommonReturnViewModel> SaveDocumentationAsync(SepDocumentationEntryViewModel model, string company, string loginUser)
+        //{
+        //    await _sepDocumentationRepository.BeginTransactionAsync();
+        //    try
+        //    {
+        //        bool isNew = model.Tc == 0;
+        //        GCTL.Data.Models.SepDocumentation entity;
+
+        //        if (isNew)
+        //        {
+        //            var dupExists = await _sepDocumentationRepository.All()
+        //                .AnyAsync(x => (x.InvoiceNo == model.InvoiceNo && !string.IsNullOrEmpty(model.InvoiceNo))
+        //                            || (x.ExpNo == model.ExpNo && !string.IsNullOrEmpty(model.ExpNo)));
+        //            if (dupExists)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
+        //            }
+
+        //            entity = new GCTL.Data.Models.SepDocumentation
+        //            {
+        //                JobNo = model.JobNo,
+        //                Ldate = DateTime.Now,
+        //                Luser = loginUser,
+        //                CompanyCode = company
+        //            };
+        //        }
+        //        else
+        //        {
+        //            entity = await _sepDocumentationRepository.All().FirstOrDefaultAsync(x => x.Tc == model.Tc);
+        //            if (entity == null)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Job not found" };
+        //            }
+
+        //            var duplicate = await _sepDocumentationRepository.All()
+        //                .AnyAsync(x => x.Tc != model.Tc &&
+        //                              ((x.InvoiceNo == model.InvoiceNo && !string.IsNullOrEmpty(model.InvoiceNo))
+        //                            || (x.ExpNo == model.ExpNo && !string.IsNullOrEmpty(model.ExpNo))));
+        //            if (duplicate)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists" };
+        //            }
+        //        }
+
+        //        entity.PrifixId = model.PrifixId??"";
+        //        entity.IsCustomJobNo = model.IsCustomJobNo?.ToString()??"";
+        //        entity.ExpenseTypeId = model.ShipmentModeId??"";
+        //        entity.Date = model.Date??null;
+        //        entity.CustomerId = model.CustomerId??"";
+        //        entity.CustomerAddress = model.CustomerAddress??"";
+        //        entity.DeliveryLocationCode = model.DeliveryLocationCode??"";
+        //        entity.PortId = model.PortId??"";
+        //        entity.PortNameId = model.PortNameId??"";
+        //        entity.DocReceivedDate = model.DocReceivedDate??null;
+        //        entity.ExpNo = model.ExpNo??"";
+        //        entity.ExpDate = model.ExpDate??null;
+        //        entity.Lcno = model.LCNo??"";
+        //        entity.Lcdate = model.LCDate??null;
+        //        entity.Lcvalue = model.LCValue??0m;
+        //        entity.CurrencyId = model.CurrencyId??"";
+        //        entity.Bdtrate = model.BDTRate??0m;
+        //        entity.Ipno = model.IPNo??"";
+        //        entity.Ipdate = model.IPDate??null;
+        //        entity.ImporterId = model.ImporterID??"";
+        //        entity.ExporterId = model.ExporterID??"";
+        //        entity.InvoiceNo = model.InvoiceNo??"";
+        //        entity.InvoiceDate = model.InvoiceDate??null;
+        //        entity.InvoiceValue = model.InvoiceValue??0m;
+        //        entity.InvoiceCurrencyId = model.InvoiceCurrencyID??"";
+        //        entity.AssessableRate = model.AssessableRate??0m;
+        //        entity.AssessableValue = model.AssessableValue??0m;
+        //        entity.Bldate = model.BLDate??null;
+        //        entity.ContainerNo = model.ContainerNo??"";
+        //        entity.ContainerSize = model.ContainerSize??"";
+        //        entity.MaterialDescription = model.MaterialDescription??"";
+        //        entity.Quntity1 = model.Quntity1??0m;
+        //        entity.Unit1 = model.Unit1??"";
+        //        entity.Quntity2 = model.Quntity2??0m;
+        //        entity.Unit2 = model.Unit2??"";
+        //        entity.FwdrShippingAgent = model.FWDR_ShippingAgent??"";
+        //        entity.NameOfFreightForwarder = model.NameOfFreightForwarder??"";
+        //        entity.VesselRottNo = model.VesselRottNo??"";
+        //        entity.PlaceOfLoadingId = model.PlaceOfLoadingID??"";
+        //        entity.ShedYardId = model.ShedYardID??"";
+        //        entity.Hawb = model.HAWB??"";
+        //        entity.Mawb = model.MAWB??"";
+        //        entity.AssessmentNo = model.AssessmentNo??"";
+        //        entity.Rno = model.RNo??"";
+        //        entity.ClientStationwiseSlno = model.ClientStationwiseSLNo??"";
+        //        entity.FreightCharge = model.FreightCharge??"";
+        //        entity.Lcano = model.LCANo??"";
+        //        entity.Remarks = model.Remarks??"";
+
+        //        // shared Sea+Air fields
+        //        entity.Etddate = model.ETDDate??null;
+        //        //entity.DocsBankSignDate = model.DocsBankSignDate;
+        //        entity.Beno = model.BENo??"";
+        //        entity.Bedate = model.BEDate??null;
+        //        entity.Ata = model.ActualDeliveryDate?? null;
+
+        //        // Sea-only fields (only persist if Sea, otherwise leave / clear)
+        //        var transportType = (model.TransportModeTypeId ?? await GetTransportModeTypeAsync(model.ShipmentModeId) ?? "").ToUpperInvariant();
+
+        //        if (transportType.Contains("SEA"))
+        //        {
+        //            //entity.FinalIgmRecDate = model.FinalIgmRecDate;
+        //            entity.Shiparriveddate = model.ShipArrivedDate ?? null;
+        //            entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? null;
+        //            entity.Eta = model.EstimatedDeliveryDate ?? null;
+
+        //            // clear air-only
+        //            entity.Atb = null;
+        //            //entity.ArrivalNoticeDate = null;
+        //        }
+        //        else if (transportType.Contains("AIR"))
+        //        {
+        //            entity.Atb = model.FlightArrivalDate ?? null;
+        //            //entity.ArrivalNoticeDate = model.ArrivalNoticeDate;
+
+        //            // clear sea-only
+        //            //entity.FinalIgmRecDate = null;
+        //            entity.Shiparriveddate = model.ShipArrivedDate ?? null;
+        //            entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? null;
+        //            entity.Eta = model.ETDDate ?? null;
+        //        }
+
+        //        entity.Luser = loginUser ?? entity.Luser??"";
+
+        //        if (isNew)
+        //        {
+        //            await _sepDocumentationRepository.AddAsync(entity);
+        //        }
+        //        else
+        //        {
+        //            entity.ModifyDate = DateTime.Now;
+        //            await _sepDocumentationRepository.UpdateAsync(entity);
+        //        }
+
+        //        await _sepDocumentationRepository.CommitTransactionAsync();
+
+        //        return new CommonReturnViewModel
+        //        {
+        //            Success = true,
+        //            Message = isNew ? "Data added successfully" : "Record updated successfully",
+        //            Data = entity.JobNo
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _sepDocumentationRepository.RollbackTransactionAsync();
+        //        return new CommonReturnViewModel { Success = false, Message = "Failed to save data: " + ex.Message };
+        //    }
+        //}
+
+        //public async Task<CommonReturnViewModel> SaveDocumentationAsync(SepDocumentationEntryViewModel model, string company, string loginUser)
+        //{
+        //    await _sepDocumentationRepository.BeginTransactionAsync();
+        //    try
+        //    {
+        //        if (model == null)
+        //        {
+        //            await _sepDocumentationRepository.RollbackTransactionAsync();
+        //            return new CommonReturnViewModel { Success = false, Message = "Invalid documentation data." };
+        //        }
+
+        //        bool isNew = !model.Tc.HasValue || model.Tc.Value == 0;
+        //        GCTL.Data.Models.SepDocumentation entity;
+        //        DateTime now = DateTime.Now;
+
+        //        if (isNew)
+        //        {
+        //            var duplicateExists = await _sepDocumentationRepository
+        //                .All()
+        //                .AnyAsync(x =>
+        //                    (!string.IsNullOrWhiteSpace(model.InvoiceNo) && x.InvoiceNo == model.InvoiceNo) ||
+        //                    (!string.IsNullOrWhiteSpace(model.ExpNo) && x.ExpNo == model.ExpNo));
+
+        //            if (duplicateExists)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists." };
+        //            }
+
+        //            entity = new GCTL.Data.Models.SepDocumentation
+        //            {
+        //                Ldate = now,
+        //                Luser = loginUser ?? string.Empty,
+        //                CompanyCode = company ?? string.Empty,
+
+        //            };
+        //        }
+        //        else
+        //        {
+        //            entity = await _sepDocumentationRepository.All().AsNoTracking().FirstOrDefaultAsync(x => x.Tc == model.Tc.Value);
+
+        //            if (entity == null)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Documentation record not found." };
+        //            }
+
+        //            var duplicateExists = await _sepDocumentationRepository
+        //                .All()
+        //                .AnyAsync(x =>
+        //                    x.Tc != model.Tc.Value &&
+        //                    ((!string.IsNullOrWhiteSpace(model.InvoiceNo) && x.InvoiceNo == model.InvoiceNo) ||
+        //                     (!string.IsNullOrWhiteSpace(model.ExpNo) && x.ExpNo == model.ExpNo)));
+
+        //            if (duplicateExists)
+        //            {
+        //                await _sepDocumentationRepository.RollbackTransactionAsync();
+        //                return new CommonReturnViewModel { Success = false, Message = "Exp. No or Invoice No already exists." };
+        //            }
+        //        }
+
+        //        entity.JobNo = model.JobNo ?? entity.JobNo ?? string.Empty;
+        //        entity.PrifixId = model.PrifixId ?? entity.PrifixId ?? string.Empty;
+        //        entity.Date = model.Date ?? entity.Date;
+        //        entity.IsCustomJobNo = model.IsCustomJobNo.HasValue ? model.IsCustomJobNo.Value.ToString() : (entity.IsCustomJobNo ?? string.Empty);
+        //        entity.ExpenseTypeId = model.ShipmentModeId ?? entity.ExpenseTypeId ?? string.Empty;
+        //        entity.CustomerId = model.CustomerId ?? entity.CustomerId ?? string.Empty;
+        //        entity.CustomerAddress = model.CustomerAddress ?? entity.CustomerAddress ?? string.Empty;
+        //        entity.DeliveryLocationCode = model.DeliveryLocationCode ?? entity.DeliveryLocationCode ?? string.Empty;
+        //        entity.PortId = model.PortId ?? entity.PortId ?? string.Empty;
+        //        entity.PortNameId = model.PortNameId ?? entity.PortNameId ?? string.Empty;
+        //        entity.DocReceivedDate = model.DocReceivedDate ?? entity.DocReceivedDate;
+
+        //        entity.ExpNo = model.ExpNo ?? entity.ExpNo ?? string.Empty;
+        //        entity.ExpDate = model.ExpDate ?? entity.ExpDate;
+
+        //        entity.Lcno = model.LCNo ?? entity.Lcno ?? string.Empty;
+        //        entity.Lcdate = model.LCDate ?? entity.Lcdate;
+        //        entity.Lcvalue = model.LCValue ?? entity.Lcvalue ?? 0m;
+        //        entity.CurrencyId = model.CurrencyId ?? entity.CurrencyId ?? string.Empty;
+        //        entity.Bdtrate = model.BDTRate ?? entity.Bdtrate ?? 0m;
+
+        //        entity.Ipno = model.IPNo ?? entity.Ipno ?? string.Empty;
+        //        entity.Ipdate = model.IPDate ?? entity.Ipdate;
+
+        //        entity.ImporterId = model.ImporterID ?? entity.ImporterId ?? string.Empty;
+        //        entity.ExporterId = model.ExporterID ?? entity.ExporterId ?? string.Empty;
+
+        //        entity.InvoiceNo = model.InvoiceNo ?? entity.InvoiceNo ?? string.Empty;
+        //        entity.InvoiceDate = model.InvoiceDate ?? entity.InvoiceDate;
+        //        entity.InvoiceValue = model.InvoiceValue ?? entity.InvoiceValue ?? 0m;
+        //        entity.InvoiceCurrencyId = model.InvoiceCurrencyID ?? entity.InvoiceCurrencyId ?? string.Empty;
+
+        //        entity.AssessableRate = model.AssessableRate ?? entity.AssessableRate ?? 0m;
+        //        entity.AssessableValue = model.AssessableValue ?? entity.AssessableValue ?? 0m;
+
+        //        entity.ContainerNo = model.ContainerNo ?? entity.ContainerNo ?? string.Empty;
+        //        entity.ContainerSize = model.ContainerSize ?? entity.ContainerSize ?? string.Empty;
+        //        entity.MaterialDescription = model.MaterialDescription ?? entity.MaterialDescription ?? string.Empty;
+        //        entity.Quntity1 = model.Quntity1 ?? entity.Quntity1 ?? 0m;
+        //        entity.Unit1 = model.Unit1 ?? entity.Unit1 ?? string.Empty;
+        //        entity.Quntity2 = model.Quntity2 ?? entity.Quntity2 ?? 0m;
+        //        entity.Unit2 = model.Unit2 ?? entity.Unit2 ?? string.Empty;
+
+        //        entity.FwdrShippingAgent = model.FWDR_ShippingAgent ?? entity.FwdrShippingAgent ?? string.Empty;
+        //        entity.NameOfFreightForwarder = model.NameOfFreightForwarder ?? entity.NameOfFreightForwarder ?? string.Empty;
+        //        entity.VesselRottNo = model.VesselRottNo ?? entity.VesselRottNo ?? string.Empty;
+        //        entity.PlaceOfLoadingId = model.PlaceOfLoadingID ?? entity.PlaceOfLoadingId ?? string.Empty;
+        //        entity.ShedYardId = model.ShedYardID ?? entity.ShedYardId ?? string.Empty;
+
+        //        entity.Hawb = model.HAWB ?? entity.Hawb ?? string.Empty;
+        //        entity.Mawb = model.MAWB ?? entity.Mawb ?? string.Empty;
+
+        //        entity.AssessmentNo = model.AssessmentNo ?? entity.AssessmentNo ?? string.Empty;
+        //        entity.Rno = model.RNo ?? entity.Rno ?? string.Empty;
+        //        entity.ClientStationwiseSlno = model.ClientStationwiseSLNo ?? entity.ClientStationwiseSlno ?? string.Empty;
+
+        //        entity.FreightCharge = model.FreightCharge ?? entity.FreightCharge ?? string.Empty;
+        //        entity.Lcano = model.LCANo ?? entity.Lcano ?? string.Empty;
+        //        entity.Remarks = model.Remarks ?? entity.Remarks ?? string.Empty;
+
+        //        entity.Etddate = model.ETDDate ?? entity.Etddate;
+        //        entity.Etactgport = model.ETACTGPORT ?? entity.Etactgport;
+        //        entity.Beno = model.BENo ?? entity.Beno ?? string.Empty;
+        //        entity.Bedate = model.BEDate ?? entity.Bedate;
+        //        entity.Ata = model.ActualDeliveryDate ?? entity.Ata;
+
+        //        var transportType = (model.TransportModeTypeId ?? await GetTransportModeTypeAsync(model.ShipmentModeId) ?? string.Empty)
+        //            .Trim()
+        //            .ToUpperInvariant();
+
+        //        if (transportType == "002" || transportType.Contains("SEA"))
+        //        {
+        //            entity.Shiparriveddate = model.ShipArrivedDate ?? entity.Shiparriveddate;
+        //            entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? entity.UnStuffingLocationDate;
+        //            entity.Eta = model.EstimatedDeliveryDate ?? entity.Eta;
+        //        }
+        //        else if (transportType == "001" || transportType.Contains("AIR"))
+        //        {
+        //            entity.Atb = model.FlightArrivalDate ?? entity.Atb;
+        //            entity.Eta = model.EstimatedDeliveryDate ?? model.ETDDate ?? entity.Eta;
+        //        }
+        //        else
+        //        {
+        //            entity.Shiparriveddate = model.ShipArrivedDate ?? entity.Shiparriveddate;
+        //            entity.UnStuffingLocationDate = model.UnstuffDischargeDate ?? entity.UnStuffingLocationDate;
+        //            entity.Eta = model.EstimatedDeliveryDate ?? model.ETDDate ?? entity.Eta;
+        //            entity.Atb = model.FlightArrivalDate ?? entity.Atb;
+        //        }
+
+        //        entity.FinalIgmRecDate = model.FinalIgmRecDate ?? entity.FinalIgmRecDate;
+        //        entity.DocsBankSignDate = model.DocsBankSignDate ?? entity.DocsBankSignDate;
+        //        entity.ArrivalNoticeDate = model.ArrivalNoticeDate ?? entity.ArrivalNoticeDate;
+
+        //        entity.UndertakingNo = entity.UndertakingNo ?? string.Empty;
+        //        entity.BillNo = entity.BillNo ?? string.Empty;
+        //        entity.Pono = entity.Pono ?? string.Empty;
+        //        entity.Etb = entity.Etb??null;
+        //        entity.DateOfClearence = entity.DateOfClearence;
+        //        entity.ShipmentStatus = entity.ShipmentStatus ?? string.Empty;
+        //        entity.Lip = entity.Lip ?? string.Empty;
+        //        entity.Lmac = entity.Lmac ?? string.Empty;
+        //        entity.EmployeeId = entity.EmployeeId ?? string.Empty;
+        //        entity.SupplierId = entity.SupplierId ?? string.Empty;
+        //        entity.TransportCost = entity.TransportCost ?? 0m;
+        //        entity.VehicleId = entity.VehicleId ?? string.Empty;
+        //        entity.Vehicle = entity.Vehicle ?? string.Empty;
+        //        entity.Vendor = entity.Vendor ?? string.Empty;
+        //        entity.DocumentationId = entity.DocumentationId ?? string.Empty;
+        //        entity.ConsoleNo = entity.ConsoleNo ?? string.Empty;
+        //        entity.IsEdit = entity.IsEdit ?? false;
+        //        entity.MinimumAgencyCom = entity.MinimumAgencyCom ?? 0m;
+        //        entity.CommOnInvoiceValue = entity.CommOnInvoiceValue ?? 0m;
+        //        entity.DocumentTypeId = entity.DocumentTypeId ?? string.Empty;
+        //        entity.Dischargedate = entity.Dischargedate;
+        //        entity.CustomerIdImporter = entity.CustomerIdImporter ?? string.Empty;
+        //        entity.DocumentHandoverDate = entity.DocumentHandoverDate;
+        //        entity.CargoHandoverDate = entity.CargoHandoverDate;
+        //        entity.DepotId = entity.DepotId ?? string.Empty;
+        //        entity.BookingConfirmationReference = entity.BookingConfirmationReference ?? string.Empty;
+        //        entity.PackingQuantity = entity.PackingQuantity ?? 0m;
+        //        entity.PackingUnitType = entity.PackingUnitType ?? string.Empty;
+        //        entity.Etactgport = entity.Etactgport;
+        //        entity.Bldate = entity.Bldate;
+
+        //        entity.Luser = loginUser ?? entity.Luser ?? string.Empty;
+        //        entity.Ldate = entity.Ldate ?? now;
+        //        entity.CompanyCode = company ?? entity.CompanyCode ?? string.Empty;
+        //        entity.ModifyDate = isNew ? entity.ModifyDate : now;
+
+        //        if (isNew)
+        //        {
+        //            await _sepDocumentationRepository.AddAsync(entity);
+        //        }
+        //        else
+        //        {
+        //            await _sepDocumentationRepository.UpdateAsync(entity);
+        //        }
+
+        //        await _sepDocumentationRepository.CommitTransactionAsync();
+        //        return new CommonReturnViewModel
+        //        {
+        //            Success = true,
+        //            Message = isNew ? "Data added successfully" : "Record updated successfully",
+        //            Data = entity.JobNo
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _sepDocumentationRepository.RollbackTransactionAsync();
+        //        return new CommonReturnViewModel { Success = false, Message = "Failed to save data: " + ex.Message };
+        //    }
+        //}
+
+        public async Task<CommonReturnViewModel> SaveDocumentationAsync(SepDocumentationEntryViewModel model,string company,string loginUser)
+        {
+            await _sepDocumentationRepository.BeginTransactionAsync();
+
+            try
+            {
+                if (model == null)
+                {
+                    await _sepDocumentationRepository.RollbackTransactionAsync();
+
+                    return new CommonReturnViewModel
+                    {
+                        Success = false,
+                        Message = "Invalid documentation data."
+                    };
+                }
+
+                bool isNew = !model.Tc.HasValue || model.Tc.Value == 0;
+
+                GCTL.Data.Models.SepDocumentation entity;
+                DateTime now = DateTime.Now;
+                if (isNew)
+                {
+                    var duplicateExists = await _sepDocumentationRepository.All().AnyAsync(x =>(!string.IsNullOrWhiteSpace(model.InvoiceNo) && x.InvoiceNo == model.InvoiceNo) || (!string.IsNullOrWhiteSpace(model.ExpNo) &&
+                             x.ExpNo == model.ExpNo));
+
+                    if (duplicateExists)
+                    {
+                        await _sepDocumentationRepository.RollbackTransactionAsync();
+                        return new CommonReturnViewModel
+                        {
+                            Success = false,
+                            Message = "Exp. No or Invoice No already exists."
+                        };
+                    }
+
+                    entity = new GCTL.Data.Models.SepDocumentation
+                    {
+                        Ldate = now,
+                        Luser = loginUser ?? string.Empty,
+                        CompanyCode = company ?? string.Empty
+                    };
+                }
+                // =========================================================
+                // UPDATE
+                // =========================================================
+                else
+                {
+                    entity = await _sepDocumentationRepository.All().AsNoTracking().FirstOrDefaultAsync(x => x.Tc == model.Tc.Value);
+
+                    if (entity == null)
+                    {
+                        await _sepDocumentationRepository.RollbackTransactionAsync();
+
+                        return new CommonReturnViewModel
+                        {
+                            Success = false,
+                            Message = "Documentation record not found."
+                        };
+                    }
+
+                    var duplicateExists = await _sepDocumentationRepository.All().AnyAsync(x =>x.Tc != model.Tc.Value && ((!string.IsNullOrWhiteSpace(model.InvoiceNo) && x.InvoiceNo == model.InvoiceNo) || (!string.IsNullOrWhiteSpace(model.ExpNo) && x.ExpNo == model.ExpNo)));
+
+                    if (duplicateExists)
+                    {
+                        await _sepDocumentationRepository.RollbackTransactionAsync();
+
+                        return new CommonReturnViewModel
+                        {
+                            Success = false,
+                            Message = "Exp. No or Invoice No already exists."
+                        };
+                    }
+                }
+                entity.JobNo = model.JobNo ?? string.Empty;
+                entity.PrifixId = model.PrifixId ?? string.Empty;
+                entity.Date = model.Date;
+                entity.IsCustomJobNo = model.IsCustomJobNo;
+                entity.ExpenseTypeId = model.ShipmentModeId ?? string.Empty;
+                entity.CustomerId = model.CustomerId ?? string.Empty;
+                entity.CustomerAddress = model.CustomerAddress ?? string.Empty;
+                entity.DeliveryLocationCode = model.DeliveryLocationCode ?? string.Empty;
+                entity.PortId = model.PortId ?? string.Empty;
+                entity.PortNameId = model.PortNameId ?? string.Empty;
+                entity.DocReceivedDate = model.DocReceivedDate;
+                entity.ExpNo = model.ExpNo ?? string.Empty;
+                entity.ExpDate = model.ExpDate;
+                entity.Lcno = model.LCNo ?? string.Empty;
+                entity.Lcdate = model.LCDate;
+                entity.Lcvalue = model.LCValue ?? 0m;
+                entity.CurrencyId = model.CurrencyId ?? string.Empty;
+                entity.Bdtrate = model.BDTRate ?? 0m;
+                entity.Ipno = model.IPNo ?? string.Empty;
+                entity.Ipdate = model.IPDate;
+                entity.ImporterId = model.ImporterID ?? string.Empty;
+                entity.ExporterId = model.ExporterID ?? string.Empty;
+                entity.InvoiceNo = model.InvoiceNo ?? string.Empty;
+                entity.InvoiceDate = model.InvoiceDate;
+                entity.InvoiceValue = model.InvoiceValue ?? 0m;
+                entity.InvoiceCurrencyId = model.InvoiceCurrencyID ?? string.Empty;
+                entity.AssessableRate = model.AssessableRate ?? 0m;
+                entity.AssessableValue = model.AssessableValue ?? 0m;
+                entity.ContainerNo = model.ContainerNo ?? string.Empty;
+                entity.ContainerSize = model.ContainerSize ?? string.Empty;
+                entity.MaterialDescription = model.MaterialDescription ?? string.Empty;
+                entity.Quntity1 = model.Quntity1 ?? 0m;
+                entity.Unit1 = model.Unit1 ?? string.Empty;
+                entity.Quntity2 = model.Quntity2 ?? 0m;
+                entity.Unit2 = model.Unit2 ?? string.Empty;
+                entity.FwdrShippingAgent = model.FWDR_ShippingAgent ?? string.Empty;
+                entity.NameOfFreightForwarder = model.NameOfFreightForwarder ?? string.Empty;
+                entity.VesselRottNo = model.VesselRottNo ?? string.Empty;
+                entity.PlaceOfLoadingId = model.PlaceOfLoadingID ?? string.Empty;
+                entity.ShedYardId = model.ShedYardID ?? string.Empty;
+                entity.Hawb = model.HAWB ?? string.Empty;
+                entity.Mawb = model.MAWB ?? string.Empty;
+                entity.AssessmentNo = model.AssessmentNo ?? string.Empty;
+                entity.Rno = model.RNo ?? string.Empty;
+                entity.ClientStationwiseSlno = model.ClientStationwiseSLNo ?? string.Empty;
+                entity.FreightCharge = model.FreightCharge ?? string.Empty;
+                entity.Lcano = model.LCANo ?? string.Empty;
+                entity.Remarks = model.Remarks ?? string.Empty;
+                entity.Etddate = model.ETDDate;
+                entity.Etactgport = model.ETACTGPORT;
+                entity.Beno = model.BENo ?? string.Empty;
+                entity.Bedate = model.BEDate;
+                entity.Ata = model.ActualDeliveryDate;
+                var transportType = (model.TransportModeTypeId ?? await GetTransportModeTypeAsync(model.ShipmentModeId) ?? string.Empty).Trim().ToUpperInvariant();
+                if (transportType == "002" || transportType.Contains("SEA"))
+                {
+                    entity.Shiparriveddate = model.ShipArrivedDate;
+                    entity.UnStuffingLocationDate = model.UnstuffDischargeDate;
+                    entity.Eta = model.EstimatedDeliveryDate;
+                }
+                else if (transportType == "001" ||
+                         transportType.Contains("AIR"))
+                {
+                    entity.Atb = model.FlightArrivalDate;
+                    entity.Eta = model.EstimatedDeliveryDate ?? model.ETDDate;
+                }
+                else
+                {
+                    entity.Shiparriveddate = model.ShipArrivedDate;
+                    entity.UnStuffingLocationDate = model.UnstuffDischargeDate;
+                    entity.Eta = model.EstimatedDeliveryDate ?? model.ETDDate;
+                    entity.Atb = model.FlightArrivalDate;
+                }
+
+                entity.FinalIgmRecDate = model.FinalIgmRecDate;
+                entity.DocsBankSignDate = model.DocsBankSignDate;
+                entity.ArrivalNoticeDate = model.ArrivalNoticeDate;
+                entity.DateOfClearence = model.ActualDeliveryDate;
+                entity.Dischargedate = model.UnstuffDischargeDate;
+                entity.DocumentHandoverDate = model.DocumentHandoverDate;
+                entity.CargoHandoverDate = model.CargoHandoverDate;
+                entity.Bldate = model.BLDate;
+                entity.UndertakingNo = model.UndertakingNo ?? string.Empty;
+                entity.BillNo = model.BLNo ?? string.Empty;
+                entity.Pono = model.PONo ?? string.Empty;
+                entity.ShipmentStatus = model.ShipmentStatus ?? string.Empty;
+                entity.Lip = model.Lip ?? string.Empty;
+                entity.Lmac = model.Lmac ?? string.Empty;
+                entity.EmployeeId = model.UserInfoEmployeeId ?? string.Empty;
+                entity.SupplierId = model.SupplierId ?? string.Empty;
+                entity.VehicleId = model.VehicleId ?? string.Empty;
+                entity.Vehicle = model.Vehicle ?? string.Empty;
+                entity.Vendor = model.Vendor ?? string.Empty;
+                entity.DocumentationId = model.DocumentationId ?? string.Empty;
+                entity.ConsoleNo = model.ConsoleNo ?? string.Empty;
+                entity.DocumentTypeId = model.DocumentTypeId ?? string.Empty;
+                entity.CustomerIdImporter = model.CustomerID_Importer ?? string.Empty;
+                entity.DepotId = model.DepotID ?? string.Empty;
+                entity.BookingConfirmationReference = model.BookingConfirmationReference ?? string.Empty;
+                entity.PackingUnitType = model.PackingUnitType ?? string.Empty;
+                entity.TransportCost = model.TransportCost ?? 0m;
+                entity.IsEdit = model.IsEdit ?? false;
+                entity.MinimumAgencyCom = model.MinimumAgencyCom ?? 0m;
+                entity.CommOnInvoiceValue = model.CommOnInvoiceValue ?? 0m;
+                entity.PackingQuantity = model.PackingQuantity ?? 0m;
+                entity.Luser = loginUser ?? string.Empty;
+
+                if (isNew)
+                {
+                    entity.Ldate = now;
+                }
+                entity.CompanyCode = company ?? string.Empty;
+
+                if (!isNew)
+                {
+                    entity.ModifyDate = now;
+                }
+                if (isNew)
+                {
+                    await _sepDocumentationRepository.AddAsync(entity);
+                }
+                else
+                {
+                    await _sepDocumentationRepository.UpdateAsync(entity);
+                }
+
+                await _sepDocumentationRepository.CommitTransactionAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = isNew
+                        ? "Data added successfully"
+                        : "Record updated successfully",
+                    Data = entity.JobNo
+                };
+            }
+            catch (Exception ex)
+            {
+                await _sepDocumentationRepository.RollbackTransactionAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = "Failed to save data: " + ex.Message
+                };
+            }
+        }
+
+        public async Task<CommonReturnViewModel> DeleteDocumentationAsync(List<decimal> ids)
+        {
+            if (ids == null || ids.Count == 0)
+                return new CommonReturnViewModel { Success = false, Message = "No records selected" };
+
+            await _sepDocumentationRepository.BeginTransactionAsync();
+            try
+            {
+                var records = await _sepDocumentationRepository.All()
+                    .Where(x => ids.Contains(x.Tc))
+                    .ToListAsync();
+
+                if (records.Count == 0)
+                {
+                    await _sepDocumentationRepository.RollbackTransactionAsync();
+                    return new CommonReturnViewModel { Success = false, Message = "No records found to delete" };
+                }
+
+                foreach (var r in records)
+                    await _sepDocumentationRepository.DeleteAsync(r);
+
+                await _sepDocumentationRepository.CommitTransactionAsync();
+
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = $"{records.Count} record(s) deleted successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                await _sepDocumentationRepository.RollbackTransactionAsync();
+                return new CommonReturnViewModel { Success = false, Message = "Error occurred while deleting: " + ex.Message };
+            }
+        }
+
+        #endregion
+
+        #region Transport mode
+
+        public async Task<string> GetTransportModeTypeAsync(string shipmentModeId)
+        {
+            if (string.IsNullOrWhiteSpace(shipmentModeId)) return "";
+
+            var mode = await _shipmentModeRepository.All()
+                .AsNoTracking().Where(s => s.ExpenseTypeId == shipmentModeId)
+                .FirstOrDefaultAsync();
+
+            return mode?.TransportModeTypeId?.Trim() ?? "";
+        }
+
+        #endregion
+
+        #region Dropdowns
+
         public List<SelectListItem> GetCustomers()
         {
-            var customers = _customerRepository.All().ToList();
-            return customers.Select(c => new SelectListItem
-            {
-                Text = c.CustomerName,
-                Value = c.CustomerId
-            }).ToList();
+            return _customerRepository.All()
+                .Select(c => new SelectListItem { Text = c.CustomerName, Value = c.CustomerId })
+                .ToList();
         }
 
         public List<SelectListItem> GetAddresses()
         {
-            var addresses = _deliveryLocationRepository.All().ToList();
-            return addresses.Select(a => new SelectListItem 
-            {
-                Text = a.LocationAddress,
-                Value = a.DeliveryLocationCode
-            }).ToList();
+            return _deliveryLocationRepository.All()
+                .Select(a => new SelectListItem { Text = a.LocationAddress, Value = a.DeliveryLocationCode })
+                .ToList();
         }
+
+        #endregion
+        public async Task<string> GenerateJobNoWithoutIdAsync()
+        {
+            try
+            {
+                var currentYear = DateTime.Now.ToString("yy");
+                var prefix = $"{currentYear}_";
+
+                var lastJobNo = await _sepDocumentationRepository.All()
+                    .AsNoTracking()
+                    .OrderByDescending(x => x.JobNo)
+                    .Select(x => x.JobNo)
+                    .FirstOrDefaultAsync();
+
+                int nextSequence = 1;
+
+                if (!string.IsNullOrEmpty(lastJobNo))
+                {
+                    var lastSequencePart = lastJobNo.Substring(prefix.Length);
+
+                    if (int.TryParse(lastSequencePart, out int lastSequence))
+                    {
+                        nextSequence = lastSequence + 1;
+                    }
+                }
+
+                return $"{prefix}{nextSequence:D6}";
+            }
+            catch
+            {
+                throw;
+            }
+        }
+        public async Task<string> GenerateJobNoAsync(string shipmentModeId, string customerId)
+        {
+            try
+            {
+                var shipmentModeShortName = await _shipmentModeRepository.All()
+                    .Where(x => x.ExpenseTypeId == shipmentModeId)
+                    .Select(x => x.ShortName)
+                    .FirstOrDefaultAsync();
+
+                var customerShortName = await _customerRepository.All()
+                    .Where(x => x.CustomerId == customerId)
+                    .Select(x => x.ShortName)
+                    .FirstOrDefaultAsync();
+
+                if (string.IsNullOrEmpty(shipmentModeShortName) && string.IsNullOrEmpty(customerShortName))
+                {
+                    return "";
+                }
+
+                var currentYear = DateTime.Now.ToString("yy");
+
+                var parts = new List<string>();
+                if (!string.IsNullOrEmpty(shipmentModeShortName)) parts.Add(shipmentModeShortName);
+                if (!string.IsNullOrEmpty(customerShortName)) parts.Add(customerShortName);
+                parts.Add(currentYear);
+
+                var prefix = string.Join("_", parts) + "_";
+
+                var lastJobNo = await _sepDocumentationRepository.All().AsNoTracking()
+                    .Where(x => x.JobNo.StartsWith(prefix))
+                    .OrderByDescending(x => x.JobNo)
+                    .Select(x => x.JobNo)
+                    .FirstOrDefaultAsync();
+
+                int nextSequence = 1;
+
+                if (!string.IsNullOrEmpty(lastJobNo))
+                {
+                    var lastSequencePart = lastJobNo.Substring(lastJobNo.LastIndexOf('_') + 1);
+                    if (int.TryParse(lastSequencePart, out int lastSequence))
+                    {
+                        nextSequence = lastSequence + 1;
+                    }
+                }
+
+                var jobNo = $"{prefix}{nextSequence.ToString("D6")}";
+
+                return jobNo;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+        public async Task<CommonReturnViewModel> GetCustomerInfoAsync(string customerId)
+        {
+            try
+            {
+                var data = await _customerRepository.All()
+                    .Where(x => x.CustomerId == customerId)
+                    .Select(x => new CustomerInfoDto
+                    {
+                        CustomerId = x.CustomerId,
+                        CustomerName = x.CustomerName ?? "",
+                        ShortName = x.ShortName ?? "",
+                        CustomerAddress = x.CustomerAddress ?? "",
+                        ContactPerson = x.ContactPerson ?? "",
+                        Phone = x.Phone ?? "",
+                        Email = x.Email ?? ""
+                    })
+                    .FirstOrDefaultAsync();
+                var delivaryAddress = await _deliveryLocationRepository.All().AsNoTracking()
+                    .Where(x => x.CustomerId == customerId)
+                    .Select(x => new DelivaryAddressDto
+                    {
+                        DelivaryId = x.DeliveryLocationCode,
+                        DelivaryAddress = x.LocationAddress
+                    })
+                    .ToListAsync();
+                if (data == null)
+                {
+                    return new CommonReturnViewModel
+                    {
+                        Success = false,
+                        Message = $"No customer found with CustomerId: {customerId}"
+                    };
+                }
+
+                data.DelivaryAddress = delivaryAddress;
+                return new CommonReturnViewModel
+                {
+                    Success = true,
+                    Message = "Customer info fetched successfully",
+                    Data = data
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = "Error fetching customer info: " + ex.Message
+                };
+            }
+        }
+
+        #region Document Upload Info
+
+        public async Task<SepJobUploadDetailsDto> GetJobDetailsForUploadAsync(string jobNo)
+        {
+            if (string.IsNullOrWhiteSpace(jobNo))
+                return new SepJobUploadDetailsDto { Success = false, Message = "Job No is required." };
+
+            try
+            {
+                var job = await _sepDocumentationRepository.All()
+                    .Where(d => d.JobNo == jobNo)
+                    .OrderByDescending(d => d.Tc)
+                    .FirstOrDefaultAsync();
+
+                if (job == null)
+                    return new SepJobUploadDetailsDto { Success = false, Message = "Job not found." };
+
+                string customerName = "";
+                if (!string.IsNullOrEmpty(job.CustomerId))
+                {
+                    var customer = await _customerRepository.All()
+                        .Where(c => c.CustomerId == job.CustomerId)
+                        .Select(c => c.CustomerName)
+                        .FirstOrDefaultAsync();
+                    customerName = customer ?? "";
+                }
+
+                string shipmentMode = "";
+                if (!string.IsNullOrEmpty(job.ExpenseTypeId))
+                {
+                    var mode = await _shipmentModeRepository.All()
+                        .Where(s => s.ExpenseTypeId == job.ExpenseTypeId)
+                        .Select(s => s.ExpenseType)
+                        .FirstOrDefaultAsync();
+                    shipmentMode = mode ?? "";
+                }
+
+                return new SepJobUploadDetailsDto
+                {
+                    Success = true,
+                    JobNo = job.JobNo ?? "",
+                    Date = job.Date.HasValue ? job.Date.Value.ToString("dd/MM/yyyy") : "",
+                    CustomerName = customerName,
+                    CustomerAddress = job.CustomerAddress ?? "",
+                    ShipmentMode = shipmentMode,
+                    BeNo = job.Beno ?? "",
+                    Message = "Success"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new SepJobUploadDetailsDto { Success = false, Message = ex.Message };
+            }
+        }
+
+        public async Task<List<SepJobDocumentItemDto>> GetJobDocumentsAsync(string jobNo)
+        {
+            if (string.IsNullOrWhiteSpace(jobNo))
+                return new List<SepJobDocumentItemDto>();
+
+            try
+            {
+                return await _documentInfoRepository.All()
+                    .Where(d => d.JobNo == jobNo)
+                    .OrderBy(d => d.DocCode)
+                    .Select(d => new SepJobDocumentItemDto
+                    {
+                        AutoId = d.AutoId,
+                        DocCode = d.DocCode ?? "",
+                        JobNo = d.JobNo ?? "",
+                        DocumentName = d.DocumentName ?? "",
+                        DocumentDiscription = d.DocumentDiscription ?? "",
+                        DocumentType = d.DocumentType ?? "",
+                        FilePath = !string.IsNullOrEmpty(d.DocumentType) ? "/DocumentInfo/" + d.DocumentType.TrimStart('/') : "",
+                        LDate = d.Ldate.HasValue ? d.Ldate.Value.ToString("dd/MM/yyyy hh:mm tt") : "",
+                        ModifyDate = d.ModifyDate.HasValue ? d.ModifyDate.Value.ToString("dd/MM/yyyy hh:mm tt") : ""
+                    })
+                    .ToListAsync();
+            }
+            catch
+            {
+                return new List<SepJobDocumentItemDto>();
+            }
+        }
+
+        public async Task<CommonReturnViewModel> UploadOrUpdateDocumentAsync(SepDocumentUploadRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.JobNo))
+                    return new CommonReturnViewModel { Success = false, Message = "Job No is required." };
+
+                if (string.IsNullOrWhiteSpace(request.DocumentName))
+                    return new CommonReturnViewModel { Success = false, Message = "Document Name is required." };
+
+                var folderPath = Path.Combine(request.WebRootPath, "DocumentInfo");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                // EDIT / UPDATE EXISTING DOCUMENT
+                if (!string.IsNullOrWhiteSpace(request.DocCode))
+                {
+                    var entity = await _documentInfoRepository.All()
+                        .FirstOrDefaultAsync(d => d.DocCode == request.DocCode);
+
+                    if (entity == null)
+                        return new CommonReturnViewModel { Success = false, Message = "Document not found." };
+
+                    entity.DocumentName = request.DocumentName.Trim();
+                    entity.DocumentDiscription = request.Description?.Trim() ?? "";
+
+                    if (request.UploadFile != null && request.UploadFile.Length > 0)
+                    {
+                        if (request.UploadFile.Length > 15 * 1024 * 1024)
+                            return new CommonReturnViewModel { Success = false, Message = "File size exceeds the 15 MB limit." };
+
+                        if (!string.IsNullOrEmpty(entity.DocumentType))
+                        {
+                            var oldFilePath = Path.Combine(folderPath, entity.DocumentType);
+                            if (File.Exists(oldFilePath))
+                            {
+                                try { File.Delete(oldFilePath); } catch { }
+                            }
+
+                            var legacyWwwrootPath = Path.Combine(request.WebRootPath, "wwwroot", entity.DocumentType);
+                            if (File.Exists(legacyWwwrootPath))
+                            {
+                                try { File.Delete(legacyWwwrootPath); } catch { }
+                            }
+                        }
+
+                        var ext = Path.GetExtension(request.UploadFile.FileName);
+                        var fileName = $"{request.DocCode}{ext}";
+                        var fullPath = Path.Combine(folderPath, fileName);
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            await request.UploadFile.CopyToAsync(stream);
+                        }
+                        entity.DocumentType = fileName;
+                    }
+
+                    entity.ModifyDate = DateTime.Now;
+                    entity.Luser = !string.IsNullOrEmpty(request.UserId) ? request.UserId : entity.Luser;
+                    entity.Lip = !string.IsNullOrEmpty(request.IpAddress) ? request.IpAddress : entity.Lip;
+
+                    await _documentInfoRepository.UpdateAsync(entity);
+                    return new CommonReturnViewModel { Success = true, Message = "Document updated successfully." };
+                }
+
+                // CREATE NEW DOCUMENT
+                if (request.UploadFile == null || request.UploadFile.Length == 0)
+                    return new CommonReturnViewModel { Success = false, Message = "Please select a file to upload." };
+
+                if (request.UploadFile.Length > 15 * 1024 * 1024)
+                    return new CommonReturnViewModel { Success = false, Message = "File size exceeds the 15 MB limit." };
+
+                var allDocCodes = await _documentInfoRepository.All()
+                    .Select(d => d.DocCode)
+                    .ToListAsync();
+
+                int maxNum = 0;
+                foreach (var code in allDocCodes)
+                {
+                    if (int.TryParse(code, out int n) && n > maxNum)
+                        maxNum = n;
+                }
+                string newDocCode = (maxNum + 1).ToString("D8");
+
+                var newExt = Path.GetExtension(request.UploadFile.FileName);
+                var newFileName = $"{newDocCode}{newExt}";
+                var newFullPath = Path.Combine(folderPath, newFileName);
+                using (var stream = new FileStream(newFullPath, FileMode.Create))
+                {
+                    await request.UploadFile.CopyToAsync(stream);
+                }
+
+                var newEntity = new SepDocumentInfo
+                {
+                    DocCode = newDocCode,
+                    JobNo = request.JobNo,
+                    DocumentName = request.DocumentName.Trim(),
+                    DocumentDiscription = request.Description?.Trim() ?? "",
+                    DocumentType = newFileName,
+                    Doucment = null,
+                    CompanyCode = request.CompanyCode ?? "001",
+                    Luser = request.UserId ?? "Admin",
+                    Ldate = DateTime.Now,
+                    Lip = request.IpAddress ?? "",
+                    Lmac = "",
+                    UserInfoEmployeeId = request.UserId ?? ""
+                };
+
+                await _documentInfoRepository.AddAsync(newEntity);
+                return new CommonReturnViewModel { Success = true, Message = "Document uploaded successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel { Success = false, Message = "Error occurred: " + ex.Message };
+            }
+        }
+
+        public async Task<CommonReturnViewModel> DeleteDocumentsAsync(SepDocDeleteDocRequest request)
+        {
+            try
+            {
+                if (request?.DocCodes == null || request.DocCodes.Count == 0)
+                    return new CommonReturnViewModel { Success = false, Message = "No documents selected for deletion." };
+
+                var folderPath = Path.Combine(request.WebRootPath, "DocumentInfo");
+
+                var entities = await _documentInfoRepository.All()
+                    .Where(d => request.DocCodes.Contains(d.DocCode))
+                    .ToListAsync();
+
+                foreach (var entity in entities)
+                {
+                    if (!string.IsNullOrEmpty(entity.DocumentType))
+                    {
+                        var filePath = Path.Combine(folderPath, entity.DocumentType);
+                        if (File.Exists(filePath))
+                        {
+                            try { File.Delete(filePath); } catch { }
+                        }
+
+                        var legacyWwwrootPath = Path.Combine(request.WebRootPath, "wwwroot", entity.DocumentType);
+                        if (File.Exists(legacyWwwrootPath))
+                        {
+                            try { File.Delete(legacyWwwrootPath); } catch { }
+                        }
+                    }
+                    await _documentInfoRepository.DeleteAsync(entity);
+                }
+
+                return new CommonReturnViewModel { Success = true, Message = "Document(s) deleted successfully." };
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel { Success = false, Message = "Error deleting documents: " + ex.Message };
+            }
+        }
+
+        #endregion
     }
+
     public class SelectListItem
     {
         public string Text { get; set; }
         public string Value { get; set; }
     }
-
-
-    public class DocumentationResult
-    {
-        public string tc { get; set; }
-        public string JobNo { get; set; }
-        public DateTime? Date { get; set; }
-        public string CustomerName { get; set; }
-        public string CustomerAddress { get; set; }
-        public string ShipmentMode { get; set; }
-        public DateTime? DocReceivedDate { get; set; }
-        public decimal? LCValue { get; set; }
-        public string Status { get; set; }
-        public int TotalRecords { get; set; }
-    }
-
-
 }

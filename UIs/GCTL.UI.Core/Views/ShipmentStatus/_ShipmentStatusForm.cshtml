@@ -1,0 +1,115 @@
+@using GCTL.UI.Core.ViewModels
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="sm-form-centered-wrapper" style="padding-top: 10px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="statusMessage"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+
+    <input type="hidden" id="autoId" name="autoId" value="0" />
+
+    @* ---------- Row 1: Shipment Status ID & Transport Mode Type ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "shipmentStatusId",
+            LabelText = "Shipment Status ID",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Shipment Status ID",
+            IsReadonly = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 sm-field-col",
+            CustomCssClass = "js-shipmentStatusId-code"
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "statusTransportModeTypeId",
+            LabelText = "Transport Mode Type",
+            FieldType = FieldType.Select,
+            Placeholder = "Select Transport Mode",
+            SelectItems = ViewBag.TransportModeTypes as SelectList,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 sm-field-col",
+            ShowQuickAdd = true,
+            QuickAddUrl = Url.Action("Index", "TransportModeType"),
+            QuickAddTarget = "#statusTransportModeTypeId",
+            QuickAddReloadUrl = Url.Action("GettransportModes", "Cascading"),
+            QuickAddTitle = "Transport Mode Type"
+        })
+    </div>
+
+    @* ---------- Row 2: Shipment Status & Short Name ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "shipmentStatus",
+            LabelText = "Shipment Status",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Shipment Status",
+            IsRequired = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 sm-field-col",
+            AutoFocus = true
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "statusShortName",
+            LabelText = "Short Name",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Short Name",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 sm-field-col"
+        })
+    </div>
+
+    @* ---------- Creation Date & Last Update Date ---------- *@
+    <hr class="my-2" id="statusSectionBreak" style="display:none;" />
+    <div class="row g-4 mb-1" id="statusLdateModifyHide" style="display:none;">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "statusDisplayLDate",
+            LabelText = "Creation Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 sm-field-col",
+            ShowOnInit = false
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "statusDisplayModifyDate",
+            LabelText = "Last Update Date:",
+            FieldType = FieldType.ReadonlyDisplay,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 sm-field-col",
+            ShowOnInit = false
+        })
+    </div>
+
+    @* ---------- Bottom Toolbar matching VendorInfo (Centered) ---------- *@
+    <div class="row g-4 no-print mt-1">
+        <div class="col-12 d-flex justify-content-center">
+            @await Html.PartialAsync("_Toolbars", new ToobarModel
+            {
+                Title = "",
+                ShowClear = false,
+                ShowDelete = false,
+                ShowPrint = false,
+                ShowFavorite = false,
+                IsPlain = true,
+                SaveBtnClass = "js-shipmentstatus-save saveShipmentStatusBtn",
+                ReserveActionSlot = true,
+                ShowExtraContentLaptopOnly = true,
+                ShowExtraContent1 = true,
+                ShowExtraContent2 = false,
+                Style = "border-bottom:0px !important;"
+            })
+        </div>
+    </div>
+</div>

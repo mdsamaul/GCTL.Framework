@@ -1,4 +1,5 @@
-﻿@model GCTL.Core.ViewModels.Nationalitys.NationalitysSetupViewModel
+@model GCTL.Core.ViewModels.Nationalitys.NationalitysSetupViewModel
+@using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
     <div class="row">
@@ -8,59 +9,87 @@
         <div class="col-lg-6">
         </div>
     </div>
+
     <div class="form-group row">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <input type="hidden" id="lastCode" />
+        <input type="hidden" asp-for="Tc" />
         <input type="hidden" asp-for="AutoId" />
-        <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <div class="col-lg-6">
-            <label asp-for="NationalityCode"> ID </label>
-            <div class="input-group input-group-sm">
-                <input asp-for="NationalityCode" type="text" class="form-control form-control-sm js-NationalityCode-code" readonly="readonly" />
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <label asp-for="Nationality">Nationality<span style="color:red">*</span> </label>
-            <input type="text" asp-for="Nationality" class="form-control form-control-sm js-Nationality-check-duplicateName" autofocus required placeholder="Enter Nationalitys" tabindex="1" />
 
+        @* ---------- Nationality Id (readonly) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "NationalityCode",
+            LabelText = "Nationality Id",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-nationality-code",
+            DefaultValue = Model?.NationalityCode
+        })
 
-        </div>
-
+        @* ---------- Nationality ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Nationality",
+            LabelText = "Nationality",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Nationality",
+            IsRequired = true,
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            CustomCssClass = "js-nationality-check-availability",
+            DefaultValue = Model?.Nationality,
+            AutoFocus = true
+        })
     </div>
-  
-    @if (Model.AutoId > 0)
-    {
 
+    @if (Model != null && (Model.AutoId > 0 || Model.Tc > 0))
+    {
         <hr />
         <div class="form-group row" id="LdateModifyHide">
-            <div class="col-lg-6">
-                @if (Model.Ldate.HasValue)
-                {
-                    <label>Creation Date: </label>
 
-                    <label>@Model.Ldate?.ToString("dd/MM/yyyy")</label>
-                }
-            </div>
-            <div class="col-lg-6">
-                @if (Model.ModifyDate.HasValue)
-                {
-                    <label>Last Update Date: </label>
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
+            })
 
-                    <label>@Model.ModifyDate?.ToString("dd/MM/yyyy")</label>
-                }
-            </div>
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
+            })
+
         </div>
-
     }
-
 </div>
+
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        <button type="button" class="btn btn-default success-btn btn btn-outline-success btn-common btn-circle float-right js-Nationalitys-save" data-id="@Model.NationalityCode">
-            <i class="fas fa-save"></i> Save
-        </button>
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-nationality-save",
+            ReserveActionSlot = true,
+           Style="border-bottom:0px !important;"
+        })
     </div>
 </div>

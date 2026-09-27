@@ -1,4 +1,4 @@
-﻿@model GCTL.UI.Core.ViewModels.Gender.GenderPageViewModel
+@model GCTL.UI.Core.ViewModels.Gender.GenderPageViewModel
 
 @{
     Model.PageTitle = ViewBag.Title;
@@ -6,60 +6,59 @@
     Model.Breadcrumb = "Gender Info";
 }
 
-<style>
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
-
-<!-- Content Header (Page header) -->
-<partial name="_PageHeader" model="Model" />
-
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Gender Info",
+                            SaveBtnClass = "js-Sex-save",
+                            DeleteBtnClass = "js-Sex-delete-confirm",
+                            ClearBtnClass = "js-Sex-clear"
                         })
                     </div>
                     <div class="card-body px-2">
-
                         <form asp-action="Setup" method="post" id="Sex-form" asp-controller="Gender">
-
                             <div class="js-Sex-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
-
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-Sex-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.GenderList)
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "genderTable",
+                    AjaxUrl = "/Gender/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "sexCode",
+                    CheckAllId = "gender-check-all",
+                    DefaultSortColumn = "sexCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "sexCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-Sex-edit" },
+                        new() { Data = "sex", Header = "Sex / Gender Name", Width = "90%"}
+                    }
+                })
             </div>
 
-
         </div>
-
 
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 <partial name="QuickAddModal" />
 
@@ -71,8 +70,6 @@
     <script type="text/javascript">
         var options = {
             baseUrl: '@Url.Action("", "Gender")'
-        };
-        options.load = () => {
         };
 
         $.gender(options);

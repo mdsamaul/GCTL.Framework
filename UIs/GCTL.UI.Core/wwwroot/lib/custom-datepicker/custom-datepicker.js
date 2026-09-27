@@ -1,4 +1,4 @@
-﻿(function (window, $) {
+(function (window, $) {
     'use strict';
     var DEFAULTS = {
         displayFormat: 'd/m/Y',
@@ -72,6 +72,7 @@
         }, 50);
     }
     function addClearButton(fpInstance) {
+        if (!fpInstance || !fpInstance.calendarContainer) return;
         if (fpInstance.calendarContainer.querySelector('.custom-fp-clear-btn')) return;
         var footer = document.createElement('div');
         footer.className = 'custom-fp-footer';
@@ -159,18 +160,45 @@
     }
 
     function initOne(el) {
+        if (!el) return;
         var $el = $(el);
-        if ($el.data('customFpInstance')) return;
+        if ($el.data('customFpInstance') || el._flatpickr || $el.hasClass('flatpickr-alt-input')) return;
+        if ($el.hasClass('input') && $el.hasClass('flatpickr-input')) return;
+        if ($el.prev().hasClass('flatpickr-input') && $el.prev()[0] && $el.prev()[0]._flatpickr) {
+            $el.data('customFpInstance', $el.prev()[0]._flatpickr);
+            return;
+        }
+
         var backendFormat = $el.data('backend-format') || DEFAULTS.backendFormat;
         var displayFormat = $el.data('display-format') || DEFAULTS.displayFormat;
         var holidays = parseHolidays($el);
         var allowInput = $el.data('allow-input') !== false;
         var minDate = $el.data('min-date') || null;
         var maxDate = $el.data('max-date') || null;
+
+        var rawDefault = $el.data('default-date') || (el.value ? el.value : null);
+        var parsedDefault = null;
+        if (rawDefault) {
+            if (rawDefault instanceof Date) {
+                parsedDefault = rawDefault;
+            } else {
+                var s = String(rawDefault).trim();
+                if (s.includes('T')) s = s.split('T')[0];
+                var dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                if (dmy) {
+                    parsedDefault = new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+                } else {
+                    var p = new Date(s);
+                    if (!isNaN(p.getTime())) parsedDefault = p;
+                }
+            }
+        }
+
         var fp = flatpickr(el, {
             altInput: true,
             altFormat: displayFormat,
             dateFormat: backendFormat,
+            defaultDate: parsedDefault || rawDefault || undefined,
             allowInput: allowInput,
             animate: false,
             monthSelectorType: 'dropdown',
@@ -243,9 +271,16 @@
             onReady: function (selectedDates, dateStr, fpInstance) {
                 hideEmptyTrailingRow(fpInstance);
                 addClearButton(fpInstance);
+                if ($el.is('[readonly]') || $el.is(':disabled')) {
+                    fpInstance._customDisabled = true;
+                    if (fpInstance.altInput) {
+                        fpInstance.altInput.readOnly = $el.is('[readonly]');
+                        fpInstance.altInput.disabled = $el.is(':disabled');
+                    }
+                }
             },
             onOpen: function (selectedDates, dateStr, fpInstance) {
-                if (fpInstance._customDisabled) {
+                if (fpInstance._customDisabled || $el.is('[readonly]') || $el.is(':disabled')) {
                     fpInstance.close();
                     return;
                 }
@@ -256,19 +291,54 @@
                 if (activeTooltip) { activeTooltip.remove(); activeTooltip = null; }
             }
         });
+        if ($el.is('[readonly]') || $el.is(':disabled')) {
+            fp._customDisabled = true;
+            if (fp.altInput) {
+                fp.altInput.readOnly = $el.is('[readonly]');
+                fp.altInput.disabled = $el.is(':disabled');
+            }
+        }
+        if (fp.altInput) {
+            $(fp.altInput).removeClass('custom-datepicker').addClass('flatpickr-alt-input');
+            $(fp.altInput).data('customFpInstance', fp);
+            fp.altInput._flatpickr = fp;
+        }
         $el.data('customFpInstance', fp);
+
+        if (parsedDefault && !isNaN(parsedDefault.getTime())) {
+            var py = parsedDefault.getFullYear();
+            var pm = ('0' + (parsedDefault.getMonth() + 1)).slice(-2);
+            var pd = ('0' + parsedDefault.getDate()).slice(-2);
+            var parsedIso = py + '-' + pm + '-' + pd;
+            var parsedDmy = pd + '/' + pm + '/' + py;
+
+            el.value = parsedIso;
+            if (fp.altInput) {
+                fp.altInput.value = (displayFormat === 'd/m/Y') ? parsedDmy : parsedIso;
+            }
+            try {
+                fp.setDate(parsedDefault, false);
+            } catch (e) { }
+        } else if (fp.selectedDates && fp.selectedDates.length > 0 && fp.altInput) {
+            var d0 = fp.selectedDates[0];
+            var dy = d0.getFullYear();
+            var dm = ('0' + (d0.getMonth() + 1)).slice(-2);
+            var dd = ('0' + d0.getDate()).slice(-2);
+            if (displayFormat === 'd/m/Y') {
+                fp.altInput.value = dd + '/' + dm + '/' + dy;
+            }
+            if (backendFormat === 'Y-m-d') {
+                el.value = dy + '-' + dm + '-' + dd;
+            }
+        }
     }
     function initAll(selector) {
-        $(selector || '.custom-datepicker').each(function () {
+        $(selector || 'input.custom-datepicker:not(.flatpickr-alt-input):not([type="hidden"])').each(function () {
             initOne(this);
         });
     }
     function setDatepickerValue(selector, value) {
-        var $el = $(selector);
-        var fp = $el.data('customFpInstance');
-        if (!fp) { $el.val(value); return; }
-        if (!value) { fp.clear(); return; }
-        fp.setDate(value, true);
+        window.setDate(selector, value);
     }
     function getDatepickerValue(selector) {
         var $el = $(selector);
@@ -287,18 +357,72 @@
     // ---------------- Global setDate ----------------
     window.setDate = function (selector, value, disabled = false) {
         var $el = $(selector);
-        var fp = $el.data('customFpInstance');
+        if (!$el.length) return;
 
-        if (!fp) {
-            $el.val(value || '');
+        var fp = $el.data('customFpInstance') || ($el[0] ? $el[0]._flatpickr : null);
+        if (!fp && $el[0]) {
+            initOne($el[0]);
+            fp = $el.data('customFpInstance') || ($el[0] ? $el[0]._flatpickr : null);
+        }
+
+        if (!value) {
+            if (fp) {
+                fp.clear();
+            } else {
+                $el.val('');
+            }
             $el.prop('disabled', !!disabled);
             return;
         }
 
-        if (!value) {
-            fp.clear();
+        var dateObj = null;
+        if (value instanceof Date) {
+            dateObj = value;
         } else {
-            fp.setDate(value, true);
+            var s = String(value).trim();
+            if (s.includes('T')) s = s.split('T')[0];
+            var dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+            if (dmy) {
+                dateObj = new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+            } else {
+                var p = new Date(s);
+                if (!isNaN(p.getTime())) dateObj = p;
+            }
+        }
+
+        var isoStr = '';
+        var dmyStr = '';
+        if (dateObj && !isNaN(dateObj.getTime())) {
+            var y = dateObj.getFullYear();
+            var m = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+            var d = ('0' + dateObj.getDate()).slice(-2);
+            isoStr = y + '-' + m + '-' + d;
+            dmyStr = d + '/' + m + '/' + y;
+        } else {
+            isoStr = String(value);
+            dmyStr = String(value);
+        }
+
+        if (!fp) {
+            $el.val(isoStr);
+            $el.attr('data-default-date', isoStr);
+            $el.prop('disabled', !!disabled);
+            return;
+        }
+
+        try {
+            fp.setDate(dateObj || isoStr, true);
+        } catch (e) {
+            $el.val(isoStr);
+        }
+
+        if (fp.altInput && dmyStr) {
+            fp.altInput.value = dmyStr;
+        }
+
+        var nextInp = $el.next('input')[0];
+        if (nextInp && (nextInp.classList.contains('input') || nextInp.classList.contains('flatpickr-alt-input') || nextInp.classList.contains('custom-datepicker'))) {
+            nextInp.value = dmyStr;
         }
 
         fp._customDisabled = !!disabled;
@@ -307,9 +431,8 @@
         if (disabled) fp.close();
     };
 
-
     $(function () {
-        initAll('.custom-datepicker');
+        initAll('input.custom-datepicker:not(.flatpickr-alt-input):not([type="hidden"])');
     });
     window.custom_Datepicker = {
         init: initOne,

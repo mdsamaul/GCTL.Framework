@@ -1,0 +1,68 @@
+<style>
+    .btn-toolbar-custom {
+        background-color: #f1f3f5;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 6px 14px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease-in-out;
+        min-width: 90px;
+    }
+
+        .btn-toolbar-custom i {
+            font-size: 1rem;
+        }
+
+        .btn-toolbar-custom span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .btn-toolbar-custom:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+            color: #000;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-toolbar-custom:active {
+            background-color: #dee2e6;
+            transform: translateY(0);
+        }
+</style>
+<div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 rounded shadow-sm border mb-3">
+    <div class="d-flex align-items-center py-1 ps-2">
+        <h1 class="fw-bold text-dark m-0" style="font-size: 13px; letter-spacing: 0.5px;">
+            Operational Fund Requisition Adjust Approval
+        </h1>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 pe-1">
+        <button type="button" class="btn btn-toolbar-custom" id="adjustApprove-SaveBtn">
+            <i class="fas fa-save text-success"></i>
+            <span>Save</span>
+        </button>
+        <button type="button" class="btn btn-toolbar-custom" id="adjustApprove-DeleteBtn">
+            <i class="fas fa-trash text-danger"></i>
+            <span>Delete</span>
+        </button>
+        <button type="button" class="btn btn-toolbar-custom" id="adjustApprove-Clear">
+            <i class="fas fa-sync text-primary"></i>
+            <span>Clear</span>
+        </button>
+        <button type="button" class="btn btn-toolbar-custom">
+            <i class="fas fa-print text-dark"></i>
+            <span>Print</span>
+        </button>
+        <button type="button" class="btn btn-toolbar-custom">
+            <i class="fas fa-star text-warning"></i>
+            <span>Favt</span>
+        </button>
+    </div>
+</div>

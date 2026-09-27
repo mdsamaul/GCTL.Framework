@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.PaymentTerms;
@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GCTL.Service.PaymentTerms
@@ -23,19 +22,17 @@ namespace GCTL.Service.PaymentTerms
         private readonly ICommonService commonService;
         private readonly IDeleteHistoryService deleteHistoryService;
 
-        string strMaxNO = string.Empty;
+        private string strMaxNO = string.Empty;
         private const string TableName = "Sales_Def_PaymentTerms";
         private const string ColumnName = "PaymentTermsId";
+
         public PaymentTermsService(
             IRepository<SalesDefPaymentTerm> paymentTermsrepository,
             IRepository<SalesDefPaymentType> paymentTyperepository,
             IRepository<CoreAccessCode> accessCodeRepository,
             ICommonService commonService,
-            IDeleteHistoryService deleteHistoryService
-
-            ) 
-            
-    : base(paymentTermsrepository)
+            IDeleteHistoryService deleteHistoryService)
+            : base(paymentTermsrepository)
         {
             this.paymentTermsrepository = paymentTermsrepository;
             this.paymentTyperepository = paymentTyperepository;
@@ -57,8 +54,10 @@ namespace GCTL.Service.PaymentTerms
                                select new PaymentTermsSetupViewModel
                                {
                                    Tc = per.Tc,
+                                   AutoId = per.Tc,
                                    PaymentTermsId = per.PaymentTermsId,
                                    PaymentTermsName = per.PaymentTermsName,
+                                   Type = per.Type,
                                    PaymentType = hrm.PaymentType,
                                    CreditDays = per.CreditDays,
                                    Percentise = per.Percentise,
@@ -72,30 +71,33 @@ namespace GCTL.Service.PaymentTerms
             return query;
         }
 
-
         #endregion
 
         #region GetByIdAsync
 
         public async Task<PaymentTermsSetupViewModel> GetByIdAsync(string code)
         {
-            var entity = await paymentTermsrepository.GetByIdAsync(Convert.ToInt32(code));
+            var entity = await paymentTermsrepository.All().FirstOrDefaultAsync(x => x.PaymentTermsId == code || x.Tc.ToString() == code);
             if (entity == null) return null;
 
-            PaymentTermsSetupViewModel entityVM = new PaymentTermsSetupViewModel();
-            entityVM.Tc = entity.Tc;
-            entityVM.PaymentTermsId = entity.PaymentTermsId;
-            entityVM.Type = entity.Type;
-            entityVM.Percentise = entity.Percentise;
-            entityVM.CreditDays = entity.CreditDays;
-            entityVM.PaymentTermsName = entity.PaymentTermsName;
-            entityVM.Luser = entity.Luser;
-            entityVM.Ldate = entity.Ldate;
-            entityVM.ModifyDate = entity.ModifyDate;
-            entityVM.Lip = entity.Lip;
-            entityVM.Lmac = entity.Lmac;
+            var paymentTypeEntity = await paymentTyperepository.All().FirstOrDefaultAsync(x => x.PaymentTypeId == entity.Type);
 
-            return entityVM;
+            return new PaymentTermsSetupViewModel
+            {
+                Tc = entity.Tc,
+                AutoId = entity.Tc,
+                PaymentTermsId = entity.PaymentTermsId,
+                Type = entity.Type,
+                PaymentType = paymentTypeEntity?.PaymentType,
+                Percentise = entity.Percentise,
+                CreditDays = entity.CreditDays,
+                PaymentTermsName = entity.PaymentTermsName,
+                Luser = entity.Luser,
+                Ldate = entity.Ldate,
+                ModifyDate = entity.ModifyDate,
+                Lip = entity.Lip,
+                Lmac = entity.Lmac
+            };
         }
 
         #endregion
@@ -104,27 +106,29 @@ namespace GCTL.Service.PaymentTerms
 
         public async Task<bool> SaveAsync(PaymentTermsSetupViewModel entityVM)
         {
-            commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 3);
+            commonService.FindMaxNo(ref strMaxNO, ColumnName, TableName, 2);
             await paymentTermsrepository.BeginTransactionAsync();
             try
             {
-                SalesDefPaymentTerm entity = new SalesDefPaymentTerm();
-                entity.PaymentTermsId = strMaxNO;
-                entity.Type = entityVM.Type;
-                entity.Percentise = entityVM.Percentise;
-                entity.CreditDays = entityVM.CreditDays;
-                entity.PaymentTermsName = entityVM.PaymentTermsName;
-                entity.Luser = entityVM.Luser;
-                entity.Lip = entityVM.Lip;
-                entity.Lmac = entityVM.Lmac ?? string.Empty;
-                entity.Ldate = DateTime.Now;
+                SalesDefPaymentTerm entity = new SalesDefPaymentTerm
+                {
+                    PaymentTermsId = string.IsNullOrWhiteSpace(entityVM.PaymentTermsId) ? strMaxNO : entityVM.PaymentTermsId,
+                    Type = entityVM.Type,
+                    Percentise = entityVM.Percentise,
+                    CreditDays = entityVM.CreditDays,
+                    PaymentTermsName = entityVM.PaymentTermsName,
+                    Luser = entityVM.Luser,
+                    Lip = entityVM.Lip,
+                    Lmac = entityVM.Lmac ?? string.Empty,
+                    Ldate = DateTime.Now
+                };
                 await paymentTermsrepository.AddAsync(entity);
                 await paymentTermsrepository.CommitTransactionAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"error message {ex.Message}");
+                Console.WriteLine($"Error message {ex.Message}");
                 await paymentTermsrepository.RollbackTransactionAsync();
                 return false;
             }
@@ -133,12 +137,13 @@ namespace GCTL.Service.PaymentTerms
         #endregion
 
         #region UpdateAsync
+
         public async Task<bool> UpdateAsync(PaymentTermsSetupViewModel entityVM)
         {
             await paymentTermsrepository.BeginTransactionAsync();
             try
             {
-                var entity = await paymentTermsrepository.GetByIdAsync(entityVM.Tc);
+                var entity = await paymentTermsrepository.All().FirstOrDefaultAsync(x => x.Tc == entityVM.Tc || x.PaymentTermsId == entityVM.PaymentTermsId);
                 if (entity == null)
                 {
                     await paymentTermsrepository.RollbackTransactionAsync();
@@ -149,7 +154,7 @@ namespace GCTL.Service.PaymentTerms
                 entity.Percentise = entityVM.Percentise ?? string.Empty;
                 entity.CreditDays = entityVM.CreditDays;
                 entity.PaymentTermsName = entityVM.PaymentTermsName ?? string.Empty;
-                entity.Luser = entityVM.Luser;
+                entity.Luser = entityVM.Luser ?? entity.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac;
                 entity.ModifyDate = DateTime.Now;
@@ -168,16 +173,15 @@ namespace GCTL.Service.PaymentTerms
         #endregion
 
         #region SelectionAsync
+
         public async Task<IEnumerable<CommonSelectModel>> SelectionPaymentTermsAsync()
         {
-
-            var data = await paymentTermsrepository.All()
+            return await paymentTermsrepository.All()
                        .Select(x => new CommonSelectModel
                        {
                            Code = x.PaymentTermsId,
                            Name = x.PaymentTermsName,
                        }).ToListAsync();
-            return data;
         }
 
         #endregion
@@ -186,13 +190,15 @@ namespace GCTL.Service.PaymentTerms
 
         public async Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model)
         {
-            if (!ids.Any())
+            if (ids == null || !ids.Any())
                 return (false, "No Data found to delete");
 
+            var alternateColumn = new List<string> { "PaymentTermsId", "PaymentTermsName", "PaymentTerms" };
             var dependencyCheck = await deleteHistoryService.CheckDependenciesAsync(
                 paymentTermsrepository.GetTableName(),
                 ColumnName,
-                ids.Cast<string>().ToList()
+                ids,
+                alternateColumn
             );
 
             if (!dependencyCheck.CanDelete)
@@ -202,31 +208,29 @@ namespace GCTL.Service.PaymentTerms
 
             try
             {
-                var entity = await paymentTermsrepository.All().Where(x => ids.Contains(x.PaymentTermsId)).ToListAsync();
+                var entityList = await paymentTermsrepository.All().Where(x => ids.Contains(x.PaymentTermsId) || ids.Contains(x.Tc.ToString())).ToListAsync();
 
-
-                paymentTermsrepository.Delete(entity);
+                paymentTermsrepository.Delete(entityList);
                 model.tableName = TableName;
                 await deleteHistoryService.LogDeletedRecordsAsync(
-                    entity, model
+                    entityList, model
                 );
 
                 await paymentTermsrepository.CommitTransactionAsync();
-                return (true, "Delete Successfully");
+                return (true, "Deleted Successfully.");
             }
             catch (Exception ex)
             {
                 await paymentTermsrepository.RollbackTransactionAsync();
                 Console.WriteLine(ex.ToString());
                 return (false, "Delete Failed");
-
             }
-
         }
 
         #endregion
 
-        #region Duplicate Check 
+        #region Duplicate Checks
+
         public async Task<bool> IsExistByCodeAsync(string code)
         {
             return await paymentTermsrepository.All().AnyAsync(x => x.PaymentTermsId == code);
@@ -244,26 +248,52 @@ namespace GCTL.Service.PaymentTerms
 
         #endregion
 
-        #region Permission all type
+        #region Permissions
+
         public async Task<bool> PagePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Terms" && x.TitleCheck);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Terms" || x.Title == "PaymentTerms" || x.Title == "Payment Terms Setup"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.TitleCheck);
         }
 
         public async Task<bool> SavePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Terms" && x.CheckAdd);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Terms" || x.Title == "PaymentTerms" || x.Title == "Payment Terms Setup"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckAdd);
         }
 
         public async Task<bool> UpdatePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Terms" && x.CheckEdit);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Terms" || x.Title == "PaymentTerms" || x.Title == "Payment Terms Setup"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckEdit);
         }
 
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Payment Terms" && x.CheckDelete);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Payment Terms" || x.Title == "PaymentTerms" || x.Title == "Payment Terms Setup"))
+                .ToListAsync();
+
+            if (!permissions.Any()) return true;
+            return permissions.Any(x => x.CheckDelete);
         }
+
         #endregion
     }
 }

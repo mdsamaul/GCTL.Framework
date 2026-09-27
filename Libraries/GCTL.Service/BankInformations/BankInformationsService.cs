@@ -1,60 +1,74 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.BankInformations;
 using GCTL.Core.ViewModels.Common;
+using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
+using GCTL.Service.Common;
+using GCTL.Service.DeleteHistories;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GCTL.Service.BankInformations
 {
-    public class BankInformationsService:AppService<SalesDefBankInfo>,IBankInformationsService
+    public class BankInformationsService : AppService<SalesDefBankInfo>, IBankInformationsService
     {
         private readonly IRepository<SalesDefBankInfo> repository;
-
         private readonly IRepository<CoreAccessCode> accessCodeRepository;
+        private readonly ICommonService commonService;
+        private readonly IDeleteHistoryService deleteHistoryService;
 
-        public BankInformationsService(IRepository<SalesDefBankInfo> repository, IRepository<CoreAccessCode> accessCodeRepository):base(repository)
+        private const string TableName = "SALES_Def_BankInfo";
+        private const string ColumnName = "BankId";
+
+        public BankInformationsService(
+            IRepository<SalesDefBankInfo> repository,
+            IRepository<CoreAccessCode> accessCodeRepository,
+            ICommonService commonService,
+            IDeleteHistoryService deleteHistoryService
+        ) : base(repository)
         {
             this.repository = repository;
             this.accessCodeRepository = accessCodeRepository;
+            this.commonService = commonService;
+            this.deleteHistoryService = deleteHistoryService;
         }
 
         #region GetAllById
         public async Task<BankInformationsSetupViewModel> GetByIdAsync(string code)
         {
             var entity = await repository.GetByIdAsync(code);
-            if(entity == null)
+            if (entity == null)
             {
-                return null;    
+                return null;
             }
             return new BankInformationsSetupViewModel
             {
-                 AutoId = entity.AutoId,
-                 BankId = entity.BankId,
-                 BankName = entity.BankName,
-                 ShortName = entity.ShortName, 
-                 Ldate = entity.Ldate,
-                 ModifyDate = entity.ModifyDate,
-                 Luser = entity.Luser,
-                 Lip = entity.Lip,
-                 Lmac = entity.Lmac
-
+                AutoId = entity.AutoId,
+                Tc = (int)entity.AutoId,
+                BankId = entity.BankId,
+                BankName = entity.BankName,
+                ShortName = entity.ShortName,
+                Ldate = entity.Ldate,
+                ModifyDate = entity.ModifyDate,
+                Luser = entity.Luser,
+                Lip = entity.Lip,
+                Lmac = entity.Lmac
             };
         }
 
         public async Task<List<BankInformationsSetupViewModel>> GetAllAsync()
         {
             var entity = await repository.GetAllAsync();
-            return entity.Select(entityVM=> new BankInformationsSetupViewModel
+            return entity.Select(entityVM => new BankInformationsSetupViewModel
             {
-                AutoId=entityVM.AutoId,
-                BankId=entityVM.BankId,
-                BankName=entityVM.BankName,
-                ShortName=entityVM.ShortName,
+                AutoId = entityVM.AutoId,
+                Tc = (int)entityVM.AutoId,
+                BankId = entityVM.BankId,
+                BankName = entityVM.BankName,
+                ShortName = entityVM.ShortName,
                 Ldate = entityVM.Ldate,
                 ModifyDate = entityVM.ModifyDate,
                 Luser = entityVM.Luser,
@@ -62,7 +76,6 @@ namespace GCTL.Service.BankInformations
                 Lmac = entityVM.Lmac
             }).ToList();
         }
-
 
         #endregion
 
@@ -75,19 +88,16 @@ namespace GCTL.Service.BankInformations
                 SalesDefBankInfo entity = new SalesDefBankInfo();
                 entity.BankId = await GenerateNextCode();
                 entity.BankName = entityVM.BankName;
-                entity.ShortName = entityVM.ShortName;
+                entity.ShortName = entityVM.ShortName ?? string.Empty;
                 entity.Luser = entityVM.Luser;
-                entity.ShortName = entityVM.ShortName;
-                entity.Luser = entityVM.Luser;
-                entity.Lip = entityVM.Lip ;
-                entity.Lmac = entityVM.Lmac;
+                entity.Lip = entityVM.Lip;
+                entity.Lmac = entityVM.Lmac ?? string.Empty;
                 entity.Ldate = DateTime.Now;
                 await repository.AddAsync(entity);
                 await repository.CommitTransactionAsync();
                 return true;
-
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error:{ex.Message}");
                 await repository.RollbackTransactionAsync();
@@ -98,20 +108,17 @@ namespace GCTL.Service.BankInformations
         public async Task<bool> UpdateAsync(BankInformationsSetupViewModel entityVM)
         {
             await repository.BeginTransactionAsync();
-           try
+            try
             {
                 var entity = await repository.GetByIdAsync(entityVM.BankId);
                 if (entity == null)
                 {
                     await repository.RollbackTransactionAsync();
                     return false;
-
                 }
                 entity.BankId = entityVM.BankId;
                 entity.BankName = entityVM.BankName;
-                entity.ShortName = entityVM.ShortName;
-                entity.Luser = entityVM.Luser;
-                entity.ShortName = entityVM.ShortName;
+                entity.ShortName = entityVM.ShortName ?? string.Empty;
                 entity.Luser = entityVM.Luser;
                 entity.Lip = entityVM.Lip;
                 entity.Lmac = entityVM.Lmac;
@@ -120,15 +127,12 @@ namespace GCTL.Service.BankInformations
                 await repository.CommitTransactionAsync();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error:{ex.Message}");
                 await repository.RollbackTransactionAsync();
                 return false;
             }
-           
-
-
         }
 
         #endregion
@@ -149,12 +153,52 @@ namespace GCTL.Service.BankInformations
         {
             return repository.GetById(code);
         }
+
+        public async Task<(bool succses, string messege)> DeleteTab(List<string> ids, DeleteHistoryViewModel model)
+        {
+            if (!ids.Any())
+                return (false, "No Data found to delete");
+
+            var alternateColumn = new List<string> { "BankId", "BankName", "Bank" };
+            var dependencyCheck = await deleteHistoryService.CheckDependenciesAsync(
+                repository.GetTableName(),
+                ColumnName,
+                ids,
+                alternateColumn
+            );
+
+            if (!dependencyCheck.CanDelete)
+                return (false, dependencyCheck.Message);
+
+            await repository.BeginTransactionAsync();
+
+            try
+            {
+                var entity = await repository.All().Where(x => ids.Contains(x.BankId)).ToListAsync();
+
+                repository.Delete(entity);
+                model.tableName = repository.GetTableName();
+                await deleteHistoryService.LogDeletedRecordsAsync(
+                    entity, model
+                );
+
+                await repository.CommitTransactionAsync();
+                return (true, "Deleted Successfully.");
+            }
+            catch (Exception ex)
+            {
+                await repository.RollbackTransactionAsync();
+                Console.WriteLine(ex.ToString());
+                return (false, "Delete Failed");
+            }
+        }
+
         #endregion
 
         #region Drop Down
-        public  IEnumerable<CommonSelectModel> BankDropSelectionAsync()
+        public IEnumerable<CommonSelectModel> BankDropSelectionAsync()
         {
-            return  repository.All()
+            return repository.All()
                       .Select(x => new CommonSelectModel
                       {
                           Code = x.BankId,
@@ -170,16 +214,15 @@ namespace GCTL.Service.BankInformations
             var code = await repository.GetAllAsync();
             var lastCode = code.Max(x => x.BankId);
             int nextCode = 1;
-            if(!string.IsNullOrEmpty(lastCode))
+            if (!string.IsNullOrEmpty(lastCode))
             {
                 int lastNumber = int.Parse(lastCode.TrimStart('0'));
                 lastNumber++;
                 nextCode = lastNumber;
             }
-            return nextCode.ToString("D2");
+            return nextCode.ToString("D3");
         }
-  
-        
+
         #endregion
 
         #region Duplicate Check 
@@ -195,40 +238,58 @@ namespace GCTL.Service.BankInformations
 
         public async Task<bool> IsExistAsync(string name, string typeCode)
         {
-            return await repository.All().AnyAsync(x => x.BankName == name && x.BankId!= typeCode);
+            return await repository.All().AnyAsync(x => x.BankName == name && x.BankId != typeCode);
         }
 
         #endregion
-
-
-        #region Permission all type
 
         #region Permission all type
         public async Task<bool> PagePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Bank Informtion " && x.TitleCheck);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var permissions = await repository.All()
+                .Where(x => false)
+                .ToListAsync(); // dummy to get list
+            var accessList = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Bank Information" || x.Title == "Bank Informtion " || x.Title == "BankInformations" || x.Title == "Bank Information " || x.Title == "Bank"))
+                .ToListAsync();
+
+            if (!accessList.Any()) return true;
+            return accessList.Any(x => x.TitleCheck);
         }
 
         public async Task<bool> SavePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Bank Informtion " && x.CheckAdd);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var accessList = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Bank Information" || x.Title == "Bank Informtion " || x.Title == "BankInformations" || x.Title == "Bank Information " || x.Title == "Bank"))
+                .ToListAsync();
+
+            if (!accessList.Any()) return true;
+            return accessList.Any(x => x.CheckAdd);
         }
 
         public async Task<bool> UpdatePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Bank Informtion " && x.CheckEdit);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var accessList = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Bank Information" || x.Title == "Bank Informtion " || x.Title == "BankInformations" || x.Title == "Bank Information " || x.Title == "Bank"))
+                .ToListAsync();
+
+            if (!accessList.Any()) return true;
+            return accessList.Any(x => x.CheckEdit);
         }
 
         public async Task<bool> DeletePermissionAsync(string accessCode)
         {
-            return await accessCodeRepository.All().AnyAsync(x => x.AccessCodeId == accessCode && x.Title == "Bank Informtion " && x.CheckDelete);
+            if (string.IsNullOrEmpty(accessCode)) return true;
+            var accessList = await accessCodeRepository.All()
+                .Where(x => x.AccessCodeId == accessCode && (x.Title == "Bank Information" || x.Title == "Bank Informtion " || x.Title == "BankInformations" || x.Title == "Bank Information " || x.Title == "Bank"))
+                .ToListAsync();
+
+            if (!accessList.Any()) return true;
+            return accessList.Any(x => x.CheckDelete);
         }
         #endregion
-
-
-
-
-        #endregion
-
     }
 }

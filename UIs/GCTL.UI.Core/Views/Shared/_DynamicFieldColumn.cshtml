@@ -1,0 +1,999 @@
+@model GCTL.UI.Core.ViewModels.DynamicFieldColumnModel
+
+@*
+    ============================================================
+    _DynamicFieldColumn.cshtml
+    Full support for:
+    - LabelInline (true = same line, false = label on top)
+    - LabelColWidth
+    - LabelCssClass         → <label> tag-এর উপর class
+    - LabelColumnClass       → LabelInline=true হলে col-* div-এর উপর class
+    - CustomStyle           → Container div-এর উপর inline CSS style
+    - LabelStyle            → <label> / <span> tag-এর উপর inline CSS style
+    - InputStyle            → Input / Select / Textarea-এর উপর inline CSS style
+    ============================================================
+*@
+
+@if (Model.IsVisible)
+{
+    var wrapperClasses = Model.ColumnClass;
+    if (!string.IsNullOrEmpty(Model.VisibilityGroup))
+    {
+        wrapperClasses += " " + Model.VisibilityGroup;
+    }
+    if (!string.IsNullOrEmpty(Model.CustomCssClass))
+    {
+        wrapperClasses += " " + Model.CustomCssClass;
+    }
+
+    var styleAttr = Model.ShowOnInit ? "" : "display:none;";
+    var orderAttr = Model.Order.HasValue ? $"order:{Model.Order.Value};" : "";
+    var customContainerStyle = !string.IsNullOrEmpty(Model.CustomStyle) ? Model.CustomStyle : "";
+    var fullContainerStyle = $"{styleAttr}{orderAttr}{customContainerStyle}";
+
+    bool needsActionColumn = Model.ShowQuickAdd || Model.ShowCopyIcon || Model.ReserveActionSlot;
+    int labelCol = Model.LabelColWidth > 0 ? Model.LabelColWidth : 4;
+    int fieldCol = 12 - labelCol;
+
+    var labelClass = Model.LabelInline ? "form-label mb-0" : "form-label";
+    if (!string.IsNullOrEmpty(Model.LabelCssClass))
+    {
+        labelClass += " " + Model.LabelCssClass;
+    }
+
+    var useGridLayout = Model.UseGridLayout;
+    if (useGridLayout)
+    {
+        fullContainerStyle += "display: contents;";
+    }
+
+    <div class="@wrapperClasses"
+         id="@Model.ContainerId"
+         style="@fullContainerStyle"
+        @if (!string.IsNullOrEmpty(Model.DataBindField))
+        {
+            <text> data-bind-field="@Model.DataBindField" </text>
+        }
+        @foreach (var attr in Model.CustomAttributes)
+        {
+            <text> data-@attr.Key="@attr.Value" </text>
+        }
+        >
+
+            @if (Model.FieldType != GCTL.UI.Core.ViewModels.FieldType.Blank)
+            {
+                @* ============ TEXT / NUMBER ============ *@
+                @if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Text ||
+                     Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number)
+                {
+                    @if (Model.LabelInline)
+                    {
+                        if (useGridLayout)
+                        {
+                            <label class="@labelClass text-end" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                @if (!string.IsNullOrEmpty(Model.IconClass))
+                                {
+                                    <i class="@Model.IconClass me-1"></i>
+                                }
+                                @Model.LabelText
+                                @if (Model.IsRequired)
+                                {
+                                    <sup class="text-danger required-star">*</sup>
+                                }
+                            </label>
+                            <div class="custom-field-input-wrapper">
+                                <partial name="_DynamicField_InputWithGroup" model="Model" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row align-items-center gx-2">
+                                <div class="col-@labelCol @Model.LabelColumnClass">
+                                    <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                        @if (!string.IsNullOrEmpty(Model.IconClass))
+                                        {
+                                            <i class="@Model.IconClass me-1"></i>
+                                        }
+                                        @Model.LabelText
+                                        @if (Model.IsRequired)
+                                        {
+                                            <sup class="text-danger required-star">*</sup>
+                                        }
+                                    </label>
+                                </div>
+                                <div class="col-@fieldCol">
+                                    <partial name="_DynamicField_InputWithGroup" model="Model" />
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-1"></i>
+                            }
+                            @Model.LabelText
+                            @if (Model.IsRequired)
+                            {
+                                <span class="text-danger fs-6 fw-medium">*</span>
+                            }
+                        </label>
+                        <partial name="_DynamicField_InputWithGroup" model="Model" />
+                    }
+                }
+
+                @* ============ DUAL INPUT ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.DualInput)
+                {
+                    var secondModel = Model.SecondField;
+                    bool dualNeedsAction = needsActionColumn || (secondModel != null && (secondModel.ShowQuickAdd || secondModel.ShowCopyIcon || secondModel.ReserveActionSlot));
+                    var quickAddSource = (secondModel != null && secondModel.ShowQuickAdd) ? secondModel : Model;
+                    var copySource = (secondModel != null && secondModel.ShowCopyIcon) ? secondModel : Model;
+
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                                    {
+                                        <i class="@Model.IconClass me-1"></i>
+                                    }
+                                    @Model.LabelText
+                                    @if (Model.IsRequired || (secondModel != null && secondModel.IsRequired))
+                                    {
+                                        <sup class="text-danger required-star">*</sup>
+                                    }
+                                </label>
+                            </div>
+                            <div class="col-@fieldCol">
+                                @if (dualNeedsAction)
+                                {
+                                    <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                        <div class="input-group input-group-sm flex-grow-1 dual-input-group gap-2">
+                                            @if (!string.IsNullOrEmpty(Model.PrependText))
+                                            {
+                                                <span class="input-group-text">@Model.PrependText</span>
+                                            }
+                                            <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                   class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                                   id="@Model.InputId" name="@Model.ResolvedInputName"
+                                                   placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                                   readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                                   style="@Model.InputStyle" />
+
+                                            @if (secondModel != null)
+                                            {
+                                                if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                                {
+                                                    <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                            id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                            data-placeholder="@secondModel.Placeholder"
+                                                            data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                            data-depends-on="@secondModel.DependsOnFieldId"
+                                                            disabled="@secondModel.IsDisabled"
+                                                            style="@secondModel.InputStyle"
+                                                            asp-items="secondModel.SelectItems">
+                                                        <option value="">@secondModel.Placeholder</option>
+                                                    </select>
+                                                }
+                                                else
+                                                {
+                                                    <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                           class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                           id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                           placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                                           readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                                           style="@secondModel.InputStyle" />
+                                                }
+                                            }
+                                            @if (!string.IsNullOrEmpty(Model.AppendText))
+                                            {
+                                                <span class="input-group-text">@Model.AppendText</span>
+                                            }
+                                        </div>
+
+                                        @if (quickAddSource.ShowQuickAdd)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                                    data-url="@quickAddSource.QuickAddUrl" data-target="@quickAddSource.QuickAddTarget"
+                                                    data-reload-url="@quickAddSource.QuickAddReloadUrl" data-title="@quickAddSource.QuickAddTitle"
+                                                    disabled="@(quickAddSource.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                        else if (copySource.ShowCopyIcon)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                                    data-target="#@copySource.InputId" title="Copy" disabled="@(copySource.IsActionDisabled)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                                    tabindex="-1" aria-hidden="true" disabled="disabled">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="input-group input-group-sm w-100 dual-input-group gap-2">
+                                        @if (!string.IsNullOrEmpty(Model.PrependText))
+                                        {
+                                            <span class="input-group-text">@Model.PrependText</span>
+                                        }
+                                        <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                               class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                               id="@Model.InputId" name="@Model.ResolvedInputName"
+                                               placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                               readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                               style="@Model.InputStyle" />
+
+                                        @if (secondModel != null)
+                                        {
+                                            if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                            {
+                                                <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                        id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                        data-placeholder="@secondModel.Placeholder"
+                                                        data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                        data-depends-on="@secondModel.DependsOnFieldId"
+                                                        disabled="@secondModel.IsDisabled"
+                                                        style="@secondModel.InputStyle"
+                                                        asp-items="secondModel.SelectItems">
+                                                    <option value="">@secondModel.Placeholder</option>
+                                                </select>
+                                            }
+                                            else
+                                            {
+                                                <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                       class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                       id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                       placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                                       readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                                       style="@secondModel.InputStyle" />
+                                            }
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.AppendText))
+                                        {
+                                            <span class="input-group-text">@Model.AppendText</span>
+                                        }
+                                    </div>
+                                }
+                                <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                                @if (secondModel != null)
+                                {
+                                    <span class="text-danger field-validation" id="@(secondModel.ValidationMessageId ?? (secondModel.InputId + "-error"))"></span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-1"></i>
+                            }
+                            @Model.LabelText
+                            @if (Model.IsRequired || (secondModel != null && secondModel.IsRequired))
+                            {
+                                <span class="text-danger fs-6 fw-medium">*</span>
+                            }
+                        </label>
+
+                        @if (dualNeedsAction)
+                        {
+                            <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                <div class="input-group input-group-sm flex-grow-1 dual-input-group gap-2">
+                                    @if (!string.IsNullOrEmpty(Model.PrependText))
+                                    {
+                                        <span class="input-group-text">@Model.PrependText</span>
+                                    }
+                                    <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                           class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                           id="@Model.InputId" name="@Model.ResolvedInputName"
+                                           placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                           readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                           style="@Model.InputStyle" />
+
+                                    @if (secondModel != null)
+                                    {
+                                        if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                        {
+                                            <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                    id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                    data-placeholder="@secondModel.Placeholder"
+                                                    data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                    data-depends-on="@secondModel.DependsOnFieldId"
+                                                    disabled="@secondModel.IsDisabled"
+                                                    style="@secondModel.InputStyle"
+                                                    asp-items="secondModel.SelectItems">
+                                                <option value="">@secondModel.Placeholder</option>
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                                   class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                   id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                   placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                                   readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                                   style="@secondModel.InputStyle" />
+                                        }
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.AppendText))
+                                    {
+                                        <span class="input-group-text">@Model.AppendText</span>
+                                    }
+                                </div>
+
+                                @if (quickAddSource.ShowQuickAdd)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                            data-url="@quickAddSource.QuickAddUrl" data-target="@quickAddSource.QuickAddTarget"
+                                            data-reload-url="@quickAddSource.QuickAddReloadUrl" data-title="@quickAddSource.QuickAddTitle"
+                                            disabled="@(quickAddSource.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                                else if (copySource.ShowCopyIcon)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                            data-target="#@copySource.InputId" title="Copy" disabled="@(copySource.IsActionDisabled)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                            tabindex="-1" aria-hidden="true" disabled="disabled">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="input-group input-group-sm w-100 dual-input-group gap-2">
+                                @if (!string.IsNullOrEmpty(Model.PrependText))
+                                {
+                                    <span class="input-group-text">@Model.PrependText</span>
+                                }
+                                <input type="@(!string.IsNullOrEmpty(Model.InputType) ? Model.InputType : (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                       class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                       id="@Model.InputId" name="@Model.ResolvedInputName"
+                                       placeholder="@Model.Placeholder" value="@Model.DefaultValue"
+                                       readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                       style="@Model.InputStyle" />
+
+                                @if (secondModel != null)
+                                {
+                                    if (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select)
+                                    {
+                                        <select class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                                id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                                data-placeholder="@secondModel.Placeholder"
+                                                data-ajax-url="@secondModel.AjaxSourceUrl"
+                                                data-depends-on="@secondModel.DependsOnFieldId"
+                                                disabled="@secondModel.IsDisabled"
+                                                style="@secondModel.InputStyle"
+                                                asp-items="secondModel.SelectItems">
+                                            <option value="">@secondModel.Placeholder</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input type="@(!string.IsNullOrEmpty(secondModel.InputType) ? secondModel.InputType : (secondModel.FieldType == GCTL.UI.Core.ViewModels.FieldType.Number ? "number" : "text"))"
+                                               class="@secondModel.ResolvedInputCss @secondModel.JsEventClass"
+                                               id="@secondModel.InputId" name="@secondModel.ResolvedInputName"
+                                               placeholder="@secondModel.Placeholder" value="@secondModel.DefaultValue"
+                                               readonly="@secondModel.IsReadonly" disabled="@secondModel.IsDisabled"
+                                               style="@secondModel.InputStyle" />
+                                    }
+                                }
+                                @if (!string.IsNullOrEmpty(Model.AppendText))
+                                {
+                                    <span class="input-group-text">@Model.AppendText</span>
+                                }
+                            </div>
+                        }
+                        <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                        @if (secondModel != null)
+                        {
+                            <span class="text-danger field-validation" id="@(secondModel.ValidationMessageId ?? (secondModel.InputId + "-error"))"></span>
+                        }
+                    }
+                }
+
+                @* ============ DATE ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Date)
+                {
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                                    {
+                                        <i class="@Model.IconClass me-1"></i>
+                                    }
+                                    @Model.LabelText
+                                    @if (Model.IsRequired)
+                                    {
+                                        <sup class="text-danger required-star">*</sup>
+                                    }
+                                </label>
+                            </div>
+                            <div class="col-@fieldCol">
+                                @if (needsActionColumn)
+                                {
+                                    <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                        <div class="input-group input-group-sm flex-grow-1">
+                                            <input type="text"
+                                                   class="@Model.ResolvedInputCss @Model.ResolvedDatepickerClass @Model.JsEventClass"
+                                                   id="@Model.InputId"
+                                                   name="@Model.ResolvedInputName"
+                                                   value="@Model.DefaultValue"
+                                                   placeholder="@(string.IsNullOrWhiteSpace(Model.Placeholder) ? "dd/mm/yyyy" : Model.Placeholder)"
+                                                   readonly="@Model.IsReadonly"
+                                                   disabled="@Model.IsDisabled"
+                                                   autofocus="@Model.AutoFocus"
+                                                   style="@Model.InputStyle"
+                                                   data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
+                                        </div>
+                                        @if (Model.ShowCopyIcon)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                                    data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        }
+                                        else if (Model.ShowQuickAdd)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                                    data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget"
+                                                    data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"
+                                                    disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                                    tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <input type="text"
+                                           class="@Model.ResolvedInputCss @Model.ResolvedDatepickerClass @Model.JsEventClass w-100"
+                                           id="@Model.InputId"
+                                           name="@Model.ResolvedInputName"
+                                           value="@Model.DefaultValue"
+                                           placeholder="@Model.Placeholder"
+                                           readonly="@Model.IsReadonly"
+                                           disabled="@Model.IsDisabled"
+                                           autofocus="@Model.AutoFocus"
+                                           style="@Model.InputStyle"
+                                           data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
+                                }
+                                <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-1"></i>
+                            }
+                            @Model.LabelText
+                            @if (Model.IsRequired)
+                            {
+                                <span class="text-danger fs-6 fw-medium">*</span>
+                            }
+                        </label>
+
+                        @if (needsActionColumn)
+                        {
+                            <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                <div class="input-group input-group-sm flex-grow-1">
+                                    <input type="text"
+                                           class="@Model.ResolvedInputCss @Model.ResolvedDatepickerClass @Model.JsEventClass"
+                                           id="@Model.InputId"
+                                           name="@Model.ResolvedInputName"
+                                           value="@Model.DefaultValue"
+                                           placeholder="@(string.IsNullOrWhiteSpace(Model.Placeholder) ? "dd/mm/yyyy" : Model.Placeholder)"
+                                           readonly="@Model.IsReadonly"
+                                           disabled="@Model.IsDisabled"
+                                           autofocus="@Model.AutoFocus"
+                                           style="@Model.InputStyle"
+                                           data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
+                                </div>
+                                @if (Model.ShowCopyIcon)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                            data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                }
+                                else if (Model.ShowQuickAdd)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                            data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget"
+                                            data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"
+                                            disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                            tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="text"
+                                   class="@Model.ResolvedInputCss @Model.ResolvedDatepickerClass @Model.JsEventClass w-100"
+                                   id="@Model.InputId"
+                                   name="@Model.ResolvedInputName"
+                                   value="@Model.DefaultValue"
+                                   placeholder="@Model.Placeholder"
+                                   readonly="@Model.IsReadonly"
+                                   disabled="@Model.IsDisabled"
+                                   autofocus="@Model.AutoFocus"
+                                   style="@Model.InputStyle"
+                                   data-error-target="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))" />
+                        }
+                        <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                    }
+                }
+
+                @* ============ TEXTAREA ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Textarea)
+                {
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                                    {
+                                        <i class="@Model.IconClass me-1"></i>
+                                    }
+                                    @Model.LabelText
+                                    @if (Model.IsRequired)
+                                    {
+                                        <sup class="text-danger required-star">*</sup>
+                                    }
+                                </label>
+                            </div>
+                            <div class="col-@fieldCol">
+                                @if (needsActionColumn)
+                                {
+                                    <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                        <textarea class="@Model.ResolvedInputCss @Model.JsEventClass flex-grow-1"
+                                                  id="@Model.InputId" name="@Model.ResolvedInputName"
+                                                  rows="@Model.Rows" placeholder="@Model.Placeholder"
+                                                  readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                                  maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
+                                        @if (Model.ShowCopyIcon)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                                    data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        }
+                                        else if (Model.ShowQuickAdd)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                                    data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget"
+                                                    data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"
+                                                    disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                                    tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <textarea class="@Model.ResolvedInputCss @Model.JsEventClass w-100"
+                                              id="@Model.InputId" name="@Model.ResolvedInputName"
+                                              rows="@Model.Rows" placeholder="@Model.Placeholder"
+                                              readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                              maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
+                                }
+                                <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-1"></i>
+                            }
+                            @Model.LabelText
+                            @if (Model.IsRequired)
+                            {
+                                <span class="text-danger fs-6 fw-medium">*</span>
+                            }
+                        </label>
+
+                        @if (needsActionColumn)
+                        {
+                            <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                <textarea class="@Model.ResolvedInputCss @Model.JsEventClass flex-grow-1"
+                                          id="@Model.InputId" name="@Model.ResolvedInputName"
+                                          rows="@Model.Rows" placeholder="@Model.Placeholder"
+                                          readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                          maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
+                                @if (Model.ShowCopyIcon)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                            data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                }
+                                else if (Model.ShowQuickAdd)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                            data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget"
+                                            data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"
+                                            disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                            tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <textarea class="@Model.ResolvedInputCss @Model.JsEventClass w-100"
+                                      id="@Model.InputId" name="@Model.ResolvedInputName"
+                                      rows="@Model.Rows" placeholder="@Model.Placeholder"
+                                      readonly="@Model.IsReadonly" disabled="@Model.IsDisabled"
+                                      maxlength="@Model.MaxLength" style="@Model.InputStyle">@Model.DefaultValue</textarea>
+                        }
+                        <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                    }
+                }
+
+                @* ============ SELECT / MULTISELECT / QUICKADD SELECT ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Select ||
+                         Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect ||
+                         Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.QuickAddSelect)
+                {
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                                    {
+                                        <i class="@Model.IconClass me-1"></i>
+                                    }
+                                    @Model.LabelText
+                                    @if (Model.IsRequired)
+                                    {
+                                        <sup class="text-danger required-star">*</sup>
+                                    }
+                                </label>
+                            </div>
+                            <div class="col-@fieldCol">
+                                @if (needsActionColumn)
+                                {
+                                    <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                        <div class="input-group input-group-sm flex-grow-1">
+                                            @if (!string.IsNullOrEmpty(Model.PrependText))
+                                            {
+                                                <span class="input-group-text">@Model.PrependText</span>
+                                            }
+                                            <select class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                                    id="@Model.InputId" name="@Model.ResolvedInputName"
+                                                    data-placeholder="@Model.Placeholder"
+                                                    data-ajax-url="@Model.AjaxSourceUrl"
+                                                    data-depends-on="@Model.DependsOnFieldId"
+                                                    data-table-view="@(Model.CustomAttributes != null && Model.CustomAttributes.ContainsKey("table-view") ? Model.CustomAttributes["table-view"] : "")"
+                                                    multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
+                                                    disabled="@Model.IsDisabled"
+                                                    style="@Model.InputStyle"
+                                                    asp-items="Model.SelectItems">
+                                                <option value="">@Model.Placeholder</option>
+                                            </select>
+                                        </div>
+                                        @if (Model.ShowCopyIcon)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                                    data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        }
+                                        else if (Model.ShowQuickAdd)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                                    data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget"
+                                                    data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"
+                                                    disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                                    tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="input-group input-group-sm w-100">
+                                        @if (!string.IsNullOrEmpty(Model.PrependText))
+                                        {
+                                            <span class="input-group-text">@Model.PrependText</span>
+                                        }
+                                        <select class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                                id="@Model.InputId" name="@Model.ResolvedInputName"
+                                                data-placeholder="@Model.Placeholder"
+                                                data-ajax-url="@Model.AjaxSourceUrl"
+                                                data-depends-on="@Model.DependsOnFieldId"
+                                                multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
+                                                disabled="@Model.IsDisabled"
+                                                style="@Model.InputStyle"
+                                                asp-items="Model.SelectItems">
+                                            <option value="">@Model.Placeholder</option>
+                                        </select>
+                                    </div>
+                                }
+                                <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                            @if (!string.IsNullOrEmpty(Model.IconClass))
+                            {
+                                <i class="@Model.IconClass me-1"></i>
+                            }
+                            @Model.LabelText
+                            @if (Model.IsRequired)
+                            {
+                                <span class="text-danger fs-6 fw-medium">*</span>
+                            }
+                        </label>
+
+                        @if (needsActionColumn)
+                        {
+                            <div class="d-flex flex-nowrap align-items-stretch gap-2 field-fixed-width">
+                                <div class="input-group input-group-sm flex-grow-1">
+                                    @if (!string.IsNullOrEmpty(Model.PrependText))
+                                    {
+                                        <span class="input-group-text">@Model.PrependText</span>
+                                    }
+                                    <select class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                            id="@Model.InputId" name="@Model.ResolvedInputName"
+                                            data-placeholder="@Model.Placeholder"
+                                            data-ajax-url="@Model.AjaxSourceUrl"
+                                            data-depends-on="@Model.DependsOnFieldId"
+                                            multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
+                                            disabled="@Model.IsDisabled"
+                                            style="@Model.InputStyle"
+                                            asp-items="Model.SelectItems">
+                                        <option value="">@Model.Placeholder</option>
+                                    </select>
+                                </div>
+                                @if (Model.ShowCopyIcon)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-copy-value"
+                                            data-target="#@Model.InputId" title="Copy" disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                }
+                                else if (Model.ShowQuickAdd)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn js-quick-add"
+                                            data-url="@Model.QuickAddUrl" data-target="@Model.QuickAddTarget"
+                                            data-reload-url="@Model.QuickAddReloadUrl" data-title="@Model.QuickAddTitle"
+                                            disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-outline-secondary detached-action-btn invisible-placeholder-btn"
+                                            tabindex="-1" aria-hidden="true" disabled="@(Model.IsActionDisabled)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="input-group input-group-sm w-100">
+                                @if (!string.IsNullOrEmpty(Model.PrependText))
+                                {
+                                    <span class="input-group-text">@Model.PrependText</span>
+                                }
+                                <select class="@Model.ResolvedInputCss @Model.JsEventClass"
+                                        id="@Model.InputId" name="@Model.ResolvedInputName"
+                                        data-placeholder="@Model.Placeholder"
+                                        data-ajax-url="@Model.AjaxSourceUrl"
+                                        data-depends-on="@Model.DependsOnFieldId"
+                                        data-table-view="@(Model.CustomAttributes != null && Model.CustomAttributes.ContainsKey("table-view") ? Model.CustomAttributes["table-view"] : "")"
+                                        multiple="@(Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.MultiSelect || Model.IsMultiple)"
+                                        disabled="@Model.IsDisabled"
+                                        style="@Model.InputStyle"
+                                        asp-items="Model.SelectItems">
+                                    <option value="">@Model.Placeholder</option>
+                                </select>
+                            </div>
+                        }
+                        <span class="text-danger field-validation" id="@(Model.ValidationMessageId ?? (Model.InputId + "-error"))"></span>
+                    }
+                }
+
+                @* ============ CHECKBOX ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Checkbox)
+                {
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <label class="@labelClass" for="@Model.InputId" title="@Model.Tooltip" style="@Model.LabelStyle">
+                                    @if (!string.IsNullOrEmpty(Model.IconClass))
+                                    {
+                                        <i class="@Model.IconClass me-1"></i>
+                                    }
+                                    @Model.LabelText
+                                    @if (Model.IsRequired)
+                                    {
+                                        <sup class="text-danger required-star">*</sup>
+                                    }
+                                </label>
+                            </div>
+                            <div class="col-@fieldCol">
+                                <div class="form-check m-0 d-flex align-items-center p-0">
+                                    <input type="checkbox"
+                                           class="form-check-input @Model.JsEventClass @Model.InputCssClass m-0"
+                                           id="@Model.InputId"
+                                           name="@Model.ResolvedInputName"
+                                           checked="@Model.CheckedState"
+                                           disabled="@Model.IsDisabled"
+                                           style="@Model.InputStyle; cursor:pointer;" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-check mt-4">
+                            <input type="checkbox"
+                                   class="form-check-input @Model.JsEventClass @Model.InputCssClass"
+                                   id="@Model.InputId"
+                                   name="@Model.ResolvedInputName"
+                                   checked="@Model.CheckedState"
+                                   disabled="@Model.IsDisabled"
+                                   style="@Model.InputStyle" />
+                            <label class="form-check-label @Model.LabelCssClass" for="@Model.InputId" style="@Model.LabelStyle">
+                                @Model.LabelText
+                                @if (Model.IsRequired)
+                                {
+                                    <span class="text-danger fs-6 fw-medium">*</span>
+                                }
+                            </label>
+                        </div>
+                    }
+                }
+
+                @* ============ RADIO ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.Radio && Model.RadioOptions != null)
+                {
+                    <label class="@labelClass" title="@Model.Tooltip" style="@Model.LabelStyle">
+                        @Model.LabelText
+                        @if (Model.IsRequired)
+                        {
+                            <span class="text-danger fs-6 fw-medium">*</span>
+                        }
+                    </label>
+                    <div class="d-flex gap-3 mt-1">
+                        @foreach (var opt in Model.RadioOptions)
+                        {
+                            <div class="form-check">
+                                <input type="radio"
+                                       class="form-check-input @Model.JsEventClass @Model.InputCssClass"
+                                       name="@(Model.GroupName ?? Model.ResolvedInputName)"
+                                       id="@(Model.InputId + "_" + opt.Value)"
+                                       value="@opt.Value"
+                                       checked="@opt.Selected"
+                                       disabled="@Model.IsDisabled"
+                                       style="@Model.InputStyle" />
+                                <label class="form-check-label" for="@(Model.InputId + "_" + opt.Value)" style="@Model.LabelStyle">@opt.Text</label>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* ============ READONLY DISPLAY ============ *@
+                else if (Model.FieldType == GCTL.UI.Core.ViewModels.FieldType.ReadonlyDisplay)
+                {
+                    @if (Model.LabelInline)
+                    {
+                        <div class="row align-items-center gx-2">
+                            <div class="col-@labelCol @Model.LabelColumnClass">
+                                <span class="fw-semibold @Model.LabelCssClass" style="@Model.LabelStyle">@Model.LabelText</span>
+                            </div>
+                            <div class="col-@fieldCol">
+                                <span id="@Model.InputId" class="text-muted" style="@Model.InputStyle">@Model.DefaultValue</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-semibold @Model.LabelCssClass" style="@Model.LabelStyle">@Model.LabelText</span>
+                            <span id="@Model.InputId" class="text-muted" style="@Model.InputStyle">@Model.DefaultValue</span>
+                        </div>
+                    }
+                }
+
+                @if (!string.IsNullOrEmpty(Model.HelpText))
+                {
+                    <small class="text-muted d-block mt-1">@Model.HelpText</small>
+                }
+            }
+        </div>
+    }
+
+    <style>
+        .detached-action-btn {
+            width: 38px;
+            flex-shrink: 0;
+            border-radius: .375rem !important;
+            padding: 3px 12px !important;
+        }
+
+        .invisible-placeholder-btn {
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .field-fixed-width {
+            min-width: 0 !important;
+            max-width: 100%;
+        }
+
+            .field-fixed-width .flex-grow-1 {
+                min-width: 0;
+            }
+    </style>

@@ -1,0 +1,110 @@
+﻿@model GCTL.Core.ViewModels.Relationship.RelationshipSetupViewModel
+@using GCTL.UI.Core.ViewModels
+
+<div style="padding-top: 10px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <input type="hidden" id="lastCode" />
+        <input type="hidden" asp-for="AutoId" />
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Ldate" />
+        <input type="hidden" asp-for="ModifyDate" />
+
+        @* ---------- Relationship Code (readonly) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "RelationshipCode",
+            LabelText = "Relationship Code",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-RelationshipCode-code",
+            DefaultValue = Model?.RelationshipCode
+        })
+
+        @* ---------- Relationship ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Relationship",
+            LabelText = "Relationship",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Relationship",
+            IsRequired = true,
+            CustomCssClass = "js-Relationship-check-duplicateName",
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            DefaultValue = Model.Relationship,
+            AutoFocus = true
+        })
+    </div>
+
+    <div class="form-group row">
+
+        @* ---------- Short Name ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ShortName",
+            LabelText = "ShortName",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter ShortName",
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            DefaultValue = Model.ShortName
+        })
+    </div>
+
+    @if (Model.AutoId > 0)
+    {
+        <hr />
+        <div class="form-group row" id="LdateModifyHide">
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
+            })
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
+            })
+
+        </div>
+    }
+
+</div>
+
+<div class="row no-print" style="margin-top: 9px;">
+    <div class="col-12">
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-Relationships-save",
+           Style="border-bottom:0px !important;"
+        })
+    </div>
+</div>

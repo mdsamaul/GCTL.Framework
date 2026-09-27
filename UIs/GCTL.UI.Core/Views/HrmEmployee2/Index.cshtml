@@ -1,0 +1,130 @@
+@model GCTL.UI.Core.ViewModels.HrmEmployees2.HrmEmployee2PageViewModel
+ @{
+    ViewBag.Title = "Employee Information List";
+    Model.PageTitle = ViewBag.Title;
+    Model.Breadcrumb = "Employee Information System";
+}
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .custom-file-upload {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+
+        .custom-file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+    .file-name-display {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .card-header h6 {
+        font-size: 1rem;
+    }
+
+    .form-label.small {
+        font-size: 13px;
+    }
+
+    .btn-sm {
+        font-size: 13px;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .bi {
+        font-size: 13px;
+    }
+
+    .progress {
+        font-size: 13px;
+    }
+    @@media (min-width: 1400px) {
+        .custom-lg-9
+
+    {
+        flex: 0 0 auto;
+        width: 75%;
+    }
+
+    }
+
+</style>
+
+<section class="content px-2">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="js-HrmEmployee2-grid-container">
+                    @await Html.PartialAsync("_Grid", Model.ListTableData)
+                </div>
+            </div>
+        </div>
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+
+<partial name="DeleteModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/hrmEmployee2.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+        window.gctlRenderers = window.gctlRenderers || {};
+
+        window.gctlRenderers.hrmEmpName = function (data, type, row) {
+            var name = (row.firstName || '') + ' ' + (row.lastName || '');
+            return '<span class="target-text">' + name + '</span>';
+        };
+
+        window.gctlRenderers.hrmEmpNameBn = function (data, type, row) {
+            var nameBn = (row.firstNameBangla || '') + ' ' + (row.lastNameBangla || '');
+            return '<span class="target-text">' + nameBn + '</span>';
+        };
+
+        window.gctlRenderers.hrmEmpPhoto = function (data, type, row) {
+            return row.photoUrl
+                ? '<img src="' + row.photoUrl + '" class="rounded-circle" height="40" width="40" />'
+                : '<div style="height:40px;width:40px;"></div>';
+        };
+
+        window.gctlRenderers.hrmEmpActions = function (data, type, row) {
+            var fullName = (row.firstName || '') + ' ' + (row.lastName || '');
+            return '<a title="Edit ' + fullName + '" class="btn btn-sm text-primary px-1" href="/HrmEmployee2/Setup?id=' + row.employeeId + '">' +
+                '<i class="fas fa-pencil-alt"></i></a>' +
+                '<button type="button" title="Delete ' + fullName + '" class="btn btn-sm text-danger px-1 js-HrmEmployee2-delete-confirm" data-id="' + row.employeeId + '">' +
+                '<i class="fas fa-trash"></i></button>';
+        };
+
+        $(document).ready(function () {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'HrmEmployee2-grid' });
+            }
+
+            var options = {
+                baseUrl: '@Url.Action("", "HrmEmployee2")'
+            };
+            options.load = function () {};
+
+            $.hrmEmployee2(options);
+        });
+    </script>
+}
+

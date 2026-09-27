@@ -6,72 +6,71 @@
     Model.Breadcrumb = "Payment Type";
 }
 
-<style>
-    .dataTables_filter {
-        margin-right: 0px;
-    }
-</style>
-
 <!-- Content Header (Page header) -->
 <partial name="_PageHeader" model="Model" />
 
 <section class="content consistent-look">
-    <div class="container-fluid">
-        <div class="row">
+    <div class="">
+        <div class="row g-2">
 
-            <div class="col-md-6 pr-0">
-                <div class="card">
-                    <div class="card-header px-2">
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
                         @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
                         {
                             Title = "Payment Type",
+                            SaveBtnClass = "js-paymenttype-save",
+                            DeleteBtnClass = "js-paymenttype-delete-confirm",
+                            ClearBtnClass = "js-paymenttype-clear"
                         })
                     </div>
                     <div class="card-body px-2">
-
-                        <form asp-action="Setup" method="post" id="PaymentType-form" asp-controller="PaymentType">
-
-                            <div class="js-PaymentType-form-container">
+                        <form asp-action="Setup" method="post" id="paymenttype-form" asp-controller="PaymentType">
+                            <div class="js-paymenttype-form-container">
                                 <partial name="_Setup" model="Model.Setup" />
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6" style="height:570px;overflow:auto;">
-                <div class="card">
-                    <div class="card-body p-2 pt-3">
-                        <div class="js-PaymentType-grid-container">
-                            @await Html.PartialAsync("_Grid", Model.PaymentList)
-                        </div>
-                    </div>
-                </div>
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "paymentTypeTable",
+                    AjaxUrl = "/PaymentType/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "paymentTypeId",
+                    CheckAllId = "paymenttype-check-all",
+                    DefaultSortColumn = "paymentTypeId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "paymentTypeId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-paymenttype-edit" },
+                        new() { Data = "paymentType", Header = "Payment Type Name", Width = "55%"},
+                        new() { Data = "shortName", Header = "Short Name", Width = "35%"}
+                    }
+                })
             </div>
 
-
         </div>
-
-
         <partial name="_BottomNavigation" />
     </div>
 </section>
+
 <partial name="DeleteModal" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="~/js/pages/paymentType.js"></script>
-    <script type="text/javascript">
-        var options = {
-            baseUrl: '@Url.Action("", "PaymentType")'
-        };
-        options.load = () => {
-        };
-
-        $.paymentType(options);
+    <script src="~/js/pages/paymentType.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.paymentType({
+                baseUrl: '/PaymentType'
+            });
+        });
     </script>
 }
-

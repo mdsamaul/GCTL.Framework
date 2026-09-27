@@ -1,4 +1,5 @@
-﻿@model GCTL.Core.ViewModels.BloodGroups.BloodGroupSetupViewModel
+@model GCTL.Core.ViewModels.BloodGroups.BloodGroupSetupViewModel
+@using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
     <div class="row">
@@ -8,55 +9,102 @@
         <div class="col-lg-6">
         </div>
     </div>
+
     <div class="form-group row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
         <input type="hidden" id="lastCode" />
         <input type="hidden" asp-for="Tc" />
+        <input type="hidden" asp-for="AutoId" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <div class="col-lg-6">
-            <label asp-for="BloodGroupCode">Blood Group Id</label>
-            <div class="input-group input-group-sm">
-                <input asp-for="BloodGroupCode" class="form-control form-control-sm js-bloodgroup-code" readonly="readonly" />
-            </div>
-        </div>
+
+        @* ---------- Blood Group Id (readonly) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "BloodGroupCode",
+            LabelText = "Blood Group Id",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-lg-6",
+            CustomCssClass = "js-bloodgroup-code",
+            DefaultValue = Model?.BloodGroupCode
+        })
     </div>
+
     <div class="form-group row">
-        <div class="col-lg-6">
-            <label asp-for="BloodGroup">Blood Group</label>
-            <span class="text-danger">*</span>
-            <input asp-for="BloodGroup" class="form-control form-control-sm js-bloodgroup-check-availability" placeholder="Enter Blood Group" />
-            <span asp-validation-for="BloodGroup" class="text-danger" />
-        </div>
-        <div class="col-lg-6">
-            <label asp-for="BanglaBloodGroup"></label>
-            <input asp-for="BanglaBloodGroup" class="form-control form-control-sm" placeholder="Enter Blood Group (বাংলা)" />
-        </div>
+
+        @* ---------- Blood Group ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "BloodGroup",
+            LabelText = "Blood Group",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Blood Group",
+            IsRequired = true,
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            CustomCssClass = "js-bloodgroup-check-availability",
+            DefaultValue = Model.BloodGroup,
+            AutoFocus = true
+        })
+
+        @* ---------- Blood Group (বাংলা) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "BanglaBloodGroup",
+            LabelText = "Blood Group (বাংলা)",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Blood Group (বাংলা)",
+            ColumnClass = "col-lg-6",
+            ReserveActionSlot = false,
+            DefaultValue = Model.BanglaBloodGroup
+        })
     </div>
-    @if (Model.Tc > 0)
+
+    @if (Model.AutoId > 0 || Model.Tc > 0)
     {
         <hr />
-        <div class="form-group row">
-            <div class="col-lg-6">
-                @if (Model.Ldate.HasValue)
-                {
-                    <label>Creation Date: </label>
-                    <label>@Model.Ldate.Value.ToString()</label>
-                }
-            </div>
-            <div class="col-lg-6">
-                @if (Model.ModifyDate.HasValue)
-                {
-                    <label>Last Update Date: </label>
-                    <label>@Model.ModifyDate.Value.ToString()</label>
-                }
-            </div>
+        <div class="form-group row" id="LdateModifyHide">
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
+            })
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-lg-6",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
+            })
+
         </div>
     }
 </div>
+
 <div class="row no-print" style="margin-top: 9px;">
     <div class="col-12">
-        <button class="btn btn-default success-btn btn-common btn-circle float-right js-bloodgroup-save" type="button">
-            <i class="fas fa-save">&nbsp;</i> Save
-        </button>
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-bloodgroup-save",
+            ReserveActionSlot = true,
+           Style="border-bottom:0px !important;"
+        })
     </div>
 </div>

@@ -1,14 +1,20 @@
-﻿    <div class="row g-2">
-        <div class="col-6" id="expenseForm">
-        @await Html.PartialAsync("ExpenseForm")
-        </div>
-        <div class="col-6" id="expenseList">
-        @await Html.PartialAsync("ExpenseList")
+<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+            <div class="col-12" id="expenseFormContainer">
+                @await Html.PartialAsync("ExpenseForm")
+            </div>
+            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 mt-3" id="expenseList">
+                @await Html.PartialAsync("ExpenseList")
+            </div>
         </div>
     </div>
+</section>
+
+<partial name="DeleteModal" />
+
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="~/js/pages/ExpenseHead.js"></script>
+    <script src="~/js/pages/ExpenseHead.js" asp-append-version="true"></script>
 }
+

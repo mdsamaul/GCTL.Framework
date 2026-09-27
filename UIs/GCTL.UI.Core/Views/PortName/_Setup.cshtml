@@ -1,0 +1,125 @@
+@model GCTL.Core.ViewModels.PortName.PortNameSetupViewModel
+@using GCTL.UI.Core.ViewModels
+
+<div style="padding-top: 10px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <span id="message"></span>
+        </div>
+        <div class="col-lg-6">
+        </div>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <input type="hidden" id="lastCode" />
+    <input type="hidden" asp-for="Tc" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Ldate" />
+    <input type="hidden" asp-for="ModifyDate" />
+
+    @* ---------- Row 1: ID (readonly) & Port Type (Select + Quick Add) ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "PortNameId",
+            LabelText = "ID",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
+            CustomCssClass = "js-PortNameId-code",
+            DefaultValue = Model?.PortNameId
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "PortId",
+            LabelText = "Port Type",
+            FieldType = FieldType.Select,
+            Placeholder = "-- Select Port Type --",
+            SelectItems = ViewBag.PortTypeDD as SelectList,
+            IsRequired = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
+            ShowQuickAdd = true,
+            QuickAddUrl = Url.Action("Index", "PortType"),
+            QuickAddTarget = "#PortId",
+            QuickAddReloadUrl = Url.Action("GetPortTypes", "Cascading"),
+            QuickAddTitle = "Port Type"
+        })
+    </div>
+
+    @* ---------- Row 2: Port Name & Short Name ---------- *@
+    <div class="row g-4 mb-1">
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "PortName",
+            LabelText = "Port Name",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Port Name",
+            IsRequired = true,
+            AutoFocus = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
+            DefaultValue = Model?.PortName
+        })
+
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "ShortName",
+            LabelText = "Short Name",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Short Name",
+            ReserveActionSlot = false,
+            ColumnClass = "col-12 col-sm-6 pn-field-col",
+            DefaultValue = Model?.ShortName
+        })
+    </div>
+
+    @if (Model.Tc > 0)
+    {
+        <hr class="my-2" />
+        <div class="row g-4 mb-1" id="LdateModifyHide">
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-12 col-sm-6 pn-field-col",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate.HasValue ? Model.Ldate?.ToString("dd/MM/yyyy") : ""
+            })
+
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-12 col-sm-6 pn-field-col",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate.HasValue ? Model.ModifyDate?.ToString("dd/MM/yyyy") : ""
+            })
+
+        </div>
+    }
+
+</div>
+
+<div class="row g-4 no-print" style="margin-top: 9px;">
+    <div class="col-12 pn-toolbar-col">
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-PortName-save",
+            ReserveActionSlot = true,
+            Style = "border-bottom:0px !important;"
+        })
+    </div>
+</div>

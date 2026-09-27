@@ -1,0 +1,128 @@
+<style>
+    /* Table Header Styling */
+    .table thead th {
+        font-size: 13px;
+        color: #212529;
+        background-color: #f8f9fa !important;
+        font-weight: 700 !important; /* Bold Headers */
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+
+    /* Remove Pagination Focus Outline */
+    .page-link:focus {
+        box-shadow: none;
+    }
+
+    /* Custom Scrollbar for better look */
+    .table-responsive::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 10px;
+    }
+
+    #Requisition-body td:nth-child(6) {
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+</style>
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "bottomGrid",
+    AjaxUrl = "/OFRApproval/GetAllRequisitionForTopGrid",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "jobNo",
+    CheckAllId = "bottom-selectAll",
+    RadioName = "jobSelect",
+    DefaultSortColumn = "ofrNo",
+    DefaultSortDirection = "desc",
+    Bordered = true,
+    CustomGridWrapper = false,
+    Columns = new()
+    {
+        new() { Data = "ofrNo", Header = "OFR No", Width = "12%", IsEditLink=true, IdField="ofrNo", EditSelectorClass="job-no ofr-no-link text-decoration-underline", IsWrapable = false, IsCopyable = true },
+        new() { Data = "ofrDate", Header = "OFR Date", Width = "12%", RenderFn = "formatDate" },
+        new() { Data = "jobNo", Header = "Job No", Width = "12%", Align="left", IsWrapable = false, IsCopyable = true },
+        new() { Data = "customerName", Header = "Customer Name", Width = "20%", Align="left" },
+        new() { Data = "billingAddress", Header = "Billing Address", Width = "24%", Align = "left" },
+        new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "20%" }
+    }
+}) 
+@* 
+<div class="container-fluid py-0">
+    <fieldset class="border rounded p-3 bg-white shadow-sm">
+
+        <div class="row mb-3 align-items-center">
+            <div class="col-sm-6 d-flex align-items-center" style="font-size:13px;">
+                <span class="text-black fw-bold text-muted me-1">Show</span>
+                <select class="form-select form-select-sm mx-1" style="width: 80px !important;" id="bottom-PageSize">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="-1">All</option>
+                </select>
+                <span class="text-black fw-bold text-muted ms-1">Entries</span>
+            </div>
+
+            <div class="col-sm-6 d-flex justify-content-sm-end mt-2 mt-sm-0">
+                <div class="d-flex align-items-center">
+                    <label class="me-2 mb-0 small fw-bold">Search:</label>
+                    <input type="search" class="form-control form-control-sm" placeholder="Search here.." style="width: 250px;" id="bottom-Search">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive border rounded">
+            <table class="table table-sm table-bordered table-hover mb-0 text-nowrap" id="bottomGrid">
+                <thead class="table-light sticky-top" style="z-index: 1;">
+                    <tr class="align-middle">
+                        <th class="text-center fw-bold py-1">
+                            <div class="d-flex flex-column align-items-center justify-content-center">
+                                <span class="mb-1">Sel</span>
+                                <input type="checkbox" class="form-check-input m-0 shadow-none" id="bottom-selectAll">
+                            </div>
+                        </th>
+                        <th class="px-1 fw-bold" data-column="JobNo">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span>Job No</span>
+                                <i class="fas fa-sort sort-icon ms-1"></i>
+                            </div>
+                        </th>
+                        <th class="px-1 fw-bold" data-column="CustomerName">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span>Customer Name</span>
+                                <i class="fas fa-sort sort-icon ms-1"></i>
+                            </div>
+                        </th>
+                        <th class="px-1 fw-bold" data-column="ShipmentMode">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span>Shipment Mode</span>
+                                <i class="fas fa-sort sort-icon ms-1"></i>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="bottom-body">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-3 align-items-center">
+            <div class="col-sm-6 text-center text-sm-start mb-2 mb-sm-0">
+                <small class="text-muted bottom-message"></small>
+            </div>
+            <div class="col-sm-6">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0 justify-content-center justify-content-sm-end" id="bottom-Pagination">
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </fieldset>
+</div> *@

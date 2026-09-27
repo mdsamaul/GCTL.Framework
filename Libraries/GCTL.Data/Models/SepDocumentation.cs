@@ -188,4 +188,16 @@ public partial class SepDocumentation
     public decimal? AssessableValue { get; set; }
 
     public string InvoiceCurrencyId { get; set; }
+
+    public DateTime? FinalIgmRecDate { get; set; }
+
+    public DateTime? DocsBankSignDate { get; set; }
+
+    public DateTime? ArrivalNoticeDate { get; set; }
+
+    public string Term { get; set; }
+
+    public string VesselName { get; set; }
+
+    public string FreightForwarderPhoneNo { get; set; }
 }

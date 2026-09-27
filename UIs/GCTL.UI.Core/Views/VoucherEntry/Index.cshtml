@@ -1,0 +1,744 @@
+@{
+    ViewBag.Title = "Voucher Entry";
+}
+<style>
+    .form-floating .selectLabel {
+        font-size: 14px !important;
+    }
+
+    .form-floating label {
+        text-transform: none;
+        font-size: 13px;
+    }
+
+    .VoucherEntrysaveBtn:hover {
+        color: darkgreen !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherEntrydeleteBtn:hover {
+        color: red !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherEntryresetBtn:hover {
+        color: lightgoldenrodyellow !important;
+        background-color: lightgray !important;
+    }
+
+    .printBtn:hover {
+        color: blue !important;
+        background-color: lightgray !important;
+    }
+
+    .VoucherEntryfavBtn:hover {
+        color: orangered !important;
+        background-color: lightgray !important;
+    }
+
+    #button-div button {
+        padding: 8px 6px;
+        width: 80px;
+    }
+
+    /* CSS for error styling */
+    .border-error {
+        border: 1px solid red !important;
+    }
+
+    .row.border {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+    }
+
+    .btn-sm {
+        margin-top: 8px;
+    }
+
+    .ledger-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 3px;
+        font-size: 12.5px;
+    }
+
+    .ledger-label {
+        font-weight: 500;
+        color: #3e4855;
+        white-space: nowrap;
+        padding-right: 6px;
+    }
+
+    .ledger-value {
+        color: #212529;
+        font-weight: 400;
+        word-break: break-word;
+    }
+
+    .voucher-entry-table thead th {
+        background-color: #f8f9fa;
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .voucher-entry-table tbody td {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .detailsicon {
+        border: none;
+        cursor: pointer;
+        background-color: white;
+    }
+
+        .detailsicon:hover {
+            color: #007bff;
+        }
+
+    /* Uniform height, width and compact styling for all inputs, selects, and datepickers */
+    #VoucherEntry-form .form-control,
+    #VoucherEntry-form .form-select,
+    #VoucherEntry-form .custom-datepicker,
+    #VoucherEntry-form input[type="text"],
+    #VoucherEntry-form input[type="number"] {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        font-size: 13px !important;
+        /* padding: 3px 8px !important; */
+        line-height: 1.5 !important;
+        border-color: #cbd0dd !important;
+        border-radius: 4px !important;
+        box-sizing: border-box !important;
+        /* width: 100% !important; */
+    }
+
+    #VoucherEntry-form textarea#Narration {
+        height: 31px !important;
+        min-height: 31px !important;
+        font-size: 13px !important;
+        padding: 4px 8px !important;
+        line-height: 1.4 !important;
+        border-color: #cbd0dd !important;
+        border-radius: 4px !important;
+        resize: vertical;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    /* Select2 container matching 100% width and 31px height */
+    #VoucherEntry-form .select2-container {
+        width: 100% !important;
+        height: 31px !important;
+    }
+
+    #VoucherEntry-form .select2-container .select2-selection--single {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 8px !important;
+        border: 1px solid #cbd0dd !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+    }
+
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__rendered {
+        line-height: 29px !important;
+        height: 29px !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        color: #333 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__placeholder {
+        line-height: 29px !important;
+        font-size: 13px !important;
+        color: #8a9bb8 !important;
+    }
+
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 29px !important;
+        top: 0 !important;
+        right: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 !important;
+    }
+
+    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__arrow b {
+        margin-top: 0 !important;
+    }
+
+    /* Input group alignment inside form */
+    #VoucherEntry-form .input-group,
+    #VoucherEntry-form .input-group-sm {
+        width: 100% !important;
+        height: 31px !important;
+        flex-wrap: nowrap !important;
+    }
+
+    #VoucherEntry-form .input-group > .select2-container {
+        flex: 1 1 auto !important;
+        width: 1% !important;
+    }
+
+    /* =========================================================
+       Screen Responsive Control Layout:
+       - Labels & Inputs Side-by-Side (Inline) for all screens
+       - Label: 25% width (right-aligned) so all controllers start at the exact same vertical line
+       - Narration: 12.5% label + 87.5% input (starts at exact same line and ends with right controller)
+       ========================================================= */
+    #VoucherEntry-form .voucher-section {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    #VoucherEntry-form .row.align-items-center {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+
+    #VoucherEntry-form .row.align-items-center > [class*="col-3"],
+    #VoucherEntry-form .row.align-items-center > .col-3 {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        text-align: right !important;
+        padding-right: 6px !important;
+    }
+
+    #VoucherEntry-form .row.align-items-center > [class*="col-9"],
+    #VoucherEntry-form .row.align-items-center > .col-9 {
+        flex: 0 0 75% !important;
+        max-width: 75% !important;
+    }
+
+    #VoucherEntry-form .form-label {
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        margin-bottom: 0 !important;
+        color: #3e4855 !important;
+        padding-right: 4px !important;
+    }
+
+    .ledger-row {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+
+    .ledger-label {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        text-align: right !important;
+        padding-right: 6px !important;
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        color: #3e4855 !important;
+        white-space: nowrap !important;
+    }
+
+    .ledger-value {
+        flex: 0 0 75% !important;
+        max-width: 75% !important;
+        text-align: left !important;
+        font-size: 12.5px !important;
+        color: #212529 !important;
+    }
+
+    #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-3"],
+    #VoucherEntry-form .narration-col .row.align-items-center > .col-3 {
+        flex: 0 0 12.5% !important;
+        max-width: 12.5% !important;
+        text-align: right !important;
+        padding-right: 6px !important;
+    }
+
+    #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-9"],
+    #VoucherEntry-form .narration-col .row.align-items-center > .col-9 {
+        flex: 0 0 87.5% !important;
+        max-width: 87.5% !important;
+    }
+
+    #VoucherEntry-form .narration-col textarea#Narration {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    @@media (min-width: 1400px) {
+        #VoucherEntry-form .form-label {
+            font-size: 13px !important;
+        }
+
+        .ledger-label,
+        .ledger-value {
+            font-size: 13px !important;
+        }
+    }
+
+    /* Voucher Section & Bar Header (matching screenshot) */
+    .voucher-section {
+        margin-bottom: 8px;
+    }
+
+    .voucher-section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+
+    .voucher-section-bar {
+        display: inline-block;
+        width: 3.5px;
+        height: 16px;
+        background-color: #c48325;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .voucher-section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e3a8a;
+        letter-spacing: 0.2px;
+    }
+
+    .voucher-divider {
+        border: 0 !important;
+        border-top: 1px solid #e9ecef !important;
+        opacity: 0.85 !important;
+        margin-top: 6px !important;
+        margin-bottom: 2px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+    }
+
+    /* Top Toolbar Title Icon Badge (matching screenshot) */
+    .voucher-title-icon-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 26px !important;
+        height: 26px !important;
+        background-color: #fff9eb !important;
+        border: 1px solid #fde68a !important;
+        border-radius: 6px !important;
+        color: #c48325 !important;
+        font-size: 13px !important;
+        margin-right: 8px !important;
+        flex-shrink: 0 !important;
+        box-shadow: 0 1px 2px rgba(196, 131, 37, 0.1) !important;
+    }
+
+    .voucher-title-text {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #1e3a8a !important;
+        letter-spacing: 0.2px !important;
+    }
+
+    .voucher-entry-card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .voucher-entry-card .card-header {
+        border-bottom: none !important;
+    }
+
+    .voucher-entry-card .toolbar-container {
+        border: none !important;
+        box-shadow: none !important;
+        border-bottom: 1px solid #edf2f7 !important;
+        padding-bottom: 4px !important;
+    }
+
+    .voucher-entry-card-body {
+        padding: 4px 16px 12px 16px !important;
+    }
+
+    /* Details Icon Group Compact */
+    .details-icon-group {
+        display: flex;
+        justify-content: end;
+        gap: 8px;
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+        align-content: center;
+    }
+
+    /* Search input right alignment */
+    div.dt-container .dt-layout-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    div.dt-container .dt-layout-end,
+    div.dt-container .dt-search,
+    .dataTables_wrapper .dataTables_filter,
+    .dt-search {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        margin-left: auto !important;
+        float: right !important;
+        text-align: right !important;
+    }
+
+    div.dt-container .dt-search input,
+    .dataTables_wrapper .dataTables_filter input,
+    .dt-search input {
+        margin-left: auto !important;
+        text-align: left !important;
+    }
+
+    /* =========================================================
+       Responsive Grid Tables - STRICTLY NO HORIZONTAL SCROLL
+       ========================================================= */
+    .grid-no-horizontal-scroll,
+    .table-responsive,
+    .custom-grid-wrapper,
+    div.dt-container,
+    div.dt-container .dt-layout-row,
+    div.dt-container .dt-layout-full {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important; /* Strictly prevents horizontal scrollbar */
+        box-sizing: border-box !important;
+    }
+
+    #VoucherEntryTempGrid,
+    #voucherEntryTable,
+    table.dataTable,
+    .custom-grid-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important; /* Forces columns to strictly fit within 100% */
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    #VoucherEntryTempGrid thead th,
+    #voucherEntryTable thead th {
+        background-color: #f1f4f8 !important;
+        font-size: 12.5px !important;
+        padding: 4px 6px !important;
+        font-weight: 600 !important;
+        color: #2c3e50 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    #VoucherEntryTempGrid tbody td,
+    #voucherEntryTable tbody td {
+        font-size: 12.5px !important;
+        padding: 3px 6px !important;
+        vertical-align: middle !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    #VoucherEntryTempGrid thead th.col-select-cell,
+    #VoucherEntryTempGrid tbody td.col-select-cell,
+    #voucherEntryTable thead th.col-select-cell,
+    #voucherEntryTable tbody td.col-select-cell {
+        width: 45px !important;
+        min-width: 45px !important;
+        text-align: center !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+    }
+
+    .voucher-total-box {
+        background-color: #f8f9fa;
+        padding: 4px 10px !important;
+        border: none !important;
+        border-top: 1px solid #e2e8f0 !important;
+        border-radius: 4px;
+        font-size: 12.5px !important;
+        margin-top: 4px !important;
+    }
+
+    .consistent-look,
+    .content.consistent-look {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
+
+    /* Toolbar Button Effect for Details Action Icons (Add, Cancel, Refresh) */
+    .details-icon-group {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .icon-btn {
+        position: relative !important;
+        width: 32px !important;
+        height: 32px !important;
+        border: 1px solid #dcdfe3 !important;
+        border-radius: 4px !important;
+        background: #fff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        flex-shrink: 0 !important;
+        cursor: pointer !important;
+        overflow: hidden !important;
+        transition: color .3s ease, border-color .3s ease, transform .25s ease, box-shadow .25s ease !important;
+    }
+
+    .icon-btn::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 0 !important;
+        transition: height .3s ease !important;
+        z-index: 0 !important;
+    }
+
+    .icon-btn:hover::before {
+        height: 100% !important;
+    }
+
+    .icon-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,.10) !important;
+    }
+
+    .icon-btn .default-icon,
+    .icon-btn .icon-stack {
+        position: relative !important;
+        z-index: 1 !important;
+        font-size: 20px !important;
+        width: 20px !important;
+        height: 20px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Add button - green */
+    .icon-btn.add {
+        color: #1B873F !important;
+        border-color: #dcdfe3 !important;
+    }
+    .icon-btn.add::before {
+        background: rgba(27, 135, 63, 0.14) !important;
+    }
+    .icon-btn.add:hover {
+        border-color: #1B873F !important;
+    }
+
+    /* Cancel button - red */
+    .icon-btn.cancel {
+        color: #C71F2D !important;
+        border-color: #dcdfe3 !important;
+    }
+    .icon-btn.cancel::before {
+        background: rgba(199, 31, 45, 0.14) !important;
+    }
+    .icon-btn.cancel:hover {
+        border-color: #C71F2D !important;
+    }
+
+    /* Refresh button - clear color (same as top toolbar clear button) */
+    .icon-btn.refresh,
+    .icon-btn.clear {
+        color: #212529 !important;
+        border-color: #dcdfe3 !important;
+    }
+    .icon-btn.refresh::before,
+    .icon-btn.clear::before {
+        background: rgba(33, 37, 41, 0.08) !important;
+    }
+    .icon-btn.refresh:hover,
+    .icon-btn.clear:hover {
+        border-color: #212529 !important;
+    }
+
+    /* Refresh icon stack */
+    .icon-stack {
+        position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .icon-stack .journal-base,
+    .icon-stack .refresh-icon {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 20px !important;
+        line-height: 1 !important;
+    }
+
+    .icon-stack .journal-base {
+        opacity: 0.45 !important;
+    }
+
+    .icon-btn.refresh:hover .refresh-icon {
+        transform: rotate(180deg) scale(1.1) !important;
+        transition: transform 0.35s ease !important;
+    }
+
+    /* Borderless Details Table */
+    #VoucherEntryTempGrid,
+    #VoucherEntryTempGrid.table,
+    #VoucherEntryTempGrid.table-bordered,
+    #VoucherEntryTempGrid th,
+    #VoucherEntryTempGrid td {
+        border: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-top: none !important;
+    }
+
+    #VoucherEntryTempGrid thead th {
+        border-bottom: 1.5px solid #dcdfe3 !important;
+        background-color: #f8fafc !important;
+    }
+
+    #VoucherEntryTempGrid tbody td {
+        border-bottom: 1px solid #edf2f7 !important;
+    }
+
+    #VoucherEntryTempGrid tbody tr:last-child td {
+        border-bottom: none !important;
+    }
+
+    #dateFrom + input.flatpickr-alt-input,
+    #dateTo + input.flatpickr-alt-input {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        font-size: 13px !important;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+
+<section class="content consistent-look container-fuild" style="
+    margin-left: 0px;
+    padding-left: 0px;
+    ">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Top Setup Form Column -->
+            <div class="col-md-12">
+                <div class="card rounded shadow-none border-0 voucher-entry-card">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "<span class=\"voucher-title-icon-badge\"><i class=\"fa-regular fa-file-lines\"></i></span><span class=\"voucher-title-text\">Voucher Entry</span>",
+                            SaveBtnClass = "js-VoucherEntry-save",
+                            DeleteBtnClass = "js-VoucherEntry-delete-confirm",
+                            ClearBtnClass = "js-VoucherEntry-clear",
+                            ShowPrint = true,
+                            PrintBtnId = "btnPrint",
+                            PrintBtnClass = "printBtn",
+                            ExcelBtnClass = "export-excel",
+                            PdfBtnClass = "export-pdf",
+                            EnablePrint = true,
+                        })
+                    </div>
+                    <div class="card-body px-3 py-2 voucher-entry-card-body">
+                        <form asp-action="Setup" method="post" id="VoucherEntry-form" asp-controller="VoucherEntry">
+                            <div class="js-VoucherEntry-form-container">
+                                <partial name="_Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Table Grid Column -->
+            <div class="col-md-12">
+                <div class="d-flex justify-content-start align-items-center mb-2 gap-2">
+                    <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
+                    <div class="input-group input-group-sm" style="width: 350px;">
+                        <span class="input-group-text">Date From</span>
+                        <input type="text" class="form-control custom-datepicker" id="dateFrom"
+                               value="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))"
+                               data-default-date="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
+                        <span class="input-group-text">To</span>
+                        <input type="text" class="form-control custom-datepicker" id="dateTo"
+                               value="@DateTime.Now.ToString("yyyy-MM-dd")"
+                               data-default-date="@DateTime.Now.ToString("yyyy-MM-dd")" placeholder="DD/MM/YYYY" />
+                    </div>
+                </div>
+                <div class="table-responsive grid-no-horizontal-scroll">
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                    {
+                        GridId = "voucherEntryTable",
+                        AjaxUrl = "/VoucherEntry/GetTableData",
+                        AjaxMethod = "POST",
+                        ServerSide = true,
+                        ShowCheckbox = true,
+                        CheckColumnData = "autoId",
+                        CheckAllId = "none",
+                        DefaultSortColumn = "VoucherDate",
+                        DefaultSortDirection = "desc",
+                        Compact = true,
+                        Columns = new()
+                        {
+                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "14%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId", DataAttributes = new() { "voucherEntryCodeNo" } },
+                            new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "10%"},
+                            new() { Data = "narration", Header = "Narration",Align="left", Width = "30%"},
+                            new() { Data = "branchName", Header = "Branch", Width = "15%"},
+                            new() { Data = "amount", Header = "Amount", Width = "13%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "invoiceNo", Header = "Invoice No", Width = "14%"}
+                        }
+                    }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
+                </div>
+            </div>
+
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+
+@section Scripts {
+    <script src="~/js/app.input.validation.js" asp-append-version="true"></script>
+    <script src="~/js/pages/VoucherEntry/VoucherEntry.js" asp-append-version="true"></script>
+    <script src="~/js/pages/VoucherEntry/DetailsVoucher.js" asp-append-version="true"></script>
+    <script>
+        // No plugin initialization needed; VoucherEntry.js binds globally on ready.
+    </script>
+}

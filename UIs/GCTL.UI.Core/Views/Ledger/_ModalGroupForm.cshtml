@@ -1,0 +1,124 @@
+﻿@using GCTL.UI.Core.ViewModels
+
+<div class="card shadow-sm rounded-2">
+
+    @* ================= Toolbar Section ================= *@
+    @await Html.PartialAsync("_Toolbars", new ToobarModel
+    {
+        Title = "Group Ledger",
+        ShowSave = true,
+        SaveBtnId = "btnSave",
+        SaveBtnClass = "js-ModalGroup-save ModalsaveBtn",
+        EnableSave = true,
+
+        ShowDelete = true,
+        DeleteBtnId = "ModaldeleteBtn",
+        DeleteBtnClass = "js-ModalGroup-delete-confirm ModaldeleteBtn",
+        EnableDelete = true,
+
+        ShowClear = true,
+        ClearBtnId = "btnClear",
+        ClearBtnClass = "js-ModalGroup-clear ModalresetBtn",
+        EnableClear = true,
+
+        ShowPrint = true,
+        PrintBtnId = "btnPrint",
+        PrintBtnClass = "printBtn",
+        ExcelBtnClass = "export-excel",
+        PdfBtnClass = "export-pdf",
+        EnablePrint = true,
+
+        ShowFavorite = true,
+        FavtBtnId = "btnFav",
+        FavtBtnClass = "ModalfavBtn",
+        EnableFavorite = true
+    })
+
+    <div class="card-body">
+        <form id="ModalgroupForm">
+            <fieldset style="border: 1px solid #ccc; padding: 12px; border-radius: 5px;">
+                <input type="hidden" id="ModalautoId" name="autoId" />
+
+                <div class="row g-3">
+                    @* --- 1. Group Ledger Code (Readonly) --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalControlLedgerCodeNo",
+                        InputName = "ControlLedgerCodeNo",
+                        LabelText = "Group Ledger Code",
+                        IsRequired = true,
+                        IsReadonly = true
+                    })
+
+                    @* --- 2. Group Ledger Name --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalControlLedgerName",
+                        InputName = "ControlLedgerName",
+                        LabelText = "Group Ledger Name",
+                        IsRequired = true
+                    })
+
+                    @* --- 3. Short Name --- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-4",
+                        FieldType = FieldType.Text,
+                        InputId = "ModalShortName",
+                        InputName = "ShortName",
+                        LabelText = "Short Name"
+                    })
+                </div>
+
+                <hr class="my-3 mx-1">
+
+                @* --- Entry & Update Date Section --- *@
+                <div class="row g-3">
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "ModaldisplayLDate",
+                        LabelText = "Entry Date :",
+                        LabelInline = true,
+                        LabelColWidth = 4
+                    })
+
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        IsVisible = true,
+                        ShowOnInit = true,
+                        ColumnClass = "col-md-6",
+                        FieldType = FieldType.ReadonlyDisplay,
+                        InputId = "ModaldisplayModifyDate",
+                        LabelText = "Last Update Date :",
+                        LabelInline = true,
+                        LabelColWidth = 4
+                    })
+                </div>
+
+                @* Bottom Save Button *@
+                <div class="row mt-3">
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-outline-primary btn-sm ModalsaveBtn">
+                            <i class="fas fa-save me-1"></i> Save
+                        </button>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+</div>

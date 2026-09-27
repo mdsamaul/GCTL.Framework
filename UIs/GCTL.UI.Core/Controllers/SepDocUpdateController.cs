@@ -1,184 +1,352 @@
-﻿
 using GCTL.Core.Data;
-using GCTL.Core.ViewModels.Update;
+using GCTL.Core.Helpers;
+using GCTL.Core.ViewModels.SepDocumentation;
 using GCTL.Data.Models;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.Update;
 using GCTL.UI.Core.Controllers;
+using GCTL.UI.Core.Filters;
+using GCTL.UI.Core.Helpers;
+using GCTL.UI.Core.ViewModels.SepDocUpdate;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace GCTL_App.Controllers
 {
     public class SepDocUpdateController : BaseController
     {
-
         #region CTOR
 
-        private readonly IJobService _jobService;
-
+        private readonly ISepDocumentationService _service;
         private readonly IGenericRepository<CfDefExpenseType> _shipmentModeRepository;
         private readonly IGenericRepository<SalesDefPortName> _portNameRepository;
         private readonly IGenericRepository<CaDefCurrency> _currencyRepository;
         private readonly IGenericRepository<RmgProdDefUnitType> _unitRepository;
         private readonly IGenericRepository<CfDefPlaceOfLoading> _placeofLoadingRepository;
         private readonly IGenericRepository<CfDefShedYard> _shedYardRepository;
-        private readonly IGenericRepository<CfDefExpenseType> _shipmentStatusRepository;
         private readonly IGenericRepository<SalesDefImporterInfo> _importerInfoRepository;
-        private readonly IGenericRepository<SepDocumentation> _sepDocumentionRepository;
-        private readonly IGenericRepository<SalesDefShipmentStatusInfo> shipmentStatusRepo;
-        private readonly IGenericRepository<SalesCustomer> _customerRepository;
-        private readonly IGenericRepository<Country> _countryRepository;
-        private readonly IGenericRepository<SalesContactPerson> _contactPersionRepository;
-        private readonly ISepDocumentationService _service;
+        private readonly IGenericRepository<SepDocumentation> _documentUploadRepository;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public SepDocUpdateController(IJobService jobService, IGenericRepository<CfDefExpenseType> shipmentModeRepository, IGenericRepository<SalesDefPortName> portNameRepository, IGenericRepository<CaDefCurrency> currencyRepository, IGenericRepository<RmgProdDefUnitType> unitRepository, IGenericRepository<CfDefPlaceOfLoading> placeofLoadingRepository, IGenericRepository<CfDefShedYard> shedYardRepository, IGenericRepository<CfDefExpenseType> shipmentStatusRepository, IGenericRepository<SalesDefImporterInfo> importerInfoRepository, IGenericRepository<SepDocumentation> sepDocumentionRepository,  IGenericRepository<SalesDefShipmentStatusInfo> shipmentStatusRepo, IGenericRepository<SalesCustomer> customerRepository, IGenericRepository<Country> countryRepository, IGenericRepository<SalesContactPerson> contactPersionRepository, ISepDocumentationService service) : base()
+        public SepDocUpdateController(
+            ISepDocumentationService service,
+            IGenericRepository<CfDefExpenseType> shipmentModeRepository,
+            IGenericRepository<SalesDefPortName> portNameRepository,
+            IGenericRepository<CaDefCurrency> currencyRepository,
+            IGenericRepository<RmgProdDefUnitType> unitRepository,
+            IGenericRepository<CfDefPlaceOfLoading> placeofLoadingRepository,
+            IGenericRepository<CfDefShedYard> shedYardRepository,
+            IGenericRepository<SalesDefImporterInfo> importerInfoRepository,
+            IGenericRepository<SepDocumentation> documentUploadRepository,
+            IWebHostEnvironment webHostEnvironment) : base()
         {
-            _jobService = jobService;
+            _service = service;
             _shipmentModeRepository = shipmentModeRepository;
             _portNameRepository = portNameRepository;
             _currencyRepository = currencyRepository;
             _unitRepository = unitRepository;
             _placeofLoadingRepository = placeofLoadingRepository;
             _shedYardRepository = shedYardRepository;
-            _shipmentStatusRepository = shipmentStatusRepository;
             _importerInfoRepository = importerInfoRepository;
-            _sepDocumentionRepository = sepDocumentionRepository;
-            this.shipmentStatusRepo = shipmentStatusRepo;
-            _customerRepository = customerRepository;
-            _countryRepository = countryRepository;
-            _contactPersionRepository = contactPersionRepository;
-            _service = service;
+            _documentUploadRepository = documentUploadRepository;
+            _webHostEnvironment = webHostEnvironment;
         }
+
         #endregion
 
         #region Index
+
+        [ModulePermission]
         public IActionResult Index()
+        {
+            ShipmentUpdateSetupViewModel model = new ShipmentUpdateSetupViewModel
+            {
+                PageUrl = Url.Action(nameof(Index))
+            };
+
+            LoadDropdowns();
+
+            return View(model);
+        }
+
+        private void LoadDropdowns()
         {
             ViewBag.ShipmentMode = new SelectList(_shipmentModeRepository.All().Select(e => new { id = e.ExpenseTypeId, name = e.ExpenseType }), "id", "name");
             ViewBag.CustomerName = new SelectList(_service.GetCustomers(), "Value", "Text");
             ViewBag.CustomerDeliveryAddress = new SelectList(_service.GetAddresses(), "Value", "Text");
             ViewBag.PortName = new SelectList(_portNameRepository.All().Select(e => new { id = e.PortNameId, name = e.PortName }), "id", "name");
-            ViewBag.CurrencyForLC = new SelectList(_currencyRepository.All().Select(e => new { id = e.CurrencyId, name = e.CurrencyName }), "id", "name");
-            ViewBag.CurrencyForInvoice = new SelectList(_currencyRepository.All().Select(e => new { id = e.CurrencyId, name = e.CurrencyName }), "id", "name");
+            ViewBag.Currency = new SelectList(_currencyRepository.All().Select(e => new { id = e.CurrencyId, name = e.ShortName }), "id", "name");
             ViewBag.QuantityUnit = new SelectList(_unitRepository.All().Select(e => new { id = e.UnitTypId, name = e.UnitTypeName }), "id", "name");
-            ViewBag.WeightUnit = new SelectList(_unitRepository.All().Select(e => new { id = e.UnitTypId, name = e.UnitTypeName }), "id", "name");
             ViewBag.PlaceOfLoading = new SelectList(_placeofLoadingRepository.All().Select(e => new { id = e.PlaceOfLoadingId, name = e.PlaceOfLoadingName }), "id", "name");
             ViewBag.ShedYard = new SelectList(_shedYardRepository.All().Select(e => new { id = e.ShedYardId, name = e.ShedYardName }), "id", "name");
-            ViewBag.ShipmentStatus = new SelectList(_shipmentStatusRepository.All().Select(e => new { id = e.ExpenseTypeId, name = e.ExpenseType }), "id", "name");
             ViewBag.ImporterName = new SelectList(_importerInfoRepository.All().Select(e => new { id = e.ImporterId, name = e.Name }), "id", "name");
             ViewBag.FreightCharge = new SelectList(new List<string> { "Prepaid", "Collect" }, null);
+            ViewBag.JobNos = new SelectList(
+                _documentUploadRepository.All()
+                    .Where(e => !string.IsNullOrEmpty(e.JobNo))
+                    .OrderByDescending(e => e.Tc)
+                    .Select(e => new { id = e.JobNo, name = e.JobNo })
+                    .Distinct(), "id", "name");
+        }
 
-            ViewBag.CountryList = new SelectList(_countryRepository.All().Select(e => new { id = e.CountryCode, name = e.CountryName }), "id", "name");
-            ViewBag.CustomerList = new SelectList(_customerRepository.All().Select(e => new { id = e.CustomerCode, name = e.CustomerName }), "id", "name");
-            ViewBag.ContactP = new SelectList(_contactPersionRepository.All().Select(e => new { id = e.Cpid, name = e.ContactPersonName }), "id", "name");
-            ViewBag.shipStatus = new SelectList(shipmentStatusRepo.All().Select(e => new { id = e.ShipmentStatusId, name = e.ShipmentStatus }), "id", "name");
+        #endregion
 
-            return View();
+        #region Grid / Detail
+
+        [HttpPost]
+        [ModulePermission]
+        public async Task<IActionResult> GetJobs(int pageNumber = 1, int pageSize = 10, string? customerId = null,
+            string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? searchTerm = null, string sortColumn = "JobNo", string sortOrder = "desc")
+        {
+            var result = await _service.GetJobsPagedAsync(pageNumber, pageSize, customerId, shipmentMode, dateFrom, dateTo, searchTerm);
+
+            return Json(new
+            {
+                data = result.Data,
+                recordsTotal = result.TotalRecords,
+                recordsFiltered = result.FilteredRecords
+            });
+        }
+
+        [HttpGet]
+        [ModulePermission]
+        public async Task<IActionResult> GetJobDetail(decimal tc)
+        {
+            var job = await _service.GetJobDetailAsync(tc);
+            return Json(job);
+        }
+
+        /// <summary>
+        /// Returns SEA / AIR (or whatever code you use) for a given shipment mode,
+        /// used by the client to toggle which delivery-tracking field group is shown.
+        /// </summary>
+        [HttpGet]
+        [ModulePermission]
+        public async Task<IActionResult> GetTransportModeType(string shipmentModeId)
+        {
+            try
+            {
+
+                var transportModeTypeId = await _service.GetTransportModeTypeAsync(shipmentModeId);
+                return Json(new { success = true, transportModeTypeId });
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Error retrieving transport mode" });
+            }
+        }
+
+        #endregion
+
+        #region Save / Delete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Save(SepDocumentationEntryViewModel model)
+        //{
+        //    bool isNewRecord = model.Tc == 0;
+        //    try
+        //    {
+        //        var permissionResult = await CheckAddOrEditPermissionAsync(isNewRecord);
+        //        if (permissionResult != null)
+        //            return permissionResult;
+
+        //        if (!ModelState.IsValid)
+        //        {
+        //            var errors = ModelState
+        //                .Where(x => x.Value.Errors.Count > 0)
+        //                .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+        //                .ToList();
+
+        //            return Json(new { success = false, message = "Please correct the highlighted fields.", errors });
+        //        }
+
+
+        //        model.ToAudit(LoginInfo);
+        //        var result = await _service.SaveDocumentationAsync(model, LoginInfo.CompanyCode, LoginInfo?.EmployeeId);
+
+        //        return Json(new { success = result.Success, message = result.Message, data = result.Data });
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return Json(ApiResponse.Error(isNewRecord ? AppMessages.SaveFailed : AppMessages.UpdateFailed));
+        //    }
+        //}
+        public async Task<IActionResult> Save(SepDocumentationEntryViewModel model)
+        {
+            bool isNewRecord = model.Tc == 0;
+            try
+            {
+                var permissionResult = await CheckAddOrEditPermissionAsync(isNewRecord);
+                if (permissionResult != null)
+                    return permissionResult;
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0).Select(x => new
+                        {
+                            Field = x.Key,
+                            Errors = x.Value.Errors
+                                .Select(e => e.ErrorMessage)
+                        }).ToList();
+
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Please correct the highlighted fields.",
+                        errors
+                    });
+                }
+
+                model.ToAudit(LoginInfo);
+
+                var result = await _service.SaveDocumentationAsync(
+                    model,
+                    LoginInfo.CompanyCode,
+                    LoginInfo?.EmployeeId);
+
+                return Json(new
+                {
+                    success = result.Success,
+                    message = result.Message,
+                    data = result.Data
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = isNewRecord
+                        ? AppMessages.SaveFailed
+                        : AppMessages.UpdateFailed
+                });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ModulePermission(PermissionType.Delete)]
+        public async Task<IActionResult> DeleteJobs([FromBody] SepDocDeleteRequest request)
+        {
+            try
+            {
+                if (request?.Ids == null || request.Ids.Count == 0)
+                    return Json(ApiResponse.Error("No records selected"));
+
+                var result = await _service.DeleteDocumentationAsync(request.Ids);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception)
+            {
+                return Json(ApiResponse.Error(AppMessages.DeleteFailed));
+            }
+        }
+
+        #endregion
+
+        #region Document Upload  (Document Upload Info tab)
+
+        [HttpGet]
+        [ModulePermission]
+        public async Task<IActionResult> GetJobDetailsForUpload(string jobNo)
+        {
+            var result = await _service.GetJobDetailsForUploadAsync(jobNo);
+            return Json(result);
+        }
+
+        [HttpGet]
+        [ModulePermission]
+        public async Task<IActionResult> GetJobDocuments(string jobNo)
+        {
+            var result = await _service.GetJobDocumentsAsync(jobNo);
+            return Json(result);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ModulePermission]
+        public async Task<IActionResult> UploadDocument(
+            [FromForm] string JobNo, 
+            [FromForm] string DocumentName,
+            [FromForm] string Description, 
+            [FromForm] string? DocCode,
+            IFormFile? uploadFile)
+        {
+            var contentRoot = _webHostEnvironment.ContentRootPath ?? Directory.GetCurrentDirectory();
+
+            var request = new SepDocumentUploadRequest
+            {
+                JobNo = JobNo,
+                DocumentName = DocumentName,
+                Description = Description,
+                DocCode = DocCode,
+                UploadFile = uploadFile,
+                CompanyCode = LoginInfo?.CompanyCode ?? "001",
+                UserId = LoginInfo?.EmployeeId ?? LoginInfo?.Username ?? "Admin",
+                IpAddress = HttpContext?.Connection?.RemoteIpAddress?.ToString() ?? "",
+                WebRootPath = contentRoot
+            };
+
+            var result = await _service.UploadOrUpdateDocumentAsync(request);
+            if (result.Success)
+                return Json(ApiResponse.Success(result.Message));
+            else
+                return Json(ApiResponse.Error(result.Message));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ModulePermission(PermissionType.Delete)]
+        public async Task<IActionResult> DeleteDocuments([FromBody] SepDocDeleteDocRequest request)
+        {
+            if (request == null)
+                return Json(ApiResponse.Error("Invalid request."));
+
+            request.WebRootPath = _webHostEnvironment.ContentRootPath ?? Directory.GetCurrentDirectory();
+            var result = await _service.DeleteDocumentsAsync(request);
+
+            if (result.Success)
+                return Json(ApiResponse.Success(result.Message));
+            else
+                return Json(ApiResponse.Error(result.Message));
         }
 
         #endregion
 
         [HttpGet]
-        public async Task<IActionResult> GetJobs(int page = 1, int pageSize = 5, string? customerId = null, string? shipmentMode = null, DateTime? dateFrom = null, DateTime? dateTo = null, string? search = null)
+        public async Task<IActionResult> GenerateJobNo(string? shipmentModeId, string? customerId)
         {
-            var result = await _jobService.GetJobsPagedAsync(page, pageSize, customerId, shipmentMode, dateFrom, dateTo, search);
+            string jobNo;
 
-            return Json(new
+            if (string.IsNullOrEmpty(shipmentModeId) && string.IsNullOrEmpty(customerId))
             {
-                data = result.Data,
-                totalRecords = result.TotalRecords,
-                filteredRecords = result.FilteredRecords // usually same as total if no search, but good to have
-            });
-        }
+                jobNo = await _service.GenerateJobNoWithoutIdAsync();
+            }
+            else
+            {
+                jobNo = await _service.GenerateJobNoAsync(shipmentModeId, customerId);
+            }
 
+            return Json(jobNo);
+        }
         [HttpGet]
-        public async Task<IActionResult> GetJobDetail(int id)
+        public async Task<IActionResult> CustomerInfo(string customerId)
         {
-            var job = await _jobService.GetJobDetailAsync(id);
-            return Json(job);
-        }
-
-
-        [HttpGet]
-        public async Task<IActionResult> GetJobDetails(string jobNo , decimal id)
-        {
-            var jobTop = await _jobService.GetJobTopDetailsAsync(jobNo);
-            var jobBottom = await _jobService.GetJobBottomDetailsAsync(jobNo , id);
-
-            // Anonymous object হিসেবে JSON রিটার্ন করা হবে
-            return Ok(new { jobTop, jobBottom });
-        }
-
-
-
-
-        [HttpGet]
-        public async Task<IActionResult> GetJobStatuses(int page = 1,int pageSize = 10,string? search = null,string? customerCode = null,DateTime? fromDate = null,DateTime? toDate = null)
-        {
-            var result = await _jobService.GetJobStatusesPagedAsync(
-                page,
-                pageSize,
-                search,
-                customerCode,
-                fromDate,
-                toDate);
-
-            return Json(new
+            if (string.IsNullOrEmpty(customerId))
             {
-                data = result.Data,
-                filteredRecords = result.FilteredRecords
-            });
-        }
-
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ShipmentUpdateViewModel model)
-        {
-            try
-            {
-               
-                if (ModelState.IsValid)
-                {
-                    var time = model.Time?.ToString("hh:mm:ss tt");
-                    Console.WriteLine(model.Time?.ToString("hh:mm:ss tt"));
-                    //var company = 1;// await GetCurrentOrganizationIdAsync();
-                    //int company = int.Parse(LoginInfo.CompanyCode);
-                    int company = 001;
-                    var result = await _jobService.UpdateJobs(model, company);
-                    return Ok(result);
-                }else
-                {
-                    return BadRequest(ModelState);
-                }
-            }
-            catch (Exception)
-            {
-
-                throw;
+                return BadRequest("CustomerId is required.");
             }
 
-           
+            var result = await _service.GetCustomerInfoAsync(customerId);
 
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteJobs([FromBody] DeleteJobsRequest request)
-        {
-            try
+            if (!result.Success)
             {
-                if (request?.Ids == null || request.Ids.Count == 0)
-                    return BadRequest(new { success = false, message = "No records selected" });
+                return NotFound(result.Message);
+            }
 
-                var result = await _jobService.DeleteJobs(request.Ids);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            return Json(result);
         }
     }
 }

@@ -1,0 +1,329 @@
+@model GCTL.UI.Core.ViewModels.VendorInfo.VendorInfoPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Vendor Info";
+    Model.Breadcrumb = "Vendor Info";
+}
+
+<style>
+    #VendorInfoDeleteModalBodyHeightFeixd {
+        height: 50px !important;
+    }
+
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+
+    .bg-light {
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+
+    .form-control:disabled, .form-control[readonly] {
+        background-color: #fff !important;
+    }
+
+    /* ==========================================================================
+       Vendor Info Form: Equal Width Inputs & Quick-Add (+) In-Gap Button
+       Mirrors Chart Of Account - Control Ledger pattern
+       ========================================================================== */
+    .ven-field-col {
+        position: relative !important;
+    }
+
+    /* Fixed, uniform height for ALL labels so all inputs start on the exact same line */
+    .ven-field-col .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        line-height: 20px !important;
+        margin-top: 0 !important;
+        margin-bottom: 4px !important;
+        padding: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .ven-field-col .form-label .text-danger,
+    .ven-field-col .form-label sup,
+    .ven-field-col .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
+    }
+
+    /* Ensure the input/select inside field-fixed-width takes 100% of the column width */
+    .ven-field-col .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+
+    .ven-field-col .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .ven-field-col .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Full width for all inputs and select2 containers */
+    .ven-field-col .form-control,
+    .ven-field-col .form-select,
+    .ven-field-col select,
+    .ven-field-col .select2-container,
+    .ven-field-col .input-group .select2-container {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    /* ==========================================================================
+       Uniform Height (31px) & Typography for ALL Inputs, Selects, and Dropdowns
+       ========================================================================== */
+    .ven-field-col .input-group,
+    .ven-field-col .form-control,
+    .ven-field-col .form-select,
+    .ven-field-col select,
+    .ven-field-col .select2-container,
+    .ven-field-col .select2-container .select2-selection--single,
+    .ven-field-col .select2-container .select2-selection--multiple {
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        line-height: 29px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .ven-field-col .form-control,
+    .ven-field-col .form-select,
+    .ven-field-col .select2-container .select2-selection--single,
+    .ven-field-col .select2-container .select2-selection--multiple {
+        border-radius: 4px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0 8px !important;
+    }
+
+    /* Form row gutter & card-body padding: provides generous spacing and a clear right-side gap for the button */
+    .ven-layout-form-col .card-body {
+        padding: 12px 18px !important;
+    }
+
+    .ven-layout-form-col .card-body .row,
+    .ven-layout-form-col .row.g-4 {
+        --bs-gutter-x: 36px !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear right gap and NO border */
+    .ven-field-col .field-fixed-width > .detached-action-btn,
+    .ven-field-col .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 31px !important;
+        min-height: 31px !important;
+        max-height: 31px !important;
+        width: 22px !important;
+        min-width: 22px !important;
+        max-width: 22px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .ven-field-col .field-fixed-width > .detached-action-btn:hover,
+    .ven-field-col .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .ven-field-col .field-fixed-width > .detached-action-btn:focus,
+    .ven-field-col .field-fixed-width > .js-quick-add:focus,
+    .ven-field-col .field-fixed-width > .detached-action-btn:active,
+    .ven-field-col .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .ven-field-col .field-fixed-width > .detached-action-btn i,
+    .ven-field-col .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .ven-field-col .field-fixed-width {
+            width: 100% !important;
+            gap: 8px !important;
+        }
+
+        .ven-field-col .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .ven-field-col .field-fixed-width > .detached-action-btn,
+        .ven-field-col .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+        }
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Setup Form Column (Top on Laptop, Left on Big Screen) -->
+            <div class="col-12 col-xxl-6 ven-layout-form-col">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0 col-xxl-12 col-xl-8 col-lg-8 col-12 d-flex justify-content-end">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Vendor Info",
+                            SaveBtnClass = "js-VendorInfo-save",
+                            DeleteBtnClass = "js-VendorInfo-delete-confirm",
+                            ClearBtnClass = "js-VendorInfo-clear",
+                            Style = "border-bottom:0px !important;",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent = false
+                        })
+                    </div>
+
+                    @if (Model.TabModel != null)
+                    {
+                        @await Html.PartialAsync("_GlobalTabs", Model.TabModel)
+                    }
+                    else
+                    {
+                        @await Html.PartialAsync("_GlobalTabs", new GCTL.Core.ViewModels.Common.TabGroupModel {
+                            GroupId = "vendorTabGroup",
+                            Tabs = new List<GCTL.Core.ViewModels.Common.TabItemModel>
+                            {
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "vendorInfo",
+                                    TabTitle = "Vendor Info",
+                                    ControllerName = "VendorInfo",
+                                    ActionName = "Index",
+                                    IsActive = true
+                                },
+                                new GCTL.Core.ViewModels.Common.TabItemModel
+                                {
+                                    TabId = "branchAddress",
+                                    TabTitle = "Branch Address",
+                                    ControllerName = "BranchAddress",
+                                    ActionName = "Index"
+                                }
+                            }
+                        })
+                    }
+
+                <div class="card-body px-2">
+                    <form asp-action="Setup" method="post" id="VendorInfo-form" asp-controller="VendorInfo">
+                    <div class="js-VendorInfo-form-container">
+                        <partial name="_Setup" model="Model.Setup" />
+                    </div>
+                </form>
+                </div>
+                </div>
+            </div>
+
+            <!-- Table Grid Column (Bottom on Laptop, Right on Big Screen) -->
+            <div class="col-10 col-xxl-6 ven-layout-grid-col">
+                <div class="js-VendorInfo-grid-container">
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
+                    {
+                        GridId = "VendorInfo-grid",
+                        AjaxUrl = "/VendorInfo/GetTableData",
+                        AjaxMethod = "GET",
+                        ServerSide = false,
+                        CheckAllId = "VendorInfo-check-all",
+                        CheckColumnData = "vendorId",
+                        DefaultSortColumn = "vendorId",
+                        DefaultSortDirection = "desc",
+                        Columns = new List<GridColumn>
+                        {
+                            new() { Data = "vendorId", Header = "ID", Width = "12%", IsEditLink = true, EditSelectorClass = "js-VendorInfo-edit", IdField = "vendorId" },
+                            new() { Data = "name", Header = "Name", Width = "25%", Align = "left" },
+                            new() { Data = "address", Header = "Address", Width = "25%", Align = "left" },
+                            new() { Data = "phone", Header = "Phone", Width = "12%", Align = "left" },
+                            new() { Data = "website", Header = "Website", Width = "12%", Align = "left" },
+                            new() { Data = "email", Header = "Email", Width = "15%", Align = "left" }
+                        },
+                        ShowCheckbox = true,
+                        Bordered = true,
+                        Striped = true
+                    })
+                </div>
+            </div>
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/vendorInfo.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.vendorInfo === "function") {
+                var options = {
+                    baseUrl: '@Url.Action("", "VendorInfo")'
+                };
+                options.load = () => { };
+                $.vendorInfo(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+}

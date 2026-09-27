@@ -1,0 +1,25 @@
+@using GCTL.UI.Core.ViewModels
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "salesCustomerTable",
+    AjaxUrl = "/SalesCustomer/GetAll",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "customerId",
+    CheckAllId = "selectAllSalesCustomer",
+    CheckboxClass = "js-salescustomer-check",
+    ShowSearchBox = true,
+    ShowPagination = true,
+    DefaultSortColumn = "customerId",
+    DefaultSortDirection = "desc",
+    Columns = new List<GridColumn>
+    {
+        new() { Data = "customerId", Header = "Cus. ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-salescustomer-edit", IdField = "customerId", Align = "center", SortField = "CustomerId" },
+        new() { Data = "customerName", Header = "Customer Name", Width = "32%", Align = "left", SortField = "CustomerName" },
+        new() { Data = "shortName", Header = "Short Name", Width = "15%", Align = "left", SortField = "ShortName" },
+        new() { Data = "customerAddress", Header = "Address", Width = "28%", Align = "left", SortField = "CustomerAddress" },
+        new() { Data = "openingBalance", Header = "Opening Balance", Width = "15%", Align = "right", SortField = "OpeningBalance" }
+    }
+})

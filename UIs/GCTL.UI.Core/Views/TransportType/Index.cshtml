@@ -1,0 +1,90 @@
+@model GCTL.UI.Core.ViewModels.TransportType.TransportTypePageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Transport Type";
+    Model.Breadcrumb = "Transport Type";
+}
+
+<style>
+    .dataTables_filter {
+        margin-right: 0px;
+    }
+</style>
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Transport Type Info",
+                            SaveBtnClass = "js-TransportType-save",
+                            DeleteBtnClass = "js-TransportType-delete-confirm",
+                            ClearBtnClass = "js-TransportType-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+                        <form asp-action="Setup" method="post" id="TransportType-form" asp-controller="TransportType">
+                            <div class="js-TransportType-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                <div class="js-TransportType-grid-container">
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
+                    {
+                        GridId = "TransportType-grid",
+                        AjaxUrl = "/TransportType/GetTableData",
+                        AjaxMethod = "GET",
+                        ServerSide = false,
+                        ShowCheckbox = true,
+                        CheckColumnData = "vehicleTypeId",
+                        CheckAllId = "TransportType-check-all",
+                        DefaultSortColumn = "vehicleTypeId",
+                        DefaultSortDirection = "desc",
+                        Columns = new List<GridColumn>
+                        {
+                            new() { Data = "vehicleTypeId", Header = "ID", Width = "15%", IsEditLink = true, EditSelectorClass = "js-TransportType-edit", IdField = "vehicleTypeId" },
+                            new() { Data = "vehicleType", Header = "Transport Type", Width = "50%", Align = "left" },
+                            new() { Data = "shortName", Header = "Short Name", Width = "35%", Align = "left" }
+                        }
+                    })
+                </div>
+            </div>
+
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+<partial name="QuickAddModal" />
+
+<script src="~/js/pages/transportType.js" asp-append-version="true" defer></script>
+<script type="text/javascript">
+    (function waitForJQuery() {
+        if (window.jQuery && typeof $.transportType === "function") {
+            var options = { baseUrl: '@Url.Action("", "TransportType")' };
+            options.load = () => { };
+            $.transportType(options);
+        } else {
+            setTimeout(waitForJQuery, 30);
+        }
+    })();
+</script>
+
+

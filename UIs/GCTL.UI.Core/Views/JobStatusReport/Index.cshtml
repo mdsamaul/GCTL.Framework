@@ -1,0 +1,630 @@
+@{
+    ViewData["Title"] = "Job Status Dashboard";
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --pending: #ff9800;
+        --delivered: #4caf50;
+        --transit: #9c27b0;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .job-status-dashboard {
+        color: var(--text-main);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Main Container */
+    .dashboard-container {
+        padding: 6px 0 25px 0;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Status Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 16px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 14px 18px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 4px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+
+    .stat-card.active-card {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0, 51, 102, 0.18) !important;
+        border-top: 2px solid rgba(0, 86, 179, 0.2);
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin: 0 0 4px 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-info p {
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 0;
+        line-height: 1;
+    }
+
+    /* Filter Section - One Line Design with Auto Refresh */
+    .filter-section {
+        background: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.86rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .filter-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #475569;
+        margin: 0;
+    }
+
+    .filter-group input.form-control,
+    .filter-group select.form-select {
+        width: 100%;
+        padding: 5px 9px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 0.82rem;
+        outline: none;
+        background-color: #ffffff;
+        color: var(--text-main);
+        height: 33px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .filter-group .custom-dd-wrapper {
+        width: 100% !important;
+    }
+
+    .filter-group .custom-dd-input {
+        min-height: 33px !important;
+        height: 33px !important;
+        padding: 3px 8px !important;
+        font-size: 0.82rem !important;
+        border-radius: 6px !important;
+    }
+
+    .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Responsive behavior for Filter Bar
+       - Laptop/medium (<=1199px): label on the left-top (full-width row), filters and export on next line with export aligned right
+       - Large screens (>=1200px): label, filters and export button on a single line
+    */
+    .filter-label {
+        flex: 0 0 100%;
+        text-align: left; /* ensure left-top placement */
+    }
+
+    /* Laptop and smaller tablets */
+    @@media (max-width: 1199px) {
+        .filter-section {
+            flex-wrap: wrap;
+            align-items: flex-start; /* keep label at top-left */
+        }
+        .filter-label {
+            flex: 0 0 100%;
+            margin-bottom: 6px;
+        }
+        .filter-actions {
+            margin-left: auto; /* push export button to the right on the filters row */
+        }
+    }
+
+    /* Large desktop */
+    @@media (min-width: 1200px) {
+        .filter-section {
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+        .filter-label {
+            flex: 0 0 auto;
+            margin-right: 12px;
+        }
+        .filter-actions {
+            margin-left: 12px;
+        }
+    }
+
+    .btn-export-rep {
+        background: var(--delivered);
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.82rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 33px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .btn-export-rep:hover {
+        background: #3d8b40;
+        box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Card Wrapper for DataTables */
+    .job-tables-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+
+
+    /* Portal Banner */
+    .portal-banner {
+        background: #fde9d9;
+        border: 1px solid #fbd2b3;
+        color: #8a3c00;
+        font-weight: 700;
+        font-size: 0.86rem;
+        padding: 7px 14px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .portal-banner i {
+        font-size: 1rem;
+    }
+
+    .job-table-outer {
+        width: 100%;
+        overflow: visible;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 7px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 4px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+
+    .custom-grid-table {
+        width: 100% !important;
+        margin-bottom: 0 !important;
+        background: #ffffff !important;
+    }
+
+    .custom-grid-table th {
+        font-size: 0.76rem !important;
+        font-weight: 600 !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        padding: 7px 8px !important;
+        background: #ffffff !important;
+        color: #334155;
+    }
+
+    .custom-grid-table td {
+        font-size: 0.77rem !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        padding: 5px 8px !important;
+        white-space: nowrap !important;
+        background: #ffffff !important;
+    }
+
+    .custom-grid-table td.amount-cell,
+    .custom-grid-table td.text-end {
+        text-align: right !important;
+        padding-right: 10px !important;
+    }
+
+    /* Fixed Controls (Length, Search, Info, Pagination) */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        position: static !important;
+        flex-shrink: 0;
+    }
+
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_filter label {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 0.82rem !important;
+        color: #475569 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_length select {
+        width: auto !important;
+        display: inline-block !important;
+        font-size: 0.82rem !important;
+        padding: 2px 24px 2px 8px !important;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 200px !important;
+        display: inline-block !important;
+        font-size: 0.82rem !important;
+        padding: 4px 8px !important;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+        font-size: 0.8rem !important;
+        color: #64748b !important;
+        font-weight: 500 !important;
+        padding-top: 0 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .pagination {
+        margin: 0 !important;
+        font-size: 0.82rem !important;
+    }
+
+    /* Badges in tables */
+    .status-badge {
+        padding: 0;
+        border-radius: 0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .status-badge.pending {
+        color: #c2410c;
+    }
+
+    .status-badge.delivered {
+        color: #15803d;
+    }
+
+    .status-badge.transit {
+        color: #7e22ce;
+    }
+
+    .job-no-cell {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-group {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="job-status-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Stats Grid (4 Cards) -->
+        <div class="stats-grid">
+            <div class="stat-card active-card" data-status-filter="" title="Click to view all jobs">
+                <div class="stat-icon" style="background: var(--primary);">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Jobs</h3>
+                    <p id="statTotalJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--pending);" data-status-filter="Pending" title="Click to filter Pending jobs">
+                <div class="stat-icon" style="background: var(--pending);">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Pending</h3>
+                    <p id="statPendingJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--transit);" data-status-filter="In Transit" title="Click to filter In Transit jobs">
+                <div class="stat-icon" style="background: var(--transit);">
+                    <i class="fas fa-truck-fast"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>In Transit</h3>
+                    <p id="statTransitJobs">0</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-color: var(--delivered);" data-status-filter="Delivered" title="Click to filter Delivered jobs">
+                <div class="stat-icon" style="background: var(--delivered);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Delivered</h3>
+                    <p id="statDeliveredJobs">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar (One Line Design with Instant Auto-Refresh) -->
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+            
+            <!-- From Date -->
+            <div class="filter-group">
+                <label for="filterFromDate">From</label>
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker auto-filter" value="@DateTime.Now.ToString("01/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
+            </div>
+
+            <!-- To Date -->
+            <div class="filter-group">
+                <label for="filterToDate">To</label>
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
+            </div>
+
+            <!-- Customer (Single Select) -->
+            <div class="filter-group">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- select customer --">
+                    <option value="">select customer</option>
+                    @if (ViewBag.Customers != null)
+                    {
+                        string defCust = ViewBag.DefaultCustomerId as string ?? "CUS000001";
+                        foreach (SelectListItem item in (SelectList)ViewBag.Customers)
+                        {
+                            <option value="@item.Value" selected="@(item.Value == defCust ? "selected" : null)">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Shipment Mode (Single Select, Default Air) -->
+            <div class="filter-group">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- Shipment Mode --">
+                    <option value="Air" selected>Air Freight</option>
+                    <option value="Sea">Sea Freight</option>
+                    @if (ViewBag.ShipmentModes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Port Type (Single Select) -->
+            <div class="filter-group">
+                <select id="filterPortType" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="Port Type">
+                    <option value="">Port Type</option>
+                    @if (ViewBag.PortTypes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.PortTypes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Job Status (Single Select) -->
+            <div class="filter-group">
+                <select id="filterJobStatus" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- Job Status --">
+                    <option value="">Job Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Transit">In Transit</option>
+                    <option value="Delivered">Delivered</option>
+                </select>
+            </div>
+
+            <!-- Export Format (Single Select) -->
+            <div class="filter-group" style="max-width: 140px;">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single">
+                    <option value="PDF">PDF Format</option>
+                    <option value="Excel">Excel Format</option>
+                </select>
+            </div>
+
+            <!-- Actions (Export button only, search is automatic) -->
+            <div class="filter-actions">
+                <button type="button" class="btn-export-rep" id="btnExport" title="Export grouped report by customer">
+                    <i class="fas fa-file-export"></i> EXPORT
+                </button>
+            </div>
+        </div>
+
+        <!-- Data Tables Container (Unified Single Container - Dynamically Changes Grid) -->
+        <div class="job-tables-card">
+            <div class="p-3">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <div class="fw-bold text-secondary" id="gridTitle" style="font-size: 0.95rem;">
+                        <i class="fas fa-plane text-primary me-2"></i>Air Freight Jobs
+                    </div>
+                </div>
+
+                <!-- Air Freight Table (21 Columns) - Default Visible -->
+                <div id="airTableContainer" style="display: block;">
+                    <div class="job-table-outer">
+                        <table id="airJobTable" class="table table-bordered table-hover custom-grid-table w-100">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">SL. No</th>
+                                    <th>Job No.</th>
+                                    <th>Job Date</th>
+                                    <th>Shipment Mode</th>
+                                    <th>Port</th>
+                                    <th>Doc's Receive Date</th>
+                                    <th>Invoice No.</th>
+                                    <th>Invoice Value</th>
+                                    <th>Material Name &amp; Pkgs Qty</th>
+                                    <th>Express Name, Country</th>
+                                    <th>L/C No.</th>
+                                    <th>Express/HAWB No.</th>
+                                    <th>MAWB No.</th>
+                                    <th>ETD</th>
+                                    <th>Flight Actual Arrival Dt.</th>
+                                    <th>Arrival Notice Rcvd From Express Dt.</th>
+                                    <th>Bill of Entry No</th>
+                                    <th>Bill of Entry Date</th>
+                                    <th>Actual Delivery Date</th>
+                                    <th>Shipment Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sea Freight Table (26 Columns) - Hidden by default -->
+                <div id="seaTableContainer" style="display: none;">
+                    <div class="job-table-outer">
+                        <table id="seaJobTable" class="table table-bordered table-hover custom-grid-table w-100">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">Sl. No.</th>
+                                    <th>Job No.</th>
+                                    <th>Job Date</th>
+                                    <th>Shipment Mode</th>
+                                    <th>Port</th>
+                                    <th>Doc's Rec. Dt.</th>
+                                    <th>Invoice No</th>
+                                    <th>Invoice Value</th>
+                                    <th>Container /Pkgs</th>
+                                    <th>Shipper</th>
+                                    <th>B/L No.</th>
+                                    <th>ETD</th>
+                                    <th>Final IGM Rec. Dt.</th>
+                                    <th>Ship Arrived</th>
+                                    <th>Unstaff/Discharge</th>
+                                    <th>Docs. Bank Sign</th>
+                                    <th>B/E No.</th>
+                                    <th>B/E Date</th>
+                                    <th>Est. Delivery Dt.</th>
+                                    <th>Actual Delivery Dt.</th>
+                                    <th>Shipment Status</th>
+                                    <th>Remarks</th>
+                                    <th>Term</th>
+                                    <th>Vessel Name &amp; R-No</th>
+                                    <th>Container No.</th>
+                                    <th>Forwarder Name &amp; Phone No.</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/jobStatusReport.js" asp-append-version="true"></script>
+}

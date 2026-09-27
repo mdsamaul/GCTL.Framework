@@ -1,0 +1,391 @@
+<style>
+    #Job-InvoiceValue,
+    #Job-InvoiceValue ~ .custom-dd-wrapper {
+        flex: 1 1 0;
+        width: auto;
+    }
+
+    .form-control-sm, .form-select-sm,
+    textarea.form-control-sm {
+        font-size: 13px;
+        padding: 2px 5px;
+        height: 28px;
+        border-radius: 3px;
+        color: #000 !important;
+    }
+    /* Invoice Value input black text */
+    .input-group .form-control {
+        color: #000 !important;
+        font-size: 13px;
+    }
+
+    label {
+        font-size: 13px;
+        color: #444;
+    }
+
+    .bg-light {
+        background-color: #f0f1f2 !important;
+    }
+
+    thead th {
+        background-color: #f8f9fa !important;
+        color: #333;
+        font-size: 13px;
+    }
+
+    legend {
+        font-size: 13px !important;
+    }
+
+    .table-sm td {
+        padding: 0.4rem;
+    }
+
+    .btn-icon-clean {
+        background: transparent !important;
+        border: none !important;
+        padding: 4px 6px;
+        color: #212529;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        /* FAT & BOLD icon */
+        .btn-icon-clean i {
+            font-size: 1.3rem;
+            font-weight: 900;
+            stroke-width: 2; /* SVG based icons support */
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        /* Hover effect (premium but subtle) */
+        .btn-icon-clean:hover i {
+            color: #0d6efd;
+            transform: scale(1.1);
+        }
+
+        /* Rotate on collapse open */
+        .btn-icon-clean.rotate i {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+    .btn-premium-action {
+        position: relative;
+        color: #4f46e5;
+        background: #ffffff;
+        border-radius: 8px;
+        width: 32px;
+        height: 28px;
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+        .btn-premium-action:hover {
+            background: #f8fafc;
+            color: #6366f1;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .btn-premium-action[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 140%;
+            left: 50%;
+            transform: translateX(-50%) translateY(5px);
+            background: #ffffff;
+            color: #334155;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+            white-space: nowrap;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9999;
+        }
+
+        .btn-premium-action[data-tooltip]::before {
+            content: "";
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #ffffff transparent transparent transparent;
+            filter: drop-shadow(0 2px 1px rgba(0,0,0,0.05));
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 10000;
+        }
+
+        .btn-premium-action:hover::after,
+        .btn-premium-action:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+    .choices {
+        width: 100% !important;
+        margin-bottom: 0 !important;
+    }
+
+    .choices__inner {
+        min-height: 34px !important;
+        height: 34px !important;
+        padding: 2px 5px !important;
+        font-size: 13px !important;
+        background-color: #fff !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 3px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .choices__list--dropdown {
+        width: 100% !important;
+        word-break: break-all !important;
+    }
+
+    .choices__list--single {
+        padding: 0 16px 0 0 !important;
+    }
+
+    .choices__inner,
+    .choices__list--single,
+    .choices__item--selectable {
+        color: #000 !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+    }
+
+    select.form-select-sm {
+        color: #000 !important;
+        font-weight: 700 !important;
+    }
+
+    /* Uniform Font Size, Family, Weight & Alignment for Expense Table */
+    #expenseTable,
+    #expenseTable th,
+    #expenseTable td,
+    #expenseTable input,
+    #expenseTable .form-control-sm,
+    #expenseTable .subtotal-row td,
+    #expenseTable .grand-total-row td,
+    #expenseTable .btn {
+        font-size: 13px !important;
+    }
+
+    /* Table rows background clean white */
+    #expenseTable tbody tr td,
+    #expenseTable tbody tr.subtotal-row td,
+    #expenseTable tbody tr.grand-total-row td,
+    #expenseTable tbody tr.selected-row td,
+    #expenseTable tbody tr:hover td {
+        background-color: #ffffff !important;
+    }
+
+    /* Remove number spinner buttons */
+    #expenseTable input.tmp-amount::-webkit-outer-spin-button,
+    #expenseTable input.tmp-amount::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    #expenseTable input.tmp-amount {
+        -moz-appearance: textfield;
+        appearance: textfield;
+        font-size: 13px !important;
+        font-weight: 400 !important;
+        font-family: inherit !important;
+        font-variant-numeric: tabular-nums !important;
+        padding-right: 6px !important;
+    }
+
+    /* Align text: cell padding (0.5rem = 8px) + input border (1px) + input padding-right (6px) = 15px */
+    #expenseTable .subtotal-amount,
+    #expenseTable .grand-total-amount {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        font-family: inherit !important;
+        font-variant-numeric: tabular-nums !important;
+        padding-right: 15px !important;
+    }
+
+</style>
+<div class="container-fluid py-0">
+    <form id="tmpDetailsForm">
+        <input type="hidden" id="ShipmentModeID" />
+        <input type="hidden" id="CustomerID" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Job No.</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-JoBNO">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Customer Name <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-CustomerName">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Invoice No.</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-InvoiceNo">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">HAWB</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-HAWB">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Qty</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-Qty">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-10 offset-sm-1">
+                        <hr class="my-3 text-muted opacity-25">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Requisition No. <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-RequisitionNo">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Service Provided By <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <select class="form-select form-select-sm custom-select-single" id="ServiceType">
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Amount</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control form-control-sm" id="Amount">
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Shipment Mode <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-ShipmentModeInput">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">L/C Value</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-LCValue">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Invoice Value</label>
+                    <div class="col-sm-6">
+                        <div class="input-group input-group-sm flex-nowrap">
+                            <input type="text" class="form-control bg-light w-50" readonly id="Job-InvoiceValue">
+                            <select class="form-select w-50" id="Job-Currencies" data-readonly="true">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-start">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Material Description</label>
+                    <div class="col-sm-6">
+                        <textarea class="form-control form-control-sm bg-light" rows="1" readonly style="resize: none; overflow: hidden;" id="Job-MatDescription"></textarea>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Weight</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm bg-light" readonly id="Job-Weight">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-10 offset-sm-1">
+                        <hr class="my-3 text-muted opacity-25">
+                    </div>
+                </div>
+
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Requisition Date <span class="text-danger">*</span></label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm" id="RequisitionDate">
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Accounts Head</label>
+                    <div class="col-sm-6">
+                        <select class="form-select form-select-sm custom-select-single" id="AccountHead">
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-2 align-items-center">
+                    <label class="col-sm-4 text-sm-end form-label mb-0">Remarks</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control form-control-sm" id="Remark">
+                    </div>
+                    <div class="col-sm-2 text-start">
+
+
+                        <button type="button" class="btn-premium-action" data-tooltip="Add New" id="TmpSaveBtn">
+                            <i class="bi bi-plus-square-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="row mt-2">
+        <div class="col-12">
+            <div class="custom-fieldset border-0 rounded p-2 bg-white">
+                <div id="dataLoadContainer">
+                    @await Html.PartialAsync("_CustomGrid", new GridModel
+                    {
+                        GridId = "expenseTable",
+                        ServerSide = false,
+                        ShowPagination = false,
+                        ShowSearchBox = false,
+                        CustomGridWrapper = false,
+                        Bordered = true,
+                        Columns = new()
+                        {
+                            new() { Data = "serialNo", Header = "SN.", Width = "5%", Sortable = false, Searchable = false, Align = "center" },
+                            new() { Data = "accountHeadName", Header = "Expense Head", Width = "25%", Sortable = false, Searchable = false, Align = "left" },
+                            new() { Data = "isReceivetable", Header = "Is Rece.", Width = "10%", Sortable = false, Searchable = false, Align = "center" },
+                            new() { Data = "serviceTypeName", Header = "Service Type", Width = "15%", Sortable = false, Searchable = false, Align = "center" },
+                            new() { Data = "amount", Header = "Req. Amount", Width = "10%", Sortable = false, Searchable = false, Align = "right" },
+                            new() { Data = "remark", Header = "Remarks", Width = "25%", Sortable = false, Searchable = false, Align = "left" },
+                            new() { Data = "action", Header = "Action", Width = "10%", Sortable = false, Searchable = false, Align = "center" }
+                        }
+                    })
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

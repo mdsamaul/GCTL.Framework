@@ -1,19 +1,10 @@
-﻿@using GCTL.Core.ViewModels
+@using GCTL.Core.ViewModels
 @{
     ViewData["Title"] = "AccessMenu";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
-    .dataTables_scrollBody > table > thead > tr > th {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    .dataTables_filter {
-        margin-right: 0;
-    }
-
     #accessListTable_wrapper .dataTables_filter {
         float: none;
         text-align: left;
@@ -131,7 +122,7 @@
     .menuTableWrapper thead th {
         background: #f8f9fb;
         font-size: .78rem;
-        text-transform: uppercase;
+        /* text-transform: uppercase; */
         letter-spacing: .4px;
         color: #6c757d;
         border-bottom: 2px solid #eef0f2;
@@ -157,13 +148,6 @@
         .access-id-btn:hover {
             text-decoration: underline !important;
         }
-
-    #accessListTable thead th {
-        background: #f8f9fb;
-        font-size: .78rem;
-        text-transform: uppercase;
-        color: #6c757d;
-    }
 </style>
 
 <section class="container-fluid col-md-12">
@@ -172,31 +156,16 @@
     <div class="row g-2">
         <div class="col-md-8">
             <div class="card gc-card">
-                <div class="card-header">
-                    <div class="row align-items-center">
-                        <div class="col-md-5">
-                            <h6>Access Code</h6>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="btn-toolbar d-flex justify-content-end gc-toolbar">
-                                <div class="btn-group">
-                                    <button type="button" class="btn success-btn js-emp-holiday-dec-save" id="saveAccessMenuBtn"
-                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Save">
-                                        <i class="fa fa-save"></i> Save
-                                    </button>
-                                    <button type="button" class="btn danger-btn" id="deleteSelectedBtn"
-                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Delete">
-                                        <i class="fa fa-trash"></i> Delete
-                                    </button>
-                                    <button type="button" class="btn primary-btn" id="clearBtn"
-                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Clear">
-                                        <i class="fa fa-eraser"></i> Clear
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "Access Code",
+                    SaveBtnId = "saveAccessMenuBtn",
+                    DeleteBtnId = "deleteSelectedBtn",
+                    ClearBtnId = "clearBtn",
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true
+                })
 
                 <div class="card-body gc-inline-select2">
                     <table class="gc-field-row">
@@ -287,23 +256,21 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card gc-card">
-                <div class="card-body p-2">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover w-100" id="accessListTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%">
-                                        <input type="checkbox" id="selectAllAccess">
-                                    </th>
-                                    <th class="text-center align-middle">ID</th>
-                                    <th class="text-center align-middle">Name</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+                    <div class="js-accesscode-grid-container">
+                        @await Html.PartialAsync("_CustomGrid", new GridModel
+                        {
+                            GridId = "accessListTable",
+                            AjaxUrl = "/menuTab/GetAccessListTable",
+                            ServerSide = false,
+                            ShowCheckbox = true,
+                            CheckboxClass = "checkBox",
+                            CheckColumnData = "accessCodeId",
+                            Columns = new()
+                            {
+                                new() { Data = "accessCodeId", Header = "Id", Width = "30%", IsEditLink = true, EditSelectorClass = "access-id-btn", Align = "center" },
+                                new() { Data = "accessCodeName", Header = "Name", Width = "70%", Align = "left" }
+                            }
+                        })
             </div>
         </div>
     </div>

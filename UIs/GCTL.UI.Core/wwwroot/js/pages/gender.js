@@ -1,4 +1,4 @@
-﻿
+
 (function ($) {
     $.gender = function (options) {
         // Default options
@@ -6,12 +6,12 @@
             baseUrl: "/",
             formSelector: "#Sex-form",
             formContainer: ".js-Sex-form-container",
-            gridSelector: "#Sex-grid",
+            gridSelector: "#genderTable",
             gridContainer: ".js-Sex-grid-container",
             editSelector: ".js-Sex-edit",
             saveSelector: ".js-Sex-save",
-            selectAllSelector: "#Sex-check-all",
-            deleteSelector: ".js-Sex-delete-confirm",          
+            selectAllSelector: "#gender-check-all",
+            deleteSelector: ".js-Sex-delete-confirm",
             deleteModal: "#Sex-delete-modal",
             finalDeleteSelector: ".js-Sex-delete",
             clearSelector: ".js-Sex-clear",
@@ -39,9 +39,12 @@
         });
 
         $(() => {
+            if ($.gctlGrid) {
+                $.gctlGrid.initFromModel({ gridId: 'genderTable' });
+            }
 
-            loadTable();
-           
+
+
 
             $("body").on("click", `${settings.editSelector},${settings.clearSelector}`, function (e) {
                 e.stopPropagation();
@@ -116,69 +119,65 @@
             });
 
 
+            function getDeleteModal() {
+                var $m = $(settings.deleteModal);
+                if ($m.length) return $m;
+                $m = $("#deleteModal");
+                if ($m.length) return $m;
+                return $("#gcDeleteModal");
+            }
+
             $("body").on("click", settings.deleteSelector, function (e) {
                 e.preventDefault();
+                selectedItems = [];
                 if ($(this).data('id')) {
                     selectedItems.push($(this).data('id'));
                 } else {
-                    $('input:checkbox.checkBox').each(function () {
-                        if ($(this).prop('checked')) {
-                            if (!selectedItems.includes($(this).val())) {
-                                selectedItems.push($(this).val());
-                            }
-                        }
+                    $(settings.gridSelector).find('tbody input[type="checkbox"]:checked').each(function () {
+                        var val = $(this).val();
+                        if (val) selectedItems.push(val);
                     });
                 }
 
                 if (selectedItems.length > 0) {
-                    $(settings.deleteModal).modal("show");
+                    var $modal = getDeleteModal();
+                    $modal.find('.title').html("Are you sure you want to delete these item(s)?");
+                    $modal.modal("show");
                 } else {
                     toastr.info("Please select at least one item.");
                 }
             });
 
-            $("body").on('show.bs.modal', settings.deleteModal, function (event) {
+            $("body").on("click", `${settings.finalDeleteSelector}, .js-Sex-delete, .js-delete, .js-gc-delete-confirm`, function (e) {
+                if (!selectedItems || selectedItems.length === 0) return;
+                e.stopPropagation();
+                e.preventDefault();
+                e.stopImmediatePropagation();
 
-                var source = $(event.relatedTarget);
-                var id = source.data("ids");
-
-                // Extract value from data-* attributes
-                var title = source.data("title");
-                title = "Are you sure want to delete these items?";
-                var modal = $(this);
-                $(modal).find('.title').html(title);
-
-                $("body").on("click", settings.finalDeleteSelector, function (e) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-
-                    // Delete
-                    $.ajax({
-                        url: deleteUrl,
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(selectedItems),
-                        success: function (response) {
-                            console.log(response);
-                            $(modal).modal("hide");
-                            if (response.success) {
-                                toastr.success(response.message);
-                                selectedItems = [];
-
-                                loadTable();
-                                loadForm(saveUrl);
-                            }
-                            else {
-                                toastr.error(response.message);
-                                console.log(response);
-                            }
+                var $modal = getDeleteModal();
+                $.ajax({
+                    url: deleteUrl,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedItems),
+                    success: function (response) {
+                        $modal.modal("hide");
+                        if (response.success || response.isSuccess) {
+                            toastr.success(response.message);
+                            selectedItems = [];
+                            loadTable();
+                            loadForm(saveUrl);
                         }
-                    });
+                        else {
+                            toastr.error(response.message);
+                            console.log(response);
+                        }
+                    },
+                    error: function (xhr) {
+                        $modal.modal("hide");
+                        toastr.error(xhr.responseJSON?.message || "Error deleting records.");
+                    }
                 });
-
-            }).on('hide.bs.modal', function () {
-                $("body").off("click", settings.finalDeleteSelector);
             });
 
             $("body").on("click", settings.topSelector, function (e) {
@@ -192,53 +191,13 @@
                 showDecimalPlaces(self.val(), self.parent().find(".input-group-text"));
             });
 
-            //$("body").on("keyup", settings.availabilitySelector, function () {
-            //    var self = $(this);
-            //    let code = $(".js-SexCode-code").val();
-            //    let name = self.val();
-
-            //    // check
-            //    $.ajax({
-            //        url: settings.baseUrl + "/CheckAvailability",
-            //        method: "POST",
-            //        data: { code: code, name: name },
-            //        success: function (response) {
-            //            console.log(response);
-            //            if (response.isSuccess) {
-            //                toastr.error(response.message);
-            //            }
-            //        }
-            //    });
-            //});
-
         });
 
-        //
+        // Dynamic Grid Load Table
         function loadTable() {
-            $.get(settings.baseUrl + "/GetTableData")
-                .done(html => {
-                    $(settings.gridContainer).html(html);
-
-                    if ($.fn.DataTable.isDataTable(settings.gridSelector)) {
-                        $(settings.gridSelector).DataTable().destroy();
-                    }
-
-                    $(settings.gridSelector).DataTable({
-                        lengthChange: true,
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, -1],
-                            [10, 25, 50, 'All'],
-                        ],
-                        order: [[1, "desc"]],
-                        destroy: true, // Allow reinitialization
-                        paging: true,
-                        searching: true,
-                        responsive: true,
-                    });
-
-                })
-                .fail(() => toastr.error("Failed to load table data."));
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+                $(settings.gridSelector).DataTable().ajax.reload(null, false);
+            }
         }
 
         function loadForm(url) {
@@ -252,7 +211,7 @@
                         $(settings.formContainer).html(data);
                         $.validator.unobtrusive.parse($(settings.formSelector));
 
-                        resolve(data)                     
+                        resolve(data)
                     },
                     error: function (error) {
                         reject(error)

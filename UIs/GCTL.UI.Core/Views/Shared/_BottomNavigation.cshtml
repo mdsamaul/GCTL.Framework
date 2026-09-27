@@ -1,8 +1,15 @@
-﻿@using GCTL.Core.ViewModels
+@using GCTL.Core.ViewModels
 @model BaseViewModel
-<div class="row bottom-nav" style="padding-bottom:12px">
-    <div class="col-12" style="display: flex;justify-content: space-between;">
-        <a href="#" class="btn btn-default js-go"><i class="fas fa-arrow-alt-circle-up"></i></a>
-        <a href="/Dashboard" class="btn btn-default float-right"><i class="fas fa-home"></i> Home</a>
+
+<div class="bottom-nav py-2 mt-2">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="#" class="card rounded shadow-sm border bg-white text-secondary py-1 px-3 js-go text-decoration-none d-inline-flex flex-row align-items-center gap-1" title="Back to Top">
+            <i class="fas fa-arrow-up text-primary"></i>
+            <span class="small fw-medium">Top</span>
+        </a>
+        <a asp-controller="Dashboard" asp-action="Index" class="card rounded shadow-sm border bg-white text-secondary py-1 px-3 text-decoration-none d-inline-flex flex-row align-items-center gap-1" title="Go to Dashboard">
+            <i class="fas fa-home text-primary"></i>
+            <span class="small fw-medium">Home</span>
+        </a>
     </div>
 </div>

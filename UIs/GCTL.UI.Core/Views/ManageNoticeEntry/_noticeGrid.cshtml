@@ -1,0 +1,32 @@
+@using GCTL.UI.Core.ViewModels
+
+<div class="card-body p-0 pt-3">
+    @await Html.PartialAsync("_CustomGrid", new GridModel
+    {
+        GridId = "notice-grid",
+        AjaxUrl = "/ManageNoticeEntry/GetPaginatedData",
+        AjaxMethod = "POST",
+        ServerSide = true,
+        ShowCheckbox = true,
+        CheckAllId = "notice-check-all",
+        CheckColumnData = "tc",
+        DefaultSortColumn = "noticeId",
+        DefaultSortDirection = "desc",
+        Bordered = true,
+        Compact = true,
+        Hover = true,
+        Striped = true,
+        CustomGridWrapper = true,
+        Columns = new()
+        {
+            new() { Data = "noticeId", Header = "ID", Width = "8%", Align = "center", IsEditLink = true, EditSelectorClass = "notice-id-link", IdField = "tc" },
+            new() { Data = "noticeTitle", Header = "Notice Title", Width = "22%", Align = "left" },
+            new() { Data = "noticeDesc", Header = "Details", Width = "30%", Align = "left" },
+            new() { Data = "priorityLevel", Header = "Priority Level", Width = "10%", Align = "center", RenderFn = "renderPriority" },
+            new() { Data = "filePath", Header = "File", Width = "10%", Align = "center", RenderFn = "renderNoticeFile" },
+            new() { Data = "status", Header = "Active", Width = "8%", Align = "center", RenderFn = "renderActiveStatus" },
+            new() { Data = "entryDate", Header = "Entry Date", Width = "12%", Align = "center", RenderFn = "formatDate" },
+        }
+    })
+</div>
+

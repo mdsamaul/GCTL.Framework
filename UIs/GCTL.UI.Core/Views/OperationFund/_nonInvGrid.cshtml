@@ -1,0 +1,45 @@
+<style>
+
+    #FundTable td:nth-child(6) {
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+    div.dt-layout-end,
+    div.dt-layout-full,
+    div.dt-layout-start {
+        padding: 0;
+    }
+
+
+</style>
+
+  @*   <div class="container-fluid py-0">
+        <fieldset class="border rounded p-3 bg-white shadow-sm"> *@
+
+            @await Html.PartialAsync("_CustomGrid", new GridModel
+            {
+                GridId = "FundTable",
+                AjaxUrl = "/OperationFund/GetAllRequisition",
+                AjaxMethod = "POST",
+                ServerSide = true,
+                ShowCheckbox = true,
+                CheckColumnData = "ofrNo",
+                CheckAllId = "Req-selectAll",
+                DefaultSortColumn = "ofrNo",
+                DefaultSortDirection = "desc",
+                Bordered = true,
+                CustomGridWrapper = false,
+                Columns = new()
+            {
+                new() { Data = "ofrNo", Header = "OFR No", Width = "12%", IsEditLink=true, EditSelectorClass="ofr-no-link text-decoration-underline", IsWrapable = false, IsCopyable = true },
+                new() { Data = "ofrDate", Header = "OFR Date", Width = "12%", RenderFn = "formatDate" },
+                new() { Data = "jobNo", Header = "Job No", Width = "12%", Align="left", IsWrapable = false, IsCopyable = true },
+                new() { Data = "customerName", Header = "Customer Name", Width = "20%", Align="left" },
+                new() { Data = "billingAddress", Header = "Billing Address", Width = "24%", Align = "left" },
+                new() { Data = "shipmentMode", Header = "Shipment Mode", Width = "20%" }
+            }
+            })
+
+  @*       </fieldset>
+    </div> *@

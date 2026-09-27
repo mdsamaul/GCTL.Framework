@@ -1,0 +1,81 @@
+﻿@model GCTL.UI.Core.ViewModels.SupplierType.SupplierTypePageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Supplier Type";
+    Model.Breadcrumb = "Supplier Type";
+}
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Supplier Type",
+                            SaveBtnClass = "js-SupplierType-save",
+                            DeleteBtnClass = "js-SupplierType-delete-confirm",
+                            ClearBtnClass = "js-SupplierType-clear"
+                        })
+                    </div>
+                    <div class="card-body px-2">
+                        <form asp-action="Setup" method="post" id="SupplierType-form" asp-controller="SupplierType">
+                            <div class="js-SupplierType-form-container">
+                                <partial name="_Setup" model="Model.Setup" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "supplierTypeTable",
+                    AjaxUrl = "/SupplierType/GetAll",
+                    AjaxMethod = "POST",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "supplierTypeId",
+                    CheckAllId = "SupplierType-check-all",
+                    DefaultSortColumn = "supplierTypeId",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "supplierTypeId", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-SupplierType-edit" },
+                        new() { Data = "supplierTypeName", Header = "Supplier Type", Width = "90%"}
+                    }
+                })
+            </div>
+
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+
+
+    <script src="~/js/app.input.validation.js" defer></script>
+    <script src="~/js/pages/supplierType.js" defer></script>
+    <script type="text/javascript">
+        (function waitForJQuery() {
+            if (window.jQuery && typeof $.supplierType === "function") {
+                var options = { baseUrl: '@Url.Action("", "SupplierType")' };
+                options.load = () => { };
+                $.supplierType(options);
+            } else {
+                setTimeout(waitForJQuery, 30);
+            }
+        })();
+    </script>
+

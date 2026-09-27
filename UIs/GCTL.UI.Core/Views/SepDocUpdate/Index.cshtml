@@ -1,65 +1,14 @@
-﻿@model GCTL.Core.ViewModels.Update.ShipmentUpdateViewModel
-
+@using GCTL.UI.Core.ViewModels
+@model GCTL.UI.Core.ViewModels.SepDocUpdate.ShipmentUpdateSetupViewModel
 @{
-    ViewData["Title"] = "Shipment Entry";
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Documentation / Job Entry";
+    Model.Breadcrumb = "Documentation";
 }
-
-<link href="~/css/selectCSS.css" rel="stylesheet" />
 
 
 <style>
-    /* .sticky-bar {
-        position: sticky;
-        top: 65px;
-        z-index: 1020; 
-    } */
-
-    /* Bootstrap form-select-sm style for Select2 */
-    .select2-container {
-        width: 100% !important;
-    }
-
-    .select2-container--default .select2-selection--single {
-        height: calc(1.5em + .5rem + 2px) !important; /* Bootstrap form-select-sm */
-        padding: .25rem .5rem !important;
-        border: 1px solid #ced4da !important;
-        border-radius: .375rem !important;
-        background-color: #fff;
-        display: flex;
-        align-items: center;
-    }
-
-    .select2-container--default .select2-selection__rendered {
-        line-height: normal !important;
-        padding-left: 0 !important;
-        padding-right: 20px !important;
-        color: #212529;
-        font-size: .875rem;
-    }
-
-    .select2-container--default .select2-selection__arrow {
-        height: 100% !important;
-        right: 8px;
-    }
-
-    .select2-container--default .select2-selection__clear {
-        margin-right: 18px;
-    }
-
-    /* Focus */
-    .select2-container--default.select2-container--focus .select2-selection--single,
-    .select2-container--default.select2-container--open .select2-selection--single {
-        border-color: #86b7fe !important;
-        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
-    }
-
-    .form-label {
-        padding-left: 0rem !important;
-        line-height: 1.2 !important;
-        text-transform: capitalize !important;
-        margin-bottom: 0 !important;
-    }
-
+   
     /* ================= Toolbar ================= */
 
     .toolbar {
@@ -80,13 +29,10 @@
         flex-wrap: nowrap;
     }
 
-    /* Large Screen (default) */
-
     .toolbar-showing {
         width: 120px;
     }
 
-    /* Wrapper for the large-screen filters (customer / shipment / date) */
     .toolbar-large-filters {
         display: flex;
         align-items: center;
@@ -110,12 +56,9 @@
         width: 300px;
     }
 
-    /* Small/mid screen filter block - hidden by default on large screens */
     .sm-topshow {
         display: none;
     }
-
-    /* 1350px */
 
     @@media (max-width:1370px) {
 
@@ -141,7 +84,7 @@
         .toolbar-right {
             gap: 8px;
         }
-        /* Hide large-screen customer/shipment/date filters */
+
         .toolbar-large-filters {
             display: none;
         }
@@ -166,8 +109,6 @@
         }
     }
 
-    /* Tablet */
-
     @@media (max-width:1200px) {
 
         .toolbar {
@@ -191,825 +132,1666 @@
         }
     }
 
-    .timeline {
-        position: relative;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        margin: 40px 0;
-        padding: 0 20px;
+    .form-control-sm,
+    .form-select-sm {
+        font-size: 13px;
     }
 
-        .timeline::before {
-            content: '';
-            position: absolute;
-            top: 28px;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: #e0e0e0;
-            z-index: 1;
+    .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 2px;
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: 700;
+    }
+
+    #seaFieldsGroup, #airFieldsGroup {
+        display: none;
+    }
+
+    .group-title {
+        font-size: .8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #6c757d;
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 4px;
+        margin: 1rem 0 .75rem;
+    }
+
+    .toolbar-doc {
+        display: none;
+        opacity: 0;
+        transform: translateY(-15px);
+        transition: all .35s ease;
+    }
+
+        .toolbar-doc.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
-    .timeline-line {
-        position: absolute;
-        top: 28px;
-        left: 0;
-        height: 5px;
-        background: #28a745;
-        z-index: 2;
-        transition: width 0.6s ease;
+    #jobListTable th{
+    font-size:13.5px;
     }
 
-    .timeline-item {
-        position: relative;
-        z-index: 3;
+    #jobListTable td {
+      font-size:12px;
+    }
+    #jobListTable th,
+    #jobListTable td {
         text-align: center;
-        flex: 1;
-        max-width: 140px;
+        vertical-align: middle;
     }
 
-    .timeline-marker {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
+        /* #jobListTable td:nth-child(4),
+        #jobListTable td:nth-child(5) {
+            text-align: left;
+        } */
+
+        #jobListTable td:nth-child(5) {
+            max-width: 450px;
+        }
+
+    .custom-tabs .nav-link {
+        margin: 0 1px;
+        padding: 10px 25px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 12px;
-        font-size: 1.8rem;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        transition: all 0.3s;
+        margin-right: 0.1rem;
+        text-decoration: none;
+        color: #4a4a4a;
+        font-weight: bold;
+        white-space: nowrap;
+        border: 1px solid #a8d8e8;
+        border-bottom: none;
+        background: linear-gradient(to right, #ecf8fe, #ffffff) !important;
+        border-radius: 10px 10px 0 0;
+        font-size: 14px;
+        text-align: center;
+        transition: background 0.3s, color 0.3s;
     }
 
-    .completed .timeline-marker {
-        background: #28a745;
-        color: white;
-        border: 4px solid #fff;
+        .custom-tabs .nav-link.active {
+            background: white !important;
+            color: var(--secondary-blue) !important;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 2px solid #ffffff !important;
+        }
+
+    /* ================= Form Fields Row & Layout (Ledger & VendorInfo Standard) ================= */
+    .sep-doc-fields-row {
+        --control-height: 30px;
+        --gap-size: 36px;
+        --btn-width: 20px;
+        --bs-gutter-x: var(--gap-size) !important;
+        row-gap: 2px !important;
     }
 
-    .active .timeline-marker {
-        background: #0dcaf0;
-        color: white;
-        border: 4px solid #fff;
-        box-shadow: 0 0 0 6px rgba(13, 202, 240, 0.3);
+    #entryTabPane > div,
+    #uploadTabPane > div,
+    .sep-doc-fields-row,
+    .sep-doc-fields-row > div {
+        overflow: visible !important;
     }
 
-    .pending .timeline-marker {
-        background: #6c757d;
-        color: white;
-        border: 4px solid #fff;
+    /* Form Card Container: Symmetrical left & right margins (compensates for Column 3 quick-add button) */
+    .sep-doc-form-card,
+    #entryTabPane > div:first-child {
+        padding-left: 24px !important;
+        padding-right: 48px !important;
     }
 
-    .timeline-content h6 {
-        font-size: 0.95rem;
-        font-weight: 600;
-        margin: 8px 0 4px;
-        line-height: 1.2;
+    /* Uniform Label Styling & Baseline Alignment */
+    .sep-doc-fields-row .form-label {
+        display: flex !important;
+        align-items: center !important;
+        height: 20px !important;
+        min-height: 20px !important;
+        max-height: 20px !important;
+        margin-bottom: 4px !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        box-sizing: border-box !important;
     }
 
-    .timeline-status {
-        font-size: 0.85rem;
-        color: #444;
-        margin: 2px 0;
+    .sep-doc-fields-row .form-label .text-danger,
+    .sep-doc-fields-row .form-label sup,
+    .sep-doc-fields-row .form-label span {
+        font-size: 13px !important;
+        line-height: 1 !important;
+        vertical-align: middle !important;
+        margin-left: 2px !important;
+        display: inline-block !important;
     }
 
-    .timeline-date {
-        font-size: 0.8rem;
-        color: #666;
+    /* Ensure input/select container inside field-fixed-width takes 100% of the column width */
+    .sep-doc-fields-row .field-fixed-width {
+        position: relative !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
-    .active .timeline-status {
-        color: #0d6efd;
-        font-weight: 600;
+    .sep-doc-fields-row .input-group {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .input-group {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Hide invisible placeholder buttons completely so non-quick-add fields expand to 100% */
+    .sep-doc-fields-row .field-fixed-width > .invisible-placeholder-btn {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+    }
+
+    /* Uniform height & 100% width for all inputs, selects, custom datepickers, and input-groups across big & laptop screens */
+    .sep-doc-fields-row .form-control:not(textarea),
+    .sep-doc-fields-row .form-select,
+    .sep-doc-fields-row input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not(textarea),
+    .sep-doc-fields-row select,
+    .sep-doc-fields-row .input-group-text,
+    .sep-doc-fields-row .custom-datepicker,
+    .sep-doc-fields-row .caiCon,
+    .sep-doc-fields-row .flatpickr-input,
+    .sep-doc-fields-row input.flatpickr-input,
+    .sep-doc-fields-row .custom-dd-box {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .form-control,
+    .sep-doc-fields-row .form-select,
+    .sep-doc-fields-row select,
+    .sep-doc-fields-row .select2-container,
+    .sep-doc-fields-row .input-group .select2-container,
+    .sep-doc-fields-row .custom-dd-wrapper {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    .sep-doc-fields-row input[type="date"]::-webkit-date-and-time-value {
+        margin: 0 !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+    }
+
+    /* Textareas take 100% width with natural multiline height */
+    .sep-doc-fields-row textarea,
+    .sep-doc-fields-row .field-fixed-width > textarea {
+        min-height: 56px !important;
+        height: auto !important;
+        max-height: none !important;
+        line-height: 1.4 !important;
+        padding: 4px 8px !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Select2 dropdown height and arrow alignment */
+    .sep-doc-fields-row .select2-container,
+    .sep-doc-fields-row .select2-container .select2-selection,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection,
+    .sep-doc-fields-row .select2-container .select2-selection--single,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single {
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        display: flex !important;
+        align-items: center !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__rendered,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--control-height) - 2px) !important;
+        height: calc(var(--control-height) - 2px) !important;
+        padding-left: 8px !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .select2-container .select2-selection--single .select2-selection__arrow,
+    .sep-doc-fields-row .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--control-height) - 2px) !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    /* Checkbox Alignment */
+    .sep-doc-fields-row .form-check {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-height: var(--control-height) !important;
+        margin-top: 24px !important;
+        margin-bottom: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .sep-doc-fields-row .form-check .form-check-input {
+        margin: 0 !important;
+        float: none !important;
+        width: 16px !important;
+        height: 16px !important;
+        cursor: pointer !important;
+    }
+
+    .sep-doc-fields-row .form-check .form-check-label {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* Quick-Add (+) Button positioned inside the column gap with clear 24px right gap and NO border */
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add {
+        position: absolute !important;
+        left: calc(100% + 4px) !important;
+        top: 0 !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        width: var(--btn-width) !important;
+        min-width: var(--btn-width) !important;
+        max-width: var(--btn-width) !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 5 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        border-color: transparent !important;
+        outline: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        color: #495057 !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        box-sizing: border-box !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):hover,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add:hover {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background: #e9ecef !important;
+        color: #0d6efd !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):focus,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add:focus,
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn):active,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add:active {
+        border: 0 !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    .sep-doc-fields-row .field-fixed-width > .detached-action-btn i,
+    .sep-doc-fields-row .field-fixed-width > .js-quick-add i {
+        font-size: 11px !important;
+    }
+
+    /* ================= Dual Input Group (gap-2 & Strict 50%-50% Equal Width, Same Height) ================= */
+    .dual-input-group {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        gap: 0.5rem !important; /* gap-2 (8px) */
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group > * {
+        margin-left: 0 !important;
+    }
+
+    .dual-input-group > select[style*="display: none"],
+    .dual-input-group > select.custom-select-single[style*="display: none"],
+    .dual-input-group > select.select2-hidden-accessible {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: 0 !important;
+        flex: 0 0 0% !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+    }
+
+    /* Left Input: Exactly 50% width minus half gap */
+    .dual-input-group > input:first-child,
+    .dual-input-group > select:first-child,
+    .dual-input-group > .form-control:first-child {
+        flex: 0 0 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Right Input / Select / Dropdown: Exactly 50% width minus half gap */
+    .dual-input-group > input:nth-child(2),
+    .dual-input-group > input:last-child,
+    .dual-input-group > select:nth-child(2),
+    .dual-input-group > .custom-dd-wrapper,
+    .dual-input-group > select + .custom-dd-wrapper,
+    .dual-input-group > .select2-container,
+    .dual-input-group > select + .select2-container,
+    .dual-input-group > .select2 {
+        flex: 0 0 calc((100% - 0.5rem) / 2) !important;
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        margin-left: 0 !important;
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group > .custom-dd-wrapper,
+    .dual-input-group > select + .custom-dd-wrapper {
+        width: calc((100% - 0.5rem) / 2) !important;
+        max-width: calc((100% - 0.5rem) / 2) !important;
+        min-width: calc((100% - 0.5rem) / 2) !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+    }
+
+    .dual-input-group > .custom-dd-wrapper .custom-dd-box,
+    .dual-input-group > select + .custom-dd-wrapper .custom-dd-box {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        line-height: calc(var(--control-height) - 2px) !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group .select2-container,
+    .dual-input-group .select2-container *,
+    .dual-input-group select + .select2-container,
+    .dual-input-group select + .select2-container *,
+    .dual-input-group .select2-selection,
+    .dual-input-group .select2-selection--single,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection {
+        border-radius: var(--bs-border-radius-sm, 0.25rem) !important;
+        width: 100% !important;
+        height: var(--control-height) !important;
+        min-height: var(--control-height) !important;
+        max-height: var(--control-height) !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group .select2-selection--single .select2-selection__rendered,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: calc(var(--control-height) - 2px) !important;
+        height: calc(var(--control-height) - 2px) !important;
+        padding-left: 8px !important;
+        padding-right: 20px !important;
+        font-size: 13px !important;
+        box-sizing: border-box !important;
+    }
+
+    .dual-input-group .select2-selection--single .select2-selection__arrow,
+    .dual-input-group .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+        height: calc(var(--control-height) - 2px) !important;
+        top: 1px !important;
+        right: 4px !important;
+    }
+
+    /* ==========================================================================
+       Responsive for Laptop Screens (<= 1400px, e.g. 1362x768 / 1366x768)
+       Exact same height, exact same width, and identical generous right-side gap for quick plus button
+       ========================================================================== */
+    @@media (max-width: 1400px) {
+        .sep-doc-fields-row {
+            --control-height: 30px !important;
+            --gap-size: 36px !important;
+            --btn-width: 20px !important;
+            --bs-gutter-x: var(--gap-size) !important;
+            row-gap: 12px !important;
+        }
+
+        .sep-doc-fields-row .form-label {
+            font-size: 12px !important;
+            height: 20px !important;
+            min-height: 20px !important;
+            max-height: 20px !important;
+            margin-bottom: 4px !important;
+        }
+
+        .sep-doc-fields-row .form-check {
+            min-height: 30px !important;
+            margin-top: 24px !important;
+        }
+
+        /* Form Card Container: Symmetrical left & right margins just like big screen (24px clean gap for + button) */
+        .sep-doc-form-card,
+        #entryTabPane > div:first-child {
+            padding-left: 24px !important;
+            padding-right: 48px !important;
+        }
+
+        /* Quick-add button size & right gap strictly preserved on laptop screen */
+        .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .sep-doc-fields-row .field-fixed-width > .js-quick-add {
+            position: absolute !important;
+            left: calc(100% + 4px) !important;
+            width: 20px !important;
+            min-width: 20px !important;
+            max-width: 20px !important;
+            height: 30px !important;
+            min-height: 30px !important;
+            max-height: 30px !important;
+        }
+    }
+
+    /* Quick Plus Modal Dialog right side gap and responsive styling */
+    #gcModalStack .modal-dialog {
+        max-width: calc(100vw - 48px) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    #gcModalStack .modal-content {
+        border-radius: 8px !important;
+        overflow: hidden !important;
+    }
+
+    #gcModalStack .modal-body {
+        padding: 16px 20px !important;
+    }
+
+    #gcModalStack .toolbar-btn-group,
+    #gcModalStack .toolbar-doc,
+    #gcModalStack .card-header .toolbar-btn-group {
+        padding-right: 12px !important;
+        margin-right: 4px !important;
+    }
+
+    #gcModalStack .modal-footer,
+    #gcModalStack .card-footer {
+        padding-right: 16px !important;
+    }
+
+    /* Small / Mobile Screens fallback */
+    @@media (max-width: 767.98px) {
+        .sep-doc-form-card,
+        #entryTabPane > div:first-child {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        .sep-doc-fields-row {
+            --bs-gutter-x: 16px !important;
+        }
+
+        .sep-doc-fields-row .field-fixed-width {
+            gap: 8px !important;
+        }
+
+        .sep-doc-fields-row .field-fixed-width > .input-group {
+            flex: 1 1 auto !important;
+            width: auto !important;
+        }
+
+        .sep-doc-fields-row .field-fixed-width > .detached-action-btn:not(.invisible-placeholder-btn),
+        .sep-doc-fields-row .field-fixed-width > .js-quick-add {
+            position: static !important;
+            transform: none !important;
+            width: 28px !important;
+            min-width: 28px !important;
+            border: 1px solid #ced4da !important;
+            background: #f8f9fa !important;
+        }
     }
 </style>
+@* <partial name="_PageHeader" model="Model" /> *@
+<!-- Toolbar Entry -->
+<div id="toolbarEntry" class="toolbar-doc show">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+    {
+        Title = "Documentation/Job Entry",
+        SaveBtnClass = "doc-save-entry-btn",
+        DeleteBtnClass = "doc-delete-entry-btn",
+        ClearBtnClass = "doc-clear-entry-btn",
+        PdfBtnClass = "doc-pdf-entry-btn",
+        ExcelBtnClass = "doc-excel-entry-btn",
+    })
+</div>
 
+<!-- Toolbar Upload -->
+<div id="toolbarUpload" class="toolbar-doc">
+    @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+    {
+        Title = "Document Upload Info",
+        SaveBtnClass = "doc-seve-upload-btn",
+        DeleteBtnClass = "doc-delete-upload-btn",
+        ClearBtnClass = "doc-clear-upload-btn",
+        PdfBtnClass = "doc-pdf-upload-btn",
+        ExcelBtnClass = "doc-excel-upload-btn",
+    })
+</div>
 
+<!-- Tabs... -->
+<form id="sepDocForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="tc" name="Tc" value="0" />
 
-<div class="">
-    <div class="">
-        <div class="">
+  @*   <ul class="nav nav-tabs mb-3" id="sepDocTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="entry-tab" data-bs-toggle="tab" data-bs-target="#entryTabPane" type="button" role="tab">
+                Documentation/Job Entry
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#uploadTabPane" type="button" role="tab">
+                Document Upload Info
+            </button>
+        </li>
+    </ul> *@
+    <ul class="nav nav-tabs custom-tabs mt-3 " id="sepDocTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="entry-tab" data-bs-toggle="tab" data-bs-target="#entryTabPane" type="button" role="tab">
+                Documentation/Job Entry
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#uploadTabPane" type="button" role="tab">
+                Document Upload Info
+            </button>
+        </li>
+    </ul>
 
-            @* <div class="d-flex flex-wrap justify-content-between align-items-center bg-white p-2 rounded shadow-sm border mb-3 sticky-bar">
-                <div class="d-flex align-items-center py-1 ps-2">
-                    <h1 class="fw-bold text-dark m-0" style="font-size: 0.95rem; letter-spacing: 0.5px;">
-                        Daily Job Update
-                    </h1>
-                </div>
-                <div class="d-flex flex-wrap align-items-end pe-1">
-                    <button type="button" class="btn btn-phoenix-primary" id="saveShipmentBtn">
-                        <i class="fas fa-save text-success"></i>
-                        <span>Save</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="deleteShipmentBtn">
-                        <i class="fas fa-trash text-danger"></i>
-                        <span>Delete</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="clearShipmentBtn">
-                        <i class="fas fa-sync text-primary"></i>
-                        <span>Clear</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="printShipmentBtn">
-                        <i class="fas fa-print text-dark"></i>
-                        <span>Print</span>
-                    </button>
-                    <button type="button" class="btn btn-phoenix-primary" id="favtShipmentBtn">
-                        <i class="fas fa-star text-warning"></i>
-                        <span>Favt</span>
-                    </button>
-                </div>
-            </div> *@
+    <div class="tab-content" id="sepDocTabContent">
+        <div class="entry-only px-1 pt-1 p-lg-4 pt-lg-2 pb-lg-0 bg-white shadow rounded toolbar-doc show" style="display:none;">
+            <div class="mb-3">
+                <div id="jobSummary">
 
+                    <!-- Small/Mid screen filters (shown below 1350px) -->
+                    <div class="sm-topshow">
+                        <span class="label-text filter-by-sm">Filter By:</span>
+                        <div class="toolbar-customer-sm">
+                            <select class="form-select form-select-sm custom-select-single"
+                                    id="customerFilterSm"
+                                    data-placeholder="Select Customer"
+                                    asp-items="ViewBag.CustomerName as SelectList">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
 
-            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel{
-                Title = "Daily Job Update"
-            })
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
-                <div class="mb-3">
-                    <div id="jobSummary">
+                        <div class="toolbar-shipment-sm">
+                            <select class="form-select form-select-sm custom-select-single"
+                                    id="shipmentModeFilterSm"
+                                    data-placeholder="Select Shipment Mode"
+                                    asp-items="ViewBag.ShipmentMode as SelectList">
+                                <option value="">All Shipment Modes</option>
+                            </select>
+                        </div>
 
-                        <!-- Small/Mid screen filters (shown below 1350px) -->
-                        <div class="sm-topshow">
-                             <span class="label-text filter-by-sm">Filter By:</span>
-                            <div class="toolbar-customer-sm">
-                                <select class="form-select form-select-sm custom-select-single"
-                                        id="customerFilterSm"
-                                        data-placeholder="Select Customer"
-                                        asp-items="ViewBag.CustomerName as SelectList">
-                                    <option value="">All Customers</option>
+                        <div class="toolbar-date-sm">
+                            <div class="input-group input-group-sm custom-date-group">
+                                <span class="input-group-text">From</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateFromSm">
+
+                                <span class="input-group-text">To</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateToSm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="toolbar mb-4">
+
+                        <!-- Left -->
+                        @* <div class="toolbar-left">
+                            <div class="input-group input-group-sm toolbar-showing">
+                                <span class="input-group-text">Showing</span>
+
+                                <select class="form-select" id="pageSizeSelect">
+                                    <option value="5" selected>5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
                                 </select>
                             </div>
-
-                            <div class="toolbar-shipment-sm">
-                                <select class="form-select form-select-sm custom-select-single"
-                                        id="shipmentModeFilterSm"
-                                        data-placeholder="Select Shipment Mode"
-                                        asp-items="ViewBag.ShipmentMode as SelectList">
-                                    <option value="">All Shipment Modes</option>
-                                </select>
-                            </div>
-
-                            <div class="toolbar-date-sm">
-                                <div class="input-group input-group-sm custom-date-group">
-                                    <span class="input-group-text">From</span>
-                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateFromSm">
-
-                                    <span class="input-group-text">To</span>
-                                    <input type="date" class="form-control custom-datepicker caiCon" id="dateToSm">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="toolbar mb-4">
-
-                            <!-- Left -->
-                            <div class="toolbar-left">
-                                <div class="input-group input-group-sm toolbar-showing">
-                                    <span class="input-group-text">Showing</span>
-
-                                    <select class="form-select" id="pageSizeSelect">
-                                        <option value="5">5</option>
-                                        <option value="10">10</option>
-                                        <option value="25">25</option>
-                                        <option value="50">50</option>
-                                        <option value="100">100</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Right -->
-                            <div class="toolbar-right">
-                                <span class="label-text toolbar-large-filters">Filter By:</span>
-                                <!-- Large screen filters (hidden below 1350px) -->
-                                <div class="toolbar-large-filters">
-                                    <div class="toolbar-customer">
-                                        <select class="form-select form-select-sm custom-select-single"
-                                                id="customerFilter"
-                                                data-placeholder="Select Customer"
-                                                asp-items="ViewBag.CustomerName as SelectList">
-                                            <option value="">All Customers</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="toolbar-shipment">
-                                        <select class="form-select form-select-sm custom-select-single"
-                                                id="shipmentModeFilter"
-                                                data-placeholder="Select Shipment Mode"
-                                                asp-items="ViewBag.ShipmentMode as SelectList">
-                                            <option value="">All Shipment Modes</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="toolbar-date">
-                                        <div class="input-group input-group-sm custom-date-group">
-                                            <span class="input-group-text">Date From</span>
-                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateFrom">
-
-                                            <span class="input-group-text">To</span>
-                                            <input type="date" class="form-control custom-datepicker caiCon" id="dateTo">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="toolbar-search">
-                                    <input class="form-control form-control-sm"
-                                           id="searchInput"
-                                           type="text"
-                                           placeholder="Search">
-                                </div>
-
-                            </div>
-
-                        </div>
-                        <div class="table-responsive ms-n1 ps-1 scrollbar">
-                            <table class="table table-bordered table-sm table-responsive-sm fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobSettingsTable">
-                                <thead>
-                                    <tr>
-                                        <th class="sort white-space-nowrap align-middle ps-0 text-center" scope="col" data-sort="JobNo">Job No</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="ShipmentMode">Shipment Mode</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="JobDate">Job Date</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="CustomerName">Customer Name</th>
-                                        <th class="sort white-space-nowrap align-middle ps-2 text-center" scope="col" data-sort="DocReceivedDate">Doc Received Date</th>
-
-                                    </tr>
-                                </thead>
-                                <tbody class="list" id="job-settings-table">
-                                    <!-- Table rows will be populated here dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
-                            <div class="d-flex">
-                                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="dataListInfo"></p>
-                            </div>
-                            <div class="d-flex">
-                                <button class="page-link" id="paginationPrev"><span class="fas fa-chevron-left"></span></button>
-                                <ul class="mb-0 pagination" id="paginationNumbers"></ul>
-                                <button class="page-link pe-0" id="paginationNext"><span class="fas fa-chevron-right"></span></button>
-                            </div>
-                        </div>
-
-                    </div>
-
-
-                    </div>
-                </div>
-            </div>
-
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
-
-
-
-                <div class="row ">
-
-                    <!-- Shipment Mode -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Shipment Mode</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Mode" id="shipmentModeId" asp-items="ViewBag.ShipmentMode as SelectList">
-                            <option value="">Select Shipment Mode</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Is Custom Job No -->
-                    <div class="col-lg-4 col-md-6">
-                        <div class="form-check mt-4">
-                            <input type="checkbox" class="form-check-input" id="isCustomJobNo" />
-                            <label class="form-check-label">Is Custom Job No</label>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6"></div>
-                    <!-- Job No (Read-only) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Job No</label>
-                        <input class="form-control form-control-sm" readonly id="jobNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Job Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Job Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="jobDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Customer Name -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Customer" id="customerId" asp-items="ViewBag.CustomerName as SelectList">
-                            <option value="">Select Customer</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Customer Delivery Address -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Address</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="customerAddress"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-                    <!-- Customer Delivery Address -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Customer Delivery Address</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="customerDeliveryAddress"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Port Name -->
-                    <div class="col-lg-4 col-md-6">
-                    </div>
-                    <!-- Port Name -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Port Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Port" id="portId" asp-items="ViewBag.PortName as SelectList">
-                            <option value="">Select Port</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Doc's Received Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Doc's Received Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="docsReceivedDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- LC/EXP No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">LC/EXP No</label>
-                        <input class="form-control form-control-sm" id="lcExpNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- LC Value -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">L/C Value</label>
-                        <div class="d-flex gap-2 group-horizontal">
-                            <input type="number" class="form-control form-control-sm" id="lcValue" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="lcUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Select Unit</option>
-                            </select>
-                        </div>
-                        <span class="text-danger"></span>
-                        <span class="text-danger"></span>
-                    </div>
-                    <!-- lc Date -->
-                    <div class="col-lg-4 col-md-6 custom-date-wrapper">
-                        <label class="form-label">LC Date</label>
-                        <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="lcDate" />
-                        <span class="text-danger"></span>
-                    </div>
-                    <!-- IP/EP No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">IP/EP No</label>
-                        <input class="form-control form-control-sm" id="ipEpNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- IP Date -->
-                    <div class="col-lg-4 col-md-6 custom-date-wrapper">
-                        <label class="form-label">IP Date</label>
-                        <input type="text" class="form-control form-control-sm custom-datepicker caiCon" id="ipDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Importer Name -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Importer Name</label>
-                        <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Importer" id="importerId" asp-items="ViewBag.ImporterName as SelectList">
-                            <option value="">Select Importer</option>
-                        </select>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Invoice No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Invoice No</label>
-                        <input class="form-control form-control-sm" id="invoiceNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Invoice Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Invoice Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="invoiceDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/L No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/L No</label>
-                        <input class="form-control form-control-sm" id="blNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/L Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/L Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="blDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/E No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/E No</label>
-                        <input class="form-control form-control-sm" id="beNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- B/E Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">B/E Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="beDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Container No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Container No</label>
-                        <input class="form-control form-control-sm" id="containerNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Container Size -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Container Size</label>
-                        <input class="form-control form-control-sm" id="containerSize" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- LCA No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">LCA No</label>
-                        <input class="form-control form-control-sm" id="lcaNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Discharge Date -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Discharge Date</label>
-                        <input type="date" class="form-control form-control-sm custom-datepicker caiCon" id="dischargeDate" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Material Description -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Material Description</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="materialDescription"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Quantity + Unit (Horizontal Group) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Quantity & Unit (PKG)</label>
-                        <div class="d-flex gap-2 group-horizontal">
-                            <input type="number" class="form-control form-control-sm" id="quantity" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="quantityUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Select Unit</option>
-                            </select>
-                        </div>
-                        <span class="text-danger"></span>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Weight + Unit (Horizontal Group) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Weight & Unit (KG)</label>
-                        <div class="d-flex gap-2 group-horizontal">
-                            <input type="number" class="form-control form-control-sm" id="weight" />
-                            <select class="form-select form-select-sm custom-select-single" data-placeholder="Select Unit" id="weightUnitId" asp-items="ViewBag.QuantityUnit as SelectList">
-                                <option value="">Select Unit</option>
-                            </select>
-                        </div>
-                        <span class="text-danger"></span>
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- FWDR (Shipping Agent) -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">FWDR (Shipping Agent)</label>
-
-                        <input class="form-control form-control-sm" id="forwarderId" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Vessel/Rott No -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Vessel/Rott No</label>
-                        <input class="form-control form-control-sm" id="vesselRottNo" />
-                        <span class="text-danger"></span>
-                    </div>
-
-                    <!-- Remarks -->
-                    <div class="col-lg-4 col-md-6">
-                        <label class="form-label">Remarks</label>
-                        <textarea class="form-control form-control-sm" rows="1" id="read-remarks"></textarea>
-                        <span class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6 border-bottom border-2 py-1"></div>
-
-                <form asp-action="Create" method="post" id="shipmentForm">
-                    <div class="row pb-2">
-                        @Html.AntiForgeryToken()
-
-                        <input type="hidden" asp-for="JobNo" id="jobNoHidden" value="" />
-                        <input type="hidden" asp-for="AutoId" id="autoId" />
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">ETA Delivery Date</label>
-                            <input asp-for="ETADeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
-                                   id="etaDeliveryDate" />
-                            <span asp-validation-for="ETADeliveryDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Actual Delivery Date -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Actual Delivery Date</label>
-                            <input asp-for="ActualDeliveryDate" type="date" class="form-control form-control-sm custom-datepicker caiCon"
-                                   id="actualDeliveryDate" />
-                            <span asp-validation-for="ActualDeliveryDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Unstuffing Date -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Unstuffing Date</label>
-                            <input asp-for="UnstuffingDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="unstuffingDate" />
-                            <span asp-validation-for="UnstuffingDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Place of Loading -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Place of Loading</label>
-                            <select asp-for="PlaceOfLoadingID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Place" id="placeOfLoadingId" asp-items="ViewBag.PlaceOfLoading as SelectList">
-                                <option value="">Select Place</option>
-                            </select>
-                            <span asp-validation-for="PlaceOfLoadingID" class="text-danger"></span>
-                        </div>
-
-                        <!-- ETD Date -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">ETD Date</label>
-                            <input asp-for="ETDDate" type="text" class="form-control form-control-sm custom-datepicker caiCon" id="etdDate" />
-                            <span asp-validation-for="ETDDate" class="text-danger"></span>
-                        </div>
-
-                        <!-- Shed / Yard -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Shed / Yard</label>
-                            <select asp-for="ShedYardID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shed/Yard" id="shedYardId" asp-items="ViewBag.ShedYard as SelectList">
-                                <option value="">Select Shed/Yard</option>
-                            </select>
-                            <span asp-validation-for="ShedYardID" class="text-danger"></span>
-                        </div>
-
-                        <!-- Freight Charge -->
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label">Freight Charge</label>
-                            <select asp-for="FreightChargeID" class="form-select form-select-sm custom-select-single" data-placeholder="Select Freight Charge" id="freightChargeId" asp-items="ViewBag.FreightCharge as SelectList">
-                                <option value="">Select Freight Charge</option>
-                            </select>
-                            <span asp-validation-for="FreightChargeID" class="text-danger"></span>
-                        </div>
-                         <div class="col-lg-4 col-md-6"></div>
-                          <div class="col-lg-4 col-md-6"></div>
-                        <!-- Shipment Status (Highlighted) -->
-                        <div style="display: flex;background: #FFFFE0;align-content: center;align-items: center;padding: 12px;margin: 12px 0;">
-
-                        
-                        <div class="col-lg-4 col-md-6" style="padding-right:12px;">
-                            <label class="form-label">Shipment Status</label>                           
-                                       <select asp-for="ShipmentStatus" class="form-select form-select-sm custom-select-single" data-placeholder="Select Shipment Status" asp-items="ViewBag.shipStatus as SelectList">
-                                <option value="">Select Shipment Status</option>
-                            </select>
-                            <span asp-validation-for="ShipmentStatus" class="text-danger"></span>
-                        </div>
-                         <!-- ETD Date -->
-                        
-                         <!-- Quantity + Unit (Horizontal Group) -->
-                      <div class="col-lg-4 col-md-6" style="padding-left: 12px;">
-                            <label class="form-label">Date & Time</label>
-
-                            <div class="row g-2">
-                                <div class="col flex-grow-1" style="min-width: 70px;">
-                                    <input type="text"
-                                           class="form-control form-control-sm custom-datepicker w-100"
-                                           asp-for="Date" />
-                                </div>
-
-                                <div class="col-auto" style="min-width: 150px; margin-top: 6px;">
-                                    <input type="text"
-                                           class="form-control form-control-sm custom-timepicker w-100"
-                                           asp-for="Time" />
-                                </div>
-                            </div>
-
-                            <span class="text-danger"></span>
-                        </div>
-
-
-                         <div class="col-lg-4 col-md-6"  style="padding-left: 12px;">
-                                <label class="form-label">Remarks</label>
-                                <textarea class="form-control form-control-sm" placeholder="Shipment Status" rows="1" id="remarks"></textarea>
-                                <span class="text-danger"></span>
-                            </div>
-                        </div>
-                       
-
-                        <!-- Creation Date -->
-                        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
-                            <label class="form-label text-nowrap ">Creation Date:</label>
-                            <span class="form-control-plaintext flex-grow-1 fs-9" id="creationDate"></span>
-                        </div>
-
-                        <div class="col-lg-4 col-md-6 create-modify-dateshow"></div>
-
-                        <!-- Updated Date -->
-                        <div class="col-lg-4 col-md-6 d-flex align-items-center create-modify-dateshow">
-                            <label class="form-label  text-nowrap mb-0">Updated Date:</label>
-                            <span class="form-control-plaintext flex-grow-1 fs-9" id="updatedDate"></span>
-                        </div>
-                    </div>
-                </form>
-                <div class="card mt-4">
-                    <div class="container">
-                        <div class="card shadow">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">Shipment Progress Timeline</h5>
-                            </div>
-                            <div class="card-body">
-
-                                <div class="timeline">
-                                    <div class="timeline-line" style="width: 62%;"></div>
-
-                                    <!-- 01 -->
-                                    <div class="timeline-item completed">
-                                        <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                        <h6>Document Received</h6>
-                                        <p class="timeline-status">Status: 01</p>
-                                        <small class="timeline-date">10 Jul, 2026</small>
-                                    </div>
-
-                                    <!-- 02 -->
-                                    <div class="timeline-item completed">
-                                        <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                        <h6>Shipping Completed</h6>
-                                        <p class="timeline-status">Status: 02</p>
-                                        <small class="timeline-date">11 Jul, 2026</small>
-                                    </div>
-
-                                    <!-- 03 -->
-                                    <div class="timeline-item completed">
-                                        <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                        <h6>Departed Origin</h6>
-                                        <p class="timeline-status">Status: 03</p>
-                                        <small class="timeline-date">12 Jul, 2026</small>
-                                    </div>
-
-                                    <!-- 04 -->
-                                    <div class="timeline-item completed">
-                                        <div class="timeline-marker"><i class="fas fa-check"></i></div>
-                                        <h6>In Transit</h6>
-                                        <p class="timeline-status">Status: 04</p>
-                                        <small class="timeline-date">13 Jul, 2026</small>
-                                    </div>
-
-                                    <!-- 05 Current -->
-                                    <div class="timeline-item active">
-                                        <div class="timeline-marker"><i class="fas fa-truck"></i></div>
-                                        <h6>Arrived Destination Port</h6>
-                                        <p class="timeline-status">Status: 05 (Current)</p>
-                                        <small class="timeline-date">14 Jul, 2026</small>
-                                    </div>
-
-                                    <!-- 06 -->
-                                    <div class="timeline-item pending">
-                                        <div class="timeline-marker"><i class="fas fa-box"></i></div>
-                                        <h6>Unstuffing Completed</h6>
-                                        <p class="timeline-status">Status: 06</p>
-                                    </div>
-
-                                    <!-- 07 -->
-                                    <div class="timeline-item pending">
-                                        <div class="timeline-marker"><i class="fas fa-home"></i></div>
-                                        <h6>Delivered</h6>
-                                        <p class="timeline-status">Status: 07</p>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                </div>
-
-                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel{
-                    Title = "",
-                    ShowDelete = false,
-                    ShowClear = false,
-                    ShowPrint = false,
-                    ShowFavorite = false,
-                    IsPlain = true
-                })
-            </div>
-
-            <hr class="border border-body-emplhsish border-1 opacity-100 mx-auto mb-2">
-
-
-            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded">
-                <div class="mb-9">
-                    <div id="jobStatusSummary">
-                        <!-- Search and Page Size -->
-                        <div class="toolbar pb-2">
-
-                            <div class="toolbar-left">
-                                <div class="input-group input-group-sm toolbar-showing">
-                                    <span class="input-group-text">Showing</span>
-                                    <select class="form-select" id="statusPageSizeSelect">
-                                        <option>10</option>
-                                        <option>25</option>
-                                        <option>50</option>
-                                        <option>100</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="toolbar-right">
-                                 <span class="label-text">Filter By:</span>
-                                <div class="toolbar-item toolbar-customer">
+                        </div> *@
+
+                        <!-- Right -->
+                        <div class="toolbar-right">
+                            <span class="label-text toolbar-large-filters">Filter By:</span>
+                            <!-- Large screen filters (hidden below 1350px) -->
+                            <div class="toolbar-large-filters">
+                                <div class="toolbar-customer">
                                     <select class="form-select form-select-sm custom-select-single"
-                                            id="customerLoadGridFilter" data-placeholder="Select Customer"
+                                            id="customerFilter"
+                                            data-placeholder="Select Customer"
                                             asp-items="ViewBag.CustomerName as SelectList">
                                         <option value="">All Customers</option>
                                     </select>
                                 </div>
 
-                                <div class="toolbar-item toolbar-date">
+                                <div class="toolbar-shipment">
+                                    <select class="form-select form-select-sm custom-select-single"
+                                            id="shipmentModeFilter"
+                                            data-placeholder="Select Shipment Mode"
+                                            asp-items="ViewBag.ShipmentMode as SelectList">
+                                        <option value="">All Shipment Modes</option>
+                                    </select>
+                                </div>
+
+                                <div class="toolbar-date">
                                     <div class="input-group input-group-sm custom-date-group">
                                         <span class="input-group-text">Date From</span>
-                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridFrom">
+                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateFrom">
+
                                         <span class="input-group-text">To</span>
-                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridTo">
+                                        <input type="date" class="form-control custom-datepicker caiCon" id="dateTo">
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="toolbar-item toolbar-search">
-                                    <input class="form-control form-control-sm"
-                                           id="statusSearchInput"
-                                           type="text"
-                                           placeholder="Search">
-                                </div>
+                            <div class="toolbar-search">
+                                @* <input class="form-control form-control-sm"
+                                       id="searchInput"
+                                       type="text"
+                                       placeholder="Search"> *@
                             </div>
 
                         </div>
-                        <!-- Table -->
-                        <div class="table-responsive ms-n1 ps-1 scrollbar">
-                            <table class="table table-sm table-bordered fs-9 mb-0 border-top border-translucent dyn-tableDrag" id="JobStatusTable">
-                                <thead>
-                                    <tr>
-                                        <th class="sort white-space-nowrap align-middle text-center ps-0" style="width:110px" scope="col" data-sort="Status">
-                                          <input type="checkbox" id="checkAll" class="form-check-input" />  Select All 
-                                            </th>
-                                        <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ID">ID</th>
-                                        <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="JobNo">Job No</th>
-                                        <th class="sort white-space-nowrap align-middle text-center ps-2" scope="col" data-sort="ShipmentStatus">Shipment Status</th>
-                                        <th class="sort white-space-nowrap align-middle text-center ps-2 text-end" scope="col" data-sort="DateTime">Date Time</th>
 
-                                    </tr>
-                                </thead>
-                                <tbody class="list" id="jobStatusTableBody">
-                                    <!-- Rows populated via AJAX -->
-                                </tbody>
-                            </table>
+                    </div>
+                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                    {
+                        GridId = "JobSettingsTable",
+                        AjaxUrl = "/SepDocUpdate/GetJobs",
+                        AjaxMethod = "POST",
+                        ServerSide = true,
+                        ShowCheckbox = false,
+                        ShowActionMenu = false,
+                        ShowRowNumbers = false,
+                        DefaultSortColumn = "JobNo",
+                        DefaultSortDirection = "desc",
+                        Columns = new()
+                        {
+                            new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-detail-link", IdField = "tc" },
+                            new() { Data = "shipmentMode", Header = "Shipment Mode" },
+                            new() { Data = "jobDateFormatted", Header = "Job Date" },
+                            new() { Data = "customerName", Header = "Customer Name" },
+                            new() { Data = "docReceivedDateFormatted", Header = "Doc Received Date" }
+                        }
+                    })
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ==================== TAB 1: Documentation / Job Entry ==================== -->
+        <div class="tab-pane fade show active" id="entryTabPane" role="tabpanel">
+            <div class="py-2 bg-white shadow rounded sep-doc-form-card">
+                <div class="row sep-doc-fields-row">
+
+                    @* ---------- Shipment Mode (MultiSelect) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "shipmentModeId",
+                        LabelText = "Shipment Mode",
+                        FieldType = FieldType.Select,
+                        Placeholder = "Select Shipment Mode",
+                        SelectItems = ViewBag.ShipmentMode as SelectList,
+                        CustomAttributes = new Dictionary<string, string> { { "hidden-input", "transportModeTypeId" } },
+                        ReserveActionSlot = true,
+                        IsRequired=true
+                    })
+                    <input type="hidden" id="transportModeTypeId" name="TransportModeTypeId" />
+
+                    @* ---------- Is Custom Job No (Checkbox) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "isCustomJobNo",
+                        LabelText = "Is Custom Job No",
+                        FieldType = FieldType.Checkbox
+                    })
+
+                    @* ---------- Blank spacer ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+
+                    @* ---------- Job No (readonly) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "jobNo",
+                        LabelText = "Job No",
+                        FieldType=FieldType.Text,
+                        IsReadonly = true,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Job Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "jobDate",
+                        LabelText = "Job Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Customer Name (QuickAddSelect, required) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "customerId",
+                        LabelText = "Customer Name",
+                        IsRequired = true,
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Customer",
+                        SelectItems = ViewBag.CustomerName as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "SalesCustomer"),
+                        QuickAddTarget = "#customerId",
+                        QuickAddReloadUrl = Url.Action("GetCustomerName", "Cascading"),
+                        QuickAddTitle = "Customer Name"
+                    })
+
+                    @* ---------- Customer Address (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "customerAddress",
+                        LabelText = "Customer Address",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        IsReadonly= true,
+                        Placeholder = "Customer Address",
+                        Rows=2
+                    })
+
+                    @* ---------- Customer Delivery Address (QuickAddSelect, required) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "deliveryLocationCode",
+                        LabelText = "Customer Delivery Address",
+                        FieldType = FieldType.Select,
+                        Placeholder = "Select Customer Delivery",
+                        SelectItems = ViewBag.CustomerDeliveryAddress as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "SalesCustomer"),
+                        QuickAddTarget = "#deliveryLocationCode",
+                        QuickAddReloadUrl = Url.Action("GetCustomerName", "Cascading"),
+                        QuickAddTitle = "Customer Address",
+                        IsRequired=true,
+                        
+                    })
+
+                    @* ---------- Blank spacer ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+
+                    @* ---------- Port Name (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "portId",
+                        LabelText = "Port Name",
+                        IsRequired = true,
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Port",
+                        SelectItems = ViewBag.PortName as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "PortName"),
+                        QuickAddTarget = "#portId",
+                        QuickAddReloadUrl = Url.Action("GetPortName", "Cascading"),
+                        QuickAddTitle = "Port Name"
+                    })
+
+                    @* ---------- Doc's Received Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "docReceivedDate",
+                        LabelText = "Doc's Received Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder = "Doc's Received Date"
+                    })
+
+                    @* ---------- Exp No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "expNo",
+                        LabelText = "Exp No",
+                        Placeholder="ex no",
+                        ReserveActionSlot = true,
+                    })
+
+                    @* ---------- Exp Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "expDate",
+                        LabelText = "Exp Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
+                    })
+
+                    @* ---------- LC No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "lcNo",
+                        LabelText = "LC No",
+                        ReserveActionSlot = true,
+                        Placeholder="LC No"
+                    })
+
+                    @* ---------- LC Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "lcDate",
+                        LabelText = "LC Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
+                    })
+                    @* ---------- Be No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "beNo",
+                        LabelText = "BE No",
+                        ReserveActionSlot = true,
+                        Placeholder="LC No"
+                    })
+
+                    @* ---------- Be Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "beDate",
+                        LabelText = "BE Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                        Placeholder="dd/mm/yyyy"
+                    })
+
+                    @* ---------- L/C Value + Currency (DualInput) — currency select has no quick-add ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "lcValue",
+                        LabelText = "L/C Value",
+                        FieldType = FieldType.DualInput,
+                        Placeholder="L/C Value",
+                        ReserveActionSlot = true,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "currencyId",
+                            Placeholder = "Currency",
+                            FieldType = FieldType.Select,
+                            SelectItems = ViewBag.Currency as SelectList,
+                            ReserveActionSlot = true,
+                            
+                        }
+                    })
+
+                    @* ---------- BDT (Curr. Rate + L/C Value BDT) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "bdtRate",
+                        LabelText = "BDT",
+                        Placeholder = "Curr. Rate",
+                        FieldType = FieldType.DualInput,
+                        
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "LCValueBDTAmount",
+                            Placeholder = "L/C Value",
+                            FieldType = FieldType.Number
+                        },
+                        ReserveActionSlot=true
+                    })
+
+                    @* ---------- IP/EP No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "ipNo",
+                        LabelText = "IP/EP No",
+                        ReserveActionSlot = true,
+                        Placeholder = "IP/EP No"
+                    })
+
+                    @* ---------- IP Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "ipDate",
+                        LabelText = "IP Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Blank x2 spacer ---------- *@
+                    @* @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel { FieldType = FieldType.Blank }) *@
+
+                    @* ---------- Importer Name (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "importerId",
+                        LabelText = "Importer Name",
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Importer",
+                        SelectItems = ViewBag.ImporterName as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "ImporterInfo"),
+                        QuickAddTarget = "#importerId",
+                        QuickAddReloadUrl = Url.Action("GetImporter", "Cascading"),
+                        QuickAddTitle = "Importer Info"
+                    })
+
+                   
+
+                    @* ---------- Invoice Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "invoiceDate",
+                        LabelText = "Invoice Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                    })
+                    @* ---------- Invoice No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "invoiceNo",
+                        LabelText = "Invoice No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Invoice No"
+                    })
+
+                    @* ---------- Invoice Value + Currency (DualInput) — currency select has no quick-add ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "invoiceValue",
+                        LabelText = "Invoice Value",
+                        FieldType = FieldType.DualInput,
+                        InputType="text",
+                        Placeholder = "Invoice Value",
+                        ReserveActionSlot = true,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "invoiceCurrencyId",
+                            Placeholder = "Currency",
+                            FieldType=FieldType.Select,
+                            SelectItems = ViewBag.Currency as SelectList,
+                            ReserveActionSlot = true
+                        }
+                    })
+
+                    @* ---------- BDT (Assessable Rate + Value) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "assessableRate",
+                        LabelText = "BDT",
+                        Placeholder = "Assessable Rate",
+                        FieldType = FieldType.DualInput,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "assessableValue",
+                            Placeholder = "Assessable Value",
+                            FieldType = FieldType.Number
+                        },
+                        ReserveActionSlot=true
+                    })
+
+                    @* ---------- B/L No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "blNo",
+                        LabelText = "B/L No",
+                        ReserveActionSlot = true,
+                        Placeholder = "B/L No"
+                    })
+
+                    @* ---------- B/L Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "blDate",
+                        LabelText = "B/L Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Container No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "containerNo",
+                        LabelText = "Container No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Container No"
+                    })
+
+                    @* ---------- Container Size — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "containerSize",
+                        LabelText = "Container Size",
+                        ReserveActionSlot = true,
+                        Placeholder = "Container Size"
+                    })
+
+                    @* ---------- Material Description (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "materialDescription",
+                        LabelText = "Material Description",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        Placeholder = "Material Description",
+                        Rows=2
+                    })
+
+                    @* ---------- Quantity & Unit (DualInput, unit has quick-add) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "quntity1",
+                        LabelText = "Quantity & Unit",
+                        Placeholder = "Quantity",
+                        InputType="number",
+                        FieldType = FieldType.DualInput,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "unit1",
+                            Placeholder = "Unit",
+                            FieldType= FieldType.Select,
+                            SelectItems = ViewBag.QuantityUnit as SelectList,
+                            ShowQuickAdd = true,
+                            QuickAddUrl = Url.Action("Index", "UnitType"),
+                            QuickAddTarget = "#unit1",
+                            QuickAddReloadUrl = Url.Action("GetUnite", "Cascading"),
+                            QuickAddTitle = "Unit Type"
+                        }
+                    })
+
+                    @* ---------- Weight & Unit (DualInput, unit has quick-add) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "quntity2",
+                        LabelText = "Weight & Unit",
+                        Placeholder = "Weight",
+                        InputType="number",
+                        FieldType = FieldType.DualInput,
+                        SecondField = new DynamicFieldColumnModel
+                        {
+                            InputId = "unit2",
+                            Placeholder = "Unit",
+                            FieldType=FieldType.Select,
+                            SelectItems = ViewBag.QuantityUnit as SelectList,
+                            ShowQuickAdd = true,
+                            QuickAddUrl = Url.Action("Index", "UnitType"),
+                            QuickAddTarget = "#unit2",
+                            QuickAddReloadUrl = Url.Action("GetUnite", "Cascading"),
+                            QuickAddTitle = "Unit Type"
+                        }
+                    })
+
+                    <!-- =========== Below fields are shared by BOTH Sea and Air =========== -->
+                    @* ---------- FWDR (Shipping Agent) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "fwdrShippingAgent",
+                        LabelText = "FWDR (Shipping Agent)",
+                        ReserveActionSlot = true,
+                        Placeholder = "FWDR (Shipping Agent)"
+                    })
+                    @* ---------- ETD Date (shared Sea+Air) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "etactgport",
+                        LabelText = "ETA CTG PORT",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                    })
+                    @* ---------- Vessel/Rott No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "vesselRottNo",
+                        LabelText = "Vessel/Rott No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Vessel/Rott No"
+                    })
+
+                    @* ---------- Place of Loading (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "placeOfLoadingId",
+                        LabelText = "Place of Loading",
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Place of Loading",
+                        SelectItems = ViewBag.PlaceOfLoading as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "CfDefPlaceOfLoading"),
+                        QuickAddTarget = "#placeOfLoadingId",
+                        QuickAddReloadUrl = Url.Action("GetplaceOfLoading", "Cascading"),
+                        QuickAddTitle = "Place of Loading"
+                    })
+
+                    @* ---------- ETD Date (shared Sea+Air) — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "etdDate",
+                        LabelText = "ETD Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true,
+                    })
+
+                    <!-- ============ DYNAMIC: Sea only (4 fields) — no button needed ============ -->
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "seaFinalIgmRecDate",
+                        LabelText = "Final IGM Rec. Date",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "seaShipArrivedDate",
+                        LabelText = "Ship Arrived",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "unstuffDischargeDate",
+                        LabelText = "Unstuff/Discharge",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                   
+
+                    <!-- ============ DYNAMIC: Air only (2 fields) — no button needed ============ -->
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "flightArrivalDate",
+                        LabelText = "Flight Actual Arrival Date",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "airFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "arrivalNoticeDate",
+                        LabelText = "Arrival Notice Rcvd From Express Date",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "airFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Docs Bank Sign Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "docsBankSignDate",
+                        LabelText = "Docs Bank Sign Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- B/E No./Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "beNoDate",
+                        LabelText = "B/E No./Date",
+                        ReserveActionSlot = true,
+                        FieldType= FieldType.Date
+                    })
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "seaEstimatedDeliveryDate",
+                        LabelText = "Estimated Delivery",
+                        FieldType = FieldType.Date,
+                        VisibilityGroup = "seaFieldsGroup",
+                        ShowOnInit = false,
+                        ReserveActionSlot = true
+                    })
+                    @* ---------- Actual Delivery Date — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "actualDeliveryDate",
+                        LabelText = "Actual Delivery Date",
+                        FieldType = FieldType.Date,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Shed/Yard (QuickAddSelect) — keeps button ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "shedYardId",
+                        LabelText = "Shed/Yard",
+                        FieldType = FieldType.QuickAddSelect,
+                        Placeholder = "Select Shed/Yard",
+                        SelectItems = ViewBag.ShedYard as SelectList,
+                        ShowQuickAdd = true,
+                        QuickAddUrl = Url.Action("Index", "Companies"),
+                        QuickAddTarget = "#CompanyCode",
+                        QuickAddReloadUrl = Url.Action("GetCompany", "Cascading"),
+                        QuickAddTitle = "Company"
+                    })
+
+                    @* ---------- HAWB — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "hawb",
+                        LabelText = "HAWB",
+                        ReserveActionSlot = true,
+                        Placeholder = "HAWB"
+                    })
+
+                    @* ---------- R-No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "RNo",
+                        LabelText = "R-No.",
+                        ReserveActionSlot = true,
+                        Placeholder = "R-No."
+                    })
+                    @* ---------- MAWB — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "mawb",
+                        LabelText = "MAWB",
+                        ReserveActionSlot = true,
+                        Placeholder="MAWB"
+                    })
+
+                    @* ---------- Assessment No — no button needed ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "assessmentNo",
+                        LabelText = "Assessment No",
+                        ReserveActionSlot = true,
+                        Placeholder = "Assessment No"
+                    })
+
+                    @* ---------- R-No / Client & Station SL No (DualInput) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "rNo",
+                        LabelText = "R-No / Client & Station SL No",
+                        Placeholder = "R-No / Client & Station SL No",
+                        FieldType = FieldType.Text,                        
+                        ReserveActionSlot=true
+                    })
+
+                    @* ---------- Freight Charge — Select, no quick-add ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "freightChargeId",
+                        LabelText = "Freight Charge",
+                        FieldType = FieldType.Select,
+                        Placeholder = "Select Freight Charge",
+                        SelectItems = ViewBag.FreightCharge as SelectList,
+                        ReserveActionSlot = true
+                    })
+
+                    @* ---------- Term (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "term",
+                        LabelText = "Term",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        Placeholder = "Term",
+                        Rows=2
+                    })
+
+                    @* ---------- Remarks (Textarea) ---------- *@
+                    @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                    {
+                        InputId = "remarks",
+                        LabelText = "Remarks",
+                        FieldType = FieldType.Textarea,
+                        ReserveActionSlot=true,
+                        Placeholder = "Remarks",
+                        Rows=2
+                    })
+
+                </div>
+
+                <div class="border-bottom border-2 my-2"></div>
+
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "",
+                    SaveBtnClass = "doc-save-entry-btn",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true,
+                    ReserveActionSlot = true,
+                    Style = "border-bottom:0px !important;"
+                })
+            </div>
+
+            <!-- ==================== Grid of saved jobs ==================== -->
+            <div class="px-1 pt-1 p-lg-4 pb-lg-0 bg-white shadow rounded mt-3">
+                @* <div class="toolbar mb-3 d-flex justify-content-between flex-wrap gap-2">
+                    <div class="input-group input-group-sm" style="width:120px">
+                        <span class="input-group-text">Show</span>
+                        <select class="form-select" id="pageSizeSelectBottom">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                    <input class="form-control form-control-sm" style="max-width:280px" id="searchInputBottom" type="text" placeholder="Search" />
+                </div> *@
+                <!-- Search and Page Size -->
+                <div class="toolbar pb-2">
+
+                    @* <div class="toolbar-left">
+                        <div class="input-group input-group-sm toolbar-showing">
+                            <span class="input-group-text">Showing</span>
+                            <select class="form-select" id="statusPageSizeSelect">
+                                <option>10</option>
+                                <option>25</option>
+                                <option>50</option>
+                                <option>100</option>
+                            </select>
+                        </div>
+                    </div> *@
+                    <div class="toolbar-right">
+                        <span class="label-text">Filter By:</span>
+                        <div class="toolbar-item toolbar-customer">
+                            <select class="form-select form-select-sm custom-select-single"
+                                    id="customerLoadGridFilter" data-placeholder="Select Customer"
+                                    asp-items="ViewBag.CustomerName as SelectList">
+                                <option value="">All Customers</option>
+                            </select>
                         </div>
 
-                        <!-- Pagination -->
-                        <div class="d-flex flex-wrap align-items-center justify-content-between py-3 pe-0 fs-9 border-bottom border-translucent">
-                            <div class="d-flex">
-                                <p class="mb-0 d-none d-sm-block me-3 fw-semibold text-body" id="statusDataListInfo"></p>
+                        <div class="toolbar-item toolbar-date">
+                            <div class="input-group input-group-sm custom-date-group">
+                                <span class="input-group-text">Date From</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridFrom">
+                                <span class="input-group-text">To</span>
+                                <input type="date" class="form-control custom-datepicker caiCon" id="dateLoadGridTo">
                             </div>
-                            @* <div class="d-flex">
-                                <button class="page-link" id="statusPaginationPrev"><span class="fas fa-chevron-left"></span></button>
-                                <ul class="mb-0 pagination" id="statusPaginationNumbers"></ul>
-                                <button class="page-link pe-0" id="statusPaginationNext"><span class="fas fa-chevron-right"></span></button>
-                            </div> *@
-                           <div class="d-flex">
-                                <button class="page-link" id="paginationFirst"><span class="bi bi-chevron-bar-left"></span></button>
-                                <button class="page-link" id="paginationPrev"><span class="bi bi-chevron-left"></span></button>
-                                <ul class="mb-0 pagination" id="paginationNumbers"></ul>
-                                <button class="page-link pe-0" id="paginationNext"><span class="bi bi-chevron-right"></span></button>
-                                <button class="page-link pe-0" id="paginationLast"><span class="bi bi-chevron-bar-right"></span></button>
-                            </div>
+                        </div>
+
+                        <div class="toolbar-item toolbar-search">
+                            @* <input class="form-control form-control-sm"
+                                   id="statusSearchInput"
+                                   type="text"
+                                   placeholder="Search"> *@
+                        </div>
+                    </div>
+
+                </div>
+
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "jobListTable",
+                    AjaxUrl = "/SepDocUpdate/GetJobs",
+                    AjaxMethod = "POST",
+                    ServerSide = true,
+                    ShowCheckbox = true,
+                    CheckColumnData = "tc",
+                    CheckAllId = "selectAllJobs",
+                    ShowActionMenu = false,
+                    ShowRowNumbers = false,
+                    DefaultSortColumn = "JobNo",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "jobNo", Header = "Job No", IsEditLink = true, EditSelectorClass = "job-detail-link", IdField = "tc" },
+                        new() { Data = "jobDateFormatted", Header = "Job Date", Align = "center" },
+                        new() { Data = "customerName", Header = "Customer", Align = "left" },
+                        new() { Data = "customerAddress", Header = "Customer Address", Align = "left" },
+                        new() { Data = "shipmentMode", Header = "Shipment Mode", Align = "left" },
+                        new() { Data = "docReceivedDateFormatted", Header = "Doc Received Date", Align = "center" },
+                        new() { Data = "lcValue", Header = "LC Value", Align = "center" },
+                        new() { Data = "jobStatus", Header = "Job Status", Align = "center" }
+                    }
+                })
+            </div>
+        </div>
+
+        <!-- ==================== TAB 2: Document Upload Info ==================== -->
+        <div class="tab-pane fade" id="uploadTabPane" role="tabpanel">
+            <div class="pt-2 pb-0 bg-white shadow rounded sep-doc-form-card">
+                <div class="card mb-3 border rounded shadow-sm">
+                    <div class="card-header bg-light fw-bold py-2 px-3 border-bottom">Main Information</div>
+                    <div class="card-body px-3 py-3">
+                        <!-- Selector Row: Job No -->
+                        <div class="row sep-doc-fields-row mb-2">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadJobNo",
+                                LabelText = "Job No",
+                                FieldType = FieldType.Select,
+                                Placeholder = "-- Select Job No --",
+                                SelectItems = ViewBag.JobNos as SelectList,
+                                IsRequired = true,
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                        </div>
+
+                        <!-- Top 3 Detail Fields: Job Date, Shipment Mode, Bill of Entry No -->
+                        <div class="row sep-doc-fields-row mb-2">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadJobDateDisplay",
+                                LabelText = "Job Date",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadShipmentModeDisplay",
+                                LabelText = "Shipment Mode",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadBeNoDisplay",
+                                LabelText = "Bill of Entry No",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                        </div>
+
+                        <!-- Below 2 Detail Fields: Customer, Customer Address -->
+                        <div class="row sep-doc-fields-row">
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadCustomerDisplay",
+                                LabelText = "Customer",
+                                FieldType = FieldType.Text,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-4",
+                                ReserveActionSlot = false
+                            })
+                            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                            {
+                                InputId = "uploadAddressDisplay",
+                                LabelText = "Customer Address",
+                                FieldType = FieldType.Textarea,
+                                Rows = 2,
+                                IsReadonly = true,
+                                InputCssClass = "bg-light",
+                                ColumnClass = "col-12 col-md-8",
+                                ReserveActionSlot = false
+                            })
                         </div>
                     </div>
                 </div>
+
+                <!-- Hidden fields for editing existing document -->
+                <input type="hidden" id="editDocCode" value="" />
+                <input type="hidden" id="editAutoId" value="" />
+                <input type="hidden" id="editFilePath" value="" />
+                <input type="hidden" id="editFileName" value="" />
+
+                <div class="table-responsive scrollbar mb-3">
+                    <table class="table table-bordered table-sm fs-9 mb-0" id="documentTable">
+                        <thead class="bg-light text-center">
+                            <tr>
+                                <th style="width: 70px;">
+                                    Select <input type="checkbox" id="checkAllDocs" class="form-check-input ms-1" style="vertical-align: middle;" />
+                                </th>
+                                <th style="width: 60px;">Sl No.</th>
+                                <th>Document Name</th>
+                                <th>Discription</th>
+                                <th>Uploaded File</th>
+                            </tr>
+                        </thead>
+                        <tbody id="document-list-body">
+                            <tr><td colspan="5" class="text-center py-3 text-muted">No data available</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row g-3 sep-doc-fields-row align-items-start mt-2">
+                    <div class="col-lg-4 col-md-4">
+                        <label class="form-label fw-bold" for="uploadFile">Upload File</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="file" class="form-control form-control-sm" id="uploadFile" />
+                            <a href="javascript:void(0);" id="btnPreviewSelectedFile" class="btn btn-sm btn-outline-primary py-0 px-2 d-inline-flex align-items-center gap-1 shadow-none flex-shrink-0" style="font-size: 11px; height: 31px; line-height: 29px;" title="Preview File">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1 flex-wrap gap-1">
+                            <small class="text-primary fw-bold">Max Size 15 MB</small>
+                            <span id="currentFileBadge" class="badge bg-light text-dark border d-none py-1 px-2" style="font-weight: 500; font-size: 11px;"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4">
+                        <label class="form-label fw-bold" for="documentName">Document Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" id="documentName" placeholder="Enter Document Name" />
+                    </div>
+
+                    <div class="col-lg-4 col-md-4">
+                        <label class="form-label fw-bold" for="documentDescription">Discription</label>
+                        <textarea class="form-control form-control-sm" id="documentDescription" rows="2" placeholder="Enter Document Discription"></textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 text-muted border-top" style="font-size: 13px;">
+                    <div>Entry Date: <span id="docEntryDate" class="fw-semibold"></span></div>
+                    <div>Last Modify Date: <span id="docModifyDate" class="fw-semibold"></span></div>
+                </div>
+
+                <div class="border-bottom border-2 my-2"></div>
+
+                @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                {
+                    Title = "",
+                    SaveBtnClass = "doc-seve-upload-btn",
+                    ShowClear = false,
+                    ShowDelete = false,
+                    ShowFavorite = false,
+                    ShowPrint = false,
+                    IsPlain = true,
+                    Style = "border-bottom:0px !important;"
+                })
             </div>
+        </div>
+    </div>
+</form>
 
+<partial name="DeleteModal" />
 
+<!-- Document Preview Modal -->
+<div class="modal fade" id="docPreviewModal" tabindex="-1" aria-labelledby="docPreviewModalLabel" aria-hidden="true" style="z-index: 999999 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 900px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-light py-2 px-3 border-0">
+                <h6 class="modal-title fw-bold text-dark" id="docPreviewModalLabel">
+                    <i class="fas fa-file-alt text-primary me-2"></i>Document Preview
+                </h6>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-2 text-center" id="docPreviewContainer" style="min-height: 450px; max-height: 80vh; overflow: auto; background: #f8f9fa;">
+                <!-- Viewer dynamically loaded -->
+            </div>
+            <div class="modal-footer py-2 px-3 bg-light border-0 d-flex justify-content-between">
+                <span id="docPreviewFileInfo" class="text-muted small"></span>
+                <div>
+                    <a href="#" id="docPreviewDownloadBtn" download class="btn btn-sm btn-primary me-2 px-3">
+                        <i class="fas fa-download me-1"></i> Download
+                    </a>
+                    <button type="button" class="btn btn-sm btn-secondary px-3" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script src="~/js/pages/shipmentupdate.js"></script>
+    <script src="~/js/pages/sepdocumentation.js"></script>
 }

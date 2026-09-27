@@ -1,4 +1,5 @@
-﻿@model GCTL.Core.ViewModels.Gender.GenderSetupViewModel
+@model GCTL.Core.ViewModels.Gender.GenderSetupViewModel
+@using GCTL.UI.Core.ViewModels
 
 <div style="padding-top: 10px;">
     <div class="row">
@@ -8,6 +9,7 @@
         <div class="col-lg-6">
         </div>
     </div>
+
     <div class="form-group row">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -16,50 +18,79 @@
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Ldate" />
         <input type="hidden" asp-for="ModifyDate" />
-        <div class="col-lg-6">
-            <label asp-for="SexCode">Sex Id</label>
-            <div class="input-group input-group-sm">
-                <input asp-for="SexCode" type="text" class="form-control form-control-sm js-SexCode-code" readonly="readonly" />
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <label asp-for="Sex">Sex<span style="color:red">*</span> </label>
-            <input type="text" asp-for="Sex" class="form-control form-control-sm  js-Sex-check-availability" autofocus required placeholder="Enter Sex" tabindex="1" />
-        </div>
+
+        @* ---------- Sex Id (readonly) ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "SexCode",
+            LabelText = "Sex Id",
+            FieldType = FieldType.Text,
+            IsReadonly = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-sm-6",
+            CustomCssClass = "js-SexCode-code",
+            DefaultValue = Model?.SexCode
+        })
+
+        @* ---------- Sex ---------- *@
+        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+        {
+            InputId = "Sex",
+            LabelText = "Sex",
+            FieldType = FieldType.Text,
+            Placeholder = "Enter Sex",
+            IsRequired = true,
+            ReserveActionSlot = false,
+            ColumnClass = "col-sm-6",
+            CustomCssClass = "js-Sex-check-availability",
+            DefaultValue = Model.Sex,
+            AutoFocus = true
+        })
     </div>
-   
 
     @if (Model.AutoId > 0)
     {
+        <hr class="my-2" />
+        <div class="form-group row g-2" id="LdateModifyHide">
 
-        <hr />
-        <div class="form-group row" id="LdateModifyHide">
-            <div class="col-lg-6">
-                @if (Model.Ldate.HasValue)
-                {
-                    <label>Creation Date: </label>
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayLDate",
+                LabelText = "Creation Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-sm-6",
+                ShowOnInit = Model.Ldate.HasValue,
+                DefaultValue = Model.Ldate?.ToString("dd/MM/yyyy")
+            })
 
-                    <label>@Model.Ldate?.ToString("dd/MM/yyyy")</label>
-                }
-            </div>
-            <div class="col-lg-6">
-                @if (Model.ModifyDate.HasValue)
-                {
-                    <label>Last Update Date: </label>
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                InputId = "displayModifyDate",
+                LabelText = "Last Update Date:",
+                FieldType = FieldType.ReadonlyDisplay,
+                ColumnClass = "col-sm-6",
+                ShowOnInit = Model.ModifyDate.HasValue,
+                DefaultValue = Model.ModifyDate?.ToString("dd/MM/yyyy")
+            })
 
-                    <label>@Model.ModifyDate?.ToString("dd/MM/yyyy")</label>
-                }
-            </div>
         </div>
-
     }
 
 </div>
 
-<div class="row no-print" style="margin-top: 9px;">
+<div class="row no-print" style="margin-top: 6px;">
     <div class="col-12">
-        <button type="button" class="btn btn-default success-btn btn btn-outline-success btn-common btn-circle float-right js-Sex-save" data-id="@Model.SexCode">
-            <i class="fas fa-save"></i> Save
-        </button>
+        @await Html.PartialAsync("_Toolbars", new ToobarModel
+        {
+            Title = "",
+            ShowClear = false,
+            ShowDelete = false,
+            ShowPrint = false,
+            ShowFavorite = false,
+            IsPlain = true,
+            SaveBtnClass = "js-Sex-save",
+            ReserveActionSlot = true,
+           Style="border-bottom:0px !important;"
+        })
     </div>
 </div>

@@ -1,0 +1,75 @@
+﻿@model GCTL.UI.Core.ViewModels.HRMCompanyWeekEnds.HRMCompanyWeekEndPageViewModel
+
+@{
+    Model.PageTitle = ViewBag.Title;
+    ViewBag.Title = "Company Weekend Setup";
+    Model.Breadcrumb = "Company Weekend Setup";
+}
+
+<!-- Content Header (Page header) -->
+<partial name="_PageHeader" model="Model" />
+
+<section class="content consistent-look">
+    <div class="">
+        <div class="row g-2">
+
+            <!-- Left Setup Form Column -->
+            <div class="col-md-6">
+                <div class="card rounded shadow-sm">
+                    <div class="card-header p-0">
+                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+                        {
+                            Title = "Company Weekend",
+                            SaveBtnClass = "js-companyWeekEnds-save",
+                            DeleteBtnClass = "js-companyWeekEnds-delete-confirm",
+                            ClearBtnClass = "companyWeekEnds-clear"
+                        })
+                    </div>
+                    <div class="card-body px-4 py-3">
+                        <form asp-action="Setup" method="post" id="companyWeekEnds-form" asp-controller="HRMCompanyWeekEnds">
+                            <partial name="_Setup" model="Model.Setup" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Table Grid Column -->
+            <div class="col-md-6">
+                @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+                {
+                    GridId = "companyWeekEndsTable",
+                    AjaxUrl = "/HRMCompanyWeekEnds/GetAll",
+                    AjaxMethod = "GET",
+                    ServerSide = false,
+                    ShowCheckbox = true,
+                    CheckColumnData = "companyWeekEndCode",
+                    CheckAllId = "companyWeekEnds-check-all",
+                    DefaultSortColumn = "companyWeekEndCode",
+                    DefaultSortDirection = "desc",
+                    Columns = new()
+                    {
+                        new() { Data = "companyWeekEndCode", Header = "ID", Width = "10%", IsEditLink = true, EditSelectorClass = "js-companyWeekEnds-edit" },
+                        new() { Data = "weekend", Header = "Weekend Day(s)", Width = "45%"},
+                        new() { Data = "effectiveDate", Header = "Effective Date", Width = "42%", RenderFn="formatDate"}
+                    }
+                })
+            </div>
+
+        </div>
+
+        <partial name="_BottomNavigation" />
+    </div>
+</section>
+
+<partial name="DeleteModal" />
+
+@section Scripts {
+    <script src="~/js/pages/companyWeekEnds.js" asp-append-version="true"></script>
+    <script>
+        $(document).ready(function () {
+            $.companyWeekEnds({
+                baseUrl: '/HRMCompanyWeekEnds'
+            });
+        });
+    </script>
+}

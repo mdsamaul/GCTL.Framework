@@ -1,5 +1,7 @@
-﻿$(document).ready(function () {
+$(document).ready(function () {
 
+
+    //shipment update page js
     showDev('loaded')
 
     //#region Select 2
@@ -259,6 +261,7 @@
             success: function (data) {
                 clearForm();
                 populateForm(data);
+                loadJobTimeline(data.jobNo);
             },
             error: function () {
                 alert('Error loading job details');
@@ -405,7 +408,9 @@
         });
 
     }
+
     function renderStatusTable(data) {
+        
         let rows = '';
         if (data.length === 0) {
             rows = '<tr><td colspan="5" class="text-center">No records found</td></tr>';
@@ -452,6 +457,7 @@
                 success: function (response) {
                     populateForm(response.jobTop)
                     populateBottomForm(response.jobBottom)
+                    loadJobTimeline(jobNo);
                     $('#isEditHidden').prop('checked', true);
                 },
                 error: function (xhr, status, error) {
@@ -484,13 +490,23 @@
                 success: function (response) {
                     if (response.success) {
                         toastr.success(response.message || 'Records deleted successfully');
+                        statusCurrentPage = 1;  // Reset to first page
                         loadJobStatuses();
                     } else {
                         toastr.error(response.message || 'Error deleting records');
                     }
                 },
-                error: function () {
-                    toastr.error('Error occurred while deleting records');
+                error: function (xhr) {
+                    if (xhr.status === 403) {
+                        try {
+                            const resp = JSON.parse(xhr.responseText);
+                            toastr.error(resp.message || 'You do not have permission to perform this action');
+                        } catch (e) {
+                            toastr.error('You do not have permission to perform this action');
+                        }
+                    } else {
+                        toastr.error('Error occurred while deleting records');
+                    }
                 }
             });
         }
@@ -511,9 +527,9 @@
 
     //#region Submit
 
-    $('#saveBtn').on('click', function (e) {
+    $('.saveBtn').on('click', function (e) {
         e.preventDefault();
-        debugger
+
         var formData = $('#shipmentForm').serialize();
 
         $.ajax({
@@ -523,6 +539,7 @@
             success: function (response) {
                 if (response.success) {
                     clearForm();
+                    statusCurrentPage = 1;  // Reset to first page
                     loadJobStatuses();
                     toastr.success(response.message || "Shipment saved successfully!");
                 }
@@ -582,22 +599,25 @@ function clearForm() {
     setField('#quantity', '', false);
     setField('#weight', '', false);
     setField('#vesselRottNo', '', false);
-    setField('#remarks', '', false);
-    setDate('#etaDeliveryDate', '', false);
+    setField('#UpdateRemarks', '', false);
+    setDate('#ETADeliveryDatev', '', false);
     setDate('#actualDeliveryDate', '', false);
     setDate('#unstuffingDate', '', false);
     setDate('#unstuffingDate', '', false);
     setDate('#etdDate', '', false);
-    setDate('#etdDate', '', false);
+    setDate('#Date', '', false);
     setSelect('#placeOfLoadingId', '', false);
     setSelect('#shedYardId', '', false);
     setSelect('#freightChargeId', '', false);
     setSelect('#freightChargeId', '', false);
-    setField('#shipmentStatus', '', false);
+    setSelect('#ShipmentStatus', '', false);
     setField('#creationDate', '', false);
     setField('#updatedDate', '', false);
-    setField('#autoId', '', false);
+    setField('#autoId', '0', false);
+    setTime('#Time', new Date().toTimeString().split(' ')[0], true);
     $('.create-modify-dateshow').addClass('d-none');
+    $('#timelineCard').addClass('d-none');
+    $('#shipmentTimeline').html('<div class="timeline-line" id="timelineProgressLine" style="width: 0%;"></div>');
 }
 //#endregion
 
@@ -605,7 +625,7 @@ function clearForm() {
 function populateBottomForm(data) {
     showDev(data);    
     if (data.etaDeliveryDate) {
-        setDate('#etaDeliveryDate', data.etaDeliveryDate.split('T')[0]);
+        setDate('#ETADeliveryDate', data.etaDeliveryDate.split('T')[0]);
     }
     if (data.actualDeliveryDate) {
         setDate('#actualDeliveryDate', data.actualDeliveryDate.split('T')[0]);
@@ -637,7 +657,7 @@ function populateBottomForm(data) {
     if (data.shipmentStatus) {
         setSelect('#ShipmentStatus', data.shipmentStatus);
     }
-
+    setField('#UpdateRemarks', data.updateRemarks || '', false);
 
     if (data.autoId) {
         setField('#autoId', data.autoId);
@@ -717,7 +737,50 @@ function updateTimelineStates(jobStatuses) {
         }
     });
 }
+function loadJobTimeline(jobNo) {
+    
+    if (!jobNo) {
+        $('#timelineCard').addClass('d-none');
+        $('#shipmentTimeline').html('<div class="timeline-line" id="timelineProgressLine" style="width: 0%;"></div>');
+        return;
+    }
 
+    $.ajax({
+        url: '/SepDocUpdate/GetJobTimeline',
+        type: 'GET',
+        data: { jobNo: jobNo },
+        success: function (data) {
+            renderTimeline(data);
+            $('#timelineCard').removeClass('d-none');
+        },
+        error: function () {
+            $('#timelineCard').addClass('d-none');
+        }
+    });
+}
+function renderTimeline(steps) {
+    const iconMap = {
+        completed: 'fas fa-check',
+        active: 'fas fa-truck',
+        pending: 'fas fa-box'
+    };
+
+    let html = '';
+
+    steps.forEach((step, index) => {
+        const icon = iconMap[step.state] || 'fas fa-box';
+        const delay = index * 0.15;
+        html += `<div class="timeline-item ${step.state}" style="--delay:${delay}s">
+            <div class="timeline-marker"><i class="${icon}"></i></div>
+            <h6>${step.title}</h6>`;
+        html += step.dateText
+            ? `<small class="timeline-date">${step.dateText}</small>`
+            : `<small class="timeline-date">&nbsp;</small>`;
+        html += `</div>`;
+    });
+
+    $('#shipmentTimeline').html(html);
+}
 function populateForm(data) {
     showDev(data)
     setSelect('#shipmentModeId', data.shipmentModeId, true);
@@ -755,6 +818,6 @@ function populateForm(data) {
     setField('#weight', data.weight || '', true);
     setField('#vesselRottNo', data.vesselRottNo || '', true);
     setField('#read-remarks', data.remarks || '', true);
-    setField('#remarks', data.remarks || '', false);
+    
 }
 //#endregion

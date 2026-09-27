@@ -1,0 +1,31 @@
+@using GCTL.UI.Core.ViewModels
+<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "openingBalanceTable",
+    AjaxUrl = "/OpeningBlance/GetGridData",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "autoId",
+    CheckAllId = "selectAllOpeningBalance",
+    CheckboxClass = "js-openingbalance-check",
+    ShowSearchBox = true,
+    ShowPagination = true,
+    DefaultSortColumn = "ComOpeningBalanceCode",
+    DefaultSortDirection = "desc",
+    Columns = new List<GridColumn>
+    {
+        new() { Data = "comOpeningBalanceCode", Header = "ID", Width = "7%", IsEditLink = true, EditSelectorClass = "js-openingbalance-edit", IdField = "autoId", Align = "center", SortField = "ComOpeningBalanceCode" },
+        new() { Data = "openingDateStr", Header = "Opening Date", Width = "12%", Align = "center", SortField = "OpeningDate" },
+        new() { Data = "accountHead", Header = "Account Head", Width = "27%", Align = "left", SortField = "AccountHead" },
+        new() { Data = "openingBalance", Header = "Opening Balance", Width = "12%", Align = "right", SortField = "OpeningBalance", RenderFn = "formatCurrency", TabularNumber = true },
+        new() { Data = "trType", Header = "Tr Type", Width = "8%", Align = "center", SortField = "TrType" },
+        new() { Data = "companyName", Header = "Company", Width = "18%", Align = "left", SortField = "CompanyName" },
+        new() { Data = "branchName", Header = "Branch", Width = "16%", Align = "left", SortField = "BranchName" }
+    }
+})
+
+
+

@@ -1,0 +1,29 @@
+@using GCTL.UI.Core.ViewModels
+
+@await Html.PartialAsync("_CustomGrid", new GridModel
+{
+    GridId = "voucherTypeTable",
+    AjaxUrl = "/voucher-type/get-table-data",
+    AjaxMethod = "POST",
+    ServerSide = true,
+    ShowCheckbox = true,
+    CheckColumnData = "autoId",
+    CheckAllId = "selectAllVoucherType",
+    CheckboxClass = "js-vouchertype-check",
+    DefaultSortColumn = "autoId",
+    DefaultSortDirection = "desc",
+    Columns = new()
+    {
+        new() { Data = "voucherType_Code", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-vouchertype-edit", IdField = "autoId", Align = "center" },
+        new() { Data = "voucher_TypeName", Header = "Voucher Type", Width = "20%"},
+        new() { Data = "description", Header = "Description", Width = "25%"},
+        new() { Data = "numberingMethod", Header = "Numbering<br />Method", Width = "12%" },
+        new() { Data = "startingNumber", Header = "Starting No", Width = "7%", Align = "center" },
+        new() { Data = "durationTypeName", Header = "Duration Type", Width = "14%", Align = "left" },
+        new() { Data = "prefix", Header = "Prefix", Width = "7%", Align = "center" },
+        new() { Data = "suffix", Header = "Suffix", Width = "7%", Align = "center" }
+    }
+})
+
+
+

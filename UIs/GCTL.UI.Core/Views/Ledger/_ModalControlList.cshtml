@@ -1,0 +1,18 @@
+@await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
+{
+    GridId = "modalControlLedgerTable",
+    AjaxUrl = "/ControlLedger/GetAll",
+    AjaxMethod = "POST",
+    ServerSide = false,
+    ShowCheckbox = true,
+    CheckColumnData = "autoId",
+    CheckAllId = "modal-controlledger-check-all",
+    DefaultSortColumn = "subControlLedgerCodeNo",
+    DefaultSortDirection = "desc",
+    Columns = new()
+    {
+        new() { Data = "subControlLedgerCodeNo", Header = "ID", Width = "8%", IsEditLink = true, EditSelectorClass = "js-modal-controlledger-edit", IdField = "autoId" },
+        new() { Data = "subControlLedgerName", Header = "Control Ledger Name", Width = "57%" },
+        new() { Data = "shortName", Header = "Short Name", Width = "35%" }
+    }
+})
