@@ -13,14 +13,29 @@
 
 
 
+input[type="date"],
+input.custom-datepicker,
+input.flatpickr-alt-input,
+input.flatpickr-input,
+.custom-datepicker,
 .caiCon {
     position: relative;
-    /*    padding-right: 30px !important;*/
-    background-image: url('/img/icons/calender.svg');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px 16px;
-    opacity: .8;
+    background-image: url('/images/icons/calender.svg') !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 16px 16px !important;
+    padding-right: 32px !important;
+    cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 32px;
+    height: 100%;
 }
 
 .blink {
@@ -70,15 +85,7 @@ select.form-control-sm:disabled {
 
 
 
-.caiCon {
-    position: relative;
-    /*    padding-right: 30px !important;*/
-    background-image: url('/img/icons/calender.svg');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px 16px;
-    opacity: .8;
-}
+
 
 .blink {
     animation: blinker 1.5s linear infinite;

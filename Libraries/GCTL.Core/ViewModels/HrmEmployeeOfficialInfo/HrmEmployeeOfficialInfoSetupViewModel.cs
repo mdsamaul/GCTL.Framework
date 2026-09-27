@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -61,9 +61,13 @@ namespace GCTL.Core.ViewModels.HrmEmployeeOfficialInfo
         public decimal? ModeOfPaymentInBankPercentage { get; set; }
         public string? IsLunchBilEligible { get; set; }
         public string? IsOverTimeEligible { get; set; }
+        public string? IsOverTimeEligibleRegular { get; set; }
+        public string? IsOverTimeEligibleOnlyWeekend { get; set; }
+        public string? IsOverTimeEligibleHoliday { get; set; }
         public string? IsExtraDutyEligible { get; set; }
         public string? IsGovtHolidayEligible { get; set; }
         public string? IsAttendanceBonusEligible { get; set; }
+        public string? IsSanitaryEmployee { get; set; }
         public string? PayId { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }

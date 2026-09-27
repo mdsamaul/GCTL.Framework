@@ -1,4 +1,4 @@
-﻿/* ============ Flatpickr Custom Theme ============ */
+/* ============ Flatpickr Custom Theme ============ */
 
 /*.flatpickr-calendar {
     background: #fff;
@@ -1292,13 +1292,28 @@ input.flatpickr-input {
     transition: border-color .2s ease, box-shadow .2s ease;
 }
 
-input.custom-datepicker {
+input[type="date"],
+input.custom-datepicker,
+input.flatpickr-alt-input,
+input.flatpickr-input,
+.custom-datepicker,
+.caiCon {
     background-image: url('../../images/icons/calender.svg') !important;
     background-repeat: no-repeat !important;
     background-position: right 10px center !important;
     background-size: 16px 16px !important;
     padding-right: 32px !important;
     cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 32px;
+    height: 100%;
 }
 
     input.custom-datepicker:hover,
