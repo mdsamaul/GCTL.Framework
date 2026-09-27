@@ -95,7 +95,7 @@ public partial class SalesCustomer
 
     public string ShortName { get; set; }
 
-    public byte[] CustomerPhoto { get; set; }
+    public string CustomerPhoto { get; set; }
 
-    public byte[] CustomerDigitalSignature { get; set; }
+    public string CustomerDigitalSignature { get; set; }
 }

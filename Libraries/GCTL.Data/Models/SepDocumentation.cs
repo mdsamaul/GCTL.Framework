@@ -194,4 +194,10 @@ public partial class SepDocumentation
     public DateTime? DocsBankSignDate { get; set; }
 
     public DateTime? ArrivalNoticeDate { get; set; }
+
+    public string Term { get; set; }
+
+    public string VesselName { get; set; }
+
+    public string FreightForwarderPhoneNo { get; set; }
 }

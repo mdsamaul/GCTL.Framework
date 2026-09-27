@@ -122,4 +122,12 @@ public partial class HrmEmployeeOfficialInfo
     public string PayId { get; set; }
 
     public string ClientId { get; set; }
+
+    public string IsOverTimeEligibleOnlyWeekend { get; set; }
+
+    public string IsOverTimeEligibleHoliday { get; set; }
+
+    public string IsOverTimeEligibleRegular { get; set; }
+
+    public string IsSanitaryEmployee { get; set; }
 }
