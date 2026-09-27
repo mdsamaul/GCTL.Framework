@@ -17,23 +17,7 @@ namespace GCTL.Core.ViewModels.CustomerReport
         public decimal? OpeningBalance { get; set; }
         public decimal? CreditLimit { get; set; }
         public string Fax { get; set; }
-        public string Url { get; set; }
-        public string Email1 { get; set; }
-        public string Category { get; set; }
-        public string SalesPersonId { get; set; }
-        public string Bin { get; set; }
-        public string EmployeeId { get; set; }
-        public string CustomerCode { get; set; }
-        public string CountryId { get; set; }
-        public string City { get; set; }
-        public string StateOrProvince { get; set; }
-        public string ZipCode { get; set; }
-        public string VatRegNo { get; set; }
-        public string Tin { get; set; }
         public string ContactPerson { get; set; }
-        public string DevitOrCredit { get; set; }
-        public DateTime? OpeningDate { get; set; }
-        public string ShortName { get; set; }
         public byte[] CustomerPhoto { get; set; }
         public byte[] CustomerDigitalSignature { get; set; }
         public string CustomerTypeId { get; set; }

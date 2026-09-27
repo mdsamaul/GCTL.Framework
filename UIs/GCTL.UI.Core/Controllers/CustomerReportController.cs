@@ -119,7 +119,7 @@ namespace GCTL.UI.Core.Controllers
 
                 var responseData = data.Select((d, idx) => new
                 {
-                    sl = idx + 1,
+                    sn = idx + 1,
                     customerId = d.CustomerId,
                     name = d.CustomerName,
                     address = d.CustomerAddress,
@@ -130,8 +130,6 @@ namespace GCTL.UI.Core.Controllers
                     contactPerson = d.ContactPerson,
                     designation = d.Designation,
                     customerType = d.CustomerType,
-
-                    // ===== নতুন =====
                     companyCode = d.CompanyCode,
                     companyName = d.CompanyName,
                     companyAddress1 = d.CompanyAddress1
