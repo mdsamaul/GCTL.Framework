@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +20,8 @@ namespace GCTL.Core.ViewModels.CustomerReport
         public string ContactPerson { get; set; }
         public byte[] CustomerPhoto { get; set; }
         public byte[] CustomerDigitalSignature { get; set; }
+        public string? PhotoUrl { get; set; }
+        public string? SignatureUrl { get; set; }
         public string CustomerTypeId { get; set; }
         public string CustomerType { get; set; }
         public string Cpid { get; set; }

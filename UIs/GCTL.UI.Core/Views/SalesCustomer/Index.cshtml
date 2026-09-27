@@ -210,56 +210,28 @@
        - Laptop / smaller screens (<= 1600px): Form (66.67%), Media Cards (33.33%) side-by-side, Grid (100%) on bottom
        - Big screen (> 1600px): Form (35%) + Media Cards (15%) = 50% on left, Grid (50%) on right
     */
-    @@media (max-width: 1600px) {
-        .sc-layout-form-col {
-            flex: 0 0 66.666667% !important;
-            max-width: 66.666667% !important;
-            margin-bottom: 1rem;
-        }
-
-        .sc-layout-media-col {
-            flex: 0 0 33.333333% !important;
-            max-width: 33.333333% !important;
-            margin-bottom: 1rem;
-        }
-
-        .sc-layout-grid-col {
-            flex: 0 0 100% !important;
-            max-width: 100% !important;
-            padding-bottom: 1.5rem !important;
-        }
-
-        .sc-field-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
+    /* Layout: Top-down (Form 66.67%, Media Cards 33.33% on top, Grid 100% on bottom) for both <=1600px and >=1600px */
+    .sc-layout-form-col {
+        flex: 0 0 66.666667% !important;
+        max-width: 66.666667% !important;
+        margin-bottom: 1rem;
     }
 
-    @@media (min-width: 1600.02px) {
-        #customer-info .sc-layout-form-col {
-            flex: 0 0 35% !important;
-            max-width: 35% !important;
-        }
+    .sc-layout-media-col {
+        flex: 0 0 33.333333% !important;
+        max-width: 33.333333% !important;
+        margin-bottom: 1rem;
+    }
 
-        #customer-info .sc-layout-media-col {
-            flex: 0 0 15% !important;
-            max-width: 15% !important;
-        }
+    .sc-layout-grid-col {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-bottom: 1.5rem !important;
+    }
 
-        #customer-info .sc-layout-grid-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        #delivery-address .sc-layout-form-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
-
-        #delivery-address .sc-layout-grid-col {
-            flex: 0 0 50% !important;
-            max-width: 50% !important;
-        }
+    .sc-field-col {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
     }
 
     @@media (max-width: 991.98px) {

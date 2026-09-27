@@ -92,6 +92,12 @@ namespace GCTL.Service.CustomerReport
 
             using var reader = await command.ExecuteReaderAsync();
 
+            var webRoot = _webHostEnvironment?.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var photoFolder = Path.Combine(webRoot, "uploads", "CRM", "Image");
+            var signatureFolder = Path.Combine(webRoot, "uploads", "CRM", "Signature");
+            bool photoFolderExists = Directory.Exists(photoFolder);
+            bool signatureFolderExists = Directory.Exists(signatureFolder);
+
             while (await reader.ReadAsync())
             {
                 string GetString(string col)
@@ -104,26 +110,122 @@ namespace GCTL.Service.CustomerReport
                     catch { return string.Empty; }
                 }
 
-                byte[] GetBytes(string col)
+                byte[]? GetBytes(string col)
                 {
                     try
                     {
                         int idx = reader.GetOrdinal(col);
                         if (reader.IsDBNull(idx)) return null;
-                        return (byte[])reader.GetValue(idx);
+                        return reader.GetValue(idx) as byte[];
                     }
                     catch { return null; }
                 }
 
+                var customerId = GetString("CustomerID");
+                var photoFileName = GetString("CustomerPhoto");
+                if (string.IsNullOrEmpty(photoFileName))
+                {
+                    photoFileName = GetString("Photo");
+                }
+
+                byte[]? photoBytes = null;
+                string? photoUrl = null;
+
+                if (photoFolderExists)
+                {
+                    string? targetPhotoPath = null;
+                    if (!string.IsNullOrWhiteSpace(photoFileName))
+                    {
+                        var directPath = Path.Combine(photoFolder, photoFileName);
+                        if (File.Exists(directPath))
+                        {
+                            targetPhotoPath = directPath;
+                        }
+                    }
+
+                    if (targetPhotoPath == null && !string.IsNullOrWhiteSpace(customerId))
+                    {
+                        var matchedFile = Directory.GetFiles(photoFolder, $"{customerId}.*").FirstOrDefault();
+                        if (matchedFile != null && File.Exists(matchedFile))
+                        {
+                            targetPhotoPath = matchedFile;
+                        }
+                    }
+
+                    if (targetPhotoPath != null)
+                    {
+                        try
+                        {
+                            photoBytes = File.ReadAllBytes(targetPhotoPath);
+                            photoUrl = $"/uploads/CRM/Image/{Path.GetFileName(targetPhotoPath)}";
+                        }
+                        catch { }
+                    }
+                }
+
+                if (photoBytes == null)
+                {
+                    photoBytes = GetBytes("Photo") ?? GetBytes("CustomerPhoto");
+                }
+
+                var signatureFileName = GetString("CustomerDigitalSignature");
+                if (string.IsNullOrEmpty(signatureFileName))
+                {
+                    signatureFileName = GetString("Signature");
+                }
+
+                byte[]? signatureBytes = null;
+                string? signatureUrl = null;
+
+                if (signatureFolderExists)
+                {
+                    string? targetSigPath = null;
+                    if (!string.IsNullOrWhiteSpace(signatureFileName))
+                    {
+                        var directPath = Path.Combine(signatureFolder, signatureFileName);
+                        if (File.Exists(directPath))
+                        {
+                            targetSigPath = directPath;
+                        }
+                    }
+
+                    if (targetSigPath == null && !string.IsNullOrWhiteSpace(customerId))
+                    {
+                        var matchedFile = Directory.GetFiles(signatureFolder, $"{customerId}.*").FirstOrDefault();
+                        if (matchedFile != null && File.Exists(matchedFile))
+                        {
+                            targetSigPath = matchedFile;
+                        }
+                    }
+
+                    if (targetSigPath != null)
+                    {
+                        try
+                        {
+                            signatureBytes = File.ReadAllBytes(targetSigPath);
+                            signatureUrl = $"/uploads/CRM/Signature/{Path.GetFileName(targetSigPath)}";
+                        }
+                        catch { }
+                    }
+                }
+
+                if (signatureBytes == null)
+                {
+                    signatureBytes = GetBytes("CustomerDigitalSignature") ?? GetBytes("Signature");
+                }
+
                 result.Add(new CustomerReportResultDto
                 {
-                    CustomerId = GetString("CustomerID"),
+                    CustomerId = customerId,
                     CustomerName = GetString("CustomerName"),
                     CustomerAddress = GetString("Address"),
                     Phone = GetString("Phone"),
                     Fax = GetString("FAX"),
                     Email = GetString("Email"),
-                    CustomerPhoto = GetBytes("Photo"),
+                    CustomerPhoto = photoBytes,
+                    CustomerDigitalSignature = signatureBytes,
+                    PhotoUrl = photoUrl,
+                    SignatureUrl = signatureUrl,
                     ContactPerson = GetString("ContactPerson"),
                     Designation = GetString("Designation"),
                     CustomerTypeId = GetString("CustomerTypeID"),
