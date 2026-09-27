@@ -440,6 +440,24 @@
     </div>
 </div>
 
+<!-- Customer Photo Preview Modal -->
+<div class="modal fade" id="customerPhotoModal" tabindex="-1" aria-labelledby="customerPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+        <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
+            <div class="modal-header py-2 px-3 bg-light border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-image text-primary"></i>
+                    <h6 class="modal-title mb-0 fw-semibold" id="customerPhotoModalLabel">Customer Photo</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 text-center bg-white">
+                <img id="customerPhotoModalImg" src="" alt="Customer Photo" class="img-fluid rounded shadow-sm" style="max-height: 480px; width: auto; object-fit: contain;" />
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="~/js/pages/customerReport.js" asp-append-version="true"></script>
 }

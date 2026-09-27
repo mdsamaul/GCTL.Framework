@@ -9,7 +9,10 @@
 
     window.gctlRenderers.renderPhoto = function (data) {
         if (data) {
-            return '<img src="data:image/jpeg;base64,' + data + '" alt="Photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;" />';
+            var src = (data.startsWith('/') || data.startsWith('http') || data.startsWith('data:'))
+                ? data
+                : 'data:image/jpeg;base64,' + data;
+            return '<img src="' + src + '" alt="Photo" class="js-customer-photo-preview" data-src="' + src + '" title="Click to view large photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;" onmouseover="this.style.transform=\'scale(1.15)\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.25)\';" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'none\';" onerror="this.onerror=null;this.parentElement.innerHTML=\'<span class=\\\'text-muted\\\'>-</span>\';" />';
         }
         return '<span class="text-muted">-</span>';
     };
@@ -79,6 +82,21 @@
         $('#btnExport').on('click', function (e) {
             e.preventDefault();
             exportReport();
+        });
+
+        // Photo Preview Modal on Click
+        $(document).on('click', '.js-customer-photo-preview', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var src = $(this).attr('data-src') || $(this).attr('src');
+            if (src) {
+                $('#customerPhotoModalImg').attr('src', src);
+                var modalEl = document.getElementById('customerPhotoModal');
+                if (modalEl) {
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            }
         });
     }
 

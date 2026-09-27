@@ -180,7 +180,9 @@ namespace GCTL.UI.Core.Controllers
                     phone = d.Phone,
                     fax = d.Fax,
                     email = d.Email,
-                    photo = d.CustomerPhoto != null ? Convert.ToBase64String(d.CustomerPhoto) : null,
+                    photo = !string.IsNullOrEmpty(d.PhotoUrl)
+                        ? d.PhotoUrl
+                        : (d.CustomerPhoto != null ? Convert.ToBase64String(d.CustomerPhoto) : null),
                     contactPerson = d.ContactPerson,
                     designation = d.Designation,
                     customerType = d.CustomerType,
