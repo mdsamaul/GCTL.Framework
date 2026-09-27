@@ -1,4 +1,4 @@
-﻿@model GCTL.Core.ViewModels.HrmEmployeeOfficialInfo.HrmEmployeeOfficialInfoSetupViewModel
+@model GCTL.Core.ViewModels.HrmEmployeeOfficialInfo.HrmEmployeeOfficialInfoSetupViewModel
 @using GCTL.UI.Core.ViewModels
 
 @{
@@ -69,8 +69,8 @@
                                 <input type="hidden" asp-for="AutoId" />
 
                                 <!-- ==================== HEADER (Employee Info) ==================== -->
-                                <div class="row shadow px-4 pt-2 pb-2 rounded"
-                                     style="background: linear-gradient(to right, #f7fcff, #ffffff) !important;">
+                                <div class="row px-4 pt-2 pb-2 rounded"
+                                     style="background: linear-gradient(to right, #ecf8fe, #ffffff) !important;">
 
                                     <div class="form-group row w-100">
 
@@ -137,7 +137,14 @@
                                 </div>
 
                                 <!-- ==================== MAIN OFFICIAL INFO ==================== -->
-                                <div style="position:relative; background: white;" class="row shadow mt-3 py-3 rounded">
+                                @* <div style="position:relative; background: white;" class="row mt-3 py-3 rounded"> *@
+
+                                    <div style="position:relative; background: white; border: 0.5px solid #95b3f4;" class="row my-3 py-3 rounded">
+                                        <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #95b3f4; left: 10px; width:auto;" class="rounded">
+                                        <h5 style="margin:0;"><strong>Company Information</strong></h5>
+                                        </div>
+
+                                        @* <div class="form-group row w-100"> *@
 
                                     <div class="form-group row w-100">
 
@@ -411,8 +418,8 @@
                                 </div>
 
                                 <!-- ==================== OTHERS INFORMATION ==================== -->
-                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
-                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                <div style="position:relative; background: white; border: 0.5px solid #95b3f4;" class="row my-3 py-3 rounded">
+                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #95b3f4; left: 10px; width:auto;" class="rounded">
                                         <h5 style="margin:0;"><strong>Others Information</strong></h5>
                                     </div>
 
@@ -446,6 +453,51 @@
 
                                         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                         {
+                                            InputId = "IsOverTimeEligibleRegular",
+                                            LabelText = "Is Over Time Eligible (Regular)",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Over Time Eligible (Regular) ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleRegularDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligibleRegular,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsOverTimeEligibleOnlyWeekend",
+                                            LabelText = "Is Over Time Eligible(Weekend)",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Over Time Eligible(Weekend) ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleWeekendDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligibleOnlyWeekend,
+                                            ReserveActionSlot = true
+                                        })
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
+                                            InputId = "IsOverTimeEligibleHoliday",
+                                            LabelText = "Is Over Time Eligible(Holiday)",
+                                            FieldType = FieldType.Select,
+                                            Placeholder = "---- Select Is Over Time Eligible (Holiday) ----",
+                                            ColumnClass = "col-lg-4",
+                                            CustomCssClass = "selectpickerOfficialInfo gc-select2",
+                                            SelectItems = ViewBag.OverTimeEligibleHolidayDD as SelectList,
+                                            DefaultValue = Model.IsOverTimeEligibleHoliday,
+                                            ReserveActionSlot = true
+                                        })
+                                    </div>
+
+                                    <div class="form-group row w-100">
+
+                                        @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+                                        {
                                             InputId = "IsExtraDutyEligible",
                                             LabelText = "Is Extra Duty Eligible",
                                             FieldType = FieldType.Select,
@@ -456,16 +508,13 @@
                                             DefaultValue = Model.IsExtraDutyEligible,
                                             ReserveActionSlot = true
                                         })
-                                    </div>
-
-                                    <div class="form-group row w-100">
 
                                         @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                                         {
                                             InputId = "IsGovtHolidayEligible",
-                                            LabelText = "Is Gov't Holiday Eligible",
+                                            LabelText = "Is Govt. Holiday Eligible",
                                             FieldType = FieldType.Select,
-                                            Placeholder = "---- Select Is Gov't Holiday Eligible ----",
+                                            Placeholder = "---- Select Is Govt. Holiday Eligible ----",
                                             ColumnClass = "col-lg-4",
                                             CustomCssClass = "selectpickerOfficialInfo gc-select2",
                                             SelectItems = ViewBag.GovtHolidayEligibleDD as SelectList,
@@ -489,8 +538,8 @@
                                 </div>
 
                                 <!-- ==================== JOINING INFORMATION ==================== -->
-                                <div style="position:relative; background: white; border: 0.5px solid #dddddd82;" class="row shadow my-3 py-3 rounded">
-                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #dddddd82; left: 10px;" class="rounded">
+                                <div style="position:relative; background: white; border: 0.5px solid #95b3f4;" class="row my-3 py-3 rounded">
+                                    <div style="position:absolute; top:-10px; background:#fff; padding:0 10px; border: .5px solid #95b3f4; left: 10px; width:auto;" class="rounded">
                                         <h5 style="margin:0;"><strong>Joining Information</strong></h5>
                                     </div>
 

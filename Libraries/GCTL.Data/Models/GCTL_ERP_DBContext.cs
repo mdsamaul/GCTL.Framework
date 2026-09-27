@@ -85,6 +85,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<CfDefVendorPrefix> CfDefVendorPrefixes { get; set; }
 
+    public virtual DbSet<CfJobDeliveryInfo> CfJobDeliveryInfos { get; set; }
+
     public virtual DbSet<CfOperationalFundRequisitionDetail> CfOperationalFundRequisitionDetails { get; set; }
 
     public virtual DbSet<CfOperationalFundRequisitionDetailsTemp> CfOperationalFundRequisitionDetailsTemps { get; set; }
@@ -1313,6 +1315,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.ToTable("CF_DailyJobUpdateEntry");
 
+            entity.HasIndex(e => new { e.JobNo, e.UpdateStatus }, "IX_CF_DailyJobUpdateEntry_JobNo_Status");
+
             entity.Property(e => e.Tc)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
@@ -1545,6 +1549,66 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Tc)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("TC");
+        });
+
+        modelBuilder.Entity<CfJobDeliveryInfo>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("CF_JobDeliveryInfo");
+
+            entity.Property(e => e.ChallanDateTime).HasColumnType("datetime");
+            entity.Property(e => e.ChallanNo)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CompanyCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CustomerId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("CustomerID");
+            entity.Property(e => e.DeliveryDateTime).HasColumnType("datetime");
+            entity.Property(e => e.DeliveryStatusTypeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("DeliveryStatusTypeID");
+            entity.Property(e => e.EmployeeId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("EmployeeID");
+            entity.Property(e => e.JobDeliveryId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("JobDeliveryID");
+            entity.Property(e => e.JobNo)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("datetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(50)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(50)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(50)
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.Ofrno)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("OFRNo");
+            entity.Property(e => e.Tc)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("TC");
+            entity.Property(e => e.TransportBookingDetailsId)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasColumnName("TransportBookingDetailsID");
         });
 
         modelBuilder.Entity<CfOperationalFundRequisitionDetail>(entity =>
@@ -3877,6 +3941,18 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.IsGovtHolidayEligible).HasMaxLength(50);
             entity.Property(e => e.IsLunchBilEligible).HasMaxLength(10);
             entity.Property(e => e.IsOverTimeEligible).HasMaxLength(10);
+            entity.Property(e => e.IsOverTimeEligibleHoliday)
+                .HasMaxLength(50)
+                .HasDefaultValue("");
+            entity.Property(e => e.IsOverTimeEligibleOnlyWeekend)
+                .HasMaxLength(50)
+                .HasDefaultValue("");
+            entity.Property(e => e.IsOverTimeEligibleRegular)
+                .HasMaxLength(50)
+                .HasDefaultValue("");
+            entity.Property(e => e.IsSanitaryEmployee)
+                .HasMaxLength(50)
+                .HasDefaultValue("");
             entity.Property(e => e.JoiningDate).HasColumnType("datetime");
             entity.Property(e => e.JoiningSalary).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Ldate)
@@ -4682,6 +4758,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.HasIndex(e => e.CustomerId, "IX_Sales_Customer_CustomerID");
 
+            entity.HasIndex(e => e.CustomerId, "IX_Sales_Customer_Id_Perf");
+
             entity.Property(e => e.CustomerId)
                 .HasMaxLength(50)
                 .HasColumnName("CustomerID");
@@ -5030,6 +5108,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.ToTable("Sales_Def_PortName");
 
+            entity.HasIndex(e => e.PortId, "IX_Sales_Def_PortName_PortId");
+
             entity.Property(e => e.PortNameId).HasMaxLength(50);
             entity.Property(e => e.Ldate)
                 .HasColumnType("datetime")
@@ -5363,6 +5443,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.ToTable("Sep_Documentation");
 
+            entity.HasIndex(e => new { e.CustomerId, e.Date }, "IX_Sep_Documentation_JobStatus_Perf");
+
             entity.HasIndex(e => e.JobNo, "UQ__Sep_Docu__056568B0A3253BCB").IsUnique();
 
             entity.Property(e => e.Tc)
@@ -5446,6 +5528,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("ExporterID");
             entity.Property(e => e.FinalIgmRecDate).HasColumnType("datetime");
             entity.Property(e => e.FreightCharge).HasMaxLength(50);
+            entity.Property(e => e.FreightForwarderPhoneNo).HasMaxLength(100);
             entity.Property(e => e.FwdrShippingAgent)
                 .HasMaxLength(100)
                 .HasColumnName("FWDR_ShippingAgent");
@@ -5521,6 +5604,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("SHIPARRIVEDDATE");
             entity.Property(e => e.SupplierId).HasMaxLength(150);
+            entity.Property(e => e.Term).HasMaxLength(100);
             entity.Property(e => e.TransportCost).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UnStuffingLocationDate)
                 .HasColumnType("datetime")
@@ -5533,6 +5617,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("VehicleID");
             entity.Property(e => e.Vendor).HasMaxLength(100);
+            entity.Property(e => e.VesselName).HasMaxLength(200);
             entity.Property(e => e.VesselRottNo)
                 .HasMaxLength(50)
                 .HasColumnName("Vessel_RottNo");

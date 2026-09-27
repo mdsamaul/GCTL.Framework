@@ -141,6 +141,9 @@
                 
                 window.setField('#IsLunchBilEligible', getProp(data, 'isLunchBilEligible'));
                 window.setField('#IsOverTimeEligible', getProp(data, 'isOverTimeEligible'));
+                window.setField('#IsOverTimeEligibleRegular', getProp(data, 'isOverTimeEligibleRegular'));
+                window.setField('#IsOverTimeEligibleOnlyWeekend', getProp(data, 'isOverTimeEligibleOnlyWeekend'));
+                window.setField('#IsOverTimeEligibleHoliday', getProp(data, 'isOverTimeEligibleHoliday'));
                 window.setField('#IsExtraDutyEligible', getProp(data, 'isExtraDutyEligible'));
                 window.setField('#IsGovtHolidayEligible', getProp(data, 'isGovtHolidayEligible'));
                 window.setField('#IsAttendanceBonusEligible', getProp(data, 'isAttendanceBonusEligible'));

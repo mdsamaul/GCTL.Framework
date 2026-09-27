@@ -167,6 +167,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CF_JobDeliveryInfo]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CF_OperationalFundRequisitionDetails]",
          "ObjectType": 0
       },
@@ -603,11 +607,55 @@
          "ObjectType": 1
       },
       {
+         "Name": "[dbo].[prc_JobPortal_JobStatusExceptAll]",
+         "ObjectType": 1
+      },
+      {
          "Name": "[dbo].[prc_LoadGridPaymentReceived]",
          "ObjectType": 1
       },
       {
+         "Name": "[dbo].[Proc_CustomerJobStatusDeliveredSea]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerJobStatusDeliveryExceptAll]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerJobStatusFastAir]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerJobStatusFastSea]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerJobStatusInTransitExceptAll]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerJobStatusInTransitSea]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerJobStatusPendingExceptAll]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Proc_CustomerJobStatusPendingReportForSea]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[proc_CustomerJobSummery]",
+         "ObjectType": 1
+      },
+      {
          "Name": "[dbo].[Proc_CustomerListForPaymentReceive]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Sales_GetCustomerReport]",
          "ObjectType": 1
       },
       {

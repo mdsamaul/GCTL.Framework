@@ -227,6 +227,40 @@ namespace GCTL.Data.Models
             return _;
         }
 
+        public virtual async Task<List<prc_JobPortal_JobStatusExceptAllResult>> prc_JobPortal_JobStatusExceptAllAsync(string customerId, string shipmentModeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = 50,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentModeId",
+                    Size = 50,
+                    Value = shipmentModeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<prc_JobPortal_JobStatusExceptAllResult>("EXEC @returnValue = [dbo].[prc_JobPortal_JobStatusExceptAll] @CustomerId = @CustomerId, @ShipmentModeId = @ShipmentModeId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
         public virtual async Task<List<prc_LoadGridPaymentReceivedResult>> prc_LoadGridPaymentReceivedAsync(DateTime? fromDate, DateTime? toDate, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
@@ -259,6 +293,527 @@ namespace GCTL.Data.Models
             return _;
         }
 
+        public virtual async Task<List<Proc_CustomerJobStatusDeliveredSeaResult>> Proc_CustomerJobStatusDeliveredSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusDeliveredSeaResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusDeliveredSea] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerJobStatusDeliveryExceptAllResult>> Proc_CustomerJobStatusDeliveryExceptAllAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusDeliveryExceptAllResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusDeliveryExceptAll] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerJobStatusFastAirResult>> Proc_CustomerJobStatusFastAirAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, string jobStatus, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "JobStatus",
+                    Size = 50,
+                    Value = jobStatus ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusFastAirResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusFastAir] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId, @JobStatus = @JobStatus", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerJobStatusFastSeaResult>> Proc_CustomerJobStatusFastSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, string jobStatus, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "JobStatus",
+                    Size = 50,
+                    Value = jobStatus ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusFastSeaResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusFastSea] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId, @JobStatus = @JobStatus", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerJobStatusInTransitExceptAllResult>> Proc_CustomerJobStatusInTransitExceptAllAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusInTransitExceptAllResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusInTransitExceptAll] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerJobStatusInTransitSeaResult>> Proc_CustomerJobStatusInTransitSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusInTransitSeaResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusInTransitSea] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerJobStatusPendingExceptAllResult>> Proc_CustomerJobStatusPendingExceptAllAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusPendingExceptAllResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusPendingExceptAll] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Proc_CustomerJobStatusPendingReportForSeaResult>> Proc_CustomerJobStatusPendingReportForSeaAsync(string dateUse, DateTime? fromDate, DateTime? toDate, string customerId, string portTypeId, string shipmentTypeId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "DateUse",
+                    Size = 50,
+                    Value = dateUse ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "FromDate",
+                    Value = fromDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ToDate",
+                    Value = toDate ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.DateTime,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = -1,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "PortTypeId",
+                    Size = -1,
+                    Value = portTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "ShipmentTypeId",
+                    Size = -1,
+                    Value = shipmentTypeId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Proc_CustomerJobStatusPendingReportForSeaResult>("EXEC @returnValue = [dbo].[Proc_CustomerJobStatusPendingReportForSea] @DateUse = @DateUse, @FromDate = @FromDate, @ToDate = @ToDate, @CustomerId = @CustomerId, @PortTypeId = @PortTypeId, @ShipmentTypeId = @ShipmentTypeId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<proc_CustomerJobSummeryResult>> proc_CustomerJobSummeryAsync(string customerId, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "CustomerId",
+                    Size = 50,
+                    Value = customerId ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<proc_CustomerJobSummeryResult>("EXEC @returnValue = [dbo].[proc_CustomerJobSummery] @CustomerId = @CustomerId", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
         public virtual async Task<List<Proc_CustomerListForPaymentReceiveResult>> Proc_CustomerListForPaymentReceiveAsync(OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
         {
             var parameterreturnValue = new SqlParameter
@@ -273,6 +828,47 @@ namespace GCTL.Data.Models
                 parameterreturnValue,
             };
             var _ = await _context.SqlQueryAsync<Proc_CustomerListForPaymentReceiveResult>("EXEC @returnValue = [dbo].[Proc_CustomerListForPaymentReceive]", sqlParameters, cancellationToken);
+
+            returnValue?.SetValue(parameterreturnValue.Value);
+
+            return _;
+        }
+
+        public virtual async Task<List<Sales_GetCustomerReportResult>> Sales_GetCustomerReportAsync(string customerID, string customerTypeID, string companyCode, OutputParameter<int> returnValue = null, CancellationToken cancellationToken = default)
+        {
+            var parameterreturnValue = new SqlParameter
+            {
+                ParameterName = "returnValue",
+                Direction = System.Data.ParameterDirection.Output,
+                SqlDbType = System.Data.SqlDbType.Int,
+            };
+
+            var sqlParameters = new []
+            {
+                new SqlParameter
+                {
+                    ParameterName = "CustomerID",
+                    Size = 50,
+                    Value = customerID ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CustomerTypeID",
+                    Size = 50,
+                    Value = customerTypeID ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                new SqlParameter
+                {
+                    ParameterName = "CompanyCode",
+                    Size = 50,
+                    Value = companyCode ?? Convert.DBNull,
+                    SqlDbType = System.Data.SqlDbType.NVarChar,
+                },
+                parameterreturnValue,
+            };
+            var _ = await _context.SqlQueryAsync<Sales_GetCustomerReportResult>("EXEC @returnValue = [dbo].[Sales_GetCustomerReport] @CustomerID = @CustomerID, @CustomerTypeID = @CustomerTypeID, @CompanyCode = @CompanyCode", sqlParameters, cancellationToken);
 
             returnValue?.SetValue(parameterreturnValue.Value);
 
