@@ -509,6 +509,7 @@ namespace GCTL.Service.JobStatusReport
                 ws.Cell(currRow, 1).Value = "No Sea Freight records found.";
                 ws.Range(currRow, 1, currRow, totalCols).Merge();
                 ws.Cell(currRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                AutoFitColumnsToContent(ws, totalCols);
                 return;
             }
 
@@ -598,7 +599,7 @@ namespace GCTL.Service.JobStatusReport
                 currRow++;
             }
 
-            ws.Columns().AdjustToContents(8.0, 35.0);
+            AutoFitColumnsToContent(ws, totalCols);
         }
 
         private static void BuildAirExcelWorksheet(XLWorkbook workbook, List<AirJobReportItemDTO> airJobs, JobStatusReportFilterVM filter)
@@ -651,6 +652,7 @@ namespace GCTL.Service.JobStatusReport
                 ws.Cell(currRow, 1).Value = "No Air Freight records found.";
                 ws.Range(currRow, 1, currRow, totalCols).Merge();
                 ws.Cell(currRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                AutoFitColumnsToContent(ws, totalCols);
                 return;
             }
 
@@ -735,7 +737,7 @@ namespace GCTL.Service.JobStatusReport
                 currRow++;
             }
 
-            ws.Columns().AdjustToContents(8.0, 35.0);
+            AutoFitColumnsToContent(ws, totalCols);
         }
 
         private static void WriteHeaders(IXLWorksheet ws, int row, string[] headers, int totalCols)
@@ -748,12 +750,17 @@ namespace GCTL.Service.JobStatusReport
                 cell.Style.Font.FontSize = 8.5;
                 cell.Style.Font.FontName = "Times New Roman";
                 cell.Style.Fill.PatternType = XLFillPatternValues.None;
-                cell.Style.Alignment.Horizontal = (i + 1 == 8) ? XLAlignmentHorizontalValues.Right : XLAlignmentHorizontalValues.Center;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 cell.Style.Alignment.WrapText = true;
                 cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#999999");
             }
+        }
+
+        private static void AutoFitColumnsToContent(IXLWorksheet ws, int totalCols)
+        {
+            ws.Columns(1, totalCols).AdjustToContents();
         }
         #endregion
 
