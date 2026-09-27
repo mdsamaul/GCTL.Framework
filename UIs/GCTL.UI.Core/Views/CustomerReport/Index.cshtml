@@ -1,4 +1,6 @@
-﻿@{
+@model GCTL.UI.Core.ViewModels.GridModel
+
+@{
     ViewData["Title"] = "Customer Report Dashboard";
     Layout = "_Layout";
 }
@@ -230,13 +232,23 @@
             box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
         }
 
-    /* Card Wrapper for Tabs and DataTables */
-    .job-tables-card {
+    /* Grid Wrapper Card */
+    .job-grid-card {
         background: white;
         border-radius: 10px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         border: 1px solid var(--border);
-        overflow: hidden;
+        padding: 10px 12px;
+        overflow-x: auto;
+    }
+
+    #customerReportTable th.col-select-cell,
+    #customerReportTable td.col-select-cell {
+        width: 35px !important;
+        min-width: 35px !important;
+        max-width: 35px !important;
+        padding: 4px 2px !important;
+        text-align: center !important;
     }
 
     .tabs-header {
@@ -420,33 +432,9 @@
 
         </div>
 
-        <div class="job-tables-card">
-            
-            <div class="tab-content p-3" id="jobModeTabsContent">
-                <!-- Sea Freight Tab Pane -->
-                <div class="tab-pane fade show active" id="sea-tab-pane" role="tabpanel" aria-labelledby="sea-tab">
-                    <div class="table-responsive">
-                        <table id="seacustomerTable"
-                               class="table table-bordered table-striped table-hover custom-grid-table w-100 text-center align-middle">
-                            <thead>
-                                <tr>
-                                    <th style="width: 3%;">SN</th>
-                                    <th style="width: 7%;">Customer ID</th>
-                                    <th style="width: 15%;">Name</th>
-                                    <th style="width: 17%;">Address</th>
-                                    <th style="width: 8%;">Phone</th>
-                                    <th style="width: 8%;">Fax</th>
-                                    <th style="width: 9%">Email</th>
-                                    <th style="width: 8%">Photo</th>
-                                    <th style="width: 25%;">Contact Person</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
+        <!-- CustomGrid Table Container -->
+        <div class="job-grid-card">
+            @await Html.PartialAsync("_CustomGrid", Model)
         </div>
 
     </div>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,6 +10,7 @@ namespace GCTL.Core.ViewModels.CustomerReport
     {
         public List<string> CustomerId { get; set; }   
         public List<string> CustomerTypeId { get; set; }
+        public List<string>? SelectedCustomerIds { get; set; }
         public string CustomerAddress { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }

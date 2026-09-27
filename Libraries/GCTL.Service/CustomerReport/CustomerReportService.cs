@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using GCTL.Core.ViewModels.CustomerReport;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -146,6 +146,17 @@ namespace GCTL.Service.CustomerReport
             try
             {
                 var data = await GetCustomerReportDataAsync(filter);
+
+                if (filter.SelectedCustomerIds != null && filter.SelectedCustomerIds.Any())
+                {
+                    var selectedSet = new HashSet<string>(
+                        filter.SelectedCustomerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
+                        StringComparer.OrdinalIgnoreCase);
+                    if (selectedSet.Count > 0)
+                    {
+                        data = data.Where(x => !string.IsNullOrEmpty(x.CustomerId) && selectedSet.Contains(x.CustomerId.Trim())).ToList();
+                    }
+                }
 
                 var firstItem = data.FirstOrDefault();
                 string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
@@ -345,6 +356,17 @@ namespace GCTL.Service.CustomerReport
         public async Task<byte[]> GenerateExcelReportAsync(CustomerReportFilterDto filter)
         {
             var data = await GetCustomerReportDataAsync(filter);
+
+            if (filter.SelectedCustomerIds != null && filter.SelectedCustomerIds.Any())
+            {
+                var selectedSet = new HashSet<string>(
+                    filter.SelectedCustomerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
+                    StringComparer.OrdinalIgnoreCase);
+                if (selectedSet.Count > 0)
+                {
+                    data = data.Where(x => !string.IsNullOrEmpty(x.CustomerId) && selectedSet.Contains(x.CustomerId.Trim())).ToList();
+                }
+            }
 
             var firstItem = data.FirstOrDefault();
             string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
