@@ -1,203 +1,65 @@
-﻿
+
 (function ($) {
     'use strict';
 
     let customerTable = null;
 
+    // Register renderers for CustomGrid
+    window.gctlRenderers = window.gctlRenderers || {};
+
+    window.gctlRenderers.renderPhoto = function (data) {
+        if (data) {
+            var src = (data.startsWith('/') || data.startsWith('http') || data.startsWith('data:'))
+                ? data
+                : 'data:image/jpeg;base64,' + data;
+            return '<img src="' + src + '" alt="Photo" class="js-customer-photo-preview" data-src="' + src + '" title="Click to view large photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;" onmouseover="this.style.transform=\'scale(1.15)\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.25)\';" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'none\';" onerror="this.onerror=null;this.parentElement.innerHTML=\'<span class=\\\'text-muted\\\'>-</span>\';" />';
+        }
+        return '<span class="text-muted">-</span>';
+    };
+
+    window.gctlRenderers.renderContactPerson = function (data) {
+        return '<span style="text-align:left; display:block; white-space:pre-line;">' + escapeHtml(data) + '</span>';
+    };
+
+    window.gctlRenderers.renderAlignLeft = function (data) {
+        return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
+    };
+
+    window.gctlRenderers.renderCustomerId = function (data) {
+        return '<span class="job-no-cell">' + escapeHtml(data) + '</span>';
+    };
+
     $(document).ready(function () {
-        initDataTable();
+        initGrid();
         bindEvents();
-        loadCustomerData();
     });
 
-    function initDataTable() {
-        // Destroy existing instance if any
-        if ($.fn.DataTable.isDataTable('#seacustomerTable')) {
-            $('#seacustomerTable').DataTable().destroy();
-        }
-
-        customerTable = $('#seacustomerTable').DataTable({
-            processing: true,
-            responsive: true,
-            pageLength: 10,
-
-            lengthMenu: [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "All"]
-            ],
-
-            order: [[0, 'asc']],
-            autoWidth: false,
-
-            language: {
-                emptyTable: "No customer records found matching the filter criteria.",
-                search: "_INPUT_",
-                searchPlaceholder: "Search customers..."
-            },
-
-            // columns: [
-            //     {
-            //         data: 'sn',
-            //         className: 'text-center align-middle',
-            //         width: '35px'
-            //     },
-            //     {
-            //         data: 'customerId',
-            //         className: 'text-center align-middle job-no-cell',
-            //         width: '40px',
-            //         render: function (data) {
-            //             return escapeHtml(data);
-            //         }
-            //     },
-            //     {
-            //         data: 'name',
-            //         className: 'text-start align-middle',
-            //         width: '180px',
-            //         render: function (data) {
-            //             return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
-            //         }
-            //     },
-            //     {
-            //         data: 'address',
-            //         className: 'text-start align-middle',
-            //         width: '200px',
-            //         render: function (data) {
-            //             return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
-            //         }
-            //     },
-            //     {
-            //         data: 'phone',
-            //         className: 'text-center align-middle',
-            //         width: '130px'
-            //     },
-            //     {
-            //         data: 'fax',
-            //         className: 'text-center align-middle',
-            //         width: '120px'
-            //     },
-            //     {
-            //         data: 'email',
-            //         className: 'text-center align-middle',
-            //         width: '160px'
-            //     },
-            //     {
-            //         data: 'photo',
-            //         className: 'text-center align-middle',
-            //         width: '100px',
-            //         orderable: false,
-            //         render: function (data) {
-            //             if (data) {
-            //                 return `
-            //     <img src="data:image/jpeg;base64,${data}"
-            //          alt="Photo"
-            //          style="width:36px;
-            //                 height:36px;
-            //                 border-radius:6px;
-            //                 object-fit:cover;" />
-            // `;
-            //             }
-
-            //             return '<span class="text-muted">-</span>';
-            //         }
-            //     },
-            //     {
-            //         data: 'contactPerson',
-            //         className: 'text-start align-middle',
-            //         width: '250px',
-            //         render: function (data) {
-            //             return '<span style="text-align:left; display:block; white-space:pre-line;">' + escapeHtml(data) + '</span>';
-            //         }
-            //     }
-            // ]
-
-            columns: [
-                {
-                    data: 'sn',
-                    className: 'text-center align-middle',
-                    width: '3%'
+    function initGrid() {
+        if ($.gctlGrid && typeof $.gctlGrid.initFromModel === 'function') {
+            customerTable = $.gctlGrid.initFromModel({
+                gridId: 'customerReportTable',
+                ajaxData: function (d) {
+                    var filters = getFilterParams();
+                    d.customerId = filters.CustomerId;
+                    d.customerTypeId = filters.CustomerTypeId;
                 },
-                {
-                    data: 'customerId',
-                    className: 'text-center align-middle job-no-cell',
-                    width: '7%',
-                    render: function (data) {
-                        return escapeHtml(data);
-                    }
-                },
-                {
-                    data: 'name',
-                    className: 'text-start align-middle',
-                    width: '15%',
-                    render: function (data) {
-                        return '<span style="text-align:left; display:block;">' +
-                            escapeHtml(data) +
-                            '</span>';
-                    }
-                },
-                {
-                    data: 'address',
-                    className: 'text-start align-middle',
-                    width: '17%',
-                    render: function (data) {
-                        return '<span style="text-align:left; display:block;">' +
-                            escapeHtml(data) +
-                            '</span>';
-                    }
-                },
-                {
-                    data: 'phone',
-                    className: 'text-center align-middle',
-                    width: '8%'
-                },
-                {
-                    data: 'fax',
-                    className: 'text-center align-middle',
-                    width: '8%'
-                },
-                {
-                    data: 'email',
-                    className: 'text-center align-middle',
-                    width: '9%'
-                },
-                {
-                    data: 'photo',
-                    className: 'text-center align-middle',
-                    width: '8%',
-                    orderable: false,
-                    render: function (data) {
-                        if (data) {
-                            return `
-                    <img src="data:image/jpeg;base64,${data}"
-                         alt="Photo"
-                         style="width:36px;
-                                height:36px;
-                                border-radius:6px;
-                                object-fit:cover;" />
-                `;
-                        }
-                        return '<span class="text-muted">-</span>';
-                    }
-                },
-                {
-                    data: 'contactPerson',
-                    className: 'text-start align-middle',
-                    width: '25%',
-                    render: function (data) {
-                        return '<span style="text-align:left; display:block; white-space:pre-line;">' +
-                            escapeHtml(data) +
-                            '</span>';
+                onLoaded: function (res) {
+                    if (res && res.success) {
+                        animateCounter('#statTotalcustomer', res.total || 0);
+                        animateCounter('#statinHouse', res.inHouse || 0);
+                        animateCounter('#statgeneral', res.general || 0);
+                        animateCounter('#statCustomerType', res.customerType || 0);
                     }
                 }
-            ]
-
-        });
+            });
+        }
     }
 
     function bindEvents() {
         // Search Button Click
         $('#btnSearch').on('click', function (e) {
             e.preventDefault();
-            loadCustomerData();
+            reloadGrid();
         });
 
         // Stat Card Click to Filter by Customer Type
@@ -206,15 +68,14 @@
             $('.stat-card').removeClass('active-card');
             $(this).addClass('active-card');
 
-            // Text ("General"/"In House") কে dropdown এর actual value ("0"/"1") তে ম্যাপ করা
             var mappedValue = mapStatusToValue(statusFilter);
             setDropdownValue('filterCustomerType', mappedValue);
-            loadCustomerData();
+            reloadGrid();
         });
 
-        // Dropdown নিজে থেকে পরিবর্তন হলেও ডাটা রিলোড হবে
+        // Dropdown changes trigger grid reload
         $('#filterCustomerType, #filterCustomer').on('change', function () {
-            loadCustomerData();
+            reloadGrid();
         });
 
         // Export Report Click
@@ -222,20 +83,44 @@
             e.preventDefault();
             exportReport();
         });
+
+        // Photo Preview Modal on Click
+        $(document).on('click', '.js-customer-photo-preview', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var src = $(this).attr('data-src') || $(this).attr('src');
+            if (src) {
+                $('#customerPhotoModalImg').attr('src', src);
+                var modalEl = document.getElementById('customerPhotoModal');
+                if (modalEl) {
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            }
+        });
     }
 
-    /* Stat card এর টেক্সট ("General" / "In House") কে dropdown value ("0" / "1") এ কনভার্ট করে */
+    function reloadGrid() {
+        var filters = getFilterParams();
+        highlightStatCard(filters.CustomerTypeId);
 
+        if ($.gctlGrid && typeof $.gctlGrid.reload === 'function') {
+            $.gctlGrid.reload('customerReportTable', true);
+        } else if (customerTable && customerTable.ajax) {
+            customerTable.ajax.reload(null, true);
+        }
+    }
+
+    /* Stat card text ("General" / "In House") converted to dropdown value ("0" / "1") */
     function mapStatusToValue(statusFilter) {
         if (!statusFilter) return '';
         var s = statusFilter.toString().toLowerCase().trim();
         if (s.indexOf('house') !== -1) return '1';
         if (s.indexOf('general') !== -1) return '0';
-        return statusFilter; 
+        return statusFilter;
     }
 
     /* Helper to safely extract value from custom-select-multi or custom-select-single */
-
     function getDropdownValue(id) {
         var $el = $('#' + id);
         if (!$el.length) return '';
@@ -259,7 +144,6 @@
     }
 
     /* Helper to get dropdown value as an array (for multi-select filters expecting List<string>) */
-
     function getDropdownValueArray(id) {
         var raw = getDropdownValue(id);
         if (!raw) return [];
@@ -267,7 +151,6 @@
     }
 
     /* Helper to set value of a dropdown */
-
     function setDropdownValue(id, value) {
         var $el = $('#' + id);
         if (!$el.length) return;
@@ -287,57 +170,6 @@
         };
     }
 
-    function loadCustomerData() {
-        var filters = getFilterParams();
-
-        // Highlight matching stat card
-        highlightStatCard(filters.CustomerTypeId);
-
-        if (customerTable) {
-            customerTable.processing(true);
-        }
-
-        $.ajax({
-            url: '/CustomerReport/GetData',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(filters),
-            success: function (res) {
-                if (res && res.success) {
-                    animateCounter('#statTotalcustomer', res.total || 0);
-                    animateCounter('#statinHouse', res.inHouse || 0);
-                    animateCounter('#statgeneral', res.general || 0);
-                    animateCounter('#statCustomerType', res.customerType || 0);
-
-                    var data = res.data || [];
-                    if (customerTable) {
-                        customerTable.clear().rows.add(data).draw();
-                    }
-
-                    setTimeout(function () {
-                        if ($.fn.DataTable) {
-                            $.fn.DataTable.tables({ visible: true, api: true }).columns.adjust();
-                        }
-                    }, 100);
-                } else {
-                    clearTable();
-                    showError(res ? res.message : 'Failed to retrieve data.');
-                }
-            },
-            error: function () {
-                clearTable();
-                showError('Error connecting to server. Please try again.');
-            },
-            complete: function () {
-                if (customerTable) customerTable.processing(false);
-            }
-        });
-    }
-
-    function clearTable() {
-        if (customerTable) customerTable.clear().draw();
-    }
-
     function highlightStatCard(customerTypeArr) {
         $('.stat-card').removeClass('active-card');
         var s = (Array.isArray(customerTypeArr) && customerTypeArr.length ? customerTypeArr[0] : '').toLowerCase().trim();
@@ -355,6 +187,8 @@
 
     function animateCounter(selector, target) {
         var $el = $(selector);
+        if (!$el.length) return;
+
         var current = parseInt($el.text().replace(/,/g, ''), 10) || 0;
         var duration = 500;
         var steps = 20;
@@ -377,9 +211,19 @@
         var filters = getFilterParams();
         var exportFormat = $('#filterExportFormat').val() || 'PDF';
 
+        // Collect checked customer IDs from CustomGrid checkboxes
+        var selectedCustomerIds = [];
+        $('#customerReportTable tbody input.chk-customer-item:checked, #customerReportTable tbody input[type="checkbox"]:checked').each(function () {
+            var val = $(this).val() || $(this).data('id');
+            if (val) {
+                selectedCustomerIds.push(val);
+            }
+        });
+
         var queryParams = $.param({
             CustomerId: filters.CustomerId,
             CustomerTypeId: filters.CustomerTypeId,
+            SelectedCustomerIds: selectedCustomerIds,
             exportFormat: exportFormat
         }, true); // traditional: true so arrays serialize correctly for List<string> binding
 

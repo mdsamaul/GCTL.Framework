@@ -144,7 +144,7 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create(SalesCustomerViewModel model)
+        public async Task<ActionResult> Create([FromForm] SalesCustomerViewModel model)
         {
             try
             {
@@ -156,6 +156,13 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
 
                 if (model == null)
                     return BadRequest(new { message = "Customer data is required." });
+
+                if (string.IsNullOrWhiteSpace(model.CustomerId))
+                {
+                    model.CustomerId = await GenerateNewCustomerIdAsync();
+                }
+
+                await SaveCustomerMediaFiles(model, isUpdate: false);
 
                 var result = await _salesCustomerService.SaveAsyncSalesCustomer(model);
 
@@ -188,6 +195,8 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
                 if (customerExists == null)
                     return NotFound(new { message = $"Customer with ID {id} not found." });
 
+                await SaveCustomerMediaFiles(model, isUpdate: true);
+
                 var result = await _salesCustomerService.UpdateAsyncSalesCustomer(model);
 
                 if (!result)
@@ -198,6 +207,88 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
+            }
+        }
+
+        private async Task SaveCustomerMediaFiles(SalesCustomerViewModel model, bool isUpdate)
+        {
+            try
+            {
+                var env = HttpContext.RequestServices.GetService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+                var webRoot = env?.WebRootPath ?? System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot");
+
+                if (Request.HasFormContentType)
+                {
+                    var photoFile = Request.Form.Files["CustomerPhoto"];
+                    if (photoFile != null && photoFile.Length > 0)
+                    {
+                        var uploadFolder = System.IO.Path.Combine(webRoot, "uploads", "CRM", "Image");
+                        if (!System.IO.Directory.Exists(uploadFolder))
+                        {
+                            System.IO.Directory.CreateDirectory(uploadFolder);
+                        }
+
+                        var existingFiles = System.IO.Directory.GetFiles(uploadFolder, $"{model.CustomerId}.*");
+                        foreach (var file in existingFiles)
+                        {
+                            try { System.IO.File.Delete(file); } catch { }
+                        }
+
+                        var ext = System.IO.Path.GetExtension(photoFile.FileName);
+                        var fileName = $"{model.CustomerId}{ext}";
+                        var filePath = System.IO.Path.Combine(uploadFolder, fileName);
+                        using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                        {
+                            await photoFile.CopyToAsync(stream);
+                        }
+                        model.CustomerPhoto = fileName;
+                    }
+                    else if (isUpdate)
+                    {
+                        var existing = await _salesCustomerService.GetByIdAsync(model.CustomerId);
+                        if (existing != null)
+                        {
+                            model.CustomerPhoto = existing.CustomerPhoto;
+                        }
+                    }
+
+                    var signatureFile = Request.Form.Files["CustomerSignature"];
+                    if (signatureFile != null && signatureFile.Length > 0)
+                    {
+                        var uploadFolder = System.IO.Path.Combine(webRoot, "uploads", "CRM", "Signature");
+                        if (!System.IO.Directory.Exists(uploadFolder))
+                        {
+                            System.IO.Directory.CreateDirectory(uploadFolder);
+                        }
+
+                        var existingFiles = System.IO.Directory.GetFiles(uploadFolder, $"{model.CustomerId}.*");
+                        foreach (var file in existingFiles)
+                        {
+                            try { System.IO.File.Delete(file); } catch { }
+                        }
+
+                        var ext = System.IO.Path.GetExtension(signatureFile.FileName);
+                        var fileName = $"{model.CustomerId}{ext}";
+                        var filePath = System.IO.Path.Combine(uploadFolder, fileName);
+                        using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                        {
+                            await signatureFile.CopyToAsync(stream);
+                        }
+                        model.CustomerDigitalSignature = fileName;
+                    }
+                    else if (isUpdate)
+                    {
+                        var existing = await _salesCustomerService.GetByIdAsync(model.CustomerId);
+                        if (existing != null)
+                        {
+                            model.CustomerDigitalSignature = existing.CustomerDigitalSignature;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving customer media: {ex.Message}");
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using GCTL.Core.ViewModels.CustomerReport;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -68,7 +68,7 @@ namespace GCTL.Service.CustomerReport
 
         #region Fetch Customer Report Data
 
-        public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter)
+        public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter, bool loadBinaryContent = true)
         {
             var result = new List<CustomerReportResultDto>();
 
@@ -92,6 +92,34 @@ namespace GCTL.Service.CustomerReport
 
             using var reader = await command.ExecuteReaderAsync();
 
+            var webRoot = _webHostEnvironment?.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var photoFolder = Path.Combine(webRoot, "uploads", "CRM", "Image");
+            var signatureFolder = Path.Combine(webRoot, "uploads", "CRM", "Signature");
+            bool photoFolderExists = Directory.Exists(photoFolder);
+            bool signatureFolderExists = Directory.Exists(signatureFolder);
+
+            Dictionary<string, string>? photoFileLookup = null;
+            if (photoFolderExists)
+            {
+                photoFileLookup = Directory.EnumerateFiles(photoFolder)
+                    .GroupBy(f => Path.GetFileNameWithoutExtension(f), StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            }
+
+            Dictionary<string, string>? signatureFileLookup = null;
+            if (signatureFolderExists)
+            {
+                signatureFileLookup = Directory.EnumerateFiles(signatureFolder)
+                    .GroupBy(f => Path.GetFileNameWithoutExtension(f), StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            }
+
+            var rows = new List<(string CustomerId, string CustomerName, string Address, string Phone,
+                string Fax, string Email, string PhotoFileName, byte[]? PhotoBytesFromDb,
+                string SignatureFileName, byte[]? SignatureBytesFromDb, string ContactPerson,
+                string Designation, string CustomerTypeId, string CustomerType, string CompanyCode,
+                string CompanyName, string CompanyAddress1)>();
+
             while (await reader.ReadAsync())
             {
                 string GetString(string col)
@@ -104,33 +132,132 @@ namespace GCTL.Service.CustomerReport
                     catch { return string.Empty; }
                 }
 
-                byte[] GetBytes(string col)
+                byte[]? GetBytes(string col)
                 {
                     try
                     {
                         int idx = reader.GetOrdinal(col);
                         if (reader.IsDBNull(idx)) return null;
-                        return (byte[])reader.GetValue(idx);
+                        return reader.GetValue(idx) as byte[];
                     }
                     catch { return null; }
                 }
 
+                var customerId = GetString("CustomerID");
+                var photoFileName = GetString("CustomerPhoto");
+                if (string.IsNullOrEmpty(photoFileName)) photoFileName = GetString("Photo");
+
+                var signatureFileName = GetString("CustomerDigitalSignature");
+                if (string.IsNullOrEmpty(signatureFileName)) signatureFileName = GetString("Signature");
+
+                rows.Add((
+                    customerId,
+                    GetString("CustomerName"),
+                    GetString("Address"),
+                    GetString("Phone"),
+                    GetString("FAX"),
+                    GetString("Email"),
+                    photoFileName,
+                    GetBytes("Photo") ?? GetBytes("CustomerPhoto"),
+                    signatureFileName,
+                    GetBytes("CustomerDigitalSignature") ?? GetBytes("Signature"),
+                    GetString("ContactPerson"),
+                    GetString("Designation"),
+                    GetString("CustomerTypeID"),
+                    GetString("CustomerTypeName"),
+                    GetString("CompanyCode"),
+                    GetString("CompanyName"),
+                    GetString("CompanyAddress1")
+                ));
+            }
+
+            foreach (var row in rows)
+            {
+                byte[]? photoBytes = null;
+                string? photoUrl = null;
+
+                if (photoFolderExists && photoFileLookup != null)
+                {
+                    string? targetPhotoPath = null;
+
+                    if (!string.IsNullOrWhiteSpace(row.PhotoFileName))
+                    {
+                        var directPath = Path.Combine(photoFolder, row.PhotoFileName);
+                        if (File.Exists(directPath))
+                            targetPhotoPath = directPath;
+                    }
+
+                    if (targetPhotoPath == null && !string.IsNullOrWhiteSpace(row.CustomerId)
+                        && photoFileLookup.TryGetValue(row.CustomerId, out var matchedPhoto))
+                    {
+                        targetPhotoPath = matchedPhoto;
+                    }
+
+                    if (targetPhotoPath != null)
+                    {
+                        try
+                        {
+                            photoBytes = await File.ReadAllBytesAsync(targetPhotoPath);
+                            photoUrl = $"/uploads/CRM/Image/{Path.GetFileName(targetPhotoPath)}";
+                        }
+                        catch { }
+                    }
+                }
+
+                photoBytes ??= row.PhotoBytesFromDb;
+
+                byte[]? signatureBytes = null;
+                string? signatureUrl = null;
+
+                if (signatureFolderExists && signatureFileLookup != null)
+                {
+                    string? targetSigPath = null;
+
+                    if (!string.IsNullOrWhiteSpace(row.SignatureFileName))
+                    {
+                        var directPath = Path.Combine(signatureFolder, row.SignatureFileName);
+                        if (File.Exists(directPath))
+                            targetSigPath = directPath;
+                    }
+
+                    if (targetSigPath == null && !string.IsNullOrWhiteSpace(row.CustomerId)
+                        && signatureFileLookup.TryGetValue(row.CustomerId, out var matchedSig))
+                    {
+                        targetSigPath = matchedSig;
+                    }
+
+                    if (targetSigPath != null)
+                    {
+                        try
+                        {
+                            signatureBytes = await File.ReadAllBytesAsync(targetSigPath);
+                            signatureUrl = $"/uploads/CRM/Signature/{Path.GetFileName(targetSigPath)}";
+                        }
+                        catch { }
+                    }
+                }
+
+                signatureBytes ??= row.SignatureBytesFromDb;
+
                 result.Add(new CustomerReportResultDto
                 {
-                    CustomerId = GetString("CustomerID"),
-                    CustomerName = GetString("CustomerName"),
-                    CustomerAddress = GetString("Address"),
-                    Phone = GetString("Phone"),
-                    Fax = GetString("FAX"),
-                    Email = GetString("Email"),
-                    CustomerPhoto = GetBytes("Photo"),
-                    ContactPerson = GetString("ContactPerson"),
-                    Designation = GetString("Designation"),
-                    CustomerTypeId = GetString("CustomerTypeID"),
-                    CustomerType = GetString("CustomerTypeName"),
-                    CompanyCode = GetString("CompanyCode"),
-                    CompanyName = GetString("CompanyName"),
-                    CompanyAddress1 = GetString("CompanyAddress1")
+                    CustomerId = row.CustomerId,
+                    CustomerName = row.CustomerName,
+                    CustomerAddress = row.Address,
+                    Phone = row.Phone,
+                    Fax = row.Fax,
+                    Email = row.Email,
+                    CustomerPhoto = photoBytes,
+                    CustomerDigitalSignature = signatureBytes,
+                    PhotoUrl = photoUrl,
+                    SignatureUrl = signatureUrl,
+                    ContactPerson = row.ContactPerson,
+                    Designation = row.Designation,
+                    CustomerTypeId = row.CustomerTypeId,
+                    CustomerType = row.CustomerType,
+                    CompanyCode = row.CompanyCode,
+                    CompanyName = row.CompanyName,
+                    CompanyAddress1 = row.CompanyAddress1
                 });
             }
 
@@ -146,6 +273,17 @@ namespace GCTL.Service.CustomerReport
             try
             {
                 var data = await GetCustomerReportDataAsync(filter);
+
+                if (filter.SelectedCustomerIds != null && filter.SelectedCustomerIds.Any())
+                {
+                    var selectedSet = new HashSet<string>(
+                        filter.SelectedCustomerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
+                        StringComparer.OrdinalIgnoreCase);
+                    if (selectedSet.Count > 0)
+                    {
+                        data = data.Where(x => !string.IsNullOrEmpty(x.CustomerId) && selectedSet.Contains(x.CustomerId.Trim())).ToList();
+                    }
+                }
 
                 var firstItem = data.FirstOrDefault();
                 string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
@@ -219,14 +357,14 @@ namespace GCTL.Service.CustomerReport
                                 {
                                     table.ColumnsDefinition(cols =>
                                     {
-                                        cols.RelativeColumn(1.7f);
-                                        cols.RelativeColumn(3.0f);
+                                        cols.RelativeColumn(1.3f);
+                                        cols.RelativeColumn(2.8f);
                                         cols.RelativeColumn(6.0f);
                                         cols.RelativeColumn(7.0f);
-                                        cols.RelativeColumn(3.0f);
-                                        cols.RelativeColumn(4.0f);
+                                        cols.RelativeColumn(2.8f);
+                                        cols.RelativeColumn(3.2f);
                                         cols.RelativeColumn(6.0f);
-                                        cols.RelativeColumn(3.0f);
+                                        cols.RelativeColumn(2.0f);
                                         cols.RelativeColumn(9.5f);
                                     });
 
@@ -346,6 +484,17 @@ namespace GCTL.Service.CustomerReport
         {
             var data = await GetCustomerReportDataAsync(filter);
 
+            if (filter.SelectedCustomerIds != null && filter.SelectedCustomerIds.Any())
+            {
+                var selectedSet = new HashSet<string>(
+                    filter.SelectedCustomerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
+                    StringComparer.OrdinalIgnoreCase);
+                if (selectedSet.Count > 0)
+                {
+                    data = data.Where(x => !string.IsNullOrEmpty(x.CustomerId) && selectedSet.Contains(x.CustomerId.Trim())).ToList();
+                }
+            }
+
             var firstItem = data.FirstOrDefault();
             string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
             string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209";
@@ -364,6 +513,18 @@ namespace GCTL.Service.CustomerReport
                 };
             }
 
+            // Helper: Excel column width (character units) -> pixels (approx, standard Calibri 11 metric)
+            double ColumnWidthToPixels(double columnWidth)
+            {
+                return (double)((int)((columnWidth * 7) + 5));
+            }
+
+            // Helper: row height in points -> pixels (96 DPI)
+            double RowHeightToPixels(double rowHeightPoints)
+            {
+                return rowHeightPoints * 1.333;
+            }
+
             var groupedData = data.GroupBy(x => GetTypeLabel(x.CustomerTypeId)).OrderBy(g => g.Key).ToList();
 
             using var workbook = new XLWorkbook();
@@ -374,7 +535,7 @@ namespace GCTL.Service.CustomerReport
 
             const int totalCols = 9;
 
-            float[] relativeWidths = { 1.5f, 3.0f, 9.0f, 10.0f, 5.0f, 5.0f, 4.0f, 3.5f, 12.5f };
+            float[] relativeWidths = { 1.5f, 2.8f, 10.0f, 12.0f, 2.3f, 3.0f, 5.5f, 2.0f, 12.5f };
             const double scale = 4.5;
 
             for (int i = 0; i < relativeWidths.Length; i++)
@@ -428,15 +589,16 @@ namespace GCTL.Service.CustomerReport
 
             string[] headers = new string[]
             {
-               "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
+       "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
             };
 
             int currRow = 5;
-            // int sl = 1;
             const int photoColIndex = 8;
             const double rowHeightForPhoto = 40;
             const double baseRowHeight = 15;
-            const double lineHeight = 12.5;
+            const double lineHeight = 14.5;
+            const double photoImgWidth = 50;
+            const double photoImgHeight = 40;
 
             double EstimateRowHeightForColumn(string text, int columnIndex)
             {
@@ -504,27 +666,52 @@ namespace GCTL.Service.CustomerReport
                     ws.Cell(currRow, 7).Value = item.Email;
                     ws.Cell(currRow, 9).Value = item.ContactPerson;
 
-                    if (item.CustomerPhoto != null && item.CustomerPhoto.Length > 0)
+                    // ---- Row height must be finalized BEFORE we calculate photo centering offsets ----
+                    double neededHeight = baseRowHeight;
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerName, 3));
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerAddress, 4));
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.ContactPerson, 9));
+
+                    bool hasPhoto = item.CustomerPhoto != null && item.CustomerPhoto.Length > 0;
+                    if (hasPhoto)
+                    {
+                        neededHeight = Math.Max(neededHeight, rowHeightForPhoto);
+                    }
+
+                    ws.Row(currRow).Height = neededHeight;
+
+                    if (hasPhoto)
                     {
                         try
                         {
                             using var imgStream = new MemoryStream(item.CustomerPhoto);
+
+                            double colWidthPx = ColumnWidthToPixels(ws.Column(photoColIndex).Width);
+                            double rowHeightPx = RowHeightToPixels(ws.Row(currRow).Height);
+
+                            int xOffset = (int)Math.Max(0, (colWidthPx - photoImgWidth) / 2);
+                            int yOffset = (int)Math.Max(0, (rowHeightPx - photoImgHeight) / 2);
+
                             var picture = ws.AddPicture(imgStream)
-                                .MoveTo(ws.Cell(currRow, photoColIndex), 2, 2);
-                            picture.Width = 32;
-                            picture.Height = 32;
-                            ws.Row(currRow).Height = rowHeightForPhoto;
+                                .MoveTo(ws.Cell(currRow, photoColIndex), xOffset, yOffset);
+                            picture.Width = (int)photoImgWidth;
+                            picture.Height = (int)photoImgHeight;
+
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         }
                         catch
                         {
                             ws.Cell(currRow, photoColIndex).Value = "-";
                             ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         }
                     }
                     else
                     {
                         ws.Cell(currRow, photoColIndex).Value = "-";
                         ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(currRow, photoColIndex).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     }
 
                     for (int c = 1; c <= totalCols; c++)
@@ -536,23 +723,11 @@ namespace GCTL.Service.CustomerReport
                         cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         cell.Style.Alignment.WrapText = true;
 
-                        if (c == 1 || c == 2 || c == 5 || c == 6 || c == 8)
+                        if (c == 1 || c == 2 || c == 5 || c == 6 || c == 7 || c == 8)
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         else
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                     }
-
-                    double neededHeight = baseRowHeight;
-                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerName, 3));
-                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerAddress, 4));
-                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.ContactPerson, 9));
-
-                    if (item.CustomerPhoto != null && item.CustomerPhoto.Length > 0)
-                    {
-                        neededHeight = Math.Max(neededHeight, rowHeightForPhoto);
-                    }
-
-                    ws.Row(currRow).Height = neededHeight;
 
                     currRow++;
                     sl++;

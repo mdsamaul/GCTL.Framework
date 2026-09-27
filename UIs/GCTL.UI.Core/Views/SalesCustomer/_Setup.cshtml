@@ -2,23 +2,6 @@
 @using GCTL.UI.Core.ViewModels
 
 <div class="card rounded shadow-sm">
-    <div class="card-header p-0">
-        @await Html.PartialAsync("_Toolbars", new ToobarModel
-        {
-            Title = "Customer Information",
-            SaveBtnId = "salesCustomer-btnSave",
-            SaveBtnClass = "js-salescustomer-save",
-            DeleteBtnId = "salesCustomer-btnDelete",
-            DeleteBtnClass = "js-salescustomer-delete-btn",
-            ClearBtnId = "salesCustomer-resetBtn",
-            ClearBtnClass = "js-salescustomer-clear",
-            PrintBtnId = "salesCustomer-btnPrint",
-            PrintBtnClass = "js-salescustomer-print",
-            FavtBtnId = "salesCustomer-btnFav",
-            FavtBtnClass = "js-salescustomer-fav",
-            ShowExtraContentLaptopOnly = true
-        })
-    </div>
     <div class="card-body px-2">
         <form id="customerForm">
 
@@ -31,7 +14,7 @@
                     FieldType = FieldType.Text,
                     IsReadonly = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.CustomerId
                 })
 
@@ -42,7 +25,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Customer Code",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.CustomerCode
                 })
             </div>
@@ -57,7 +40,7 @@
                     Placeholder = "Customer Name",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.CustomerName,
                     AutoFocus = true
                 })
@@ -69,7 +52,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Short Name",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.ShortName
                 })
             </div>
@@ -84,7 +67,7 @@
                     Placeholder = "Address",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.CustomerAddress
                 })
 
@@ -95,7 +78,7 @@
                     FieldType = FieldType.Select,
                     Placeholder = "Select Country",
                     SelectItems = ViewBag.CountryDD as SelectList,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ReserveActionSlot = false,
                     ShowQuickAdd = false,
                     DefaultValue = Model?.CountryId
@@ -111,7 +94,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "City",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.City
                 })
 
@@ -122,7 +105,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "State/Province",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.StateOrProvince
                 })
             </div>
@@ -136,7 +119,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Zip Code",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.ZipCode
                 })
 
@@ -147,7 +130,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Phone Number",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.Phone
                 })
             </div>
@@ -161,7 +144,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Fax",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.Fax
                 })
 
@@ -172,7 +155,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Email",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.Email
                 })
             </div>
@@ -186,7 +169,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "URL",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.Url
                 })
 
@@ -197,7 +180,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "VAT Reg No",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.VatRegNo
                 })
             </div>
@@ -211,7 +194,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "BIN",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.Bin
                 })
 
@@ -222,7 +205,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "TIN",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.Tin
                 })
             </div>
@@ -236,7 +219,7 @@
                     FieldType = FieldType.MultiSelect,
                     Placeholder = "Select Contact Person",
                     SelectItems = ViewBag.ContactDD as SelectList,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ReserveActionSlot = false,
                     ShowQuickAdd = true,
                     QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
@@ -261,7 +244,7 @@
                         new { Value = "soumya_ray", Text = "Soumya Ray" }
                     }, "Value", "Text"),
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.SalesPerson
                 })
             </div>
@@ -275,7 +258,7 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Opening Balance",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.OpeningBalance?.ToString()
                 })
 
@@ -287,7 +270,7 @@
                     Placeholder = "--Select Type--",
                     SelectItems = new SelectList(new[] { "Debit", "Credit" }),
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.TransactionType
                 })
             </div>
@@ -301,7 +284,7 @@
                     FieldType = FieldType.Date,
                     Placeholder = "Opening Date",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.OpeningDate?.ToString("yyyy-MM-dd")
                 })
 
@@ -312,7 +295,7 @@
                     FieldType = FieldType.Number,
                     Placeholder = "Credit Limit",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.CreditLimit?.ToString()
                 })
             </div>
@@ -331,7 +314,7 @@
                         new { Value = "1", Text = "In House" }
                     }, "Value", "Text"),
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.CustomerType
                 })
 
@@ -349,7 +332,7 @@
                         new { Value = "new", Text = "New Customer" }
                     }, "Value", "Text"),
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model?.Category
                 })
             </div>
@@ -362,7 +345,7 @@
                     InputId = "displayLDate",
                     LabelText = "Creation Date",
                     FieldType = FieldType.ReadonlyDisplay,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ShowOnInit = false
                 })
 
@@ -372,7 +355,7 @@
                     InputId = "displayModifyDate",
                     LabelText = "Modify Date",
                     FieldType = FieldType.ReadonlyDisplay,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ShowOnInit = false
                 })
             </div>

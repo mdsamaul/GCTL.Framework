@@ -1,7 +1,8 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.CustomerReport;
 using GCTL.Data.Models;
 using GCTL.Service.CustomerReport;
+using GCTL.UI.Core.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -41,7 +42,40 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> Index()
         {
             await PopulateDropdowns();
-            return View();
+
+            var gridModel = new GridModel
+            {
+                GridId = "customerReportTable",
+                AjaxUrl = Url.Action("GetData", "CustomerReport"),
+                AjaxMethod = "POST",
+                ServerSide = false,
+                Bordered = true,
+                CheckAllId = "chkSelectAllCustomers",
+                CheckboxClass = "chk-customer-item",
+                CheckColumnData = "customerId",
+                Compact = true,
+                CustomGridWrapper = false,
+                DefaultPageLength = 10,
+                Hover = true,
+                ShowCheckbox = true,
+                ShowRowNumbers = false,
+                ShowSearchBox = true,
+                ShowPagination = true,
+                Striped = true,
+                Columns = new List<GridColumn>
+                {
+                    new() { Data = "customerId", Header = "Customer ID", Width = "7%", Align = "center", RenderFn = "renderCustomerId" },
+                    new() { Data = "name", Header = "Name", Width = "15%", Align = "left", RenderFn = "renderAlignLeft" },
+                    new() { Data = "address", Header = "Address", Width = "17%", Align = "left", RenderFn = "renderAlignLeft" },
+                    new() { Data = "phone", Header = "Phone", Width = "8%", Align = "center" },
+                    new() { Data = "fax", Header = "Fax", Width = "8%", Align = "center" },
+                    new() { Data = "email", Header = "Email", Width = "9%", Align = "center" },
+                    new() { Data = "photo", Header = "Photo", Width = "8%", Align = "center", RenderFn = "renderPhoto", Sortable = false },
+                    new() { Data = "contactPerson", Header = "Contact Person", Width = "25%", Align = "left", RenderFn = "renderContactPerson" }
+                }
+            };
+
+            return View(gridModel);
         }
 
         private async Task PopulateDropdowns()
@@ -81,10 +115,10 @@ namespace GCTL.UI.Core.Controllers
                 ViewBag.CustomerTypes = new SelectList(customerTypeList ?? new List<SelectListItem>(), "Value", "Text");
 
                 ViewBag.ExportFormats = new SelectList(new List<SelectListItem>
-            {
-                new SelectListItem { Value = "PDF", Text = "PDF Format" },
-                new SelectListItem { Value = "Excel", Text = "Excel Format" }
-            }, "Value", "Text");
+                {
+                    new SelectListItem { Value = "PDF", Text = "PDF Format" },
+                    new SelectListItem { Value = "Excel", Text = "Excel Format" }
+                }, "Value", "Text");
             }
             catch
             {
@@ -99,11 +133,31 @@ namespace GCTL.UI.Core.Controllers
         #region AJAX Data Endpoint
 
         [HttpPost]
-        public async Task<IActionResult> GetData([FromBody] CustomerReportFilterDto filter)
+        public async Task<IActionResult> GetData(CustomerReportFilterDto? filter)
         {
             try
             {
+                if (filter == null || (filter.CustomerId == null && filter.CustomerTypeId == null))
+                {
+                    if (Request.HasJsonContentType())
+                    {
+                        filter = await Request.ReadFromJsonAsync<CustomerReportFilterDto>();
+                    }
+                }
                 filter ??= new CustomerReportFilterDto();
+
+                if (Request.HasFormContentType)
+                {
+                    var form = Request.Form;
+                    if ((filter.CustomerId == null || !filter.CustomerId.Any()) && form.TryGetValue("customerId", out var cIds))
+                    {
+                        filter.CustomerId = cIds.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                    }
+                    if ((filter.CustomerTypeId == null || !filter.CustomerTypeId.Any()) && form.TryGetValue("customerTypeId", out var ctIds))
+                    {
+                        filter.CustomerTypeId = ctIds.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                    }
+                }
 
                 var data = await _customerReportService.GetCustomerReportDataAsync(filter);
 
@@ -126,7 +180,9 @@ namespace GCTL.UI.Core.Controllers
                     phone = d.Phone,
                     fax = d.Fax,
                     email = d.Email,
-                    photo = d.CustomerPhoto != null ? Convert.ToBase64String(d.CustomerPhoto) : null,
+                    photo = !string.IsNullOrEmpty(d.PhotoUrl)
+                        ? d.PhotoUrl
+                        : (d.CustomerPhoto != null ? Convert.ToBase64String(d.CustomerPhoto) : null),
                     contactPerson = d.ContactPerson,
                     designation = d.Designation,
                     customerType = d.CustomerType,
@@ -171,6 +227,11 @@ namespace GCTL.UI.Core.Controllers
             try
             {
                 filter ??= new CustomerReportFilterDto();
+
+                if (Request.Query.TryGetValue("SelectedCustomerIds", out var selIds) && (filter.SelectedCustomerIds == null || !filter.SelectedCustomerIds.Any()))
+                {
+                    filter.SelectedCustomerIds = selIds.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                }
 
                 if (string.Equals(exportFormat, "Excel", StringComparison.OrdinalIgnoreCase))
                 {

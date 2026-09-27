@@ -162,7 +162,9 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     CustomerType = sc.CustomerType,
                     SalesPerson = sc.SalesPersonId,
                     LDate = sc.Ldate,
-                    ModifyDate = sc.ModifyDate
+                    ModifyDate = sc.ModifyDate,
+                    CustomerPhoto = sc.CustomerPhoto,
+                    CustomerDigitalSignature = sc.CustomerDigitalSignature
                 }).FirstOrDefaultAsync();
             return data;
         }
@@ -313,7 +315,9 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     Lip = "",
                     Lmac = "",
                     DevitOrCredit = "",
-                    CustomerCompany = ""
+                    CustomerCompany = "",
+                    CustomerPhoto = model.CustomerPhoto ?? "",
+                    CustomerDigitalSignature = model.CustomerDigitalSignature ?? ""
                 };
 
                 await _salesCustomer.AddAsync(entity);
@@ -360,6 +364,14 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 entity.CustomerType = model.CustomerType ?? "";
                 entity.Category = model.Category ?? "";
                 entity.SalesPersonId = model.SalesPerson ?? "";
+                if (model.CustomerPhoto != null)
+                {
+                    entity.CustomerPhoto = model.CustomerPhoto;
+                }
+                if (model.CustomerDigitalSignature != null)
+                {
+                    entity.CustomerDigitalSignature = model.CustomerDigitalSignature;
+                }
                 entity.ModifyDate = DateTime.Now;
                 await _salesCustomer.UpdateAsync(entity);
 

@@ -9,8 +9,8 @@ namespace GCTL.Service.CustomerReport
 {
     public interface ICustomerReportService
     {
-        Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter);
         Task<byte[]> GenerateExcelReportAsync(CustomerReportFilterDto filter);
         Task<byte[]> GeneratePdfReportAsync(CustomerReportFilterDto filter);
+        Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter, bool loadBinaryContent = true);
     }
 }

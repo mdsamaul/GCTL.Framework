@@ -122,7 +122,7 @@ function populateCustomerForm(response) {
         const formattedKey = key.charAt(0).toUpperCase() + key.slice(1);
         const $field = $(`#${formattedKey}`);
 
-        if ($field.length) {
+        if ($field.length && !$field.is(':file')) {
             $field.val(value);
             if ($field.is('select')) {
                 $field.trigger('change');
@@ -146,6 +146,21 @@ function populateCustomerForm(response) {
         });
         $("#selectedContactPersonIds").val(selectedContactPersons.join(','));
     }
+
+    if (response.customerPhoto) {
+        $('#customerPhotoPreview').attr('src', `/uploads/CRM/Image/${response.customerPhoto}?t=${new Date().getTime()}`);
+    } else {
+        $('#customerPhotoPreview').attr('src', $('#customerPhotoPreview').data('default') || '/images/Images.png');
+    }
+
+    if (response.customerDigitalSignature) {
+        $('#customerSignaturePreview').attr('src', `/uploads/CRM/Signature/${response.customerDigitalSignature}?t=${new Date().getTime()}`);
+    } else {
+        $('#customerSignaturePreview').attr('src', $('#customerSignaturePreview').data('default') || '/images/signature.jpg');
+    }
+
+    $('#CustomerPhoto').val('');
+    $('#CustomerSignature').val('');
 }
 
 function saveCustomer(e) {
@@ -172,6 +187,15 @@ function saveCustomer(e) {
     $('#selectedContactPersonIds').val(selectedIds.join(','));
 
     const formData = new FormData($('#customerForm')[0]);
+
+    const photoFile = $('#CustomerPhoto')[0]?.files[0];
+    if (photoFile) {
+        formData.append('CustomerPhoto', photoFile);
+    }
+    const signatureFile = $('#CustomerSignature')[0]?.files[0];
+    if (signatureFile) {
+        formData.append('CustomerSignature', signatureFile);
+    }
 
     const url = editId ? `/SalesCustomer/Edit/${editId}` : '/SalesCustomer/Create';
     const method = editId ? 'PUT' : 'POST';
@@ -235,6 +259,11 @@ function resetCustomerForm() {
 
     $("#displayLDate").val('');
     $("#displayModifyDate").val('');
+
+    $('#customerPhotoPreview').attr('src', $('#customerPhotoPreview').data('default') || '/images/Images.png');
+    $('#customerSignaturePreview').attr('src', $('#customerSignaturePreview').data('default') || '/images/signature.jpg');
+    $('#CustomerPhoto').val('');
+    $('#CustomerSignature').val('');
 
     editId = null;
     loadCUSId();

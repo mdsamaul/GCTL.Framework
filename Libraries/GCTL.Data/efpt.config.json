@@ -167,6 +167,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CF_JobDeliveryInfo]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CF_OperationalFundRequisitionDetails]",
          "ObjectType": 0
       },
@@ -581,58 +585,6 @@
       {
          "Name": "[dbo].[VendorBranchInfo]",
          "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[DocumentationReport]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[FullEmployeeDetailsGetByid]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[GetExpenseHeadReport]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[GetLedgerTree]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[prc_GetCustomerDueInvoiceList]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[prc_LoadGridPaymentReceived]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[Proc_CustomerListForPaymentReceive]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[sp_GetAllCustomerDeliveryInfo]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[sp_GetCustomerReportsInfo]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[sp_GetVoucherPreviewData]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[SP_HrmEmployee2_GetPagedList]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[usp_GetHolidayList]",
-         "ObjectType": 1
-      },
-      {
-         "Name": "[dbo].[SplitString]",
-         "ObjectType": 2
       }
    ],
    "UiHint": null,
