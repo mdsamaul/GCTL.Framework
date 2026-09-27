@@ -27,9 +27,34 @@ function bindEvents() {
         handleReportDownload();
     });
 
+    // Toolbar Print Dropdown buttons
+    $('#btnPrintPdfBtn').on('click', function (e) {
+        e.preventDefault();
+        $('#reportText').val('downloadPdf');
+        if (typeof window.setCustomDropdownValue === 'function') {
+            window.setCustomDropdownValue('reportText', 'downloadPdf', 'Pdf');
+        }
+        handleReportPreview();
+    });
+
+    $('#btnPrintExcelBtn').on('click', function (e) {
+        e.preventDefault();
+        $('#reportText').val('downloadExcel');
+        if (typeof window.setCustomDropdownValue === 'function') {
+            window.setCustomDropdownValue('reportText', 'downloadExcel', 'Excel');
+        }
+        handleReportDownload();
+    });
+
     // Toolbar Clear Button Click
     $('#btnClear, .js-docreport-clear').on('click', function () {
         handleClearForm();
+    });
+
+    // Clean up iframe memory when preview modal closes
+    $('#docReportPreviewModal').on('hidden.bs.modal', function () {
+        $('#pdfPreviewFrame').attr('src', '').hide();
+        $('#pdfLoadingSpinner').show();
     });
 }
 
@@ -179,10 +204,50 @@ function handleReportPreview() {
     var previewUrl = '/DocumentationReport/Preview?' + queryString;
 
     if (filters.Format.toUpperCase() === 'PDF') {
-        // Open PDF in new browser tab for inline viewer preview
-        window.open(previewUrl, '_blank');
+        // Open PDF in dedicated in-page preview modal
+        var modalEl = document.getElementById('docReportPreviewModal');
+        if (modalEl) {
+            var $spinner = $('#pdfLoadingSpinner');
+            var $frame = $('#pdfPreviewFrame');
+
+            $spinner.show();
+            $frame.hide();
+
+            // Set up button actions in the preview modal header
+            $('#btnModalOpenTab').off('click').on('click', function () {
+                window.open(previewUrl, '_blank');
+            });
+
+            var pdfFilters = $.extend({}, filters, { Format: 'PDF' });
+            var pdfDownloadUrl = '/DocumentationReport/Download?' + $.param(pdfFilters);
+            $('#btnModalDownloadPdf').off('click').on('click', function () {
+                window.location.href = pdfDownloadUrl;
+            });
+
+            var excelFilters = $.extend({}, filters, { Format: 'Excel' });
+            var excelDownloadUrl = '/DocumentationReport/Download?' + $.param(excelFilters);
+            $('#btnModalDownloadExcel').off('click').on('click', function () {
+                window.location.href = excelDownloadUrl;
+            });
+
+            $frame.off('load').on('load', function () {
+                $spinner.hide();
+                $frame.show();
+            });
+
+            $frame.attr('src', previewUrl);
+
+            var bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            bsModal.show();
+        } else {
+            // Fallback to opening in new window/tab
+            window.open(previewUrl, '_blank');
+        }
     } else {
-        // For Excel / Word, download/open file directly
+        // For Excel / Word, preview downloads directly
+        if (typeof toastr !== 'undefined') {
+            toastr.info('Downloading Excel Report preview...');
+        }
         window.location.href = previewUrl;
     }
 }
@@ -213,16 +278,16 @@ function handleReportDownload() {
     var originalHtml = $btn.html();
     $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> <span>Exporting...</span>');
 
-    // Download via invisible iframe to preserve page state
-    var iframe = $('<iframe>', {
-        src: downloadUrl,
-        style: 'display: none;'
-    }).appendTo('body');
+    if (typeof toastr !== 'undefined') {
+        toastr.info('Generating ' + filters.Format + ' Report...');
+    }
+
+    // Trigger download
+    window.location.href = downloadUrl;
 
     setTimeout(function () {
-        iframe.remove();
         $btn.prop('disabled', false).html(originalHtml);
-    }, 3000);
+    }, 2500);
 }
 
 /**

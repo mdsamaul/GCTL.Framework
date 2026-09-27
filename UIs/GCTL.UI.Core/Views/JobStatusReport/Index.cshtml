@@ -144,6 +144,18 @@
         transition: border-color 0.2s, box-shadow 0.2s;
     }
 
+    .filter-group input.custom-datepicker,
+    .filter-group input.flatpickr-alt-input,
+    .filter-group input.caiCon,
+    .filter-group input[type="date"] {
+        background-image: url('/images/icons/calender.svg') !important;
+        background-repeat: no-repeat !important;
+        background-position: right 10px center !important;
+        background-size: 16px 16px !important;
+        padding-right: 32px !important;
+        cursor: pointer;
+    }
+
     .filter-group .custom-dd-wrapper {
         width: 100% !important;
     }
@@ -459,13 +471,13 @@
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker auto-filter" value="@DateTime.Now.ToString("01/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("01/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group">
                 <label for="filterToDate">To</label>
-                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- Customer (Single Select) -->

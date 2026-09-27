@@ -1,0 +1,752 @@
+using ClosedXML.Excel;
+using GCTL.Core.ViewModels.CustomerReport;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using System.Data;
+
+namespace GCTL.Service.CustomerReport
+{
+    public class CustomerReportService : ICustomerReportService
+    {
+        #region Fields & Constructor
+
+        private readonly string _connectionString;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment? _webHostEnvironment;
+        private byte[]? _logoBytes;
+        private bool _logoLoaded;
+
+        public CustomerReportService(
+            IConfiguration configuration,
+            Microsoft.AspNetCore.Hosting.IWebHostEnvironment? env = null
+
+            )
+        {
+            _connectionString = configuration.GetConnectionString("connection") ?? string.Empty;
+            _webHostEnvironment = env;
+        }
+
+        #endregion
+
+        #region Helper Method to Load Logo Bytes
+
+        private byte[]? GetLogoBytes()
+        {
+            if (_logoLoaded) return _logoBytes;
+            _logoLoaded = true;
+
+            try
+            {
+                var candidatePaths = new List<string?>
+                {
+                    _webHostEnvironment?.WebRootPath != null ? Path.Combine(_webHostEnvironment.WebRootPath, "images", "fermosa-wX200.png") : null,
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "UIs", "GCTL.UI.Core", "wwwroot", "images", "fermosa-wX200.png"),
+                    @"D:\Project\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png"
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    {
+                        _logoBytes = File.ReadAllBytes(path);
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully without throwing
+            }
+
+            return _logoBytes;
+        }
+
+        #endregion
+
+        #region Fetch Customer Report Data
+
+        public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter, bool loadBinaryContent = true)
+        {
+            var result = new List<CustomerReportResultDto>();
+
+            if (string.IsNullOrEmpty(_connectionString))
+            {
+                return result;
+            }
+
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand("Sales_GetCustomerReport", connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            string customerIds = filter.CustomerId != null && filter.CustomerId.Any() ? string.Join(",", filter.CustomerId) : string.Empty;
+            string customerTypeIds = filter.CustomerTypeId != null && filter.CustomerTypeId.Any() ? string.Join(",", filter.CustomerTypeId) : string.Empty;
+
+            command.Parameters.Add(new SqlParameter("@CustomerID", string.IsNullOrWhiteSpace(customerIds) ? "" : customerIds.Trim()));
+            command.Parameters.Add(new SqlParameter("@CustomerTypeID", string.IsNullOrWhiteSpace(customerTypeIds) ? "" : customerTypeIds.Trim()));
+            command.Parameters.Add(new SqlParameter("@CompanyCode", DBNull.Value));
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            var webRoot = _webHostEnvironment?.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var photoFolder = Path.Combine(webRoot, "uploads", "CRM", "Image");
+            var signatureFolder = Path.Combine(webRoot, "uploads", "CRM", "Signature");
+            bool photoFolderExists = Directory.Exists(photoFolder);
+            bool signatureFolderExists = Directory.Exists(signatureFolder);
+
+            Dictionary<string, string>? photoFileLookup = null;
+            if (photoFolderExists)
+            {
+                photoFileLookup = Directory.EnumerateFiles(photoFolder)
+                    .GroupBy(f => Path.GetFileNameWithoutExtension(f), StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            }
+
+            Dictionary<string, string>? signatureFileLookup = null;
+            if (signatureFolderExists)
+            {
+                signatureFileLookup = Directory.EnumerateFiles(signatureFolder)
+                    .GroupBy(f => Path.GetFileNameWithoutExtension(f), StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+            }
+
+            var rows = new List<(string CustomerId, string CustomerName, string Address, string Phone,
+                string Fax, string Email, string PhotoFileName, byte[]? PhotoBytesFromDb,
+                string SignatureFileName, byte[]? SignatureBytesFromDb, string ContactPerson,
+                string Designation, string CustomerTypeId, string CustomerType, string CompanyCode,
+                string CompanyName, string CompanyAddress1)>();
+
+            while (await reader.ReadAsync())
+            {
+                string GetString(string col)
+                {
+                    try
+                    {
+                        int idx = reader.GetOrdinal(col);
+                        return reader.IsDBNull(idx) ? string.Empty : reader.GetValue(idx).ToString()?.Trim() ?? string.Empty;
+                    }
+                    catch { return string.Empty; }
+                }
+
+                byte[]? GetBytes(string col)
+                {
+                    try
+                    {
+                        int idx = reader.GetOrdinal(col);
+                        if (reader.IsDBNull(idx)) return null;
+                        return reader.GetValue(idx) as byte[];
+                    }
+                    catch { return null; }
+                }
+
+                var customerId = GetString("CustomerID");
+                var photoFileName = GetString("CustomerPhoto");
+                if (string.IsNullOrEmpty(photoFileName)) photoFileName = GetString("Photo");
+
+                var signatureFileName = GetString("CustomerDigitalSignature");
+                if (string.IsNullOrEmpty(signatureFileName)) signatureFileName = GetString("Signature");
+
+                rows.Add((
+                    customerId,
+                    GetString("CustomerName"),
+                    GetString("Address"),
+                    GetString("Phone"),
+                    GetString("FAX"),
+                    GetString("Email"),
+                    photoFileName,
+                    GetBytes("Photo") ?? GetBytes("CustomerPhoto"),
+                    signatureFileName,
+                    GetBytes("CustomerDigitalSignature") ?? GetBytes("Signature"),
+                    GetString("ContactPerson"),
+                    GetString("Designation"),
+                    GetString("CustomerTypeID"),
+                    GetString("CustomerTypeName"),
+                    GetString("CompanyCode"),
+                    GetString("CompanyName"),
+                    GetString("CompanyAddress1")
+                ));
+            }
+
+            foreach (var row in rows)
+            {
+                byte[]? photoBytes = null;
+                string? photoUrl = null;
+
+                if (photoFolderExists && photoFileLookup != null)
+                {
+                    string? targetPhotoPath = null;
+
+                    if (!string.IsNullOrWhiteSpace(row.PhotoFileName))
+                    {
+                        var directPath = Path.Combine(photoFolder, row.PhotoFileName);
+                        if (File.Exists(directPath))
+                            targetPhotoPath = directPath;
+                    }
+
+                    if (targetPhotoPath == null && !string.IsNullOrWhiteSpace(row.CustomerId)
+                        && photoFileLookup.TryGetValue(row.CustomerId, out var matchedPhoto))
+                    {
+                        targetPhotoPath = matchedPhoto;
+                    }
+
+                    if (targetPhotoPath != null)
+                    {
+                        try
+                        {
+                            photoBytes = await File.ReadAllBytesAsync(targetPhotoPath);
+                            photoUrl = $"/uploads/CRM/Image/{Path.GetFileName(targetPhotoPath)}";
+                        }
+                        catch { }
+                    }
+                }
+
+                photoBytes ??= row.PhotoBytesFromDb;
+
+                byte[]? signatureBytes = null;
+                string? signatureUrl = null;
+
+                if (signatureFolderExists && signatureFileLookup != null)
+                {
+                    string? targetSigPath = null;
+
+                    if (!string.IsNullOrWhiteSpace(row.SignatureFileName))
+                    {
+                        var directPath = Path.Combine(signatureFolder, row.SignatureFileName);
+                        if (File.Exists(directPath))
+                            targetSigPath = directPath;
+                    }
+
+                    if (targetSigPath == null && !string.IsNullOrWhiteSpace(row.CustomerId)
+                        && signatureFileLookup.TryGetValue(row.CustomerId, out var matchedSig))
+                    {
+                        targetSigPath = matchedSig;
+                    }
+
+                    if (targetSigPath != null)
+                    {
+                        try
+                        {
+                            signatureBytes = await File.ReadAllBytesAsync(targetSigPath);
+                            signatureUrl = $"/uploads/CRM/Signature/{Path.GetFileName(targetSigPath)}";
+                        }
+                        catch { }
+                    }
+                }
+
+                signatureBytes ??= row.SignatureBytesFromDb;
+
+                result.Add(new CustomerReportResultDto
+                {
+                    CustomerId = row.CustomerId,
+                    CustomerName = row.CustomerName,
+                    CustomerAddress = row.Address,
+                    Phone = row.Phone,
+                    Fax = row.Fax,
+                    Email = row.Email,
+                    CustomerPhoto = photoBytes,
+                    CustomerDigitalSignature = signatureBytes,
+                    PhotoUrl = photoUrl,
+                    SignatureUrl = signatureUrl,
+                    ContactPerson = row.ContactPerson,
+                    Designation = row.Designation,
+                    CustomerTypeId = row.CustomerTypeId,
+                    CustomerType = row.CustomerType,
+                    CompanyCode = row.CompanyCode,
+                    CompanyName = row.CompanyName,
+                    CompanyAddress1 = row.CompanyAddress1
+                });
+            }
+
+            return result;
+        }
+
+        #endregion
+
+        #region Generate PDF Report
+
+        public async Task<byte[]> GeneratePdfReportAsync(CustomerReportFilterDto filter)
+        {
+            try
+            {
+                var data = await GetCustomerReportDataAsync(filter);
+
+                if (filter.SelectedCustomerIds != null && filter.SelectedCustomerIds.Any())
+                {
+                    var selectedSet = new HashSet<string>(
+                        filter.SelectedCustomerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
+                        StringComparer.OrdinalIgnoreCase);
+                    if (selectedSet.Count > 0)
+                    {
+                        data = data.Where(x => !string.IsNullOrEmpty(x.CustomerId) && selectedSet.Contains(x.CustomerId.Trim())).ToList();
+                    }
+                }
+
+                var firstItem = data.FirstOrDefault();
+                string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
+                string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209";
+
+                // Load logo bytes once (uses the existing GetLogoBytes() helper on this service)
+                var logoBytes = GetLogoBytes();
+
+                string GetTypeLabel(string typeId)
+                {
+                    if (string.IsNullOrWhiteSpace(typeId)) return "N/A";
+                    return typeId.Trim() switch
+                    {
+                        "0" => "General",
+                        "1" => "In House",
+                        _ => typeId.Trim()
+                    };
+                }
+
+                var groupedData = data.GroupBy(x => GetTypeLabel(x.CustomerTypeId)).OrderBy(g => g.Key).ToList();
+
+                var pdfBytes = Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        page.MarginHorizontal(10);
+                        page.MarginVertical(12);
+                        page.Size(PageSizes.A4.Landscape());
+
+                        page.Header().Row(row =>
+                        {
+                            // Left slot: logo (only rendered if the file was found)
+                            if (logoBytes != null && logoBytes.Length > 0)
+                            {
+                                row.ConstantItem(70).AlignMiddle().Image(logoBytes).FitArea();
+                            }
+
+                            // Center: company name / address / report title
+                            row.RelativeItem().Column(col =>
+                            {
+                                col.Item().AlignCenter().Text(companyName).FontSize(13).Bold();
+                                col.Item().AlignCenter().Text(companyAddress).FontSize(9).FontColor(Colors.Grey.Darken2);
+                                col.Item().AlignCenter().Text("Customer Report").FontSize(11).Bold().Underline();
+                                //col.Item().PaddingTop(2).PaddingBottom(4).Row(row =>
+                                //{
+                                //    row.RelativeItem().AlignRight().Text($"Print Date: {DateTime.Now:dd/MM/yyyy}").FontSize(8);
+                                //});
+                            });
+
+                            // Right slot: empty, same width as the logo, so the center column stays visually centered
+                            if (logoBytes != null && logoBytes.Length > 0)
+                            {
+                                row.ConstantItem(70);
+                            }
+                        });
+
+                        page.Content().Column(mainCol =>
+                        {
+                            // int sl = 1;
+                            bool isFirstGroup = true;
+
+                            foreach (var group in groupedData)
+                            {
+                                //if (!isFirstGroup)
+                                //{
+                                //    mainCol.Item().PageBreak();
+                                //}
+                                //isFirstGroup = false;
+                                int sl = 1;
+                                mainCol.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(cols =>
+                                    {
+                                        cols.RelativeColumn(1.3f);
+                                        cols.RelativeColumn(2.8f);
+                                        cols.RelativeColumn(6.0f);
+                                        cols.RelativeColumn(7.0f);
+                                        cols.RelativeColumn(2.8f);
+                                        cols.RelativeColumn(3.2f);
+                                        cols.RelativeColumn(6.0f);
+                                        cols.RelativeColumn(2.0f);
+                                        cols.RelativeColumn(9.5f);
+                                    });
+
+                                    table.Header(header =>
+                                    {
+                                        header.Cell().ColumnSpan(9).Element(c => c
+                                            .PaddingTop(6)
+                                            .PaddingBottom(3)
+                                            .Text(text =>
+                                            {
+                                                text.Span("Customer Type: ").FontSize(10).Bold();
+                                                text.Span(group.Key).FontSize(10).Bold();
+                                            }));
+
+                                        void BuildHeaderCell(string title)
+                                        {
+                                            header.Cell().Element(c => c
+                                                .Border(0.5f)
+                                                .BorderColor(Colors.Grey.Darken1)
+                                                .Background(Colors.Grey.Lighten3)
+                                                .PaddingHorizontal(2)
+                                                .PaddingVertical(3)
+                                                .AlignCenter()
+                                                .AlignMiddle()
+                                                .Text(title)
+                                                .Bold()
+                                                .FontSize(8f)
+                                                .WrapAnywhere());
+                                        }
+
+                                        BuildHeaderCell("SN.");
+                                        BuildHeaderCell("Customer ID");
+                                        BuildHeaderCell("Name");
+                                        BuildHeaderCell("Address");
+                                        BuildHeaderCell("Phone");
+                                        BuildHeaderCell("Fax");
+                                        BuildHeaderCell("Email");
+                                        BuildHeaderCell("Photo");
+                                        BuildHeaderCell("Contact Person");
+                                    });
+
+                                    foreach (var d in group)
+                                    {
+                                        void BuildDataCell(string text, bool center = false)
+                                        {
+                                            table.Cell().Element(c => c
+                                                .Border(0.5f)
+                                                .BorderColor(Colors.Grey.Lighten1)
+                                                .PaddingHorizontal(2)
+                                                .PaddingVertical(2)
+                                                .AlignMiddle()
+                                                .Element(e => center ? e.AlignCenter() : e.AlignLeft())
+                                                .Text(text ?? "")
+                                                .FontSize(7.5f)
+                                                .WrapAnywhere());
+                                        }
+
+                                        BuildDataCell(sl.ToString(), true);
+                                        BuildDataCell(d.CustomerId, true);
+                                        BuildDataCell(d.CustomerName);
+                                        BuildDataCell(d.CustomerAddress);
+                                        BuildDataCell(d.Phone, true);
+                                        BuildDataCell(d.Fax, true);
+                                        BuildDataCell(d.Email, true);
+
+                                        table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten1)
+                                            .PaddingHorizontal(2).PaddingVertical(2)
+                                            .AlignCenter().AlignMiddle()
+                                            .Height(28)
+                                            .Column(imgCol =>
+                                            {
+                                                if (d.CustomerPhoto != null && d.CustomerPhoto.Length > 0)
+                                                {
+                                                    imgCol.Item().Image(d.CustomerPhoto).FitArea();
+                                                }
+                                                else
+                                                {
+                                                    imgCol.Item().AlignCenter().Text("-").FontSize(6.5f);
+                                                }
+                                            });
+
+                                        BuildDataCell(d.ContactPerson);
+
+                                        sl++;
+                                    }
+                                });
+                            }
+                        });
+
+                        page.Footer().Row(row =>
+                        {
+                            row.RelativeItem().AlignLeft().Text($"Print Datetime: {DateTime.Now:dd/MM/yyyy hh:mm:ss tt}").FontSize(7).FontColor(Colors.Grey.Medium);
+                            row.RelativeItem().AlignRight().Text(txt =>
+                            {
+                                txt.Span("Page ").FontSize(7).FontColor(Colors.Grey.Medium);
+                                txt.CurrentPageNumber().FontSize(7).FontColor(Colors.Grey.Medium);
+                                txt.Span(" of ").FontSize(7).FontColor(Colors.Grey.Medium);
+                                txt.TotalPages().FontSize(7).FontColor(Colors.Grey.Medium);
+                            });
+                        });
+                    });
+                }).GeneratePdf();
+
+                return pdfBytes;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Generate Excel Report
+
+        public async Task<byte[]> GenerateExcelReportAsync(CustomerReportFilterDto filter)
+        {
+            var data = await GetCustomerReportDataAsync(filter);
+
+            if (filter.SelectedCustomerIds != null && filter.SelectedCustomerIds.Any())
+            {
+                var selectedSet = new HashSet<string>(
+                    filter.SelectedCustomerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
+                    StringComparer.OrdinalIgnoreCase);
+                if (selectedSet.Count > 0)
+                {
+                    data = data.Where(x => !string.IsNullOrEmpty(x.CustomerId) && selectedSet.Contains(x.CustomerId.Trim())).ToList();
+                }
+            }
+
+            var firstItem = data.FirstOrDefault();
+            string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
+            string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209";
+
+            // Load logo bytes once (uses the existing GetLogoBytes() helper on this service)
+            var logoBytes = GetLogoBytes();
+
+            string GetTypeLabel(string typeId)
+            {
+                if (string.IsNullOrWhiteSpace(typeId)) return "N/A";
+                return typeId.Trim() switch
+                {
+                    "0" => "General",
+                    "1" => "In House",
+                    _ => typeId.Trim()
+                };
+            }
+
+            // Helper: Excel column width (character units) -> pixels (approx, standard Calibri 11 metric)
+            double ColumnWidthToPixels(double columnWidth)
+            {
+                return (double)((int)((columnWidth * 7) + 5));
+            }
+
+            // Helper: row height in points -> pixels (96 DPI)
+            double RowHeightToPixels(double rowHeightPoints)
+            {
+                return rowHeightPoints * 1.333;
+            }
+
+            var groupedData = data.GroupBy(x => GetTypeLabel(x.CustomerTypeId)).OrderBy(g => g.Key).ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Customer Report");
+
+            // Hide gridlines so no cell border shows through around the floated logo image
+            ws.ShowGridLines = false;
+
+            const int totalCols = 9;
+
+            float[] relativeWidths = { 1.5f, 2.8f, 10.0f, 12.0f, 2.3f, 3.0f, 5.5f, 2.0f, 12.5f };
+            const double scale = 4.5;
+
+            for (int i = 0; i < relativeWidths.Length; i++)
+            {
+                ws.Column(i + 1).Width = relativeWidths[i] * scale;
+            }
+
+            var r1 = ws.Range(1, 1, 1, totalCols);
+            r1.Merge();
+            ws.Cell(1, 1).Value = companyName;
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 14;
+            ws.Cell(1, 1).Style.Font.FontName = "Times New Roman";
+            ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            var r2 = ws.Range(2, 1, 2, totalCols);
+            r2.Merge();
+            ws.Cell(2, 1).Value = companyAddress;
+            ws.Cell(2, 1).Style.Font.FontSize = 10;
+            ws.Cell(2, 1).Style.Font.FontName = "Times New Roman";
+            ws.Cell(2, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            var r3 = ws.Range(3, 1, 3, totalCols);
+            r3.Merge();
+            ws.Cell(3, 1).Value = "Customer Report";
+            ws.Cell(3, 1).Style.Font.Bold = true;
+            ws.Cell(3, 1).Style.Font.FontSize = 12;
+            ws.Cell(3, 1).Style.Font.FontName = "Times New Roman";
+            ws.Cell(3, 1).Style.Font.Underline = XLFontUnderlineValues.Single;
+            ws.Cell(3, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            if (logoBytes != null && logoBytes.Length > 0)
+            {
+                ws.Row(1).Height = 20;
+                ws.Row(2).Height = 16;
+                ws.Row(3).Height = 18;
+
+                try
+                {
+                    using var logoStream = new MemoryStream(logoBytes);
+                    var logoPicture = ws.AddPicture(logoStream)
+                        .MoveTo(ws.Cell(1, 1), 4, 14);
+                    logoPicture.Width = 90;
+                    logoPicture.Height = 32;
+                }
+                catch
+                {
+                    // Fallback gracefully without throwing if the image can't be embedded
+                }
+            }
+
+            string[] headers = new string[]
+            {
+       "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
+            };
+
+            int currRow = 5;
+            const int photoColIndex = 8;
+            const double rowHeightForPhoto = 40;
+            const double baseRowHeight = 15;
+            const double lineHeight = 14.5;
+            const double photoImgWidth = 50;
+            const double photoImgHeight = 40;
+
+            double EstimateRowHeightForColumn(string text, int columnIndex)
+            {
+                if (string.IsNullOrWhiteSpace(text)) return baseRowHeight;
+
+                double colWidthChars = Math.Max(6, ws.Column(columnIndex).Width);
+
+                var explicitLines = text.Split(new[] { "\r\n", "\n", ";" }, StringSplitOptions.RemoveEmptyEntries);
+                int totalWrappedLines = 0;
+
+                foreach (var line in explicitLines)
+                {
+                    var trimmed = line.Trim();
+                    int wrapped = (int)Math.Ceiling(trimmed.Length / colWidthChars);
+                    totalWrappedLines += Math.Max(1, wrapped);
+                }
+
+                totalWrappedLines = Math.Max(1, totalWrappedLines);
+                return Math.Max(baseRowHeight, totalWrappedLines * lineHeight);
+            }
+
+            var groupPageBreakRows = new List<int>();
+
+            foreach (var group in groupedData)
+            {
+                int sl = 1;
+                if (groupPageBreakRows.Count > 0 || currRow > 5)
+                {
+                    groupPageBreakRows.Add(currRow);
+                }
+
+                var groupRange = ws.Range(currRow, 1, currRow, totalCols);
+                groupRange.Merge();
+                ws.Cell(currRow, 1).Value = $"Customer Type: {group.Key}";
+                ws.Cell(currRow, 1).Style.Font.Bold = true;
+                ws.Cell(currRow, 1).Style.Font.FontSize = 10;
+                ws.Cell(currRow, 1).Style.Font.FontName = "Times New Roman";
+                ws.Cell(currRow, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#D9E2F3");
+                ws.Cell(currRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                currRow++;
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    var cell = ws.Cell(currRow, i + 1);
+                    cell.Value = headers[i];
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Font.FontSize = 9;
+                    cell.Style.Font.FontName = "Times New Roman";
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECEF");
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    cell.Style.Alignment.WrapText = true;
+                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+                currRow++;
+
+                foreach (var item in group)
+                {
+                    ws.Cell(currRow, 1).Value = sl;
+                    ws.Cell(currRow, 2).Value = item.CustomerId;
+                    ws.Cell(currRow, 3).Value = item.CustomerName;
+                    ws.Cell(currRow, 4).Value = item.CustomerAddress;
+                    ws.Cell(currRow, 5).Value = item.Phone;
+                    ws.Cell(currRow, 6).Value = item.Fax;
+                    ws.Cell(currRow, 7).Value = item.Email;
+                    ws.Cell(currRow, 9).Value = item.ContactPerson;
+
+                    // ---- Row height must be finalized BEFORE we calculate photo centering offsets ----
+                    double neededHeight = baseRowHeight;
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerName, 3));
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerAddress, 4));
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.ContactPerson, 9));
+
+                    bool hasPhoto = item.CustomerPhoto != null && item.CustomerPhoto.Length > 0;
+                    if (hasPhoto)
+                    {
+                        neededHeight = Math.Max(neededHeight, rowHeightForPhoto);
+                    }
+
+                    ws.Row(currRow).Height = neededHeight;
+
+                    if (hasPhoto)
+                    {
+                        try
+                        {
+                            using var imgStream = new MemoryStream(item.CustomerPhoto);
+
+                            double colWidthPx = ColumnWidthToPixels(ws.Column(photoColIndex).Width);
+                            double rowHeightPx = RowHeightToPixels(ws.Row(currRow).Height);
+
+                            int xOffset = (int)Math.Max(0, (colWidthPx - photoImgWidth) / 2);
+                            int yOffset = (int)Math.Max(0, (rowHeightPx - photoImgHeight) / 2);
+
+                            var picture = ws.AddPicture(imgStream)
+                                .MoveTo(ws.Cell(currRow, photoColIndex), xOffset, yOffset);
+                            picture.Width = (int)photoImgWidth;
+                            picture.Height = (int)photoImgHeight;
+
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        }
+                        catch
+                        {
+                            ws.Cell(currRow, photoColIndex).Value = "-";
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            ws.Cell(currRow, photoColIndex).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        }
+                    }
+                    else
+                    {
+                        ws.Cell(currRow, photoColIndex).Value = "-";
+                        ws.Cell(currRow, photoColIndex).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(currRow, photoColIndex).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    }
+
+                    for (int c = 1; c <= totalCols; c++)
+                    {
+                        var cell = ws.Cell(currRow, c);
+                        cell.Style.Font.FontSize = 9;
+                        cell.Style.Font.FontName = "Times New Roman";
+                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        cell.Style.Alignment.WrapText = true;
+
+                        if (c == 1 || c == 2 || c == 5 || c == 6 || c == 7 || c == 8)
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        else
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    }
+
+                    currRow++;
+                    sl++;
+                }
+
+                currRow++;
+            }
+
+            foreach (var breakRow in groupPageBreakRows)
+            {
+                ws.PageSetup.AddHorizontalPageBreak(breakRow - 1);
+            }
+
+            using var ms = new MemoryStream();
+            workbook.SaveAs(ms);
+            return ms.ToArray();
+        }
+
+        #endregion
+
+    }
+}

@@ -56,13 +56,13 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
             var query = 
                     from sml in shipmentModeLedgerrepository.All().AsNoTracking()
                     join a in subSubLedgerRepo.All().AsNoTracking()
-                        on sml.AdvanceLedgerCode equals a.SubSusidiaryLedgerCodeNo into advanceGroup
+                    on sml.AdvanceLedgerCode equals a.SubSusidiaryLedgerCodeNo into advanceGroup
                     from a in advanceGroup.DefaultIfEmpty()
                     join e in subLedgerRepo.All().AsNoTracking()
-                        on sml.ExpenseLedgerCodeNo equals e.SusidiaryLedgerCodeNo into expenseGroup
+                    on sml.ExpenseLedgerCodeNo equals e.SusidiaryLedgerCodeNo into expenseGroup
                     from e in expenseGroup.DefaultIfEmpty()
                     join r in subSubLedgerRepo.All().AsNoTracking()
-                        on sml.RevenueLedgerCodeNo equals r.SubSusidiaryLedgerCodeNo into revenueGroup
+                    on sml.RevenueLedgerCodeNo equals r.SubSusidiaryLedgerCodeNo into revenueGroup
                     from r in revenueGroup.DefaultIfEmpty()
                     select new ShipmentModeLedgerSetupSetupViewModel
                     {
@@ -300,6 +300,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
         #endregion
 
         #region Dropdown
+
         public async Task<IEnumerable<CommonSelectModel>> SelectAdvanceLedger()
         {
             var data = await subSubLedgerRepo.All().AsNoTracking()
@@ -331,7 +332,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
             var data = await (
                     from ssl in subSubLedgerRepo.All().AsNoTracking()
                     join sl in subLedgerRepo.All()
-                        on ssl.SubsidiaryLedgerCodeNo equals sl.SusidiaryLedgerCodeNo
+                    on ssl.SubsidiaryLedgerCodeNo equals sl.SusidiaryLedgerCodeNo
                     where code.Contains(sl.GeneralLedgerCodeNo)
                     select new CommonSelectModel
                     {

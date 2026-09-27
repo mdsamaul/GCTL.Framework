@@ -45,6 +45,9 @@ namespace GCTL.Core.ViewModels.AddSalesCustomer
         public DateTime? LDate { get; set; } = DateTime.Now;
         public DateTime? ModifyDate { get; set; }
 
+        public string? CustomerPhoto { get; set; }
+        public string? CustomerDigitalSignature { get; set; }
+
         public List<SalesDeliveryLocationViewModel> DeliveryLocations { get; set; } = new List<SalesDeliveryLocationViewModel>();
         public List<SalesContactPersonViewModel> ContactPersons { get; set; } = new List<SalesContactPersonViewModel>();
 

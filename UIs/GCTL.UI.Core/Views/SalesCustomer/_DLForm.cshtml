@@ -2,23 +2,6 @@
 @using GCTL.UI.Core.ViewModels
 
 <div class="card rounded shadow-sm">
-    <div class="card-header p-0">
-        @await Html.PartialAsync("_Toolbars", new ToobarModel
-        {
-            Title = "Delivery Location Information",
-            SaveBtnId = "btnSaveDL",
-            SaveBtnClass = "js-salesdl-save",
-            DeleteBtnId = "btnDeleteDL",
-            DeleteBtnClass = "js-salesdl-delete-btn",
-            ClearBtnId = "btnResetDL",
-            ClearBtnClass = "js-salesdl-clear",
-            PrintBtnId = "btnDLPrint",
-            PrintBtnClass = "js-salesdl-print",
-            FavtBtnId = "btnDLFav",
-            FavtBtnClass = "js-salesdl-fav",
-            ShowExtraContentLaptopOnly = true
-        })
-    </div>
     <div class="card-body px-2">
         <form id="deliveryForm">
 
@@ -32,7 +15,7 @@
                     Placeholder = "Select Customer",
                     SelectItems = ViewBag.CustomerDD as SelectList,
                     IsRequired = true,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ReserveActionSlot = false,
                     CustomCssClass = "js-CustomerIdForDelivery",
                 })
@@ -45,7 +28,7 @@
                     IsReadonly = true,
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col"
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col"
                 })
             </div>
 
@@ -59,7 +42,7 @@
                     Placeholder = "Delivery Address",
                     IsRequired = true,
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model.LocationAddress
                 })
 
@@ -70,7 +53,7 @@
                     FieldType = FieldType.Select,
                     Placeholder = "Select Country",
                     SelectItems = ViewBag.CountryDD as SelectList,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ReserveActionSlot = false,
                     ShowQuickAdd = false,
                     DefaultValue = Model.CountryId
@@ -86,7 +69,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "State/Province",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model.StateOrProvince
                 })
 
@@ -97,7 +80,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "City",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model.City
                 })
             </div>
@@ -111,7 +94,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Zip Code",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model.ZipCode
                 })
 
@@ -122,7 +105,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Phone Number",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model.Phone
                 })
             </div>
@@ -136,7 +119,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Email",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model.Email
                 })
 
@@ -147,7 +130,7 @@
                     FieldType = FieldType.Text,
                     Placeholder = "Remarks",
                     ReserveActionSlot = false,
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     DefaultValue = Model.Remarks
                 })
             </div>
@@ -162,7 +145,7 @@
                     FieldType = FieldType.MultiSelect,
                     Placeholder = "Select Contact Person",
                     AjaxSourceUrl = "/SalesDeliveryLocation/GetContactPerson",
-                    ColumnClass = "col-12 col-sm-6 col-md-3 col-xxl-6 sc-field-col",
+                    ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ReserveActionSlot = false,
                     ShowQuickAdd = true,
                     QuickAddUrl = Url.Action("Index", "ContactPersonInfo"),
@@ -173,25 +156,27 @@
                 })
             </div>
 
-            @* ---------- Bottom Toolbar ---------- *@
-            <div class="row g-4 no-print">
+            @* ---------- Bottom Actions & Save Toolbar ---------- *@
+            <div class="row g-4 no-print" style="margin-top: 9px;">
                 <div class="col-12">
-                    @await Html.PartialAsync("_Toolbars", new ToobarModel
-                    {
-                        Title = "",
-                        ShowClear = false,
-                        ShowDelete = false,
-                        ShowPrint = false,
-                        ShowFavorite = false,
-                        IsPlain = true,
-                        SaveBtnId = "btnSaveDL-bottom",
-                        SaveBtnClass = "js-salesdl-save",
-                        ReserveActionSlot = true,
-                        Style = "border-bottom:0px !important; padding-left:170px",
-                        ShowExtraContentLaptopOnly = true,
-                        ShowExtraContent1 = true,
-                        ShowExtraContent2 = false
-                    })
+                    <div class="d-flex justify-content-end align-items-center w-100">
+                        @await Html.PartialAsync("_Toolbars", new ToobarModel
+                        {
+                            Title = "",
+                            ShowClear = false,
+                            ShowDelete = false,
+                            ShowPrint = false,
+                            ShowFavorite = false,
+                            IsPlain = true,
+                            SaveBtnId = "btnSaveDL-bottom",
+                            SaveBtnClass = "js-salesdl-save",
+                            ReserveActionSlot = false,
+                            Style = "border-bottom:0px !important; padding-left:0px",
+                            ShowExtraContentLaptopOnly = true,
+                            ShowExtraContent1 = true,
+                            ShowExtraContent2 = false
+                        })
+                    </div>
                 </div>
             </div>
 

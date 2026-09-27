@@ -103,13 +103,11 @@
                // console.log(data);
                 // Text Inputs
                 var autoId = autoIdParam || getProp(data, 'autoId') || '0';
-                window.setField('#AutoId', autoId);
-                
+                window.setField('#AutoId', autoId);               
                 var firstName = getProp(data, 'firstName') || '';
                 var lastName = getProp(data, 'lastName') || '';
                 var fallbackName = (firstName + ' ' + lastName).trim();
-                window.setField('#FullName', getProp(data, 'employeeName') || getProp(data, 'name') || getProp(data, 'fullName') || fallbackName || '');
-                
+                window.setField('#FullName', getProp(data, 'employeeName') || getProp(data, 'name') || getProp(data, 'fullName') || fallbackName || '');               
                 window.setField('#MobileNo', getProp(data, 'officialPhone') || getProp(data, 'mobileNo') || '');
                 window.setField('#Email', getProp(data, 'officialEmail') || getProp(data, 'email') || '');
                 window.setField('#PayId', getProp(data, 'payId') || '');
