@@ -8,6 +8,10 @@
 
     let gridTable = null;
     let filterDebounceTimer = null;
+    let dateDebounceTimer = null;
+    let shipmentModeDebounceTimer = null;
+    let customerDebounceTimer = null;
+    let currentFilterXhr = null;
 
     $(document).ready(function () {
         initDefaultDates();
@@ -98,7 +102,7 @@
                 if (toFp) {
                     toFp.set('minDate', selected || null);
                 }
-                triggerFilterChange();
+                onDateFilterChanged();
             });
         }
 
@@ -108,7 +112,7 @@
                 if (fromFp) {
                     fromFp.set('maxDate', selected || null);
                 }
-                triggerFilterChange();
+                onDateFilterChanged();
             });
         }
     }
@@ -125,8 +129,7 @@
                 autoclose: true,
                 todayHighlight: true
             }).on('changeDate', function () {
-                updateDateLimits();
-                triggerFilterChange();
+                onDateFilterChanged();
             });
         }
     }
@@ -148,14 +151,23 @@
     }
 
     function bindEvents() {
-        // Auto filter on date input change & enforce limits
+        // Auto filter on date input change & enforce limits (cascades to all 3 dropdowns)
         $('#filterFromDate, #filterToDate').on('change keyup', function () {
-            updateDateLimits();
-            triggerFilterChange();
+            onDateFilterChanged();
         });
 
-        // Auto filter on multiselect dropdown change
-        $('#filterShipmentMode, #filterCustomerId, #filterBillNo').on('change', function () {
+        // Shipment Mode change: cascades to Customer and Bill No, then reloads grid
+        $('#filterShipmentMode').on('change', function () {
+            onShipmentModeChanged();
+        });
+
+        // Customer change: cascades to Bill No, then reloads grid
+        $('#filterCustomerId').on('change', function () {
+            onCustomerChanged();
+        });
+
+        // Bill No change: reloads grid & summary
+        $('#filterBillNo').on('change', function () {
             triggerFilterChange();
         });
 
@@ -164,6 +176,107 @@
             e.preventDefault();
             exportPdf();
         });
+    }
+
+    function onDateFilterChanged() {
+        clearTimeout(dateDebounceTimer);
+        dateDebounceTimer = setTimeout(function () {
+            updateDateLimits();
+            loadFilterOptions(true, true, true, function () {
+                reloadGrid();
+                loadSummaryData();
+            });
+        }, 350);
+    }
+
+    function onShipmentModeChanged() {
+        clearTimeout(shipmentModeDebounceTimer);
+        shipmentModeDebounceTimer = setTimeout(function () {
+            loadFilterOptions(false, true, true, function () {
+                reloadGrid();
+                loadSummaryData();
+            });
+        }, 200);
+    }
+
+    function onCustomerChanged() {
+        clearTimeout(customerDebounceTimer);
+        customerDebounceTimer = setTimeout(function () {
+            loadFilterOptions(false, false, true, function () {
+                reloadGrid();
+                loadSummaryData();
+            });
+        }, 200);
+    }
+
+    function loadFilterOptions(reloadShipmentModes, reloadCustomers, reloadBillNos, callback) {
+        var fromDate = $('#filterFromDate').val() || '';
+        var toDate = $('#filterToDate').val() || '';
+        var shipmentModes = getDropdownValue('filterShipmentMode');
+        var customerIds = getDropdownValue('filterCustomerId');
+
+        if (currentFilterXhr && typeof currentFilterXhr.abort === 'function') {
+            currentFilterXhr.abort();
+        }
+
+        currentFilterXhr = $.ajax({
+            url: '/JobBillEntryReport/GetFilterOptions',
+            type: 'GET',
+            data: {
+                fromDate: fromDate,
+                toDate: toDate,
+                shipmentModes: shipmentModes,
+                customerIds: customerIds
+            },
+            success: function (res) {
+                if (res && res.success) {
+                    if (reloadShipmentModes) {
+                        updateSelectOptions('filterShipmentMode', res.shipmentModes || []);
+                    }
+                    if (reloadCustomers) {
+                        updateSelectOptions('filterCustomerId', res.customers || []);
+                    }
+                    if (reloadBillNos) {
+                        updateSelectOptions('filterBillNo', res.billNos || []);
+                    }
+                }
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            },
+            error: function (xhr, status) {
+                if (status !== 'abort') {
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                }
+            }
+        });
+    }
+
+    function updateSelectOptions(selectId, items) {
+        var $el = $('#' + selectId);
+        if (!$el.length) return;
+
+        var selectedValues = getDropdownValueArray(selectId);
+        $el.empty();
+
+        if (Array.isArray(items)) {
+            items.forEach(function (item) {
+                var val = String(item.value !== undefined ? item.value : (item.id !== undefined ? item.id : item));
+                var text = String(item.text !== undefined ? item.text : (item.name !== undefined ? item.name : val));
+                var isSelected = selectedValues.indexOf(val) !== -1;
+                var $opt = $('<option></option>').val(val).text(text);
+                if (isSelected) {
+                    $opt.prop('selected', true);
+                }
+                $el.append($opt);
+            });
+        }
+
+        if (typeof window.reinitCustomDropdownById === 'function') {
+            window.reinitCustomDropdownById(selectId);
+        }
     }
 
     function triggerFilterChange() {
@@ -205,6 +318,15 @@
         }
 
         return (val || '').trim();
+    }
+
+    /**
+     * Helper to get dropdown value as an array (for checking selection retention)
+     */
+    function getDropdownValueArray(id) {
+        var raw = getDropdownValue(id);
+        if (!raw) return [];
+        return raw.split(',').map(function (v) { return v.trim(); }).filter(function (v) { return !!v; });
     }
 
     function getFilterParams() {

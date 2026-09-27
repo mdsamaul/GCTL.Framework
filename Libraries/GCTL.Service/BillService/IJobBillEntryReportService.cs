@@ -11,5 +11,6 @@ namespace GCTL.Service.BillService
         Task<JobBillEntryReportSummaryDTO> GetSummaryAsync(JobBillEntryReportFilterVM filter);
         Task<byte[]> GeneratePdfAsync(JobBillEntryReportFilterVM filter);
         Task<List<string>> GetBillNumbersAsync();
+        Task<JobBillEntryReportFilterOptionsDTO> GetFilterOptionsAsync(string? fromDate, string? toDate, string? shipmentModes = null, string? customerIds = null);
     }
 }

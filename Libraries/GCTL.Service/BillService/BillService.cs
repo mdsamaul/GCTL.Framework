@@ -30,6 +30,9 @@ namespace GCTL.Service.BillService
         private readonly IRepository<CustomerHandilingCharge> _cRepository;
         private readonly IRepository<CfBillEntryDetail> _billDetailRepository;
         private readonly IRepository<CfBillEntryDetailsChchead> _billChcRepository;
+        private readonly IRepository<RmgProdDefUnitType>? _unitRepository;
+        private readonly IRepository<SalesDefPortName>? _portNameRepository;
+        private readonly IRepository<CaDefCurrency>? _currencyRepository;
 
         public BillService(
             IRepository<GCTL.Data.Models.SepDocumentation> sepDocumentationRepository,
@@ -43,7 +46,10 @@ namespace GCTL.Service.BillService
             IRepository<CustomerWiseCostingEntry> cwcRepository,
             IRepository<CustomerHandilingCharge> cRepository,
             IRepository<CfBillEntryDetail> billDetailRepository,
-            IRepository<CfBillEntryDetailsChchead> billChcRepository)
+            IRepository<CfBillEntryDetailsChchead> billChcRepository,
+            IRepository<RmgProdDefUnitType>? unitRepository = null,
+            IRepository<SalesDefPortName>? portNameRepository = null,
+            IRepository<CaDefCurrency>? currencyRepository = null)
         {
             _sepDocumentationRepository = sepDocumentationRepository;
             _billEntryRepository = billEntryRepository;
@@ -57,6 +63,9 @@ namespace GCTL.Service.BillService
             _cRepository = cRepository;
             _billDetailRepository = billDetailRepository;
             _billChcRepository = billChcRepository;
+            _unitRepository = unitRepository;
+            _portNameRepository = portNameRepository;
+            _currencyRepository = currencyRepository;
         }
 
         public async Task<PaginationResponse<JobDto>> GetBillPagedAsync(PaginationRequest request, string? customerName, string? shipmentMode, string? dateFrom, string? dateTo)
@@ -1217,6 +1226,219 @@ namespace GCTL.Service.BillService
                     Message = $"Error deleting bills: {ex.Message}"
                 };
             }
+        }
+
+        public async Task<byte[]> GenerateBillPdfAsync(string billNo)
+        {
+            if (string.IsNullOrWhiteSpace(billNo))
+                return Array.Empty<byte>();
+
+            var bill = await _billEntryRepository.All().AsNoTracking()
+                .FirstOrDefaultAsync(b => b.BillNo == billNo);
+
+            if (bill == null)
+                return Array.Empty<byte>();
+
+            GCTL.Data.Models.SepDocumentation? doc = null;
+            if (!string.IsNullOrEmpty(bill.JobNo))
+            {
+                doc = await _sepDocumentationRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(d => d.JobNo == bill.JobNo);
+            }
+
+            string customerCode = bill.CustomerId ?? doc?.CustomerId ?? string.Empty;
+            SalesCustomer? customer = null;
+            if (!string.IsNullOrEmpty(customerCode))
+            {
+                customer = await _customerRepository.All().AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.CustomerCode == customerCode || c.CustomerId == customerCode);
+            }
+
+            // Units lookup
+            Dictionary<string, string> unitDict = new();
+            if (_unitRepository != null)
+            {
+                var units = await _unitRepository.All().AsNoTracking().ToListAsync();
+                unitDict = units.ToDictionary(u => u.UnitTypId, u => u.UnitTypeName ?? u.ShortName ?? u.UnitTypId);
+            }
+
+            // Currency lookup
+            Dictionary<string, string> currDict = new();
+            if (_currencyRepository != null)
+            {
+                var currs = await _currencyRepository.All().AsNoTracking().ToListAsync();
+                currDict = currs.ToDictionary(c => c.CurrencyId, c => c.ShortName ?? c.CurrencyName ?? c.CurrencyId);
+            }
+
+            // Port lookup
+            Dictionary<string, string> portDict = new();
+            if (_portNameRepository != null)
+            {
+                var ports = await _portNameRepository.All().AsNoTracking().ToListAsync();
+                portDict = ports.ToDictionary(p => p.PortNameId, p => p.PortName ?? p.ShortName ?? p.PortNameId);
+            }
+
+            // Customer Name & Address
+            string custName = customer?.CustomerName ?? bill.CustomerId ?? doc?.CustomerId ?? string.Empty;
+            string custAddress = bill.Address ?? customer?.CustomerAddress ?? doc?.CustomerAddress ?? string.Empty;
+
+            // Formatted units
+            string qUnitId = bill.QunitTypeId ?? doc?.Unit1 ?? string.Empty;
+            string qUnitName = unitDict.TryGetValue(qUnitId, out var qun) ? qun : qUnitId;
+            decimal? qty = bill.Quantity ?? doc?.Quntity1;
+            string qtyStr = qty.HasValue ? $"{qty.Value:0.00} {qUnitName}".Trim() : string.Empty;
+
+            string packUnitId = doc?.PackingUnitType ?? string.Empty;
+            string packUnitName = unitDict.TryGetValue(packUnitId, out var pun) ? pun : packUnitId;
+            decimal? packQty = doc?.PackingQuantity;
+            string packQtyStr = packQty.HasValue ? $"{packQty.Value:0.00} {packUnitName}".Trim() : "0.00";
+
+            string wUnitId = bill.WunitTypeId ?? doc?.Unit2 ?? string.Empty;
+            string wUnitName = unitDict.TryGetValue(wUnitId, out var wun) ? wun : wUnitId;
+            decimal? weight = bill.DocWeight ?? doc?.Quntity2;
+            string weightStr = weight.HasValue ? $"{weight.Value:0.00} {wUnitName}".Trim() : string.Empty;
+
+            // Currency name
+            string currId = bill.InvoiceCurrencyId ?? doc?.InvoiceCurrencyId ?? "USD";
+            string currName = currDict.TryGetValue(currId, out var cn) ? cn : currId;
+
+            // Destination
+            string destId = bill.Destination ?? string.Empty;
+            string destName = portDict.TryGetValue(destId, out var dn) ? dn : destId;
+
+            // Query CHC items
+            var chcItems = await _billChcRepository.All().AsNoTracking()
+                .Where(c => c.BillNo == billNo)
+                .ToListAsync();
+
+            // Query Detail items
+            var detailItems = await _billDetailRepository.All().AsNoTracking()
+                .Where(d => d.BillNo == billNo)
+                .ToListAsync();
+
+            var heads = await _expHeadRepository.All().AsNoTracking().ToListAsync();
+            var headDict = heads.ToDictionary(h => h.ExpenseHeadId, h => h);
+
+            // Categorize items
+            var receiptableList = new List<JobBillPrintChargeItem>();
+            var nonReceiptableList = new List<JobBillPrintChargeItem>();
+            var transportList = new List<JobBillPrintChargeItem>();
+            var agencyList = new List<JobBillPrintChargeItem>();
+
+            // Process CHC items
+            foreach (var chc in chcItems)
+            {
+                var head = chc.BillHead ?? chc.ChcheadDescription ?? string.Empty;
+                decimal amt = chc.BillAmount ?? 0m;
+                if (amt == 0 && string.IsNullOrWhiteSpace(head)) continue;
+
+                if (head.Contains("Transport", StringComparison.OrdinalIgnoreCase))
+                {
+                    transportList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+                else if (head.Contains("Agency", StringComparison.OrdinalIgnoreCase))
+                {
+                    agencyList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+                else if (string.Equals(chc.IsReceiptable, "Y", StringComparison.OrdinalIgnoreCase))
+                {
+                    receiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+                else
+                {
+                    nonReceiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+            }
+
+            // Process Detail items
+            foreach (var det in detailItems)
+            {
+                var head = det.BillHead ?? string.Empty;
+                decimal amt = det.ExpenseBillAmount ?? det.ActualAmount ?? 0m;
+                if (amt == 0 && string.IsNullOrWhiteSpace(head)) continue;
+
+                headDict.TryGetValue(det.ExpenseHeadId ?? string.Empty, out var eh);
+                string isRec = eh?.IsReceiptable ?? string.Empty;
+
+                if (head.Contains("Transport", StringComparison.OrdinalIgnoreCase))
+                {
+                    transportList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+                else if (head.Contains("Agency", StringComparison.OrdinalIgnoreCase))
+                {
+                    agencyList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+                else if (string.Equals(isRec, "Y", StringComparison.OrdinalIgnoreCase))
+                {
+                    receiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+                else
+                {
+                    nonReceiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                }
+            }
+
+            // If Agency Commission was set on the bill and not already listed
+            decimal agComm = bill.MinimumAgencyCommission ?? 0m;
+            if (agComm > 0 && !agencyList.Any())
+            {
+                agencyList.Add(new JobBillPrintChargeItem { Particulars = "Agency Commission", Amount = agComm });
+            }
+
+            decimal recSub = receiptableList.Sum(x => x.Amount);
+            decimal nonRecSub = nonReceiptableList.Sum(x => x.Amount);
+            decimal transSub = transportList.Sum(x => x.Amount);
+            decimal agencySub = agencyList.Sum(x => x.Amount);
+
+            decimal grandTotal = bill.BillAmount ?? (recSub + nonRecSub + transSub + agencySub);
+            decimal deductions = bill.SpecialDiscount ?? 0m;
+            decimal netDue = grandTotal - deductions;
+
+            var printModel = new JobBillPrintVM
+            {
+                BillNo = bill.BillNo ?? string.Empty,
+                BillDate = bill.BillDate.HasValue ? bill.BillDate.Value.ToString("dd/MM/yyyy") : string.Empty,
+                JobNo = bill.JobNo ?? (doc?.JobNo ?? string.Empty),
+                CustomerName = custName,
+                CustomerAddress = custAddress,
+                MaterialDescription = bill.MaterialDescription ?? (doc?.MaterialDescription ?? string.Empty),
+                Quantity = qtyStr,
+                PackingQuantity = packQtyStr,
+                BlNo = bill.Blno ?? (doc?.BillNo ?? string.Empty),
+                BlDate = bill.Bldate.HasValue ? bill.Bldate.Value.ToString("dd/MM/yyyy") : (doc?.Bldate.HasValue == true ? doc.Bldate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                BeNo = bill.Beno ?? (doc?.Beno ?? string.Empty),
+                BeDate = bill.Bedate.HasValue ? bill.Bedate.Value.ToString("dd/MM/yyyy") : (doc?.Bedate.HasValue == true ? doc.Bedate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                Weight = weightStr,
+                InvoiceNo = bill.Invno ?? (doc?.InvoiceNo ?? string.Empty),
+                InvoiceDate = bill.Invdate.HasValue ? bill.Invdate.Value.ToString("dd/MM/yyyy") : (doc?.InvoiceDate.HasValue == true ? doc.InvoiceDate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                ExpNo = doc?.ExpNo ?? string.Empty,
+                ExpDate = doc?.ExpDate.HasValue == true ? doc.ExpDate.Value.ToString("dd/MM/yyyy") : string.Empty,
+                HawbNo = doc?.Hawb ?? string.Empty,
+                Destination = destName,
+                DocRecvDate = bill.DocRecvDate.HasValue ? bill.DocRecvDate.Value.ToString("dd/MM/yyyy") : (doc?.DocReceivedDate.HasValue == true ? doc.DocReceivedDate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                ArrivalDate = bill.ArrivalDate.HasValue ? bill.ArrivalDate.Value.ToString("dd/MM/yyyy") : (doc?.Ata.HasValue == true ? doc.Ata.Value.ToString("dd/MM/yyyy") : string.Empty),
+                DeliveryDate = bill.DeliveryDate.HasValue ? bill.DeliveryDate.Value.ToString("dd/MM/yyyy") : (doc?.DateOfClearence.HasValue == true ? doc.DateOfClearence.Value.ToString("dd/MM/yyyy") : string.Empty),
+                LcNo = doc?.Lcno ?? (doc?.Lcano ?? string.Empty),
+                LcDate = doc?.Lcdate.HasValue == true ? doc.Lcdate.Value.ToString("dd/MM/yyyy") : string.Empty,
+                Currency = currName,
+                InvoiceValue = bill.InvoiceValue ?? doc?.InvoiceValue,
+                AssessableValue = bill.AssessableValue ?? doc?.AssessableValue,
+                ReceiptableItems = receiptableList,
+                ReceiptableSubtotal = recSub,
+                NonReceiptableItems = nonReceiptableList,
+                NonReceiptableSubtotal = nonRecSub,
+                TransportItems = transportList,
+                TransportSubtotal = transSub,
+                AgencyCommissionItems = agencyList,
+                AgencyCommissionSubtotal = agencySub,
+                TotalAmount = grandTotal,
+                Deductions = deductions > 0 ? deductions : null,
+                NetDue = netDue,
+                Remarks = bill.Remarks ?? string.Empty,
+                InWords = JobBillPdfGenerator.ConvertToWords(netDue)
+            };
+
+            return JobBillPdfGenerator.GeneratePdf(printModel);
         }
     }
 }

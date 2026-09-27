@@ -48,4 +48,12 @@ namespace GCTL.Core.ViewModels.ClearAndF.BillEntry
         public decimal TotalDueOutstanding { get; set; }
         public decimal LastServiceValue { get; set; }
     }
+
+    public class JobBillEntryReportFilterOptionsDTO
+    {
+        public List<GCTL.Core.ViewModels.Common.CommonSelectModel> ShipmentModes { get; set; } = new();
+        public List<GCTL.Core.ViewModels.Common.CommonSelectModel> Customers { get; set; } = new();
+        public List<string> BillNos { get; set; } = new();
+    }
 }
+

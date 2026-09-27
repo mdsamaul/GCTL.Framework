@@ -33,7 +33,9 @@ namespace GCTL.UI.Core.Controllers.CNFBill
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            await PopulateDropdowns();
+            var defaultFromDate = DateTime.Now.ToString("01/MM/yyyy");
+            var defaultToDate = DateTime.Now.ToString("dd/MM/yyyy");
+            await PopulateDropdowns(defaultFromDate, defaultToDate);
 
             var gridModel = new GridModel
             {
@@ -58,41 +60,31 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                 {
                     new() { Data = "billNo", Header = "Bill No", Width = "7%", Align = "left", SortField = "BillNo" },
                     new() { Data = "billDate", Header = "Date", Width = "6%", Align = "center", SortField = "BillDate" },
-                    new() { Data = "jobNo", Header = "Job No", Width = "7%", Align = "left", SortField = "JobNo" },
-                    new() { Data = "materialDescription", Header = "Material Desc.", Width = "20%", Align = "left", SortField = "MaterialDescription" },
-                    new() { Data = "quantity", Header = "Quantity", Width = "5%", Align = "right", SortField = "Quantity" },
+                    new() { Data = "jobNo", Header = "Job No", Width = "7%", Align = "left", IsWrapable = true, SortField = "JobNo" },
+                    new() { Data = "materialDescription", Header = "Material Desc.", Width = "18%", Align = "left", SortField = "MaterialDescription" },
+                    new() { Data = "quantity", Header = "<span class=\"th-full\">Quantity</span><span class=\"th-compact\">Qty</span>", Width = "5%", Align = "right", SortField = "Quantity" },
                     new() { Data = "weight", Header = "Weight", Width = "5%", Align = "right", SortField = "DocWeight" },
-                    new() { Data = "receiptableAmount", Header = "Receiptable Amt", Width = "7%", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "nonReceiptableAmount", Header = "Non-Receiptable Amt", Width = "8%", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "receiptableAmount", Header = "<span class=\"th-full\">Receiptable Amt</span><span class=\"th-compact\">Receipt.<br/>Amt</span>", Width = "7%", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "nonReceiptableAmount", Header = "<span class=\"th-full\">Non-Receiptable Amt</span><span class=\"th-compact\">Non-Receipt.<br/>Amt</span>", Width = "8%", Align = "right", RenderFn = "formatCurrency" },
                     new() { Data = "transportAmount", Header = "Transport", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "agencyCommission", Header = "Agency Comm.", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "totalAmount", Header = "Total Amt", Width = "7%", Align = "right", RenderFn = "formatCurrency", SortField = "BillAmount" },
-                    new() { Data = "deduction", Header = "Deduction", Width = "6%", Align = "right", RenderFn = "formatCurrency", SortField = "SpecialDiscount" },
-                    new() { Data = "netAmount", Header = "Net Amt", Width = "8%", Align = "right", RenderFn = "formatCurrency" }
+                    new() { Data = "agencyCommission", Header = "<span class=\"th-full\">Agency Comm.</span><span class=\"th-compact\">Agency<br/>Comm.</span>", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "totalAmount", Header = "<span class=\"th-full\">Total Amt</span><span class=\"th-compact\">Total<br/>Amt</span>", Width = "7%", Align = "right", RenderFn = "formatCurrency", SortField = "BillAmount" },
+                    new() { Data = "deduction", Header = "<span class=\"th-full\">Deduction</span><span class=\"th-compact\">Deduct.</span>", Width = "6%", Align = "right", RenderFn = "formatCurrency", SortField = "SpecialDiscount" },
+                    new() { Data = "netAmount", Header = "<span class=\"th-full\">Net Amt</span><span class=\"th-compact\">Net<br/>Amt</span>", Width = "8%", Align = "right", RenderFn = "formatCurrency" }
                 }
             };
 
             return View(gridModel);
         }
 
-        private async Task PopulateDropdowns()
+        private async Task PopulateDropdowns(string? fromDate = null, string? toDate = null)
         {
             try
             {
-                // Shipment Modes (Multi-select)
-                var rawShipmentModes = await _shipmentMode.GetAllExpenseTypesAsync();
-                var shipmentModes = rawShipmentModes?
-                    .Where(x => !string.IsNullOrWhiteSpace(x.ExpenseTypeID) && !string.IsNullOrWhiteSpace(x.ExpenseType))
-                    .ToList();
-                ViewBag.ShipmentModes = new SelectList(shipmentModes ?? new(), "ExpenseTypeID", "ExpenseType");
-
-                // Customers (Multi-select)
-                var customers = await _customerService.SelectionCustomerAsync();
-                ViewBag.Customers = new SelectList(customers ?? Enumerable.Empty<GCTL.Core.ViewModels.Common.CommonSelectModel>(), "Code", "Name");
-
-                // Bill Numbers (Multi-select)
-                var billNos = await _reportService.GetBillNumbersAsync();
-                ViewBag.BillNos = new SelectList(billNos ?? new List<string>());
+                var options = await _reportService.GetFilterOptionsAsync(fromDate, toDate);
+                ViewBag.ShipmentModes = new SelectList(options.ShipmentModes, "Code", "Name");
+                ViewBag.Customers = new SelectList(options.Customers, "Code", "Name");
+                ViewBag.BillNos = new SelectList(options.BillNos.Select(x => new SelectListItem { Value = x, Text = x }), "Value", "Text");
             }
             catch
             {
@@ -195,6 +187,37 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                 });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFilterOptions(
+            [FromQuery] string? fromDate,
+            [FromQuery] string? toDate,
+            [FromQuery] string? shipmentModes = null,
+            [FromQuery] string? customerIds = null)
+        {
+            try
+            {
+                var options = await _reportService.GetFilterOptionsAsync(fromDate, toDate, shipmentModes, customerIds);
+                return Json(new
+                {
+                    success = true,
+                    shipmentModes = options.ShipmentModes.Select(x => new { value = x.Code, text = x.Name }),
+                    customers = options.Customers.Select(x => new { value = x.Code, text = x.Name }),
+                    billNos = options.BillNos.Select(x => new { value = x, text = x })
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    shipmentModes = new List<object>(),
+                    customers = new List<object>(),
+                    billNos = new List<object>()
+                });
+            }
+        }
         #endregion
 
         #region PDF Export
@@ -205,7 +228,8 @@ namespace GCTL.UI.Core.Controllers.CNFBill
             {
                 filter ??= new JobBillEntryReportFilterVM();
                 var pdfBytes = await _reportService.GeneratePdfAsync(filter);
-                return File(pdfBytes, "application/pdf", $"JobBillEntryReport_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+                Response.Headers.Append("Content-Disposition", $"inline; filename=JobBillReport_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+                return File(pdfBytes, "application/pdf");
             }
             catch (Exception ex)
             {

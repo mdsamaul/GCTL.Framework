@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels.ClearAndF.BillEntry;
+using GCTL.Core.ViewModels.Common;
 using GCTL.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
@@ -22,19 +23,34 @@ namespace GCTL.Service.BillService
         private readonly IRepository<CfBillEntryDetail> _billDetailRepository;
         private readonly IRepository<SalesCustomer> _customerRepository;
         private readonly IRepository<CfDefExpenseType> _shipmentModeRepository;
+        private readonly IRepository<GCTL.Data.Models.SepDocumentation>? _sepDocumentationRepository;
+        private readonly IRepository<CfDefExpenseHead>? _expHeadRepository;
+        private readonly IRepository<RmgProdDefUnitType>? _unitRepository;
+        private readonly IRepository<SalesDefPortName>? _portNameRepository;
+        private readonly IRepository<CaDefCurrency>? _currencyRepository;
 
         public JobBillEntryReportService(
             IRepository<CfBillEntry> billEntryRepository,
             IRepository<CfBillEntryDetailsChchead> billChcRepository,
             IRepository<CfBillEntryDetail> billDetailRepository,
             IRepository<SalesCustomer> customerRepository,
-            IRepository<CfDefExpenseType> shipmentModeRepository)
+            IRepository<CfDefExpenseType> shipmentModeRepository,
+            IRepository<GCTL.Data.Models.SepDocumentation>? sepDocumentationRepository = null,
+            IRepository<CfDefExpenseHead>? expHeadRepository = null,
+            IRepository<RmgProdDefUnitType>? unitRepository = null,
+            IRepository<SalesDefPortName>? portNameRepository = null,
+            IRepository<CaDefCurrency>? currencyRepository = null)
         {
             _billEntryRepository = billEntryRepository;
             _billChcRepository = billChcRepository;
             _billDetailRepository = billDetailRepository;
             _customerRepository = customerRepository;
             _shipmentModeRepository = shipmentModeRepository;
+            _sepDocumentationRepository = sepDocumentationRepository;
+            _expHeadRepository = expHeadRepository;
+            _unitRepository = unitRepository;
+            _portNameRepository = portNameRepository;
+            _currencyRepository = currencyRepository;
         }
 
         public async Task<List<string>> GetBillNumbersAsync()
@@ -45,6 +61,113 @@ namespace GCTL.Service.BillService
                 .Distinct()
                 .OrderBy(b => b)
                 .ToListAsync();
+        }
+
+        public async Task<JobBillEntryReportFilterOptionsDTO> GetFilterOptionsAsync(string? fromDate, string? toDate, string? shipmentModes = null, string? customerIds = null)
+        {
+            var result = new JobBillEntryReportFilterOptionsDTO();
+            try
+            {
+                var query = _billEntryRepository.All().AsNoTracking();
+                var (from, to) = ParseDates(fromDate, toDate);
+                if (from.HasValue)
+                {
+                    query = query.Where(b => b.BillDate >= from.Value.Date);
+                }
+                if (to.HasValue)
+                {
+                    var nextDay = to.Value.Date.AddDays(1);
+                    query = query.Where(b => b.BillDate < nextDay);
+                }
+
+                // 1. Shipment Modes from available bills in date range
+                var modeIds = await query
+                    .Where(b => !string.IsNullOrEmpty(b.ExpenseTypeId))
+                    .Select(b => b.ExpenseTypeId)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (modeIds.Any())
+                {
+                    var modes = await _shipmentModeRepository.All().AsNoTracking()
+                        .Where(m => modeIds.Contains(m.ExpenseTypeId))
+                        .Select(m => new CommonSelectModel
+                        {
+                            Code = m.ExpenseTypeId,
+                            Name = !string.IsNullOrEmpty(m.ExpenseType) ? m.ExpenseType : m.ExpenseTypeId
+                        })
+                        .ToListAsync();
+
+                    var foundIds = new HashSet<string>(modes.Select(m => m.Code), StringComparer.OrdinalIgnoreCase);
+                    foreach (var id in modeIds)
+                    {
+                        if (!foundIds.Contains(id))
+                        {
+                            modes.Add(new CommonSelectModel { Code = id, Name = id });
+                        }
+                    }
+
+                    result.ShipmentModes = modes.OrderBy(m => m.Name).ToList();
+                }
+
+                // 2. Customers: based on Date range + selected Shipment Mode(s) (if any)
+                var custQuery = query;
+                var selectedModes = ParseMultiSelect(shipmentModes);
+                if (selectedModes.Any() && modeIds.Any(m => selectedModes.Contains(m, StringComparer.OrdinalIgnoreCase)))
+                {
+                    custQuery = custQuery.Where(b => b.ExpenseTypeId != null && selectedModes.Contains(b.ExpenseTypeId));
+                }
+
+                var custIds = await custQuery
+                    .Where(b => !string.IsNullOrEmpty(b.CustomerId))
+                    .Select(b => b.CustomerId)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (custIds.Any())
+                {
+                    var customers = await _customerRepository.All().AsNoTracking()
+                        .Where(c => custIds.Contains(c.CustomerId))
+                        .Select(c => new CommonSelectModel
+                        {
+                            Code = c.CustomerId,
+                            Name = !string.IsNullOrEmpty(c.CustomerName) ? c.CustomerName : c.CustomerId
+                        })
+                        .ToListAsync();
+
+                    var foundCustIds = new HashSet<string>(customers.Select(c => c.Code), StringComparer.OrdinalIgnoreCase);
+                    foreach (var id in custIds)
+                    {
+                        if (!foundCustIds.Contains(id))
+                        {
+                            customers.Add(new CommonSelectModel { Code = id, Name = id });
+                        }
+                    }
+
+                    result.Customers = customers.OrderBy(c => c.Name).ToList();
+                }
+
+                // 3. Bill Nos: based on Date range + selected Shipment Mode(s) (if any) + selected Customer(s) (if any)
+                var billQuery = custQuery;
+                var selectedCusts = ParseMultiSelect(customerIds);
+                if (selectedCusts.Any() && custIds.Any(c => selectedCusts.Contains(c, StringComparer.OrdinalIgnoreCase)))
+                {
+                    billQuery = billQuery.Where(b => b.CustomerId != null && selectedCusts.Contains(b.CustomerId));
+                }
+
+                result.BillNos = await billQuery
+                    .Where(b => !string.IsNullOrEmpty(b.BillNo))
+                    .Select(b => b.BillNo)
+                    .Distinct()
+                    .OrderBy(b => b)
+                    .ToListAsync();
+
+                return result;
+            }
+            catch
+            {
+                return result;
+            }
         }
 
         public async Task<JobBillEntryReportSummaryDTO> GetSummaryAsync(JobBillEntryReportFilterVM filter)
@@ -229,203 +352,251 @@ namespace GCTL.Service.BillService
 
         public async Task<byte[]> GeneratePdfAsync(JobBillEntryReportFilterVM filter)
         {
-            QuestPDF.Settings.License = LicenseType.Community;
-
-            var selectedBills = ParseMultiSelect(filter.SelectedBillNos);
+            var selectedBills = ParseMultiSelect(filter?.SelectedBillNos);
             IQueryable<CfBillEntry> query;
             if (selectedBills.Any())
             {
-                // If specific bills were checked, print only those selected bills
                 query = _billEntryRepository.All().AsNoTracking()
                     .Where(b => b.BillNo != null && selectedBills.Contains(b.BillNo));
             }
             else
             {
-                // If none selected, print all matching the filter criteria
-                query = BuildBaseQuery(filter);
+                query = BuildBaseQuery(filter ?? new JobBillEntryReportFilterVM());
             }
 
             query = query.OrderByDescending(b => b.BillDate).ThenByDescending(b => b.Tc);
-
             var bills = await query.ToListAsync();
-            var billNos = bills.Select(b => b.BillNo).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
 
+            if (!bills.Any())
+            {
+                return JobBillPdfGenerator.GeneratePdf(new List<JobBillPrintVM>());
+            }
+
+            var billNos = bills.Select(b => b.BillNo).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
+            var jobNos = bills.Select(b => b.JobNo).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
+
+            // Load docs
+            List<GCTL.Data.Models.SepDocumentation> docs = new();
+            if (_sepDocumentationRepository != null && jobNos.Any())
+            {
+                docs = await _sepDocumentationRepository.All().AsNoTracking()
+                    .Where(d => d.JobNo != null && jobNos.Contains(d.JobNo))
+                    .ToListAsync();
+            }
+            var docDict = docs.Where(d => !string.IsNullOrEmpty(d.JobNo)).ToDictionary(d => d.JobNo, d => d);
+
+            // Load customers
+            var customers = await _customerRepository.All().AsNoTracking().ToListAsync();
+            var custDict = new Dictionary<string, SalesCustomer>(StringComparer.OrdinalIgnoreCase);
+            foreach (var c in customers)
+            {
+                if (!string.IsNullOrWhiteSpace(c.CustomerId))
+                    custDict[c.CustomerId.Trim()] = c;
+                if (!string.IsNullOrWhiteSpace(c.CustomerCode))
+                    custDict[c.CustomerCode.Trim()] = c;
+            }
+
+            // Units lookup
+            Dictionary<string, string> unitDict = new();
+            if (_unitRepository != null)
+            {
+                var units = await _unitRepository.All().AsNoTracking().ToListAsync();
+                unitDict = units.Where(u => !string.IsNullOrEmpty(u.UnitTypId))
+                                .ToDictionary(u => u.UnitTypId, u => u.UnitTypeName ?? u.ShortName ?? u.UnitTypId);
+            }
+
+            // Currency lookup
+            Dictionary<string, string> currDict = new();
+            if (_currencyRepository != null)
+            {
+                var currs = await _currencyRepository.All().AsNoTracking().ToListAsync();
+                currDict = currs.Where(c => !string.IsNullOrEmpty(c.CurrencyId))
+                                .ToDictionary(c => c.CurrencyId, c => c.ShortName ?? c.CurrencyName ?? c.CurrencyId);
+            }
+
+            // Port lookup
+            Dictionary<string, string> portDict = new();
+            if (_portNameRepository != null)
+            {
+                var ports = await _portNameRepository.All().AsNoTracking().ToListAsync();
+                portDict = ports.Where(p => !string.IsNullOrEmpty(p.PortNameId))
+                                .ToDictionary(p => p.PortNameId, p => p.PortName ?? p.ShortName ?? p.PortNameId);
+            }
+
+            // CHC items
             var chcList = await _billChcRepository.All().AsNoTracking()
                 .Where(c => c.BillNo != null && billNos.Contains(c.BillNo))
                 .ToListAsync();
 
+            // Detail items
             var detailList = await _billDetailRepository.All().AsNoTracking()
                 .Where(d => d.BillNo != null && billNos.Contains(d.BillNo))
                 .ToListAsync();
 
-            int sl = 1;
-            var reportRows = new List<JobBillEntryReportItemDTO>();
+            // Expense Heads
+            Dictionary<string, CfDefExpenseHead> headDict = new();
+            if (_expHeadRepository != null)
+            {
+                var heads = await _expHeadRepository.All().AsNoTracking().ToListAsync();
+                headDict = heads.Where(h => !string.IsNullOrEmpty(h.ExpenseHeadId))
+                                .ToDictionary(h => h.ExpenseHeadId, h => h);
+            }
+
+            var printModels = new List<JobBillPrintVM>();
+
             foreach (var b in bills)
             {
                 var bBillNo = b.BillNo ?? string.Empty;
+                var bJobNo = b.JobNo ?? string.Empty;
+                docDict.TryGetValue(bJobNo, out var doc);
+
+                string customerCode = (b.CustomerId ?? doc?.CustomerId ?? string.Empty).Trim();
+                custDict.TryGetValue(customerCode, out var customer);
+
+                string custName = customer?.CustomerName ?? customer?.CustomerCompany ?? customerCode;
+                string custAddress = !string.IsNullOrWhiteSpace(b.Address) ? b.Address : (customer?.CustomerAddress ?? doc?.CustomerAddress ?? string.Empty);
+
+                string qUnitId = b.QunitTypeId ?? doc?.Unit1 ?? string.Empty;
+                string qUnitName = unitDict.TryGetValue(qUnitId, out var qun) ? qun : qUnitId;
+                decimal? qty = b.Quantity ?? doc?.Quntity1;
+                string qtyStr = qty.HasValue ? $"{qty.Value:0.00} {qUnitName}".Trim() : string.Empty;
+
+                string packUnitId = doc?.PackingUnitType ?? string.Empty;
+                string packUnitName = unitDict.TryGetValue(packUnitId, out var pun) ? pun : packUnitId;
+                decimal? packQty = doc?.PackingQuantity;
+                string packQtyStr = packQty.HasValue ? $"{packQty.Value:0.00} {packUnitName}".Trim() : "0.00";
+
+                string wUnitId = b.WunitTypeId ?? doc?.Unit2 ?? string.Empty;
+                string wUnitName = unitDict.TryGetValue(wUnitId, out var wun) ? wun : wUnitId;
+                decimal? weight = b.DocWeight ?? doc?.Quntity2;
+                string weightStr = weight.HasValue ? $"{weight.Value:0.00} {wUnitName}".Trim() : string.Empty;
+
+                string currId = b.InvoiceCurrencyId ?? doc?.InvoiceCurrencyId ?? "USD";
+                string currName = currDict.TryGetValue(currId, out var cn) ? cn : currId;
+
+                string destId = b.Destination ?? string.Empty;
+                string destName = portDict.TryGetValue(destId, out var dn) ? dn : destId;
+
                 var bChcs = chcList.Where(c => c.BillNo == bBillNo).ToList();
                 var bDetails = detailList.Where(d => d.BillNo == bBillNo).ToList();
 
-                decimal receiptable = bChcs.Where(c => string.Equals(c.IsReceiptable, "Y", StringComparison.OrdinalIgnoreCase))
-                                           .Sum(c => c.BillAmount ?? 0m);
+                var receiptableList = new List<JobBillPrintChargeItem>();
+                var nonReceiptableList = new List<JobBillPrintChargeItem>();
+                var transportList = new List<JobBillPrintChargeItem>();
+                var agencyList = new List<JobBillPrintChargeItem>();
 
-                decimal nonReceiptable = bChcs.Where(c => string.Equals(c.IsReceiptable, "N", StringComparison.OrdinalIgnoreCase))
-                                              .Sum(c => c.BillAmount ?? 0m);
-
-                decimal transport = bChcs.Where(c => !string.IsNullOrEmpty(c.BillHead) && c.BillHead.Contains("Transport", StringComparison.OrdinalIgnoreCase))
-                                         .Sum(c => c.BillAmount ?? 0m);
-                if (transport == 0)
+                foreach (var chc in bChcs)
                 {
-                    transport = bDetails.Where(d => !string.IsNullOrEmpty(d.BillHead) && d.BillHead.Contains("Transport", StringComparison.OrdinalIgnoreCase))
-                                        .Sum(d => d.ActualAmount ?? d.ExpenseBillAmount ?? 0m);
+                    var head = chc.BillHead ?? chc.ChcheadDescription ?? string.Empty;
+                    decimal amt = chc.BillAmount ?? 0m;
+                    if (amt == 0 && string.IsNullOrWhiteSpace(head)) continue;
+
+                    if (head.Contains("Transport", StringComparison.OrdinalIgnoreCase))
+                    {
+                        transportList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
+                    else if (head.Contains("Agency", StringComparison.OrdinalIgnoreCase))
+                    {
+                        agencyList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
+                    else if (string.Equals(chc.IsReceiptable, "Y", StringComparison.OrdinalIgnoreCase))
+                    {
+                        receiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
+                    else
+                    {
+                        nonReceiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
                 }
 
-                decimal total = b.BillAmount ?? 0m;
-                decimal deduction = b.SpecialDiscount ?? 0m;
-
-                reportRows.Add(new JobBillEntryReportItemDTO
+                foreach (var det in bDetails)
                 {
-                    Sl = sl++,
-                    BillNo = bBillNo,
-                    BillDate = b.BillDate.HasValue ? b.BillDate.Value.ToString("dd/MM/yyyy") : "-",
-                    JobNo = b.JobNo ?? "-",
-                    MaterialDescription = b.MaterialDescription ?? "-",
-                    Quantity = b.Quantity.HasValue ? b.Quantity.Value.ToString("0.##") : "-",
-                    Weight = b.DocWeight.HasValue ? b.DocWeight.Value.ToString("0.##") : "-",
-                    ReceiptableAmount = receiptable,
-                    NonReceiptableAmount = nonReceiptable,
-                    TransportAmount = transport,
-                    AgencyCommission = b.MinimumAgencyCommission ?? 0m,
-                    TotalAmount = total,
-                    Deduction = deduction,
-                    NetAmount = total - deduction
+                    headDict.TryGetValue(det.ExpenseHeadId ?? string.Empty, out var eh);
+                    var head = !string.IsNullOrWhiteSpace(det.BillHead) ? det.BillHead : (eh?.ExpenseHead ?? string.Empty);
+                    decimal amt = det.ExpenseBillAmount ?? det.ActualAmount ?? 0m;
+                    if (amt == 0 && string.IsNullOrWhiteSpace(head)) continue;
+
+                    string isRec = eh?.IsReceiptable ?? string.Empty;
+
+                    if (head.Contains("Transport", StringComparison.OrdinalIgnoreCase))
+                    {
+                        transportList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
+                    else if (head.Contains("Agency", StringComparison.OrdinalIgnoreCase))
+                    {
+                        agencyList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
+                    else if (string.Equals(isRec, "Y", StringComparison.OrdinalIgnoreCase))
+                    {
+                        receiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
+                    else
+                    {
+                        nonReceiptableList.Add(new JobBillPrintChargeItem { Particulars = head, Amount = amt });
+                    }
+                }
+
+                decimal agComm = b.MinimumAgencyCommission ?? 0m;
+                if (agComm > 0 && !agencyList.Any())
+                {
+                    agencyList.Add(new JobBillPrintChargeItem { Particulars = "Agency Commission", Amount = agComm });
+                }
+
+                decimal recSub = receiptableList.Sum(x => x.Amount);
+                decimal nonRecSub = nonReceiptableList.Sum(x => x.Amount);
+                decimal transSub = transportList.Sum(x => x.Amount);
+                decimal agencySub = agencyList.Sum(x => x.Amount);
+
+                decimal grandTotal = b.BillAmount ?? (recSub + nonRecSub + transSub + agencySub);
+                decimal deductions = b.SpecialDiscount ?? 0m;
+                decimal netDue = grandTotal - deductions;
+
+                printModels.Add(new JobBillPrintVM
+                {
+                    BillNo = b.BillNo ?? string.Empty,
+                    BillDate = b.BillDate.HasValue ? b.BillDate.Value.ToString("dd/MM/yyyy") : string.Empty,
+                    JobNo = b.JobNo ?? (doc?.JobNo ?? string.Empty),
+                    CustomerName = custName,
+                    CustomerAddress = custAddress,
+                    MaterialDescription = b.MaterialDescription ?? (doc?.MaterialDescription ?? string.Empty),
+                    Quantity = qtyStr,
+                    PackingQuantity = packQtyStr,
+                    BlNo = b.Blno ?? (doc?.BillNo ?? string.Empty),
+                    BlDate = b.Bldate.HasValue ? b.Bldate.Value.ToString("dd/MM/yyyy") : (doc?.Bldate.HasValue == true ? doc.Bldate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                    BeNo = b.Beno ?? (doc?.Beno ?? string.Empty),
+                    BeDate = b.Bedate.HasValue ? b.Bedate.Value.ToString("dd/MM/yyyy") : (doc?.Bedate.HasValue == true ? doc.Bedate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                    Weight = weightStr,
+                    InvoiceNo = b.Invno ?? (doc?.InvoiceNo ?? string.Empty),
+                    InvoiceDate = b.Invdate.HasValue ? b.Invdate.Value.ToString("dd/MM/yyyy") : (doc?.InvoiceDate.HasValue == true ? doc.InvoiceDate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                    ExpNo = doc?.ExpNo ?? string.Empty,
+                    ExpDate = doc?.ExpDate.HasValue == true ? doc.ExpDate.Value.ToString("dd/MM/yyyy") : string.Empty,
+                    HawbNo = doc?.Hawb ?? string.Empty,
+                    Destination = destName,
+                    DocRecvDate = b.DocRecvDate.HasValue ? b.DocRecvDate.Value.ToString("dd/MM/yyyy") : (doc?.DocReceivedDate.HasValue == true ? doc.DocReceivedDate.Value.ToString("dd/MM/yyyy") : string.Empty),
+                    ArrivalDate = b.ArrivalDate.HasValue ? b.ArrivalDate.Value.ToString("dd/MM/yyyy") : (doc?.Ata.HasValue == true ? doc.Ata.Value.ToString("dd/MM/yyyy") : string.Empty),
+                    DeliveryDate = b.DeliveryDate.HasValue ? b.DeliveryDate.Value.ToString("dd/MM/yyyy") : (doc?.DateOfClearence.HasValue == true ? doc.DateOfClearence.Value.ToString("dd/MM/yyyy") : string.Empty),
+                    LcNo = doc?.Lcno ?? (doc?.Lcano ?? string.Empty),
+                    LcDate = doc?.Lcdate.HasValue == true ? doc.Lcdate.Value.ToString("dd/MM/yyyy") : string.Empty,
+                    Currency = currName,
+                    InvoiceValue = b.InvoiceValue ?? doc?.InvoiceValue,
+                    AssessableValue = b.AssessableValue ?? doc?.AssessableValue,
+                    ReceiptableItems = receiptableList,
+                    ReceiptableSubtotal = recSub,
+                    NonReceiptableItems = nonReceiptableList,
+                    NonReceiptableSubtotal = nonRecSub,
+                    TransportItems = transportList,
+                    TransportSubtotal = transSub,
+                    AgencyCommissionItems = agencyList,
+                    AgencyCommissionSubtotal = agencySub,
+                    TotalAmount = grandTotal,
+                    Deductions = deductions > 0 ? deductions : null,
+                    NetDue = netDue,
+                    Remarks = b.Remarks ?? string.Empty,
+                    InWords = JobBillPdfGenerator.ConvertToWords(netDue)
                 });
             }
 
-            string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
-                ? $"Date: {filter.FromDate} to {filter.ToDate}"
-                : $"Generated: {DateTime.Now:dd/MM/yyyy}";
-
-            var document = Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.MarginHorizontal(12);
-                    page.MarginVertical(15);
-                    page.Size(PageSizes.A4.Landscape());
-
-                    // Header
-                    page.Header().Column(col =>
-                    {
-                        col.Item().AlignCenter().Text("Formosa Logistics Limited").FontSize(14).Bold();
-                        col.Item().AlignCenter().Text("21, Hazaribagh, Dhaka-1209").FontSize(9).FontColor(Colors.Grey.Darken2);
-                        col.Item().AlignCenter().Text("Job Bill Entry Report").FontSize(11).Bold().Underline();
-                        col.Item().PaddingTop(3).PaddingBottom(4).Row(row =>
-                        {
-                            row.RelativeItem().AlignLeft().Text($"Total Records: {reportRows.Count}").FontSize(8.5f).Bold();
-                            row.RelativeItem().AlignRight().Text(dateRangeStr).FontSize(8.5f);
-                        });
-                    });
-
-                    // Content Table
-                    page.Content().Table(table =>
-                    {
-                        table.ColumnsDefinition(cols =>
-                        {
-                            cols.RelativeColumn(1.2f); // SL
-                            cols.RelativeColumn(3.0f); // Bill No
-                            cols.RelativeColumn(2.5f); // Date
-                            cols.RelativeColumn(3.0f); // Job No
-                            cols.RelativeColumn(4.0f); // Material Desc
-                            cols.RelativeColumn(2.0f); // Qty
-                            cols.RelativeColumn(2.0f); // Weight
-                            cols.RelativeColumn(2.8f); // Receiptable
-                            cols.RelativeColumn(2.8f); // Non-Receiptable
-                            cols.RelativeColumn(2.5f); // Transport
-                            cols.RelativeColumn(2.5f); // Agency Comm
-                            cols.RelativeColumn(2.8f); // Total
-                            cols.RelativeColumn(2.4f); // Deduction
-                            cols.RelativeColumn(2.8f); // Net Amount
-                        });
-
-                        // Table Header
-                        table.Header(header =>
-                        {
-                            void BuildHCell(string text)
-                            {
-                                header.Cell().Element(c => c
-                                    .Border(0.5f)
-                                    .BorderColor(Colors.Grey.Darken1)
-                                    .Background(Colors.Grey.Lighten3)
-                                    .Padding(2)
-                                    .AlignCenter()
-                                    .AlignMiddle()
-                                    .Text(text).FontSize(6.5f).Bold());
-                            }
-
-                            BuildHCell("#");
-                            BuildHCell("Bill No");
-                            BuildHCell("Date");
-                            BuildHCell("Job No");
-                            BuildHCell("Material Desc.");
-                            BuildHCell("Quantity");
-                            BuildHCell("Weight");
-                            BuildHCell("Receiptable");
-                            BuildHCell("Non-Rec.");
-                            BuildHCell("Transport");
-                            BuildHCell("Agency Comm.");
-                            BuildHCell("Total Amt");
-                            BuildHCell("Deduction");
-                            BuildHCell("Net Amt");
-                        });
-
-                        // Table Rows
-                        foreach (var row in reportRows)
-                        {
-                            void BuildCell(string text, bool right = false, bool center = false)
-                            {
-                                table.Cell().Element(c => c
-                                    .Border(0.5f)
-                                    .BorderColor(Colors.Grey.Lighten2)
-                                    .Padding(2)
-                                    .AlignMiddle()
-                                    .Element(e => right ? e.AlignRight() : (center ? e.AlignCenter() : e.AlignLeft()))
-                                    .Text(text ?? "").FontSize(6f));
-                            }
-
-                            BuildCell(row.Sl.ToString(), center: true);
-                            BuildCell(row.BillNo);
-                            BuildCell(row.BillDate, center: true);
-                            BuildCell(row.JobNo);
-                            BuildCell(row.MaterialDescription);
-                            BuildCell(row.Quantity, right: true);
-                            BuildCell(row.Weight, right: true);
-                            BuildCell(row.ReceiptableAmount.ToString("N2"), right: true);
-                            BuildCell(row.NonReceiptableAmount.ToString("N2"), right: true);
-                            BuildCell(row.TransportAmount.ToString("N2"), right: true);
-                            BuildCell(row.AgencyCommission.ToString("N2"), right: true);
-                            BuildCell(row.TotalAmount.ToString("N2"), right: true);
-                            BuildCell(row.Deduction.ToString("N2"), right: true);
-                            BuildCell(row.NetAmount.ToString("N2"), right: true);
-                        }
-                    });
-
-                    // Footer
-                    page.Footer().Row(row =>
-                    {
-                        row.RelativeItem().AlignLeft().Text($"Print Datetime: {DateTime.Now:dd/MM/yyyy hh:mm:ss tt}").FontSize(7).FontColor(Colors.Grey.Medium);
-                        row.RelativeItem().AlignRight().Text(txt =>
-                        {
-                            txt.Span("Page ").FontSize(7).FontColor(Colors.Grey.Medium);
-                            txt.CurrentPageNumber().FontSize(7).FontColor(Colors.Grey.Medium);
-                            txt.Span(" of ").FontSize(7).FontColor(Colors.Grey.Medium);
-                            txt.TotalPages().FontSize(7).FontColor(Colors.Grey.Medium);
-                        });
-                    });
-                });
-            });
-
-            return document.GeneratePdf();
+            return JobBillPdfGenerator.GeneratePdf(printModels);
         }
 
         private IQueryable<CfBillEntry> BuildBaseQuery(JobBillEntryReportFilterVM filter)
@@ -440,8 +611,8 @@ namespace GCTL.Service.BillService
             }
             if (toDate.HasValue)
             {
-                var endOfDay = toDate.Value.Date.AddDays(1).AddTicks(-1);
-                query = query.Where(b => b.BillDate <= endOfDay);
+                var nextDay = toDate.Value.Date.AddDays(1);
+                query = query.Where(b => b.BillDate < nextDay);
             }
 
             // Shipment Mode Filter (Multi-select)

@@ -20,5 +20,6 @@ namespace GCTL.Service.BillService
         Task<BillEntryJobVM?> GetBillDetailAsync(string billNo);
         Task<CommonReturnViewModel> SaveBillAsync(SaveBillRequestDto request, UserInfoViewModel? userInfo);
         Task<CommonReturnViewModel> DeleteBillsAsync(List<string> billNos, UserInfoViewModel? userInfo);
+        Task<byte[]> GenerateBillPdfAsync(string billNo);
     }
 }
