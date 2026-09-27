@@ -230,14 +230,14 @@ namespace GCTL.Service.CustomerReport
                                 {
                                     table.ColumnsDefinition(cols =>
                                     {
-                                        cols.RelativeColumn(1.7f);
-                                        cols.RelativeColumn(3.0f);
+                                        cols.RelativeColumn(1.3f);
+                                        cols.RelativeColumn(2.8f);
                                         cols.RelativeColumn(6.0f);
                                         cols.RelativeColumn(7.0f);
                                         cols.RelativeColumn(3.0f);
-                                        cols.RelativeColumn(4.0f);
+                                        cols.RelativeColumn(3.2f);
                                         cols.RelativeColumn(6.0f);
-                                        cols.RelativeColumn(3.0f);
+                                        cols.RelativeColumn(4.0f);
                                         cols.RelativeColumn(9.5f);
                                     });
 
@@ -396,7 +396,7 @@ namespace GCTL.Service.CustomerReport
 
             const int totalCols = 9;
 
-            float[] relativeWidths = { 1.5f, 3.0f, 9.0f, 10.0f, 5.0f, 5.0f, 4.0f, 3.5f, 12.5f };
+            float[] relativeWidths = { 1.5f, 2.8f, 10.0f, 12.0f, 2.4f, 3.0f, 5.5f, 3.5f, 12.5f };
             const double scale = 4.5;
 
             for (int i = 0; i < relativeWidths.Length; i++)
@@ -458,7 +458,7 @@ namespace GCTL.Service.CustomerReport
             const int photoColIndex = 8;
             const double rowHeightForPhoto = 40;
             const double baseRowHeight = 15;
-            const double lineHeight = 12.5;
+            const double lineHeight = 14.5;
 
             double EstimateRowHeightForColumn(string text, int columnIndex)
             {
@@ -558,7 +558,7 @@ namespace GCTL.Service.CustomerReport
                         cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         cell.Style.Alignment.WrapText = true;
 
-                        if (c == 1 || c == 2 || c == 5 || c == 6 || c == 8)
+                        if (c == 1 || c == 2 || c == 5 || c == 6 || c== 7 || c == 8)
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         else
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
