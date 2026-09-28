@@ -1,4 +1,4 @@
-﻿namespace GCTL.Core.ViewModels.FullEmployeeDetailsGetById
+namespace GCTL.Core.ViewModels.FullEmployeeDetailsGetById
 {
     /// <summary>
     /// Merged ViewModel — Doc1 + Doc2 combined.
@@ -185,6 +185,9 @@
         // ══════════════════════════════════════════
         public string IsLunchBilEligible { get; set; }
         public string IsOverTimeEligible { get; set; }
+        public string IsOverTimeEligibleRegular { get; set; }
+        public string IsOverTimeEligibleOnlyWeekend { get; set; }
+        public string IsOverTimeEligibleHoliday { get; set; }
         public string IsExtraDutyEligible { get; set; }
         public string IsGovtHolidayEligible { get; set; }
         public string IsAttendanceBonusEligible { get; set; }

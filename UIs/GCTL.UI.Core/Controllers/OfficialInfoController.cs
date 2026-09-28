@@ -147,8 +147,27 @@ namespace GCTL.UI.Core.Controllers
 
             ViewBag.OverTimeEligibleDD = new SelectList(new List<SelectListItem>
             {
+                new SelectListItem { Text = "0%", Value = "0%"},
                 new SelectListItem { Text = "50%", Value = "50%"},
                 new SelectListItem { Text = "60%", Value = "60%"}
+            }, "Value", "Text");
+
+            ViewBag.OverTimeEligibleRegularDD = new SelectList(new List<SelectListItem>
+            {
+                new SelectListItem { Text = "Yes", Value = "Yes"},
+                new SelectListItem { Text = "No", Value = "No"}
+            }, "Value", "Text");
+
+            ViewBag.OverTimeEligibleWeekendDD = new SelectList(new List<SelectListItem>
+            {
+                new SelectListItem { Text = "Yes", Value = "Yes"},
+                new SelectListItem { Text = "No", Value = "No"}
+            }, "Value", "Text");
+
+            ViewBag.OverTimeEligibleHolidayDD = new SelectList(new List<SelectListItem>
+            {
+                new SelectListItem { Text = "Yes", Value = "Yes"},
+                new SelectListItem { Text = "No", Value = "No"}
             }, "Value", "Text");
 
             ViewBag.AttendanceBonusEligibleDD = new SelectList(new List<SelectListItem>
@@ -159,6 +178,7 @@ namespace GCTL.UI.Core.Controllers
 
             ViewBag.ExtraDutyEligibleDD = new SelectList(new List<SelectListItem>
             {
+                new SelectListItem { Text = "0%", Value = "0%"},
                 new SelectListItem { Text = "40%", Value = "40%"},
                 new SelectListItem { Text = "50%", Value = "50%"},
                 new SelectListItem { Text = "60%", Value = "60%"}

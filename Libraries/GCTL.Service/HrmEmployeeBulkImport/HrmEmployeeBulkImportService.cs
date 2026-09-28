@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.Interfaces.Services;
 using GCTL.Data.Models;
 using Microsoft.AspNetCore.Http;
@@ -426,6 +426,9 @@ namespace GCTL.Service.Services
                 ModeOfPaymentInBankPercentage = GetCellDecimalNullable(row, COL_PERCENT_IN_BANK),
                 IsLunchBilEligible = "",
                 IsOverTimeEligible = "",
+                IsOverTimeEligibleRegular = "",
+                IsOverTimeEligibleOnlyWeekend = "",
+                IsOverTimeEligibleHoliday = "",
                 IsExtraDutyEligible = "",
                 IsGovtHolidayEligible = "",
                 IsAttendanceBonusEligible = "",

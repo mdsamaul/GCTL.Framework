@@ -1,4 +1,4 @@
-﻿using GCTL.Core.Data;
+using GCTL.Core.Data;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Core.ViewModels.HrmEmployeeOfficialInfo;
@@ -253,6 +253,9 @@ namespace GCTL.Service.EmployeeOfficialInfo
                                   IsLunchBilEligible = oi.IsLunchBilEligible,
                                   IsExtraDutyEligible = oi.IsExtraDutyEligible,
                                   IsOverTimeEligible = oi.IsOverTimeEligible,
+                                  IsOverTimeEligibleRegular = oi.IsOverTimeEligibleRegular,
+                                  IsOverTimeEligibleOnlyWeekend = oi.IsOverTimeEligibleOnlyWeekend,
+                                  IsOverTimeEligibleHoliday = oi.IsOverTimeEligibleHoliday,
                                   IsGovtHolidayEligible = oi.IsGovtHolidayEligible,
                                   IsAttendanceBonusEligible = oi.IsAttendanceBonusEligible,
                                   PayId = oi.PayId,
@@ -327,6 +330,9 @@ namespace GCTL.Service.EmployeeOfficialInfo
                 officialInfo.IsLunchBilEligible = model.IsLunchBilEligible;
                 officialInfo.IsExtraDutyEligible = model.IsExtraDutyEligible;
                 officialInfo.IsOverTimeEligible = model.IsOverTimeEligible;
+                officialInfo.IsOverTimeEligibleRegular = model.IsOverTimeEligibleRegular;
+                officialInfo.IsOverTimeEligibleOnlyWeekend = model.IsOverTimeEligibleOnlyWeekend;
+                officialInfo.IsOverTimeEligibleHoliday = model.IsOverTimeEligibleHoliday;
                 officialInfo.IsGovtHolidayEligible = model.IsGovtHolidayEligible;
                 officialInfo.IsAttendanceBonusEligible = model.IsAttendanceBonusEligible;
                 officialInfo.PayId = model.PayId;
@@ -413,6 +419,9 @@ namespace GCTL.Service.EmployeeOfficialInfo
                 result.IsLunchBilEligible = model.IsLunchBilEligible;
                 result.IsExtraDutyEligible = model.IsExtraDutyEligible;
                 result.IsOverTimeEligible = model.IsOverTimeEligible;
+                result.IsOverTimeEligibleRegular = model.IsOverTimeEligibleRegular;
+                result.IsOverTimeEligibleOnlyWeekend = model.IsOverTimeEligibleOnlyWeekend;
+                result.IsOverTimeEligibleHoliday = model.IsOverTimeEligibleHoliday;
                 result.IsGovtHolidayEligible = model.IsGovtHolidayEligible;
                 result.IsAttendanceBonusEligible = model.IsAttendanceBonusEligible;
                 result.PayId = model.PayId;

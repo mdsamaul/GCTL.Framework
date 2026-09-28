@@ -17,10 +17,47 @@ namespace GCTL.Service.DocumentationReport
     public class DocumentationReportService : IDocumentationReportService
     {
         private readonly string _connectionString;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment? _webHostEnvironment;
+        private byte[]? _logoBytes;
+        private bool _logoLoaded;
 
-        public DocumentationReportService(IConfiguration configuration)
+        public DocumentationReportService(IConfiguration configuration, Microsoft.AspNetCore.Hosting.IWebHostEnvironment? env = null)
         {
             _connectionString = configuration.GetConnectionString("connection") ?? string.Empty;
+            _webHostEnvironment = env;
+        }
+
+        private byte[]? GetLogoBytes()
+        {
+            if (_logoLoaded) return _logoBytes;
+            _logoLoaded = true;
+
+            try
+            {
+                var candidatePaths = new List<string?>
+                {
+                    _webHostEnvironment?.WebRootPath != null ? Path.Combine(_webHostEnvironment.WebRootPath, "images", "fermosa-wX200.png") : null,
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "UIs", "GCTL.UI.Core", "wwwroot", "images", "fermosa-wX200.png"),
+                    @"D:\Project\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png"
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    {
+                        _logoBytes = File.ReadAllBytes(path);
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully without throwing
+            }
+
+            return _logoBytes;
         }
 
         #region Fetch Report Data
@@ -33,25 +70,42 @@ namespace GCTL.Service.DocumentationReport
                 return result;
             }
 
+            filter ??= new DocumentationReportFilterVM();
+
             using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
 
             using var command = new SqlCommand("DocumentationReport", connection);
             command.CommandType = CommandType.StoredProcedure;
+            command.CommandTimeout = 240; // 4 minutes timeout to avoid 'Execution Timeout Expired'
 
-            // DateUse: 'Y' if dates are provided, otherwise 'N'
+            // DateUse: 'Y' if both dates are provided, otherwise 'N'
             bool hasDates = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate);
             string dateUse = hasDates ? "Y" : "N";
 
+            string fromDateStr = "1900-01-01";
+            string toDateStr = "2099-12-31";
+            if (hasDates)
+            {
+                if (DateTime.TryParseExact(filter.FromDate!.Trim(), "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime fDate))
+                    fromDateStr = fDate.ToString("yyyy-MM-dd");
+                else
+                    fromDateStr = filter.FromDate.Trim();
+
+                if (DateTime.TryParseExact(filter.ToDate!.Trim(), "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime tDate))
+                    toDateStr = tDate.ToString("yyyy-MM-dd");
+                else
+                    toDateStr = filter.ToDate.Trim();
+            }
+
+            // Exactly 7 parameters matching [dbo].[DocumentationReport]
             command.Parameters.Add(new SqlParameter("@DateUse", dateUse));
-            command.Parameters.Add(new SqlParameter("@fromDate", string.IsNullOrWhiteSpace(filter.FromDate) ? (object)DBNull.Value : filter.FromDate.Trim()));
-            command.Parameters.Add(new SqlParameter("@toDate", string.IsNullOrWhiteSpace(filter.ToDate) ? (object)DBNull.Value : filter.ToDate.Trim()));
+            command.Parameters.Add(new SqlParameter("@fromDate", fromDateStr));
+            command.Parameters.Add(new SqlParameter("@toDate", toDateStr));
             command.Parameters.Add(new SqlParameter("@CustomerID", string.IsNullOrWhiteSpace(filter.CustomerId) ? "" : filter.CustomerId.Trim()));
             command.Parameters.Add(new SqlParameter("@PortId", string.IsNullOrWhiteSpace(filter.PortType) ? "" : filter.PortType.Trim()));
             command.Parameters.Add(new SqlParameter("@ExpenseTypeID", string.IsNullOrWhiteSpace(filter.ShipmentMode) ? "" : filter.ShipmentMode.Trim()));
             command.Parameters.Add(new SqlParameter("@JobNo", string.IsNullOrWhiteSpace(filter.JobNo) ? "" : filter.JobNo.Trim()));
-            command.Parameters.Add(new SqlParameter("@JobStatus", string.IsNullOrWhiteSpace(filter.JobStatus) ? "" : filter.JobStatus.Trim()));
-            command.Parameters.Add(new SqlParameter("@ReportOption", string.IsNullOrWhiteSpace(filter.ReportOption) ? "Job Report" : filter.ReportOption.Trim()));
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -88,44 +142,51 @@ namespace GCTL.Service.DocumentationReport
                     }
                 }
 
-                // Prefer specialized aliases if present, fallback to raw columns
                 string jobNo = GetString("JobNo");
                 string lcaNo = !string.IsNullOrEmpty(GetString("LCANo")) ? GetString("LCANo") : GetString("LCNo");
                 string invoiceNo = GetString("InvoiceNo");
-                string invoiceVal = GetString("LCValue");
+
                 decimal? numInvoiceVal = GetDecimal("DataColumn1");
                 string currency = GetString("DataColumn2");
+                string invoiceVal = GetString("LCValue");
+                if (numInvoiceVal.HasValue && !string.IsNullOrWhiteSpace(currency))
+                {
+                    invoiceVal = $"{currency} {numInvoiceVal.Value:N2}";
+                }
+                else if (numInvoiceVal.HasValue)
+                {
+                    invoiceVal = numInvoiceVal.Value.ToString("N2");
+                }
 
-                string containerPkgs = !string.IsNullOrEmpty(GetString("ContainerPackages"))
-                    ? GetString("ContainerPackages")
-                    : GetString("ContainerNo");
+                string containerNo = GetString("ContainerNo");
+                string qty1 = GetString("Quntity1");
+                string qty2 = GetString("Quntity2");
+                string containerPkgs = "";
+                if (!string.IsNullOrWhiteSpace(containerNo) && !string.IsNullOrWhiteSpace(qty1))
+                    containerPkgs = $"{containerNo} / {qty1}";
+                else if (!string.IsNullOrWhiteSpace(containerNo))
+                    containerPkgs = containerNo;
+                else if (!string.IsNullOrWhiteSpace(qty1))
+                    containerPkgs = qty1;
+                else if (!string.IsNullOrWhiteSpace(qty2))
+                    containerPkgs = qty2;
 
-                string shipper = !string.IsNullOrEmpty(GetString("Shipper"))
-                    ? GetString("Shipper")
-                    : GetString("SupplierName");
-
-                string blNo = !string.IsNullOrEmpty(GetString("BLNo"))
-                    ? GetString("BLNo")
-                    : (!string.IsNullOrEmpty(GetString("BillNo")) ? GetString("BillNo") : GetString("BENo"));
-
-                string loadingPort = !string.IsNullOrEmpty(GetString("LoadingPort"))
-                    ? GetString("LoadingPort")
-                    : GetString("PlaceOfLoadingName");
-
+                string shipper = !string.IsNullOrEmpty(GetString("SupplierName")) ? GetString("SupplierName") : GetString("Shipper");
+                string blNo = !string.IsNullOrEmpty(GetString("BillNo")) ? GetString("BillNo") : GetString("BENo");
+                string loadingPort = GetString("PlaceOfLoadingName");
                 string etdDt = GetString("ETDDate");
                 string etaCtg = GetString("ETACTGPORT");
                 string shipArrived = GetString("SHIPARRIVEDDATE");
-                string dischargeDt = !string.IsNullOrEmpty(GetString("DischargeDate")) ? GetString("DischargeDate") : GetString("Dischargedate");
-                string shedYard = !string.IsNullOrEmpty(GetString("ShedYard")) ? GetString("ShedYard") : GetString("ShedYardName");
-                string bankSign = !string.IsNullOrEmpty(GetString("DocumentBankSign")) ? GetString("DocumentBankSign") : GetString("DocumentHandoverDate");
-                string etaDelivery = !string.IsNullOrEmpty(GetString("ETADelivery")) ? GetString("ETADelivery") : GetString("ETA");
-                string actualDelivery = !string.IsNullOrEmpty(GetString("ActualDelivery")) ? GetString("ActualDelivery") : GetString("DateOfClearence");
+                string dischargeDt = !string.IsNullOrEmpty(GetString("Dischargedate")) ? GetString("Dischargedate") : GetString("Un_StuffingLocationDate");
+                string shedYard = GetString("ShedYardName");
+                string bankSign = GetString("DocumentHandoverDate");
+                string etaDelivery = GetString("ETA");
+                string actualDelivery = !string.IsNullOrEmpty(GetString("DeliveryDate")) ? GetString("DeliveryDate") : GetString("DateOfClearence");
                 string remarks = GetString("Remarks");
-                string term = !string.IsNullOrEmpty(GetString("Term")) ? GetString("Term") : GetString("FreightCharge");
-                string vesselRot = !string.IsNullOrEmpty(GetString("VesselRotNo")) ? GetString("VesselRotNo") : GetString("Vessel_RottNo");
-                string containerNo = GetString("ContainerNo");
-                string forwarder = !string.IsNullOrEmpty(GetString("ForwarderName")) ? GetString("ForwarderName") : GetString("FWDR_ShippingAgent");
-                string surrendered = GetString("SurrenderedBLIssue");
+                string term = GetString("FreightCharge");
+                string vesselRot = GetString("Vessel_RottNo");
+                string forwarder = GetString("FWDR_ShippingAgent");
+                string surrendered = !string.IsNullOrEmpty(GetString("CargoHandoverDate")) ? GetString("CargoHandoverDate") : GetString("BookingConfirmationReference");
 
                 var item = new DocumentationReportItemDTO
                 {
@@ -164,11 +225,21 @@ namespace GCTL.Service.DocumentationReport
                     JobDate = GetString("JobDate"),
                     DocReceivedDate = GetString("DocReceivedDate"),
                     ShipmentStatus = GetString("ShipmentStatus"),
-                    Weight = !string.IsNullOrEmpty(GetString("Quntity1")) ? GetString("Quntity1") : GetString("Quntity2"),
+                    Weight = !string.IsNullOrWhiteSpace(qty1) ? qty1 : qty2,
                     DateOfClearence = GetString("DateOfClearence")
                 };
 
                 result.Add(item);
+            }
+
+            // Client-side filtering by JobStatus if specified
+            if (!string.IsNullOrWhiteSpace(filter.JobStatus))
+            {
+                string statusFilter = filter.JobStatus.Trim();
+                result = result.Where(x =>
+                    string.Equals(x.ShipmentStatus, statusFilter, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(x.ShipmentStatus) && x.ShipmentStatus.Contains(statusFilter, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
             }
 
             return result;
@@ -178,187 +249,228 @@ namespace GCTL.Service.DocumentationReport
         #region Generate PDF Report
         public async Task<byte[]> GeneratePdfReportAsync(DocumentationReportFilterVM filter)
         {
-            try
+            var data = await GetDocumentationReportDataAsync(filter);
+
+            string companyName = data.FirstOrDefault()?.CompanyName;
+            if (string.IsNullOrWhiteSpace(companyName)) companyName = "Formosa Logistics Limited";
+
+            var customerGroups = data.GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "General Customer" : x.CustomerName.Trim()).ToList();
+
+            var logoBytes = GetLogoBytes();
+
+            var pdfBytes = Document.Create(container =>
             {
-                var data = await GetDocumentationReportDataAsync(filter);
-
-                string companyName = data.FirstOrDefault()?.CompanyName;
-                if (string.IsNullOrWhiteSpace(companyName)) companyName = "Formosa Logistics Limited";
-
-                string companyAddress = data.FirstOrDefault()?.Address1;
-                if (string.IsNullOrWhiteSpace(companyAddress)) companyAddress = "21, Hazaribagh, Dhaka-1209";
-
-                string customerHeader = "All";
-                if (!string.IsNullOrWhiteSpace(filter.CustomerId))
+                container.Page(page =>
                 {
-                    var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerName))?.CustomerName;
-                    if (!string.IsNullOrWhiteSpace(matched))
-                        customerHeader = matched;
-                }
+                    page.MarginHorizontal(8);
+                    page.MarginVertical(8);
+                    page.Size(PageSizes.A4.Landscape());
 
-                var pdfBytes = Document.Create(container =>
-                {
-                    container.Page(page =>
+                    // Header
+                    page.Header().Column(headerCol =>
                     {
-                        page.MarginHorizontal(10);
-                        page.MarginVertical(12);
-                        page.Size(PageSizes.A4.Landscape());
-
-                        // Header
-                        page.Header().Column(col =>
+                        headerCol.Item().Row(r =>
                         {
-                            col.Item().AlignCenter().Text(companyName).FontSize(13).Bold();
-                            col.Item().AlignCenter().Text(companyAddress).FontSize(9).FontColor(Colors.Grey.Darken2);
-                            col.Item().AlignCenter().Text("Job Report").FontSize(11).Bold().Underline();
-                            col.Item().PaddingTop(2).PaddingBottom(4).Row(row =>
+                            if (logoBytes != null && logoBytes.Length > 0)
                             {
-                                row.RelativeItem().AlignLeft().Text($"Customer Name: {customerHeader}").FontSize(8.5f).Bold();
-                                if (!string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate))
-                                {
-                                    row.RelativeItem().AlignRight().Text($"Date: {filter.FromDate} to {filter.ToDate}").FontSize(8);
-                                }
-                            });
-                        });
-
-                        // Content Table
-                        page.Content().Table(table =>
-                        {
-                            table.ColumnsDefinition(cols =>
-                            {
-                                cols.RelativeColumn(1.8f); // SL No
-                                cols.RelativeColumn(4.2f); // JOB NO
-                                cols.RelativeColumn(3.8f); // LCAF L/C NO
-                                cols.RelativeColumn(3.8f); // INVOICE NO
-                                cols.RelativeColumn(4.0f); // INVOICE VALUE
-                                cols.RelativeColumn(4.0f); // CONTAINER / PKGS
-                                cols.RelativeColumn(4.5f); // SHIPPER
-                                cols.RelativeColumn(3.5f); // BL NO
-                                cols.RelativeColumn(3.5f); // LOADING PORT
-                                cols.RelativeColumn(3.0f); // ETD DT
-                                cols.RelativeColumn(3.0f); // ETA-CTG PORT
-                                cols.RelativeColumn(3.0f); // SHIP ARRIVED DT
-                                cols.RelativeColumn(3.5f); // UNSTAFFING/DISCHARGE
-                                cols.RelativeColumn(3.2f); // SHED/ YARD
-                                cols.RelativeColumn(3.2f); // DOCS. BANK SIGN
-                                cols.RelativeColumn(3.0f); // ETA DELIVERY
-                                cols.RelativeColumn(3.0f); // ACTUAL DELIVERY
-                                cols.RelativeColumn(3.8f); // REMARKS
-                                cols.RelativeColumn(2.5f); // TERM
-                                cols.RelativeColumn(3.8f); // VESSEL NAME & ROT NO
-                                cols.RelativeColumn(3.8f); // CONTAINER NO
-                                cols.RelativeColumn(4.0f); // FORWARDER & PHONE
-                                cols.RelativeColumn(3.0f); // SURRENDERED BL ISSUE
-                            });
-
-                            // Header Row
-                            table.Header(header =>
-                            {
-                                void BuildHeaderCell(string title)
-                                {
-                                    header.Cell().Element(c => c
-                                        .Border(0.5f)
-                                        .BorderColor(Colors.Grey.Darken1)
-                                        .Background(Colors.Grey.Lighten3)
-                                        .PaddingHorizontal(1)
-                                        .PaddingVertical(2)
-                                        .AlignCenter()
-                                        .AlignMiddle()
-                                        .Text(title)
-                                        .Bold()
-                                        .FontSize(5.5f)
-                                        .WrapAnywhere());
-                                }
-
-                                BuildHeaderCell("SL No.");
-                                BuildHeaderCell("JOB NO.");
-                                BuildHeaderCell("LCAF L/C NO.");
-                                BuildHeaderCell("INVOICE NO");
-                                BuildHeaderCell("INVOICE VALUE");
-                                BuildHeaderCell("CONTAINER / PKGS");
-                                BuildHeaderCell("SHIPPER");
-                                BuildHeaderCell("BL NO.");
-                                BuildHeaderCell("LOADING PORT");
-                                BuildHeaderCell("ETD DT");
-                                BuildHeaderCell("ETA-CTG PORT");
-                                BuildHeaderCell("SHIP ARRIVED DT.");
-                                BuildHeaderCell("UNSTAFFING/ DISCHARGE");
-                                BuildHeaderCell("SHED/ YARD");
-                                BuildHeaderCell("DOCS. BANK SIGN");
-                                BuildHeaderCell("ETA DELIVERY");
-                                BuildHeaderCell("ACTUAL DELIVERY");
-                                BuildHeaderCell("REMARKS");
-                                BuildHeaderCell("TERM");
-                                BuildHeaderCell("VESSEL NAME & ROT NO.");
-                                BuildHeaderCell("CONTAINER NO.");
-                                BuildHeaderCell("FORWARDER NAME & PHONE NO.");
-                                BuildHeaderCell("SURRENDERED BL ISSUE");
-                            });
-
-                            // Data Rows
-                            foreach (var d in data)
-                            {
-                                void BuildDataCell(string text, bool center = false)
-                                {
-                                    table.Cell().Element(c => c
-                                        .Border(0.5f)
-                                        .BorderColor(Colors.Grey.Lighten1)
-                                        .PaddingHorizontal(1)
-                                        .PaddingVertical(1)
-                                        .AlignMiddle()
-                                        .Element(e => center ? e.AlignCenter() : e.AlignLeft())
-                                        .Text(text ?? "")
-                                        .FontSize(5.2f)
-                                        .WrapAnywhere());
-                                }
-
-                                BuildDataCell(d.SlNo.ToString(), true);
-                                BuildDataCell(d.JobNo, true);
-                                BuildDataCell(d.LCANo);
-                                BuildDataCell(d.InvoiceNo);
-                                BuildDataCell(d.InvoiceValue, true);
-                                BuildDataCell(d.ContainerPackages);
-                                BuildDataCell(d.Shipper);
-                                BuildDataCell(d.BLNo);
-                                BuildDataCell(d.LoadingPort);
-                                BuildDataCell(d.ETDDate, true);
-                                BuildDataCell(d.ETACTGPORT, true);
-                                BuildDataCell(d.SHIPARRIVEDDATE, true);
-                                BuildDataCell(d.DischargeDate, true);
-                                BuildDataCell(d.ShedYard);
-                                BuildDataCell(d.DocumentBankSign, true);
-                                BuildDataCell(d.ETADelivery, true);
-                                BuildDataCell(d.ActualDelivery, true);
-                                BuildDataCell(d.Remarks);
-                                BuildDataCell(d.Term, true);
-                                BuildDataCell(d.VesselRotNo);
-                                BuildDataCell(d.ContainerNo);
-                                BuildDataCell(d.ForwarderName);
-                                BuildDataCell(d.SurrenderedBLIssue, true);
+                                r.ConstantItem(60).AlignMiddle().Height(18).Image(logoBytes).FitArea();
                             }
-                        });
-
-                        // Footer
-                        page.Footer().Row(row =>
-                        {
-                            row.RelativeItem().AlignLeft().Text($"Print Datetime: {DateTime.Now:dd/MM/yyyy hh:mm:ss tt}").FontSize(7).FontColor(Colors.Grey.Medium);
-                            row.RelativeItem().AlignRight().Text(txt =>
+                            else
                             {
-                                txt.Span("Page ").FontSize(7).FontColor(Colors.Grey.Medium);
-                                txt.CurrentPageNumber().FontSize(7).FontColor(Colors.Grey.Medium);
-                                txt.Span(" of ").FontSize(7).FontColor(Colors.Grey.Medium);
-                                txt.TotalPages().FontSize(7).FontColor(Colors.Grey.Medium);
+                                r.ConstantItem(60);
+                            }
+
+                            r.RelativeItem().Column(c =>
+                            {
+                                c.Item().AlignCenter().Text(companyName).FontSize(11).Bold();
+                                c.Item().AlignCenter().Text("Job Report").FontSize(8.5f).Bold();
+
+                                string dateRange = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
+                                    ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
+                                c.Item().AlignCenter().Text(dateRange).FontSize(6.8f).SemiBold();
                             });
+
+                            r.ConstantItem(60);
                         });
                     });
-                }).GeneratePdf();
 
-                return pdfBytes;
-            }
-            catch (Exception)
-            {
+                    // Content Table
+                    page.Content().Column(col =>
+                    {
+                        if (customerGroups.Count == 0)
+                        {
+                            col.Item().Table(table =>
+                            {
+                                table.ColumnsDefinition(cols =>
+                                {
+                                    cols.RelativeColumn(1);
+                                });
+                                table.Cell().Element(c => c
+                                    .Border(0.4f)
+                                    .BorderColor(Colors.Grey.Lighten1)
+                                    .Padding(12)
+                                    .AlignCenter()
+                                    .Text("No documentation records found for the selected criteria.")
+                                    .FontSize(8)
+                                    .Italic());
+                            });
+                            return;
+                        }
 
-                throw;
-            }
+                        for (int groupIdx = 0; groupIdx < customerGroups.Count; groupIdx++)
+                        {
+                            var group = customerGroups[groupIdx];
+
+                            if (groupIdx > 0)
+                            {
+                                col.Item().PageBreak();
+                            }
+
+                            col.Item().Table(table =>
+                            {
+                                table.ColumnsDefinition(cols =>
+                                {
+                                    cols.RelativeColumn(1.4f); // SL No
+                                    cols.RelativeColumn(3.2f); // JOB NO
+                                    cols.RelativeColumn(3.0f); // LCAF L/C NO
+                                    cols.RelativeColumn(2.8f); // INVOICE NO
+                                    cols.RelativeColumn(3.0f); // INVOICE VALUE
+                                    cols.RelativeColumn(3.2f); // CONTAINER / PKGS
+                                    cols.RelativeColumn(3.2f); // SHIPPER
+                                    cols.RelativeColumn(2.6f); // BL NO
+                                    cols.RelativeColumn(2.8f); // LOADING PORT
+                                    cols.RelativeColumn(2.4f); // ETD DT
+                                    cols.RelativeColumn(2.5f); // ETA-CTG PORT
+                                    cols.RelativeColumn(2.5f); // SHIP ARRIVED DT
+                                    cols.RelativeColumn(2.8f); // UNSTAFFING/DISCHARGE
+                                    cols.RelativeColumn(2.6f); // SHED/ YARD
+                                    cols.RelativeColumn(2.6f); // DOCS. BANK SIGN
+                                    cols.RelativeColumn(2.5f); // ETA DELIVERY
+                                    cols.RelativeColumn(2.5f); // ACTUAL DELIVERY
+                                    cols.RelativeColumn(2.8f); // REMARKS
+                                    cols.RelativeColumn(1.8f); // TERM
+                                    cols.RelativeColumn(2.8f); // VESSEL NAME & ROT NO
+                                    cols.RelativeColumn(2.8f); // CONTAINER NO
+                                    cols.RelativeColumn(3.0f); // FORWARDER & PHONE
+                                    cols.RelativeColumn(2.6f); // SURRENDERED BL ISSUE
+                                });
+
+                                table.Header(header =>
+                                {
+                                    // Customer Header inside table.Header: repeats automatically on every new page for this customer
+                                    header.Cell().ColumnSpan(23).PaddingTop(2).PaddingBottom(2).Row(r =>
+                                    {
+                                        r.RelativeItem().AlignLeft().Text($"CUSTOMER: {group.Key.ToUpper()} ({group.Count()} Jobs)").FontSize(7.5f).Bold().FontColor(Colors.Black);
+                                    });
+
+                                    void BuildHeaderCell(string title)
+                                    {
+                                        header.Cell().Element(c => c
+                                            .Border(0.4f)
+                                            .BorderColor(Colors.Grey.Medium)
+                                            .PaddingHorizontal(1)
+                                            .PaddingVertical(1.5f)
+                                            .AlignCenter()
+                                            .AlignMiddle()
+                                            .Text(title)
+                                            .Bold()
+                                            .FontSize(4.6f)
+                                            .WrapAnywhere());
+                                    }
+
+                                    BuildHeaderCell("SL");
+                                    BuildHeaderCell("Job No.");
+                                    BuildHeaderCell("LCAF/LC No.");
+                                    BuildHeaderCell("Inv No");
+                                    BuildHeaderCell("Inv Value");
+                                    BuildHeaderCell("Cont/Pkgs");
+                                    BuildHeaderCell("Shipper");
+                                    BuildHeaderCell("B/L No.");
+                                    BuildHeaderCell("Load Port");
+                                    BuildHeaderCell("ETD");
+                                    BuildHeaderCell("ETA-CTG");
+                                    BuildHeaderCell("Ship Arr");
+                                    BuildHeaderCell("Unstaff/Disch");
+                                    BuildHeaderCell("Shed/Yard");
+                                    BuildHeaderCell("Bank Sign");
+                                    BuildHeaderCell("ETA Deliv");
+                                    BuildHeaderCell("Act Deliv");
+                                    BuildHeaderCell("Remarks");
+                                    BuildHeaderCell("Term");
+                                    BuildHeaderCell("Vessel/Rot No");
+                                    BuildHeaderCell("Cont No.");
+                                    BuildHeaderCell("Forwarder");
+                                    BuildHeaderCell("Surrendered BL");
+                                });
+
+                                int customerSl = 1;
+                                foreach (var d in group)
+                                {
+                                    void BuildDataCell(string text, bool center = false, bool right = false)
+                                    {
+                                        table.Cell().Element(c => c
+                                            .Border(0.3f)
+                                            .BorderColor(Colors.Grey.Lighten2)
+                                            .PaddingHorizontal(1)
+                                            .PaddingVertical(1)
+                                            .AlignMiddle()
+                                            .Element(e => right ? e.AlignRight() : (center ? e.AlignCenter() : e.AlignLeft()))
+                                            .Text(text ?? "")
+                                            .FontSize(4.4f)
+                                            .WrapAnywhere());
+                                    }
+
+                                    BuildDataCell(customerSl++.ToString(), center: true);
+                                    BuildDataCell(d.JobNo, center: true);
+                                    BuildDataCell(d.LCANo, center: true);
+                                    BuildDataCell(d.InvoiceNo);
+                                    BuildDataCell(d.InvoiceValue, right: true);
+                                    BuildDataCell(d.ContainerPackages);
+                                    BuildDataCell(d.Shipper);
+                                    BuildDataCell(d.BLNo, center: true);
+                                    BuildDataCell(d.LoadingPort);
+                                    BuildDataCell(d.ETDDate, center: true);
+                                    BuildDataCell(d.ETACTGPORT, center: true);
+                                    BuildDataCell(d.SHIPARRIVEDDATE, center: true);
+                                    BuildDataCell(d.DischargeDate, center: true);
+                                    BuildDataCell(d.ShedYard);
+                                    BuildDataCell(d.DocumentBankSign, center: true);
+                                    BuildDataCell(d.ETADelivery, center: true);
+                                    BuildDataCell(d.ActualDelivery, center: true);
+                                    BuildDataCell(d.Remarks);
+                                    BuildDataCell(d.Term, center: true);
+                                    BuildDataCell(d.VesselRotNo);
+                                    BuildDataCell(d.ContainerNo);
+                                    BuildDataCell(d.ForwarderName);
+                                    BuildDataCell(d.SurrenderedBLIssue, center: true);
+                                }
+                            });
+                        }
+                    });
+
+                    // Footer
+                    page.Footer().PaddingTop(2).Row(row =>
+                    {
+                        row.RelativeItem().AlignLeft().Text($"Printed: {DateTime.Now:dd/MM/yyyy hh:mm tt}")
+                            .FontSize(5.5f)
+                            .FontColor(Colors.Grey.Darken1);
+
+                        row.RelativeItem().AlignCenter().Text("GCTL Infosys – C&F System")
+                            .FontSize(5.5f)
+                            .FontColor(Colors.Grey.Darken1);
+
+                        row.RelativeItem().AlignRight().Text(txt =>
+                        {
+                            txt.Span("Page ").FontSize(5.5f).FontColor(Colors.Grey.Darken1);
+                            txt.CurrentPageNumber().FontSize(5.5f).FontColor(Colors.Grey.Darken1);
+                            txt.Span(" of ").FontSize(5.5f).FontColor(Colors.Grey.Darken1);
+                            txt.TotalPages().FontSize(5.5f).FontColor(Colors.Grey.Darken1);
+                        });
+                    });
+                });
+            }).GeneratePdf();
+
+            return pdfBytes;
         }
         #endregion
 
@@ -370,21 +482,29 @@ namespace GCTL.Service.DocumentationReport
             string companyName = data.FirstOrDefault()?.CompanyName;
             if (string.IsNullOrWhiteSpace(companyName)) companyName = "Formosa Logistics Limited";
 
-            string companyAddress = data.FirstOrDefault()?.Address1;
-            if (string.IsNullOrWhiteSpace(companyAddress)) companyAddress = "21, Hazaribagh, Dhaka-1209";
-
-            string customerHeader = "All";
-            if (!string.IsNullOrWhiteSpace(filter.CustomerId))
-            {
-                var matched = data.FirstOrDefault(x => !string.IsNullOrEmpty(x.CustomerName))?.CustomerName;
-                if (!string.IsNullOrWhiteSpace(matched))
-                    customerHeader = matched;
-            }
+            var customerGroups = data.GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "General Customer" : x.CustomerName.Trim()).ToList();
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Documentation Report");
 
             const int totalCols = 23;
+
+            // Formosa Logo at top-left
+            var logoBytes = GetLogoBytes();
+            if (logoBytes != null && logoBytes.Length > 0)
+            {
+                ws.Row(1).Height = 20;
+                ws.Row(2).Height = 18;
+                ws.Row(3).Height = 18;
+                try
+                {
+                    using var logoStream = new MemoryStream(logoBytes);
+                    var logoPicture = ws.AddPicture(logoStream).MoveTo(ws.Cell(1, 1), 4, 10);
+                    logoPicture.Width = 85;
+                    logoPicture.Height = 28;
+                }
+                catch { }
+            }
 
             // Row 1: Company Name
             var r1 = ws.Range(1, 1, 1, totalCols);
@@ -395,35 +515,26 @@ namespace GCTL.Service.DocumentationReport
             ws.Cell(1, 1).Style.Font.FontName = "Times New Roman";
             ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // Row 2: Company Address
+            // Row 2: Report Title
             var r2 = ws.Range(2, 1, 2, totalCols);
             r2.Merge();
-            ws.Cell(2, 1).Value = companyAddress;
-            ws.Cell(2, 1).Style.Font.FontSize = 10;
+            ws.Cell(2, 1).Value = "Job Report";
+            ws.Cell(2, 1).Style.Font.Bold = true;
+            ws.Cell(2, 1).Style.Font.FontSize = 11;
             ws.Cell(2, 1).Style.Font.FontName = "Times New Roman";
             ws.Cell(2, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // Row 3: Report Title
+            // Row 3: Date Range
             var r3 = ws.Range(3, 1, 3, totalCols);
             r3.Merge();
-            ws.Cell(3, 1).Value = "Job Report";
+            string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
+                ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
+            ws.Cell(3, 1).Value = dateRangeStr;
             ws.Cell(3, 1).Style.Font.Bold = true;
-            ws.Cell(3, 1).Style.Font.FontSize = 12;
+            ws.Cell(3, 1).Style.Font.FontSize = 9.5;
             ws.Cell(3, 1).Style.Font.FontName = "Times New Roman";
-            ws.Cell(3, 1).Style.Font.Underline = XLFontUnderlineValues.Single;
             ws.Cell(3, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // Row 4: Customer Name Header
-            var r4 = ws.Range(4, 1, 4, totalCols);
-            r4.Merge();
-            ws.Cell(4, 1).Value = $"Customer Name: {customerHeader}";
-            ws.Cell(4, 1).Style.Font.Bold = true;
-            ws.Cell(4, 1).Style.Font.FontSize = 10;
-            ws.Cell(4, 1).Style.Font.FontName = "Times New Roman";
-            ws.Cell(4, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-
-            // Row 5: Blank spacer
-            // Row 6: Table Headers
             string[] headers = new string[]
             {
                 "SL No.",
@@ -451,70 +562,130 @@ namespace GCTL.Service.DocumentationReport
                 "SURRENDERED BL ISSUE"
             };
 
-            int startRow = 6;
-            for (int i = 0; i < headers.Length; i++)
+            int currRow = 5;
+            if (customerGroups.Count == 0)
             {
-                var cell = ws.Cell(startRow, i + 1);
-                cell.Value = headers[i];
-                cell.Style.Font.Bold = true;
-                cell.Style.Font.FontSize = 9;
-                cell.Style.Font.FontName = "Times New Roman";
-                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECEF");
-                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                cell.Style.Alignment.WrapText = true;
-                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            }
-
-            int currRow = startRow + 1;
-            foreach (var item in data)
-            {
-                ws.Cell(currRow, 1).Value = item.SlNo;
-                ws.Cell(currRow, 2).Value = item.JobNo;
-                ws.Cell(currRow, 3).Value = item.LCANo;
-                ws.Cell(currRow, 4).Value = item.InvoiceNo;
-                ws.Cell(currRow, 5).Value = item.InvoiceValue;
-                ws.Cell(currRow, 6).Value = item.ContainerPackages;
-                ws.Cell(currRow, 7).Value = item.Shipper;
-                ws.Cell(currRow, 8).Value = item.BLNo;
-                ws.Cell(currRow, 9).Value = item.LoadingPort;
-                ws.Cell(currRow, 10).Value = item.ETDDate;
-                ws.Cell(currRow, 11).Value = item.ETACTGPORT;
-                ws.Cell(currRow, 12).Value = item.SHIPARRIVEDDATE;
-                ws.Cell(currRow, 13).Value = item.DischargeDate;
-                ws.Cell(currRow, 14).Value = item.ShedYard;
-                ws.Cell(currRow, 15).Value = item.DocumentBankSign;
-                ws.Cell(currRow, 16).Value = item.ETADelivery;
-                ws.Cell(currRow, 17).Value = item.ActualDelivery;
-                ws.Cell(currRow, 18).Value = item.Remarks;
-                ws.Cell(currRow, 19).Value = item.Term;
-                ws.Cell(currRow, 20).Value = item.VesselRotNo;
-                ws.Cell(currRow, 21).Value = item.ContainerNo;
-                ws.Cell(currRow, 22).Value = item.ForwarderName;
-                ws.Cell(currRow, 23).Value = item.SurrenderedBLIssue;
-
-                for (int c = 1; c <= totalCols; c++)
+                ws.Row(currRow).Height = 25;
+                for (int i = 0; i < headers.Length; i++)
                 {
-                    var cell = ws.Cell(currRow, c);
-                    cell.Style.Font.FontSize = 9;
+                    var cell = ws.Cell(currRow, i + 1);
+                    cell.Value = headers[i];
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Font.FontSize = 8.5;
                     cell.Style.Font.FontName = "Times New Roman";
-                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-                    // Centering specific columns
-                    if (c == 1 || c == 2 || c == 5 || c == 10 || c == 11 || c == 12 || c == 13 || c == 15 || c == 16 || c == 17 || c == 19 || c == 23)
-                    {
-                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                    }
-                    else
-                    {
-                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                    }
+                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#999999");
                 }
                 currRow++;
+
+                ws.Range(currRow, 1, currRow, totalCols).Merge();
+                var emptyCell = ws.Cell(currRow, 1);
+                emptyCell.Value = "No documentation records found for the selected criteria.";
+                emptyCell.Style.Font.FontSize = 9;
+                emptyCell.Style.Font.FontName = "Times New Roman";
+                emptyCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                emptyCell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            }
+            else
+            {
+                foreach (var group in customerGroups)
+                {
+                    ws.Range(currRow, 1, currRow, totalCols).Merge();
+                    var custCell = ws.Cell(currRow, 1);
+                    custCell.Value = $"CUSTOMER: {group.Key.ToUpper()}  (Total Jobs: {group.Count()})";
+                    custCell.Style.Font.Bold = true;
+                    custCell.Style.Font.FontSize = 10;
+                    custCell.Style.Font.FontName = "Times New Roman";
+                    custCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    custCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    ws.Row(currRow).Height = 22;
+                    currRow++;
+
+                    ws.Row(currRow).Height = 25;
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        var cell = ws.Cell(currRow, i + 1);
+                        cell.Value = headers[i];
+                        cell.Style.Font.Bold = true;
+                        cell.Style.Font.FontSize = 8.5;
+                        cell.Style.Font.FontName = "Times New Roman";
+                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        cell.Style.Alignment.WrapText = true;
+                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#999999");
+                    }
+                    currRow++;
+
+                    int customerSl = 1;
+                    foreach (var item in group)
+                    {
+                        ws.Row(currRow).Height = 20;
+                        ws.Cell(currRow, 1).Value = customerSl++;
+                        ws.Cell(currRow, 2).Value = item.JobNo;
+                        ws.Cell(currRow, 3).Value = item.LCANo;
+                        ws.Cell(currRow, 4).Value = item.InvoiceNo;
+
+                        if (item.NumericInvoiceValue.HasValue)
+                        {
+                            ws.Cell(currRow, 5).Value = item.NumericInvoiceValue.Value;
+                            ws.Cell(currRow, 5).Style.NumberFormat.Format = item.NumericInvoiceValue.Value % 1 == 0 ? "#,##0" : "#,##0.00";
+                        }
+                        else
+                        {
+                            ws.Cell(currRow, 5).Value = item.InvoiceValue;
+                        }
+
+                        ws.Cell(currRow, 6).Value = item.ContainerPackages;
+                        ws.Cell(currRow, 7).Value = item.Shipper;
+                        ws.Cell(currRow, 8).Value = item.BLNo;
+                        ws.Cell(currRow, 9).Value = item.LoadingPort;
+                        ws.Cell(currRow, 10).Value = item.ETDDate;
+                        ws.Cell(currRow, 11).Value = item.ETACTGPORT;
+                        ws.Cell(currRow, 12).Value = item.SHIPARRIVEDDATE;
+                        ws.Cell(currRow, 13).Value = item.DischargeDate;
+                        ws.Cell(currRow, 14).Value = item.ShedYard;
+                        ws.Cell(currRow, 15).Value = item.DocumentBankSign;
+                        ws.Cell(currRow, 16).Value = item.ETADelivery;
+                        ws.Cell(currRow, 17).Value = item.ActualDelivery;
+                        ws.Cell(currRow, 18).Value = item.Remarks;
+                        ws.Cell(currRow, 19).Value = item.Term;
+                        ws.Cell(currRow, 20).Value = item.VesselRotNo;
+                        ws.Cell(currRow, 21).Value = item.ContainerNo;
+                        ws.Cell(currRow, 22).Value = item.ForwarderName;
+                        ws.Cell(currRow, 23).Value = item.SurrenderedBLIssue;
+
+                        for (int c = 1; c <= totalCols; c++)
+                        {
+                            var cell = ws.Cell(currRow, c);
+                            cell.Style.Font.FontSize = 8.5;
+                            cell.Style.Font.FontName = "Times New Roman";
+                            cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                            cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
+                            cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                            if (c == 5)
+                            {
+                                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                            }
+                            else if (c == 1 || c == 2 || c == 8 || c == 10 || c == 11 || c == 12 || c == 13 || c == 15 || c == 16 || c == 17 || c == 19 || c == 23)
+                            {
+                                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            }
+                            else
+                            {
+                                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                            }
+                        }
+                        currRow++;
+                    }
+                    currRow++; // Spacer row between customers
+                }
             }
 
-            ws.Columns().AdjustToContents();
+            ws.Columns(1, totalCols).AdjustToContents();
 
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
