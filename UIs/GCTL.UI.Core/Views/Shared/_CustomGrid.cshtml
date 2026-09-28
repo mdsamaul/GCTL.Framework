@@ -117,7 +117,15 @@
                                 @foreach (var col in Model.Columns.Where(c => c.Visible))
                                 {
                                     <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
-                                        @Html.Raw(col.Header)
+                                        @if (!string.IsNullOrEmpty(col.ShortHeader))
+                                        {
+                                            <span class="th-full">@Html.Raw(col.Header)</span>
+                                            <span class="th-compact" title="@col.CleanHeader" data-bs-toggle="tooltip" data-bs-placement="top">@Html.Raw(col.ShortHeader)</span>
+                                        }
+                                        else
+                                        {
+                                            @Html.Raw(col.Header)
+                                        }
                                         @if (!string.IsNullOrEmpty(col.HeaderBangla))
                                         {
                                             <br /><small class="text-muted">@col.HeaderBangla</small>
@@ -175,7 +183,15 @@ else
                     @foreach (var col in Model.Columns.Where(c => c.Visible))
                     {
                         <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
-                            @Html.Raw(col.Header)
+                            @if (!string.IsNullOrEmpty(col.ShortHeader))
+                            {
+                                <span class="th-full">@Html.Raw(col.Header)</span>
+                                <span class="th-compact" title="@col.CleanHeader" data-bs-toggle="tooltip" data-bs-placement="top">@Html.Raw(col.ShortHeader)</span>
+                            }
+                            else
+                            {
+                                @Html.Raw(col.Header)
+                            }
                             @if (!string.IsNullOrEmpty(col.HeaderBangla))
                             {
                                 <br /><small class="text-muted">@col.HeaderBangla</small>
@@ -192,3 +208,24 @@ else
         </table>
     </div>
 }
+
+<script>
+    (function () {
+        function initGridTooltips() {
+            var grid = document.getElementById('@Model.GridId');
+            if (grid && window.bootstrap && typeof window.bootstrap.Tooltip === 'function') {
+                var tooltips = grid.querySelectorAll('thead [data-bs-toggle="tooltip"]');
+                for (var i = 0; i < tooltips.length; i++) {
+                    if (!bootstrap.Tooltip.getInstance(tooltips[i])) {
+                        new bootstrap.Tooltip(tooltips[i]);
+                    }
+                }
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGridTooltips);
+        } else {
+            setTimeout(initGridTooltips, 100);
+        }
+    })();
+</script>
