@@ -89,7 +89,7 @@
         if (mode === 'Sea') {
             $('#seaTableContainer').show();
             $('#airTableContainer').hide();
-            $('#gridTitle').html('<i class="fas fa-ship text-info me-2"></i>Sea Freight Jobs');
+            $('#gridTitle').html('<i class="fas fa-ship text-info me-2"></i>Job List(Sea):');
             if (seaTable) {
                 requestAnimationFrame(function () {
                     seaTable.columns.adjust();
@@ -98,7 +98,7 @@
         } else {
             $('#airTableContainer').show();
             $('#seaTableContainer').hide();
-            $('#gridTitle').html('<i class="fas fa-plane text-primary me-2"></i>Air Freight Jobs');
+            $('#gridTitle').html('<i class="fas fa-plane text-primary me-2"></i>Job List(Air):');
             if (airTable) {
                 requestAnimationFrame(function () {
                     airTable.columns.adjust();
