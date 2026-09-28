@@ -342,6 +342,55 @@
         display: none !important;
     }
 
+    #customerReportTable {
+        table-layout: fixed !important;
+        width: 100% !important;
+    }
+
+        #customerReportTable th,
+        #customerReportTable td {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            vertical-align: middle;
+        }
+
+            /* 1 = checkbox column */
+            #customerReportTable th:nth-child(1), #customerReportTable td:nth-child(1) {
+                width: 1%;
+            }
+
+            #customerReportTable th:nth-child(2), #customerReportTable td:nth-child(2) {
+                width: 6%;
+            }
+
+            #customerReportTable th:nth-child(3), #customerReportTable td:nth-child(3) {
+                width: 18.5%;
+            }
+
+            #customerReportTable th:nth-child(4), #customerReportTable td:nth-child(4) {
+                width: 20%;
+            }
+
+            #customerReportTable th:nth-child(5), #customerReportTable td:nth-child(5) {
+                width: 5.5%;
+            }
+
+            #customerReportTable th:nth-child(6), #customerReportTable td:nth-child(6) {
+                width: 6%;
+            }
+
+            #customerReportTable th:nth-child(7), #customerReportTable td:nth-child(7) {
+                width: 12%;
+            }
+
+            #customerReportTable th:nth-child(8), #customerReportTable td:nth-child(8) {
+                width: 5%;
+            }
+
+            #customerReportTable th:nth-child(9), #customerReportTable td:nth-child(9) {
+                width: 26%;
+            }
+
 </style>
 
 <div class="customer-report-dashboard">
@@ -376,7 +425,7 @@
                     <p id="statgeneral">0</p>
                 </div>
             </div>
-            <div class="stat-card" style="border-color: var(--delivered);" data-status-filter="Customer Type" title="Click to filter Customer Type">
+           @*  <div class="stat-card" style="border-color: var(--delivered);" data-status-filter="Customer Type" title="Click to filter Customer Type">
                 <div class="stat-icon" style="background: var(--delivered);">
                     <i class="fa fa-users"></i>
                 </div>
@@ -384,12 +433,22 @@
                     <h3>Customer Type</h3>
                     <p id="statCustomerType">0</p>
                 </div>
-            </div>
+            </div> *@
         </div>
 
         <!-- Filter Bar (One Line Design) -->
         <div class="filter-section">
             <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+
+            <div class="filter-group  filter-group-compact">
+                <select id="filterCustomerType"
+                        class="form-select form-select-sm custom-select-multi"
+                        multiple="multiple"
+                        data-placeholder="-- Select Customer Type --">
+                    <option value="1">In House</option>
+                    <option value="0">General</option>                   
+                </select>
+            </div>
 
            
              <!-- Customer (Multi-Select with checkboxes) -->
@@ -404,20 +463,10 @@
                     }
                 </select>
             </div>
-
-            <div class="filter-group  filter-group-compact">
-                <select id="filterCustomerType"
-                        class="form-select form-select-sm custom-select-multi"
-                        multiple="multiple"
-                        data-placeholder="-- Select Customer Type --">
-                    <option value="0">General</option>
-                    <option value="1">In House</option>
-                </select>
-            </div>
-
+           
             <!-- Export Format (Single Select) -->
             <div class="filter-group filter-right" style="max-width: 140px;">
-                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" placeholder="--Select Exp. Format--">
                     <option value="PDF">PDF Format</option>
                     <option value="Excel">Excel Format</option>
                 </select>

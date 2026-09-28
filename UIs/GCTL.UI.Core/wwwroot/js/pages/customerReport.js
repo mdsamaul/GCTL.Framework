@@ -3,6 +3,8 @@
     'use strict';
 
     let customerTable = null;
+    let suppressReload = false;   // customer dropdown rebuild er somoy extra reload atkabe
+    let lookupReq = 0;            // purono ajax response ignore korar jonno
 
     // Register renderers for CustomGrid
     window.gctlRenderers = window.gctlRenderers || {};
@@ -12,7 +14,7 @@
             var src = (data.startsWith('/') || data.startsWith('http') || data.startsWith('data:'))
                 ? data
                 : 'data:image/jpeg;base64,' + data;
-            return '<img src="' + src + '" alt="Photo" class="js-customer-photo-preview" data-src="' + src + '" title="Click to view large photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;" onmouseover="this.style.transform=\'scale(1.15)\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.25)\';" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'none\';" onerror="this.onerror=null;this.parentElement.innerHTML=\'<span class=\\\'text-muted\\\'>-</span>\';" />';
+            return '<img src="' + src + '" alt="Photo" loading="lazy" class="js-customer-photo-preview" data-src="' + src + '" title="Click to view large photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;" onmouseover="this.style.transform=\'scale(1.15)\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.25)\';" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'none\';" onerror="this.onerror=null;this.parentElement.innerHTML=\'<span class=\\\'text-muted\\\'>-</span>\';" />';
         }
         return '<span class="text-muted">-</span>';
     };
@@ -35,6 +37,11 @@
     });
 
     function initGrid() {
+
+        if ($.fn.dataTable) {
+            $.extend(true, $.fn.dataTable.defaults, { autoWidth: false });
+        }
+
         if ($.gctlGrid && typeof $.gctlGrid.initFromModel === 'function') {
             customerTable = $.gctlGrid.initFromModel({
                 gridId: 'customerReportTable',
@@ -62,7 +69,7 @@
             reloadGrid();
         });
 
-        // Stat Card Click to Filter by Customer Type
+        // Stat Card Click: shudhu dropdown set korbe, reload change handler nije korbe
         $('.stat-card').on('click', function () {
             var statusFilter = $(this).data('status-filter') || '';
             $('.stat-card').removeClass('active-card');
@@ -70,11 +77,20 @@
 
             var mappedValue = mapStatusToValue(statusFilter);
             setDropdownValue('filterCustomerType', mappedValue);
-            reloadGrid();
+            // ekhane ar reloadGrid() nai, na hole double reload hoto
         });
 
-        // Dropdown changes trigger grid reload
-        $('#filterCustomerType, #filterCustomer').on('change', function () {
+        // Customer Type change: age customer dropdown reload, tarpor grid reload (ek bar)
+        $('#filterCustomerType').on('change', function () {
+            if (suppressReload) return;
+            loadCustomersByType().always(function () {
+                reloadGrid();
+            });
+        });
+
+        // Customer change: shudhu grid reload
+        $('#filterCustomer').on('change', function () {
+            if (suppressReload) return;
             reloadGrid();
         });
 
@@ -110,6 +126,69 @@
             customerTable.ajax.reload(null, true);
         }
     }
+
+    /* ---------- Cascading: Customer Type -> Customer dropdown ---------- */
+
+    function loadCustomersByType() {
+        var types = getDropdownValueArray('filterCustomerType');
+        var reqId = ++lookupReq;
+
+        return $.ajax({
+            url: '/CustomerReport/GetCustomersByType',
+            type: 'GET',
+            data: { customerTypeId: types },
+            traditional: true   // List<string> binding er jonno
+        }).done(function (items) {
+            if (reqId !== lookupReq) return; // purono response ignore
+            rebuildCustomerDropdown(items || []);
+        }).fail(function () {
+            showError('Failed to load customers.');
+        });
+    }
+
+    function rebuildCustomerDropdown(items) {
+        var $el = $('#filterCustomer');
+        if (!$el.length) return;
+
+        suppressReload = true; // selection clear hole extra reload na hoy
+        try {
+            var inst = $el.data('customDdInstance');
+
+            // 1) plugin er UI age destroy koro (jodi method thake)
+            if (inst) {
+                var destroyFn = ['destroy', 'dispose', 'remove']
+                    .find(function (n) { return typeof inst[n] === 'function'; });
+                if (destroyFn) {
+                    try { inst[destroyFn](); } catch (e) { console.warn('destroy failed', e); }
+                }
+            }
+
+            // 2) native select er option gulo notun kore boshao
+            $el.empty();
+            (items || []).forEach(function (i) {
+                $el.append($('<option>').val(i.value).text(i.text));
+            });
+            $el.val(null);
+            $el.removeData('customDdInstance');
+
+            // 3) plugin ke abar init koro
+            var initFn = window.initCustomDropdowns || window.initCustomSelect || window.initCustomSelects;
+            if (typeof initFn === 'function') {
+                initFn($el.parent());
+            } else if (inst) {
+                // init function na thakle purono instance er refresh method try koro
+                inst.selected = [];
+                var m = ['refresh', 'rebuild', 'reload', 'update', 'render', 'buildOptions', 'init']
+                    .find(function (n) { return typeof inst[n] === 'function'; });
+                if (m) inst[m]();
+                else console.warn('customDdInstance e refresh method nai. Keys:', Object.keys(inst));
+            }
+        } finally {
+            suppressReload = false;
+        }
+    }
+
+    /* ---------- Helpers ---------- */
 
     /* Stat card text ("General" / "In House") converted to dropdown value ("0" / "1") */
     function mapStatusToValue(statusFilter) {

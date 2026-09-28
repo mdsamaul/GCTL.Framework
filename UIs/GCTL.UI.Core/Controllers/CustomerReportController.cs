@@ -64,15 +64,16 @@ namespace GCTL.UI.Core.Controllers
                 Striped = true,
                 Columns = new List<GridColumn>
                 {
-                    new() { Data = "customerId", Header = "Customer ID", Width = "7%", Align = "center", RenderFn = "renderCustomerId" },
-                    new() { Data = "name", Header = "Name", Width = "15%", Align = "left", RenderFn = "renderAlignLeft" },
-                    new() { Data = "address", Header = "Address", Width = "17%", Align = "left", RenderFn = "renderAlignLeft" },
-                    new() { Data = "phone", Header = "Phone", Width = "8%", Align = "center" },
-                    new() { Data = "fax", Header = "Fax", Width = "8%", Align = "center" },
-                    new() { Data = "email", Header = "Email", Width = "9%", Align = "center" },
-                    new() { Data = "photo", Header = "Photo", Width = "8%", Align = "center", RenderFn = "renderPhoto", Sortable = false },
-                    new() { Data = "contactPerson", Header = "Contact Person", Width = "25%", Align = "left", RenderFn = "renderContactPerson" }
+                    new() { Data = "customerId",    Header = "Customer ID",    Width = "6%",  Align = "center", RenderFn = "renderCustomerId" },
+                    new() { Data = "name",          Header = "Name",           Width = "15.5%", Align = "left",   RenderFn = "renderAlignLeft" },
+                    new() { Data = "address",       Header = "Address",        Width = "20%", Align = "left",   RenderFn = "renderAlignLeft" },
+                    new() { Data = "phone",         Header = "Phone",          Width = "5.5%",  Align = "center" },
+                    new() { Data = "fax",           Header = "Fax",            Width = "6%",  Align = "center" },
+                    new() { Data = "email",         Header = "Email",          Width = "12%", Align = "center" },
+                    new() { Data = "photo",         Header = "Photo",          Width = "5%",  Align = "center", RenderFn = "renderPhoto", Sortable = false },
+                    new() { Data = "contactPerson", Header = "Contact Person", Width = "26%", Align = "left",   RenderFn = "renderContactPerson" }
                 }
+
             };
 
             return View(gridModel);
@@ -159,7 +160,8 @@ namespace GCTL.UI.Core.Controllers
                     }
                 }
 
-                var data = await _customerReportService.GetCustomerReportDataAsync(filter);
+                // grid er jonno binary bytes lagbe na, shudhu URL
+                var data = await _customerReportService.GetCustomerReportDataAsync(filter, loadBinaryContent: false);
 
                 int total = data.Count;
 
@@ -168,8 +170,9 @@ namespace GCTL.UI.Core.Controllers
                     .GroupBy(x => x.CustomerTypeId.Trim(), StringComparer.OrdinalIgnoreCase)
                     .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
 
-                int inHouse = typeCounts.FirstOrDefault(t => t.Key.Contains("1", StringComparison.OrdinalIgnoreCase)).Value;
-                int general = typeCounts.FirstOrDefault(t => t.Key.Contains("0", StringComparison.OrdinalIgnoreCase)).Value;
+                // exact match ("10" er jonno "1" match korbe na)
+                int inHouse = typeCounts.TryGetValue("1", out var ih) ? ih : 0;
+                int general = typeCounts.TryGetValue("0", out var gn) ? gn : 0;
 
                 var responseData = data.Select((d, idx) => new
                 {
@@ -180,9 +183,7 @@ namespace GCTL.UI.Core.Controllers
                     phone = d.Phone,
                     fax = d.Fax,
                     email = d.Email,
-                    photo = !string.IsNullOrEmpty(d.PhotoUrl)
-                        ? d.PhotoUrl
-                        : (d.CustomerPhoto != null ? Convert.ToBase64String(d.CustomerPhoto) : null),
+                    photo = d.PhotoUrl,   // base64 ar pathano hobe na
                     contactPerson = d.ContactPerson,
                     designation = d.Designation,
                     customerType = d.CustomerType,
@@ -215,6 +216,14 @@ namespace GCTL.UI.Core.Controllers
                     data = new List<object>()
                 });
             }
+        }
+
+        // Customer Type select korle customer dropdown e oi type er customer load hobe
+        [HttpGet]
+        public async Task<IActionResult> GetCustomersByType([FromQuery] List<string>? customerTypeId)
+        {
+            var items = await _customerReportService.GetCustomerLookupAsync(customerTypeId);
+            return Json(items.Select(x => new { value = x.Value, text = x.Text }));
         }
 
         #endregion
