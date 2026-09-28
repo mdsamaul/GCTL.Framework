@@ -1,11 +1,21 @@
 @model List<GCTL.Core.ViewModels.BreadcrumbItem>
 @{
     var trail = Model ?? new List<GCTL.Core.ViewModels.BreadcrumbItem>();
+    var currentPageTitle = trail.LastOrDefault()?.Title?.Trim();
+    if (string.IsNullOrWhiteSpace(currentPageTitle) || currentPageTitle.Equals("Home", StringComparison.OrdinalIgnoreCase))
+    {
+        currentPageTitle = ViewData["Title"] as string;
+    }
 }
 <section class="container-fluid">
-    <div class="row mb-1">
-        <div class="col-md-3"></div>
-        <div class="col-md-9">
+    <div class="row mb-1 align-items-center">
+        <div class="col-md-5 col-sm-6">
+            @if (!string.IsNullOrWhiteSpace(currentPageTitle) && !currentPageTitle.Equals("Home", StringComparison.OrdinalIgnoreCase))
+            {
+                <h5 class="mb-0 fw-bold text-dark page-breadcrumb-title" style="font-size: 1.05rem; font-weight: 700 !important; letter-spacing: -0.2px;">@currentPageTitle</h5>
+            }
+        </div>
+        <div class="col-md-7 col-sm-6">
             <ol class="breadcrumb float-sm-end mb-0">
                 @for (int i = 0; i < trail.Count; i++)
                 {

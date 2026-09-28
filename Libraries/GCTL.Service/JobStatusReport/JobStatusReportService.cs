@@ -1069,11 +1069,15 @@ ORDER BY fj.JobNo ASC;
                         cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
                         cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                        if (c == 8)
+                        if (c == 8) // Invoice Value (Amount) -> Right
                         {
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                         }
-                        else if (c == 1 || c == 2 || c == 3 || c == 6 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20 || c == 21 || c == 23)
+                        else if (c == 9) // Container / Packages Quantity (Details) -> Left
+                        {
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        }
+                        else // All other columns -> Center
                         {
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         }
@@ -1208,11 +1212,15 @@ ORDER BY fj.JobNo ASC;
                         cell.Style.Border.OutsideBorderColor = XLColor.FromHtml("#CCCCCC");
                         cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                        if (c == 8)
+                        if (c == 8) // Invoice Value (Amount) -> Right
                         {
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                         }
-                        else if (c == 1 || c == 2 || c == 3 || c == 6 || c == 11 || c == 12 || c == 13 || c == 14 || c == 15 || c == 16 || c == 17 || c == 18 || c == 19 || c == 20)
+                        else if (c == 9) // Material Name & Packages Quantity (Details) -> Left
+                        {
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        }
+                        else // All other columns -> Center
                         {
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         }
