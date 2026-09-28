@@ -67,11 +67,11 @@ namespace GCTL.UI.Core.Controllers
                     new() { Data = "customerId",    Header = "Customer ID",    Width = "6%",  Align = "center", RenderFn = "renderCustomerId" },
                     new() { Data = "name",          Header = "Name",           Width = "15.5%", Align = "left",   RenderFn = "renderAlignLeft" },
                     new() { Data = "address",       Header = "Address",        Width = "20%", Align = "left",   RenderFn = "renderAlignLeft" },
-                    new() { Data = "phone",         Header = "Phone",          Width = "5.5%",  Align = "center" },
+                    new() { Data = "phone",         Header = "Phone",          Width = "6.5%",  Align = "center" },
                     new() { Data = "fax",           Header = "Fax",            Width = "6%",  Align = "center" },
                     new() { Data = "email",         Header = "Email",          Width = "12%", Align = "center" },
                     new() { Data = "photo",         Header = "Photo",          Width = "5%",  Align = "center", RenderFn = "renderPhoto", Sortable = false },
-                    new() { Data = "contactPerson", Header = "Contact Person", Width = "26%", Align = "left",   RenderFn = "renderContactPerson" }
+                    new() { Data = "contactPerson", Header = "Contact Person", Width = "25%", Align = "left",   RenderFn = "renderContactPerson" }
                 }
 
             };
