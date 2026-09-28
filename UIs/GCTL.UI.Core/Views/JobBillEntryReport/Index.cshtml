@@ -32,10 +32,10 @@
         margin: 0 auto;
     }
 
-    /* Stats Grid (4 Cards) */
+    /* Stats Grid (5 Cards) */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 12px;
         margin-bottom: 14px;
     }
@@ -67,6 +67,13 @@
         margin-right: 12px;
         font-size: 1.1rem;
         color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
         flex-shrink: 0;
     }
 
@@ -192,9 +199,8 @@
         display: none !important;
     }
 
+    .btn-preview-rep,
     .btn-export-rep {
-        background: #2e7d32;
-        color: white;
         border: none;
         padding: 4px 12px;
         border-radius: 6px;
@@ -203,10 +209,27 @@
         font-size: 0.78rem;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 5px;
         height: 31px;
+        min-width: 82px;
         white-space: nowrap;
         transition: all 0.2s ease;
+    }
+
+    .btn-preview-rep {
+        background: #0056b3;
+        color: white;
+    }
+
+    .btn-preview-rep:hover {
+        background: #003d80;
+        box-shadow: 0 4px 10px rgba(0, 86, 179, 0.3);
+    }
+
+    .btn-export-rep {
+        background: #2e7d32;
+        color: white;
     }
 
     .btn-export-rep:hover {
@@ -296,6 +319,11 @@
             font-size: 1.25rem;
         }
 
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
         .stat-info h3 {
             font-size: 0.8rem;
             margin: 0 0 4px 0;
@@ -345,11 +373,13 @@
             gap: 8px;
         }
 
+        .btn-preview-rep,
         .btn-export-rep {
             height: 33px;
             font-size: 0.82rem;
             padding: 6px 16px;
             gap: 6px;
+            min-width: 90px;
         }
 
         .job-grid-card {
@@ -391,7 +421,7 @@
 
     @@media (max-width: 1199px) {
         .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
         }
         .filter-section {
             display: grid;
@@ -426,12 +456,15 @@
 <div class="job-bill-report-dashboard">
     <div class="dashboard-container">
 
-        <!-- Top 4 KPI Cards -->
+        <!-- Top 5 KPI Cards -->
         <div class="stats-grid">
             <!-- 1. Total Bill -->
             <div class="stat-card" style="border-color: #0056b3;">
                 <div class="stat-icon" style="background: #0056b3;">
-                    <i class="fas fa-file-invoice-dollar"></i>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"></path>
+                        <path d="M19 17V5a2 2 0 0 0-2-2H4"></path>
+                    </svg>
                 </div>
                 <div class="stat-info">
                     <h3>Total Bill</h3>
@@ -442,7 +475,10 @@
             <!-- 2. Net Service Value -->
             <div class="stat-card" style="border-color: #2e7d32;">
                 <div class="stat-icon" style="background: #2e7d32;">
-                    <i class="fas fa-hand-holding-usd"></i>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
                 </div>
                 <div class="stat-info">
                     <h3>Net Service Value</h3>
@@ -453,7 +489,12 @@
             <!-- 3. Total Due Outstanding -->
             <div class="stat-card" style="border-color: #ed6c02;">
                 <div class="stat-icon" style="background: #ed6c02;">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 22h14"></path>
+                        <path d="M5 2h14"></path>
+                        <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
+                        <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
+                    </svg>
                 </div>
                 <div class="stat-info">
                     <h3>Total Due Outstanding</h3>
@@ -464,11 +505,31 @@
             <!-- 4. Last Service Value -->
             <div class="stat-card" style="border-color: #9c27b0;">
                 <div class="stat-icon" style="background: #9c27b0;">
-                    <i class="fas fa-receipt"></i>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
                 </div>
                 <div class="stat-info">
                     <h3>Last Service Value</h3>
                     <p id="statLastServiceValue">0.00</p>
+                </div>
+            </div>
+
+            <!-- 5. Last Service Date -->
+            <div class="stat-card" style="border-color: #0288d1;">
+                <div class="stat-icon" style="background: #0288d1;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Last Service Date</h3>
+                    <p id="statLastServiceDate" style="font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="-">-</p>
                 </div>
             </div>
         </div>
@@ -528,10 +589,13 @@
                 </select>
             </div>
 
-            <!-- Action: PDF Export Only -->
+            <!-- Actions: Preview & Direct PDF Download -->
             <div class="filter-actions">
+                <button type="button" class="btn-preview-rep" id="btnPreview">
+                    <i class="fas fa-eye"></i> Preview
+                </button>
                 <button type="button" class="btn-export-rep" id="btnExport">
-                    <i class="fas fa-file-pdf"></i> EXPORT PDF
+                    <i class="fas fa-file-pdf"></i> Export
                 </button>
             </div>
         </div>

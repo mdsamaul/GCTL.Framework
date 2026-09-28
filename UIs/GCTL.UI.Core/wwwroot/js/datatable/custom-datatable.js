@@ -250,6 +250,15 @@
                 }
             });
 
+            // Initialize Bootstrap tooltips for compact headers
+            if (window.bootstrap && typeof window.bootstrap.Tooltip === 'function') {
+                $table.find('thead [data-bs-toggle="tooltip"]').each(function () {
+                    if (!bootstrap.Tooltip.getInstance(this)) {
+                        new bootstrap.Tooltip(this);
+                    }
+                });
+            }
+
             return dataTable;
         },
 
@@ -586,17 +595,18 @@
         };
     }
 
-    if (!window.gctlRenderers.formatCurrency) {
-        window.gctlRenderers.formatCurrency = function (data, type, row) {
-            if (data === null || data === undefined || data === '' || isNaN(data)) {
-                return (type === 'sort' || type === 'type') ? 0 : '0.00';
-            }
-            var num = parseFloat(data);
-            if (type === 'sort' || type === 'type') {
-                return num;
-            }
-            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        };
-    }
+    window.gctlRenderers.formatCurrency = function (data, type, row) {
+        if (data === null || data === undefined || data === '' || (typeof data === 'string' && data.trim() === '') || isNaN(data)) {
+            return (type === 'sort' || type === 'type') ? 0 : '-';
+        }
+        var num = parseFloat(data);
+        if (type === 'sort' || type === 'type') {
+            return num;
+        }
+        if (num === 0) {
+            return '-';
+        }
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
 
 }(jQuery));

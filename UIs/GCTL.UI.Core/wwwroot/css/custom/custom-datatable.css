@@ -75,14 +75,65 @@ div.dt-container table.dataTable thead th,
     vertical-align: middle !important;
     white-space: nowrap;
     padding: 0.35rem 0.5rem !important;
+    border-top: 1px solid #dee2e6 !important;
     border-bottom: 2px solid #cbd5e1 !important;
     border-right: 1px solid #dee2e6;
     user-select: none;
 }
 
+/* Ensure left and right outer borders are present */
+div.dt-container table.dataTable thead th:first-child,
+.custom-grid-table thead th:first-child,
+div.dt-container table.dataTable tbody td:first-child,
+.custom-grid-table tbody td:first-child {
+    border-left: 1px solid #dee2e6 !important;
+}
+
 div.dt-container table.dataTable thead th:last-child,
 .custom-grid-table thead th:last-child {
-    border-right: none;
+    border-right: 1px solid #dee2e6 !important;
+}
+
+/* Remove DataTables / Bootstrap outline & border on TH hover */
+table.dataTable thead > tr > th:hover,
+table.dataTable thead > tr > th.dt-orderable-asc:hover,
+table.dataTable thead > tr > th.dt-orderable-desc:hover,
+table.dataTable thead > tr > td.dt-orderable-asc:hover,
+table.dataTable thead > tr > td.dt-orderable-desc:hover,
+.custom-grid-table thead th:hover,
+div.dt-container table.dataTable thead th:hover {
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Responsive Column Header (Short Name vs Full Name) */
+div.dt-container table.dataTable thead th .th-compact,
+.custom-grid-table thead th .th-compact {
+    display: inline-block;
+    cursor: inherit;
+    border-bottom: none !important;
+    line-height: 1.15;
+}
+
+div.dt-container table.dataTable thead th .th-full,
+.custom-grid-table thead th .th-full {
+    display: none !important;
+    cursor: inherit;
+}
+
+@media (min-width: 1600px) {
+    div.dt-container table.dataTable thead th .th-compact,
+    .custom-grid-table thead th .th-compact {
+        display: none !important;
+    }
+
+    div.dt-container table.dataTable thead th .th-full,
+    .custom-grid-table thead th .th-full {
+        display: inline-block !important;
+        border-bottom: none;
+        cursor: inherit;
+    }
 }
 
 /* Selection Column (Checkbox / Radio) Styling */
@@ -114,7 +165,7 @@ div.dt-container table.dataTable tbody td,
 
 div.dt-container table.dataTable tbody td:last-child,
 .custom-grid-table tbody td:last-child {
-    border-right: none;
+    border-right: 1px solid #dee2e6 !important;
 }
 
 /* Striped Rows: Odd is Custom Light Gray (#f8fafc), Even is Pure White (#ffffff) */
