@@ -171,7 +171,13 @@
             triggerFilterChange();
         });
 
-        // Export PDF Button Click
+        // Preview PDF Button Click (opens in new tab)
+        $('#btnPreview').on('click', function (e) {
+            e.preventDefault();
+            previewPdf();
+        });
+
+        // Export PDF Button Click (directly downloads file)
         $('#btnExport').on('click', function (e) {
             e.preventDefault();
             exportPdf();
@@ -353,6 +359,8 @@
                     animateCounter('#statNetServiceValue', res.netServiceValue || 0, true);
                     animateCounter('#statTotalDue', res.totalDue || 0, true);
                     animateCounter('#statLastServiceValue', res.lastServiceValue || 0, true);
+                    var serviceDateText = res.lastServiceDate || '-';
+                    $('#statLastServiceDate').text(serviceDateText).attr('title', serviceDateText);
                 }
             },
             error: function () {
@@ -397,7 +405,7 @@
         }, stepTime);
     }
 
-    function exportPdf() {
+    function getExportQueryParams(isDownload) {
         var filters = getFilterParams();
 
         // Collect checked bill numbers from the grid checkboxes
@@ -409,16 +417,25 @@
             }
         });
 
-        var queryParams = $.param({
+        return $.param({
             FromDate: filters.FromDate,
             ToDate: filters.ToDate,
             ShipmentModes: filters.ShipmentModes,
             CustomerIds: filters.CustomerIds,
             BillNos: filters.BillNos,
-            SelectedBillNos: selectedBills.join(',')
+            SelectedBillNos: selectedBills.join(','),
+            download: isDownload ? true : false
         });
+    }
 
+    function previewPdf() {
+        var queryParams = getExportQueryParams(false);
         window.open('/JobBillEntryReport/ExportPdf?' + queryParams, '_blank');
+    }
+
+    function exportPdf() {
+        var queryParams = getExportQueryParams(true);
+        window.location.href = '/JobBillEntryReport/ExportPdf?' + queryParams;
     }
 
 })(jQuery);

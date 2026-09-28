@@ -61,16 +61,16 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                     new() { Data = "billNo", Header = "Bill No", Width = "7%", Align = "left", SortField = "BillNo" },
                     new() { Data = "billDate", Header = "Date", Width = "6%", Align = "center", SortField = "BillDate" },
                     new() { Data = "jobNo", Header = "Job No", Width = "7%", Align = "left", IsWrapable = true, SortField = "JobNo" },
-                    new() { Data = "materialDescription", Header = "Material Desc.", Width = "18%", Align = "left", SortField = "MaterialDescription" },
-                    new() { Data = "quantity", Header = "<span class=\"th-full\">Quantity</span><span class=\"th-compact\">Qty</span>", Width = "5%", Align = "right", SortField = "Quantity" },
-                    new() { Data = "weight", Header = "Weight", Width = "5%", Align = "right", SortField = "DocWeight" },
-                    new() { Data = "receiptableAmount", Header = "<span class=\"th-full\">Receiptable Amt</span><span class=\"th-compact\">Receipt.<br/>Amt</span>", Width = "7%", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "nonReceiptableAmount", Header = "<span class=\"th-full\">Non-Receiptable Amt</span><span class=\"th-compact\">Non-Receipt.<br/>Amt</span>", Width = "8%", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "materialDescription", Header = "Material Description", Width = "18%", Align = "left", SortField = "MaterialDescription" },
+                    new() { Data = "quantity", Header = "Quantity", ShortHeader = "Qty", Width = "6%", Align = "center", SortField = "Quantity" },
+                    new() { Data = "weight", Header = "Weight", Width = "6%", Align = "center", SortField = "DocWeight" },
+                    new() { Data = "receiptableAmount", Header = "Receiptable Amount", ShortHeader = "Rec.<br/>Amount", Width = "7%", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "nonReceiptableAmount", Header = "Non-Receiptable Amount", ShortHeader = "Non-Rec.<br/>Amount", Width = "8%", Align = "right", RenderFn = "formatCurrency" },
                     new() { Data = "transportAmount", Header = "Transport", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "agencyCommission", Header = "<span class=\"th-full\">Agency Comm.</span><span class=\"th-compact\">Agency<br/>Comm.</span>", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "totalAmount", Header = "<span class=\"th-full\">Total Amt</span><span class=\"th-compact\">Total<br/>Amt</span>", Width = "7%", Align = "right", RenderFn = "formatCurrency", SortField = "BillAmount" },
-                    new() { Data = "deduction", Header = "<span class=\"th-full\">Deduction</span><span class=\"th-compact\">Deduct.</span>", Width = "6%", Align = "right", RenderFn = "formatCurrency", SortField = "SpecialDiscount" },
-                    new() { Data = "netAmount", Header = "<span class=\"th-full\">Net Amt</span><span class=\"th-compact\">Net<br/>Amt</span>", Width = "8%", Align = "right", RenderFn = "formatCurrency" }
+                    new() { Data = "agencyCommission", Header = "Agency Commission", ShortHeader = "Agency<br/>Comm.", Width = "6%", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "totalAmount", Header = "Total Amount", ShortHeader = "Total<br/>Amount", Width = "7%", Align = "right", RenderFn = "formatCurrency", SortField = "BillAmount" },
+                    new() { Data = "deduction", Header = "Deduction", ShortHeader = "Deduct.", Width = "6%", Align = "right", RenderFn = "formatCurrency", SortField = "SpecialDiscount" },
+                    new() { Data = "netAmount", Header = "Net Amount", ShortHeader = "Net<br/>Amount", Width = "8%", Align = "right", RenderFn = "formatCurrency" }
                 }
             };
 
@@ -171,7 +171,8 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                     total = summary.TotalBillCount,
                     netServiceValue = summary.NetServiceValue,
                     totalDue = summary.TotalDueOutstanding,
-                    lastServiceValue = summary.LastServiceValue
+                    lastServiceValue = summary.LastServiceValue,
+                    lastServiceDate = summary.LastServiceDate ?? "-"
                 });
             }
             catch (Exception ex)
@@ -183,7 +184,8 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                     total = 0,
                     netServiceValue = 0m,
                     totalDue = 0m,
-                    lastServiceValue = 0m
+                    lastServiceValue = 0m,
+                    lastServiceDate = "-"
                 });
             }
         }
@@ -222,13 +224,20 @@ namespace GCTL.UI.Core.Controllers.CNFBill
 
         #region PDF Export
         [HttpGet]
-        public async Task<IActionResult> ExportPdf([FromQuery] JobBillEntryReportFilterVM filter)
+        public async Task<IActionResult> ExportPdf([FromQuery] JobBillEntryReportFilterVM filter, [FromQuery] bool download = false)
         {
             try
             {
                 filter ??= new JobBillEntryReportFilterVM();
                 var pdfBytes = await _reportService.GeneratePdfAsync(filter);
-                Response.Headers.Append("Content-Disposition", $"inline; filename=JobBillReport_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+                var fileName = $"JobBillReport_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+
+                if (download)
+                {
+                    return File(pdfBytes, "application/pdf", fileName);
+                }
+
+                Response.Headers.Append("Content-Disposition", $"inline; filename={fileName}");
                 return File(pdfBytes, "application/pdf");
             }
             catch (Exception ex)
