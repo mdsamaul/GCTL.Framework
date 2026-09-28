@@ -343,15 +343,25 @@
         }
     }
 
-    /* Hide native <select> once custom dropdown widget has initialized it */
     select.custom-select-multi,
     select.custom-select-single {
         display: none !important;
     }
 
+    /* ---------- Wrapper: choto screen e scroll ---------- */
+    #customerReportTable_wrapper,
+    .dataTables_wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* ---------- Table base ---------- */
     #customerReportTable {
         table-layout: fixed !important;
         width: 100% !important;
+        min-width: 1000px; /* er niche gele squish na hoye scroll hobe */
+        font-size: clamp(11px, 0.45vw + 7px, 15px); /* screen er sathe font boro/choto */
     }
 
         #customerReportTable th,
@@ -359,9 +369,10 @@
             overflow-wrap: anywhere;
             word-break: break-word;
             vertical-align: middle;
+            padding: clamp(4px, 0.35vw, 10px) clamp(4px, 0.5vw, 12px) !important;
         }
 
-            /* 1 = checkbox column */
+            /* ---------- Column width (1 = checkbox) ---------- */
             #customerReportTable th:nth-child(1), #customerReportTable td:nth-child(1) {
                 width: 1%;
             }
@@ -379,7 +390,7 @@
             }
 
             #customerReportTable th:nth-child(5), #customerReportTable td:nth-child(5) {
-                width: 5.5%;
+                width: 6.5%;
             }
 
             #customerReportTable th:nth-child(6), #customerReportTable td:nth-child(6) {
@@ -395,8 +406,38 @@
             }
 
             #customerReportTable th:nth-child(9), #customerReportTable td:nth-child(9) {
-                width: 26%;
+                width: 25%;
             }
+
+        /* ---------- Photo screen er sathe boro/choto ---------- */
+        #customerReportTable img.js-customer-photo-preview {
+            width: clamp(28px, 2.6vw, 56px) !important;
+            height: clamp(28px, 2.6vw, 56px) !important;
+        }
+
+    @@media (min-width: 1600px) {
+        #customerReportTable {
+            min-width: 0;
+            font-size: 15px;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        #customerReportTable {
+            min-width: 900px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        #customerReportTable {
+            min-width: 720px;
+        }
+
+            #customerReportTable th:nth-child(7), #customerReportTable td:nth-child(7),
+            #customerReportTable th:nth-child(6), #customerReportTable td:nth-child(6) {
+                display: none;
+            }
+    }
 
 </style>
 
@@ -432,15 +473,6 @@
                     <p id="statgeneral">0</p>
                 </div>
             </div>
-           @*  <div class="stat-card" style="border-color: var(--delivered);" data-status-filter="Customer Type" title="Click to filter Customer Type">
-                <div class="stat-icon" style="background: var(--delivered);">
-                    <i class="fa fa-users"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Customer Type</h3>
-                    <p id="statCustomerType">0</p>
-                </div>
-            </div> *@
         </div>
 
         <!-- Filter Bar (One Line Design) -->
@@ -515,6 +547,8 @@
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="~/css/customer-report.css" asp-append-version="true" />
 
 @section Scripts {
     <script src="~/js/pages/customerReport.js" asp-append-version="true"></script>
