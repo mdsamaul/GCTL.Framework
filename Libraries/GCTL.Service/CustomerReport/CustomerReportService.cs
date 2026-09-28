@@ -694,5 +694,189 @@ namespace GCTL.Service.CustomerReport
 
         #endregion
 
+        #region Generate CSV Report
+
+        public async Task<byte[]> GenerateCsvReportAsync(CustomerReportFilterDto filter)
+        {
+            var data = await GetCustomerReportDataAsync(filter, loadBinaryContent: false);
+
+            if (filter.SelectedCustomerIds != null && filter.SelectedCustomerIds.Any())
+            {
+                var selectedSet = new HashSet<string>(
+                    filter.SelectedCustomerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()),
+                    StringComparer.OrdinalIgnoreCase);
+                if (selectedSet.Count > 0)
+                {
+                    data = data.Where(x => !string.IsNullOrEmpty(x.CustomerId) && selectedSet.Contains(x.CustomerId.Trim())).ToList();
+                }
+            }
+
+            string GetTypeLabel(string? typeId)
+            {
+                if (string.IsNullOrWhiteSpace(typeId)) return "N/A";
+                return typeId.Trim() switch
+                {
+                    "0" => "General",
+                    "1" => "In House",
+                    _ => typeId.Trim()
+                };
+            }
+
+            var groupedData = data.GroupBy(x => GetTypeLabel(x.CustomerTypeId)).OrderBy(g => g.Key).ToList();
+
+            var firstItem = data.FirstOrDefault();
+            string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
+
+            var headers = new[]
+            {
+                "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Contact Person"
+            };
+
+            int totalCols = headers.Length;
+            int[] colWidths = new int[totalCols];
+
+            for (int c = 0; c < totalCols; c++)
+            {
+                colWidths[c] = headers[c].Length;
+            }
+
+            var preparedGroups = new List<(string TypeLabel, int Count, List<string[]> Rows)>();
+
+            foreach (var group in groupedData)
+            {
+                var groupRows = new List<string[]>();
+                int sl = 1;
+                foreach (var item in group)
+                {
+                    var row = new[]
+                    {
+                        (sl++).ToString(),
+                        item.CustomerId ?? "",
+                        item.CustomerName ?? "",
+                        item.CustomerAddress ?? "",
+                        item.Phone ?? "",
+                        item.Fax ?? "",
+                        item.Email ?? "",
+                        item.ContactPerson ?? ""
+                    };
+
+                    for (int c = 0; c < totalCols; c++)
+                    {
+                        string cleanVal = (row[c] ?? "").Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim();
+                        row[c] = cleanVal;
+                        if (cleanVal.Length > colWidths[c])
+                        {
+                            colWidths[c] = cleanVal.Length;
+                        }
+                    }
+
+                    groupRows.Add(row);
+                }
+
+                preparedGroups.Add((group.Key, group.Count(), groupRows));
+            }
+
+            using var memoryStream = new MemoryStream();
+            using (var writer = new StreamWriter(memoryStream, new System.Text.UTF8Encoding(true)))
+            {
+                // Centered Company Information Headers
+                await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(companyName, totalCols));
+                await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Customer Report", totalCols));
+                await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank row
+
+                if (preparedGroups.Count == 0)
+                {
+                    var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCustomerCsvCell(h, i, colWidths[i], isHeader: true)));
+                    await writer.WriteLineAsync(string.Join(",", paddedHeaders));
+
+                    var emptyRow = new string[totalCols];
+                    emptyRow[0] = EscapeCsv("No customer records found.");
+                    for (int i = 1; i < totalCols; i++) emptyRow[i] = "\"\"";
+                    await writer.WriteLineAsync(string.Join(",", emptyRow));
+                }
+                else
+                {
+                    foreach (var group in preparedGroups)
+                    {
+                        // Customer Type Group Header
+                        var groupHeaderRow = new string[totalCols];
+                        groupHeaderRow[0] = EscapeCsv($"Customer Type: {group.TypeLabel} (Total: {group.Count})");
+                        for (int i = 1; i < totalCols; i++) groupHeaderRow[i] = "\"\"";
+                        await writer.WriteLineAsync(string.Join(",", groupHeaderRow));
+
+                        var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCustomerCsvCell(h, i, colWidths[i], isHeader: true)));
+                        await writer.WriteLineAsync(string.Join(",", paddedHeaders));
+
+                        foreach (var row in group.Rows)
+                        {
+                            var formattedCells = row.Select((val, i) => EscapeCsv(FormatCustomerCsvCell(val, i, colWidths[i], isHeader: false)));
+                            await writer.WriteLineAsync(string.Join(",", formattedCells));
+                        }
+
+                        await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank line between groups
+                    }
+                }
+
+                await writer.FlushAsync();
+            }
+
+            return memoryStream.ToArray();
+        }
+
+        private static string PadCenter(string text, int width)
+        {
+            text ??= "";
+            if (text.Length >= width) return text;
+            int total = width - text.Length;
+            int left = total / 2;
+            int right = total - left;
+            return new string(' ', left) + text + new string(' ', right);
+        }
+
+        private static string PadLeftAligned(string text, int width)
+        {
+            text ??= "";
+            if (text.Length >= width) return text;
+            return text.PadRight(width);
+        }
+
+        private static string FormatCustomerCsvCell(string? text, int colIdx, int width, bool isHeader = false)
+        {
+            text = (text ?? "").Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim();
+            if (isHeader)
+            {
+                return PadCenter(text, width);
+            }
+
+            if (colIdx == 2 || colIdx == 3 || colIdx == 7) // Name, Address, Contact Person -> Left
+            {
+                return PadLeftAligned(text, width);
+            }
+            else // SN, Customer ID, Phone, Fax, Email -> Center
+            {
+                return PadCenter(text, width);
+            }
+        }
+
+        private static string BuildCenteredCsvHeaderRow(string text, int totalCols)
+        {
+            int centerCol = totalCols / 2;
+            var cells = new string[totalCols];
+            for (int i = 0; i < totalCols; i++)
+            {
+                cells[i] = (i == centerCol) ? EscapeCsv(text) : "\"\"";
+            }
+            return string.Join(",", cells);
+        }
+
+        private static string EscapeCsv(string? val)
+        {
+            if (string.IsNullOrEmpty(val)) return "\"\"";
+            val = val.Replace("\"", "\"\"");
+            return $"\"{val}\"";
+        }
+
+        #endregion
+
     }
 }

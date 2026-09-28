@@ -28,6 +28,13 @@
         margin-left: auto;
     }
 
+    .filter-group.filter-group-export {
+        flex: 0 0 200px;
+        min-width: 150px;
+        max-width: 190px;
+        /* margin-left: auto; */
+    }
+
     :root {
         --primary: #0056b3;
         --secondary: #003366;
@@ -464,17 +471,19 @@
                 </select>
             </div>
            
-            <!-- Export Format (Single Select) -->
-            <div class="filter-group filter-right" style="max-width: 140px;">
-                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" placeholder="--Select Exp. Format--">
-                    <option value="PDF">PDF Format</option>
-                    <option value="Excel">Excel Format</option>
+            <!-- Export Format (Single Select with Placeholder) -->
+            <div class="filter-group filter-group-export">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" data-placeholder="Select Exp. Format">
+                    <option value="">Select Exp. Format</option>
+                    <option value="PDF">PDF</option>
+                    <option value="Excel">Excel</option>
+                    <option value="CSV">CSV</option>
                 </select>
             </div>
 
             <!-- Actions (Export button only, search is automatic) -->
             <div class="filter-actions">
-                <button type="button" class="btn-export-rep" id="btnExport" title="Export grouped report by customer">
+                <button type="button" class="btn-export-rep" id="btnExport" title="Export report (Defaults to PDF if format not selected)">
                     <i class="fas fa-file-export"></i> EXPORT
                 </button>
             </div>

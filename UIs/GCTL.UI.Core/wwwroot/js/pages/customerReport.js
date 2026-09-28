@@ -288,7 +288,8 @@
 
     function exportReport() {
         var filters = getFilterParams();
-        var exportFormat = $('#filterExportFormat').val() || 'PDF';
+        var exportFormat = (getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
+        if (!exportFormat) exportFormat = 'PDF';
 
         // Collect checked customer IDs from CustomGrid checkboxes
         var selectedCustomerIds = [];

@@ -117,8 +117,10 @@ namespace GCTL.UI.Core.Controllers
 
                 ViewBag.ExportFormats = new SelectList(new List<SelectListItem>
                 {
-                    new SelectListItem { Value = "PDF", Text = "PDF Format" },
-                    new SelectListItem { Value = "Excel", Text = "Excel Format" }
+                    new SelectListItem { Value = "", Text = "Select Exp. Format" },
+                    new SelectListItem { Value = "PDF", Text = "PDF" },
+                    new SelectListItem { Value = "Excel", Text = "Excel" },
+                    new SelectListItem { Value = "CSV", Text = "CSV" }
                 }, "Value", "Text");
             }
             catch
@@ -237,6 +239,11 @@ namespace GCTL.UI.Core.Controllers
             {
                 filter ??= new CustomerReportFilterDto();
 
+                if (string.IsNullOrWhiteSpace(exportFormat))
+                {
+                    exportFormat = "PDF";
+                }
+
                 if (Request.Query.TryGetValue("SelectedCustomerIds", out var selIds) && (filter.SelectedCustomerIds == null || !filter.SelectedCustomerIds.Any()))
                 {
                     filter.SelectedCustomerIds = selIds.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
@@ -247,8 +254,14 @@ namespace GCTL.UI.Core.Controllers
                     var bytes = await _customerReportService.GenerateExcelReportAsync(filter);
                     return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"CustomerReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
                 }
+                else if (string.Equals(exportFormat, "CSV", StringComparison.OrdinalIgnoreCase))
+                {
+                    var bytes = await _customerReportService.GenerateCsvReportAsync(filter);
+                    return File(bytes, "text/csv; charset=utf-8", $"CustomerReport_{DateTime.Now:yyyyMMddHHmmss}.csv");
+                }
                 else
                 {
+                    // Default fallback to PDF
                     var bytes = await _customerReportService.GeneratePdfReportAsync(filter);
                     return File(bytes, "application/pdf", $"CustomerReport_{DateTime.Now:yyyyMMddHHmmss}.pdf");
                 }
