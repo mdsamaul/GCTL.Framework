@@ -11,6 +11,15 @@ BEGIN
 END
 GO
 
+-- Recommended Performance Index on CF_DailyJobUpdateEntry
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_CF_DailyJobUpdateEntry_JobNo_Status' AND object_id = OBJECT_ID('CF_DailyJobUpdateEntry'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_CF_DailyJobUpdateEntry_JobNo_Status 
+    ON dbo.CF_DailyJobUpdateEntry (JobNo, UpdateStatus) 
+    INCLUDE (UpdateDateTime);
+END
+GO
+
 /****** Object:  StoredProcedure [dbo].[proc_CustomerJobSummery] ******/
 CREATE OR ALTER PROCEDURE [dbo].[proc_CustomerJobSummery]
     @CustomerId nvarchar(50) = ''
@@ -70,10 +79,15 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT * INTO #TempTable 
-    FROM Sep_Documentation 
-    WHERE (ISNULL(@CustomerId, '') = '' OR CustomerID = @CustomerId) 
-      AND ISNULL(ShipmentStatus, '') = '';
+    -- Fast pre-filtering directly into #TempTable
+    SELECT d.* INTO #TempTable 
+    FROM Sep_Documentation d
+    LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
+    WHERE (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId) 
+      AND (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+      AND ISNULL(d.ShipmentStatus, '') = '';
 
     SELECT DISTINCT
         d.JobNo,
@@ -84,6 +98,9 @@ BEGIN
              THEN CONVERT(varchar(50), d.DocReceivedDate, 103) ELSE '' END AS DocReceivedDate,
         d.InvoiceNo,
         d.InvoiceValue,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        d.CurrencyId,
         CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS ContainerPkgs,
         '' AS Shipper,
         d.BillNo,
@@ -123,16 +140,9 @@ BEGIN
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u1 ON d.Unit1 = u1.UnitTypID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u2 ON d.Unit2 = u2.UnitTypID
     LEFT OUTER JOIN CF_Def_ExpenseType e ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
-    LEFT OUTER JOIN Sales_Def_PortType pt ON p.PortId = pt.PortId
-    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId 
-    LEFT OUTER JOIN CF_BillEntry bill ON d.JobNo = bill.JobNo
-    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')));
+    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId;
 
     SELECT ROW_NUMBER() OVER (ORDER BY JobNo ASC) AS sl, * 
     FROM #TempTable2
@@ -155,10 +165,14 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT * INTO #TempTable 
-    FROM Sep_Documentation 
-    WHERE (ISNULL(@CustomerId, '') = '' OR CustomerID = @CustomerId) 
-      AND ISNULL(ShipmentStatus, '') IN ('07','08','09','10','11','12','13');
+    SELECT d.* INTO #TempTable 
+    FROM Sep_Documentation d
+    LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
+    WHERE (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId) 
+      AND (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+      AND ISNULL(d.ShipmentStatus, '') IN ('07','08','09','10','11','12','13');
 
     SELECT DISTINCT
         d.JobNo,
@@ -169,6 +183,9 @@ BEGIN
              THEN CONVERT(varchar(50), d.DocReceivedDate, 103) ELSE '' END AS DocReceivedDate,
         d.InvoiceNo,
         d.InvoiceValue,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        d.CurrencyId,
         CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS ContainerPkgs,
         '' AS Shipper,
         d.BillNo,
@@ -208,16 +225,9 @@ BEGIN
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u1 ON d.Unit1 = u1.UnitTypID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u2 ON d.Unit2 = u2.UnitTypID
     LEFT OUTER JOIN CF_Def_ExpenseType e ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
-    LEFT OUTER JOIN Sales_Def_PortType pt ON p.PortId = pt.PortId
-    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId 
-    LEFT OUTER JOIN CF_BillEntry bill ON d.JobNo = bill.JobNo
-    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')));
+    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId;
 
     SELECT ROW_NUMBER() OVER (ORDER BY JobNo ASC) AS sl, * 
     FROM #TempTable2
@@ -240,10 +250,14 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT * INTO #TempTable 
-    FROM Sep_Documentation 
-    WHERE (ISNULL(@CustomerId, '') = '' OR CustomerID = @CustomerId) 
-      AND ISNULL(ShipmentStatus, '') = '14';
+    SELECT d.* INTO #TempTable 
+    FROM Sep_Documentation d
+    LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
+    WHERE (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId) 
+      AND (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+      AND ISNULL(d.ShipmentStatus, '') = '14';
 
     SELECT DISTINCT
         d.JobNo,
@@ -254,6 +268,9 @@ BEGIN
              THEN CONVERT(varchar(50), d.DocReceivedDate, 103) ELSE '' END AS DocReceivedDate,
         d.InvoiceNo,
         d.InvoiceValue,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        d.CurrencyId,
         CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS ContainerPkgs,
         '' AS Shipper,
         d.BillNo,
@@ -293,16 +310,9 @@ BEGIN
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u1 ON d.Unit1 = u1.UnitTypID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u2 ON d.Unit2 = u2.UnitTypID
     LEFT OUTER JOIN CF_Def_ExpenseType e ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
-    LEFT OUTER JOIN Sales_Def_PortType pt ON p.PortId = pt.PortId
-    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId 
-    LEFT OUTER JOIN CF_BillEntry bill ON d.JobNo = bill.JobNo
-    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')));
+    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId;
 
     SELECT ROW_NUMBER() OVER (ORDER BY JobNo ASC) AS sl, * 
     FROM #TempTable2
@@ -325,10 +335,14 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT DISTINCT * INTO #TempTable 
-    FROM Sep_Documentation 
-    WHERE (ISNULL(@CustomerId, '') = '' OR CustomerID = @CustomerId) 
-      AND ISNULL(ShipmentStatus, '') = '';
+    SELECT d.* INTO #TempTable 
+    FROM Sep_Documentation d
+    LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
+    WHERE (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId) 
+      AND (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+      AND ISNULL(d.ShipmentStatus, '') = '';
 
     SELECT DISTINCT
         d.JobNo,
@@ -339,6 +353,9 @@ BEGIN
              THEN CONVERT(varchar(50), d.DocReceivedDate, 103) ELSE '' END AS DocReceivedDate,
         d.InvoiceNo,
         d.InvoiceValue,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        d.CurrencyId,
         CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS MaterialNamePkgsQty,
         '' AS ExpressNameCountry,
         d.LCNo AS LcNo,
@@ -370,16 +387,9 @@ BEGIN
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u1 ON d.Unit1 = u1.UnitTypID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u2 ON d.Unit2 = u2.UnitTypID
     LEFT OUTER JOIN CF_Def_ExpenseType e ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
-    LEFT OUTER JOIN Sales_Def_PortType pt ON p.PortId = pt.PortId
-    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId 
-    LEFT OUTER JOIN CF_BillEntry bill ON d.JobNo = bill.JobNo
-    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')));
+    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId;
 
     SELECT ROW_NUMBER() OVER (ORDER BY JobNo ASC) AS sl, * 
     FROM #TempTable2
@@ -402,10 +412,14 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT * INTO #TempTable 
-    FROM Sep_Documentation 
-    WHERE (ISNULL(@CustomerId, '') = '' OR CustomerID = @CustomerId) 
-      AND ISNULL(ShipmentStatus, '') IN ('01','02','03','04','05');
+    SELECT d.* INTO #TempTable 
+    FROM Sep_Documentation d
+    LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
+    WHERE (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId) 
+      AND (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+      AND ISNULL(d.ShipmentStatus, '') IN ('01','02','03','04','05');
 
     SELECT DISTINCT
         d.JobNo,
@@ -416,6 +430,9 @@ BEGIN
              THEN CONVERT(varchar(50), d.DocReceivedDate, 103) ELSE '' END AS DocReceivedDate,
         d.InvoiceNo,
         d.InvoiceValue,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        d.CurrencyId,
         CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS MaterialNamePkgsQty,
         '' AS ExpressNameCountry,
         d.LCNo AS LcNo,
@@ -447,16 +464,9 @@ BEGIN
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u1 ON d.Unit1 = u1.UnitTypID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u2 ON d.Unit2 = u2.UnitTypID
     LEFT OUTER JOIN CF_Def_ExpenseType e ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
-    LEFT OUTER JOIN Sales_Def_PortType pt ON p.PortId = pt.PortId
-    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId 
-    LEFT OUTER JOIN CF_BillEntry bill ON d.JobNo = bill.JobNo
-    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')));
+    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId;
 
     SELECT ROW_NUMBER() OVER (ORDER BY JobNo ASC) AS sl, * 
     FROM #TempTable2
@@ -479,10 +489,14 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT * INTO #TempTable 
-    FROM Sep_Documentation 
-    WHERE (ISNULL(@CustomerId, '') = '' OR CustomerID = @CustomerId) 
-      AND ISNULL(ShipmentStatus, '') = '06';
+    SELECT d.* INTO #TempTable 
+    FROM Sep_Documentation d
+    LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
+    WHERE (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId) 
+      AND (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
+      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')))
+      AND ISNULL(d.ShipmentStatus, '') = '06';
 
     SELECT DISTINCT
         d.JobNo,
@@ -493,6 +507,9 @@ BEGIN
              THEN CONVERT(varchar(50), d.DocReceivedDate, 103) ELSE '' END AS DocReceivedDate,
         d.InvoiceNo,
         d.InvoiceValue,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        d.CurrencyId,
         CONCAT(d.Quntity1, ' ', d.MaterialDescription) AS MaterialNamePkgsQty,
         '' AS ExpressNameCountry,
         d.LCNo AS LcNo,
@@ -524,16 +541,9 @@ BEGIN
     INTO #TempTable2
     FROM #TempTable d
     LEFT JOIN Sales_Customer c ON d.CustomerID = c.CustomerID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u1 ON d.Unit1 = u1.UnitTypID
-    LEFT OUTER JOIN RMG_Prod_Def_UnitType u2 ON d.Unit2 = u2.UnitTypID
     LEFT OUTER JOIN CF_Def_ExpenseType e ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT OUTER JOIN Sales_Def_PortName p ON d.PortNameId = p.PortNameId
-    LEFT OUTER JOIN Sales_Def_PortType pt ON p.PortId = pt.PortId
-    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId 
-    LEFT OUTER JOIN CF_BillEntry bill ON d.JobNo = bill.JobNo
-    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
-      AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
-      AND (ISNULL(@ShipmentTypeId, '') = '' OR d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ',')));
+    LEFT OUTER JOIN CA_Def_Currency curr ON d.CurrencyId = curr.CurrencyId;
 
     SELECT ROW_NUMBER() OVER (ORDER BY JobNo ASC) AS sl, * 
     FROM #TempTable2

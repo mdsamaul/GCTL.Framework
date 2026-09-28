@@ -41,6 +41,10 @@ namespace GCTL.Core.ViewModels.JobStatusReport
         public string ContainerNo { get; set; } = string.Empty;
         public string FreightForwarder { get; set; } = string.Empty;
 
+        // Currency Information
+        public string CurrencySymbol { get; set; } = "$";
+        public string CurrencyName { get; set; } = "USD";
+
         // UI Helpers
         public string StatusClass { get; set; } = "pending";
     }

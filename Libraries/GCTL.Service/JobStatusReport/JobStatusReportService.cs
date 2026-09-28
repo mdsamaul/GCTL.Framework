@@ -208,6 +208,11 @@ namespace GCTL.Service.JobStatusReport
             int ordContainerNo = GetColOrdinal(reader, "ContainerNo");
             int ordFreightForwarder = GetColOrdinal(reader, "FreightForwarder");
             int ordCustomerId = GetColOrdinal(reader, "CustomerID");
+            int ordCurrencySymbol = GetColOrdinal(reader, "CurrencySymbol");
+            if (ordCurrencySymbol < 0) ordCurrencySymbol = GetColOrdinal(reader, "Symbol");
+            int ordCurrencyName = GetColOrdinal(reader, "CurrencyName");
+            if (ordCurrencyName < 0) ordCurrencyName = GetColOrdinal(reader, "ShortName");
+            int ordCurrencyId = GetColOrdinal(reader, "CurrencyId");
 
             while (await reader.ReadAsync())
             {
@@ -217,6 +222,10 @@ namespace GCTL.Service.JobStatusReport
 
                 string expType = ReadCol(reader, ordExpenseType);
                 string custId = ReadCol(reader, ordCustomerId);
+                string rawSym = ReadCol(reader, ordCurrencySymbol);
+                string rawName = ReadCol(reader, ordCurrencyName);
+                string rawCurrId = ReadCol(reader, ordCurrencyId);
+                var (curSym, curName) = ResolveCurrency(rawSym, rawName, rawCurrId);
 
                 list.Add(new SeaJobReportItemDTO
                 {
@@ -227,6 +236,8 @@ namespace GCTL.Service.JobStatusReport
                     DocReceivedDate = ReadCol(reader, ordDocReceivedDate),
                     InvoiceNo = ReadCol(reader, ordInvoiceNo),
                     InvoiceValue = ReadCol(reader, ordInvoiceValue),
+                    CurrencySymbol = curSym,
+                    CurrencyName = curName,
                     ContainerPkgs = ReadCol(reader, ordContainerPkgs),
                     Shipper = ReadCol(reader, ordShipper),
                     BLNo = ReadCol(reader, ordBillNo),
@@ -248,6 +259,11 @@ namespace GCTL.Service.JobStatusReport
                     CustomerId = string.IsNullOrWhiteSpace(filter.CustomerId) ? custId : filter.CustomerId.Trim(),
                     StatusClass = statusClass
                 });
+            }
+
+            if (ordCurrencySymbol < 0 && ordCurrencyName < 0 && list.Count > 0)
+            {
+                await PopulateSeaCurrenciesAsync(list, conn);
             }
 
             return list;
@@ -353,6 +369,11 @@ namespace GCTL.Service.JobStatusReport
             int ordRemarks = GetColOrdinal(reader, "Remarks");
             int ordCustomerId = GetColOrdinal(reader, "CustomerID");
             int ordShipmentStatus = GetColOrdinal(reader, "ShipmentStatus");
+            int ordCurrencySymbol = GetColOrdinal(reader, "CurrencySymbol");
+            if (ordCurrencySymbol < 0) ordCurrencySymbol = GetColOrdinal(reader, "Symbol");
+            int ordCurrencyName = GetColOrdinal(reader, "CurrencyName");
+            if (ordCurrencyName < 0) ordCurrencyName = GetColOrdinal(reader, "ShortName");
+            int ordCurrencyId = GetColOrdinal(reader, "CurrencyId");
 
             while (await reader.ReadAsync())
             {
@@ -362,6 +383,10 @@ namespace GCTL.Service.JobStatusReport
 
                 string expType = ReadCol(reader, ordExpenseType);
                 string custId = ReadCol(reader, ordCustomerId);
+                string rawSym = ReadCol(reader, ordCurrencySymbol);
+                string rawName = ReadCol(reader, ordCurrencyName);
+                string rawCurrId = ReadCol(reader, ordCurrencyId);
+                var (curSym, curName) = ResolveCurrency(rawSym, rawName, rawCurrId);
 
                 list.Add(new AirJobReportItemDTO
                 {
@@ -372,6 +397,8 @@ namespace GCTL.Service.JobStatusReport
                     DocReceivedDate = ReadCol(reader, ordDocReceivedDate),
                     InvoiceNo = ReadCol(reader, ordInvoiceNo),
                     InvoiceValue = ReadCol(reader, ordInvoiceValue),
+                    CurrencySymbol = curSym,
+                    CurrencyName = curName,
                     MaterialNamePkgsQty = ReadCol(reader, ordMaterialNamePkgsQty),
                     ExpressNameCountry = ReadCol(reader, ordExpressNameCountry),
                     LCNo = ReadCol(reader, ordLcNo),
@@ -388,6 +415,11 @@ namespace GCTL.Service.JobStatusReport
                     CustomerId = string.IsNullOrWhiteSpace(filter.CustomerId) ? custId : filter.CustomerId.Trim(),
                     StatusClass = statusClass
                 });
+            }
+
+            if (ordCurrencySymbol < 0 && ordCurrencyName < 0 && list.Count > 0)
+            {
+                await PopulateAirCurrenciesAsync(list, conn);
             }
 
             return list;
@@ -543,15 +575,16 @@ namespace GCTL.Service.JobStatusReport
                     ws.Cell(currRow, 6).Value = item.DocReceivedDate;
                     ws.Cell(currRow, 7).Value = item.InvoiceNo;
 
+                    string sym = !string.IsNullOrWhiteSpace(item.CurrencySymbol) ? item.CurrencySymbol : "$";
                     string rawInv = Convert.ToString(item.InvoiceValue)?.Replace(",", "").Trim() ?? "";
                     if (decimal.TryParse(rawInv, NumberStyles.Any, CultureInfo.InvariantCulture, out var decInv))
                     {
                         ws.Cell(currRow, 8).Value = decInv;
-                        ws.Cell(currRow, 8).Style.NumberFormat.Format = decInv % 1 == 0 ? "#,##0" : "#,##0.00";
+                        ws.Cell(currRow, 8).Style.NumberFormat.Format = $"\"{sym} \"#,##0.00";
                     }
                     else
                     {
-                        ws.Cell(currRow, 8).Value = item.InvoiceValue;
+                        ws.Cell(currRow, 8).Value = !string.IsNullOrWhiteSpace(rawInv) ? $"{sym} {item.InvoiceValue}" : "";
                     }
                     ws.Cell(currRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
@@ -686,15 +719,16 @@ namespace GCTL.Service.JobStatusReport
                     ws.Cell(currRow, 6).Value = item.DocReceivedDate;
                     ws.Cell(currRow, 7).Value = item.InvoiceNo;
 
+                    string symAir = !string.IsNullOrWhiteSpace(item.CurrencySymbol) ? item.CurrencySymbol : "$";
                     string rawInvAir = Convert.ToString(item.InvoiceValue)?.Replace(",", "").Trim() ?? "";
                     if (decimal.TryParse(rawInvAir, NumberStyles.Any, CultureInfo.InvariantCulture, out var decInvAir))
                     {
                         ws.Cell(currRow, 8).Value = decInvAir;
-                        ws.Cell(currRow, 8).Style.NumberFormat.Format = decInvAir % 1 == 0 ? "#,##0" : "#,##0.00";
+                        ws.Cell(currRow, 8).Style.NumberFormat.Format = $"\"{symAir} \"#,##0.00";
                     }
                     else
                     {
-                        ws.Cell(currRow, 8).Value = item.InvoiceValue;
+                        ws.Cell(currRow, 8).Value = !string.IsNullOrWhiteSpace(rawInvAir) ? $"{symAir} {item.InvoiceValue}" : "";
                     }
                     ws.Cell(currRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
@@ -1023,8 +1057,8 @@ namespace GCTL.Service.JobStatusReport
                         Cell(item.Port, center: true);
                         Cell(item.DocReceivedDate, center: true);
                         Cell(item.InvoiceNo, center: true);
-                        Cell(FormatAmount(item.InvoiceValue), right: true);
-                        Cell(item.ContainerPkgs, center: true);
+                        Cell(FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol), right: true);
+                        Cell(item.ContainerPkgs, center: false);
                         Cell(item.Shipper, center: true);
                         Cell(item.BLNo, center: true);
                         Cell(item.ETDDate, center: true);
@@ -1153,8 +1187,8 @@ namespace GCTL.Service.JobStatusReport
                         Cell(item.Port, center: true);
                         Cell(item.DocReceivedDate, center: true);
                         Cell(item.InvoiceNo, center: true);
-                        Cell(FormatAmount(item.InvoiceValue), right: true);
-                        Cell(item.MaterialNamePkgsQty, center: true);
+                        Cell(FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol), right: true);
+                        Cell(item.MaterialNamePkgsQty, center: false);
                         Cell(item.ExpressNameCountry, center: true);
                         Cell(item.LCNo, center: true);
                         Cell(item.HawbNo, center: true);
@@ -1226,6 +1260,280 @@ namespace GCTL.Service.JobStatusReport
             }
             return str;
         }
+
+        private static string FormatAmountWithCurrency(object? val, string? symbol)
+        {
+            string amt = FormatAmount(val);
+            if (string.IsNullOrEmpty(amt)) return "";
+            string sym = (symbol ?? "").Trim();
+            if (string.IsNullOrEmpty(sym)) sym = "$";
+            return $"{sym} {amt}";
+        }
+
+        private static (string sym, string name) ResolveCurrency(string? sym, string? name, string? id)
+        {
+            string s = (sym ?? "").Trim();
+            string n = (name ?? "").Trim();
+            string i = (id ?? "").Trim();
+
+            if (!string.IsNullOrEmpty(s) && s != "?" && s != "N/A")
+            {
+                if (s.Equals("USD", StringComparison.OrdinalIgnoreCase)) return ("$", "USD");
+                if (s.Equals("BDT", StringComparison.OrdinalIgnoreCase) || s.Equals("TK", StringComparison.OrdinalIgnoreCase)) return ("৳", "BDT");
+                if (s.Equals("EUR", StringComparison.OrdinalIgnoreCase)) return ("€", "EUR");
+                if (s.Equals("GBP", StringComparison.OrdinalIgnoreCase)) return ("£", "GBP");
+                return (s, !string.IsNullOrEmpty(n) ? n : "USD");
+            }
+
+            string upper = (n + " " + i).ToUpperInvariant();
+            if (upper.Contains("BDT") || upper.Contains("TK") || upper.Contains("TAKA"))
+            {
+                return ("৳", "BDT");
+            }
+            if (upper.Contains("USD") || upper.Contains("DOLLAR"))
+            {
+                return ("$", "USD");
+            }
+            if (upper.Contains("EUR") || upper.Contains("EURO"))
+            {
+                return ("€", "EUR");
+            }
+            if (upper.Contains("GBP") || upper.Contains("POUND"))
+            {
+                return ("£", "GBP");
+            }
+
+            return ("$", "USD");
+        }
+
+        private async Task PopulateAirCurrenciesAsync(List<AirJobReportItemDTO> items, SqlConnection conn)
+        {
+            try
+            {
+                var jobNos = items.Select(x => x.JobNo).Where(j => !string.IsNullOrWhiteSpace(j)).Distinct().ToList();
+                if (jobNos.Count == 0) return;
+
+                for (int i = 0; i < jobNos.Count; i += 500)
+                {
+                    var chunk = jobNos.Skip(i).Take(500).ToList();
+                    string inClause = string.Join(",", chunk.Select((_, idx) => $"@j{idx}"));
+                    string sql = $@"
+                        SELECT d.JobNo, 
+                               ISNULL(c.Symbol, c.ShortName) AS Symbol, 
+                               c.ShortName AS CurrencyName,
+                               d.CurrencyId
+                        FROM Sep_Documentation d
+                        LEFT JOIN CA_Def_Currency c ON d.CurrencyId = c.CurrencyId
+                        WHERE d.JobNo IN ({inClause})";
+
+                    using var cmd = new SqlCommand(sql, conn);
+                    for (int idx = 0; idx < chunk.Count; idx++)
+                    {
+                        cmd.Parameters.AddWithValue($"@j{idx}", chunk[idx]);
+                    }
+
+                    using var rdr = await cmd.ExecuteReaderAsync();
+                    var dict = new Dictionary<string, (string sym, string name)>(StringComparer.OrdinalIgnoreCase);
+                    while (await rdr.ReadAsync())
+                    {
+                        string jNo = rdr["JobNo"]?.ToString()?.Trim() ?? "";
+                        string sym = rdr["Symbol"]?.ToString()?.Trim() ?? "";
+                        string nm = rdr["CurrencyName"]?.ToString()?.Trim() ?? "";
+                        string cId = rdr["CurrencyId"]?.ToString()?.Trim() ?? "";
+                        if (!string.IsNullOrEmpty(jNo))
+                        {
+                            dict[jNo] = ResolveCurrency(sym, nm, cId);
+                        }
+                    }
+
+                    foreach (var item in items)
+                    {
+                        if (!string.IsNullOrEmpty(item.JobNo) && dict.TryGetValue(item.JobNo, out var resolved))
+                        {
+                            item.CurrencySymbol = resolved.sym;
+                            item.CurrencyName = resolved.name;
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private async Task PopulateSeaCurrenciesAsync(List<SeaJobReportItemDTO> items, SqlConnection conn)
+        {
+            try
+            {
+                var jobNos = items.Select(x => x.JobNo).Where(j => !string.IsNullOrWhiteSpace(j)).Distinct().ToList();
+                if (jobNos.Count == 0) return;
+
+                for (int i = 0; i < jobNos.Count; i += 500)
+                {
+                    var chunk = jobNos.Skip(i).Take(500).ToList();
+                    string inClause = string.Join(",", chunk.Select((_, idx) => $"@j{idx}"));
+                    string sql = $@"
+                        SELECT d.JobNo, 
+                               ISNULL(c.Symbol, c.ShortName) AS Symbol, 
+                               c.ShortName AS CurrencyName,
+                               d.CurrencyId
+                        FROM Sep_Documentation d
+                        LEFT JOIN CA_Def_Currency c ON d.CurrencyId = c.CurrencyId
+                        WHERE d.JobNo IN ({inClause})";
+
+                    using var cmd = new SqlCommand(sql, conn);
+                    for (int idx = 0; idx < chunk.Count; idx++)
+                    {
+                        cmd.Parameters.AddWithValue($"@j{idx}", chunk[idx]);
+                    }
+
+                    using var rdr = await cmd.ExecuteReaderAsync();
+                    var dict = new Dictionary<string, (string sym, string name)>(StringComparer.OrdinalIgnoreCase);
+                    while (await rdr.ReadAsync())
+                    {
+                        string jNo = rdr["JobNo"]?.ToString()?.Trim() ?? "";
+                        string sym = rdr["Symbol"]?.ToString()?.Trim() ?? "";
+                        string nm = rdr["CurrencyName"]?.ToString()?.Trim() ?? "";
+                        string cId = rdr["CurrencyId"]?.ToString()?.Trim() ?? "";
+                        if (!string.IsNullOrEmpty(jNo))
+                        {
+                            dict[jNo] = ResolveCurrency(sym, nm, cId);
+                        }
+                    }
+
+                    foreach (var item in items)
+                    {
+                        if (!string.IsNullOrEmpty(item.JobNo) && dict.TryGetValue(item.JobNo, out var resolved))
+                        {
+                            item.CurrencySymbol = resolved.sym;
+                            item.CurrencyName = resolved.name;
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        #region 6. Generate CSV Report
+        public async Task<byte[]> GenerateCsvReportAsync(JobStatusReportFilterVM filter)
+        {
+            filter ??= new JobStatusReportFilterVM();
+            string activeTab = (filter.ActiveTab ?? "").Trim().ToLower();
+
+            using var memoryStream = new MemoryStream();
+            using (var writer = new StreamWriter(memoryStream, new System.Text.UTF8Encoding(true)))
+            {
+                if (activeTab == "sea")
+                {
+                    var seaJobs = await GetSeaJobsAsync(filter);
+                    await WriteSeaCsvAsync(writer, seaJobs);
+                }
+                else
+                {
+                    var airJobs = await GetAirJobsAsync(filter);
+                    await WriteAirCsvAsync(writer, airJobs);
+                }
+                await writer.FlushAsync();
+            }
+            return memoryStream.ToArray();
+        }
+
+        private static async Task WriteAirCsvAsync(StreamWriter writer, List<AirJobReportItemDTO> jobs)
+        {
+            var headers = new[]
+            {
+                "SL","Job No","Job Date","Shipment Mode","Port","Doc's Receive Date","Invoice No","Invoice Value",
+                "Material Name & Pkgs Qty","Express Name, Country","L/C No","Express/HAWB No","MAWB No","ETD",
+                "Flight Actual Arrival Dt","Arrival Notice Rcvd Express Dt","Bill of Entry No","Bill of Entry Date",
+                "Actual Delivery Date","Shipment Status","Remarks"
+            };
+
+            await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+
+            int sl = 1;
+            foreach (var item in jobs)
+            {
+                var row = new[]
+                {
+                    (sl++).ToString(),
+                    item.JobNo,
+                    item.JobDate,
+                    item.ShipmentMode,
+                    item.Port,
+                    item.DocReceivedDate,
+                    item.InvoiceNo,
+                    FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol),
+                    item.MaterialNamePkgsQty,
+                    item.ExpressNameCountry,
+                    item.LCNo,
+                    item.HawbNo,
+                    item.MawbNo,
+                    item.ETDDate,
+                    item.FlightActualDeliveryDate,
+                    item.ArrivalNoticeRcvdExpressDate,
+                    item.BENo,
+                    item.BEDate,
+                    item.ActualDeliveryDate,
+                    item.ShipmentStatus,
+                    item.Remarks
+                };
+                await writer.WriteLineAsync(string.Join(",", row.Select(EscapeCsv)));
+            }
+        }
+
+        private static async Task WriteSeaCsvAsync(StreamWriter writer, List<SeaJobReportItemDTO> jobs)
+        {
+            var headers = new[]
+            {
+                "Sl No","Job No","Job Date","Shipment Mode","Port","Doc's Rec Dt","Invoice No","Invoice Value",
+                "Container/Pkgs","Shipper","B/L No","ETD","Final IGM Rec Dt","Ship Arrived Date","Discharge Date",
+                "Docs Bank Sign Date","B/E No","B/E Date","Est Delivery Dt","Actual Delivery Dt","Shipment Status",
+                "Remarks","Term","Vessel Name & Rotation No","Container No","Freight Forwarder"
+            };
+
+            await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+
+            int sl = 1;
+            foreach (var item in jobs)
+            {
+                var row = new[]
+                {
+                    (sl++).ToString(),
+                    item.JobNo,
+                    item.JobDate,
+                    item.ShipmentMode,
+                    item.Port,
+                    item.DocReceivedDate,
+                    item.InvoiceNo,
+                    FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol),
+                    item.ContainerPkgs,
+                    item.Shipper,
+                    item.BLNo,
+                    item.ETDDate,
+                    item.FinalIgmRecDt,
+                    item.ShipArrivedDate,
+                    item.DischargeDate,
+                    item.DocsBankSignDate,
+                    item.BENo,
+                    item.BEDate,
+                    item.EstDeliveryDate,
+                    item.ActualDeliveryDate,
+                    item.ShipmentStatus,
+                    item.Remarks,
+                    item.Term,
+                    item.VesselName,
+                    item.ContainerNo,
+                    item.FreightForwarder
+                };
+                await writer.WriteLineAsync(string.Join(",", row.Select(EscapeCsv)));
+            }
+        }
+
+        private static string EscapeCsv(string? val)
+        {
+            if (string.IsNullOrEmpty(val)) return "\"\"";
+            val = val.Replace("\"", "\"\"");
+            return $"\"{val}\"";
+        }
+        #endregion
         private static string FormatDt(object? val, string fmt = "dd/MM/yyyy hh:mm tt")
         {
             if (val == null || val == DBNull.Value) return "";

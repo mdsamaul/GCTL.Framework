@@ -33,7 +33,7 @@
     function ensureDefaultAir() {
         var current = getDropdownValue('filterShipmentMode');
         if (!current) {
-            setDropdownValue('filterShipmentMode', 'Air');
+            silentSetDropdownValue('filterShipmentMode', 'Air');
         }
     }
 
@@ -192,6 +192,22 @@
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function formatInvoiceValue(val, symbol, name) {
+        if (val === null || val === undefined || val === '') return '';
+        var sym = (symbol || '').trim();
+        if (!sym) {
+            var cName = (name || '').toUpperCase();
+            if (cName.indexOf('BDT') !== -1 || cName.indexOf('TK') !== -1 || cName.indexOf('TAKA') !== -1) {
+                sym = '৳';
+            } else {
+                sym = '$';
+            }
+        }
+        var numStr = formatAmount(val);
+        if (!numStr) return '';
+        return '<span class="currency-sym">' + escapeHtml(sym) + '</span> ' + numStr;
+    }
+
     /**
      * Initialize both DataTables with full responsive options and column definitions
      */
@@ -237,11 +253,11 @@
                 { 
                     data: 'invoiceValue', 
                     className: 'text-end align-middle amount-cell',
-                    render: function (data) {
-                        return formatAmount(data);
+                    render: function (data, type, row) {
+                        return formatInvoiceValue(data, row.currencySymbol, row.currencyName);
                     }
                 },
-                { data: 'containerPkgs', className: 'text-center align-middle' },
+                { data: 'containerPkgs', className: 'text-start align-middle cell-wrap' },
                 { data: 'shipper', className: 'text-center align-middle' },
                 { data: 'blNo', className: 'text-center align-middle' },
                 { data: 'etdDate', className: 'text-center align-middle' },
@@ -303,11 +319,11 @@
                 { 
                     data: 'invoiceValue', 
                     className: 'text-end align-middle amount-cell',
-                    render: function (data) {
-                        return formatAmount(data);
+                    render: function (data, type, row) {
+                        return formatInvoiceValue(data, row.currencySymbol, row.currencyName);
                     }
                 },
-                { data: 'materialNamePkgsQty', className: 'text-center align-middle' },
+                { data: 'materialNamePkgsQty', className: 'text-start align-middle cell-wrap' },
                 { data: 'expressNameCountry', className: 'text-center align-middle' },
                 { data: 'lcNo', className: 'text-center align-middle' },
                 { data: 'hawbNo', className: 'text-center align-middle' },
@@ -351,8 +367,11 @@
      */
     function bindEvents() {
         // 1. Date inputs (typing, picker selection, alt-input change)
-        $(document).on('input change keyup blur', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
+        $(document).on('change', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
             requestDataReload(150);
+        });
+        $(document).on('input', '#filterFromDate, #filterToDate', function () {
+            requestDataReload(350);
         });
 
         // 2. Standard select change events
@@ -488,9 +507,20 @@
         table.rows.add(prepared);
         table.draw(false);
 
+        initTooltips();
+
         requestAnimationFrame(function () {
             table.columns.adjust();
         });
+    }
+
+    function initTooltips() {
+        if (typeof $.fn.tooltip === 'function') {
+            $('[data-bs-toggle="tooltip"]').tooltip({
+                boundary: 'window',
+                container: 'body'
+            });
+        }
     }
 
     /**
@@ -656,7 +686,8 @@
      */
     function exportReport() {
         var filters = getFilterParams();
-        var exportFormat = getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || 'PDF';
+        var exportFormat = (getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
+        if (!exportFormat) exportFormat = 'PDF';
 
         var queryParams = $.param({
             FromDate: filters.FromDate,

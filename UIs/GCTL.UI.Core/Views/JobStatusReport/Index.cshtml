@@ -90,40 +90,81 @@
         line-height: 1;
     }
 
-    /* Filter Section - One Line Design with Auto Refresh */
+    /* Filter Section - One Line Design Across Laptop and Desktop */
     .filter-section {
         background: white;
-        padding: 12px 18px;
-        border-radius: 10px;
-        margin-bottom: 16px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 14px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.03);
         border: 1px solid var(--border);
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .filter-label {
         font-weight: 700;
         color: var(--secondary);
-        font-size: 0.86rem;
+        font-size: 0.82rem;
         white-space: nowrap;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
+        flex: 0 0 auto;
+        margin: 0;
     }
 
     .filter-group {
         display: flex;
         align-items: center;
-        gap: 6px;
-        flex: 1;
-        min-width: 120px;
+        gap: 4px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .filter-group.filter-date-group {
+        flex: 0 0 auto;
+    }
+
+    .filter-group.filter-date-group input {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 95px !important;
+        padding: 4px 22px 4px 6px !important;
+        font-size: 0.78rem !important;
+    }
+
+    .filter-group.filter-group-customer {
+        flex: 1.4 1 140px;
+        min-width: 110px;
+    }
+
+    .filter-group.filter-group-mode {
+        flex: 1 1 105px;
+        min-width: 95px;
+    }
+
+    .filter-group.filter-group-port {
+        flex: 0.9 1 95px;
+        min-width: 85px;
+    }
+
+    .filter-group.filter-group-status {
+        flex: 0.9 1 100px;
+        min-width: 90px;
+    }
+
+    .filter-group.filter-group-export {
+        flex: 1 1 120px;
+        min-width: 105px;
     }
 
     .filter-group label {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 600;
         white-space: nowrap;
         color: #475569;
@@ -133,14 +174,14 @@
     .filter-group input.form-control,
     .filter-group select.form-select {
         width: 100%;
-        padding: 5px 9px;
+        padding: 4px 6px;
         border: 1px solid var(--border);
-        border-radius: 6px;
-        font-size: 0.82rem;
+        border-radius: 5px;
+        font-size: 0.79rem;
         outline: none;
         background-color: #ffffff;
         color: var(--text-main);
-        height: 33px;
+        height: 31px;
         transition: border-color 0.2s, box-shadow 0.2s;
     }
 
@@ -150,9 +191,9 @@
     .filter-group input[type="date"] {
         background-image: url('/images/icons/calender.svg') !important;
         background-repeat: no-repeat !important;
-        background-position: right 10px center !important;
-        background-size: 16px 16px !important;
-        padding-right: 32px !important;
+        background-position: right 6px center !important;
+        background-size: 13px 13px !important;
+        padding-right: 22px !important;
         cursor: pointer;
     }
 
@@ -161,71 +202,33 @@
     }
 
     .filter-group .custom-dd-input {
-        min-height: 33px !important;
-        height: 33px !important;
-        padding: 3px 8px !important;
-        font-size: 0.82rem !important;
-        border-radius: 6px !important;
+        min-height: 31px !important;
+        height: 31px !important;
+        padding: 2px 6px !important;
+        font-size: 0.79rem !important;
+        border-radius: 5px !important;
     }
 
     .filter-actions {
         display: flex;
         align-items: center;
-        gap: 8px;
-    }
-
-    /* Responsive behavior for Filter Bar
-       - Laptop/medium (<=1199px): label on the left-top (full-width row), filters and export on next line with export aligned right
-       - Large screens (>=1200px): label, filters and export button on a single line
-    */
-    .filter-label {
-        flex: 0 0 100%;
-        text-align: left; /* ensure left-top placement */
-    }
-
-    /* Laptop and smaller tablets */
-    @@media (max-width: 1199px) {
-        .filter-section {
-            flex-wrap: wrap;
-            align-items: flex-start; /* keep label at top-left */
-        }
-        .filter-label {
-            flex: 0 0 100%;
-            margin-bottom: 6px;
-        }
-        .filter-actions {
-            margin-left: auto; /* push export button to the right on the filters row */
-        }
-    }
-
-    /* Large desktop */
-    @@media (min-width: 1200px) {
-        .filter-section {
-            flex-wrap: nowrap;
-            align-items: center;
-        }
-        .filter-label {
-            flex: 0 0 auto;
-            margin-right: 12px;
-        }
-        .filter-actions {
-            margin-left: 12px;
-        }
+        flex: 0 0 auto;
+        margin-left: 2px;
     }
 
     .btn-export-rep {
         background: var(--delivered);
         color: white;
         border: none;
-        padding: 6px 16px;
-        border-radius: 6px;
+        padding: 4px 12px;
+        border-radius: 5px;
         cursor: pointer;
         font-weight: 600;
-        font-size: 0.82rem;
+        font-size: 0.79rem;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        height: 33px;
+        gap: 4px;
+        height: 31px;
         white-space: nowrap;
         transition: all 0.2s ease;
     }
@@ -233,6 +236,23 @@
     .btn-export-rep:hover {
         background: #3d8b40;
         box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Responsive adjustments for Tablets/Mobile */
+    @@media (max-width: 991px) {
+        .filter-section {
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .filter-label {
+            flex: 0 0 100%;
+        }
+        .filter-group {
+            flex: 1 1 calc(50% - 8px);
+        }
+        .filter-actions {
+            margin-left: auto;
+        }
     }
 
     /* Card Wrapper for DataTables */
@@ -298,24 +318,32 @@
         width: 100% !important;
         margin-bottom: 0 !important;
         background: #ffffff !important;
+        border-collapse: collapse;
     }
 
+    .custom-grid-table thead th,
     .custom-grid-table th {
-        font-size: 0.76rem !important;
+        font-size: 0.72rem !important;
         font-weight: 600 !important;
         vertical-align: middle !important;
         text-align: center !important;
         white-space: nowrap !important;
-        padding: 7px 8px !important;
-        background: #ffffff !important;
+        padding: 5px 4px !important;
+        background: #f8fafc !important;
         color: #334155;
+        border-bottom: 2px solid var(--border) !important;
+    }
+
+    .custom-grid-table th[title] {
+        cursor: help;
+        border-bottom: 1px dotted #94a3b8;
     }
 
     .custom-grid-table td {
-        font-size: 0.77rem !important;
+        font-size: 0.73rem !important;
         vertical-align: middle !important;
         text-align: center !important;
-        padding: 5px 8px !important;
+        padding: 4px 4px !important;
         white-space: nowrap !important;
         background: #ffffff !important;
     }
@@ -323,7 +351,23 @@
     .custom-grid-table td.amount-cell,
     .custom-grid-table td.text-end {
         text-align: right !important;
-        padding-right: 10px !important;
+        padding-right: 6px !important;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .custom-grid-table td.cell-wrap {
+        white-space: normal !important;
+        word-break: break-word;
+        max-width: 140px;
+        text-align: left !important;
+    }
+
+    .currency-sym {
+        font-weight: 600;
+        color: #475569;
+        font-size: 0.75rem;
+        display: inline-block;
+        margin-right: 2px;
     }
 
     /* Fixed Controls (Length, Search, Info, Pagination) */
@@ -469,35 +513,34 @@
             <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
             
             <!-- From Date -->
-            <div class="filter-group">
+            <div class="filter-group filter-date-group">
                 <label for="filterFromDate">From</label>
                 <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("01/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
             <!-- To Date -->
-            <div class="filter-group">
+            <div class="filter-group filter-date-group">
                 <label for="filterToDate">To</label>
                 <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
-            <!-- Customer (Single Select) -->
-            <div class="filter-group">
-                <select id="filterCustomerId" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- select customer --">
-                    <option value="">select customer</option>
+            <!-- Customer (Single Select - Default None) -->
+            <div class="filter-group filter-group-customer">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="select customer">
+                    <option value="" selected>select customer</option>
                     @if (ViewBag.Customers != null)
                     {
-                        string defCust = ViewBag.DefaultCustomerId as string ?? "CUS000001";
                         foreach (SelectListItem item in (SelectList)ViewBag.Customers)
                         {
-                            <option value="@item.Value" selected="@(item.Value == defCust ? "selected" : null)">@item.Text</option>
+                            <option value="@item.Value">@item.Text</option>
                         }
                     }
                 </select>
             </div>
 
             <!-- Shipment Mode (Single Select, Default Air) -->
-            <div class="filter-group">
-                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- Shipment Mode --">
+            <div class="filter-group filter-group-mode">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="Shipment Mode">
                     <option value="Air" selected>Air Freight</option>
                     <option value="Sea">Sea Freight</option>
                     @if (ViewBag.ShipmentModes != null)
@@ -511,7 +554,7 @@
             </div>
 
             <!-- Port Type (Single Select) -->
-            <div class="filter-group">
+            <div class="filter-group filter-group-port">
                 <select id="filterPortType" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="Port Type">
                     <option value="">Port Type</option>
                     @if (ViewBag.PortTypes != null)
@@ -525,26 +568,28 @@
             </div>
 
             <!-- Job Status (Single Select) -->
-            <div class="filter-group">
+            <div class="filter-group filter-group-status">
                 <select id="filterJobStatus" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="-- Job Status --">
-                    <option value="">Job Status</option>
+                    <option value="">-- Job Status --</option>
                     <option value="Pending">Pending</option>
                     <option value="In Transit">In Transit</option>
                     <option value="Delivered">Delivered</option>
                 </select>
             </div>
 
-            <!-- Export Format (Single Select) -->
-            <div class="filter-group" style="max-width: 140px;">
-                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single">
-                    <option value="PDF">PDF Format</option>
-                    <option value="Excel">Excel Format</option>
+            <!-- Export Format (Single Select with Placeholder) -->
+            <div class="filter-group filter-group-export">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" data-placeholder="Select Exp. Format">
+                    <option value="">Select Exp. Format</option>
+                    <option value="PDF">PDF</option>
+                    <option value="Excel">Excel</option>
+                    <option value="CSV">CSV</option>
                 </select>
             </div>
 
             <!-- Actions (Export button only, search is automatic) -->
             <div class="filter-actions">
-                <button type="button" class="btn-export-rep" id="btnExport" title="Export grouped report by customer">
+                <button type="button" class="btn-export-rep" id="btnExport" title="Export report (Defaults to PDF if format not selected)">
                     <i class="fas fa-file-export"></i> EXPORT
                 </button>
             </div>
@@ -565,27 +610,27 @@
                         <table id="airJobTable" class="table table-bordered table-hover custom-grid-table w-100">
                             <thead>
                                 <tr>
-                                    <th style="width: 40px;">SL. No</th>
-                                    <th>Job No.</th>
-                                    <th>Job Date</th>
-                                    <th>Shipment Mode</th>
-                                    <th>Port</th>
-                                    <th>Doc's Receive Date</th>
-                                    <th>Invoice No.</th>
-                                    <th>Invoice Value</th>
-                                    <th>Material Name &amp; Pkgs Qty</th>
-                                    <th>Express Name, Country</th>
-                                    <th>L/C No.</th>
-                                    <th>Express/HAWB No.</th>
-                                    <th>MAWB No.</th>
-                                    <th>ETD</th>
-                                    <th>Flight Actual Arrival Dt.</th>
-                                    <th>Arrival Notice Rcvd From Express Dt.</th>
-                                    <th>Bill of Entry No</th>
-                                    <th>Bill of Entry Date</th>
-                                    <th>Actual Delivery Date</th>
-                                    <th>Shipment Status</th>
-                                    <th>Remarks</th>
+                                    <th class="text-center align-middle" title="Serial Number" data-bs-toggle="tooltip" style="width: 32px;">SL</th>
+                                    <th class="text-center align-middle" title="Job Number" data-bs-toggle="tooltip">Job No</th>
+                                    <th class="text-center align-middle" title="Job Date" data-bs-toggle="tooltip">Job Dt</th>
+                                    <th class="text-center align-middle" title="Shipment Mode" data-bs-toggle="tooltip">Mode</th>
+                                    <th class="text-center align-middle" title="Port Name" data-bs-toggle="tooltip">Port</th>
+                                    <th class="text-center align-middle" title="Doc's Receive Date" data-bs-toggle="tooltip">Doc Rec.</th>
+                                    <th class="text-center align-middle" title="Invoice Number" data-bs-toggle="tooltip">Inv. No</th>
+                                    <th class="text-center align-middle" title="Invoice Value" data-bs-toggle="tooltip">Inv. Val</th>
+                                    <th class="text-center align-middle" title="Material Name &amp; Packages Quantity" data-bs-toggle="tooltip">Material &amp; Qty</th>
+                                    <th class="text-center align-middle" title="Express Name, Country" data-bs-toggle="tooltip">Express/Ctry</th>
+                                    <th class="text-center align-middle" title="Letter of Credit (L/C) Number" data-bs-toggle="tooltip">L/C No</th>
+                                    <th class="text-center align-middle" title="Express / House Air Waybill (HAWB) Number" data-bs-toggle="tooltip">HAWB No</th>
+                                    <th class="text-center align-middle" title="Master Air Waybill (MAWB) Number" data-bs-toggle="tooltip">MAWB No</th>
+                                    <th class="text-center align-middle" title="Estimated Time of Departure (ETD)" data-bs-toggle="tooltip">ETD</th>
+                                    <th class="text-center align-middle" title="Flight Actual Arrival Date" data-bs-toggle="tooltip">Flight Arr.</th>
+                                    <th class="text-center align-middle" title="Arrival Notice Received From Express Date" data-bs-toggle="tooltip">Arr. Notice</th>
+                                    <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
+                                    <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                    <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Delivery Dt</th>
+                                    <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
+                                    <th class="text-center align-middle" title="Remarks" data-bs-toggle="tooltip">Remarks</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -599,32 +644,32 @@
                         <table id="seaJobTable" class="table table-bordered table-hover custom-grid-table w-100">
                             <thead>
                                 <tr>
-                                    <th style="width: 40px;">Sl. No.</th>
-                                    <th>Job No.</th>
-                                    <th>Job Date</th>
-                                    <th>Shipment Mode</th>
-                                    <th>Port</th>
-                                    <th>Doc's Rec. Dt.</th>
-                                    <th>Invoice No</th>
-                                    <th>Invoice Value</th>
-                                    <th>Container /Pkgs</th>
-                                    <th>Shipper</th>
-                                    <th>B/L No.</th>
-                                    <th>ETD</th>
-                                    <th>Final IGM Rec. Dt.</th>
-                                    <th>Ship Arrived</th>
-                                    <th>Unstaff/Discharge</th>
-                                    <th>Docs. Bank Sign</th>
-                                    <th>B/E No.</th>
-                                    <th>B/E Date</th>
-                                    <th>Est. Delivery Dt.</th>
-                                    <th>Actual Delivery Dt.</th>
-                                    <th>Shipment Status</th>
-                                    <th>Remarks</th>
-                                    <th>Term</th>
-                                    <th>Vessel Name &amp; R-No</th>
-                                    <th>Container No.</th>
-                                    <th>Forwarder Name &amp; Phone No.</th>
+                                    <th class="text-center align-middle" title="Serial Number" data-bs-toggle="tooltip" style="width: 32px;">SL</th>
+                                    <th class="text-center align-middle" title="Job Number" data-bs-toggle="tooltip">Job No</th>
+                                    <th class="text-center align-middle" title="Job Date" data-bs-toggle="tooltip">Job Dt</th>
+                                    <th class="text-center align-middle" title="Shipment Mode" data-bs-toggle="tooltip">Mode</th>
+                                    <th class="text-center align-middle" title="Port Name" data-bs-toggle="tooltip">Port</th>
+                                    <th class="text-center align-middle" title="Doc's Receive Date" data-bs-toggle="tooltip">Doc Rec.</th>
+                                    <th class="text-center align-middle" title="Invoice Number" data-bs-toggle="tooltip">Inv. No</th>
+                                    <th class="text-center align-middle" title="Invoice Value" data-bs-toggle="tooltip">Inv. Val</th>
+                                    <th class="text-center align-middle" title="Container / Packages Quantity" data-bs-toggle="tooltip">Cont./Pkgs</th>
+                                    <th class="text-center align-middle" title="Shipper" data-bs-toggle="tooltip">Shipper</th>
+                                    <th class="text-center align-middle" title="Bill of Lading (B/L) Number" data-bs-toggle="tooltip">B/L No</th>
+                                    <th class="text-center align-middle" title="Estimated Time of Departure (ETD)" data-bs-toggle="tooltip">ETD</th>
+                                    <th class="text-center align-middle" title="Final IGM Receive Date" data-bs-toggle="tooltip">IGM Rec.</th>
+                                    <th class="text-center align-middle" title="Ship Arrived Date" data-bs-toggle="tooltip">Ship Arr.</th>
+                                    <th class="text-center align-middle" title="Unstuff / Discharge Date" data-bs-toggle="tooltip">Discharge</th>
+                                    <th class="text-center align-middle" title="Docs Bank Sign Date" data-bs-toggle="tooltip">Bank Sign</th>
+                                    <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
+                                    <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                    <th class="text-center align-middle" title="Estimated Delivery Date" data-bs-toggle="tooltip">Est. Del.</th>
+                                    <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Act. Del.</th>
+                                    <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
+                                    <th class="text-center align-middle" title="Remarks" data-bs-toggle="tooltip">Remarks</th>
+                                    <th class="text-center align-middle" title="Term" data-bs-toggle="tooltip">Term</th>
+                                    <th class="text-center align-middle" title="Vessel Name &amp; Rotation No." data-bs-toggle="tooltip">Vessel</th>
+                                    <th class="text-center align-middle" title="Container Number" data-bs-toggle="tooltip">Cont. No</th>
+                                    <th class="text-center align-middle" title="Freight Forwarder Name &amp; Phone" data-bs-toggle="tooltip">Forwarder</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

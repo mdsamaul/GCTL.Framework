@@ -58,11 +58,11 @@ namespace GCTL.UI.Core.Controllers
                 var customers = await _customerService.SelectionCustomerAsync();
                 var custList = customers?.Where(x => !string.IsNullOrWhiteSpace(x.Code) && !string.IsNullOrWhiteSpace(x.Name)).ToList() ?? new();
                 ViewBag.Customers = new SelectList(custList, "Code", "Name");
-                ViewBag.DefaultCustomerId = custList.FirstOrDefault()?.Code ?? "CUS000001";
+                ViewBag.DefaultCustomerId = "";
 
                 ViewBag.JobStatuses = new SelectList(new List<SelectListItem>
                 {
-                    new SelectListItem { Value = "", Text = "-- Job Status --" },
+                    new SelectListItem { Value = "", Text = "Job Status" },
                     new SelectListItem { Value = "Pending", Text = "Pending" },
                     new SelectListItem { Value = "In Transit", Text = "In Transit" },
                     new SelectListItem { Value = "Delivered", Text = "Delivered" }
@@ -70,8 +70,10 @@ namespace GCTL.UI.Core.Controllers
 
                 ViewBag.ExportFormats = new SelectList(new List<SelectListItem>
                 {
-                    new SelectListItem { Value = "PDF", Text = "PDF Format" },
-                    new SelectListItem { Value = "Excel", Text = "Excel Format" }
+                    new SelectListItem { Value = "", Text = "Select Exp. Format" },
+                    new SelectListItem { Value = "PDF", Text = "PDF" },
+                    new SelectListItem { Value = "Excel", Text = "Excel" },
+                    new SelectListItem { Value = "CSV", Text = "CSV" }
                 }, "Value", "Text");
             }
             catch
@@ -298,8 +300,15 @@ namespace GCTL.UI.Core.Controllers
                     string fileName = $"JobStatusReport_{filter.ActiveTab}_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
                     return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
                 }
+                else if (string.Equals(exportFormat, "CSV", StringComparison.OrdinalIgnoreCase))
+                {
+                    var bytes = await _reportService.GenerateCsvReportAsync(filter);
+                    string fileName = $"JobStatusReport_{filter.ActiveTab}_{DateTime.Now:yyyyMMddHHmmss}.csv";
+                    return File(bytes, "text/csv; charset=utf-8", fileName);
+                }
                 else
                 {
+                    // Default fallback to PDF
                     var bytes = await _reportService.GeneratePdfReportAsync(filter);
                     string fileName = $"JobStatusReport_{filter.ActiveTab}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
                     return File(bytes, "application/pdf", fileName);
