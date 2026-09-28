@@ -11,5 +11,6 @@ namespace GCTL.Service.JobStatusReport
         Task<List<AirJobReportItemDTO>> GetAirJobsAsync(JobStatusReportFilterVM filter);
         Task<byte[]> GenerateExcelReportAsync(JobStatusReportFilterVM filter);
         Task<byte[]> GeneratePdfReportAsync(JobStatusReportFilterVM filter);
+        Task<byte[]> GenerateCsvReportAsync(JobStatusReportFilterVM filter);
     }
 }
