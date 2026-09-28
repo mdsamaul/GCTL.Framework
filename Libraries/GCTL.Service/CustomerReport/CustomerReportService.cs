@@ -776,33 +776,46 @@ namespace GCTL.Service.CustomerReport
                 preparedGroups.Add((group.Key, group.Count(), groupRows));
             }
 
+            int[] minCustomerWidths = new int[]
+            {
+                6,  // SN
+                14, // Customer ID
+                28, // Customer Name
+                35, // Address
+                16, // Phone
+                16, // Fax
+                24, // Email
+                20  // Contact Person
+            };
+
+            for (int c = 0; c < totalCols; c++)
+            {
+                colWidths[c] = Math.Max(minCustomerWidths[c], colWidths[c] + 2);
+            }
+
+            int totalTableWidth = colWidths.Sum() + (totalCols - 1);
+
             using var memoryStream = new MemoryStream();
             using (var writer = new StreamWriter(memoryStream, new System.Text.UTF8Encoding(true)))
             {
                 // Centered Company Information Headers
-                await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(companyName, totalCols));
-                await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Customer Report", totalCols));
-                await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank row
+                await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(companyName, totalCols, totalTableWidth));
+                await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Customer Report", totalCols, totalTableWidth));
+                await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank row
 
                 if (preparedGroups.Count == 0)
                 {
                     var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCustomerCsvCell(h, i, colWidths[i], isHeader: true)));
                     await writer.WriteLineAsync(string.Join(",", paddedHeaders));
 
-                    var emptyRow = new string[totalCols];
-                    emptyRow[0] = EscapeCsv("No customer records found.");
-                    for (int i = 1; i < totalCols; i++) emptyRow[i] = "\"\"";
-                    await writer.WriteLineAsync(string.Join(",", emptyRow));
+                    await writer.WriteLineAsync($"\"No customer records found.\"{new string(',', totalCols - 1)}");
                 }
                 else
                 {
                     foreach (var group in preparedGroups)
                     {
                         // Customer Type Group Header
-                        var groupHeaderRow = new string[totalCols];
-                        groupHeaderRow[0] = EscapeCsv($"Customer Type: {group.TypeLabel} (Total: {group.Count})");
-                        for (int i = 1; i < totalCols; i++) groupHeaderRow[i] = "\"\"";
-                        await writer.WriteLineAsync(string.Join(",", groupHeaderRow));
+                        await writer.WriteLineAsync($"\"Customer Type: {group.TypeLabel} [Total: {group.Count}]\"{new string(',', totalCols - 1)}");
 
                         var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCustomerCsvCell(h, i, colWidths[i], isHeader: true)));
                         await writer.WriteLineAsync(string.Join(",", paddedHeaders));
@@ -813,7 +826,7 @@ namespace GCTL.Service.CustomerReport
                             await writer.WriteLineAsync(string.Join(",", formattedCells));
                         }
 
-                        await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank line between groups
+                        await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank line between groups
                     }
                 }
 
@@ -858,20 +871,15 @@ namespace GCTL.Service.CustomerReport
             }
         }
 
-        private static string BuildCenteredCsvHeaderRow(string text, int totalCols)
+        private static string BuildCenteredCsvHeaderRow(string text, int totalCols, int totalTableWidth)
         {
-            int centerCol = totalCols / 2;
-            var cells = new string[totalCols];
-            for (int i = 0; i < totalCols; i++)
-            {
-                cells[i] = (i == centerCol) ? EscapeCsv(text) : "\"\"";
-            }
-            return string.Join(",", cells);
+            string centered = PadCenter(text, totalTableWidth);
+            return $"{EscapeCsv(centered)}{new string(',', totalCols - 1)}";
         }
 
         private static string EscapeCsv(string? val)
         {
-            if (string.IsNullOrEmpty(val)) return "\"\"";
+            if (string.IsNullOrEmpty(val)) return "";
             val = val.Replace("\"", "\"\"");
             return $"\"{val}\"";
         }
