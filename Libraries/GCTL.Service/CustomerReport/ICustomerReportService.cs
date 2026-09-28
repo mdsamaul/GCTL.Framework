@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static GCTL.Service.CustomerReport.CustomerReportService;
 
 namespace GCTL.Service.CustomerReport
 {
@@ -12,5 +13,7 @@ namespace GCTL.Service.CustomerReport
         Task<byte[]> GenerateExcelReportAsync(CustomerReportFilterDto filter);
         Task<byte[]> GeneratePdfReportAsync(CustomerReportFilterDto filter);
         Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter, bool loadBinaryContent = true);
+
+        Task<List<CustomerLookupDto>> GetCustomerLookupAsync(IEnumerable<string>? typeIds);
     }
 }

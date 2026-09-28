@@ -68,200 +68,140 @@ namespace GCTL.Service.CustomerReport
 
         #region Fetch Customer Report Data
 
+        private static readonly object _idxLock = new();
+        private static readonly Dictionary<string, (DateTime At, Dictionary<string, string> ByName, Dictionary<string, string> ById)> _fileIdx = new();
+
+        private static (Dictionary<string, string> ByName, Dictionary<string, string> ById) GetFileIndex(string folder)
+        {
+            lock (_idxLock)
+            {
+                if (_fileIdx.TryGetValue(folder, out var e) && DateTime.UtcNow - e.At < TimeSpan.FromMinutes(2))
+                    return (e.ByName, e.ById);
+
+                var byName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                var byId = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                if (Directory.Exists(folder))
+                {
+                    foreach (var f in Directory.EnumerateFiles(folder))
+                    {
+                        byName.TryAdd(Path.GetFileName(f), f);
+                        byId.TryAdd(Path.GetFileNameWithoutExtension(f), f);
+                    }
+                }
+                _fileIdx[folder] = (DateTime.UtcNow, byName, byId);
+                return (byName, byId);
+            }
+        }
+
         public async Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter, bool loadBinaryContent = true)
         {
             var result = new List<CustomerReportResultDto>();
-
-            if (string.IsNullOrEmpty(_connectionString))
-            {
-                return result;
-            }
-
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-
-            using var command = new SqlCommand("Sales_GetCustomerReport", connection);
-            command.CommandType = CommandType.StoredProcedure;
-
-            string customerIds = filter.CustomerId != null && filter.CustomerId.Any() ? string.Join(",", filter.CustomerId) : string.Empty;
-            string customerTypeIds = filter.CustomerTypeId != null && filter.CustomerTypeId.Any() ? string.Join(",", filter.CustomerTypeId) : string.Empty;
-
-            command.Parameters.Add(new SqlParameter("@CustomerID", string.IsNullOrWhiteSpace(customerIds) ? "" : customerIds.Trim()));
-            command.Parameters.Add(new SqlParameter("@CustomerTypeID", string.IsNullOrWhiteSpace(customerTypeIds) ? "" : customerTypeIds.Trim()));
-            command.Parameters.Add(new SqlParameter("@CompanyCode", DBNull.Value));
-
-            using var reader = await command.ExecuteReaderAsync();
+            if (string.IsNullOrEmpty(_connectionString)) return result;
 
             var webRoot = _webHostEnvironment?.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var photoFolder = Path.Combine(webRoot, "uploads", "CRM", "Image");
-            var signatureFolder = Path.Combine(webRoot, "uploads", "CRM", "Signature");
-            bool photoFolderExists = Directory.Exists(photoFolder);
-            bool signatureFolderExists = Directory.Exists(signatureFolder);
+            var sigFolder = Path.Combine(webRoot, "uploads", "CRM", "Signature");
+            var photoIdx = GetFileIndex(photoFolder);
+            var sigIdx = GetFileIndex(sigFolder);
 
-            Dictionary<string, string>? photoFileLookup = null;
-            if (photoFolderExists)
-            {
-                photoFileLookup = Directory.EnumerateFiles(photoFolder)
-                    .GroupBy(f => Path.GetFileNameWithoutExtension(f), StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-            }
+            string Join(List<string>? l) => l != null && l.Any() ? string.Join(",", l.Select(x => x.Trim())) : string.Empty;
 
-            Dictionary<string, string>? signatureFileLookup = null;
-            if (signatureFolderExists)
-            {
-                signatureFileLookup = Directory.EnumerateFiles(signatureFolder)
-                    .GroupBy(f => Path.GetFileNameWithoutExtension(f), StringComparer.OrdinalIgnoreCase)
-                    .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-            }
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+            using var command = new SqlCommand("Sales_GetCustomerReport", connection)
+            { CommandType = CommandType.StoredProcedure, CommandTimeout = 120 };
 
-            var rows = new List<(string CustomerId, string CustomerName, string Address, string Phone,
-                string Fax, string Email, string PhotoFileName, byte[]? PhotoBytesFromDb,
-                string SignatureFileName, byte[]? SignatureBytesFromDb, string ContactPerson,
-                string Designation, string CustomerTypeId, string CustomerType, string CompanyCode,
-                string CompanyName, string CompanyAddress1)>();
+            command.Parameters.Add("@CustomerID", SqlDbType.NVarChar, -1).Value = Join(filter.CustomerId);
+            command.Parameters.Add("@CustomerTypeID", SqlDbType.NVarChar, -1).Value = Join(filter.CustomerTypeId);
+            command.Parameters.Add("@CompanyCode", SqlDbType.NVarChar, 50).Value = DBNull.Value;
+            command.Parameters.Add("@IncludePhoto", SqlDbType.Bit).Value = loadBinaryContent;
+
+            using var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess == 0 ? CommandBehavior.Default : CommandBehavior.Default);
+
+            // column ordinal ek bar, exception nai
+            var ord = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < reader.FieldCount; i++) ord[reader.GetName(i)] = i;
+
+            string S(string col) => ord.TryGetValue(col, out var i) && !reader.IsDBNull(i)
+                ? Convert.ToString(reader.GetValue(i))?.Trim() ?? string.Empty : string.Empty;
+            byte[]? B(string col) => ord.TryGetValue(col, out var i) && !reader.IsDBNull(i)
+                ? reader.GetValue(i) as byte[] : null;
 
             while (await reader.ReadAsync())
             {
-                string GetString(string col)
+                var customerId = S("CustomerID");
+
+                // photo
+                string? photoUrl = null; string? photoPath = null;
+                var pName = S("CustomerPhoto");
+                if (!string.IsNullOrEmpty(pName) && pName != "System.Byte[]") photoIdx.ByName.TryGetValue(pName, out photoPath);
+                if (photoPath == null && customerId != "") photoIdx.ById.TryGetValue(customerId, out photoPath);
+                if (photoPath != null) photoUrl = $"/uploads/CRM/Image/{Path.GetFileName(photoPath)}";
+
+                // signature
+                string? sigUrl = null; string? sigPath = null;
+                var sName = S("CustomerDigitalSignature");
+                if (string.IsNullOrEmpty(sName)) sName = S("Signature");
+                if (!string.IsNullOrEmpty(sName) && sName != "System.Byte[]") sigIdx.ByName.TryGetValue(sName, out sigPath);
+                if (sigPath == null && customerId != "") sigIdx.ById.TryGetValue(customerId, out sigPath);
+                if (sigPath != null) sigUrl = $"/uploads/CRM/Signature/{Path.GetFileName(sigPath)}";
+
+                byte[]? photoBytes = null, sigBytes = null;
+                if (loadBinaryContent)   // shudhu export er somoy
                 {
-                    try
-                    {
-                        int idx = reader.GetOrdinal(col);
-                        return reader.IsDBNull(idx) ? string.Empty : reader.GetValue(idx).ToString()?.Trim() ?? string.Empty;
-                    }
-                    catch { return string.Empty; }
+                    if (photoPath != null) { try { photoBytes = await File.ReadAllBytesAsync(photoPath); } catch { } }
+                    photoBytes ??= B("Photo") ?? B("CustomerPhoto");
+                    if (sigPath != null) { try { sigBytes = await File.ReadAllBytesAsync(sigPath); } catch { } }
+                    sigBytes ??= B("CustomerDigitalSignature") ?? B("Signature");
                 }
-
-                byte[]? GetBytes(string col)
-                {
-                    try
-                    {
-                        int idx = reader.GetOrdinal(col);
-                        if (reader.IsDBNull(idx)) return null;
-                        return reader.GetValue(idx) as byte[];
-                    }
-                    catch { return null; }
-                }
-
-                var customerId = GetString("CustomerID");
-                var photoFileName = GetString("CustomerPhoto");
-                if (string.IsNullOrEmpty(photoFileName)) photoFileName = GetString("Photo");
-
-                var signatureFileName = GetString("CustomerDigitalSignature");
-                if (string.IsNullOrEmpty(signatureFileName)) signatureFileName = GetString("Signature");
-
-                rows.Add((
-                    customerId,
-                    GetString("CustomerName"),
-                    GetString("Address"),
-                    GetString("Phone"),
-                    GetString("FAX"),
-                    GetString("Email"),
-                    photoFileName,
-                    GetBytes("Photo") ?? GetBytes("CustomerPhoto"),
-                    signatureFileName,
-                    GetBytes("CustomerDigitalSignature") ?? GetBytes("Signature"),
-                    GetString("ContactPerson"),
-                    GetString("Designation"),
-                    GetString("CustomerTypeID"),
-                    GetString("CustomerTypeName"),
-                    GetString("CompanyCode"),
-                    GetString("CompanyName"),
-                    GetString("CompanyAddress1")
-                ));
-            }
-
-            foreach (var row in rows)
-            {
-                byte[]? photoBytes = null;
-                string? photoUrl = null;
-
-                if (photoFolderExists && photoFileLookup != null)
-                {
-                    string? targetPhotoPath = null;
-
-                    if (!string.IsNullOrWhiteSpace(row.PhotoFileName))
-                    {
-                        var directPath = Path.Combine(photoFolder, row.PhotoFileName);
-                        if (File.Exists(directPath))
-                            targetPhotoPath = directPath;
-                    }
-
-                    if (targetPhotoPath == null && !string.IsNullOrWhiteSpace(row.CustomerId)
-                        && photoFileLookup.TryGetValue(row.CustomerId, out var matchedPhoto))
-                    {
-                        targetPhotoPath = matchedPhoto;
-                    }
-
-                    if (targetPhotoPath != null)
-                    {
-                        try
-                        {
-                            photoBytes = await File.ReadAllBytesAsync(targetPhotoPath);
-                            photoUrl = $"/uploads/CRM/Image/{Path.GetFileName(targetPhotoPath)}";
-                        }
-                        catch { }
-                    }
-                }
-
-                photoBytes ??= row.PhotoBytesFromDb;
-
-                byte[]? signatureBytes = null;
-                string? signatureUrl = null;
-
-                if (signatureFolderExists && signatureFileLookup != null)
-                {
-                    string? targetSigPath = null;
-
-                    if (!string.IsNullOrWhiteSpace(row.SignatureFileName))
-                    {
-                        var directPath = Path.Combine(signatureFolder, row.SignatureFileName);
-                        if (File.Exists(directPath))
-                            targetSigPath = directPath;
-                    }
-
-                    if (targetSigPath == null && !string.IsNullOrWhiteSpace(row.CustomerId)
-                        && signatureFileLookup.TryGetValue(row.CustomerId, out var matchedSig))
-                    {
-                        targetSigPath = matchedSig;
-                    }
-
-                    if (targetSigPath != null)
-                    {
-                        try
-                        {
-                            signatureBytes = await File.ReadAllBytesAsync(targetSigPath);
-                            signatureUrl = $"/uploads/CRM/Signature/{Path.GetFileName(targetSigPath)}";
-                        }
-                        catch { }
-                    }
-                }
-
-                signatureBytes ??= row.SignatureBytesFromDb;
 
                 result.Add(new CustomerReportResultDto
                 {
-                    CustomerId = row.CustomerId,
-                    CustomerName = row.CustomerName,
-                    CustomerAddress = row.Address,
-                    Phone = row.Phone,
-                    Fax = row.Fax,
-                    Email = row.Email,
+                    CustomerId = customerId,
+                    CustomerName = S("CustomerName"),
+                    CustomerAddress = S("Address"),
+                    Phone = S("Phone"),
+                    Fax = S("FAX"),
+                    Email = S("Email"),
                     CustomerPhoto = photoBytes,
-                    CustomerDigitalSignature = signatureBytes,
+                    CustomerDigitalSignature = sigBytes,
                     PhotoUrl = photoUrl,
-                    SignatureUrl = signatureUrl,
-                    ContactPerson = row.ContactPerson,
-                    Designation = row.Designation,
-                    CustomerTypeId = row.CustomerTypeId,
-                    CustomerType = row.CustomerType,
-                    CompanyCode = row.CompanyCode,
-                    CompanyName = row.CompanyName,
-                    CompanyAddress1 = row.CompanyAddress1
+                    SignatureUrl = sigUrl,
+                    ContactPerson = S("ContactPerson"),
+                    Designation = S("Designation"),
+                    CustomerTypeId = S("CustomerTypeID"),
+                    CustomerType = S("CustomerTypeName"),
+                    CompanyCode = S("CompanyCode"),
+                    CompanyName = S("CompanyName"),
+                    CompanyAddress1 = S("CompanyAddress1")
                 });
             }
-
             return result;
+        }
+
+        // cascading dropdown er jonno
+        public record CustomerLookupDto(string Value, string Text);
+
+        public async Task<List<CustomerLookupDto>> GetCustomerLookupAsync(IEnumerable<string>? typeIds)
+        {
+            var list = new List<CustomerLookupDto>();
+            if (string.IsNullOrEmpty(_connectionString)) return list;
+
+            var types = typeIds != null && typeIds.Any() ? string.Join(",", typeIds.Select(x => x.Trim())) : string.Empty;
+
+            using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            using var cmd = new SqlCommand(@"
+            SELECT CustomerID, CustomerName
+            FROM dbo.Sales_Customer
+            WHERE @t = '' OR CustomerType IN (SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@t, ','))
+            ORDER BY CustomerName", conn);
+            cmd.Parameters.Add("@t", SqlDbType.NVarChar, -1).Value = types;
+
+            using var r = await cmd.ExecuteReaderAsync();
+            while (await r.ReadAsync())
+                list.Add(new CustomerLookupDto(r.GetValue(0).ToString()!.Trim(), r.IsDBNull(1) ? "" : r.GetString(1)));
+            return list;
         }
 
         #endregion
@@ -535,12 +475,12 @@ namespace GCTL.Service.CustomerReport
 
             const int totalCols = 9;
 
-            float[] relativeWidths = { 1.5f, 2.8f, 10.0f, 12.0f, 2.3f, 3.0f, 5.5f, 2.0f, 12.5f };
-            const double scale = 4.5;
+            // SN, ID, Name, Address, Phone, Fax, Email, Photo, Contact
+            double[] colWidths = { 6, 10, 30, 35, 10, 15, 25, 9, 50 };
 
-            for (int i = 0; i < relativeWidths.Length; i++)
+            for (int i = 0; i < colWidths.Length; i++)
             {
-                ws.Column(i + 1).Width = relativeWidths[i] * scale;
+                ws.Column(i + 1).Width = colWidths[i];
             }
 
             var r1 = ws.Range(1, 1, 1, totalCols);
@@ -589,35 +529,34 @@ namespace GCTL.Service.CustomerReport
 
             string[] headers = new string[]
             {
-       "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
+               "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
             };
 
             int currRow = 5;
             const int photoColIndex = 8;
             const double rowHeightForPhoto = 40;
             const double baseRowHeight = 15;
-            const double lineHeight = 14.5;
+            const double lineHeight = 12;
             const double photoImgWidth = 50;
-            const double photoImgHeight = 40;
+            const double photoImgHeight = 40;     // font 9 er jonno (age 14.5 chhilo)
+            const double charsPerWidthUnit = 1.2; // Times New Roman 9 e column e beshi char dhore
 
             double EstimateRowHeightForColumn(string text, int columnIndex)
             {
                 if (string.IsNullOrWhiteSpace(text)) return baseRowHeight;
 
-                double colWidthChars = Math.Max(6, ws.Column(columnIndex).Width);
+                double colWidthChars = Math.Max(6, ws.Column(columnIndex).Width * charsPerWidthUnit);
 
-                var explicitLines = text.Split(new[] { "\r\n", "\n", ";" }, StringSplitOptions.RemoveEmptyEntries);
+                var explicitLines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 int totalWrappedLines = 0;
 
                 foreach (var line in explicitLines)
                 {
-                    var trimmed = line.Trim();
-                    int wrapped = (int)Math.Ceiling(trimmed.Length / colWidthChars);
+                    int wrapped = (int)Math.Ceiling(line.Trim().Length / colWidthChars);
                     totalWrappedLines += Math.Max(1, wrapped);
                 }
 
-                totalWrappedLines = Math.Max(1, totalWrappedLines);
-                return Math.Max(baseRowHeight, totalWrappedLines * lineHeight);
+                return Math.Max(baseRowHeight, totalWrappedLines * lineHeight + 4);
             }
 
             var groupPageBreakRows = new List<int>();
@@ -664,13 +603,18 @@ namespace GCTL.Service.CustomerReport
                     ws.Cell(currRow, 5).Value = item.Phone;
                     ws.Cell(currRow, 6).Value = item.Fax;
                     ws.Cell(currRow, 7).Value = item.Email;
-                    ws.Cell(currRow, 9).Value = item.ContactPerson;
+                    var contactClean = string.Join("\n",
+                    (item.ContactPerson ?? "")
+                   .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                   .Select(l => l.Trim()));
+                    ws.Cell(currRow, 9).Value = contactClean;
 
                     // ---- Row height must be finalized BEFORE we calculate photo centering offsets ----
                     double neededHeight = baseRowHeight;
                     neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerName, 3));
                     neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerAddress, 4));
-                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.ContactPerson, 9));
+                   // neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.ContactPerson, 9));
+                    neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(contactClean, 9));
 
                     bool hasPhoto = item.CustomerPhoto != null && item.CustomerPhoto.Length > 0;
                     if (hasPhoto)
@@ -739,6 +683,8 @@ namespace GCTL.Service.CustomerReport
             foreach (var breakRow in groupPageBreakRows)
             {
                 ws.PageSetup.AddHorizontalPageBreak(breakRow - 1);
+                ws.PageSetup.PageOrientation = XLPageOrientation.Landscape;
+                ws.PageSetup.FitToPages(1, 0);
             }
 
             using var ms = new MemoryStream();

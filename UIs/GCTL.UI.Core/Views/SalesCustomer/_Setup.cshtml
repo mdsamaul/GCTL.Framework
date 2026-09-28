@@ -212,13 +212,15 @@
 
             @* ---------- Row 9: Contact Person & Sales Person ---------- *@
             <div class="row g-4 mb-1">
+
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "Cpid",
+                    InputName = "ContactPerson",
                     LabelText = "Contact Person",
                     FieldType = FieldType.MultiSelect,
                     Placeholder = "Select Contact Person",
-                    SelectItems = ViewBag.ContactDD as SelectList,
+                    AjaxSourceUrl = "/SalesDeliveryLocation/GetContactPerson",
                     ColumnClass = "col-xxl-6 col-xl-4 col-lg-4 col-md-6 col-12 sc-field-col",
                     ReserveActionSlot = false,
                     ShowQuickAdd = true,
@@ -228,7 +230,7 @@
                     QuickAddTitle = "Contact Person Info",
                     CustomAttributes = new Dictionary<string, string> { { "table-view", "true" } }
                 })
-
+               
                 @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
                 {
                     InputId = "SalesPerson",
