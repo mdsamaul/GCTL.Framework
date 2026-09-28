@@ -1893,15 +1893,17 @@ ORDER BY fj.JobNo ASC;
         private static string PadLeftAligned(string text, int width)
         {
             text ??= "";
-            if (text.Length >= width) return text;
-            return text.PadRight(width);
+            string padded = " " + text;
+            if (padded.Length >= width) return padded;
+            return padded.PadRight(width);
         }
 
         private static string PadRightAligned(string text, int width)
         {
             text ??= "";
-            if (text.Length >= width) return text;
-            return text.PadLeft(width);
+            string padded = text + " ";
+            if (padded.Length >= width) return padded;
+            return padded.PadLeft(width);
         }
 
         private static string FormatCsvCell(string? text, int colIdx, int width, bool isHeader = false)
@@ -1926,26 +1928,15 @@ ORDER BY fj.JobNo ASC;
             }
         }
 
-        private static string BuildCenteredCsvHeaderRow(string text, int totalCols)
+        private static string BuildCenteredCsvHeaderRow(string text, int totalCols, int totalTableWidth)
         {
-            int centerCol = totalCols / 2;
-            var cells = new string[totalCols];
-            for (int i = 0; i < totalCols; i++)
-            {
-                cells[i] = (i == centerCol) ? EscapeCsv(text) : "\"\"";
-            }
-            return string.Join(",", cells);
+            string centered = PadCenter(text, totalTableWidth);
+            return $"{EscapeCsv(centered)}{new string(',', totalCols - 1)}";
         }
 
         private static string BuildCustomerCsvRow(string customerTitle, int totalCols)
         {
-            var cells = new string[totalCols];
-            cells[0] = EscapeCsv(customerTitle);
-            for (int i = 1; i < totalCols; i++)
-            {
-                cells[i] = "\"\"";
-            }
-            return string.Join(",", cells);
+            return $"{EscapeCsv(customerTitle)}{new string(',', totalCols - 1)}";
         }
 
         private static async Task WriteAirCsvAsync(StreamWriter writer, List<AirJobReportItemDTO> jobs, JobStatusReportFilterVM filter)
@@ -2018,30 +2009,60 @@ ORDER BY fj.JobNo ASC;
                 preparedGroups.Add((group.Key, group.Count(), groupRows));
             }
 
+            // Exact spacious column widths matching the Excel report layout
+            int[] minAirWidths = new int[]
+            {
+                8,  // SL. No
+                28, // Job No. (fits AirExp/Dha_BFL_26_000116 with padding)
+                14, // Job Date
+                16, // Shipment Mode
+                10, // Port
+                22, // Doc's Receive Date
+                18, // Invoice No.
+                16, // Invoice Value
+                45, // Material Name & Pkgs Qty (wide column as in Excel screenshot)
+                25, // Express Name, Country
+                22, // L/C No.
+                20, // Express/HAWB No.
+                18, // MAWB No.
+                14, // ETD
+                28, // Flight Actual Arrival Dt.
+                38, // Arrival Notice Rcvd From Express Dt.
+                20, // Bill of Entry No
+                20, // Bill of Entry Date
+                22, // Actual Delivery Date
+                18, // Shipment Status
+                22  // Remarks
+            };
+
+            for (int c = 0; c < totalCols; c++)
+            {
+                colWidths[c] = Math.Max(minAirWidths[c], colWidths[c] + 2);
+            }
+
+            int totalTableWidth = colWidths.Sum() + (totalCols - 1);
+
             // Company Information Header (Centered across the report width like Excel)
-            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Formosa Logistics Limited", totalCols));
-            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Job Status Report - Formosa Logistics (Air Port)", totalCols));
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Formosa Logistics Limited", totalCols, totalTableWidth));
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Job Status Report - Formosa Logistics (Air Port)", totalCols, totalTableWidth));
 
             string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
                 ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
-            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(dateRangeStr, totalCols));
-            await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank row
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(dateRangeStr, totalCols, totalTableWidth));
+            await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank row
 
             if (preparedGroups.Count == 0)
             {
                 var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCsvCell(h, i, colWidths[i], isHeader: true)));
                 await writer.WriteLineAsync(string.Join(",", paddedHeaders));
 
-                var emptyRow = new string[totalCols];
-                emptyRow[0] = EscapeCsv("No Air Freight records found.");
-                for (int i = 1; i < totalCols; i++) emptyRow[i] = "\"\"";
-                await writer.WriteLineAsync(string.Join(",", emptyRow));
+                await writer.WriteLineAsync($"\"No Air Freight records found.\"{new string(',', totalCols - 1)}");
                 return;
             }
 
             foreach (var group in preparedGroups)
             {
-                await writer.WriteLineAsync(BuildCustomerCsvRow($"CUSTOMER: {group.CustomerName.ToUpper()}  (Total Jobs: {group.Count})", totalCols));
+                await writer.WriteLineAsync(BuildCustomerCsvRow($"CUSTOMER: {group.CustomerName.ToUpper()}  [Total Jobs: {group.Count}]", totalCols));
 
                 var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCsvCell(h, i, colWidths[i], isHeader: true)));
                 await writer.WriteLineAsync(string.Join(",", paddedHeaders));
@@ -2052,7 +2073,7 @@ ORDER BY fj.JobNo ASC;
                     await writer.WriteLineAsync(string.Join(",", formattedCells));
                 }
 
-                await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank line between customer groups
+                await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank line between customer groups
             }
         }
 
@@ -2131,30 +2152,65 @@ ORDER BY fj.JobNo ASC;
                 preparedGroups.Add((group.Key, group.Count(), groupRows));
             }
 
+            // Exact spacious column widths matching the Excel report layout
+            int[] minSeaWidths = new int[]
+            {
+                8,  // Sl. No.
+                28, // Job No.
+                14, // Job Date
+                16, // Shipment Mode
+                12, // Port
+                18, // Doc's Rec. Dt.
+                18, // Invoice No
+                16, // Invoice Value
+                45, // Container /Pkgs
+                26, // Shipper
+                20, // B/L No.
+                14, // ETD
+                20, // Final IGM Rec. Dt.
+                16, // Ship Arrived
+                20, // Unstaff/Discharge
+                18, // Docs. Bank Sign
+                18, // B/E No.
+                14, // B/E Date
+                18, // Est. Delivery Dt.
+                22, // Actual Delivery Dt.
+                18, // Shipment Status
+                22, // Remarks
+                12, // Term
+                26, // Vessel Name & R-No
+                20, // Container No.
+                30  // Forwarder Name & Phone No.
+            };
+
+            for (int c = 0; c < totalCols; c++)
+            {
+                colWidths[c] = Math.Max(minSeaWidths[c], colWidths[c] + 2);
+            }
+
+            int totalTableWidth = colWidths.Sum() + (totalCols - 1);
+
             // Company Information Header (Centered across the report width like Excel)
-            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Formosa Logistics Limited", totalCols));
-            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Job Status Report - Formosa Logistics (Sea Port)", totalCols));
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Formosa Logistics Limited", totalCols, totalTableWidth));
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Job Status Report - Formosa Logistics (Sea Port)", totalCols, totalTableWidth));
 
             string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
                 ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
-            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(dateRangeStr, totalCols));
-            await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank row
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(dateRangeStr, totalCols, totalTableWidth));
+            await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank row
 
             if (preparedGroups.Count == 0)
             {
                 var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCsvCell(h, i, colWidths[i], isHeader: true)));
                 await writer.WriteLineAsync(string.Join(",", paddedHeaders));
 
-                var emptyRow = new string[totalCols];
-                emptyRow[0] = EscapeCsv("No Sea Freight records found.");
-                for (int i = 1; i < totalCols; i++) emptyRow[i] = "\"\"";
-                await writer.WriteLineAsync(string.Join(",", emptyRow));
+                await writer.WriteLineAsync($"\"No Sea Freight records found.\"{new string(',', totalCols - 1)}");
                 return;
             }
 
             foreach (var group in preparedGroups)
             {
-                await writer.WriteLineAsync(BuildCustomerCsvRow($"CUSTOMER: {group.CustomerName.ToUpper()}  (Total Jobs: {group.Count})", totalCols));
+                await writer.WriteLineAsync(BuildCustomerCsvRow($"CUSTOMER: {group.CustomerName.ToUpper()}  [Total Jobs: {group.Count}]", totalCols));
 
                 var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCsvCell(h, i, colWidths[i], isHeader: true)));
                 await writer.WriteLineAsync(string.Join(",", paddedHeaders));
@@ -2165,13 +2221,13 @@ ORDER BY fj.JobNo ASC;
                     await writer.WriteLineAsync(string.Join(",", formattedCells));
                 }
 
-                await writer.WriteLineAsync(string.Join(",", Enumerable.Repeat("\"\"", totalCols))); // Blank line between customer groups
+                await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank line between customer groups
             }
         }
 
         private static string EscapeCsv(string? val)
         {
-            if (string.IsNullOrEmpty(val)) return "\"\"";
+            if (string.IsNullOrEmpty(val)) return "";
             val = val.Replace("\"", "\"\"");
             return $"\"{val}\"";
         }
