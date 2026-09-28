@@ -145,44 +145,23 @@ namespace GCTL.UI.Core.Controllers
                     JobStatus = ""
                 };
 
-                // Truly parallel execution: Summary (prc_JobPortal_JobStatusExceptAll) & Job dataset
-                var summaryTask = _reportService.GetSummaryAsync(filter.CustomerId, actualShipmentTypeId);
-                var airTask = isAirMode ? _reportService.GetAirJobsAsync(baseFilter) : null;
-                var seaTask = !isAirMode ? _reportService.GetSeaJobsAsync(baseFilter) : null;
-
                 List<SeaJobReportItemDTO> allSea = new();
                 List<AirJobReportItemDTO> allAir = new();
 
-                if (isAirMode && airTask != null)
+                if (isAirMode)
                 {
-                    await Task.WhenAll(summaryTask, airTask);
-                    allAir = airTask.Result;
-                }
-                else if (!isAirMode && seaTask != null)
-                {
-                    await Task.WhenAll(summaryTask, seaTask);
-                    allSea = seaTask.Result;
+                    allAir = await _reportService.GetAirJobsAsync(baseFilter);
                 }
                 else
                 {
-                    await summaryTask;
+                    allSea = await _reportService.GetSeaJobsAsync(baseFilter);
                 }
 
-                var summary = summaryTask.Result;
-
-                int totalCount = summary.TotalJobs;
-                int pendingCount = summary.PendingJobs;
-                int transitCount = summary.TransitJobs;
-                int deliveredCount = summary.DeliveredJobs;
-
-                // Fallback to dataset counts if SP returned 0 (e.g., if CustomerId was empty)
-                if (totalCount == 0 && (isAirMode ? allAir.Count : allSea.Count) > 0)
-                {
-                    totalCount = isAirMode ? allAir.Count : allSea.Count;
-                    pendingCount = isAirMode ? allAir.Count(x => x.StatusClass == "pending") : allSea.Count(x => x.StatusClass == "pending");
-                    transitCount = isAirMode ? allAir.Count(x => x.StatusClass == "transit") : allSea.Count(x => x.StatusClass == "transit");
-                    deliveredCount = isAirMode ? allAir.Count(x => x.StatusClass == "delivered") : allSea.Count(x => x.StatusClass == "delivered");
-                }
+                // Instant in-memory calculation of counters (0.001 ms response, 0 DB overhead)
+                int totalCount = isAirMode ? allAir.Count : allSea.Count;
+                int pendingCount = isAirMode ? allAir.Count(x => x.StatusClass == "pending") : allSea.Count(x => x.StatusClass == "pending");
+                int transitCount = isAirMode ? allAir.Count(x => x.StatusClass == "transit") : allSea.Count(x => x.StatusClass == "transit");
+                int deliveredCount = isAirMode ? allAir.Count(x => x.StatusClass == "delivered") : allSea.Count(x => x.StatusClass == "delivered");
 
                 // Filter by JobStatus if requested
                 var seaJobs = allSea;

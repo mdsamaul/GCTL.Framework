@@ -104,12 +104,265 @@ namespace GCTL.Service.JobStatusReport
         }
         #endregion
 
-        #region 2. Sea Freight Jobs (Stored Procedures: Pending, InTransit, Delivered)
+        #region 2. Sea Freight Jobs (Ultra-Fast Single-Pass CTE with Fallback)
         public async Task<List<SeaJobReportItemDTO>> GetSeaJobsAsync(JobStatusReportFilterVM filter)
         {
-            var list = new List<SeaJobReportItemDTO>();
-            if (string.IsNullOrWhiteSpace(_connectionString)) return list;
+            filter ??= new JobStatusReportFilterVM();
+            if (string.IsNullOrWhiteSpace(_connectionString)) return new List<SeaJobReportItemDTO>();
 
+            try
+            {
+                return await FetchSeaJobsDirectAsync(filter);
+            }
+            catch
+            {
+                return await ExecuteSeaProcsLegacyAsync(filter);
+            }
+        }
+
+        private async Task<List<SeaJobReportItemDTO>> FetchSeaJobsDirectAsync(JobStatusReportFilterVM filter)
+        {
+            var list = new List<SeaJobReportItemDTO>();
+            var (dateUse, fromDate, toDate) = ParseDates(filter.FromDate, filter.ToDate);
+
+            string customerId = (filter.CustomerId ?? "").Trim();
+            string portTypeId = (filter.PortType ?? "").Trim();
+            string shipmentTypeId = (filter.ShipmentMode ?? "").Trim();
+            if (string.Equals(shipmentTypeId, "Air", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(shipmentTypeId, "Sea", StringComparison.OrdinalIgnoreCase))
+            {
+                shipmentTypeId = "";
+            }
+
+            const string sql = @"
+;WITH FilteredJobs AS (
+    SELECT 
+        d.JobNo,
+        d.Date,
+        d.DocReceivedDate,
+        d.InvoiceNo,
+        d.InvoiceValue,
+        d.CurrencyId,
+        d.Quntity1,
+        d.MaterialDescription,
+        d.BillNo,
+        d.ShipmentStatus,
+        d.BENo,
+        d.BEDate,
+        d.Remarks,
+        d.Term,
+        d.VesselName,
+        d.Vessel_RottNo,
+        d.ContainerNo,
+        d.NameOfFreightForwarder,
+        d.FreightForwarderPhoneNo,
+        d.CustomerID,
+        d.ExpenseTypeID,
+        d.PortNameId,
+        ISNULL(c.CustomerName, 'General Customer') AS CustomerName,
+        ISNULL(c.CustomerAddress, '') AS CustomerAddress,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        ISNULL(e.ExpenseType, 'Sea Freight') AS ExpenseType,
+        ISNULL(p.PortName, '') AS PortName
+    FROM Sep_Documentation d WITH (NOLOCK)
+    LEFT JOIN Sales_Customer c WITH (NOLOCK) ON d.CustomerID = c.CustomerID
+    LEFT JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
+    LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
+    LEFT JOIN CA_Def_Currency curr WITH (NOLOCK) ON d.CurrencyId = curr.CurrencyId
+    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
+      AND (@PortTypeId = '' OR p.PortId = @PortTypeId OR (@PortTypeId LIKE '%,%' AND p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))))
+      AND (@ShipmentTypeId = '' OR d.ExpenseTypeID = @ShipmentTypeId OR (@ShipmentTypeId LIKE '%,%' AND d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ','))))
+      AND (e.ExpenseType IS NULL OR (e.ExpenseType NOT LIKE '%Air%' AND ISNULL(d.HAWB, '') = '' AND ISNULL(d.MAWB, '') = ''))
+),
+Updates AS (
+    SELECT 
+        du.JobNo,
+        MAX(CASE WHEN du.UpdateStatus = '07' THEN du.UpdateDateTime END) AS EtdDate,
+        MAX(CASE WHEN du.UpdateStatus = '08' THEN du.UpdateDateTime END) AS FinalIgmRecDt,
+        MAX(CASE WHEN du.UpdateStatus = '09' THEN du.UpdateDateTime END) AS ShipArrivedDate,
+        MAX(CASE WHEN du.UpdateStatus = '10' THEN du.UpdateDateTime END) AS DischargeDate,
+        MAX(CASE WHEN du.UpdateStatus = '11' THEN du.UpdateDateTime END) AS DocsBankSignDate,
+        MAX(CASE WHEN du.UpdateStatus = '12' THEN du.UpdateDateTime END) AS BeDateFromUpdate,
+        MAX(CASE WHEN du.UpdateStatus = '13' THEN du.UpdateDateTime END) AS EstimatedDeliveryDate,
+        MAX(CASE WHEN du.UpdateStatus = '14' THEN du.UpdateDateTime END) AS ActualDeliveryDate
+    FROM CF_DailyJobUpdateEntry du WITH (NOLOCK)
+    INNER JOIN FilteredJobs fj ON du.JobNo = fj.JobNo
+    GROUP BY du.JobNo
+)
+SELECT 
+    fj.JobNo,
+    fj.Date AS RawJobDate,
+    fj.ExpenseType,
+    fj.PortName,
+    fj.DocReceivedDate AS RawDocReceivedDate,
+    fj.InvoiceNo,
+    fj.InvoiceValue,
+    fj.CurrencySymbol,
+    fj.CurrencyName,
+    fj.CurrencyId,
+    fj.Quntity1,
+    fj.MaterialDescription,
+    fj.BillNo,
+    fj.ShipmentStatus AS RawShipmentStatus,
+    u.EtdDate,
+    u.FinalIgmRecDt,
+    u.ShipArrivedDate,
+    u.DischargeDate,
+    u.DocsBankSignDate,
+    fj.BENo,
+    u.BeDateFromUpdate,
+    fj.BEDate AS RawBeDate,
+    u.EstimatedDeliveryDate,
+    u.ActualDeliveryDate,
+    fj.Remarks,
+    fj.Term,
+    fj.VesselName,
+    fj.Vessel_RottNo,
+    fj.ContainerNo,
+    fj.NameOfFreightForwarder,
+    fj.FreightForwarderPhoneNo,
+    fj.CustomerID,
+    fj.CustomerName,
+    fj.CustomerAddress
+FROM FilteredJobs fj
+LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+ORDER BY fj.JobNo ASC;
+";
+
+            using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandTimeout = 30;
+            cmd.Parameters.Add(new SqlParameter("@DateUse", dateUse));
+            cmd.Parameters.Add(new SqlParameter("@FromDate", fromDate ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@ToDate", toDate ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@CustomerId", customerId));
+            cmd.Parameters.Add(new SqlParameter("@PortTypeId", portTypeId));
+            cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
+
+            int ordJobNo = GetColOrdinal(reader, "JobNo");
+            int ordJobDate = GetColOrdinal(reader, "RawJobDate");
+            int ordExpenseType = GetColOrdinal(reader, "ExpenseType");
+            int ordPortName = GetColOrdinal(reader, "PortName");
+            int ordDocReceivedDate = GetColOrdinal(reader, "RawDocReceivedDate");
+            int ordInvoiceNo = GetColOrdinal(reader, "InvoiceNo");
+            int ordInvoiceValue = GetColOrdinal(reader, "InvoiceValue");
+            int ordCurrencySymbol = GetColOrdinal(reader, "CurrencySymbol");
+            int ordCurrencyName = GetColOrdinal(reader, "CurrencyName");
+            int ordCurrencyId = GetColOrdinal(reader, "CurrencyId");
+            int ordQuntity1 = GetColOrdinal(reader, "Quntity1");
+            int ordMaterialDescription = GetColOrdinal(reader, "MaterialDescription");
+            int ordBillNo = GetColOrdinal(reader, "BillNo");
+            int ordRawShipmentStatus = GetColOrdinal(reader, "RawShipmentStatus");
+            int ordEtdDate = GetColOrdinal(reader, "EtdDate");
+            int ordFinalIgmRecDt = GetColOrdinal(reader, "FinalIgmRecDt");
+            int ordShipArrivedDate = GetColOrdinal(reader, "ShipArrivedDate");
+            int ordDischargeDate = GetColOrdinal(reader, "DischargeDate");
+            int ordDocsBankSignDate = GetColOrdinal(reader, "DocsBankSignDate");
+            int ordBENo = GetColOrdinal(reader, "BENo");
+            int ordBeDateFromUpdate = GetColOrdinal(reader, "BeDateFromUpdate");
+            int ordRawBeDate = GetColOrdinal(reader, "RawBeDate");
+            int ordEstDeliveryDate = GetColOrdinal(reader, "EstimatedDeliveryDate");
+            int ordActualDeliveryDate = GetColOrdinal(reader, "ActualDeliveryDate");
+            int ordRemarks = GetColOrdinal(reader, "Remarks");
+            int ordTerm = GetColOrdinal(reader, "Term");
+            int ordVesselName = GetColOrdinal(reader, "VesselName");
+            int ordVesselRottNo = GetColOrdinal(reader, "Vessel_RottNo");
+            int ordContainerNo = GetColOrdinal(reader, "ContainerNo");
+            int ordNameOfFreightForwarder = GetColOrdinal(reader, "NameOfFreightForwarder");
+            int ordFreightForwarderPhoneNo = GetColOrdinal(reader, "FreightForwarderPhoneNo");
+            int ordCustomerID = GetColOrdinal(reader, "CustomerID");
+            int ordCustomerName = GetColOrdinal(reader, "CustomerName");
+            int ordCustomerAddress = GetColOrdinal(reader, "CustomerAddress");
+
+            int sl = 1;
+            while (await reader.ReadAsync())
+            {
+                string rawStatus = ReadCol(reader, ordRawShipmentStatus);
+                var (statusText, statusClass) = ResolveSeaStatus(rawStatus);
+
+                string rawSym = ReadCol(reader, ordCurrencySymbol);
+                string rawName = ReadCol(reader, ordCurrencyName);
+                string rawCurrId = ReadCol(reader, ordCurrencyId);
+                var (curSym, curName) = ResolveCurrency(rawSym, rawName, rawCurrId);
+
+                string q1 = ReadCol(reader, ordQuntity1);
+                string matDesc = ReadCol(reader, ordMaterialDescription);
+                string containerPkgs = string.Join(" ", new[] { q1, matDesc }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
+
+                string vName = ReadCol(reader, ordVesselName);
+                string vRott = ReadCol(reader, ordVesselRottNo);
+                string fullVessel = string.Join(" ", new[] { vName, vRott }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
+
+                string ffName = ReadCol(reader, ordNameOfFreightForwarder);
+                string ffPhone = ReadCol(reader, ordFreightForwarderPhoneNo);
+                string fullFf = string.Join(" ", new[] { ffName, ffPhone }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
+
+                string beDate = ReadDt(reader, ordBeDateFromUpdate, "dd/MM/yyyy hh:mm tt");
+                if (string.IsNullOrEmpty(beDate))
+                {
+                    beDate = ReadDateOnly(reader, ordRawBeDate);
+                }
+
+                list.Add(new SeaJobReportItemDTO
+                {
+                    SlNo = sl++,
+                    JobNo = ReadCol(reader, ordJobNo),
+                    JobDate = ReadDateOnly(reader, ordJobDate),
+                    ShipmentMode = ReadCol(reader, ordExpenseType),
+                    Port = ReadCol(reader, ordPortName),
+                    DocReceivedDate = ReadDateOnly(reader, ordDocReceivedDate),
+                    InvoiceNo = ReadCol(reader, ordInvoiceNo),
+                    InvoiceValue = ReadCol(reader, ordInvoiceValue),
+                    CurrencySymbol = curSym,
+                    CurrencyName = curName,
+                    ContainerPkgs = containerPkgs,
+                    Shipper = "",
+                    BLNo = ReadCol(reader, ordBillNo),
+                    ETDDate = ReadDt(reader, ordEtdDate, "dd/MM/yyyy hh:mm tt"),
+                    FinalIgmRecDt = ReadDt(reader, ordFinalIgmRecDt, "dd/MM/yyyy hh:mm tt"),
+                    ShipArrivedDate = ReadDt(reader, ordShipArrivedDate, "dd/MM/yyyy hh:mm tt"),
+                    DischargeDate = ReadDt(reader, ordDischargeDate, "dd/MM/yyyy hh:mm tt"),
+                    DocsBankSignDate = ReadDt(reader, ordDocsBankSignDate, "dd/MM/yyyy hh:mm tt"),
+                    BENo = ReadCol(reader, ordBENo),
+                    BEDate = beDate,
+                    EstDeliveryDate = ReadDt(reader, ordEstDeliveryDate, "dd/MM/yyyy hh:mm tt"),
+                    ActualDeliveryDate = ReadDt(reader, ordActualDeliveryDate, "dd/MM/yyyy hh:mm tt"),
+                    ShipmentStatus = statusText,
+                    Remarks = ReadCol(reader, ordRemarks),
+                    Term = ReadCol(reader, ordTerm),
+                    VesselName = fullVessel,
+                    ContainerNo = ReadCol(reader, ordContainerNo),
+                    FreightForwarder = fullFf,
+                    CustomerId = ReadCol(reader, ordCustomerID),
+                    CustomerName = ReadCol(reader, ordCustomerName),
+                    CustomerAddress = ReadCol(reader, ordCustomerAddress),
+                    StatusClass = statusClass
+                });
+            }
+
+            string filterStatus = (filter.JobStatus ?? "").Trim().ToLower();
+            if (!string.IsNullOrEmpty(filterStatus))
+            {
+                if (filterStatus.Contains("pend")) list = list.Where(x => x.StatusClass == "pending").ToList();
+                else if (filterStatus.Contains("transit")) list = list.Where(x => x.StatusClass == "transit").ToList();
+                else if (filterStatus.Contains("deliver")) list = list.Where(x => x.StatusClass == "delivered").ToList();
+                for (int i = 0; i < list.Count; i++) list[i].SlNo = i + 1;
+            }
+
+            return list;
+        }
+
+        private async Task<List<SeaJobReportItemDTO>> ExecuteSeaProcsLegacyAsync(JobStatusReportFilterVM filter)
+        {
+            var list = new List<SeaJobReportItemDTO>();
             var status = (filter.JobStatus ?? "").Trim().ToLower();
 
             try
@@ -145,10 +398,7 @@ namespace GCTL.Service.JobStatusReport
                     list[i].SlNo = i + 1;
                 }
             }
-            catch
-            {
-                // Fail gracefully
-            }
+            catch { }
 
             return list;
         }
@@ -270,12 +520,234 @@ namespace GCTL.Service.JobStatusReport
         }
         #endregion
 
-        #region 3. Air Freight Jobs (Stored Procedures: Pending, InTransit, Delivered)
+        #region 3. Air Freight Jobs (Ultra-Fast Single-Pass CTE with Fallback)
         public async Task<List<AirJobReportItemDTO>> GetAirJobsAsync(JobStatusReportFilterVM filter)
         {
-            var list = new List<AirJobReportItemDTO>();
-            if (string.IsNullOrWhiteSpace(_connectionString)) return list;
+            filter ??= new JobStatusReportFilterVM();
+            if (string.IsNullOrWhiteSpace(_connectionString)) return new List<AirJobReportItemDTO>();
 
+            try
+            {
+                return await FetchAirJobsDirectAsync(filter);
+            }
+            catch
+            {
+                return await ExecuteAirProcsLegacyAsync(filter);
+            }
+        }
+
+        private async Task<List<AirJobReportItemDTO>> FetchAirJobsDirectAsync(JobStatusReportFilterVM filter)
+        {
+            var list = new List<AirJobReportItemDTO>();
+            var (dateUse, fromDate, toDate) = ParseDates(filter.FromDate, filter.ToDate);
+
+            string customerId = (filter.CustomerId ?? "").Trim();
+            string portTypeId = (filter.PortType ?? "").Trim();
+            string shipmentTypeId = (filter.ShipmentMode ?? "").Trim();
+            if (string.Equals(shipmentTypeId, "Air", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(shipmentTypeId, "Sea", StringComparison.OrdinalIgnoreCase))
+            {
+                shipmentTypeId = "";
+            }
+
+            const string sql = @"
+;WITH FilteredJobs AS (
+    SELECT 
+        d.JobNo,
+        d.Date,
+        d.DocReceivedDate,
+        d.InvoiceNo,
+        d.InvoiceValue,
+        d.CurrencyId,
+        d.Quntity1,
+        d.MaterialDescription,
+        d.LCNo,
+        d.HAWB,
+        d.MAWB,
+        d.ShipmentStatus,
+        d.BENo,
+        d.BEDate,
+        d.Remarks,
+        d.CustomerID,
+        d.ExpenseTypeID,
+        d.PortNameId,
+        ISNULL(c.CustomerName, 'General Customer') AS CustomerName,
+        ISNULL(c.CustomerAddress, '') AS CustomerAddress,
+        ISNULL(curr.Symbol, ISNULL(curr.ShortName, '')) AS CurrencySymbol,
+        ISNULL(curr.ShortName, '') AS CurrencyName,
+        ISNULL(e.ExpenseType, 'Air Freight') AS ExpenseType,
+        ISNULL(p.PortName, '') AS PortName
+    FROM Sep_Documentation d WITH (NOLOCK)
+    LEFT JOIN Sales_Customer c WITH (NOLOCK) ON d.CustomerID = c.CustomerID
+    LEFT JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
+    LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
+    LEFT JOIN CA_Def_Currency curr WITH (NOLOCK) ON d.CurrencyId = curr.CurrencyId
+    WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
+      AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
+      AND (@PortTypeId = '' OR p.PortId = @PortTypeId OR (@PortTypeId LIKE '%,%' AND p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))))
+      AND (@ShipmentTypeId = '' OR d.ExpenseTypeID = @ShipmentTypeId OR (@ShipmentTypeId LIKE '%,%' AND d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ','))))
+      AND (e.ExpenseType LIKE '%Air%' OR ISNULL(d.HAWB, '') <> '' OR ISNULL(d.MAWB, '') <> '' OR d.ExpenseTypeID IN ('0001','0002','0003'))
+),
+Updates AS (
+    SELECT 
+        du.JobNo,
+        MAX(CASE WHEN du.UpdateStatus = '01' THEN du.UpdateDateTime END) AS EtdDate,
+        MAX(CASE WHEN du.UpdateStatus = '02' THEN du.UpdateDateTime END) AS FlightActualDeliveryDate,
+        MAX(CASE WHEN du.UpdateStatus = '03' THEN du.UpdateDateTime END) AS ArrivalNoticeRcvdExpressDate,
+        MAX(CASE WHEN du.UpdateStatus = '04' THEN du.UpdateDateTime END) AS DocsBankSignDate,
+        MAX(CASE WHEN du.UpdateStatus = '05' THEN du.UpdateDateTime END) AS BeDateFromUpdate,
+        MAX(CASE WHEN du.UpdateStatus = '06' THEN du.UpdateDateTime END) AS ActualDeliveryDate
+    FROM CF_DailyJobUpdateEntry du WITH (NOLOCK)
+    INNER JOIN FilteredJobs fj ON du.JobNo = fj.JobNo
+    GROUP BY du.JobNo
+)
+SELECT 
+    fj.JobNo,
+    fj.Date AS RawJobDate,
+    fj.ExpenseType,
+    fj.PortName,
+    fj.DocReceivedDate AS RawDocReceivedDate,
+    fj.InvoiceNo,
+    fj.InvoiceValue,
+    fj.CurrencySymbol,
+    fj.CurrencyName,
+    fj.CurrencyId,
+    fj.Quntity1,
+    fj.MaterialDescription,
+    fj.LCNo,
+    fj.HAWB,
+    fj.MAWB,
+    fj.ShipmentStatus AS RawShipmentStatus,
+    u.EtdDate,
+    u.FlightActualDeliveryDate,
+    u.ArrivalNoticeRcvdExpressDate,
+    u.DocsBankSignDate,
+    fj.BENo,
+    u.BeDateFromUpdate,
+    fj.BEDate AS RawBeDate,
+    u.ActualDeliveryDate,
+    fj.Remarks,
+    fj.CustomerID,
+    fj.CustomerName,
+    fj.CustomerAddress
+FROM FilteredJobs fj
+LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+ORDER BY fj.JobNo ASC;
+";
+
+            using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandTimeout = 30;
+            cmd.Parameters.Add(new SqlParameter("@DateUse", dateUse));
+            cmd.Parameters.Add(new SqlParameter("@FromDate", fromDate ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@ToDate", toDate ?? DBNull.Value));
+            cmd.Parameters.Add(new SqlParameter("@CustomerId", customerId));
+            cmd.Parameters.Add(new SqlParameter("@PortTypeId", portTypeId));
+            cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
+
+            int ordJobNo = GetColOrdinal(reader, "JobNo");
+            int ordJobDate = GetColOrdinal(reader, "RawJobDate");
+            int ordExpenseType = GetColOrdinal(reader, "ExpenseType");
+            int ordPortName = GetColOrdinal(reader, "PortName");
+            int ordDocReceivedDate = GetColOrdinal(reader, "RawDocReceivedDate");
+            int ordInvoiceNo = GetColOrdinal(reader, "InvoiceNo");
+            int ordInvoiceValue = GetColOrdinal(reader, "InvoiceValue");
+            int ordCurrencySymbol = GetColOrdinal(reader, "CurrencySymbol");
+            int ordCurrencyName = GetColOrdinal(reader, "CurrencyName");
+            int ordCurrencyId = GetColOrdinal(reader, "CurrencyId");
+            int ordQuntity1 = GetColOrdinal(reader, "Quntity1");
+            int ordMaterialDescription = GetColOrdinal(reader, "MaterialDescription");
+            int ordLCNo = GetColOrdinal(reader, "LCNo");
+            int ordHAWB = GetColOrdinal(reader, "HAWB");
+            int ordMAWB = GetColOrdinal(reader, "MAWB");
+            int ordRawShipmentStatus = GetColOrdinal(reader, "RawShipmentStatus");
+            int ordEtdDate = GetColOrdinal(reader, "EtdDate");
+            int ordFlightActualDeliveryDate = GetColOrdinal(reader, "FlightActualDeliveryDate");
+            int ordArrivalNoticeRcvdExpressDate = GetColOrdinal(reader, "ArrivalNoticeRcvdExpressDate");
+            int ordDocsBankSignDate = GetColOrdinal(reader, "DocsBankSignDate");
+            int ordBENo = GetColOrdinal(reader, "BENo");
+            int ordBeDateFromUpdate = GetColOrdinal(reader, "BeDateFromUpdate");
+            int ordRawBeDate = GetColOrdinal(reader, "RawBeDate");
+            int ordActualDeliveryDate = GetColOrdinal(reader, "ActualDeliveryDate");
+            int ordRemarks = GetColOrdinal(reader, "Remarks");
+            int ordCustomerID = GetColOrdinal(reader, "CustomerID");
+            int ordCustomerName = GetColOrdinal(reader, "CustomerName");
+            int ordCustomerAddress = GetColOrdinal(reader, "CustomerAddress");
+
+            int sl = 1;
+            while (await reader.ReadAsync())
+            {
+                string rawStatus = ReadCol(reader, ordRawShipmentStatus);
+                var (statusText, statusClass) = ResolveAirStatus(rawStatus);
+
+                string rawSym = ReadCol(reader, ordCurrencySymbol);
+                string rawName = ReadCol(reader, ordCurrencyName);
+                string rawCurrId = ReadCol(reader, ordCurrencyId);
+                var (curSym, curName) = ResolveCurrency(rawSym, rawName, rawCurrId);
+
+                string q1 = ReadCol(reader, ordQuntity1);
+                string matDesc = ReadCol(reader, ordMaterialDescription);
+                string materialAndPkgs = string.Join(" ", new[] { q1, matDesc }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim();
+
+                string beDate = ReadDt(reader, ordBeDateFromUpdate, "dd/MM/yyyy hh:mm tt");
+                if (string.IsNullOrEmpty(beDate))
+                {
+                    beDate = ReadDateOnly(reader, ordRawBeDate);
+                }
+
+                list.Add(new AirJobReportItemDTO
+                {
+                    SlNo = sl++,
+                    JobNo = ReadCol(reader, ordJobNo),
+                    JobDate = ReadDateOnly(reader, ordJobDate),
+                    ShipmentMode = ReadCol(reader, ordExpenseType),
+                    Port = ReadCol(reader, ordPortName),
+                    DocReceivedDate = ReadDateOnly(reader, ordDocReceivedDate),
+                    InvoiceNo = ReadCol(reader, ordInvoiceNo),
+                    InvoiceValue = ReadCol(reader, ordInvoiceValue),
+                    CurrencySymbol = curSym,
+                    CurrencyName = curName,
+                    MaterialNamePkgsQty = materialAndPkgs,
+                    ExpressNameCountry = "",
+                    LCNo = ReadCol(reader, ordLCNo),
+                    HawbNo = ReadCol(reader, ordHAWB),
+                    MawbNo = ReadCol(reader, ordMAWB),
+                    ETDDate = ReadDt(reader, ordEtdDate, "dd/MM/yyyy hh:mm tt"),
+                    FlightActualDeliveryDate = ReadDt(reader, ordFlightActualDeliveryDate, "dd/MM/yyyy hh:mm tt"),
+                    ArrivalNoticeRcvdExpressDate = ReadDt(reader, ordArrivalNoticeRcvdExpressDate, "dd/MM/yyyy hh:mm tt"),
+                    BENo = ReadCol(reader, ordBENo),
+                    BEDate = beDate,
+                    ActualDeliveryDate = ReadDt(reader, ordActualDeliveryDate, "dd/MM/yyyy hh:mm tt"),
+                    ShipmentStatus = statusText,
+                    Remarks = ReadCol(reader, ordRemarks),
+                    CustomerId = ReadCol(reader, ordCustomerID),
+                    CustomerName = ReadCol(reader, ordCustomerName),
+                    CustomerAddress = ReadCol(reader, ordCustomerAddress),
+                    StatusClass = statusClass
+                });
+            }
+
+            string filterStatus = (filter.JobStatus ?? "").Trim().ToLower();
+            if (!string.IsNullOrEmpty(filterStatus))
+            {
+                if (filterStatus.Contains("pend")) list = list.Where(x => x.StatusClass == "pending").ToList();
+                else if (filterStatus.Contains("transit")) list = list.Where(x => x.StatusClass == "transit").ToList();
+                else if (filterStatus.Contains("deliver")) list = list.Where(x => x.StatusClass == "delivered").ToList();
+                for (int i = 0; i < list.Count; i++) list[i].SlNo = i + 1;
+            }
+
+            return list;
+        }
+
+        private async Task<List<AirJobReportItemDTO>> ExecuteAirProcsLegacyAsync(JobStatusReportFilterVM filter)
+        {
+            var list = new List<AirJobReportItemDTO>();
             var status = (filter.JobStatus ?? "").Trim().ToLower();
 
             try
@@ -311,10 +783,7 @@ namespace GCTL.Service.JobStatusReport
                     list[i].SlNo = i + 1;
                 }
             }
-            catch
-            {
-                // Fail gracefully
-            }
+            catch { }
 
             return list;
         }
@@ -429,44 +898,28 @@ namespace GCTL.Service.JobStatusReport
         #region 4. Generate Excel Report (Grouped by Customer, Sea & Air Separate)
         public async Task<byte[]> GenerateExcelReportAsync(JobStatusReportFilterVM filter)
         {
-            var seaTask = GetSeaJobsAsync(filter);
-            var airTask = GetAirJobsAsync(filter);
-            var custNameTask = GetCustomerNameAsync(filter.CustomerId);
-            var custDictTask = GetCustomerNamesDictAsync();
-
-            await Task.WhenAll(seaTask, airTask, custNameTask, custDictTask);
-
-            var seaJobs = seaTask.Result;
-            var airJobs = airTask.Result;
-            string selectedCustomerName = custNameTask.Result;
-            var custDict = custDictTask.Result;
-
-            foreach (var item in seaJobs)
-            {
-                if (string.IsNullOrWhiteSpace(item.CustomerName))
-                {
-                    if (!string.IsNullOrWhiteSpace(item.CustomerId) && custDict.TryGetValue(item.CustomerId, out var name))
-                        item.CustomerName = name;
-                    else if (!string.IsNullOrWhiteSpace(selectedCustomerName))
-                        item.CustomerName = selectedCustomerName;
-                    else
-                        item.CustomerName = "General Customer";
-                }
-            }
-            foreach (var item in airJobs)
-            {
-                if (string.IsNullOrWhiteSpace(item.CustomerName))
-                {
-                    if (!string.IsNullOrWhiteSpace(item.CustomerId) && custDict.TryGetValue(item.CustomerId, out var name))
-                        item.CustomerName = name;
-                    else if (!string.IsNullOrWhiteSpace(selectedCustomerName))
-                        item.CustomerName = selectedCustomerName;
-                    else
-                        item.CustomerName = "General Customer";
-                }
-            }
-
+            filter ??= new JobStatusReportFilterVM();
             string activeTab = (filter.ActiveTab ?? "").Trim().ToLower();
+
+            List<SeaJobReportItemDTO> seaJobs = new();
+            List<AirJobReportItemDTO> airJobs = new();
+
+            if (activeTab == "sea")
+            {
+                seaJobs = await GetSeaJobsAsync(filter);
+            }
+            else if (activeTab == "air")
+            {
+                airJobs = await GetAirJobsAsync(filter);
+            }
+            else
+            {
+                var seaTask = GetSeaJobsAsync(filter);
+                var airTask = GetAirJobsAsync(filter);
+                await Task.WhenAll(seaTask, airTask);
+                seaJobs = seaTask.Result;
+                airJobs = airTask.Result;
+            }
 
             using var workbook = new XLWorkbook();
 
@@ -801,45 +1254,28 @@ namespace GCTL.Service.JobStatusReport
         #region 5. Generate PDF Report (Grouped by Customer, Sea & Air Separate)
         public async Task<byte[]> GeneratePdfReportAsync(JobStatusReportFilterVM filter)
         {
-            var seaTask = GetSeaJobsAsync(filter);
-            var airTask = GetAirJobsAsync(filter);
-            var custNameTask = GetCustomerNameAsync(filter.CustomerId);
-            var custDictTask = GetCustomerNamesDictAsync();
-
-            await Task.WhenAll(seaTask, airTask, custNameTask, custDictTask);
-
-            var seaJobs = seaTask.Result;
-            var airJobs = airTask.Result;
-            string selectedCustomerName = custNameTask.Result;
-            var custDict = custDictTask.Result;
-
-            // Populate CustomerName on all items
-            foreach (var item in seaJobs)
-            {
-                if (string.IsNullOrWhiteSpace(item.CustomerName))
-                {
-                    if (!string.IsNullOrWhiteSpace(item.CustomerId) && custDict.TryGetValue(item.CustomerId, out var name))
-                        item.CustomerName = name;
-                    else if (!string.IsNullOrWhiteSpace(selectedCustomerName))
-                        item.CustomerName = selectedCustomerName;
-                    else
-                        item.CustomerName = "General Customer";
-                }
-            }
-            foreach (var item in airJobs)
-            {
-                if (string.IsNullOrWhiteSpace(item.CustomerName))
-                {
-                    if (!string.IsNullOrWhiteSpace(item.CustomerId) && custDict.TryGetValue(item.CustomerId, out var name))
-                        item.CustomerName = name;
-                    else if (!string.IsNullOrWhiteSpace(selectedCustomerName))
-                        item.CustomerName = selectedCustomerName;
-                    else
-                        item.CustomerName = "General Customer";
-                }
-            }
-
+            filter ??= new JobStatusReportFilterVM();
             string activeTab = (filter.ActiveTab ?? "").Trim().ToLower();
+
+            List<SeaJobReportItemDTO> seaJobs = new();
+            List<AirJobReportItemDTO> airJobs = new();
+
+            if (activeTab == "sea")
+            {
+                seaJobs = await GetSeaJobsAsync(filter);
+            }
+            else if (activeTab == "air")
+            {
+                airJobs = await GetAirJobsAsync(filter);
+            }
+            else
+            {
+                var seaTask = GetSeaJobsAsync(filter);
+                var airTask = GetAirJobsAsync(filter);
+                await Task.WhenAll(seaTask, airTask);
+                seaJobs = seaTask.Result;
+                airJobs = airTask.Result;
+            }
 
             var pdfBytes = Document.Create(container =>
             {
@@ -1412,7 +1848,7 @@ namespace GCTL.Service.JobStatusReport
             catch { }
         }
 
-        #region 6. Generate CSV Report
+        #region 6. Generate CSV Report (With Company Info & Grouping like Excel)
         public async Task<byte[]> GenerateCsvReportAsync(JobStatusReportFilterVM filter)
         {
             filter ??= new JobStatusReportFilterVM();
@@ -1424,106 +1860,154 @@ namespace GCTL.Service.JobStatusReport
                 if (activeTab == "sea")
                 {
                     var seaJobs = await GetSeaJobsAsync(filter);
-                    await WriteSeaCsvAsync(writer, seaJobs);
+                    await WriteSeaCsvAsync(writer, seaJobs, filter);
                 }
                 else
                 {
                     var airJobs = await GetAirJobsAsync(filter);
-                    await WriteAirCsvAsync(writer, airJobs);
+                    await WriteAirCsvAsync(writer, airJobs, filter);
                 }
                 await writer.FlushAsync();
             }
             return memoryStream.ToArray();
         }
 
-        private static async Task WriteAirCsvAsync(StreamWriter writer, List<AirJobReportItemDTO> jobs)
+        private static async Task WriteAirCsvAsync(StreamWriter writer, List<AirJobReportItemDTO> jobs, JobStatusReportFilterVM filter)
         {
+            // Company Information Header (like Excel)
+            await writer.WriteLineAsync(EscapeCsv("Formosa Logistics Limited"));
+            await writer.WriteLineAsync(EscapeCsv("Job Status Report - Formosa Logistics (Air Port)"));
+
+            string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
+                ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
+            await writer.WriteLineAsync(EscapeCsv(dateRangeStr));
+            await writer.WriteLineAsync(); // Blank row
+
             var headers = new[]
             {
-                "SL","Job No","Job Date","Shipment Mode","Port","Doc's Receive Date","Invoice No","Invoice Value",
-                "Material Name & Pkgs Qty","Express Name, Country","L/C No","Express/HAWB No","MAWB No","ETD",
-                "Flight Actual Arrival Dt","Arrival Notice Rcvd Express Dt","Bill of Entry No","Bill of Entry Date",
-                "Actual Delivery Date","Shipment Status","Remarks"
+                "SL. No", "Job No.", "Job Date", "Shipment Mode", "Port", "Doc's Receive Date",
+                "Invoice No.", "Invoice Value", "Material Name & Pkgs Qty", "Express Name, Country",
+                "L/C No.", "Express/HAWB No.", "MAWB No.", "ETD", "Flight Actual Arrival Dt.",
+                "Arrival Notice Rcvd From Express Dt.", "Bill of Entry No", "Bill of Entry Date",
+                "Actual Delivery Date", "Shipment Status", "Remarks"
             };
 
-            await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+            var customerGroups = jobs.GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "General Customer" : x.CustomerName.Trim()).ToList();
 
-            int sl = 1;
-            foreach (var item in jobs)
+            if (customerGroups.Count == 0)
             {
-                var row = new[]
+                await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+                await writer.WriteLineAsync(EscapeCsv("No Air Freight records found."));
+                return;
+            }
+
+            foreach (var group in customerGroups)
+            {
+                await writer.WriteLineAsync(EscapeCsv($"CUSTOMER: {group.Key.ToUpper()}  (Total Jobs: {group.Count()})"));
+                await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+
+                int customerSl = 1;
+                foreach (var item in group)
                 {
-                    (sl++).ToString(),
-                    item.JobNo,
-                    item.JobDate,
-                    item.ShipmentMode,
-                    item.Port,
-                    item.DocReceivedDate,
-                    item.InvoiceNo,
-                    FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol),
-                    item.MaterialNamePkgsQty,
-                    item.ExpressNameCountry,
-                    item.LCNo,
-                    item.HawbNo,
-                    item.MawbNo,
-                    item.ETDDate,
-                    item.FlightActualDeliveryDate,
-                    item.ArrivalNoticeRcvdExpressDate,
-                    item.BENo,
-                    item.BEDate,
-                    item.ActualDeliveryDate,
-                    item.ShipmentStatus,
-                    item.Remarks
-                };
-                await writer.WriteLineAsync(string.Join(",", row.Select(EscapeCsv)));
+                    var row = new[]
+                    {
+                        (customerSl++).ToString(),
+                        item.JobNo,
+                        item.JobDate,
+                        item.ShipmentMode,
+                        item.Port,
+                        item.DocReceivedDate,
+                        item.InvoiceNo,
+                        FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol),
+                        item.MaterialNamePkgsQty,
+                        item.ExpressNameCountry,
+                        item.LCNo,
+                        item.HawbNo,
+                        item.MawbNo,
+                        item.ETDDate,
+                        item.FlightActualDeliveryDate,
+                        item.ArrivalNoticeRcvdExpressDate,
+                        item.BENo,
+                        item.BEDate,
+                        item.ActualDeliveryDate,
+                        item.ShipmentStatus,
+                        item.Remarks
+                    };
+                    await writer.WriteLineAsync(string.Join(",", row.Select(EscapeCsv)));
+                }
+                await writer.WriteLineAsync(); // Blank line between customer groups
             }
         }
 
-        private static async Task WriteSeaCsvAsync(StreamWriter writer, List<SeaJobReportItemDTO> jobs)
+        private static async Task WriteSeaCsvAsync(StreamWriter writer, List<SeaJobReportItemDTO> jobs, JobStatusReportFilterVM filter)
         {
+            // Company Information Header (like Excel)
+            await writer.WriteLineAsync(EscapeCsv("Formosa Logistics Limited"));
+            await writer.WriteLineAsync(EscapeCsv("Job Status Report - Formosa Logistics (Sea Port)"));
+
+            string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
+                ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: All Dates";
+            await writer.WriteLineAsync(EscapeCsv(dateRangeStr));
+            await writer.WriteLineAsync(); // Blank row
+
             var headers = new[]
             {
-                "Sl No","Job No","Job Date","Shipment Mode","Port","Doc's Rec Dt","Invoice No","Invoice Value",
-                "Container/Pkgs","Shipper","B/L No","ETD","Final IGM Rec Dt","Ship Arrived Date","Discharge Date",
-                "Docs Bank Sign Date","B/E No","B/E Date","Est Delivery Dt","Actual Delivery Dt","Shipment Status",
-                "Remarks","Term","Vessel Name & Rotation No","Container No","Freight Forwarder"
+                "Sl. No.", "Job No.", "Job Date", "Shipment Mode", "Port", "Doc's Rec. Dt.",
+                "Invoice No", "Invoice Value", "Container /Pkgs", "Shipper", "B/L No.", "ETD",
+                "Final IGM Rec. Dt.", "Ship Arrived", "Unstaff/Discharge", "Docs. Bank Sign",
+                "B/E No.", "B/E Date", "Est. Delivery Dt.", "Actual Delivery Dt.", "Shipment Status",
+                "Remarks", "Term", "Vessel Name & R-No", "Container No.", "Forwarder Name & Phone No."
             };
 
-            await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+            var customerGroups = jobs.GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "General Customer" : x.CustomerName.Trim()).ToList();
 
-            int sl = 1;
-            foreach (var item in jobs)
+            if (customerGroups.Count == 0)
             {
-                var row = new[]
+                await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+                await writer.WriteLineAsync(EscapeCsv("No Sea Freight records found."));
+                return;
+            }
+
+            foreach (var group in customerGroups)
+            {
+                await writer.WriteLineAsync(EscapeCsv($"CUSTOMER: {group.Key.ToUpper()}  (Total Jobs: {group.Count()})"));
+                await writer.WriteLineAsync(string.Join(",", headers.Select(EscapeCsv)));
+
+                int customerSl = 1;
+                foreach (var item in group)
                 {
-                    (sl++).ToString(),
-                    item.JobNo,
-                    item.JobDate,
-                    item.ShipmentMode,
-                    item.Port,
-                    item.DocReceivedDate,
-                    item.InvoiceNo,
-                    FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol),
-                    item.ContainerPkgs,
-                    item.Shipper,
-                    item.BLNo,
-                    item.ETDDate,
-                    item.FinalIgmRecDt,
-                    item.ShipArrivedDate,
-                    item.DischargeDate,
-                    item.DocsBankSignDate,
-                    item.BENo,
-                    item.BEDate,
-                    item.EstDeliveryDate,
-                    item.ActualDeliveryDate,
-                    item.ShipmentStatus,
-                    item.Remarks,
-                    item.Term,
-                    item.VesselName,
-                    item.ContainerNo,
-                    item.FreightForwarder
-                };
-                await writer.WriteLineAsync(string.Join(",", row.Select(EscapeCsv)));
+                    var row = new[]
+                    {
+                        (customerSl++).ToString(),
+                        item.JobNo,
+                        item.JobDate,
+                        item.ShipmentMode,
+                        item.Port,
+                        item.DocReceivedDate,
+                        item.InvoiceNo,
+                        FormatAmountWithCurrency(item.InvoiceValue, item.CurrencySymbol),
+                        item.ContainerPkgs,
+                        item.Shipper,
+                        item.BLNo,
+                        item.ETDDate,
+                        item.FinalIgmRecDt,
+                        item.ShipArrivedDate,
+                        item.DischargeDate,
+                        item.DocsBankSignDate,
+                        item.BENo,
+                        item.BEDate,
+                        item.EstDeliveryDate,
+                        item.ActualDeliveryDate,
+                        item.ShipmentStatus,
+                        item.Remarks,
+                        item.Term,
+                        item.VesselName,
+                        item.ContainerNo,
+                        item.FreightForwarder
+                    };
+                    await writer.WriteLineAsync(string.Join(",", row.Select(EscapeCsv)));
+                }
+                await writer.WriteLineAsync(); // Blank line between customer groups
             }
         }
 
@@ -1534,6 +2018,52 @@ namespace GCTL.Service.JobStatusReport
             return $"\"{val}\"";
         }
         #endregion
+
+        private static (string statusText, string statusClass) ResolveAirStatus(string? rawStatus)
+        {
+            string s = (rawStatus ?? "").Trim();
+            if (s == "06" || s.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
+                return ("Delivered", "delivered");
+            if (s == "01" || s == "02" || s == "03" || s == "04" || s == "05" ||
+                s.Equals("In Transit", StringComparison.OrdinalIgnoreCase) || s.Equals("transit", StringComparison.OrdinalIgnoreCase))
+                return ("In Transit", "transit");
+            return ("Pending", "pending");
+        }
+
+        private static (string statusText, string statusClass) ResolveSeaStatus(string? rawStatus)
+        {
+            string s = (rawStatus ?? "").Trim();
+            if (s == "14" || s.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
+                return ("Delivered", "delivered");
+            if (s == "01" || s == "02" || s == "03" || s == "04" || s == "05" || s == "07" || s == "08" || s == "09" || s == "10" || s == "11" || s == "12" || s == "13" ||
+                s.Equals("In Transit", StringComparison.OrdinalIgnoreCase) || s.Equals("transit", StringComparison.OrdinalIgnoreCase))
+                return ("In Transit", "transit");
+            return ("Pending", "pending");
+        }
+
+        private static string ReadDateOnly(SqlDataReader reader, int ord)
+        {
+            if (ord < 0 || reader.IsDBNull(ord)) return "";
+            var val = reader.GetValue(ord);
+            if (val is DateTime dt)
+            {
+                if (dt == DateTime.MinValue || dt.Year <= 1900) return "";
+                return dt.ToString("dd/MM/yyyy");
+            }
+            return FormatDateOnly(val);
+        }
+
+        private static string ReadDt(SqlDataReader reader, int ord, string fmt = "dd/MM/yyyy hh:mm tt")
+        {
+            if (ord < 0 || reader.IsDBNull(ord)) return "";
+            var val = reader.GetValue(ord);
+            if (val is DateTime dt)
+            {
+                if (dt == DateTime.MinValue || dt.Year <= 1900) return "";
+                return dt.ToString(fmt);
+            }
+            return FormatDt(val, fmt);
+        }
         private static string FormatDt(object? val, string fmt = "dd/MM/yyyy hh:mm tt")
         {
             if (val == null || val == DBNull.Value) return "";
