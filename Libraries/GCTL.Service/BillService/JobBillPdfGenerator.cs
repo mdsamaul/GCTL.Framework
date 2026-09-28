@@ -52,157 +52,168 @@ namespace GCTL.Service.BillService
 
             page.Size(PageSizes.A4);
             page.MarginHorizontal(24);
-            page.MarginVertical(20);
-            page.DefaultTextStyle(x => x.FontFamily("Times New Roman").FontSize(8f).FontColor(Colors.Black));
+            page.MarginTop(18);
+            page.MarginBottom(16);
+            page.DefaultTextStyle(x => x.FontFamily("Arial").FontSize(7.5f).FontColor(Colors.Black));
 
             page.Content().Column(col =>
             {
-                // 1. Header (Company Name & Address)
+                // 1. Header (Company Name on Left, Address on Right)
                 col.Item().Row(row =>
                 {
-                    row.RelativeItem(7).Text(model.CompanyName ?? "Formosa Logistics Limited")
-                       .FontSize(17).Bold();
-                    row.RelativeItem(3).AlignRight().Text(model.CompanyAddress ?? "21, Hazaribagh, Dhaka-1209")
-                       .FontSize(8.5f);
+                    row.RelativeItem(6.8f).Text(model.CompanyName ?? "Formosa Logistics Limited")
+                       .FontSize(20).Bold();
+                    row.RelativeItem(3.2f).AlignRight().AlignBottom().Text(model.CompanyAddress ?? "21, Hazaribagh, Dhaka-1209")
+                       .FontSize(8f);
                 });
 
-                // 2. Customer Info (Left) & Bill Metadata (Right) - generous padding after Company Header
-                col.Item().PaddingTop(12).Row(row =>
+                // 2. Middle Row: Bill To (Left), "BILL" Title (Center), Bill Meta Box (Right)
+                col.Item().PaddingTop(14).Row(row =>
                 {
-                    // Left: Customer details (Not bold, clean 4-word address wrapping)
-                    row.RelativeItem(6.2f).Column(c =>
+                    // Left: Customer details
+                    row.RelativeItem(3.5f).Column(c =>
                     {
                         c.Item().Text("Bill To:").FontSize(8.5f).Bold();
-                        c.Item().PaddingTop(1).Text(model.CustomerName ?? "").FontSize(8.5f);
+                        c.Item().PaddingTop(1).Text(model.CustomerName ?? "").FontSize(8.5f).SemiBold();
                         if (!string.IsNullOrWhiteSpace(model.CustomerAddress))
                         {
-                            c.Item().PaddingTop(1).Text(BreakAddress(model.CustomerAddress, 4)).FontSize(8f);
+                            c.Item().PaddingTop(1).Text(BreakAddress(model.CustomerAddress, 4)).FontSize(7.5f);
                         }
                     });
 
-                    // Right: Bill meta box (bordered)
-                    row.RelativeItem(3.8f).Border(BorderWidth).BorderColor(Colors.Black).Column(c =>
+                    // Center: "BILL" title (Large serif font)
+                    row.RelativeItem(3.0f).AlignCenter().AlignMiddle().Text("BILL")
+                       .FontFamily("Times New Roman").FontSize(24).Bold();
+
+                    // Right: Bill meta box (table-like bordered grid)
+                    row.RelativeItem(3.5f).Border(BorderWidth).BorderColor(Colors.Black).Table(metaTable =>
                     {
-                        void RenderMetaRow(string label, string? val, bool isLast = false)
+                        metaTable.ColumnsDefinition(cols =>
                         {
-                            var item = c.Item();
-                            if (!isLast) item = item.BorderBottom(BorderWidth).BorderColor(Colors.Black);
-                            item.PaddingVertical(1.5f).PaddingHorizontal(4).Row(r =>
+                            cols.ConstantColumn(52); // Label
+                            cols.RelativeColumn();   // Value
+                        });
+
+                        void RenderMetaCell(string label, string? val, bool isLast = false)
+                        {
+                            var lbl = metaTable.Cell().BorderRight(BorderWidth).BorderColor(Colors.Black);
+                            var v = metaTable.Cell();
+
+                            if (!isLast)
                             {
-                                r.AutoItem().Width(55).Text(label).FontSize(8f).Bold();
-                                r.AutoItem().Width(8).Text(":").FontSize(8f).Bold();
-                                r.RelativeItem().Text(val ?? "").FontSize(8f);
-                            });
+                                lbl.BorderBottom(BorderWidth).BorderColor(Colors.Black)
+                                   .PaddingVertical(1.5f).PaddingHorizontal(3).Text(label).FontSize(7.5f);
+                                v.BorderBottom(BorderWidth).BorderColor(Colors.Black)
+                                 .PaddingVertical(1.5f).PaddingHorizontal(3).Text(val ?? "").FontSize(7.5f);
+                            }
+                            else
+                            {
+                                lbl.PaddingVertical(1.5f).PaddingHorizontal(3).Text(label).FontSize(7.5f);
+                                v.PaddingVertical(1.5f).PaddingHorizontal(3).Text(val ?? "").FontSize(7.5f);
+                            }
                         }
 
-                        RenderMetaRow("Bill No.", model.BillNo);
-                        RenderMetaRow("Date", model.BillDate);
-                        RenderMetaRow("JOB No.", model.JobNo, isLast: true);
+                        RenderMetaCell("Bill No.  :", model.BillNo);
+                        RenderMetaCell("Date       :", model.BillDate);
+                        RenderMetaCell("JOB No. :", model.JobNo, isLast: true);
                     });
                 });
 
-                // 3. Title "BILL" (centered, placed below the Bill To and Bill No section)
-                col.Item().PaddingTop(4).PaddingBottom(4).AlignCenter().Text("BILL")
-                   .FontSize(19).Bold();
+                // 3. Spacing before Job Details Box
+                col.Item().PaddingTop(10);
 
-                // 4. Job Details Box (Material Description, 3-Column Particulars, and Values Bar)
-                col.Item().Border(BorderWidth).BorderColor(Colors.Black).PaddingVertical(3.5f).PaddingHorizontal(4).Column(boxCol =>
+                // 4. Job Details Box (Material Description, 3-Column Shipment Details, Values Strip)
+                col.Item().Border(BorderWidth).BorderColor(Colors.Black).Column(boxCol =>
                 {
-                    // Material Description (label bold, description text regular)
-                    boxCol.Item().Row(row =>
+                    // Material Description
+                    boxCol.Item().PaddingTop(3.5f).PaddingBottom(4).PaddingHorizontal(4).Row(row =>
                     {
                         row.AutoItem().Text("Material Description: ").FontSize(8f).Bold();
-                        row.RelativeItem().Text(model.MaterialDescription ?? "").FontSize(8f);
+                        row.RelativeItem().Text((model.MaterialDescription ?? "").ToUpper()).FontSize(8f).SemiBold();
                     });
 
-                    // Gap between Material Description and Particulars
-                    boxCol.Item().PaddingTop(4);
-
-                    // 3-Column Shipment / Job Particulars
-                    boxCol.Item().Row(row =>
+                    // 3-Column Shipment Particulars
+                    boxCol.Item().PaddingBottom(4).PaddingHorizontal(4).Row(row =>
                     {
-                        void RenderPropRow(ColumnDescriptor c, string label, string? val, float labelWidth = 72)
+                        void RenderPropRow(ColumnDescriptor c, string label, string? val, float labelWidth)
                         {
-                            c.Item().PaddingVertical(0.8f).Row(r =>
+                            c.Item().PaddingVertical(0.5f).Row(r =>
                             {
-                                r.AutoItem().Width(labelWidth).Text(label).FontSize(7.5f).Bold();
-                                r.AutoItem().Width(8).Text(":").FontSize(7.5f).Bold();
-                                r.RelativeItem().Text(val ?? "").FontSize(7.5f);
+                                r.AutoItem().Width(labelWidth).Text(label).FontSize(7.5f);
+                                r.AutoItem().Width(6).Text(":").FontSize(7.5f);
+                                r.RelativeItem().PaddingLeft(2).Text(val ?? "").FontSize(7.5f);
                             });
                         }
 
                         // Column 1
                         row.RelativeItem(3.4f).Column(c =>
                         {
-                            RenderPropRow(c, "Quantity", model.Quantity, 75);
-                            RenderPropRow(c, "Packing Quantity", model.PackingQuantity, 75);
-                            RenderPropRow(c, "B/L NO", model.BlNo, 75);
-                            RenderPropRow(c, "B/L DT", model.BlDate, 75);
-                            RenderPropRow(c, "B/E NO", model.BeNo, 75);
-                            RenderPropRow(c, "B/E DT", model.BeDate, 75);
+                            RenderPropRow(c, "Quantity", model.Quantity, 72);
+                            RenderPropRow(c, "Packing Quantity", model.PackingQuantity, 72);
+                            RenderPropRow(c, "B/L NO", model.BlNo, 72);
+                            RenderPropRow(c, "B/L DT", model.BlDate, 72);
+                            RenderPropRow(c, "B/E NO", model.BeNo, 72);
+                            RenderPropRow(c, "B/E DT", model.BeDate, 72);
                         });
 
                         // Column 2
-                        row.RelativeItem(3.2f).Column(c =>
+                        row.RelativeItem(3.1f).Column(c =>
                         {
-                            RenderPropRow(c, "Weight", model.Weight, 55);
-                            RenderPropRow(c, "INV. NO", model.InvoiceNo, 55);
-                            RenderPropRow(c, "INV. DT", model.InvoiceDate, 55);
-                            RenderPropRow(c, "Exp NO", model.ExpNo, 55);
-                            RenderPropRow(c, "Exp DT", model.ExpDate, 55);
-                            RenderPropRow(c, "HAWB No", model.HawbNo, 55);
+                            RenderPropRow(c, "Weight", model.Weight, 50);
+                            RenderPropRow(c, "INV. NO", model.InvoiceNo, 50);
+                            RenderPropRow(c, "INV. DT", model.InvoiceDate, 50);
+                            RenderPropRow(c, "Exp NO", model.ExpNo, 50);
+                            RenderPropRow(c, "Exp DT", model.ExpDate, 50);
+                            RenderPropRow(c, "HAWB No", model.HawbNo, 50);
                         });
 
                         // Column 3
-                        row.RelativeItem(3.4f).Column(c =>
+                        row.RelativeItem(3.5f).Column(c =>
                         {
-                            RenderPropRow(c, "Destination", model.Destination, 75);
-                            RenderPropRow(c, "Doc Recv Date", model.DocRecvDate, 75);
-                            RenderPropRow(c, "Arrival Date", model.ArrivalDate, 75);
-                            RenderPropRow(c, "Delivery Date", model.DeliveryDate, 75);
-                            RenderPropRow(c, "LC/TT/BBR No", model.LcNo, 75);
-                            RenderPropRow(c, "LC/TT/BBR DT", model.LcDate, 75);
+                            RenderPropRow(c, "Destination", model.Destination, 72);
+                            RenderPropRow(c, "Doc Recv Date", model.DocRecvDate, 72);
+                            RenderPropRow(c, "Arrival Date", model.ArrivalDate, 72);
+                            RenderPropRow(c, "Delivery Date", model.DeliveryDate, 72);
+                            RenderPropRow(c, "LC/TT/BBR No", model.LcNo, 72);
+                            RenderPropRow(c, "LC/TT/BBR DT", model.LcDate, 72);
                         });
                     });
 
-                    // Gap between Particulars and Values Bar
-                    boxCol.Item().PaddingTop(4);
-
-                    // Values Bar (Invoice Value & Assessable Value - seamlessly aligned with Column 3)
-                    boxCol.Item().Row(row =>
+                    // Values Strip (Separated by horizontal top and bottom border)
+                    boxCol.Item().BorderTop(BorderWidth).BorderColor(Colors.Black).PaddingVertical(3).PaddingHorizontal(4).Row(row =>
                     {
-                        // Columns 1 & 2 width (3.4 + 3.2 = 6.6)
-                        row.RelativeItem(6.6f).Row(r =>
+                        // Invoice Value
+                        row.RelativeItem(5.5f).Row(r =>
                         {
-                            r.AutoItem().Text($"Invoice Value ({model.Currency})").FontSize(8f).Bold();
-                            r.RelativeItem().PaddingLeft(25).Text(model.InvoiceValue.HasValue ? model.InvoiceValue.Value.ToString("#,##0.00") : "").FontSize(8f).Bold();
+                            r.AutoItem().Text($"Invoice Value ({model.Currency})").FontSize(7.5f).Bold();
+                            r.RelativeItem().PaddingLeft(15).Text(model.InvoiceValue.HasValue ? model.InvoiceValue.Value.ToString("#,##0.00") : "").FontSize(7.5f).Bold();
                         });
 
-                        // Column 3 width (3.4) - starts where LC/TT/BBR DT starts
-                        row.RelativeItem(3.4f).Row(r =>
+                        // Assessable Value
+                        row.RelativeItem(4.5f).Row(r =>
                         {
-                            r.AutoItem().Text("Assessable Value (BDT)").FontSize(8f).Bold();
-                            r.RelativeItem().PaddingLeft(15).Text(model.AssessableValue.HasValue ? model.AssessableValue.Value.ToString("#,##0.00") : "").FontSize(8f).Bold();
+                            r.AutoItem().Text("Assessable Value (BDT)").FontSize(7.5f).Bold();
+                            r.RelativeItem().PaddingLeft(15).Text(model.AssessableValue.HasValue ? model.AssessableValue.Value.ToString("#,##0.00") : "").FontSize(7.5f).Bold();
                         });
                     });
                 });
 
-                // Calculate dynamic spacer height so the charges table expands to fill the full A4 page seamlessly
+                // Calculate dynamic spacer height so charges table spans page gracefully
                 int totalItemRows = (model.ReceiptableItems?.Count ?? 0) +
                                     (model.NonReceiptableItems?.Count ?? 0) +
                                     (model.TransportItems?.Count ?? 0) +
                                     (model.AgencyCommissionItems?.Count ?? 0) + 4;
-                float dynamicSpacerHeight = Math.Max(120f, 430f - (totalItemRows * 13.5f));
+                float dynamicSpacerHeight = Math.Max(120f, 410f - (totalItemRows * 13.5f));
 
-                // 5. Main Charges Table (NO gap above it, shares bottom border of Job Details Box)
+                // 5. Main Charges Table
                 col.Item().BorderLeft(BorderWidth).BorderRight(BorderWidth).BorderBottom(BorderWidth).BorderColor(Colors.Black).Column(tableCol =>
                 {
                     // Table Header
                     tableCol.Item().BorderBottom(BorderWidth).BorderColor(Colors.Black).Row(row =>
                     {
-                        row.RelativeItem(6.6f).BorderRight(BorderWidth).BorderColor(Colors.Black).Padding(2.5f).AlignCenter().Text("PARTICULARS").FontSize(8f).Bold();
-                        row.RelativeItem(1.8f).BorderRight(BorderWidth).BorderColor(Colors.Black).Padding(2.5f).AlignCenter().Text("TAKA").FontSize(8f).Bold();
-                        row.RelativeItem(1.6f).Padding(2.5f).AlignCenter().Text("Remarks").FontSize(8f).Bold();
+                        row.RelativeItem(6.8f).BorderRight(BorderWidth).BorderColor(Colors.Black).Padding(2.5f).AlignCenter().Text("PARTICULARS").FontSize(7.5f).Bold();
+                        row.RelativeItem(1.6f).BorderRight(BorderWidth).BorderColor(Colors.Black).Padding(2.5f).AlignCenter().Text("TAKA").FontSize(7.5f).Bold();
+                        row.RelativeItem(1.6f).Padding(2.5f).AlignCenter().Text("Remarks").FontSize(7.5f).Bold();
                     });
 
                     // Table Body
@@ -210,8 +221,8 @@ namespace GCTL.Service.BillService
                     {
                         table.ColumnsDefinition(cols =>
                         {
-                            cols.RelativeColumn(6.6f); // PARTICULARS
-                            cols.RelativeColumn(1.8f); // TAKA
+                            cols.RelativeColumn(6.8f); // PARTICULARS
+                            cols.RelativeColumn(1.6f); // TAKA
                             cols.RelativeColumn(1.6f); // Remarks
                         });
 
@@ -230,21 +241,21 @@ namespace GCTL.Service.BillService
                             {
                                 foreach (var itm in items)
                                 {
-                                    // Particulars: Item name on left, item rate/amount at right end of PARTICULARS
+                                    // Particulars: Item name on left, item rate/amount at right end of PARTICULARS column
                                     table.Cell().BorderRight(BorderWidth).BorderColor(Colors.Black).PaddingVertical(0.5f).PaddingLeft(14).PaddingRight(6).Row(r =>
                                     {
                                         r.RelativeItem().Text(itm.Particulars ?? "").FontSize(7.5f);
                                         r.AutoItem().AlignRight().Text(itm.Amount.ToString("#,##0.00")).FontSize(7.5f);
                                     });
 
-                                    // TAKA: empty for head row
+                                    // TAKA: empty for individual item
                                     table.Cell().BorderRight(BorderWidth).BorderColor(Colors.Black).PaddingVertical(0.5f).Text("");
 
                                     // Remarks: empty
                                     table.Cell().Text("");
                                 }
 
-                                // Sub Total: one row below the last head
+                                // Sub Total in TAKA column
                                 table.Cell().BorderRight(BorderWidth).BorderColor(Colors.Black).PaddingVertical(0.5f).Text("");
                                 table.Cell().BorderRight(BorderWidth).BorderColor(Colors.Black).PaddingVertical(0.5f).PaddingHorizontal(4).AlignRight()
                                      .Text(subtotal.ToString("#,##0.00")).FontSize(8f).Bold();
@@ -272,7 +283,7 @@ namespace GCTL.Service.BillService
                         RenderCategory("Transport", model.TransportItems, model.TransportSubtotal, forceShow: true);
                         RenderCategory("Agency Commission", model.AgencyCommissionItems, model.AgencyCommissionSubtotal, forceShow: true);
 
-                        // Dynamic vertical spacing row to fill the full A4 page gracefully from top to bottom
+                        // Vertical spacing to span the table down the page
                         table.Cell().BorderRight(BorderWidth).BorderColor(Colors.Black).MinHeight(dynamicSpacerHeight).Text("");
                         table.Cell().BorderRight(BorderWidth).BorderColor(Colors.Black).MinHeight(dynamicSpacerHeight).Text("");
                         table.Cell().MinHeight(dynamicSpacerHeight).Text("");
@@ -281,50 +292,59 @@ namespace GCTL.Service.BillService
                     // Divider before Grand Totals & Remarks
                     tableCol.Item().BorderTop(BorderWidth).BorderColor(Colors.Black).Row(summaryRow =>
                     {
-                        // Left Column (6.6f): Remarks & E. & O.E. on left, Total/Deductions/Net Due labels right-aligned at end of Particulars
-                        summaryRow.RelativeItem(6.6f).BorderRight(BorderWidth).BorderColor(Colors.Black).Row(partRow =>
+                        // Left Column (6.8f): Remarks & E. & O.E. on left, Total/Deductions/Net Due labels right-aligned
+                        summaryRow.RelativeItem(6.8f).BorderRight(BorderWidth).BorderColor(Colors.Black).Row(partRow =>
                         {
-                            // Notes area (3 rows aligned with Total, Deductions, and Net Due so E. & O.E. aligns with Net Due)
-                            partRow.RelativeItem(3.6f).PaddingHorizontal(3).Column(notesCol =>
+                            // Notes area (aligned with Total, Deductions, and Net Due)
+                            partRow.RelativeItem(4.0f).PaddingHorizontal(3).Column(notesCol =>
                             {
                                 // Row 1 (aligned with Total)
                                 notesCol.Item().PaddingVertical(2).Row(r =>
                                 {
-                                    r.AutoItem().Text("Remarks: ").FontSize(8f).Bold();
-                                    r.RelativeItem().Text(model.Remarks ?? "").FontSize(8f);
+                                    r.AutoItem().Text("Remarks: ").FontSize(7.5f).Bold();
+                                    r.RelativeItem().Text(model.Remarks ?? "").FontSize(7.5f);
                                 });
 
                                 // Row 2 (aligned with Deductions)
                                 notesCol.Item().PaddingVertical(2).Text("");
 
                                 // Row 3 (aligned with Net Due)
-                                notesCol.Item().PaddingVertical(2).Text("E. & O.E.").FontSize(8f).Bold();
+                                notesCol.Item().PaddingVertical(2).Text("E. & O.E.").FontSize(7.5f).Bold();
                             });
 
-                            // Labels at end of Particulars (Clean with NO horizontal dividers)
-                            partRow.RelativeItem(3.0f).Column(labelCol =>
+                            // Summary Labels right-aligned with trailing dash '-'
+                            partRow.RelativeItem(2.8f).Column(labelCol =>
                             {
-                                labelCol.Item().PaddingVertical(2).PaddingHorizontal(4).AlignRight()
-                                        .Text("Total :").FontSize(8f).Bold();
-                                labelCol.Item().PaddingVertical(2).PaddingHorizontal(4).AlignRight()
-                                        .Text("Deductions :").FontSize(8f);
-                                labelCol.Item().PaddingVertical(2).PaddingHorizontal(4).AlignRight()
-                                        .Text("Net Due :").FontSize(8f).Bold();
+                                labelCol.Item().PaddingVertical(2).PaddingHorizontal(4).Row(r =>
+                                {
+                                    r.RelativeItem().AlignRight().Text("Total").FontSize(7.5f);
+                                    r.AutoItem().PaddingLeft(6).Text("-").FontSize(7.5f);
+                                });
+                                labelCol.Item().PaddingVertical(2).PaddingHorizontal(4).Row(r =>
+                                {
+                                    r.RelativeItem().AlignRight().Text("Deductions").FontSize(7.5f);
+                                    r.AutoItem().PaddingLeft(6).Text("-").FontSize(7.5f);
+                                });
+                                labelCol.Item().PaddingVertical(2).PaddingHorizontal(4).Row(r =>
+                                {
+                                    r.RelativeItem().AlignRight().Text("Net Due").FontSize(7.5f);
+                                    r.AutoItem().PaddingLeft(6).Text("-").FontSize(7.5f);
+                                });
                             });
                         });
 
-                        // Middle Column (1.8f): Totals amounts directly under TAKA
-                        summaryRow.RelativeItem(1.8f).BorderRight(BorderWidth).BorderColor(Colors.Black).Column(takaCol =>
+                        // Middle Column (1.6f): Totals amounts directly under TAKA
+                        summaryRow.RelativeItem(1.6f).BorderRight(BorderWidth).BorderColor(Colors.Black).Column(takaCol =>
                         {
                             takaCol.Item().BorderBottom(BorderWidth).BorderColor(Colors.Black).PaddingVertical(2).PaddingHorizontal(4).AlignRight()
-                                   .Text(model.TotalAmount.ToString("#,##0.00")).FontSize(8f).Bold();
-                            takaCol.Item().BorderBottom(BorderWidth).BorderColor(Colors.Black).PaddingVertical(2).PaddingHorizontal(4).AlignRight()
-                                   .Text(model.Deductions.HasValue && model.Deductions.Value > 0 ? model.Deductions.Value.ToString("#,##0.00") : "-").FontSize(8f);
+                                   .Text(model.TotalAmount.ToString("#,##0.00")).FontSize(7.5f).Bold();
+                            takaCol.Item().BorderBottom(BorderWidth).BorderColor(Colors.Black).PaddingVertical(2).PaddingHorizontal(4).AlignCenter()
+                                   .Text(model.Deductions.HasValue && model.Deductions.Value > 0 ? model.Deductions.Value.ToString("#,##0.00") : "-").FontSize(7.5f);
                             takaCol.Item().PaddingVertical(2).PaddingHorizontal(4).AlignRight()
-                                   .Text(model.NetDue.ToString("#,##0.00")).FontSize(8f).Bold();
+                                   .Text(model.NetDue.ToString("#,##0.00")).FontSize(7.5f).Bold();
                         });
 
-                        // Right Column (1.6f): Remarks column with horizontal divider lines matching Total and Deductions
+                        // Right Column (1.6f): Remarks column with matching horizontal dividers
                         summaryRow.RelativeItem(1.6f).Column(remCol =>
                         {
                             remCol.Item().BorderBottom(BorderWidth).BorderColor(Colors.Black).PaddingVertical(2).Text("");
@@ -334,33 +354,33 @@ namespace GCTL.Service.BillService
                     });
                 });
 
-                // 6. In Words Box (NO gap above it, shares bottom border of Main Charges Table)
+                // 6. In Words Box
                 col.Item().BorderLeft(BorderWidth).BorderRight(BorderWidth).BorderBottom(BorderWidth).BorderColor(Colors.Black).PaddingVertical(3).PaddingHorizontal(4).Row(row =>
                 {
-                    row.AutoItem().Text("In Words: ").FontSize(8f).Bold();
-                    row.RelativeItem().Text(model.InWords ?? "").FontSize(8f);
+                    row.AutoItem().Text("In Words: ").FontSize(7.5f).Bold();
+                    row.RelativeItem().Text(model.InWords ?? "").FontSize(7.5f);
                 });
             });
 
-            // 7. Footer (Pinned to bottom of full A4 page: Trading Conditions & Signatures)
+            // 7. Footer
             page.Footer().PaddingTop(6).Row(footerRow =>
             {
-                // Left: Terms
-                footerRow.RelativeItem(6.2f).Column(termsCol =>
+                // Left: Terms & Cheque notice
+                footerRow.RelativeItem(6.4f).Column(termsCol =>
                 {
                     termsCol.Item().Text("Terms: Service required as per our Trading Conditions.").FontSize(7.5f);
                     termsCol.Item().Text("The account will be correct unless queried within 7 days").FontSize(7.5f);
 
-                    termsCol.Item().PaddingTop(18).Text("Cheques must be crossed and drawn in favour of Formosa Logistics Limited").FontSize(7.5f);
+                    termsCol.Item().PaddingTop(16).Text("Cheques must be crossed and drawn in favour of Formosa Logistics Limited").FontSize(7.5f);
                 });
 
                 // Right: Signature Box
-                footerRow.RelativeItem(3.8f).Border(BorderWidth).BorderColor(Colors.Black).Padding(4).Column(sigCol =>
+                footerRow.RelativeItem(3.6f).Border(BorderWidth).BorderColor(Colors.Black).Padding(4).Column(sigCol =>
                 {
                     sigCol.Item().Text("For Formosa Logistics Limited.").FontSize(8f).Bold();
                     sigCol.Item().MinHeight(30).Text("");
                     sigCol.Item().AlignCenter().Text("....................................................................").FontSize(7.5f);
-                    sigCol.Item().AlignCenter().Text("Authorised Signatory").FontSize(8f).Bold();
+                    sigCol.Item().AlignCenter().Text("Authorised Signatory").FontSize(8f);
                 });
             });
         }
