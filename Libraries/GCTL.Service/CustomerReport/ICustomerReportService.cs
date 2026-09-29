@@ -14,7 +14,6 @@ namespace GCTL.Service.CustomerReport
         Task<byte[]> GeneratePdfReportAsync(CustomerReportFilterDto filter);
         Task<byte[]> GenerateCsvReportAsync(CustomerReportFilterDto filter);
         Task<List<CustomerReportResultDto>> GetCustomerReportDataAsync(CustomerReportFilterDto filter, bool loadBinaryContent = true);
-
         Task<List<CustomerLookupDto>> GetCustomerLookupAsync(IEnumerable<string>? typeIds);
     }
 }
