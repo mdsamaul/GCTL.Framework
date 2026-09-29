@@ -183,12 +183,24 @@ namespace GCTL.Service.BillService
                     netTotal = await query.SumAsync(b => (b.BillAmount ?? 0m) - (b.SpecialDiscount ?? 0m));
                 }
 
-                // Last service value of the most recent bill
+                // Last service value and date of the most recent bill
                 decimal lastVal = 0m;
+                string lastServiceDate = "-";
                 var latestBill = await query.OrderByDescending(b => b.BillDate).ThenByDescending(b => b.Tc).FirstOrDefaultAsync();
                 if (latestBill != null)
                 {
                     lastVal = (latestBill.BillAmount ?? 0m) - (latestBill.SpecialDiscount ?? 0m);
+                    if (latestBill.BillDate.HasValue)
+                    {
+                        var formattedDate = latestBill.BillDate.Value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+                        lastServiceDate = !string.IsNullOrEmpty(latestBill.BillNo)
+                            ? $"{formattedDate} - {latestBill.BillNo}"
+                            : formattedDate;
+                    }
+                    else if (!string.IsNullOrEmpty(latestBill.BillNo))
+                    {
+                        lastServiceDate = latestBill.BillNo;
+                    }
                 }
 
                 return new JobBillEntryReportSummaryDTO
@@ -196,7 +208,8 @@ namespace GCTL.Service.BillService
                     TotalBillCount = count,
                     NetServiceValue = netTotal,
                     TotalDueOutstanding = 0.00m, // Default as requested
-                    LastServiceValue = lastVal
+                    LastServiceValue = lastVal,
+                    LastServiceDate = lastServiceDate
                 };
             }
             catch
@@ -206,7 +219,8 @@ namespace GCTL.Service.BillService
                     TotalBillCount = 0,
                     NetServiceValue = 0m,
                     TotalDueOutstanding = 0m,
-                    LastServiceValue = 0m
+                    LastServiceValue = 0m,
+                    LastServiceDate = "-"
                 };
             }
         }
@@ -278,6 +292,39 @@ namespace GCTL.Service.BillService
                     .Where(d => d.BillNo != null && pagedBillNos.Contains(d.BillNo))
                     .ToListAsync();
 
+                // Fetch expense heads for the paged details
+                Dictionary<string, CfDefExpenseHead> headDict = new();
+                if (_expHeadRepository != null)
+                {
+                    var expHeadIds = detailList.Select(d => d.ExpenseHeadId).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
+                    if (expHeadIds.Any())
+                    {
+                        var heads = await _expHeadRepository.All().AsNoTracking()
+                            .Where(h => h.ExpenseHeadId != null && expHeadIds.Contains(h.ExpenseHeadId))
+                            .ToListAsync();
+                        headDict = heads.ToDictionary(h => h.ExpenseHeadId!, h => h);
+                    }
+                }
+
+                // Fetch related SepDocumentation and Units for the paged records
+                var pagedJobNos = pagedBills.Select(b => b.JobNo).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
+                Dictionary<string, GCTL.Data.Models.SepDocumentation> docDict = new();
+                if (_sepDocumentationRepository != null && pagedJobNos.Any())
+                {
+                    var docs = await _sepDocumentationRepository.All().AsNoTracking()
+                        .Where(d => d.JobNo != null && pagedJobNos.Contains(d.JobNo))
+                        .ToListAsync();
+                    docDict = docs.GroupBy(d => d.JobNo!).ToDictionary(g => g.Key, g => g.First());
+                }
+
+                Dictionary<string, string> unitDict = new();
+                if (_unitRepository != null)
+                {
+                    var units = await _unitRepository.All().AsNoTracking().ToListAsync();
+                    unitDict = units.Where(u => !string.IsNullOrEmpty(u.UnitTypId))
+                                    .ToDictionary(u => u.UnitTypId, u => u.UnitTypeName ?? u.ShortName ?? u.UnitTypId);
+                }
+
                 int sl = pageSize > 0 ? ((pageNumber - 1) * pageSize + 1) : 1;
                 var items = new List<JobBillEntryReportItemDTO>();
 
@@ -287,23 +334,82 @@ namespace GCTL.Service.BillService
                     var bChcs = chcList.Where(c => c.BillNo == bBillNo).ToList();
                     var bDetails = detailList.Where(d => d.BillNo == bBillNo).ToList();
 
-                    decimal receiptable = bChcs.Where(c => string.Equals(c.IsReceiptable, "Y", StringComparison.OrdinalIgnoreCase))
-                                               .Sum(c => c.BillAmount ?? 0m);
+                    decimal receiptable = 0m;
+                    decimal nonReceiptable = 0m;
+                    decimal transport = 0m;
+                    decimal agencyFromHeads = 0m;
 
-                    decimal nonReceiptable = bChcs.Where(c => string.Equals(c.IsReceiptable, "N", StringComparison.OrdinalIgnoreCase))
-                                                  .Sum(c => c.BillAmount ?? 0m);
+                    foreach (var chc in bChcs)
+                    {
+                        var head = chc.BillHead ?? chc.ChcheadDescription ?? string.Empty;
+                        decimal amt = chc.BillAmount ?? 0m;
+                        if (amt == 0 && string.IsNullOrWhiteSpace(head)) continue;
 
-                    decimal transportFromChc = bChcs.Where(c => !string.IsNullOrEmpty(c.BillHead) && c.BillHead.Contains("Transport", StringComparison.OrdinalIgnoreCase))
-                                                    .Sum(c => c.BillAmount ?? 0m);
+                        if (head.Contains("Transport", StringComparison.OrdinalIgnoreCase))
+                        {
+                            transport += amt;
+                        }
+                        else if (head.Contains("Agency", StringComparison.OrdinalIgnoreCase))
+                        {
+                            agencyFromHeads += amt;
+                        }
+                        else if (string.Equals(chc.IsReceiptable, "Y", StringComparison.OrdinalIgnoreCase))
+                        {
+                            receiptable += amt;
+                        }
+                        else
+                        {
+                            nonReceiptable += amt;
+                        }
+                    }
 
-                    decimal transportFromDetail = bDetails.Where(d => !string.IsNullOrEmpty(d.BillHead) && d.BillHead.Contains("Transport", StringComparison.OrdinalIgnoreCase))
-                                                          .Sum(d => d.ActualAmount ?? d.ExpenseBillAmount ?? 0m);
+                    foreach (var det in bDetails)
+                    {
+                        headDict.TryGetValue(det.ExpenseHeadId ?? string.Empty, out var eh);
+                        var head = !string.IsNullOrWhiteSpace(det.BillHead) ? det.BillHead : (eh?.ExpenseHead ?? string.Empty);
+                        decimal amt = det.ExpenseBillAmount ?? det.ActualAmount ?? 0m;
+                        if (amt == 0 && string.IsNullOrWhiteSpace(head)) continue;
 
-                    decimal transport = transportFromChc > 0 ? transportFromChc : transportFromDetail;
-                    decimal agencyComm = b.MinimumAgencyCommission ?? 0m;
+                        string isRec = eh?.IsReceiptable ?? string.Empty;
+
+                        if (head.Contains("Transport", StringComparison.OrdinalIgnoreCase))
+                        {
+                            transport += amt;
+                        }
+                        else if (head.Contains("Agency", StringComparison.OrdinalIgnoreCase))
+                        {
+                            agencyFromHeads += amt;
+                        }
+                        else if (string.Equals(isRec, "Y", StringComparison.OrdinalIgnoreCase))
+                        {
+                            receiptable += amt;
+                        }
+                        else
+                        {
+                            nonReceiptable += amt;
+                        }
+                    }
+
+                    decimal agencyComm = agencyFromHeads > 0 ? agencyFromHeads : (b.MinimumAgencyCommission ?? 0m);
                     decimal total = b.BillAmount ?? 0m;
                     decimal deduction = b.SpecialDiscount ?? 0m;
                     decimal net = total - deduction;
+
+                    docDict.TryGetValue(b.JobNo ?? string.Empty, out var doc);
+
+                    string qUnitId = b.QunitTypeId ?? doc?.Unit1 ?? string.Empty;
+                    string qUnitName = unitDict.TryGetValue(qUnitId, out var qun) ? qun : qUnitId;
+                    decimal? qty = b.Quantity ?? doc?.Quntity1;
+                    string qtyStr = (qty.HasValue && qty.Value != 0)
+                        ? (!string.IsNullOrWhiteSpace(qUnitName) ? $"{qty.Value:0.##} {qUnitName}".Trim() : qty.Value.ToString("0.##"))
+                        : "-";
+
+                    string wUnitId = b.WunitTypeId ?? doc?.Unit2 ?? string.Empty;
+                    string wUnitName = unitDict.TryGetValue(wUnitId, out var wun) ? wun : wUnitId;
+                    decimal? weight = b.DocWeight ?? doc?.Quntity2;
+                    string weightStr = (weight.HasValue && weight.Value != 0)
+                        ? (!string.IsNullOrWhiteSpace(wUnitName) ? $"{weight.Value:0.##} {wUnitName}".Trim() : weight.Value.ToString("0.##"))
+                        : "-";
 
                     items.Add(new JobBillEntryReportItemDTO
                     {
@@ -312,8 +418,8 @@ namespace GCTL.Service.BillService
                         BillDate = b.BillDate.HasValue ? b.BillDate.Value.ToString("dd/MM/yyyy") : "-",
                         JobNo = b.JobNo ?? "-",
                         MaterialDescription = b.MaterialDescription ?? "-",
-                        Quantity = b.Quantity.HasValue ? b.Quantity.Value.ToString("0.##") : "-",
-                        Weight = b.DocWeight.HasValue ? b.DocWeight.Value.ToString("0.##") : "-",
+                        Quantity = qtyStr,
+                        Weight = weightStr,
                         ReceiptableAmount = receiptable,
                         NonReceiptableAmount = nonReceiptable,
                         TransportAmount = transport,

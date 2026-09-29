@@ -4,6 +4,8 @@ namespace GCTL.UI.Core.ViewModels
     {
         public string? Data { get; set; }            // maps to DataTables columns.data
         public string? Header { get; set; }
+        public string? ShortHeader { get; set; }      // Short / compact header shown on < 1600px screens
+        public string? ShortName { get => ShortHeader; set => ShortHeader = value; } // Alias for ShortHeader
         public string? HeaderBangla { get; set; }
         public string? Width { get; set; }
         public bool Sortable { get; set; } = true;
@@ -21,6 +23,12 @@ namespace GCTL.UI.Core.ViewModels
         public bool IsCopyable { get; set; } = false;          // 1-click copy button with mini tooltip
         public bool TabularNumber { get; set; } = false;       // tabular monospaced numbers alignment
         public bool IsTruncate { get; set; } = false;          // single-line text ellipsis with title tooltip
+
+        // Strips any HTML tags from Header for clean tooltip display
+        public string CleanHeader => !string.IsNullOrEmpty(Header)
+            ? System.Text.RegularExpressions.Regex.Replace(Header, "<.*?>", string.Empty).Trim()
+            : string.Empty;
+
         public string CssClass => Align switch
         {
             "left" => "text-start",
@@ -34,6 +42,7 @@ namespace GCTL.UI.Core.ViewModels
     {
         public string GridId { get; set; } = "customGrid";
         public List<GridColumn> Columns { get; set; } = new();
+        public int CompactBreakpoint { get; set; } = 1600; // Breakpoint in px below which ShortHeader is shown
 
         // Selection
         public bool ShowCheckbox { get; set; } = false;
