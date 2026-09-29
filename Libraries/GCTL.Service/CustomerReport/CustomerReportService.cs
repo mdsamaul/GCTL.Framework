@@ -726,10 +726,11 @@ namespace GCTL.Service.CustomerReport
 
             var firstItem = data.FirstOrDefault();
             string companyName = !string.IsNullOrWhiteSpace(firstItem?.CompanyName) ? firstItem.CompanyName : "Formosa Logistics Limited";
+            string companyAddress = !string.IsNullOrWhiteSpace(firstItem?.CompanyAddress1) ? firstItem.CompanyAddress1 : "21, Hazaribagh, Dhaka-1209";
 
             var headers = new[]
             {
-                "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Contact Person"
+               "SN.", "Customer ID", "Name", "Address", "Phone", "Fax", "Email", "Photo", "Contact Person"
             };
 
             int totalCols = headers.Length;
@@ -748,17 +749,20 @@ namespace GCTL.Service.CustomerReport
                 int sl = 1;
                 foreach (var item in group)
                 {
+                    bool hasPhoto = !string.IsNullOrEmpty(item.PhotoUrl) || (item.CustomerPhoto != null && item.CustomerPhoto.Length > 0);
+
                     var row = new[]
                     {
-                        (sl++).ToString(),
-                        item.CustomerId ?? "",
-                        item.CustomerName ?? "",
-                        item.CustomerAddress ?? "",
-                        item.Phone ?? "",
-                        item.Fax ?? "",
-                        item.Email ?? "",
-                        item.ContactPerson ?? ""
-                    };
+                (sl++).ToString(),
+                item.CustomerId ?? "",
+                item.CustomerName ?? "",
+                item.CustomerAddress ?? "",
+                item.Phone ?? "",
+                item.Fax ?? "",
+                item.Email ?? "",
+                hasPhoto ? "" : "-",     // Excel er moto: photo thakle blank, na thakle "-"
+                item.ContactPerson ?? ""
+            };
 
                     for (int c = 0; c < totalCols; c++)
                     {
@@ -778,14 +782,15 @@ namespace GCTL.Service.CustomerReport
 
             int[] minCustomerWidths = new int[]
             {
-                6,  // SN
-                14, // Customer ID
-                28, // Customer Name
-                35, // Address
-                16, // Phone
-                16, // Fax
-                24, // Email
-                20  // Contact Person
+                 6,  // SN
+                 40, // Customer ID
+                 80, // Customer Name
+                 90, // Address
+                 40, // Phone
+                 40, // Fax
+                 55, // Email
+                 15,  // Photo
+                 100  // Contact Person
             };
 
             for (int c = 0; c < totalCols; c++)
@@ -798,10 +803,10 @@ namespace GCTL.Service.CustomerReport
             using var memoryStream = new MemoryStream();
             using (var writer = new StreamWriter(memoryStream, new System.Text.UTF8Encoding(true)))
             {
-                // Centered Company Information Headers
                 await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(companyName, totalCols, totalTableWidth));
+                await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(companyAddress, totalCols, totalTableWidth));
                 await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Customer Report", totalCols, totalTableWidth));
-                await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank row
+                await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank row (Excel er row 4 er moto)
 
                 if (preparedGroups.Count == 0)
                 {
@@ -814,7 +819,6 @@ namespace GCTL.Service.CustomerReport
                 {
                     foreach (var group in preparedGroups)
                     {
-                        // Customer Type Group Header
                         await writer.WriteLineAsync($"\"Customer Type: {group.TypeLabel} [Total: {group.Count}]\"{new string(',', totalCols - 1)}");
 
                         var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCustomerCsvCell(h, i, colWidths[i], isHeader: true)));
@@ -861,11 +865,11 @@ namespace GCTL.Service.CustomerReport
                 return PadCenter(text, width);
             }
 
-            if (colIdx == 2 || colIdx == 3 || colIdx == 7) // Name, Address, Contact Person -> Left
+            if (colIdx == 2 || colIdx == 3 || colIdx == 8) // Name, Address, Contact Person -> Left
             {
                 return PadLeftAligned(text, width);
             }
-            else // SN, Customer ID, Phone, Fax, Email -> Center
+            else // SN, Customer ID, Phone, Fax, Email, Photo -> Center
             {
                 return PadCenter(text, width);
             }
