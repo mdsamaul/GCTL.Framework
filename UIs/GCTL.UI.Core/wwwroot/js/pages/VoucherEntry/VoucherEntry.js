@@ -51,7 +51,7 @@ $(document).ready(function () {
         }, 150);
     }
 
-    $('#dateFrom, #dateTo').on('change', function () {
+    $('#dateFrom, #dateTo, #filterVoucherType').on('change', function () {
         triggerGridDateReload();
     });
 
@@ -294,11 +294,26 @@ function LoadVoucherTypeDropdown() {
             var $general = $('#VoucherTypeCode');
             $general.empty().append('<option value="">Select Voucher Type</option>');
 
+            var $filter = $('#filterVoucherType');
+            if ($filter.length) {
+                var currentFilterVal = $filter.val() || '';
+                $filter.empty().append('<option value="">All</option>');
+            }
+
             $.each(response.data, function (index, general) {
                 $general.append(
                     '<option value="' + general.id + '">' + general.name + '</option>'
                 );
+                if ($filter.length) {
+                    $filter.append(
+                        '<option value="' + general.id + '">' + general.name + '</option>'
+                    );
+                }
             });
+
+            if ($filter.length && currentFilterVal) {
+                $filter.val(currentFilterVal);
+            }
 
             // Initialize Select2 to make it searchable
             // $general.select2({
@@ -308,6 +323,9 @@ function LoadVoucherTypeDropdown() {
             //     dropdownPosition: 'below'
             // });
             window.reinitCustomDropdownById('VoucherTypeCode');
+            if (typeof window.reinitCustomDropdownById === 'function') {
+                window.reinitCustomDropdownById('filterVoucherType');
+            }
 
             $general.next('.select2-container').find('.select2-selection__placeholder')
                 .html('Voucher Type <span style="color:red">*</span>');
@@ -711,6 +729,7 @@ function LoadVoucherEntriesTable() {
                 ajaxData: function (d) {
                     d.fromDate = $('#dateFrom').val();
                     d.toDate = $('#dateTo').val();
+                    d.voucherTypeCode = $('#filterVoucherType').val() || '';
                 }
             });
         }

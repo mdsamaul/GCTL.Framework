@@ -688,6 +688,18 @@
         border-bottom-left-radius: 0 !important;
         font-size: 13px !important;
     }
+
+    .input-group > .custom-dd-wrapper {
+        flex: 1 1 auto !important;
+        width: 1% !important;
+        min-width: 0 !important;
+    }
+
+    .input-group > .custom-dd-wrapper .custom-dd-box {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        height: 31px !important;
+    }
 </style>
 
 <!-- Content Header (Page header) -->
@@ -729,7 +741,7 @@
 
             <!-- Bottom Table Grid Column -->
             <div class="col-md-12">
-                <div class="d-flex justify-content-start align-items-center mb-2 gap-2">
+                <div class="d-flex justify-content-start align-items-center mb-2 gap-2 flex-wrap">
                     <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
                     <div class="input-group input-group-sm" style="width: 350px;">
                         <span class="input-group-text">Date From</span>
@@ -740,6 +752,12 @@
                         <input type="text" class="form-control custom-datepicker" id="dateTo"
                                value="@DateTime.Now.ToString("yyyy-MM-dd")"
                                data-default-date="@DateTime.Now.ToString("yyyy-MM-dd")" placeholder="DD/MM/YYYY" />
+                    </div>
+                    <div class="input-group input-group-sm" style="width: 250px;">
+                        <span class="input-group-text">Voucher Type</span>
+                        <select class="form-select form-select-sm custom-select-single" id="filterVoucherType" data-placeholder="All">
+                            <option value="">All</option>
+                        </select>
                     </div>
                 </div>
                 <div class="table-responsive grid-no-horizontal-scroll">

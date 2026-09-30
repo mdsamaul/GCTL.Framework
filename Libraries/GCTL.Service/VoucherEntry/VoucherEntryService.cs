@@ -512,16 +512,22 @@ namespace GCTL.Service.VoucherEntry
         //    return paginatedResult;
         //}
         public async Task<PaginationService<VoucherEntryVM, VoucherEntryVM>.PaginationResult<VoucherEntryVM>> GetPaginatedAsync(
-    int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherDate",
-    string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null)
+            int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherDate",
+            string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null, string voucherTypeCode = "")
         {
-            // Resolve matching branch codes ONCE, from the small branch table (no join on main table)
+            // Resolve matching branch and voucher type codes ONCE, from small reference tables (no join on main table)
             List<string> matchedBranchCodes = new();
+            List<string> matchedVoucherTypeCodes = new();
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 matchedBranchCodes = await _branch.All().AsNoTracking()
                     .Where(b => EF.Functions.Like(b.BranchName ?? "", $"%{searchTerm}%"))
                     .Select(b => b.BranchCode)
+                    .ToListAsync();
+
+                matchedVoucherTypeCodes = await _voucherType.All().AsNoTracking()
+                    .Where(v => EF.Functions.Like(v.VoucherTypeName ?? "", $"%{searchTerm}%"))
+                    .Select(v => v.VoucherTypeCode)
                     .ToListAsync();
             }
 
@@ -537,6 +543,7 @@ namespace GCTL.Service.VoucherEntry
                     Narration = main.Narration,
                     InvoiceNo = main.InvoiceNo,
                     Reference = main.Reference,
+                    VoucherType_Code = main.VoucherTypeCode,
                     BranchCode = main.BranchCode   // add this field to VM if missing
                 });
 
@@ -550,6 +557,10 @@ namespace GCTL.Service.VoucherEntry
                 var eDate = endDate.Value.Date.AddDays(1);
                 query = query.Where(x => x.VoucherDate < eDate);
             }
+            if (!string.IsNullOrWhiteSpace(voucherTypeCode))
+            {
+                query = query.Where(x => x.VoucherType_Code == voucherTypeCode);
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -557,7 +568,8 @@ namespace GCTL.Service.VoucherEntry
                     EF.Functions.Like(x.VoucherNo ?? "", $"%{searchTerm}%") ||
                     EF.Functions.Like(x.Narration ?? "", $"%{searchTerm}%") ||
                     EF.Functions.Like(x.Reference ?? "", $"%{searchTerm}%") ||
-                    matchedBranchCodes.Contains(x.BranchCode));
+                    matchedBranchCodes.Contains(x.BranchCode) ||
+                    matchedVoucherTypeCodes.Contains(x.VoucherType_Code));
             }
 
             if (pageSize == -1)
@@ -577,11 +589,16 @@ namespace GCTL.Service.VoucherEntry
             {
                 var voucherCodes = paginatedResult.Data.Select(x => x.VoucherEntryCodeNo).Where(c => c != null).ToList();
                 var branchCodes = paginatedResult.Data.Select(x => x.BranchCode).Distinct().ToList();
+                var voucherTypeCodes = paginatedResult.Data.Select(x => x.VoucherType_Code).Where(c => !string.IsNullOrEmpty(c)).Distinct().ToList();
 
                 // Branch names — cache this dictionary (IMemoryCache, sliding 30 min) since branch data barely changes
                 var branchMap = await _branch.All().AsNoTracking()
                     .Where(b => branchCodes.Contains(b.BranchCode))
                     .ToDictionaryAsync(b => b.BranchCode, b => b.BranchName);
+
+                var voucherTypeMap = await _voucherType.All().AsNoTracking()
+                    .Where(v => voucherTypeCodes.Contains(v.VoucherTypeCode))
+                    .ToDictionaryAsync(v => v.VoucherTypeCode, v => v.VoucherTypeName);
 
                 var amounts = await _voucherDetails.All().AsNoTracking()
                     .Where(d => voucherCodes.Contains(d.VoucherEntryCodeNo))
@@ -597,6 +614,9 @@ namespace GCTL.Service.VoucherEntry
                 {
                     if (item.BranchCode != null && branchMap.TryGetValue(item.BranchCode, out var bname))
                         item.BranchName = bname;
+
+                    if (item.VoucherType_Code != null && voucherTypeMap.TryGetValue(item.VoucherType_Code, out var vtName))
+                        item.VoucherTypeName = vtName;
 
                     if (item.VoucherEntryCodeNo != null && groupedAmounts.TryGetValue(item.VoucherEntryCodeNo, out var amt))
                         item.Amount = amt;
