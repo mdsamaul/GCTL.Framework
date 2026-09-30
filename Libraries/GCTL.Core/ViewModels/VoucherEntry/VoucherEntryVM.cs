@@ -6,6 +6,7 @@ namespace GCTL.Core.ViewModels.VoucherEntry
         public string CompanyCode { get; set; }
         public string BranchCode { get; set; }
         public string VoucherType_Code { get; set; }
+        public string? VoucherTypeName { get; set; }
         public DateTime VoucherDate { get; set; }
         public string? VoucherDateDisplay { get; set; }
         public string? VoucherEntryCodeNo { get; set; }
@@ -14,6 +15,7 @@ namespace GCTL.Core.ViewModels.VoucherEntry
         public string? BranchName { get; set; }
         public decimal? Amount { get; set; }
         public string? InvoiceNo { get; set; }
+        public string? Reference { get; set; }
         public decimal? autoId { get; set; }
 
 

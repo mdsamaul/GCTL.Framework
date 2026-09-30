@@ -38,7 +38,7 @@ namespace GCTL.Service.VoucherEntry
 
         #region Gell Voucher Entry
 
-        Task<PaginationService<VoucherEntryVM, VoucherEntryVM>.PaginationResult<VoucherEntryVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherNo", string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null);
+        Task<PaginationService<VoucherEntryVM, VoucherEntryVM>.PaginationResult<VoucherEntryVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 5, string searchTerm = "", string sortColumn = "VoucherNo", string sortOrder = "desc", DateTime? startDate = null, DateTime? endDate = null, string voucherTypeCode = "");
 
 
         #endregion

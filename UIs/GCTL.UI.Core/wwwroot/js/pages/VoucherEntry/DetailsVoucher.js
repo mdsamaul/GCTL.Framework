@@ -30,9 +30,44 @@ $(document).ready(function () {
 
     LoadAccountHeadDropdown();
     
+    // Ensure tfoot is present before DataTables initialization if not already rendered
+    if ($('#VoucherEntryTempGrid tfoot').length === 0) {
+        $('#VoucherEntryTempGrid').append(`
+            <tfoot>
+                <tr class="voucher-total-row fw-bold">
+                    <td colspan="4" class="text-end pe-3 py-1">Total :</td>
+                    <td class="text-end py-1 pe-2" id="TotalDrValue" style="text-align: right !important;">0.00</td>
+                    <td class="text-end py-1 pe-2" id="TotalCrValue" style="text-align: right !important;">0.00</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        `);
+    }
+
     if ($.gctlGrid) {
         $.gctlGrid.initFromModel({
             gridId: 'VoucherEntryTempGrid',
+            extraOptions: {
+                dom: "rt<'row align-items-center mt-1'<'col-12 text-start'i>>",
+                paging: false,
+                searching: false,
+                lengthChange: false,
+                info: true,
+                drawCallback: function () {
+                    var dt = this.api ? this.api() : null;
+                    if (dt) {
+                        var totalDr = 0;
+                        var totalCr = 0;
+                        var records = dt.rows().data().toArray();
+                        records.forEach(function (item) {
+                            totalDr += (parseFloat(item.debitAmount) || 0);
+                            totalCr += (parseFloat(item.creditAmount) || 0);
+                        });
+                        $('#TotalDrValue').text(formatMoney(totalDr));
+                        $('#TotalCrValue').text(formatMoney(totalCr));
+                    }
+                }
+            },
             onLoaded: function (json) {
                 let totalDr = 0;
                 let totalCr = 0;
@@ -123,6 +158,7 @@ function LoadAccountHeadDropdown() {
             console.log("Account Head Dropdown Loaded", response.data);
 
             var $general = $('#AccCode');
+            var currentVal = $general.val();
             $general.empty().append('<option value="">Select Account Head</option>');
 
             $.each(response.data, function (index, general) {
@@ -130,6 +166,10 @@ function LoadAccountHeadDropdown() {
                     '<option value="' + general.id + '">' + general.name + '</option>'
                 );
             });
+
+            if (currentVal) {
+                $general.val(currentVal);
+            }
 
             if (window.reinitCustomDropdownById) {
                 window.reinitCustomDropdownById('AccCode');

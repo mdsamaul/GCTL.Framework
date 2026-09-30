@@ -482,6 +482,16 @@
                 showCheckAll = false;
             }
 
+            var showPagination = config.showPagination !== undefined ? config.showPagination : config.ShowPagination;
+            var showSearchBox = config.showSearchBox !== undefined ? config.showSearchBox : config.ShowSearchBox;
+            var configExtraOptions = {};
+            if (showPagination === false) {
+                configExtraOptions.paging = false;
+            }
+            if (showSearchBox === false) {
+                configExtraOptions.searching = false;
+            }
+
             var builtSettings = {
                 gridSelector: '#' + config.gridId,
                 ajaxUrl: config.ajaxUrl,
@@ -498,6 +508,7 @@
                 lengthMenu: [lengthValues, lengthLabels],
                 columnDefs: nonOrderableCols.length ? [{ targets: nonOrderableCols, orderable: false }] : [],
                 sortFieldMap: sortFieldMap,
+                extraOptions: configExtraOptions,
                 showSkeletonLoading: config.showSkeletonLoading !== false,
                 showSearchHighlight: config.showSearchHighlight !== false,
                 enableDoubleClickEdit: !!config.enableDoubleClickEdit,

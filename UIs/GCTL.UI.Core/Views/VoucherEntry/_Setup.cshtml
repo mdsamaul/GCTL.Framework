@@ -85,7 +85,7 @@
                 LabelColumnClass = "text-end"
             })
 
-            @* Row 3: Voucher No *@
+            @* Row 3: Voucher No and Reference *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
             {
                 IsVisible = true,
@@ -103,7 +103,22 @@
                 LabelColWidth = 3,
                 LabelColumnClass = "text-end"
             })
-            <div class="col-md-6 d-none d-md-block"></div>
+            @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
+            {
+                IsVisible = true,
+                ShowOnInit = true,
+                ColumnClass = "col-md-6",
+                FieldType = FieldType.Text,
+                InputId = "Reference",
+                InputName = "Reference",
+                ReserveActionSlot = false,
+                LabelText = "Reference",
+                Placeholder = "Enter Reference",
+                IsRequired = false,
+                LabelInline = true,
+                LabelColWidth = 3,
+                LabelColumnClass = "text-end"
+            })
 
             @* Row 4: Narration in a new row *@
             @await Html.PartialAsync("_DynamicFieldColumn", new DynamicFieldColumnModel
@@ -118,7 +133,7 @@
                 ReserveActionSlot = false,
                 Placeholder = "Narration",
                 IsRequired = true,
-                Rows = 1,
+                Rows = 2,
                 LabelInline = true,
                 LabelColWidth = 3,
                 LabelColumnClass = "text-end"
@@ -310,6 +325,8 @@
                         ServerSide = false,
                         ShowCheckbox = true,
                         ShowActionMenu = false,
+                        ShowPagination = false,
+                        ShowSearchBox = false,
                         CheckColumnData = "autoId",
                         CheckAllId = "none",
                         Compact = true,
@@ -322,13 +339,16 @@
                             new GridColumn { Data = "debitAmount", Header = "Debit", Align = "right", Width = "14%", RenderFn = "formatCurrency", TabularNumber = true },
                             new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "14%", RenderFn = "formatCurrency", TabularNumber = true },
                             new GridColumn { Data = "autoId", Header = "Action", Align = "center", Width = "10%", RenderFn = "voucherActionButtons", Sortable = false, Searchable = false }
-                        }
+                        },
+                        FooterHtml = @"<tfoot>
+                            <tr class=""voucher-total-row fw-bold"">
+                                <td colspan=""4"" class=""text-end pe-3 py-1"">Total :</td>
+                                <td class=""text-end py-1 pe-2"" id=""TotalDrValue"" style=""text-align: right !important;"">0.00</td>
+                                <td class=""text-end py-1 pe-2"" id=""TotalCrValue"" style=""text-align: right !important;"">0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>"
                     }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
-                </div>
-                <div class="d-flex justify-content-end align-items-center voucher-total-box mt-1 px-3 py-1" style="background-color: #f8f9fa; border: none; border-top: 1px solid #dee2e6; border-radius: 4px; font-size: 13px; gap: 20px;">
-                    <span class="fw-bold">Total :</span>
-                    <div><span class="text-muted small">Dr:</span> <span class="fw-bold" id="TotalDrValue">0.00</span></div>
-                    <div><span class="text-muted small">Cr:</span> <span class="fw-bold" id="TotalCrValue">0.00</span></div>
                 </div>
             </div>
 

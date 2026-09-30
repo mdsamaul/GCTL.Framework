@@ -673,6 +673,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.PeriodCodeNo)
                 .IsRequired()
                 .HasMaxLength(50);
+            entity.Property(e => e.Reference).HasMaxLength(50);
             entity.Property(e => e.UserInfoEmployeeId)
                 .HasMaxLength(50)
                 .HasColumnName("UserInfoEmployeeID");
@@ -1020,7 +1021,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ComponentProdId).HasColumnName("ComponentProdID");
             entity.Property(e => e.ComponentVariantId).HasColumnName("ComponentVariantID");
             entity.Property(e => e.QtyPerBundle)
-                .HasDefaultValueSql("((1))")
+                .HasDefaultValue(1m)
                 .HasColumnType("decimal(18, 4)");
         });
 
@@ -1914,7 +1915,9 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Icon).HasMaxLength(50);
             entity.Property(e => e.MenuId).HasMaxLength(50);
             entity.Property(e => e.MenuText).HasMaxLength(100);
-            entity.Property(e => e.OrderBy).HasDefaultValueSql("((1))");
+            entity.Property(e => e.OrderBy)
+                .HasDefaultValue(1)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_AccessCode_OrderBy");
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.Title).HasMaxLength(250);
             entity.Property(e => e.ViewName).HasMaxLength(100);
@@ -2010,6 +2013,8 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.ToTable("Core_Company");
 
             entity.HasIndex(e => e.CompanyCode, "IX_Company_CompanyCode");
+
+            entity.HasIndex(e => e.CompanyCode, "IX_Core_Company_Code");
 
             entity.Property(e => e.CompanyCode).HasMaxLength(10);
             entity.Property(e => e.BaseCurrency).HasMaxLength(150);
@@ -2204,8 +2209,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.Property(e => e.ControllerName).HasMaxLength(100);
             entity.Property(e => e.Icon).HasMaxLength(50);
+            entity.Property(e => e.IsActive).HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_IsActive");
             entity.Property(e => e.MenuId).HasMaxLength(50);
-            entity.Property(e => e.OrderBy).HasDefaultValueSql("((1))");
+            entity.Property(e => e.OrderBy)
+                .HasDefaultValue(1)
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_Core_MenuTab2_OrderBy");
             entity.Property(e => e.ParentId).HasMaxLength(100);
             entity.Property(e => e.TableName).HasMaxLength(50);
             entity.Property(e => e.Title)
@@ -2473,7 +2481,9 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.Lmac)
                 .HasMaxLength(30)
                 .HasColumnName("LMAC");
-            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(NULL)")
+                .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<CustomerHandilingCharge>(entity =>
@@ -2890,13 +2900,15 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("LMAC");
             entity.Property(e => e.LunchBreakHour)
-                .HasDefaultValueSql("((0.00))")
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchBreakHour")
                 .HasColumnType("decimal(5, 2)");
             entity.Property(e => e.LunchInTime)
-                .HasDefaultValueSql("('1900-01-01 00:00:00')")
+                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchInTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.LunchOutTime)
-                .HasDefaultValueSql("('1900-01-01 00:00:00')")
+                .HasDefaultValue(new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
+                .HasAnnotation("Relational:DefaultConstraintName", "DF_HRM_ATD_Shift_LunchOutTime")
                 .HasColumnType("datetime");
             entity.Property(e => e.Luser)
                 .HasMaxLength(50)
@@ -3969,16 +3981,16 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.IsOverTimeEligible).HasMaxLength(10);
             entity.Property(e => e.IsOverTimeEligibleHoliday)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("('')");
+                .HasDefaultValue("");
             entity.Property(e => e.IsOverTimeEligibleOnlyWeekend)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("('')");
+                .HasDefaultValue("");
             entity.Property(e => e.IsOverTimeEligibleRegular)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("('')");
+                .HasDefaultValue("");
             entity.Property(e => e.IsSanitaryEmployee)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("('')");
+                .HasDefaultValue("");
             entity.Property(e => e.JoiningDate).HasColumnType("datetime");
             entity.Property(e => e.JoiningSalary).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Ldate)
@@ -4743,6 +4755,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.HasIndex(e => e.Cpid, "IX_ContactPerson_CPID");
 
+            entity.HasIndex(e => e.Cpid, "IX_Sales_ContactPerson_CPID");
+
             entity.Property(e => e.Cpid)
                 .HasMaxLength(50)
                 .HasColumnName("CPID");
@@ -4791,6 +4805,8 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.HasIndex(e => e.CustomerId, "IX_Sales_Customer_CustomerID");
 
             entity.HasIndex(e => e.CustomerId, "IX_Sales_Customer_Id_Perf");
+
+            entity.HasIndex(e => e.CustomerType, "IX_Sales_Customer_Type");
 
             entity.Property(e => e.CustomerId)
                 .HasMaxLength(50)
@@ -5487,7 +5503,7 @@ public partial class GCTL_ERP_DBContext : DbContext
 
             entity.Property(e => e.LineId).HasColumnName("LineID");
             entity.Property(e => e.DiscountAmount)
-                .HasDefaultValueSql("((0))")
+                .HasDefaultValue(0m)
                 .HasColumnType("decimal(18, 4)");
             entity.Property(e => e.InvoiceId).HasColumnName("InvoiceID");
             entity.Property(e => e.LineAmount).HasColumnType("decimal(18, 4)");

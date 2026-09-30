@@ -141,7 +141,7 @@ namespace GCTL_App.Controllers.VoucherEntry
 
         [HttpPost]
         [Route("VoucherEntry/GetTableData")]
-        public async Task<IActionResult> GetTableData(int pageNumber = 1, int pageSize = 10, string sortColumn = "VoucherDate", string sortOrder = "desc", string searchTerm = "", DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<IActionResult> GetTableData(int pageNumber = 1, int pageSize = 10, string sortColumn = "VoucherDate", string sortOrder = "desc", string searchTerm = "", DateTime? fromDate = null, DateTime? toDate = null, string voucherTypeCode = "")
         {
             try
             {
@@ -163,9 +163,14 @@ namespace GCTL_App.Controllers.VoucherEntry
                         else if (DateTime.TryParse(rawTo.ToString().Trim(), out var pTo))
                             toDate = pTo;
                     }
+
+                    if (string.IsNullOrWhiteSpace(voucherTypeCode) && Request.Form.TryGetValue("voucherTypeCode", out var rawVt) && !string.IsNullOrWhiteSpace(rawVt))
+                    {
+                        voucherTypeCode = rawVt.ToString().Trim();
+                    }
                 }
 
-                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder, fromDate, toDate);
+                var result = await _service.GetPaginatedAsync(pageNumber, pageSize, searchTerm, sortColumn, sortOrder, fromDate, toDate, voucherTypeCode);
 
                 if (result.Data == null || !result.Data.Any())
                 {

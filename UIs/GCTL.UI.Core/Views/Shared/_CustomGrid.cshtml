@@ -139,6 +139,10 @@
                             </tr>
                         </thead>
                         <tbody></tbody>
+                        @if (!string.IsNullOrEmpty(Model.FooterHtml))
+                        {
+                            @Html.Raw(Model.FooterHtml)
+                        }
                     </table>
                 </div>
             </div>
@@ -205,6 +209,10 @@ else
                 </tr>
             </thead>
             <tbody></tbody>
+            @if (!string.IsNullOrEmpty(Model.FooterHtml))
+            {
+                @Html.Raw(Model.FooterHtml)
+            }
         </table>
     </div>
 }
