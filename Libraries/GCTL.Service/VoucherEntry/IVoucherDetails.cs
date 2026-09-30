@@ -1,4 +1,5 @@
-﻿using GCTL.Core.ViewModels.VoucherEntry;
+using GCTL.Core.ViewModels;
+using GCTL.Core.ViewModels.VoucherEntry;
 
 namespace GCTL.Service.VoucherEntry
 {
@@ -39,6 +40,7 @@ namespace GCTL.Service.VoucherEntry
 
         #region Account Head Dropdown on Event Change Backend
         Task<LedgerDetailsVM> GetAllLedgerByIdAsync(string id);
+        Task<List<CommonChoiceVM>> GetAccountHeadDropdownAsync();
         #endregion
 
     }

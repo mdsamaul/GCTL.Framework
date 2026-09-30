@@ -1,4 +1,5 @@
 using GCTL.Core.Data;
+using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.VoucherEntry;
 using GCTL.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,7 @@ namespace GCTL.Service.VoucherEntry
         #region Account Head Dropdown on Event Change Backend
         public async Task<LedgerDetailsVM> GetAllLedgerByIdAsync(string id)
         {
-            var data = await (from subSub in _generalLedger.All() // Acc_SubSubsidiaryLedger
+            var raw = await (from subSub in _generalLedger.All() // Acc_SubSubsidiaryLedger
                             join sub in _subsidiledger.All() // Acc_SubsidiaryLedger
                                 on subSub.SubsidiaryLedgerCodeNo equals sub.SusidiaryLedgerCodeNo into subJoin
                             from sub in subJoin.DefaultIfEmpty()
@@ -59,17 +60,30 @@ namespace GCTL.Service.VoucherEntry
 
                             where subSub.SubSusidiaryLedgerCodeNo == id
 
-                            select new LedgerDetailsVM
+                            select new
                             {
-                                GroupLedgerName = control.ControlLedgerName,
-                                ControlLedgerName = subControl.SubControlLedgerName,
-                                SubControlLedgerName = general.GeneralLedgerName,
-                                SubSidiaryLedgerName = sub.SubsidiaryLedgerName,
-                                GeneralLedgerName = subSub.SubSubsidiaryLedgerName
+                                GroupCode = control.ControlLedgerCodeNo,
+                                GroupName = control.ControlLedgerName,
+                                ControlCode = subControl.SubControlLedgerCodeNo,
+                                ControlName = subControl.SubControlLedgerName,
+                                SubControlCode = general.GeneralLedgerCodeNo,
+                                SubControlName = general.GeneralLedgerName,
+                                SubSidiaryCode = sub.SusidiaryLedgerCodeNo,
+                                SubSidiaryName = sub.SubsidiaryLedgerName,
+                                GeneralName = subSub.SubSubsidiaryLedgerName
                             }
                     ).FirstOrDefaultAsync();
 
-            return data;
+            if (raw == null) return null;
+
+            return new LedgerDetailsVM
+            {
+                GroupLedgerName = !string.IsNullOrEmpty(raw.GroupCode) ? $"{raw.GroupCode}-{raw.GroupName}" : raw.GroupName,
+                ControlLedgerName = !string.IsNullOrEmpty(raw.ControlCode) ? $"{raw.ControlCode}-{raw.ControlName}" : raw.ControlName,
+                SubControlLedgerName = !string.IsNullOrEmpty(raw.SubControlCode) ? $"{raw.SubControlCode}-{raw.SubControlName}" : raw.SubControlName,
+                SubSidiaryLedgerName = !string.IsNullOrEmpty(raw.SubSidiaryCode) ? $"{raw.SubSidiaryCode}-{raw.SubSidiaryName}" : raw.SubSidiaryName,
+                GeneralLedgerName = raw.GeneralName
+            };
         }
 
         #endregion
@@ -166,7 +180,7 @@ namespace GCTL.Service.VoucherEntry
         #region Get Details Voucher Information with specific ID
         public async Task<VoucherEntryDetailsTempVM> GetByIdAsync(decimal id)
         {
-            var data = await (from tmp in _repository.All()
+            var raw = await (from tmp in _repository.All()
                               join gnrlL in _generalLedger.All()
                                 on tmp.AccCode equals gnrlL.SubSusidiaryLedgerCodeNo into gnLjoin
                               from gnrl in gnLjoin.DefaultIfEmpty()
@@ -176,19 +190,19 @@ namespace GCTL.Service.VoucherEntry
                               from subsidi in subsijoin.DefaultIfEmpty()
 
                               join subcon in _subcontrolLedger.All() // Acc_GeneralLedger
-                             on subsidi.GeneralLedgerCodeNo equals subcon.GeneralLedgerCodeNo into subconJoin
+                                on subsidi.GeneralLedgerCodeNo equals subcon.GeneralLedgerCodeNo into subconJoin
                               from subcon in subconJoin.DefaultIfEmpty()
 
                               join control in _controlledger.All() // Acc_SubControlLedger
-                                  on subcon.SubControlLedgerCodeNo equals control.SubControlLedgerCodeNo into ControlJoin
+                                on subcon.SubControlLedgerCodeNo equals control.SubControlLedgerCodeNo into ControlJoin
                               from control in ControlJoin.DefaultIfEmpty()
 
                               join grp in _groupLedger.All() // Acc_ControlLedger
-                                  on control.ControlLedgerCodeNo equals grp.ControlLedgerCodeNo into controlJoin
+                                on control.ControlLedgerCodeNo equals grp.ControlLedgerCodeNo into controlJoin
                               from grp in controlJoin.DefaultIfEmpty()
                               where tmp.AutoId == id
 
-                              select new VoucherEntryDetailsTempVM
+                              select new
                               {
                                   autoId = tmp.AutoId,
                                   AccCode = tmp.AccCode,
@@ -197,15 +211,34 @@ namespace GCTL.Service.VoucherEntry
                                   DebitAmount = tmp.DebitAmount,
                                   ChequeNo = tmp.ChequeNo,
                                   ChequeDate = tmp.ChequeDate,
-                                  GroupLedgerName = grp.ControlLedgerName,
-                                  ControlLedgerName = control.SubControlLedgerName,
-                                  SubControlLedgerName = subcon.GeneralLedgerName,
-                                  SubSidiaryLedgerName = subsidi.SubsidiaryLedgerName,
-
+                                  Description = tmp.Description,
+                                  GroupCode = grp.ControlLedgerCodeNo,
+                                  GroupName = grp.ControlLedgerName,
+                                  ControlCode = control.SubControlLedgerCodeNo,
+                                  ControlName = control.SubControlLedgerName,
+                                  SubControlCode = subcon.GeneralLedgerCodeNo,
+                                  SubControlName = subcon.GeneralLedgerName,
+                                  SubSidiaryCode = subsidi.SusidiaryLedgerCodeNo,
+                                  SubSidiaryName = subsidi.SubsidiaryLedgerName
                               }).FirstOrDefaultAsync();
 
-            return data;
+            if (raw == null) return null;
 
+            return new VoucherEntryDetailsTempVM
+            {
+                autoId = raw.autoId,
+                AccCode = raw.AccCode,
+                TrType = raw.TrType,
+                CreditAmount = raw.CreditAmount,
+                DebitAmount = raw.DebitAmount,
+                ChequeNo = raw.ChequeNo,
+                ChequeDate = raw.ChequeDate,
+                Description = raw.Description,
+                GroupLedgerName = !string.IsNullOrEmpty(raw.GroupCode) ? $"{raw.GroupCode}-{raw.GroupName}" : raw.GroupName,
+                ControlLedgerName = !string.IsNullOrEmpty(raw.ControlCode) ? $"{raw.ControlCode}-{raw.ControlName}" : raw.ControlName,
+                SubControlLedgerName = !string.IsNullOrEmpty(raw.SubControlCode) ? $"{raw.SubControlCode}-{raw.SubControlName}" : raw.SubControlName,
+                SubSidiaryLedgerName = !string.IsNullOrEmpty(raw.SubSidiaryCode) ? $"{raw.SubSidiaryCode}-{raw.SubSidiaryName}" : raw.SubSidiaryName
+            };
         }
 
         #endregion
@@ -317,6 +350,39 @@ namespace GCTL.Service.VoucherEntry
             }
         }
 
+        #endregion
+
+        #region Account Head Dropdown
+        public async Task<List<CommonChoiceVM>> GetAccountHeadDropdownAsync()
+        {
+            try
+            {
+                var ledgers = await _generalLedger.All().AsNoTracking()
+                    .Where(x => !string.IsNullOrEmpty(x.SubSusidiaryLedgerCodeNo))
+                    .Select(x => new
+                    {
+                        Id = x.SubSusidiaryLedgerCodeNo,
+                        Name = x.SubSubsidiaryLedgerName
+                    })
+                    .ToListAsync();
+
+                return ledgers
+                    .OrderBy(x => x.Id)
+                    .Select(x => new CommonChoiceVM
+                    {
+                        Id = x.Id,
+                        Name = !string.IsNullOrWhiteSpace(x.Name)
+                            ? $"{x.Id}-{x.Name.Trim()}"
+                            : x.Id
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetAccountHeadDropdownAsync: {ex}");
+                return new List<CommonChoiceVM>();
+            }
+        }
         #endregion
 
     }

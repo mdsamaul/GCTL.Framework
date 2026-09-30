@@ -183,7 +183,7 @@ namespace GCTL_App.Controllers.VoucherEntry
         [Route("Account-Head-dropdown")]
         public async Task<IActionResult> AccountHeadDropdown()
         {
-            var list = await _openingBalance.GetGenetalLedegerDropdownInfo();
+            var list = await _service.GetAccountHeadDropdownAsync();
             return Ok(new { data = list });
         }
 

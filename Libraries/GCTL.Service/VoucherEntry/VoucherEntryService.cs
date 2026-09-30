@@ -122,6 +122,7 @@ namespace GCTL.Service.VoucherEntry
                     VoucherEntryCodeNo = voucherEntryCodeNo,
                     VoucherDate = model.VoucherDate,
                     Narration = model.Narration,
+                    Reference = model.Reference ?? "",
                     Luser = model.Luser.ToString(),
                     Ldate = DateTime.Now,
                     Lip = GetLocalIP(),
@@ -210,6 +211,7 @@ namespace GCTL.Service.VoucherEntry
                 entity.VoucherDate = model.VoucherDate;
                 entity.VoucherNo = model.VoucherNo;
                 entity.Narration = model.Narration;
+                entity.Reference = model.Reference ?? "";
                 entity.ModifyDate = DateTime.Now;
                 entity.Luser = model.Luser.ToString();
 
@@ -534,6 +536,7 @@ namespace GCTL.Service.VoucherEntry
                     VoucherDateDisplay = main.VoucherDate.ToString("dd/MM/yyyy"),
                     Narration = main.Narration,
                     InvoiceNo = main.InvoiceNo,
+                    Reference = main.Reference,
                     BranchCode = main.BranchCode   // add this field to VM if missing
                 });
 
@@ -553,6 +556,7 @@ namespace GCTL.Service.VoucherEntry
                 query = query.Where(x =>
                     EF.Functions.Like(x.VoucherNo ?? "", $"%{searchTerm}%") ||
                     EF.Functions.Like(x.Narration ?? "", $"%{searchTerm}%") ||
+                    EF.Functions.Like(x.Reference ?? "", $"%{searchTerm}%") ||
                     matchedBranchCodes.Contains(x.BranchCode));
             }
 
@@ -618,6 +622,7 @@ namespace GCTL.Service.VoucherEntry
                                   VoucherNo = main.VoucherNo,
                                   VoucherDate = main.VoucherDate,
                                   Narration = main.Narration,
+                                  Reference = main.Reference,
                                   VoucherType_Code = main.VoucherTypeCode,
                                   Ldate = main.Ldate,
                                   ModifyDate = main.ModifyDate
@@ -642,6 +647,7 @@ namespace GCTL.Service.VoucherEntry
                                   VoucherNo = main.VoucherNo,
                                   VoucherDate = main.VoucherDate,
                                   Narration = main.Narration,
+                                  Reference = main.Reference,
                                   VoucherType_Code = main.VoucherTypeCode,
                                   Ldate = main.Ldate,
                                   ModifyDate = main.ModifyDate

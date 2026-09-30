@@ -116,8 +116,8 @@
     }
 
     #VoucherEntry-form textarea#Narration {
-        height: 31px !important;
-        min-height: 31px !important;
+        height: 52px !important;
+        min-height: 52px !important;
         font-size: 13px !important;
         padding: 4px 8px !important;
         line-height: 1.4 !important;
@@ -256,12 +256,17 @@
         color: #212529 !important;
     }
 
+    #VoucherEntry-form .narration-col .row.align-items-center {
+        align-items: flex-start !important;
+    }
+
     #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-3"],
     #VoucherEntry-form .narration-col .row.align-items-center > .col-3 {
         flex: 0 0 12.5% !important;
         max-width: 12.5% !important;
         text-align: right !important;
         padding-right: 6px !important;
+        padding-top: 5px !important;
     }
 
     #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-9"],
@@ -638,6 +643,43 @@
 
     #VoucherEntryTempGrid tbody tr:last-child td {
         border-bottom: none !important;
+    }
+
+    /* Temp Grid Footer (Total Row Aligned to Columns) */
+    #VoucherEntryTempGrid tfoot {
+        display: table-footer-group !important;
+    }
+
+    #VoucherEntryTempGrid tfoot tr.voucher-total-row td {
+        border-top: 1.5px solid #c2c9d1 !important;
+        border-bottom: 1.5px solid #c2c9d1 !important;
+        background-color: #f8fafc !important;
+        font-weight: 700 !important;
+        font-size: 12.5px !important;
+        color: #1e293b !important;
+        padding: 5px 6px !important;
+        vertical-align: middle !important;
+    }
+
+    #VoucherEntryTempGrid tfoot td#TotalDrValue,
+    #VoucherEntryTempGrid tfoot td#TotalCrValue {
+        text-align: right !important;
+        padding-right: 6px !important;
+        font-variant-numeric: tabular-nums !important;
+        color: #0f172a !important;
+    }
+
+    /* Hide length menu, search box, and pagination for VoucherEntryTempGrid */
+    #VoucherEntryTempGrid_wrapper .dataTables_length,
+    #VoucherEntryTempGrid_wrapper .dataTables_filter,
+    #VoucherEntryTempGrid_wrapper .dataTables_paginate {
+        display: none !important;
+    }
+
+    #VoucherEntryTempGrid_wrapper .dataTables_info {
+        padding-top: 6px !important;
+        font-size: 12px !important;
+        color: #64748b !important;
     }
 
     #dateFrom + input.flatpickr-alt-input,

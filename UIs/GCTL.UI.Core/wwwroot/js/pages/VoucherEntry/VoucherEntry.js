@@ -575,7 +575,8 @@ function SaveVoucherEntry() {
         VoucherType_Code: $('#VoucherTypeCode').val(),
         VoucherDate: $('#VoucherDate').val(),
         Narration: $('#Narration').val(),
-        VoucherNo: $('#VoucherNo').val()
+        VoucherNo: $('#VoucherNo').val(),
+        Reference: $('#Reference').val()
     };
 
     // Frontend Validation
@@ -642,6 +643,7 @@ function ClearVoucherEntryForm() {
     setSelect('#VoucherTypeCode', "", false);
     $('#Narration').val(''); 
     $('#VoucherNo').val('');
+    $('#Reference').val('');
     $('#EntryDate').text('');
     $('#UpdateDate').text(''); 
     $(".voucher-checkbox").prop("checked", false);
@@ -837,6 +839,7 @@ function fillMainVoucherInfo(main) {
     }
     
     $('#VoucherNo').val(main.voucherNo);
+    $('#Reference').val(main.reference || '');
     $('#Narration').val(main.narration);
 
     // datepicker handle

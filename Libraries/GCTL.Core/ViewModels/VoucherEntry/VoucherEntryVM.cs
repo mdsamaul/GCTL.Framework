@@ -14,6 +14,7 @@ namespace GCTL.Core.ViewModels.VoucherEntry
         public string? BranchName { get; set; }
         public decimal? Amount { get; set; }
         public string? InvoiceNo { get; set; }
+        public string? Reference { get; set; }
         public decimal? autoId { get; set; }
 
 

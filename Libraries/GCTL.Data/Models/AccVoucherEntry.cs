@@ -52,4 +52,6 @@ public partial class AccVoucherEntry
     public string ApprovedBy { get; set; }
 
     public DateTime? ApprovedDate { get; set; }
+
+    public string Reference { get; set; }
 }
