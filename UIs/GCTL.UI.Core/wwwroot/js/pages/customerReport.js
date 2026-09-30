@@ -1,4 +1,3 @@
-
 (function ($) {
     'use strict';
 
@@ -55,7 +54,6 @@
                         animateCounter('#statTotalcustomer', res.total || 0);
                         animateCounter('#statinHouse', res.inHouse || 0);
                         animateCounter('#statgeneral', res.general || 0);
-                        animateCounter('#statCustomerType', res.customerType || 0);
                     }
                 }
             });
@@ -69,20 +67,22 @@
             reloadGrid();
         });
 
-        // Stat Card Click: shudhu dropdown set korbe, reload change handler nije korbe
+        // Stat Card Click: shudhu dropdown set korbe, reload + highlight change handler nije korbe
         $('.stat-card').on('click', function () {
             var statusFilter = $(this).data('status-filter') || '';
-            $('.stat-card').removeClass('active-card');
-            $(this).addClass('active-card');
-
             var mappedValue = mapStatusToValue(statusFilter);
-            setDropdownValue('filterCustomerType', mappedValue);
-            // ekhane ar reloadGrid() nai, na hole double reload hoto
+
+            // Multi-select: khali hole [], nahole [value]
+            setDropdownValue('filterCustomerType', mappedValue ? [mappedValue] : []);
         });
 
-        // Customer Type change: age customer dropdown reload, tarpor grid reload (ek bar)
+        // Customer Type change: card highlight -> customer dropdown reload -> grid reload (ek bar)
         $('#filterCustomerType').on('change', function () {
             if (suppressReload) return;
+
+            // Sathe sathe card highlight koro
+            highlightStatCard(getDropdownValueArray('filterCustomerType'));
+
             loadCustomersByType().always(function () {
                 reloadGrid();
             });
@@ -229,7 +229,7 @@
         return raw.split(',').filter(function (v) { return !!v; });
     }
 
-    /* Helper to set value of a dropdown */
+    /* Helper to set value of a dropdown (string ba array dutoi cholbe) */
     function setDropdownValue(id, value) {
         var $el = $('#' + id);
         if (!$el.length) return;
@@ -238,6 +238,10 @@
         var inst = $el.data('customDdInstance');
         if (inst && typeof inst.setSelected === 'function') {
             inst.setSelected(value);
+            // Plugin jodi string chay, ar uporer line kaj na kore, tahole eta try koro:
+            // inst.setSelected(Array.isArray(value) ? value.join(',') : value);
+        } else if (inst && Array.isArray(value)) {
+            inst.selected = value.slice();
         }
         $el.trigger('change');
     }
@@ -249,18 +253,26 @@
         };
     }
 
+    /* Dropdown selection onujayi upore stat card highlight */
     function highlightStatCard(customerTypeArr) {
         $('.stat-card').removeClass('active-card');
-        var s = (Array.isArray(customerTypeArr) && customerTypeArr.length ? customerTypeArr[0] : '').toLowerCase().trim();
 
-        if (!s) {
+        var arr = Array.isArray(customerTypeArr) ? customerTypeArr : [];
+
+        // Kichu select na korle, ba duita-i select korle => Total Customer
+        if (arr.length !== 1) {
             $('.stat-card[data-status-filter=""]').addClass('active-card');
-        } else if (s.indexOf('house') !== -1 || s === '1') {
+            return;
+        }
+
+        var s = String(arr[0]).toLowerCase().trim();
+
+        if (s === '1' || s.indexOf('house') !== -1) {
             $('.stat-card[data-status-filter="In House"]').addClass('active-card');
-        } else if (s.indexOf('general') !== -1 || s === '0') {
+        } else if (s === '0' || s.indexOf('general') !== -1) {
             $('.stat-card[data-status-filter="General"]').addClass('active-card');
         } else {
-            $('.stat-card[data-status-filter="Customer Type"]').addClass('active-card');
+            $('.stat-card[data-status-filter=""]').addClass('active-card');
         }
     }
 
