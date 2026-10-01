@@ -6,34 +6,89 @@
     {
         currentPageTitle = ViewData["Title"] as string;
     }
+    // Page title display flag:
+    // Can be set to true/false via ViewData["ShowPageTitle"], ViewData["ShowBreadcrumbTitle"], or ViewData["ShowTitle"]
+    // Initially empty/false by default for standard pages.
+    // Automatically defaults to true for report pages unless explicitly set to false.
+    bool? explicitShow = null;
+    if (ViewData["ShowPageTitle"] is bool b1)
+    {
+        explicitShow = b1;
+    }
+    else if (ViewData["ShowBreadcrumbTitle"] is bool b2)
+    {
+        explicitShow = b2;
+    }
+    else if (ViewData["ShowTitle"] is bool b3)
+    {
+        explicitShow = b3;
+    }
+
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    bool isReport = controller.EndsWith("Report", StringComparison.OrdinalIgnoreCase)
+                 || controller.Contains("Report", StringComparison.OrdinalIgnoreCase)
+                 || action.Contains("Report", StringComparison.OrdinalIgnoreCase)
+                 || (ViewData["IsReport"] as bool? == true);
+
+    bool showTitle = explicitShow.HasValue ? explicitShow.Value : isReport;
+
+    var displayTitle = ViewData["PageHeaderTitle"] as string
+                    ?? ViewData["BreadcrumbTitle"] as string
+                    ?? (!string.IsNullOrWhiteSpace(currentPageTitle) && !currentPageTitle.Equals("Home", StringComparison.OrdinalIgnoreCase) ? currentPageTitle : null)
+                    ?? (ViewData["Title"] as string);
+
+    bool hasTitleToRender = showTitle && !string.IsNullOrWhiteSpace(displayTitle);
 }
 <section class="container-fluid">
     <div class="row mb-1 align-items-center">
-        <div class="col-md-5 col-sm-6">
-            @if (!string.IsNullOrWhiteSpace(currentPageTitle) && !currentPageTitle.Equals("Home", StringComparison.OrdinalIgnoreCase))
-            {
-                <h5 class="mb-0 fw-bold text-dark page-breadcrumb-title my-1" style="font-size: 1.25rem; font-weight: 700 !important; letter-spacing: -0.2px;">@currentPageTitle</h5>
-            }
-        </div>
-        <div class="col-md-7 col-sm-6">
-            <ol class="breadcrumb float-sm-end mb-0">
-                @for (int i = 0; i < trail.Count; i++)
-                {
-                    var crumb = trail[i];
-                    var isLast = i == trail.Count - 1;
-                    <li class="breadcrumb-item @(isLast ? "active" : "")" @(isLast ? "aria-current=\"page\"" : "")>
-                        @if (!string.IsNullOrWhiteSpace(crumb.Url))
-                        {
-                            <a href="@crumb.Url">@crumb.Title?.Trim()</a>
-                        }
-                        else
-                        {
-                            @crumb.Title?.Trim()
-                        }
-                    </li>
-                }
-            </ol>
-        </div>
+        @if (hasTitleToRender)
+        {
+            <div class="col-md-5 col-sm-6">
+                <h5 class="mb-0 fw-bold text-dark page-breadcrumb-title my-1" style="font-size: 1.25rem; font-weight: 700 !important; letter-spacing: -0.2px;">@displayTitle</h5>
+            </div>
+            <div class="col-md-7 col-sm-6">
+                <ol class="breadcrumb float-sm-end mb-0">
+                    @for (int i = 0; i < trail.Count; i++)
+                    {
+                        var crumb = trail[i];
+                        var isLast = i == trail.Count - 1;
+                        <li class="breadcrumb-item @(isLast ? "active" : "")" @(isLast ? "aria-current=\"page\"" : "")>
+                            @if (!string.IsNullOrWhiteSpace(crumb.Url))
+                            {
+                                <a href="@crumb.Url">@crumb.Title?.Trim()</a>
+                            }
+                            else
+                            {
+                                @crumb.Title?.Trim()
+                            }
+                        </li>
+                    }
+                </ol>
+            </div>
+        }
+        else
+        {
+            <div class="col-12">
+                <ol class="breadcrumb float-sm-end mb-0">
+                    @for (int i = 0; i < trail.Count; i++)
+                    {
+                        var crumb = trail[i];
+                        var isLast = i == trail.Count - 1;
+                        <li class="breadcrumb-item @(isLast ? "active" : "")" @(isLast ? "aria-current=\"page\"" : "")>
+                            @if (!string.IsNullOrWhiteSpace(crumb.Url))
+                            {
+                                <a href="@crumb.Url">@crumb.Title?.Trim()</a>
+                            }
+                            else
+                            {
+                                @crumb.Title?.Trim()
+                            }
+                        </li>
+                    }
+                </ol>
+            </div>
+        }
     </div>
 </section>
 <style>
