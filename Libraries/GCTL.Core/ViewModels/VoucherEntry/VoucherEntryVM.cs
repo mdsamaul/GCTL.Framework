@@ -18,6 +18,10 @@ namespace GCTL.Core.ViewModels.VoucherEntry
         public string? Reference { get; set; }
         public decimal? autoId { get; set; }
 
+        public string? PreparedBy { get; set; }
+        public string? EntryDate { get; set; }
+        public string? IsApproved { get; set; }
+
 
 
         //Details Information List

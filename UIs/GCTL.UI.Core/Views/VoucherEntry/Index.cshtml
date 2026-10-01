@@ -792,12 +792,15 @@
                         Compact = true,
                         Columns = new()
                         {
-                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "14%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId", DataAttributes = new() { "voucherEntryCodeNo" } },
-                            new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "10%"},
-                            new() { Data = "narration", Header = "Narration",Align="left", Width = "30%"},
-                            new() { Data = "branchName", Header = "Branch", Width = "15%"},
-                            new() { Data = "amount", Header = "Amount", Width = "13%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "invoiceNo", Header = "Invoice No", Width = "14%"}
+                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "11%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId", DataAttributes = new() { "voucherEntryCodeNo" } },
+                            new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "9%", SortField = "VoucherDate" },
+                            new() { Data = "narration", Header = "Narration", Align = "left", Width = "18%" },
+                            new() { Data = "branchName", Header = "Branch", Width = "10%" },
+                            new() { Data = "amount", Header = "Amount", Width = "10%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "invoiceNo", Header = "Invoice No", Width = "9%" },
+                            new() { Data = "preparedBy", Header = "Prepared By", Width = "11%", SortField = "PreparedBy" },
+                            new() { Data = "entryDate", Header = "Entry Date", Width = "9%", Align = "center", SortField = "Ldate" },
+                            new() { Data = "isApproved", Header = "IsApproved", Width = "9%", Align = "center", SortField = "IsApproved", RenderFn = "renderVoucherApprovalStatus" }
                         }
                     }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
                 </div>
