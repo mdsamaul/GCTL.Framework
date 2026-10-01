@@ -544,7 +544,12 @@ namespace GCTL.Service.VoucherEntry
                     InvoiceNo = main.InvoiceNo,
                     Reference = main.Reference,
                     VoucherType_Code = main.VoucherTypeCode,
-                    BranchCode = main.BranchCode   // add this field to VM if missing
+                    BranchCode = main.BranchCode,
+                    Luser = main.Luser,
+                    Ldate = main.Ldate,
+                    PreparedBy = (!string.IsNullOrWhiteSpace(main.Luser) ? main.Luser : main.UserInfoEmployeeId) ?? "",
+                    EntryDate = main.Ldate.HasValue ? main.Ldate.Value.ToString("dd/MM/yyyy") : "",
+                    IsApproved = main.IsApproved ?? ""
                 });
 
             if (startDate.HasValue)
@@ -568,6 +573,8 @@ namespace GCTL.Service.VoucherEntry
                     EF.Functions.Like(x.VoucherNo ?? "", $"%{searchTerm}%") ||
                     EF.Functions.Like(x.Narration ?? "", $"%{searchTerm}%") ||
                     EF.Functions.Like(x.Reference ?? "", $"%{searchTerm}%") ||
+                    EF.Functions.Like(x.PreparedBy ?? "", $"%{searchTerm}%") ||
+                    EF.Functions.Like(x.IsApproved ?? "", $"%{searchTerm}%") ||
                     matchedBranchCodes.Contains(x.BranchCode) ||
                     matchedVoucherTypeCodes.Contains(x.VoucherType_Code));
             }

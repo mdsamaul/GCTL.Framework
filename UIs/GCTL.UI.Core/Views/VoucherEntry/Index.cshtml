@@ -626,10 +626,10 @@
     #VoucherEntryTempGrid.table-bordered,
     #VoucherEntryTempGrid th,
     #VoucherEntryTempGrid td {
-        border: none !important;
+        /* border: none !important;
         border-left: none !important;
         border-right: none !important;
-        border-top: none !important;
+        border-top: none !important; */
     }
 
     #VoucherEntryTempGrid thead th {
@@ -642,18 +642,35 @@
     }
 
     #VoucherEntryTempGrid tbody tr:last-child td {
-        border-bottom: none !important;
+        border-bottom: 1px solid #dcdfe3 !important;
     }
 
-    /* Temp Grid Footer (Total Row Aligned to Columns) */
+    /* Temp Grid Footer (Total Row Aligned to Columns, Completely Borderless) */
     #VoucherEntryTempGrid tfoot {
         display: table-footer-group !important;
+        border: none !important;
+    }
+
+    #VoucherEntryTempGrid tfoot,
+    #VoucherEntryTempGrid tfoot tr,
+    #VoucherEntryTempGrid tfoot th,
+    #VoucherEntryTempGrid tfoot td,
+    #VoucherEntryTempGrid.table tfoot th,
+    #VoucherEntryTempGrid.table tfoot td,
+    #VoucherEntryTempGrid.table-bordered tfoot th,
+    #VoucherEntryTempGrid.table-bordered tfoot td,
+    #VoucherEntryTempGrid tfoot tr.voucher-total-row td {
+        border: none !important;
+        border-top: none !important;
+        border-bottom: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
 
     #VoucherEntryTempGrid tfoot tr.voucher-total-row td {
-        border-top: 1.5px solid #c2c9d1 !important;
-        border-bottom: 1.5px solid #c2c9d1 !important;
-        background-color: #f8fafc !important;
+        background-color: transparent !important;
         font-weight: 700 !important;
         font-size: 12.5px !important;
         color: #1e293b !important;
@@ -775,12 +792,15 @@
                         Compact = true,
                         Columns = new()
                         {
-                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "14%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId", DataAttributes = new() { "voucherEntryCodeNo" } },
-                            new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "10%"},
-                            new() { Data = "narration", Header = "Narration",Align="left", Width = "30%"},
-                            new() { Data = "branchName", Header = "Branch", Width = "15%"},
-                            new() { Data = "amount", Header = "Amount", Width = "13%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "invoiceNo", Header = "Invoice No", Width = "14%"}
+                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "11%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId", DataAttributes = new() { "voucherEntryCodeNo" } },
+                            new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "9%", SortField = "VoucherDate" },
+                            new() { Data = "narration", Header = "Narration", Align = "left", Width = "18%" },
+                            new() { Data = "branchName", Header = "Branch", Width = "10%" },
+                            new() { Data = "amount", Header = "Amount", Width = "10%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
+                            new() { Data = "invoiceNo", Header = "Invoice No", Width = "9%" },
+                            new() { Data = "preparedBy", Header = "Prepared By", Width = "11%", SortField = "PreparedBy" },
+                            new() { Data = "entryDate", Header = "Entry Date", Width = "9%", Align = "center", SortField = "Ldate" },
+                            new() { Data = "isApproved", Header = "IsApproved", Width = "9%", Align = "center", SortField = "IsApproved", RenderFn = "renderVoucherApprovalStatus" }
                         }
                     }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
                 </div>

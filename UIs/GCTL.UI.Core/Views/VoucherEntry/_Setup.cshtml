@@ -301,7 +301,7 @@
                     </button>
 
                     <!-- Cancel -->
-                    <button type="button" id="CancelDetails" title="Cancel" data-tooltip="Cancel" class="icon-btn cancel">
+                    <button type="button" id="CancelDetails" title="Delete" data-tooltip="Delete" class="icon-btn cancel">
                         <i class="bi bi-journal-minus default-icon"></i>
                     </button>
 
@@ -334,8 +334,8 @@
                         Columns = new List<GridColumn>
                         {
                             new GridColumn { Data = "accCode", Header = "Acc. Code", Align = "center", Width = "16%", IsEditLink = true, IdField = "autoId", EditSelectorClass = "js-grid-edit" },
-                            new GridColumn { Data = "accountHead", Header = "Account Head", Width = "22%" },
-                            new GridColumn { Data = "description", Header = "Description", Width = "22%" },
+                            new GridColumn { Data = "accountHead", Header = "Account Head", Align="left", Width = "22%" },
+                            new GridColumn { Data = "description", Header = "Description",Align="left", Width = "22%" },
                             new GridColumn { Data = "debitAmount", Header = "Debit", Align = "right", Width = "14%", RenderFn = "formatCurrency", TabularNumber = true },
                             new GridColumn { Data = "creditAmount", Header = "Credit", Align = "right", Width = "14%", RenderFn = "formatCurrency", TabularNumber = true },
                             new GridColumn { Data = "autoId", Header = "Action", Align = "center", Width = "10%", RenderFn = "voucherActionButtons", Sortable = false, Searchable = false }

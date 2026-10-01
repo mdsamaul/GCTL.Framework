@@ -1,4 +1,16 @@
 
+window.gctlRenderers = window.gctlRenderers || {};
+window.gctlRenderers.renderVoucherApprovalStatus = function (data, type, row) {
+    var val = (data || '').toString().trim();
+    var isApproved = (val === "Y" || val === "Yes" || val === "1" || val.toLowerCase() === "approved" || val.toLowerCase() === "yes");
+    if (type === 'display') {
+        return isApproved 
+            ? '<span class="badge bg-success px-2 py-1" style="font-size: 11px; font-weight: 600;">Yes</span>' 
+            : '<span class="badge bg-secondary px-2 py-1" style="font-size: 11px; font-weight: 600;">No</span>';
+    }
+    return isApproved ? 'Yes' : 'No';
+};
+
 // Pagination & Table State
 let VoucherEntrycurrentPage = 1;
 let VoucherEntrypageSize = parseInt($('#VoucherEntrypageSize').val()) || 5;
