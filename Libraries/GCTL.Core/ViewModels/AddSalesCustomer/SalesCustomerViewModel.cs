@@ -51,22 +51,5 @@ namespace GCTL.Core.ViewModels.AddSalesCustomer
         public List<SalesDeliveryLocationViewModel> DeliveryLocations { get; set; } = new List<SalesDeliveryLocationViewModel>();
         public List<SalesContactPersonViewModel> ContactPersons { get; set; } = new List<SalesContactPersonViewModel>();
 
-        //Others Property for Saving Empty String
-        //public string? ContatPerson1 { get; set; }
-        //public string? Designation1 { get; set; }
-        //public string? phone1 { get; set; }
-        //public string? ContatPerson2 { get; set; }
-        //public string? Designation2 { get; set; }
-        //public string? phone2 { get; set; }
-        //public string? ContatPerson3 { get; set; }
-        //public string? Designation3 { get; set; }
-        //public string? phone3 { get; set; }
-        //public string? Email1 { get; set; }
-        //public string? Email2 { get; set; }
-        //public string? Email3 { get; set; }
-        //public string? LIP { get; set; }
-        //public string? LMAC { get; set; }
-        //public string? DevitOrCredit { get; set; }
-
     }
 }

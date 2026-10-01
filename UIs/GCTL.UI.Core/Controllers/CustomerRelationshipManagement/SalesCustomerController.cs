@@ -550,9 +550,6 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
                                 .SetMultipliedLeading(1.1f))
                             .SetBorder(new SolidBorder(ashColor, 1)));
 
-
-
-
                     }
 
                     document.Add(table);
@@ -648,7 +645,6 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
             return File(outputStream.ToArray(), "application/pdf", "CustomerReport.pdf");
         }
 
-
         private IActionResult GenerateWord(List<CustomerReportVM> customers)
         {
             using var stream = new MemoryStream();
@@ -672,6 +668,7 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
                         Bold = new Bold(),
                         FontSize = new DocumentFormat.OpenXml.Wordprocessing.FontSize { Val = (fontSize * 2).ToString() }
                     };
+
                     runProps.Append(new DocumentFormat.OpenXml.Wordprocessing.Color { Val = "000000" });
                     if (underline) runProps.Underline = new DocumentFormat.OpenXml.Wordprocessing.Underline { Val = UnderlineValues.Thick };
 
@@ -732,7 +729,6 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
                     return headerRow;
                 }
 
-
                 TableRow CreateDataRow(CustomerReportVM c)
                 {
                     string[] data = { c.CustomerID ?? "", c.CustomerName ?? "", c.Address ?? "", c.Phone ?? "", c.Fax ?? "", c.Email ?? "", c.ContactPersonDetails ?? "" };
@@ -787,7 +783,6 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
                 foreach (var group in groupedCustomers)
                 {
                     // Heading
-                    // Heading
                     var headingPara = new Paragraph(
                         new Run(new RunProperties
                         {
@@ -811,7 +806,6 @@ namespace GCTL.Controllers.CustomerRelationshipManagement
                     }
 
                     body.Append(headingPara);
-
 
                     // Blank line
                     body.Append(new Paragraph(new Run(new DocumentFormat.OpenXml.Wordprocessing.Text(" "))));
