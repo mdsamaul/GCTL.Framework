@@ -87,56 +87,63 @@
                            style="width:100%;"
                            data-grid-config="@System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions)">
                         <thead>
-                            <tr class="text-center align-middle small">
-                                @if (Model.HasSubRow)
-                                {
-                                    <th style="width:24px; min-width:24px;" class="col-subrow no-sort"></th>
-                                }
-                                @if (Model.ShowRowNumbers)
-                                {
-                                    <th style="width:32px; min-width:32px;" class="col-sl-no no-sort">#</th>
-                                }
-                                @if (Model.ShowCheckbox)
-                                {
-                                    <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
-                                        <span class="user-select-none">Sel.</span>
-                                        @if (showCheckAll)
-                                        {
-                                            <br />
-                                            <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
-                                                   disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
-                                        }
-                                    </th>
-                                }
-                                else if (Model.UseRadio)
-                                {
-                                    <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
-                                        <span class="user-select-none">Sel.</span>
-                                    </th>
-                                }
-                                @foreach (var col in Model.Columns.Where(c => c.Visible))
-                                {
-                                    <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
-                                        @if (!string.IsNullOrEmpty(col.ShortHeader))
-                                        {
-                                            <span class="th-full">@Html.Raw(col.Header)</span>
-                                            <span class="th-compact" title="@col.CleanHeader" data-bs-toggle="tooltip" data-bs-placement="top">@Html.Raw(col.ShortHeader)</span>
-                                        }
-                                        else
-                                        {
-                                            @Html.Raw(col.Header)
-                                        }
-                                        @if (!string.IsNullOrEmpty(col.HeaderBangla))
-                                        {
-                                            <br /><small class="text-muted">@col.HeaderBangla</small>
-                                        }
-                                    </th>
-                                }
-                                @if (Model.ShowActionMenu)
-                                {
-                                    <th class="align-middle text-center col-actions no-sort" style="width:6%;">Action</th>
-                                }
-                            </tr>
+                            @if (!string.IsNullOrEmpty(Model.CustomHeaderHtml))
+                            {
+                                @Html.Raw(Model.CustomHeaderHtml)
+                            }
+                            else
+                            {
+                                <tr class="text-center align-middle small">
+                                    @if (Model.HasSubRow)
+                                    {
+                                        <th style="width:24px; min-width:24px;" class="col-subrow no-sort"></th>
+                                    }
+                                    @if (Model.ShowRowNumbers)
+                                    {
+                                        <th style="width:32px; min-width:32px;" class="col-sl-no no-sort">#</th>
+                                    }
+                                    @if (Model.ShowCheckbox)
+                                    {
+                                        <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
+                                            <span class="user-select-none">Sel.</span>
+                                            @if (showCheckAll)
+                                            {
+                                                <br />
+                                                <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
+                                                       disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                                            }
+                                        </th>
+                                    }
+                                    else if (Model.UseRadio)
+                                    {
+                                        <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
+                                            <span class="user-select-none">Sel.</span>
+                                        </th>
+                                    }
+                                    @foreach (var col in Model.Columns.Where(c => c.Visible))
+                                    {
+                                        <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
+                                            @if (!string.IsNullOrEmpty(col.ShortHeader))
+                                            {
+                                                <span class="th-full">@Html.Raw(col.Header)</span>
+                                                <span class="th-compact" title="@col.CleanHeader" data-bs-toggle="tooltip" data-bs-placement="top">@Html.Raw(col.ShortHeader)</span>
+                                            }
+                                            else
+                                            {
+                                                @Html.Raw(col.Header)
+                                            }
+                                            @if (!string.IsNullOrEmpty(col.HeaderBangla))
+                                            {
+                                                <br /><small class="text-muted">@col.HeaderBangla</small>
+                                            }
+                                        </th>
+                                    }
+                                    @if (Model.ShowActionMenu)
+                                    {
+                                        <th class="align-middle text-center col-actions no-sort" style="width:6%;">Action</th>
+                                    }
+                                </tr>
+                            }
                         </thead>
                         <tbody></tbody>
                         @if (!string.IsNullOrEmpty(Model.FooterHtml))
@@ -157,56 +164,63 @@ else
                style="width:100%;"
                data-grid-config="@System.Text.Json.JsonSerializer.Serialize(Model, jsonOptions)">
             <thead>
-                <tr class="text-center align-middle small">
-                    @if (Model.HasSubRow)
-                    {
-                        <th style="width:24px; min-width:24px;" class="col-subrow no-sort"></th>
-                    }
-                    @if (Model.ShowRowNumbers)
-                    {
-                        <th style="width:32px; min-width:32px;" class="col-sl-no no-sort">#</th>
-                    }
-                    @if (Model.ShowCheckbox)
-                    {
-                        <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
-                            <span class="user-select-none">Sel.</span>
-                            @if (showCheckAll)
-                            {
-                                <br />
-                                <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
-                                       disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
-                            }
-                        </th>
-                    }
-                    else if (Model.UseRadio)
-                    {
-                        <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
-                            <span class="user-select-none">Sel.</span>
-                        </th>
-                    }
-                    @foreach (var col in Model.Columns.Where(c => c.Visible))
-                    {
-                        <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
-                            @if (!string.IsNullOrEmpty(col.ShortHeader))
-                            {
-                                <span class="th-full">@Html.Raw(col.Header)</span>
-                                <span class="th-compact" title="@col.CleanHeader" data-bs-toggle="tooltip" data-bs-placement="top">@Html.Raw(col.ShortHeader)</span>
-                            }
-                            else
-                            {
-                                @Html.Raw(col.Header)
-                            }
-                            @if (!string.IsNullOrEmpty(col.HeaderBangla))
-                            {
-                                <br /><small class="text-muted">@col.HeaderBangla</small>
-                            }
-                        </th>
-                    }
-                    @if (Model.ShowActionMenu)
-                    {
-                        <th class="align-middle text-center col-actions no-sort" style="width:6%;">Action</th>
-                    }
-                </tr>
+                @if (!string.IsNullOrEmpty(Model.CustomHeaderHtml))
+                {
+                    @Html.Raw(Model.CustomHeaderHtml)
+                }
+                else
+                {
+                    <tr class="text-center align-middle small">
+                        @if (Model.HasSubRow)
+                        {
+                            <th style="width:24px; min-width:24px;" class="col-subrow no-sort"></th>
+                        }
+                        @if (Model.ShowRowNumbers)
+                        {
+                            <th style="width:32px; min-width:32px;" class="col-sl-no no-sort">#</th>
+                        }
+                        @if (Model.ShowCheckbox)
+                        {
+                            <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
+                                <span class="user-select-none">Sel.</span>
+                                @if (showCheckAll)
+                                {
+                                    <br />
+                                    <input type="checkbox" class="form-check-input m-0 shadow-none" id="@Model.CheckAllId"
+                                           disabled="@(Model.DisableCheckAll ? "disabled" : null)" />
+                                }
+                            </th>
+                        }
+                        else if (Model.UseRadio)
+                        {
+                            <th class="text-center align-middle no-sort col-select-cell" style="width: 45px; min-width: 45px;">
+                                <span class="user-select-none">Sel.</span>
+                            </th>
+                        }
+                        @foreach (var col in Model.Columns.Where(c => c.Visible))
+                        {
+                            <th class="align-middle text-center" style="@(col.Width != null ? $"width:{col.Width};" : "")">
+                                @if (!string.IsNullOrEmpty(col.ShortHeader))
+                                {
+                                    <span class="th-full">@Html.Raw(col.Header)</span>
+                                    <span class="th-compact" title="@col.CleanHeader" data-bs-toggle="tooltip" data-bs-placement="top">@Html.Raw(col.ShortHeader)</span>
+                                }
+                                else
+                                {
+                                    @Html.Raw(col.Header)
+                                }
+                                @if (!string.IsNullOrEmpty(col.HeaderBangla))
+                                {
+                                    <br /><small class="text-muted">@col.HeaderBangla</small>
+                                }
+                            </th>
+                        }
+                        @if (Model.ShowActionMenu)
+                        {
+                            <th class="align-middle text-center col-actions no-sort" style="width:6%;">Action</th>
+                        }
+                    </tr>
+                }
             </thead>
             <tbody></tbody>
             @if (!string.IsNullOrEmpty(Model.FooterHtml))
