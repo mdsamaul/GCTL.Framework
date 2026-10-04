@@ -48,11 +48,6 @@
                 $.gctlGrid.initFromModel({ gridSelector: settings.gridSelector });
             }
 
-            // if ($.gctlGrid) {
-            //     $.gctlGrid.initFromModel({ gridId: 'CompanyInfo-grid' });
-            // }
-
-
            // select2DD();
             loadTable();
             enterKeyNavigation();
