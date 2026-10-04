@@ -8,27 +8,38 @@
 
     // Global Renderers for Currency
     window.gctlRenderers = window.gctlRenderers || {};
-    window.gctlRenderers.formatCurrency = function (data) {
-        if (data === null || data === undefined || data === '') return '0.00';
+    window.gctlRenderers.formatCurrency = function (data, type) {
+        if (data === null || data === undefined || data === '' || isNaN(data)) {
+            return (type === 'sort' || type === 'type') ? 0 : '0.00';
+        }
         var num = parseFloat(data);
-        if (isNaN(num)) return data;
+        if (type === 'sort' || type === 'type') {
+            return num;
+        }
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
     let gridTable = null;
     let filterDebounceTimer = null;
+    let isInitialized = false;
 
     $(document).ready(function () {
+        if ($.fn.dataTable && $.fn.dataTable.ext) {
+            $.fn.dataTable.ext.errMode = 'none';
+        }
         initDefaultDates();
         initDatepickers();
         checkAndLoadFilterOptions();
         initGrid();
         bindEvents();
+        setTimeout(function () {
+            isInitialized = true;
+        }, 500);
     });
 
     function initDefaultDates() {
         var now = new Date();
-        var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        var prevMonthFirstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
         var formatDate = function (d) {
             var day = String(d.getDate()).padStart(2, '0');
@@ -38,7 +49,7 @@
         };
 
         if (!$('#filterFromDate').val()) {
-            $('#filterFromDate').val(formatDate(firstDay));
+            $('#filterFromDate').val(formatDate(prevMonthFirstDay));
         }
         if (!$('#filterToDate').val()) {
             $('#filterToDate').val(formatDate(now));
@@ -57,6 +68,32 @@
         }
     }
 
+    function getDateValue(id) {
+        var $el = $('#' + id);
+        if (!$el.length) return '';
+
+        var fp = $el.data('customFpInstance') || ($el[0] ? $el[0]._flatpickr : null);
+        if (fp) {
+            if (fp.altInput && fp.altInput.value) {
+                return fp.altInput.value.trim();
+            }
+            if (fp.selectedDates && fp.selectedDates.length > 0) {
+                var d = fp.selectedDates[0];
+                var day = String(d.getDate()).padStart(2, '0');
+                var month = String(d.getMonth() + 1).padStart(2, '0');
+                var year = d.getFullYear();
+                return day + '/' + month + '/' + year;
+            }
+        }
+
+        var $alt = $el.siblings('.flatpickr-alt-input');
+        if ($alt.length && $alt.val()) {
+            return $alt.val().trim();
+        }
+
+        return ($el.val() || '').trim();
+    }
+
     /**
      * Helper to safely extract values from custom dropdowns or multi-selects
      */
@@ -67,7 +104,9 @@
         var inst = $el.data('customDdInstance');
         if (inst) {
             if (Array.isArray(inst.selected)) {
-                return inst.selected.filter(function (v) { return !!v; }).join(',');
+                return inst.selected
+                    .filter(function (v) { return v !== null && v !== undefined && String(v).trim() !== ''; })
+                    .join(',');
             }
             if (inst.selected !== undefined && inst.selected !== null) {
                 return String(inst.selected).trim();
@@ -76,15 +115,17 @@
 
         var val = $el.val();
         if (Array.isArray(val)) {
-            return val.filter(function (v) { return !!v; }).join(',');
+            return val
+                .filter(function (v) { return v !== null && v !== undefined && String(v).trim() !== ''; })
+                .join(',');
         }
 
         return (val || '').trim();
     }
 
     function getFilterParams() {
-        var fromDate = $('#filterFromDate').val() || '';
-        var toDate = $('#filterToDate').val() || '';
+        var fromDate = getDateValue('filterFromDate');
+        var toDate = getDateValue('filterToDate');
         var shipmentMode = getDropdownValue('filterShipmentMode');
         var customerId = getDropdownValue('filterCustomerId');
 
@@ -142,6 +183,11 @@
         if ($.gctlGrid && typeof $.gctlGrid.initFromModel === 'function') {
             gridTable = $.gctlGrid.initFromModel({
                 gridId: 'gPAnalysisReportTable',
+                extraOptions: {
+                    columnDefs: [
+                        { defaultContent: '-', targets: '_all' }
+                    ]
+                },
                 ajaxData: function (d) {
                     var filters = getFilterParams();
                     d.fromDate = filters.fromDate;
@@ -150,35 +196,60 @@
                     d.customerId = filters.customerId;
                     d.dateUse = filters.dateUse;
                 },
-                extraOptions: {
-                    pageLength: 10,
-                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
-                    drawCallback: function (settings) {
-                        var json = settings.json;
-                        if (json && json.summary) {
-                            updateKpiCards(json.summary);
-                        }
+                onLoaded: function (json) {
+                    isInitialized = true;
+                    if (json && json.summary) {
+                        updateKpiCards(json.summary);
                     }
                 }
+            });
+
+            // Prevent grid from getting stuck on skeleton rows if an error occurs
+            $('#gPAnalysisReportTable').on('error.dt', function (e, settings, techNote, message) {
+                console.error('DataTables error:', techNote, message);
+                $('#gPAnalysisReportTable tbody').html('<tr><td colspan="22" class="text-center text-muted py-3">No matching records found.</td></tr>');
             });
         }
     }
 
     function reloadGrid() {
-        if (gridTable) {
+        if ($.gctlGrid && typeof $.gctlGrid.reload === 'function') {
+            $.gctlGrid.reload('gPAnalysisReportTable', true);
+        } else if (gridTable && gridTable.ajax) {
             gridTable.ajax.reload(null, true);
         }
     }
 
     function onFilterChanged() {
+        if (!isInitialized) return;
         clearTimeout(filterDebounceTimer);
         filterDebounceTimer = setTimeout(function () {
             reloadGrid();
-        }, 250);
+        }, 300);
+    }
+
+    /**
+     * Export report handler (PDF or Excel, defaults to PDF if nothing is selected)
+     */
+    function exportReport() {
+        var filters = getFilterParams();
+        var exportFormat = (getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
+        if (!exportFormat) exportFormat = 'PDF';
+
+        var queryParams = $.param({
+            fromDate: filters.fromDate,
+            toDate: filters.toDate,
+            shipmentMode: filters.shipmentMode,
+            customerId: filters.customerId,
+            dateUse: filters.dateUse,
+            exportFormat: exportFormat
+        });
+
+        window.location.href = '/GPAnalysisReport/Export?' + queryParams;
     }
 
     function bindEvents() {
-        $('#filterFromDate, #filterToDate').on('change', function () {
+        $(document).on('change', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
             onFilterChanged();
         });
 
@@ -186,25 +257,33 @@
             onFilterChanged();
         });
 
+        // Delegate clicks on custom dropdown options, checkboxes, tag removals, and clear buttons
+        $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-tag-remove, .custom-dd-select-all', function () {
+            setTimeout(onFilterChanged, 60);
+        });
+
         $('#btnPreview').on('click', function (e) {
             e.preventDefault();
             reloadGrid();
         });
 
-        // PDF Export
+        // Export button (defaults to PDF if format is not selected)
+        $('#btnExport').on('click', function (e) {
+            e.preventDefault();
+            exportReport();
+        });
+
+        // Direct legacy buttons if triggered
         $('#btnExportPdf').on('click', function (e) {
             e.preventDefault();
             var params = getFilterParams();
-            var url = '/GPAnalysisReport/ExportPdf?' + $.param(params);
-            window.open(url, '_blank');
+            window.location.href = '/GPAnalysisReport/Export?' + $.param($.extend({}, params, { exportFormat: 'PDF' }));
         });
 
-        // Excel Export
         $('#btnExportExcel').on('click', function (e) {
             e.preventDefault();
             var params = getFilterParams();
-            var url = '/GPAnalysisReport/ExportExcel?' + $.param(params);
-            window.location.href = url;
+            window.location.href = '/GPAnalysisReport/Export?' + $.param($.extend({}, params, { exportFormat: 'Excel' }));
         });
     }
 

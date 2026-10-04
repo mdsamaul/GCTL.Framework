@@ -1,44 +1,100 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace GCTL.Service.GPAnalysisReport
 {
     public class GPAnalysisReportDTO
     {
+        [JsonPropertyName("slNo")]
         public int SlNo { get; set; }
+
+        [JsonPropertyName("expenseType")]
         public string? ExpenseType { get; set; }
+
+        [JsonPropertyName("expenseTypeID")]
+        public string? ExpenseTypeID { get; set; }
+
+        [JsonIgnore]
+        public string? ExpenseTypeId { get => ExpenseTypeID; set => ExpenseTypeID = value; }
+
+        [JsonPropertyName("customerName")]
         public string? CustomerName { get; set; }
+
+        [JsonPropertyName("customerID")]
         public string? CustomerID { get; set; }
+
+        [JsonIgnore]
+        public string? CustomerId { get => CustomerID; set => CustomerID = value; }
+
+        [JsonPropertyName("jobNo")]
         public string? JobNo { get; set; }
+
+        [JsonPropertyName("billNo")]
         public string? BillNo { get; set; }
+
+        [JsonPropertyName("billDate")]
         public string? BillDate { get; set; }
 
         // Billing
+        [JsonPropertyName("totalBill")]
         public decimal TotalBill { get; set; }           // Total Bill (BDT)
+
+        [JsonPropertyName("billingCommission")]
         public decimal BillingCommission { get; set; }   // Comm.
+
+        [JsonPropertyName("othersBill")]
         public decimal OthersBill { get; set; }          // Others
+
+        [JsonPropertyName("totalCNFBilling")]
         public decimal TotalCNFBilling { get; set; }     // TOT (C & F)
+
+        [JsonPropertyName("billingTransportBill")]
         public decimal BillingTransportBill { get; set; }// Transport
+
+        [JsonPropertyName("totalBilling")]
         public decimal TotalBilling { get; set; }        // TOT Bill
 
         // Costing - C & F Cost
+        [JsonPropertyName("costingReceptableAmount")]
         public decimal CostingReceptableAmount { get; set; }    // Rece
+
+        [JsonPropertyName("costingNonReceptableAmount")]
         public decimal CostingNonReceptableAmount { get; set; } // NON Rece
+
+        [JsonPropertyName("cnfCosting")]
         public decimal CNFCosting { get; set; }                 // TOT Cost (C & F Cost)
 
         // Costing - Transport Cost
+        [JsonPropertyName("costingSwiftTransportAmount")]
         public decimal CostingSwiftTransportAmount { get; set; } // Swift
+
+        [JsonPropertyName("costingHairTransportAmount")]
         public decimal CostingHairTransportAmount { get; set; }  // Hair
+
+        [JsonPropertyName("costingTransport")]
         public decimal CostingTransport { get; set; }            // TOT (Transport)
+
+        [JsonPropertyName("totalCosting")]
         public decimal TotalCosting { get; set; }                // TOT Cost
 
         // PNL - GP
+        [JsonPropertyName("cnfGP")]
         public decimal CNFGP { get; set; }        // C & F
+
+        [JsonPropertyName("transportGP")]
         public decimal TransportGP { get; set; }  // TRANS
+
+        [JsonPropertyName("totalGP")]
         public decimal TotalGP { get; set; }      // TOT
 
         // PNL - GP%
+        [JsonPropertyName("cnfGPPercent")]
         public string? CNFGPPercent { get; set; }       // C & F
+
+        [JsonPropertyName("transportGPPercent")]
         public string? TransportGPPercent { get; set; } // TRANS
+
+        [JsonPropertyName("totalGPPercent")]
         public string? TotalGPPercent { get; set; }     // G. GP
 
         // Totals from Stored Procedure
@@ -99,6 +155,12 @@ namespace GCTL.Service.GPAnalysisReport
         public string? SortOrder { get; set; }
     }
 
+    public class GPAnalysisReportFilterOptionsDTO
+    {
+        public List<GCTL.Core.ViewModels.Common.CommonSelectModel> ShipmentModes { get; set; } = new();
+        public List<GCTL.Core.ViewModels.Common.CommonSelectModel> Customers { get; set; } = new();
+    }
+
     public class GPAnalysisReportSummaryDTO
     {
         public int TotalBills { get; set; }
@@ -108,3 +170,5 @@ namespace GCTL.Service.GPAnalysisReport
         public string GPPercent { get; set; } = "0.00%";
     }
 }
+
+

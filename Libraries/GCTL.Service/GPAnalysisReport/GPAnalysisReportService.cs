@@ -12,6 +12,9 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
+using GCTL.Service.ShipmentMode;
+using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
+using GCTL.Core.ViewModels.Common;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
@@ -21,34 +24,137 @@ namespace GCTL.Service.GPAnalysisReport
     {
         private readonly string _connectionString;
         private readonly IMemoryCache? _cache;
+        private readonly IShipmentMode? _shipmentModeService;
+        private readonly ISalesCustomerService? _customerService;
 
-        public GPAnalysisReportService(IConfiguration configuration, IMemoryCache? cache = null)
+        public GPAnalysisReportService(
+            IConfiguration configuration, 
+            IMemoryCache? cache = null,
+            IShipmentMode? shipmentModeService = null,
+            ISalesCustomerService? customerService = null)
         {
             _connectionString = configuration.GetConnectionString("connection") 
                 ?? throw new InvalidOperationException("Connection string 'connection' not found.");
             _cache = cache;
+            _shipmentModeService = shipmentModeService;
+            _customerService = customerService;
+        }
+
+        public async Task<GPAnalysisReportFilterOptionsDTO> GetFilterOptionsAsync()
+        {
+            var result = new GPAnalysisReportFilterOptionsDTO();
+
+            try
+            {
+                if (_shipmentModeService != null)
+                {
+                    var modes = await _shipmentModeService.GetAllExpenseTypesAsync();
+                    result.ShipmentModes = modes
+                        .Where(m => !string.IsNullOrEmpty(m.ExpenseTypeID))
+                        .Select(m => new CommonSelectModel
+                        {
+                            Code = m.ExpenseTypeID,
+                            Name = m.ExpenseType ?? m.ExpenseTypeID
+                        })
+                        .ToList();
+                }
+                else
+                {
+                    using var connection = new SqlConnection(_connectionString);
+                    var modes = (await connection.QueryAsync<dynamic>(
+                        "SELECT ExpenseTypeID AS Code, ExpenseType AS Name FROM Core_ExpenseType WHERE IsActive = 1 ORDER BY ExpenseType"
+                    )).Select(m => new CommonSelectModel
+                    {
+                        Code = (string)m.Code,
+                        Name = (string)m.Name
+                    }).ToList();
+                    result.ShipmentModes = modes;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GPAnalysisReportService.GetFilterOptionsAsync - ShipmentModes error: {ex.Message}");
+            }
+
+            try
+            {
+                if (_customerService != null)
+                {
+                    var customers = await _customerService.SelectionCustomerAsync();
+                    result.Customers = customers
+                        .Where(c => !string.IsNullOrEmpty(c.Code))
+                        .Select(c => new CommonSelectModel
+                        {
+                            Code = c.Code,
+                            Name = c.Name ?? c.Code
+                        })
+                        .ToList();
+                }
+                else
+                {
+                    using var connection = new SqlConnection(_connectionString);
+                    var customers = (await connection.QueryAsync<dynamic>(
+                        "SELECT CustomerCode AS Code, CustomerName AS Name FROM Sales_Customer WHERE IsActive = 1 ORDER BY CustomerName"
+                    )).Select(c => new CommonSelectModel
+                    {
+                        Code = (string)c.Code,
+                        Name = (string)c.Name
+                    }).ToList();
+                    result.Customers = customers;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GPAnalysisReportService.GetFilterOptionsAsync - Customers error: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        public async Task<(byte[] FileBytes, string ContentType, string FileName)> ExportReportAsync(GPAnalysisReportFilter filter, string exportFormat)
+        {
+            filter ??= new GPAnalysisReportFilter();
+            exportFormat = (exportFormat ?? "PDF").Trim();
+
+            if (string.Equals(exportFormat, "Excel", StringComparison.OrdinalIgnoreCase))
+            {
+                var excelBytes = await GenerateExcelReportAsync(filter);
+                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return (excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else
+            {
+                var pdfBytes = await GeneratePdfReportAsync(filter);
+                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                return (pdfBytes, "application/pdf", fileName);
+            }
         }
 
         private (DateTime fromDate, DateTime toDate, string dateUse) ParseDates(GPAnalysisReportFilter filter)
         {
-            string dateUse = "N";
-            DateTime fromDate = DateTime.Now.Date;
-            DateTime toDate = DateTime.Now.Date;
+            string dateUse = "Y";
+            // Default FromDate to first day of previous month so default load always finds data
+            DateTime now = DateTime.Now;
+            DateTime fromDate = new DateTime(now.Year, now.Month, 1).AddMonths(-1);
+            DateTime toDate = now.Date;
 
-            if (!string.IsNullOrEmpty(filter.FromDate) && !string.IsNullOrEmpty(filter.ToDate))
+            string[] formats = { "dd/MM/yyyy", "dd-MM-yyyy", "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy", "d/M/yyyy" };
+
+            if (!string.IsNullOrWhiteSpace(filter.FromDate))
             {
-                if (DateTime.TryParseExact(filter.FromDate, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var fDate) &&
-                    DateTime.TryParseExact(filter.ToDate, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var tDate))
+                if (DateTime.TryParseExact(filter.FromDate.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var fDate) ||
+                    DateTime.TryParse(filter.FromDate.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.None, out fDate))
                 {
                     fromDate = fDate.Date;
-                    toDate = tDate.Date;
-                    dateUse = "Y";
                 }
-                else if (DateTime.TryParse(filter.FromDate, out fDate) && DateTime.TryParse(filter.ToDate, out tDate))
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.ToDate))
+            {
+                if (DateTime.TryParseExact(filter.ToDate.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var tDate) ||
+                    DateTime.TryParse(filter.ToDate.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.None, out tDate))
                 {
-                    fromDate = fDate.Date;
                     toDate = tDate.Date;
-                    dateUse = "Y";
                 }
             }
 
@@ -63,27 +169,91 @@ namespace GCTL.Service.GPAnalysisReport
         private async Task<List<GPAnalysisReportDTO>> ExecuteStoredProcedureAsync(GPAnalysisReportFilter filter)
         {
             var (fromDate, toDate, dateUse) = ParseDates(filter);
-            string cacheKey = $"GPAnalysedReport2_{filter.ShipmentMode ?? ""}_{filter.CustomerId ?? ""}_{dateUse}_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}";
 
-            if (_cache != null && _cache.TryGetValue(cacheKey, out List<GPAnalysisReportDTO>? cached) && cached != null)
+            var customerIds = (filter.CustomerId ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var shipmentModes = (filter.ShipmentMode ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            // When calling the SP, if multiple customers or multiple shipment modes are passed,
+            // passing comma-separated strings causes SQL direct equality `d.CustomerID = @CustomerID` to fail.
+            // Therefore, we pass empty string to the SP to load all records for the date range,
+            // cache them, and apply robust in-memory multi-filtering.
+            string baseCacheKey = $"GPAnalysedReport2_BASE_{dateUse}_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}";
+
+            List<GPAnalysisReportDTO>? baseRows = null;
+            if (_cache != null && _cache.TryGetValue(baseCacheKey, out List<GPAnalysisReportDTO>? cached) && cached != null)
             {
-                return cached;
+                baseRows = cached;
             }
 
-            using var connection = new SqlConnection(_connectionString);
-            var parameters = new DynamicParameters();
-            parameters.Add("@ShipmentMode", filter.ShipmentMode ?? string.Empty);
-            parameters.Add("@CustomerID", filter.CustomerId ?? string.Empty);
-            parameters.Add("@DateUse", dateUse);
-            parameters.Add("@FromDate", fromDate, DbType.Date);
-            parameters.Add("@ToDate", toDate, DbType.Date);
+            if (baseRows == null)
+            {
+                using var connection = new SqlConnection(_connectionString);
+                var parameters = new DynamicParameters();
+                parameters.Add("@ShipmentMode", string.Empty);
+                parameters.Add("@CustomerID", string.Empty);
+                parameters.Add("@DateUse", dateUse);
+                parameters.Add("@FromDate", fromDate, DbType.Date);
+                parameters.Add("@ToDate", toDate, DbType.Date);
 
-            var rows = (await connection.QueryAsync<GPAnalysisReportDTO>(
-                "GPAnalysedReport2",
-                parameters,
-                commandType: CommandType.StoredProcedure,
-                commandTimeout: 180
-            )).ToList();
+                baseRows = (await connection.QueryAsync<GPAnalysisReportDTO>(
+                    "GPAnalysedReport2",
+                    parameters,
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 180
+                )).ToList();
+
+                _cache?.Set(baseCacheKey, baseRows, TimeSpan.FromMinutes(3));
+            }
+
+            // Work on a copy of the cached list
+            var rows = baseRows.ToList();
+
+            // 1. In-memory filter for Customer (supports single and multiple)
+            if (customerIds.Count > 0)
+            {
+                var custSet = new HashSet<string>(customerIds, StringComparer.OrdinalIgnoreCase);
+                rows = rows.Where(r => 
+                    (!string.IsNullOrEmpty(r.CustomerID) && custSet.Contains(r.CustomerID.Trim())) ||
+                    (!string.IsNullOrEmpty(r.CustomerName) && custSet.Contains(r.CustomerName.Trim()))
+                ).ToList();
+            }
+
+            // 2. In-memory filter for Shipment Mode (supports single and multiple)
+            if (shipmentModes.Count > 0)
+            {
+                var modeSet = new HashSet<string>(shipmentModes, StringComparer.OrdinalIgnoreCase);
+                if (_shipmentModeService != null)
+                {
+                    try
+                    {
+                        var allModes = await _shipmentModeService.GetAllExpenseTypesAsync();
+                        foreach (var m in allModes)
+                        {
+                            if (!string.IsNullOrEmpty(m.ExpenseTypeID) && modeSet.Contains(m.ExpenseTypeID.Trim()))
+                            {
+                                if (!string.IsNullOrWhiteSpace(m.ExpenseType)) modeSet.Add(m.ExpenseType.Trim());
+                            }
+                            else if (!string.IsNullOrEmpty(m.ExpenseType) && modeSet.Contains(m.ExpenseType.Trim()))
+                            {
+                                if (!string.IsNullOrWhiteSpace(m.ExpenseTypeID)) modeSet.Add(m.ExpenseTypeID.Trim());
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                rows = rows.Where(r => 
+                    (!string.IsNullOrEmpty(r.ExpenseTypeID) && modeSet.Contains(r.ExpenseTypeID.Trim())) ||
+                    (!string.IsNullOrEmpty(r.ExpenseType) && modeSet.Contains(r.ExpenseType.Trim()))
+                ).ToList();
+            }
 
             for (int i = 0; i < rows.Count; i++)
             {
@@ -94,82 +264,89 @@ namespace GCTL.Service.GPAnalysisReport
                 }
             }
 
-            _cache?.Set(cacheKey, rows, TimeSpan.FromMinutes(3));
             return rows;
         }
 
         public async Task<PaginationResponse<GPAnalysisReportDTO>> GetGridDataAsync(GPAnalysisReportFilter filter)
         {
-            var allRows = await ExecuteStoredProcedureAsync(filter);
-
-            var query = allRows.AsEnumerable();
-
-            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+            try
             {
-                var term = filter.SearchTerm.Trim().ToLower();
-                query = query.Where(r =>
-                    (r.BillNo != null && r.BillNo.ToLower().Contains(term)) ||
-                    (r.JobNo != null && r.JobNo.ToLower().Contains(term)) ||
-                    (r.CustomerName != null && r.CustomerName.ToLower().Contains(term)) ||
-                    (r.ExpenseType != null && r.ExpenseType.ToLower().Contains(term)) ||
-                    (r.BillDate != null && r.BillDate.ToLower().Contains(term))
-                );
-            }
+                var allRows = await ExecuteStoredProcedureAsync(filter);
 
-            if (!string.IsNullOrWhiteSpace(filter.SortColumn))
-            {
-                bool isDesc = string.Equals(filter.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
-                query = filter.SortColumn.ToLower() switch
+                var query = allRows.AsEnumerable();
+
+                if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
                 {
-                    "billdate" => isDesc ? query.OrderByDescending(r => r.BillDate) : query.OrderBy(r => r.BillDate),
-                    "billno" => isDesc ? query.OrderByDescending(r => r.BillNo) : query.OrderBy(r => r.BillNo),
-                    "totalbill" or "totalbilling" => isDesc ? query.OrderByDescending(r => r.TotalBilling) : query.OrderBy(r => r.TotalBilling),
-                    "customername" => isDesc ? query.OrderByDescending(r => r.CustomerName) : query.OrderBy(r => r.CustomerName),
-                    "billingcommission" => isDesc ? query.OrderByDescending(r => r.BillingCommission) : query.OrderBy(r => r.BillingCommission),
-                    "othersbill" => isDesc ? query.OrderByDescending(r => r.OthersBill) : query.OrderBy(r => r.OthersBill),
-                    "totalcnfbilling" => isDesc ? query.OrderByDescending(r => r.TotalCNFBilling) : query.OrderBy(r => r.TotalCNFBilling),
-                    "billingtransportbill" => isDesc ? query.OrderByDescending(r => r.BillingTransportBill) : query.OrderBy(r => r.BillingTransportBill),
-                    "cnfcosting" => isDesc ? query.OrderByDescending(r => r.CNFCosting) : query.OrderBy(r => r.CNFCosting),
-                    "costingtransport" => isDesc ? query.OrderByDescending(r => r.CostingTransport) : query.OrderBy(r => r.CostingTransport),
-                    "totalcosting" => isDesc ? query.OrderByDescending(r => r.TotalCosting) : query.OrderBy(r => r.TotalCosting),
-                    "cnfgp" => isDesc ? query.OrderByDescending(r => r.CNFGP) : query.OrderBy(r => r.CNFGP),
-                    "transportgp" => isDesc ? query.OrderByDescending(r => r.TransportGP) : query.OrderBy(r => r.TransportGP),
-                    "totalgp" => isDesc ? query.OrderByDescending(r => r.TotalGP) : query.OrderBy(r => r.TotalGP),
-                    _ => query
+                    var term = filter.SearchTerm.Trim().ToLower();
+                    query = query.Where(r =>
+                        (r.BillNo != null && r.BillNo.ToLower().Contains(term)) ||
+                        (r.JobNo != null && r.JobNo.ToLower().Contains(term)) ||
+                        (r.CustomerName != null && r.CustomerName.ToLower().Contains(term)) ||
+                        (r.ExpenseType != null && r.ExpenseType.ToLower().Contains(term)) ||
+                        (r.BillDate != null && r.BillDate.ToLower().Contains(term))
+                    );
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter.SortColumn))
+                {
+                    bool isDesc = string.Equals(filter.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                    query = filter.SortColumn.ToLower() switch
+                    {
+                        "billdate" => isDesc ? query.OrderByDescending(r => r.BillDate) : query.OrderBy(r => r.BillDate),
+                        "billno" => isDesc ? query.OrderByDescending(r => r.BillNo) : query.OrderBy(r => r.BillNo),
+                        "totalbill" or "totalbilling" => isDesc ? query.OrderByDescending(r => r.TotalBilling) : query.OrderBy(r => r.TotalBilling),
+                        "customername" => isDesc ? query.OrderByDescending(r => r.CustomerName) : query.OrderBy(r => r.CustomerName),
+                        "billingcommission" => isDesc ? query.OrderByDescending(r => r.BillingCommission) : query.OrderBy(r => r.BillingCommission),
+                        "othersbill" => isDesc ? query.OrderByDescending(r => r.OthersBill) : query.OrderBy(r => r.OthersBill),
+                        "totalcnfbilling" => isDesc ? query.OrderByDescending(r => r.TotalCNFBilling) : query.OrderBy(r => r.TotalCNFBilling),
+                        "billingtransportbill" => isDesc ? query.OrderByDescending(r => r.BillingTransportBill) : query.OrderBy(r => r.BillingTransportBill),
+                        "cnfcosting" => isDesc ? query.OrderByDescending(r => r.CNFCosting) : query.OrderBy(r => r.CNFCosting),
+                        "costingtransport" => isDesc ? query.OrderByDescending(r => r.CostingTransport) : query.OrderBy(r => r.CostingTransport),
+                        "totalcosting" => isDesc ? query.OrderByDescending(r => r.TotalCosting) : query.OrderBy(r => r.TotalCosting),
+                        "cnfgp" => isDesc ? query.OrderByDescending(r => r.CNFGP) : query.OrderBy(r => r.CNFGP),
+                        "transportgp" => isDesc ? query.OrderByDescending(r => r.TransportGP) : query.OrderBy(r => r.TransportGP),
+                        "totalgp" => isDesc ? query.OrderByDescending(r => r.TotalGP) : query.OrderBy(r => r.TotalGP),
+                        _ => query
+                    };
+                }
+
+                int totalRecords = allRows.Count;
+                int filteredRecords = query.Count();
+
+                int pageSize = filter.Length ?? 10;
+                int startIndex = filter.Start ?? 0;
+
+                List<GPAnalysisReportDTO> pagedData;
+                if (pageSize == -1)
+                {
+                    pagedData = query.ToList();
+                }
+                else
+                {
+                    pagedData = query.Skip(startIndex).Take(pageSize).ToList();
+                }
+
+                for (int i = 0; i < pagedData.Count; i++)
+                {
+                    pagedData[i].SlNo = startIndex + i + 1;
+                    if (pagedData[i].TotalBill == 0 && pagedData[i].TotalBilling != 0)
+                    {
+                        pagedData[i].TotalBill = pagedData[i].TotalBilling;
+                    }
+                }
+
+                return new PaginationResponse<GPAnalysisReportDTO>
+                {
+                    Data = pagedData,
+                    TotalCount = totalRecords,
+                    FilteredCount = filteredRecords
                 };
             }
-
-            int totalRecords = allRows.Count;
-            int filteredRecords = query.Count();
-
-            int pageSize = filter.Length ?? 10;
-            int startIndex = filter.Start ?? 0;
-
-            List<GPAnalysisReportDTO> pagedData;
-            if (pageSize == -1)
+            catch (Exception)
             {
-                pagedData = query.ToList();
+
+                throw;
             }
-            else
-            {
-                pagedData = query.Skip(startIndex).Take(pageSize).ToList();
-            }
-
-            for (int i = 0; i < pagedData.Count; i++)
-            {
-                pagedData[i].SlNo = startIndex + i + 1;
-                if (pagedData[i].TotalBill == 0 && pagedData[i].TotalBilling != 0)
-                {
-                    pagedData[i].TotalBill = pagedData[i].TotalBilling;
-                }
-            }
-
-            return new PaginationResponse<GPAnalysisReportDTO>
-            {
-                Data = pagedData,
-                TotalCount = totalRecords,
-                FilteredCount = filteredRecords
-            };
         }
 
         public async Task<GPAnalysisReportSummaryDTO> GetSummaryAsync(GPAnalysisReportFilter filter)

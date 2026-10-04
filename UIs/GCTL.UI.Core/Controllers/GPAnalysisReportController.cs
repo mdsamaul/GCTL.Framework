@@ -2,42 +2,177 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GCTL.Service.BillService;
-using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
 using GCTL.Service.GPAnalysisReport;
-using GCTL.Service.ShipmentMode;
 using GCTL.UI.Core.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GCTL.UI.Core.Controllers
 {
-    public class GPAnalysisReportController : Controller
+    public class GPAnalysisReportController : BaseController
     {
-        private readonly IGPAnalysisReportService gPAnalysisReportService;
-        private readonly IJobBillEntryReportService _reportService;
-        private readonly IShipmentMode _shipmentMode;
-        private readonly ISalesCustomerService _customerService;
+        private readonly IGPAnalysisReportService _gpAnalysisReportService;
 
-        public GPAnalysisReportController(
-            IGPAnalysisReportService gPAnalysisReportService,
-            IJobBillEntryReportService reportService,
-            IShipmentMode shipmentMode, 
-            ISalesCustomerService customerService
-        )
+        public GPAnalysisReportController(IGPAnalysisReportService gpAnalysisReportService) : base()
         {
-            this.gPAnalysisReportService = gPAnalysisReportService;
-            _reportService = reportService;
-            _shipmentMode = shipmentMode;
-            _customerService = customerService;
+            _gpAnalysisReportService = gpAnalysisReportService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var defaultFromDate = DateTime.Now.ToString("01/MM/yyyy");
-            var defaultToDate = DateTime.Now.ToString("dd/MM/yyyy");
-            await PopulateDropdowns();
+            var filterOptions = await _gpAnalysisReportService.GetFilterOptionsAsync();
+            ViewBag.ShipmentModes = new SelectList(filterOptions.ShipmentModes, "Code", "Name");
+            ViewBag.Customers = new SelectList(filterOptions.Customers, "Code", "Name");
 
+            var gridModel = CreateGridModel(Url.Action("GetGridData", "GPAnalysisReport")!);
+            return View(gridModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetGridData(GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                filter ??= new GPAnalysisReportFilter();
+
+                if (Request.HasFormContentType)
+                {
+                    var form = Request.Form;
+                    if (int.TryParse(form["draw"], out int drawVal)) filter.Draw = drawVal;
+                    if (int.TryParse(form["start"], out int startVal)) filter.Start = startVal;
+                    if (int.TryParse(form["length"], out int lengthVal)) filter.Length = lengthVal;
+                    if (!string.IsNullOrEmpty(form["searchTerm"])) filter.SearchTerm = form["searchTerm"];
+                    else if (!string.IsNullOrEmpty(form["search[value]"])) filter.SearchTerm = form["search[value]"];
+
+                    var sortColIdx = form["order[0][column]"];
+                    var sortDir = form["order[0][dir]"];
+                    if (!string.IsNullOrEmpty(form["sortColumn"]))
+                    {
+                        filter.SortColumn = form["sortColumn"];
+                    }
+                    else if (!string.IsNullOrEmpty(sortColIdx))
+                    {
+                        var colDataName = form[$"columns[{sortColIdx}][data]"];
+                        filter.SortColumn = colDataName;
+                    }
+
+                    if (!string.IsNullOrEmpty(form["sortOrder"]))
+                    {
+                        filter.SortOrder = form["sortOrder"];
+                    }
+                    else if (!string.IsNullOrEmpty(sortDir))
+                    {
+                        filter.SortOrder = sortDir;
+                    }
+                }
+
+                var result = await _gpAnalysisReportService.GetGridDataAsync(filter);
+                var summary = await _gpAnalysisReportService.GetSummaryAsync(filter);
+
+                return Json(new
+                {
+                    draw = filter.Draw ?? 1,
+                    recordsTotal = result.TotalCount,
+                    recordsFiltered = result.FilteredCount,
+                    data = result.Data ?? new List<GPAnalysisReportDTO>(),
+                    summary = summary
+                });
+            }
+            catch (Exception ex)
+            {
+                Serilog.Log.Error(ex, "GetGridData error: {Message}", ex.Message);
+                return Json(new
+                {
+                    draw = filter?.Draw ?? 1,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<GPAnalysisReportDTO>(),
+                    summary = new GPAnalysisReportSummaryDTO()
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetSummary([FromBody] GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                filter ??= new GPAnalysisReportFilter();
+                var summary = await _gpAnalysisReportService.GetSummaryAsync(filter);
+                return Json(summary);
+            }
+            catch (Exception)
+            {
+                return Json(new GPAnalysisReportSummaryDTO());
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFilterOptions()
+        {
+            try
+            {
+                var options = await _gpAnalysisReportService.GetFilterOptionsAsync();
+                return Json(new
+                {
+                    success = true,
+                    shipmentModes = options.ShipmentModes.Select(m => new { value = m.Code, text = m.Name }),
+                    customers = options.Customers.Select(c => new { value = c.Code, text = c.Name })
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        #region Export Actions
+        [HttpGet]
+        public async Task<IActionResult> Export([FromQuery] GPAnalysisReportFilter filter, [FromQuery] string exportFormat = "PDF")
+        {
+            try
+            {
+                var (fileBytes, contentType, fileName) = await _gpAnalysisReportService.ExportReportAsync(filter, exportFormat);
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportPdf([FromQuery] GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                var (fileBytes, contentType, fileName) = await _gpAnalysisReportService.ExportReportAsync(filter, "PDF");
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportExcel([FromQuery] GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                var (fileBytes, contentType, fileName) = await _gpAnalysisReportService.ExportReportAsync(filter, "Excel");
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        #endregion
+
+        #region Private Helper: Grid Model Configuration
+        private GridModel CreateGridModel(string ajaxUrl)
+        {
             var customHeaderHtml = @"
 <tr class=""text-center align-middle small table-header-tier-1"">
     <th rowspan=""3"" class=""align-middle text-center"" style=""width:35px;"">Sl.No.</th>
@@ -49,45 +184,37 @@ namespace GCTL.UI.Core.Controllers
     <th colspan=""6"" class=""align-middle text-center text-white"" style=""background-color:#198754;"">PNL</th>
 </tr>
 <tr class=""text-center align-middle small table-header-tier-2"">
-    <!-- Billing Sub -->
     <th colspan=""3"" class=""align-middle text-center"">C &amp; F</th>
     <th rowspan=""2"" class=""align-middle text-center"" style=""width:70px;"">Transport</th>
     <th rowspan=""2"" class=""align-middle text-center"" style=""width:80px;"">TOT Bill</th>
-    <!-- Costing Sub -->
     <th colspan=""3"" class=""align-middle text-center"">C &amp; F Cost</th>
     <th colspan=""3"" class=""align-middle text-center"">Transport Cost</th>
     <th rowspan=""2"" class=""align-middle text-center"" style=""width:75px;"">TOT Cost</th>
-    <!-- PNL Sub -->
     <th colspan=""3"" class=""align-middle text-center"">GP</th>
     <th colspan=""3"" class=""align-middle text-center"">GP%</th>
 </tr>
 <tr class=""text-center align-middle small table-header-tier-3"">
-    <!-- C & F sub -->
     <th class=""align-middle text-center"" style=""width:70px;"">Comm.</th>
     <th class=""align-middle text-center"" style=""width:75px;"">Others</th>
     <th class=""align-middle text-center"" style=""width:75px;"">TOT</th>
-    <!-- C & F Cost sub -->
     <th class=""align-middle text-center"" style=""width:70px;"">Rece</th>
     <th class=""align-middle text-center"" style=""width:70px;"">NON Rece</th>
     <th class=""align-middle text-center"" style=""width:75px;"">TOT Cost</th>
-    <!-- Transport Cost sub -->
     <th class=""align-middle text-center"" style=""width:60px;"">Swift</th>
     <th class=""align-middle text-center"" style=""width:65px;"">Hair</th>
     <th class=""align-middle text-center"" style=""width:65px;"">TOT</th>
-    <!-- GP sub -->
     <th class=""align-middle text-center"" style=""width:75px;"">C &amp; F</th>
     <th class=""align-middle text-center"" style=""width:70px;"">TRANS</th>
     <th class=""align-middle text-center"" style=""width:75px;"">TOT</th>
-    <!-- GP% sub -->
     <th class=""align-middle text-center"" style=""width:60px;"">C &amp; F</th>
     <th class=""align-middle text-center"" style=""width:60px;"">TRANS</th>
     <th class=""align-middle text-center"" style=""width:60px;"">G. GP</th>
 </tr>";
 
-            var gridModel = new GridModel
+            return new GridModel
             {
                 GridId = "gPAnalysisReportTable",
-                AjaxUrl = Url.Action("GetGridData", "GPAnalysisReport"),
+                AjaxUrl = ajaxUrl,
                 AjaxMethod = "POST",
                 ServerSide = true,
                 Bordered = true,
@@ -101,6 +228,8 @@ namespace GCTL.UI.Core.Controllers
                 ShowRowNumbers = false,
                 ShowSearchBox = true,
                 Striped = true,
+                DefaultSortColumn = "billDate",
+                DefaultSortDirection = "desc",
                 CustomHeaderHtml = customHeaderHtml,
                 Columns = new List<GridColumn>
                 {
@@ -135,144 +264,7 @@ namespace GCTL.UI.Core.Controllers
                     new() { Data = "totalGPPercent", Header = "G. GP", Width = "60px", Align = "right", Sortable = false }
                 }
             };
-
-            return View(gridModel);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> GetGridData(GPAnalysisReportFilter filter)
-        {
-            try
-            {
-                filter ??= new GPAnalysisReportFilter();
-
-                if (Request.HasFormContentType)
-                {
-                    var form = Request.Form;
-                    if (int.TryParse(form["draw"], out int drawVal)) filter.Draw = drawVal;
-                    if (int.TryParse(form["start"], out int startVal)) filter.Start = startVal;
-                    if (int.TryParse(form["length"], out int lengthVal)) filter.Length = lengthVal;
-                    if (!string.IsNullOrEmpty(form["search[value]"])) filter.SearchTerm = form["search[value]"];
-
-                    var sortColIdx = form["order[0][column]"];
-                    var sortDir = form["order[0][dir]"];
-                    if (!string.IsNullOrEmpty(sortColIdx))
-                    {
-                        var colDataName = form[$"columns[{sortColIdx}][data]"];
-                        filter.SortColumn = colDataName;
-                    }
-                    if (!string.IsNullOrEmpty(sortDir))
-                    {
-                        filter.SortOrder = sortDir;
-                    }
-                }
-
-                var result = await gPAnalysisReportService.GetGridDataAsync(filter);
-                var summary = await gPAnalysisReportService.GetSummaryAsync(filter);
-
-                return Json(new
-                {
-                    draw = filter.Draw ?? 1,
-                    recordsTotal = result.TotalCount,
-                    recordsFiltered = result.FilteredCount,
-                    data = result.Data ?? new List<GPAnalysisReportDTO>(),
-                    summary = summary
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new
-                {
-                    draw = filter?.Draw ?? 1,
-                    recordsTotal = 0,
-                    recordsFiltered = 0,
-                    data = new List<GPAnalysisReportDTO>(),
-                    error = ex.Message
-                });
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> GetSummary([FromBody] GPAnalysisReportFilter filter)
-        {
-            try
-            {
-                filter ??= new GPAnalysisReportFilter();
-                var summary = await gPAnalysisReportService.GetSummaryAsync(filter);
-                return Json(summary);
-            }
-            catch (Exception)
-            {
-                return Json(new GPAnalysisReportSummaryDTO());
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetFilterOptions()
-        {
-            try
-            {
-                var shipmentModes = await _shipmentMode.GetAllExpenseTypesAsync();
-                var customers = await _customerService.SelectionCustomerAsync();
-                return Json(new
-                {
-                    success = true,
-                    shipmentModes = shipmentModes.Select(m => new { value = m.ExpenseTypeID, text = m.ExpenseType }),
-                    customers = customers.Select(c => new { value = c.Code, text = c.Name })
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> ExportPdf([FromQuery] GPAnalysisReportFilter filter)
-        {
-            try
-            {
-                filter ??= new GPAnalysisReportFilter();
-                var pdfBytes = await gPAnalysisReportService.GeneratePdfReportAsync(filter);
-                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                return File(pdfBytes, "application/pdf", fileName);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> ExportExcel([FromQuery] GPAnalysisReportFilter filter)
-        {
-            try
-            {
-                filter ??= new GPAnalysisReportFilter();
-                var excelBytes = await gPAnalysisReportService.GenerateExcelReportAsync(filter);
-                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        private async Task PopulateDropdowns()
-        {
-            try
-            {
-                var shipmentModes = await _shipmentMode.GetAllExpenseTypesAsync();
-                var customers = await _customerService.SelectionCustomerAsync();
-                ViewBag.ShipmentModes = new SelectList(shipmentModes, "ExpenseTypeID", "ExpenseType");
-                ViewBag.Customers = new SelectList(customers, "Code", "Name");
-            }
-            catch
-            {
-                ViewBag.ShipmentModes = new SelectList(new List<string>());
-                ViewBag.Customers = new SelectList(new List<string>());
-            }
-        }
+        #endregion
     }
 }
