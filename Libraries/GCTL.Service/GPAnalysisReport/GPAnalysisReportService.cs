@@ -22,6 +22,7 @@ namespace GCTL.Service.GPAnalysisReport
 {
     public class GPAnalysisReportService : IGPAnalysisReportService
     {
+
         #region Private Fields
         private readonly string _connectionString;
         private readonly IMemoryCache? _cache;
