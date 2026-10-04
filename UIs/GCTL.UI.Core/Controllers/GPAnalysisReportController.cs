@@ -18,6 +18,8 @@ namespace GCTL.UI.Core.Controllers
             _gpAnalysisReportService = gpAnalysisReportService;
         }
 
+        #region Index Action
+
         public async Task<IActionResult> Index()
         {
             var filterOptions = await _gpAnalysisReportService.GetFilterOptionsAsync();
@@ -92,6 +94,10 @@ namespace GCTL.UI.Core.Controllers
             }
         }
 
+        #endregion
+
+        #region Summary Action
+
         [HttpPost]
         public async Task<IActionResult> GetSummary([FromBody] GPAnalysisReportFilter filter)
         {
@@ -106,6 +112,10 @@ namespace GCTL.UI.Core.Controllers
                 return Json(new GPAnalysisReportSummaryDTO());
             }
         }
+
+        #endregion
+
+        #region Filter Options Action
 
         [HttpGet]
         public async Task<IActionResult> GetFilterOptions()
@@ -125,6 +135,8 @@ namespace GCTL.UI.Core.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        #endregion
 
         #region Export Actions
         [HttpGet]
