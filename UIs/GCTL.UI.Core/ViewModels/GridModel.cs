@@ -64,6 +64,7 @@ namespace GCTL.UI.Core.ViewModels
         public bool StickyHeader { get; set; } = false;
         public string ContainerCssClass { get; set; } = "";
         public string? FooterHtml { get; set; }
+        public string? CustomHeaderHtml { get; set; }
 
         // Features & Behavior
         public bool ShowRowNumbers { get; set; } = false;      // serial number (#) column

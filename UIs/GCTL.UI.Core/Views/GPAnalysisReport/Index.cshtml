@@ -1,0 +1,648 @@
+@model GCTL.UI.Core.ViewModels.GridModel
+
+@{
+    ViewData["Title"] = "GP Analysis Report";
+    ViewData["ShowPageTitle"] = true;
+    Layout = "_Layout";
+}
+
+<style>
+
+
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --pending: #ff9800;
+        --delivered: #4caf50;
+        --transit: #9c27b0;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .job-bill-report-dashboard {
+        color: var(--text-main);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Main Container */
+    .dashboard-container {
+        padding: 6px 0 25px 0;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Stats Grid (5 Cards) */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 10px 14px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 3px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+        }
+
+    .stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 1.1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+        .stat-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            flex-shrink: 0;
+        }
+
+    .stat-info h3 {
+        font-size: 0.72rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin: 0 0 2px 0;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+    }
+
+    .stat-info p {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    /* Filter Section - One Line Design with responsive support */
+    .filter-section {
+        background: white;
+        padding: 8px 14px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.82rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex: 1 1 0;
+        min-width: 0 !important; /* Critical to prevent flex child overflow */
+    }
+
+    .filter-group.filter-group-export {
+        /* flex: 1 1 125px; */
+        min-width: 110px;
+    }
+
+        .filter-group label {
+            font-size: 0.76rem;
+            font-weight: 600;
+            white-space: nowrap;
+            color: #475569;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .filter-group input.form-control,
+        .filter-group select.form-select,
+        .filter-group input.flatpickr-alt-input {
+            width: 100% !important;
+            min-width: 0 !important;
+            padding: 4px 22px 4px 7px !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 6px !important;
+            font-size: 0.78rem !important;
+            outline: none;
+            background-color: #ffffff;
+            color: var(--text-main);
+            height: 31px !important;
+            min-height: 31px !important;
+            line-height: 1.2 !important;
+            background-position: right 6px center !important;
+            background-size: 13px 13px !important;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .filter-group input.custom-datepicker,
+        .filter-group input.flatpickr-alt-input,
+        .filter-group input.caiCon,
+        .filter-group input[type="date"] {
+            background-image: url('/images/icons/calender.svg') !important;
+            background-repeat: no-repeat !important;
+            background-position: right 8px center !important;
+            background-size: 15px 15px !important;
+            padding-right: 28px !important;
+            cursor: pointer;
+        }
+
+        /* Custom-dd-wrapper styling */
+        .filter-group .custom-dd-wrapper {
+            width: 100% !important;
+            min-width: 0 !important;
+            flex: 1 1 auto;
+        }
+
+        .filter-group .custom-dd-input {
+            min-height: 31px !important;
+            height: 31px !important;
+            padding: 2px 6px !important;
+            font-size: 0.78rem !important;
+            border-radius: 6px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+    .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+    /* Hide native <select> once custom dropdown widget has initialized it */
+    select.custom-select-multi,
+    select.custom-select-single {
+        display: none !important;
+    }
+
+    .btn-preview-rep,
+    .btn-export-rep {
+        border: none;
+        padding: 4px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        height: 31px;
+        min-width: 82px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+    }
+
+    .btn-preview-rep {
+        background: #0056b3;
+        color: white;
+    }
+
+        .btn-preview-rep:hover {
+            background: #003d80;
+            box-shadow: 0 4px 10px rgba(0, 86, 179, 0.3);
+        }
+
+    .btn-export-rep {
+        background: #2e7d32;
+        color: white;
+    }
+
+        .btn-export-rep:hover {
+            background: #1b5e20;
+            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+        }
+
+    /* Grid Wrapper Card */
+    .job-grid-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
+        padding: 10px 12px;
+        overflow-x: auto;
+    }
+
+    /* Table optimization for GP Analysis Report */
+    #gPAnalysisReportTable {
+        width: 100% !important;
+        font-size: 11px !important;
+        table-layout: auto;
+        border-collapse: collapse !important;
+    }
+
+        #gPAnalysisReportTable thead th {
+            vertical-align: middle !important;
+            text-align: center !important;
+            padding: 4px 3px !important;
+            font-size: 11px !important;
+            line-height: 1.15 !important;
+            border: 1px solid #c2c9d1 !important;
+            font-weight: 600;
+        }
+
+        #gPAnalysisReportTable thead tr.table-header-tier-1 th {
+            font-size: 11.5px !important;
+            font-weight: 700;
+        }
+
+        #gPAnalysisReportTable thead tr.table-header-tier-2 th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-size: 11px;
+        }
+
+        #gPAnalysisReportTable thead tr.table-header-tier-3 th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-size: 10.5px;
+        }
+
+        #gPAnalysisReportTable tbody td {
+            padding: 4px 5px !important;
+            font-size: 11px !important;
+            line-height: 1.25 !important;
+            border: 1px solid #e2e8f0 !important;
+            vertical-align: middle;
+        }
+
+        #gPAnalysisReportTable tbody tr:hover {
+            background-color: #f0f7ff !important;
+        }
+
+        #gPAnalysisReportTable tbody tr.customer-group-row {
+            background-color: #f8fafc !important;
+            border-top: 2px solid #cbd5e1 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+        }
+
+        #gPAnalysisReportTable tbody tr.customer-group-row td {
+            padding: 6px 10px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: #1e293b !important;
+            background-color: #f1f5f9 !important;
+        }
+
+    /* Header toggle: below 1600px show compact text; at 1600px+ show full text */
+    .th-full {
+        display: none !important;
+    }
+
+    .th-compact {
+        display: inline !important;
+    }
+
+    /* Screen width 1600px and above: original full layout, text, and sizing */
+    @@media (min-width: 1600px) {
+        .th-full {
+            display: inline !important;
+        }
+
+        .th-compact {
+            display: none !important;
+        }
+
+        .stats-grid {
+            gap: 15px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            padding: 14px 18px;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            margin-right: 15px;
+            font-size: 1.25rem;
+        }
+
+            .stat-icon svg {
+                width: 24px;
+                height: 24px;
+            }
+
+        .stat-info h3 {
+            font-size: 0.8rem;
+            margin: 0 0 4px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-info p {
+            font-size: 1.45rem;
+        }
+
+        .filter-section {
+            padding: 12px 18px;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .filter-label {
+            font-size: 0.86rem;
+            gap: 5px;
+        }
+
+        .filter-group {
+            gap: 6px;
+        }
+
+            .filter-group label {
+                font-size: 0.8rem;
+            }
+
+            .filter-group input.form-control,
+            .filter-group select.form-select,
+            .filter-group input.flatpickr-alt-input {
+                height: 33px !important;
+                min-height: 33px !important;
+                padding: 5px 28px 5px 9px !important;
+                font-size: 0.82rem !important;
+            }
+
+            .filter-group .custom-dd-input {
+                min-height: 33px !important;
+                height: 33px !important;
+                padding: 3px 8px !important;
+                font-size: 0.82rem !important;
+            }
+
+        .filter-actions {
+            gap: 8px;
+        }
+
+        .btn-preview-rep,
+        .btn-export-rep {
+            height: 33px;
+            font-size: 0.82rem;
+            padding: 6px 16px;
+            gap: 6px;
+            min-width: 90px;
+        }
+
+        .job-grid-card {
+            padding: 14px;
+        }
+
+        #jobBillEntryReportTable {
+            font-size: 12.5px !important;
+        }
+
+            #jobBillEntryReportTable thead th {
+                font-size: 12.5px !important;
+                padding: 0.35rem 0.5rem !important;
+                white-space: nowrap !important;
+            }
+
+            #jobBillEntryReportTable tbody td {
+                font-size: 12.5px !important;
+                padding: 0.35rem 0.5rem !important;
+            }
+
+            #jobBillEntryReportTable th.col-select-cell,
+            #jobBillEntryReportTable td.col-select-cell {
+                width: 45px !important;
+                min-width: 45px !important;
+                max-width: 45px !important;
+            }
+    }
+
+    @@media (max-width: 1399px) {
+        .filter-section {
+            gap: 6px;
+            padding: 8px 10px;
+        }
+
+        .filter-group label {
+            font-size: 0.74rem;
+        }
+    }
+
+    @@media (max-width: 1199px) {
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .filter-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .filter-label {
+            grid-column: 1 / -1;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            margin-left: 0;
+            justify-content: flex-end;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-group {
+            width: 100% !important;
+        }
+    }
+</style>
+
+<div class="job-bill-report-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Top 5 KPI Cards -->
+        <div class="stats-grid">
+            <!-- 1. Total Bill -->
+            <div class="stat-card" style="border-color: #0056b3;">
+                <div class="stat-icon" style="background: #0056b3;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"></path>
+                        <path d="M19 17V5a2 2 0 0 0-2-2H4"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Bills</h3>
+                    <p id="statTotalBills">0</p>
+                </div>
+            </div>
+
+            <!-- 2. Net Service Value -->
+            <div class="stat-card" style="border-color: #2e7d32;">
+                <div class="stat-icon" style="background: #2e7d32;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Net Bill Value</h3>
+                    <p id="statNetBillValue">0.00</p>
+                </div>
+            </div>
+
+            <!-- 3. Total Due Outstanding -->
+            <div class="stat-card" style="border-color: #ed6c02;">
+                <div class="stat-icon" style="background: #ed6c02;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 22h14"></path>
+                        <path d="M5 2h14"></path>
+                        <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
+                        <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Costing</h3>
+                    <p id="statTotalDue">0.00</p>
+                </div>
+            </div>
+
+            <!-- 4. Last Service Value -->
+            <div class="stat-card" style="border-color: #9c27b0;">
+                <div class="stat-icon" style="background: #9c27b0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Profit</h3>
+                    <p id="statprofit">0.00</p>
+                </div>
+            </div>
+
+            <!-- 5. Last Service Date -->
+            <div class="stat-card" style="border-color: #0288d1;">
+                <div class="stat-icon" style="background: #0288d1;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>GP(%)</h3>
+                    <p id="statLastServiceDate" style="font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="-">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar (One Line Design, Auto-Filter on Change) -->
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+
+            <!-- From Date -->
+            <div class="filter-group">
+                <label for="filterFromDate">From</label>
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <!-- To Date -->
+            <div class="filter-group">
+                <label for="filterToDate">To</label>
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" data-min-date="@DateTime.Now.ToString("yyyy-MM-01")" />
+            </div>
+
+            <!-- Shipment Mode (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Shipment Mode --">
+                    @if (ViewBag.ShipmentModes != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Customer (Multi-Select with checkboxes) -->
+            <div class="filter-group">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Customer --">
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Customers)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Export Format (Single Select with Placeholder) -->
+            <div class="filter-group filter-group-export">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" data-placeholder="Select Exp. Format">
+                    <option value="">Select Exp. Format</option>
+                    <option value="PDF">PDF</option>
+                    <option value="Excel">Excel</option>
+                    <option value="CSV">CSV</option>
+                </select>
+            </div>
+
+            <!-- Actions: Preview & Export -->
+            <div class="filter-actions">
+                @* <button type="button" class="btn-preview-rep" id="btnPreview">
+                    <i class="fas fa-eye"></i> Preview
+                </button> *@
+                <button type="button" class="btn-export-rep" id="btnExport" title="Export report (Defaults to PDF if format not selected)">
+                    <i class="fas fa-file-export"></i> EXPORT
+                </button>
+            </div>
+        </div>
+
+        <!-- CustomGrid Table Container -->
+        <div class="job-grid-card">
+            @await Html.PartialAsync("_CustomGrid", Model)
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/gPAnalysisReport.js" asp-append-version="true"></script>
+}
