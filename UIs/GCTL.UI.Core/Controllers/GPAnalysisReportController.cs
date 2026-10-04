@@ -11,12 +11,16 @@ namespace GCTL.UI.Core.Controllers
 {
     public class GPAnalysisReportController : BaseController
     {
+        #region Private Fields
         private readonly IGPAnalysisReportService _gpAnalysisReportService;
 
-        public GPAnalysisReportController(IGPAnalysisReportService gpAnalysisReportService) : base()
+        public GPAnalysisReportController(
+            IGPAnalysisReportService gpAnalysisReportService) : base()
         {
             _gpAnalysisReportService = gpAnalysisReportService;
         }
+
+        #endregion
 
         #region Index Action
 
@@ -139,6 +143,7 @@ namespace GCTL.UI.Core.Controllers
         #endregion
 
         #region Export Actions
+
         [HttpGet]
         public async Task<IActionResult> Export([FromQuery] GPAnalysisReportFilter filter, [FromQuery] string exportFormat = "PDF")
         {
@@ -180,9 +185,25 @@ namespace GCTL.UI.Core.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportCsv([FromQuery] GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                var (fileBytes, contentType, fileName) = await _gpAnalysisReportService.ExportReportAsync(filter, "CSV");
+                return File(fileBytes, contentType, fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         #endregion
 
         #region Private Helper: Grid Model Configuration
+
         private GridModel CreateGridModel(string ajaxUrl)
         {
             var customHeaderHtml = @"
@@ -277,6 +298,8 @@ namespace GCTL.UI.Core.Controllers
                 }
             };
         }
+
         #endregion
+
     }
 }

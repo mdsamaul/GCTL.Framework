@@ -39,7 +39,7 @@
 
     function initDefaultDates() {
         var now = new Date();
-        var prevMonthFirstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        var currentMonthFirstDay = new Date(now.getFullYear(), now.getMonth(), 1);
 
         var formatDate = function (d) {
             var day = String(d.getDate()).padStart(2, '0');
@@ -49,7 +49,7 @@
         };
 
         if (!$('#filterFromDate').val()) {
-            $('#filterFromDate').val(formatDate(prevMonthFirstDay));
+            $('#filterFromDate').val(formatDate(currentMonthFirstDay));
         }
         if (!$('#filterToDate').val()) {
             $('#filterToDate').val(formatDate(now));
@@ -284,6 +284,12 @@
             e.preventDefault();
             var params = getFilterParams();
             window.location.href = '/GPAnalysisReport/Export?' + $.param($.extend({}, params, { exportFormat: 'Excel' }));
+        });
+
+        $('#btnExportCsv').on('click', function (e) {
+            e.preventDefault();
+            var params = getFilterParams();
+            window.location.href = '/GPAnalysisReport/Export?' + $.param($.extend({}, params, { exportFormat: 'CSV' }));
         });
     }
 

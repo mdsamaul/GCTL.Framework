@@ -579,7 +579,7 @@
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.AddMonths(-1).ToString("01/MM/yyyy")" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" />
             </div>
 
             <!-- To Date -->
@@ -620,6 +620,7 @@
                     <option value="">Select Exp. Format</option>
                     <option value="PDF">PDF</option>
                     <option value="Excel">Excel</option>
+                    <option value="CSV">CSV</option>
                 </select>
             </div>
 

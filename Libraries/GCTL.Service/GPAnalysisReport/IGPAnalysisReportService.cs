@@ -10,6 +10,7 @@ namespace GCTL.Service.GPAnalysisReport
         Task<GPAnalysisReportSummaryDTO> GetSummaryAsync(GPAnalysisReportFilter filter);
         Task<byte[]> GeneratePdfReportAsync(GPAnalysisReportFilter filter);
         Task<byte[]> GenerateExcelReportAsync(GPAnalysisReportFilter filter);
+        Task<byte[]> GenerateCsvReportAsync(GPAnalysisReportFilter filter);
         Task<(byte[] FileBytes, string ContentType, string FileName)> ExportReportAsync(GPAnalysisReportFilter filter, string exportFormat);
     }
 }

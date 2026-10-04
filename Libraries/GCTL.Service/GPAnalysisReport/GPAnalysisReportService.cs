@@ -160,7 +160,7 @@ namespace GCTL.Service.GPAnalysisReport
 
         #endregion
 
-        #region Export Report (PDF/Excel)
+        #region Export Report (PDF/Excel/CVS)
 
         public async Task<(byte[] FileBytes, string ContentType, string FileName)> ExportReportAsync(GPAnalysisReportFilter filter, string exportFormat)
         {
@@ -170,13 +170,19 @@ namespace GCTL.Service.GPAnalysisReport
             if (string.Equals(exportFormat, "Excel", StringComparison.OrdinalIgnoreCase))
             {
                 var excelBytes = await GenerateExcelReportAsync(filter);
-                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                string fileName = $"GP_Analysis_Report_.xlsx";
                 return (excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else if (string.Equals(exportFormat, "CSV", StringComparison.OrdinalIgnoreCase))
+            {
+                var csvBytes = await GenerateCsvReportAsync(filter);
+                string fileName = $"GP_Analysis_Report_.csv";
+                return (csvBytes, "text/csv; charset=utf-8", fileName);
             }
             else
             {
                 var pdfBytes = await GeneratePdfReportAsync(filter);
-                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                string fileName = $"GP_Analysis_Report_.pdf";
                 return (pdfBytes, "application/pdf", fileName);
             }
         }
@@ -190,7 +196,7 @@ namespace GCTL.Service.GPAnalysisReport
             string dateUse = "Y";
             // Default FromDate to first day of previous month so default load always finds data
             DateTime now = DateTime.Now;
-            DateTime fromDate = new DateTime(now.Year, now.Month, 1).AddMonths(-1);
+            DateTime fromDate = new DateTime(now.Year, now.Month, 1);
             DateTime toDate = now.Date;
 
             string[] formats = { "dd/MM/yyyy", "dd-MM-yyyy", "yyyy-MM-dd", "yyyy/MM/dd", "MM/dd/yyyy", "d/M/yyyy" };
@@ -437,6 +443,7 @@ namespace GCTL.Service.GPAnalysisReport
         #endregion
 
         #region PDF Report Generation (QuestPDF)
+
         public async Task<byte[]> GeneratePdfReportAsync(GPAnalysisReportFilter filter)
         {
             QuestPDF.Settings.License = LicenseType.Community;
@@ -758,6 +765,7 @@ namespace GCTL.Service.GPAnalysisReport
         #endregion
 
         #region Excel Report Generation (ClosedXML)
+
         public async Task<byte[]> GenerateExcelReportAsync(GPAnalysisReportFilter filter)
         {
             var data = await ExecuteStoredProcedureAsync(filter);
@@ -1089,308 +1097,366 @@ namespace GCTL.Service.GPAnalysisReport
 
         #endregion
 
-        //#region Excel Report Generation (ClosedXML)
-        //public async Task<byte[]> GenerateExcelReportAsync(GPAnalysisReportFilter filter)
-        //{
-        //    var data = await ExecuteStoredProcedureAsync(filter);
+        #region CSV Report Generation
 
-        //    var customerGroups = data
-        //        .GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "Unknown Customer" : x.CustomerName.Trim())
-        //        .OrderBy(g => g.Key)
-        //        .ToList();
+        public async Task<byte[]> GenerateCsvReportAsync(GPAnalysisReportFilter filter)
+        {
+            filter ??= new GPAnalysisReportFilter();
+            var data = await ExecuteStoredProcedureAsync(filter);
 
-        //    string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
-        //        ? $"{filter.FromDate} - {filter.ToDate}" : "All Dates";
+            using var memoryStream = new MemoryStream();
+            using (var writer = new StreamWriter(memoryStream, new System.Text.UTF8Encoding(true)))
+            {
+                await WriteGpAnalysisCsvAsync(writer, data, filter);
+                await writer.FlushAsync();
+            }
+            return memoryStream.ToArray();
+        }
 
-        //    using var workbook = new XLWorkbook();
-        //    var ws = workbook.Worksheets.Add("GP Analysis Report");
+        private static string PadCenter(string text, int width)
+        {
+            text ??= "";
+            if (text.Length >= width) return text;
+            int total = width - text.Length;
+            int left = total / 2;
+            int right = total - left;
+            return new string(' ', left) + text + new string(' ', right);
+        }
 
-        //    // Page title block
-        //    ws.Cell(1, 1).Value = "Formosa Logistics Limited";
-        //    ws.Range(1, 1, 1, 22).Merge().Style.Font.Bold = true;
-        //    ws.Range(1, 1, 1, 22).Style.Font.FontSize = 14;
-        //    ws.Range(1, 1, 1, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        private static string PadLeftAligned(string text, int width)
+        {
+            text ??= "";
+            string padded = " " + text;
+            if (padded.Length >= width) return padded;
+            return padded.PadRight(width);
+        }
 
-        //    ws.Cell(2, 1).Value = "21, Hazaribagh, Dhaka-1209";
-        //    ws.Range(2, 1, 2, 22).Merge().Style.Font.FontSize = 10;
-        //    ws.Range(2, 1, 2, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        private static string PadRightAligned(string text, int width)
+        {
+            text ??= "";
+            string padded = text + " ";
+            if (padded.Length >= width) return padded;
+            return padded.PadLeft(width);
+        }
 
-        //    ws.Cell(3, 1).Value = "GP Analysis Report";
-        //    ws.Range(3, 1, 3, 22).Merge().Style.Font.Bold = true;
-        //    ws.Range(3, 1, 3, 22).Style.Font.FontSize = 12;
-        //    ws.Range(3, 1, 3, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        private static string FormatCsvCell(string? text, int colIdx, int width, bool isHeader = false)
+        {
+            text = (text ?? "").Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim();
+            if (isHeader)
+            {
+                return PadCenter(text, width);
+            }
 
-        //    ws.Cell(4, 1).Value = $"Date : {dateRangeStr}";
-        //    ws.Range(4, 1, 4, 22).Merge().Style.Font.Bold = true;
-        //    ws.Range(4, 1, 4, 22).Style.Font.FontSize = 10;
-        //    ws.Range(4, 1, 4, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            // colIdx 0: SN -> Center
+            // colIdx 1: Billing Date -> Center
+            // colIdx 2: Bill No -> Left
+            // colIdx 3..18: Amounts -> Right
+            // colIdx 19..21: Percentages -> Right
+            if (colIdx == 0 || colIdx == 1)
+            {
+                return PadCenter(text, width);
+            }
+            else if (colIdx == 2)
+            {
+                return PadLeftAligned(text, width);
+            }
+            else
+            {
+                return PadRightAligned(text, width);
+            }
+        }
 
-        //    // Embed logo at top-left (same as CustomerReport)
-        //    var logoBytes = GetLogoBytes();
-        //    if (logoBytes != null && logoBytes.Length > 0)
-        //    {
-        //        ws.Row(1).Height = 20;
-        //        ws.Row(2).Height = 16;
-        //        ws.Row(3).Height = 18;
+        private static string BuildCenteredCsvHeaderRow(string text, int totalCols, int totalTableWidth)
+        {
+            string centered = PadCenter(text, totalTableWidth);
+            return $"{EscapeCsv(centered)}{new string(',', totalCols - 1)}";
+        }
 
-        //        try
-        //        {
-        //            using var logoStream = new MemoryStream(logoBytes);
-        //            var logoPicture = ws.AddPicture(logoStream)
-        //                .MoveTo(ws.Cell(1, 1), 4, 14);
-        //            logoPicture.Width = 90;
-        //            logoPicture.Height = 32;
-        //        }
-        //        catch
-        //        {
-        //            // Fallback gracefully without throwing if the image can't be embedded
-        //        }
-        //    }
+        private static string BuildCustomerCsvRow(string customerTitle, int totalCols)
+        {
+            return $"{EscapeCsv(customerTitle)}{new string(',', totalCols - 1)}";
+        }
 
-        //    int rowIdx = 6;
+        private static string FormatAmt(decimal value) => value.ToString("#,##0.00", CultureInfo.InvariantCulture);
 
-        //    foreach (var group in customerGroups)
-        //    {
-        //        // Customer row
-        //        ws.Cell(rowIdx, 1).Value = $"Customer: {group.Key}";
-        //        var custRange = ws.Range(rowIdx, 1, rowIdx, 22);
-        //        custRange.Merge();
-        //        custRange.Style.Font.Bold = true;
-        //        custRange.Style.Font.FontSize = 11;
-        //        custRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
-        //        custRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-        //        rowIdx++;
+        private static async Task WriteGpAnalysisCsvAsync(StreamWriter writer, List<GPAnalysisReportDTO> data, GPAnalysisReportFilter filter)
+        {
+            var headers = new[]
+            {
+                "SN.", "Billing Date", "Bill No", "Total Bill (BDT)",
+                "Comm.", "Others", "C&F TOT", "Transport Bill", "TOT Bill",
+                "Rece", "NON Rece", "C&F TOT Cost", "Swift", "Hair", "Transport TOT Cost", "TOT Cost",
+                "GP C&F", "GP TRANS", "GP TOT", "GP% C&F", "GP% TRANS", "G. GP%"
+            };
 
-        //        // Table 3-tier header
-        //        int h1 = rowIdx;
-        //        int h2 = rowIdx + 1;
-        //        int h3 = rowIdx + 2;
+            int totalCols = headers.Length;
+            int[] colWidths = new int[totalCols];
 
-        //        ws.Range(h1, 1, h3, 1).Merge().Value = "SN.";
-        //        ws.Range(h1, 2, h3, 2).Merge().Value = "Billing Date";
-        //        ws.Range(h1, 3, h3, 3).Merge().Value = "Bill No";
-        //        ws.Range(h1, 4, h3, 4).Merge().Value = "Total Bill (BDT)";
+            for (int c = 0; c < totalCols; c++)
+            {
+                colWidths[c] = headers[c].Length;
+            }
 
-        //        ws.Range(h1, 5, h1, 9).Merge().Value = "Billing";
-        //        ws.Range(h1, 10, h1, 16).Merge().Value = "Costing";
-        //        ws.Range(h1, 17, h1, 22).Merge().Value = "PNL";
+            var customerGroups = data
+                .GroupBy(x => string.IsNullOrWhiteSpace(x.CustomerName) ? "Unknown Customer" : x.CustomerName.Trim())
+                .OrderBy(g => g.Key)
+                .ToList();
 
-        //        ws.Range(h2, 5, h2, 7).Merge().Value = "C & F";
-        //        ws.Range(h2, 8, h3, 8).Merge().Value = "Transport";
-        //        ws.Range(h2, 9, h3, 9).Merge().Value = "TOT Bill";
+            var preparedGroups = new List<(string CustomerName, int Count, List<string[]> Rows, string[] SubTotalRow)>();
 
-        //        ws.Range(h2, 10, h2, 12).Merge().Value = "C & F Cost";
-        //        ws.Range(h2, 13, h2, 15).Merge().Value = "Transport Cost";
-        //        ws.Range(h2, 16, h3, 16).Merge().Value = "TOT Cost";
+            foreach (var group in customerGroups)
+            {
+                var groupRows = new List<string[]>();
+                int sl = 1;
+                foreach (var r in group)
+                {
+                    var row = new[]
+                    {
+                        (sl++).ToString(),
+                        r.BillDate ?? "",
+                        r.BillNo ?? "",
+                        FormatAmt(r.TotalBill),
+                        FormatAmt(r.BillingCommission),
+                        FormatAmt(r.OthersBill),
+                        FormatAmt(r.TotalCNFBilling),
+                        FormatAmt(r.BillingTransportBill),
+                        FormatAmt(r.TotalBilling),
+                        FormatAmt(r.CostingReceptableAmount),
+                        FormatAmt(r.CostingNonReceptableAmount),
+                        FormatAmt(r.CNFCosting),
+                        FormatAmt(r.CostingSwiftTransportAmount),
+                        FormatAmt(r.CostingHairTransportAmount),
+                        FormatAmt(r.CostingTransport),
+                        FormatAmt(r.TotalCosting),
+                        FormatAmt(r.CNFGP),
+                        FormatAmt(r.TransportGP),
+                        FormatAmt(r.TotalGP),
+                        r.CNFGPPercent ?? "0.00%",
+                        r.TransportGPPercent ?? "0.00%",
+                        r.TotalGPPercent ?? "0.00%"
+                    };
 
-        //        ws.Range(h2, 17, h2, 19).Merge().Value = "GP";
-        //        ws.Range(h2, 20, h2, 22).Merge().Value = "GP%";
+                    for (int c = 0; c < totalCols; c++)
+                    {
+                        string cleanVal = (row[c] ?? "").Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim();
+                        row[c] = cleanVal;
+                        if (cleanVal.Length > colWidths[c])
+                        {
+                            colWidths[c] = cleanVal.Length;
+                        }
+                    }
 
-        //        ws.Cell(h3, 5).Value = "Comm.";
-        //        ws.Cell(h3, 6).Value = "Others";
-        //        ws.Cell(h3, 7).Value = "TOT";
-        //        ws.Cell(h3, 10).Value = "Rece";
-        //        ws.Cell(h3, 11).Value = "NON Rece";
-        //        ws.Cell(h3, 12).Value = "TOT Cost";
-        //        ws.Cell(h3, 13).Value = "Swift";
-        //        ws.Cell(h3, 14).Value = "Hair";
-        //        ws.Cell(h3, 15).Value = "TOT";
-        //        ws.Cell(h3, 17).Value = "C & F";
-        //        ws.Cell(h3, 18).Value = "TRANS";
-        //        ws.Cell(h3, 19).Value = "TOT";
-        //        ws.Cell(h3, 20).Value = "C & F";
-        //        ws.Cell(h3, 21).Value = "TRANS";
-        //        ws.Cell(h3, 22).Value = "G. GP";
+                    groupRows.Add(row);
+                }
 
-        //        var headerRange = ws.Range(h1, 1, h3, 22);
-        //        headerRange.Style.Font.Bold = true;
-        //        headerRange.Style.Font.FontSize = 9;
-        //        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        //        headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        //        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#F1F5F9");
-        //        headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        //        headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                // Customer subtotals
+                var cTotalBill = group.Sum(x => x.TotalBill);
+                var cComm = group.Sum(x => x.BillingCommission);
+                var cOthers = group.Sum(x => x.OthersBill);
+                var cTotCnf = group.Sum(x => x.TotalCNFBilling);
+                var cTransBill = group.Sum(x => x.BillingTransportBill);
+                var cTotBill = group.Sum(x => x.TotalBilling);
+                var cCostRece = group.Sum(x => x.CostingReceptableAmount);
+                var cCostNonRece = group.Sum(x => x.CostingNonReceptableAmount);
+                var cCnfCosting = group.Sum(x => x.CNFCosting);
+                var cCostSwift = group.Sum(x => x.CostingSwiftTransportAmount);
+                var cCostHair = group.Sum(x => x.CostingHairTransportAmount);
+                var cCostTrans = group.Sum(x => x.CostingTransport);
+                var cTotCost = group.Sum(x => x.TotalCosting);
+                var cCnfGp = group.Sum(x => x.CNFGP);
+                var cTransGp = group.Sum(x => x.TransportGP);
+                var cTotGp = group.Sum(x => x.TotalGP);
+                string cCnfGpPct = cTotCnf > 0 ? $"{(cCnfGp * 100 / cTotCnf):F2}%" : "0.00%";
+                string cTransGpPct = cTransBill > 0 ? $"{(cTransGp * 100 / cTransBill):F2}%" : "0.00%";
+                string cTotGpPct = cTotBill > 0 ? $"{(cTotGp * 100 / cTotBill):F2}%" : "0.00%";
 
-        //        rowIdx += 3;
+                var subTotalRow = new[]
+                {
+                    "Customer Total:",
+                    "",
+                    "",
+                    FormatAmt(cTotalBill),
+                    FormatAmt(cComm),
+                    FormatAmt(cOthers),
+                    FormatAmt(cTotCnf),
+                    FormatAmt(cTransBill),
+                    FormatAmt(cTotBill),
+                    FormatAmt(cCostRece),
+                    FormatAmt(cCostNonRece),
+                    FormatAmt(cCnfCosting),
+                    FormatAmt(cCostSwift),
+                    FormatAmt(cCostHair),
+                    FormatAmt(cCostTrans),
+                    FormatAmt(cTotCost),
+                    FormatAmt(cCnfGp),
+                    FormatAmt(cTransGp),
+                    FormatAmt(cTotGp),
+                    cCnfGpPct,
+                    cTransGpPct,
+                    cTotGpPct
+                };
 
-        //        // Data rows
-        //        int sl = 1;
-        //        foreach (var r in group)
-        //        {
-        //            ws.Cell(rowIdx, 1).Value = sl++;
-        //            ws.Cell(rowIdx, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                for (int c = 0; c < totalCols; c++)
+                {
+                    string cleanVal = (subTotalRow[c] ?? "").Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim();
+                    subTotalRow[c] = cleanVal;
+                    if (cleanVal.Length > colWidths[c])
+                    {
+                        colWidths[c] = cleanVal.Length;
+                    }
+                }
 
-        //            ws.Cell(rowIdx, 2).Value = r.BillDate;
-        //            ws.Cell(rowIdx, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                preparedGroups.Add((group.Key, group.Count(), groupRows, subTotalRow));
+            }
 
-        //            ws.Cell(rowIdx, 3).Value = r.BillNo;
-        //            ws.Cell(rowIdx, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+            // Grand totals
+            var gTotalBill = data.Sum(x => x.TotalBill);
+            var gComm = data.Sum(x => x.BillingCommission);
+            var gOthers = data.Sum(x => x.OthersBill);
+            var gTotCnf = data.Sum(x => x.TotalCNFBilling);
+            var gTransBill = data.Sum(x => x.BillingTransportBill);
+            var gTotBill = data.Sum(x => x.TotalBilling);
+            var gCostRece = data.Sum(x => x.CostingReceptableAmount);
+            var gCostNonRece = data.Sum(x => x.CostingNonReceptableAmount);
+            var gCnfCosting = data.Sum(x => x.CNFCosting);
+            var gCostSwift = data.Sum(x => x.CostingSwiftTransportAmount);
+            var gCostHair = data.Sum(x => x.CostingHairTransportAmount);
+            var gCostTrans = data.Sum(x => x.CostingTransport);
+            var gTotCost = data.Sum(x => x.TotalCosting);
+            var gCnfGp = data.Sum(x => x.CNFGP);
+            var gTransGp = data.Sum(x => x.TransportGP);
+            var gTotGp = data.Sum(x => x.TotalGP);
+            string gCnfGpPct = gTotCnf > 0 ? $"{(gCnfGp * 100 / gTotCnf):F2}%" : "0.00%";
+            string gTransGpPct = gTransBill > 0 ? $"{(gTransGp * 100 / gTransBill):F2}%" : "0.00%";
+            string gTotGpPct = gTotBill > 0 ? $"{(gTotGp * 100 / gTotBill):F2}%" : "0.00%";
 
-        //            SetNum(ws.Cell(rowIdx, 4), r.TotalBill);
-        //            SetNum(ws.Cell(rowIdx, 5), r.BillingCommission);
-        //            SetNum(ws.Cell(rowIdx, 6), r.OthersBill);
-        //            SetNum(ws.Cell(rowIdx, 7), r.TotalCNFBilling);
-        //            SetNum(ws.Cell(rowIdx, 8), r.BillingTransportBill);
-        //            SetNum(ws.Cell(rowIdx, 9), r.TotalBilling);
-        //            SetNum(ws.Cell(rowIdx, 10), r.CostingReceptableAmount);
-        //            SetNum(ws.Cell(rowIdx, 11), r.CostingNonReceptableAmount);
-        //            SetNum(ws.Cell(rowIdx, 12), r.CNFCosting);
-        //            SetNum(ws.Cell(rowIdx, 13), r.CostingSwiftTransportAmount);
-        //            SetNum(ws.Cell(rowIdx, 14), r.CostingHairTransportAmount);
-        //            SetNum(ws.Cell(rowIdx, 15), r.CostingTransport);
-        //            SetNum(ws.Cell(rowIdx, 16), r.TotalCosting);
-        //            SetNum(ws.Cell(rowIdx, 17), r.CNFGP);
-        //            SetNum(ws.Cell(rowIdx, 18), r.TransportGP);
-        //            SetNum(ws.Cell(rowIdx, 19), r.TotalGP);
+            var grandTotalRow = new[]
+            {
+                "Grand Total:",
+                "",
+                "",
+                FormatAmt(gTotalBill),
+                FormatAmt(gComm),
+                FormatAmt(gOthers),
+                FormatAmt(gTotCnf),
+                FormatAmt(gTransBill),
+                FormatAmt(gTotBill),
+                FormatAmt(gCostRece),
+                FormatAmt(gCostNonRece),
+                FormatAmt(gCnfCosting),
+                FormatAmt(gCostSwift),
+                FormatAmt(gCostHair),
+                FormatAmt(gCostTrans),
+                FormatAmt(gTotCost),
+                FormatAmt(gCnfGp),
+                FormatAmt(gTransGp),
+                FormatAmt(gTotGp),
+                gCnfGpPct,
+                gTransGpPct,
+                gTotGpPct
+            };
 
-        //            ws.Cell(rowIdx, 20).Value = r.CNFGPPercent ?? "0.00%";
-        //            ws.Cell(rowIdx, 20).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //            ws.Cell(rowIdx, 21).Value = r.TransportGPPercent ?? "0.00%";
-        //            ws.Cell(rowIdx, 21).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //            ws.Cell(rowIdx, 22).Value = r.TotalGPPercent ?? "0.00%";
-        //            ws.Cell(rowIdx, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+            for (int c = 0; c < totalCols; c++)
+            {
+                string cleanVal = (grandTotalRow[c] ?? "").Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ").Trim();
+                grandTotalRow[c] = cleanVal;
+                if (cleanVal.Length > colWidths[c])
+                {
+                    colWidths[c] = cleanVal.Length;
+                }
+            }
 
-        //            ws.Range(rowIdx, 1, rowIdx, 22).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        //            ws.Range(rowIdx, 1, rowIdx, 22).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        //            ws.Range(rowIdx, 1, rowIdx, 22).Style.Font.FontSize = 8.5;
+            int[] minColWidths = new int[]
+            {
+                8,  // 0: SN.
+                14, // 1: Billing Date
+                30, // 2: Bill No
+                18, // 3: Total Bill (BDT)
+                14, // 4: Comm.
+                14, // 5: Others
+                16, // 6: C&F TOT
+                16, // 7: Transport Bill
+                18, // 8: TOT Bill
+                14, // 9: Rece
+                14, // 10: NON Rece
+                16, // 11: C&F TOT Cost
+                14, // 12: Swift
+                14, // 13: Hair
+                18, // 14: Transport TOT Cost
+                18, // 15: TOT Cost
+                16, // 16: GP C&F
+                16, // 17: GP TRANS
+                18, // 18: GP TOT
+                12, // 19: GP% C&F
+                12, // 20: GP% TRANS
+                12  // 21: G. GP%
+            };
 
-        //            rowIdx++;
-        //        }
+            for (int c = 0; c < totalCols; c++)
+            {
+                colWidths[c] = Math.Max(minColWidths[c], colWidths[c] + 2);
+            }
 
-        //        // Customer Subtotal
-        //        var subRange = ws.Range(rowIdx, 1, rowIdx, 3);
-        //        subRange.Merge().Value = "Customer Total:";
-        //        subRange.Style.Font.Bold = true;
-        //        subRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+            int totalTableWidth = colWidths.Sum() + (totalCols - 1);
 
-        //        var cTotalBill = group.Sum(x => x.TotalBill);
-        //        var cComm = group.Sum(x => x.BillingCommission);
-        //        var cOthers = group.Sum(x => x.OthersBill);
-        //        var cTotCnf = group.Sum(x => x.TotalCNFBilling);
-        //        var cTransBill = group.Sum(x => x.BillingTransportBill);
-        //        var cTotBill = group.Sum(x => x.TotalBilling);
-        //        var cCostRece = group.Sum(x => x.CostingReceptableAmount);
-        //        var cCostNonRece = group.Sum(x => x.CostingNonReceptableAmount);
-        //        var cCnfCosting = group.Sum(x => x.CNFCosting);
-        //        var cCostSwift = group.Sum(x => x.CostingSwiftTransportAmount);
-        //        var cCostHair = group.Sum(x => x.CostingHairTransportAmount);
-        //        var cCostTrans = group.Sum(x => x.CostingTransport);
-        //        var cTotCost = group.Sum(x => x.TotalCosting);
-        //        var cCnfGp = group.Sum(x => x.CNFGP);
-        //        var cTransGp = group.Sum(x => x.TransportGP);
-        //        var cTotGp = group.Sum(x => x.TotalGP);
-        //        string cCnfGpPct = cTotCnf > 0 ? $"{(cCnfGp * 100 / cTotCnf):F2}%" : "0.00%";
-        //        string cTransGpPct = cTransBill > 0 ? $"{(cTransGp * 100 / cTransBill):F2}%" : "0.00%";
-        //        string cTotGpPct = cTotBill > 0 ? $"{(cTotGp * 100 / cTotBill):F2}%" : "0.00%";
+            // Centered Company & Report Headers (same as JobStatusReport)
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("Formosa Logistics Limited", totalCols, totalTableWidth));
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow("GP Analysis Report", totalCols, totalTableWidth));
 
-        //        SetNum(ws.Cell(rowIdx, 4), cTotalBill);
-        //        SetNum(ws.Cell(rowIdx, 5), cComm);
-        //        SetNum(ws.Cell(rowIdx, 6), cOthers);
-        //        SetNum(ws.Cell(rowIdx, 7), cTotCnf);
-        //        SetNum(ws.Cell(rowIdx, 8), cTransBill);
-        //        SetNum(ws.Cell(rowIdx, 9), cTotBill);
-        //        SetNum(ws.Cell(rowIdx, 10), cCostRece);
-        //        SetNum(ws.Cell(rowIdx, 11), cCostNonRece);
-        //        SetNum(ws.Cell(rowIdx, 12), cCnfCosting);
-        //        SetNum(ws.Cell(rowIdx, 13), cCostSwift);
-        //        SetNum(ws.Cell(rowIdx, 14), cCostHair);
-        //        SetNum(ws.Cell(rowIdx, 15), cCostTrans);
-        //        SetNum(ws.Cell(rowIdx, 16), cTotCost);
-        //        SetNum(ws.Cell(rowIdx, 17), cCnfGp);
-        //        SetNum(ws.Cell(rowIdx, 18), cTransGp);
-        //        SetNum(ws.Cell(rowIdx, 19), cTotGp);
+            string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
+                ? $"Date Range: {filter.FromDate} to {filter.ToDate}" : "Date Range: Current Month";
+            await writer.WriteLineAsync(BuildCenteredCsvHeaderRow(dateRangeStr, totalCols, totalTableWidth));
+            await writer.WriteLineAsync(new string(',', totalCols - 1)); // Blank row
 
-        //        ws.Cell(rowIdx, 20).Value = cCnfGpPct;
-        //        ws.Cell(rowIdx, 20).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //        ws.Cell(rowIdx, 21).Value = cTransGpPct;
-        //        ws.Cell(rowIdx, 21).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //        ws.Cell(rowIdx, 22).Value = cTotGpPct;
-        //        ws.Cell(rowIdx, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+            if (preparedGroups.Count == 0)
+            {
+                var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCsvCell(h, i, colWidths[i], isHeader: true)));
+                await writer.WriteLineAsync(string.Join(",", paddedHeaders));
+                await writer.WriteLineAsync($"\"No GP Analysis records found.\"{new string(',', totalCols - 1)}");
+                return;
+            }
 
-        //        var subRowRange = ws.Range(rowIdx, 1, rowIdx, 22);
-        //        subRowRange.Style.Font.Bold = true;
-        //        subRowRange.Style.Font.FontSize = 9;
-        //        subRowRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
-        //        subRowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        //        subRowRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            foreach (var group in preparedGroups)
+            {
+                // Customer row
+                await writer.WriteLineAsync(BuildCustomerCsvRow($"CUSTOMER: {group.CustomerName.ToUpper()}  [Total Bills: {group.Count}]", totalCols));
 
-        //        rowIdx += 2;
-        //    }
+                // Headers
+                var paddedHeaders = headers.Select((h, i) => EscapeCsv(FormatCsvCell(h, i, colWidths[i], isHeader: true)));
+                await writer.WriteLineAsync(string.Join(",", paddedHeaders));
 
-        //    // Grand Total Row
-        //    if (data.Count > 0)
-        //    {
-        //        var gRange = ws.Range(rowIdx, 1, rowIdx, 3);
-        //        gRange.Merge().Value = "Grand Total:";
-        //        gRange.Style.Font.Bold = true;
-        //        gRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                // Data rows
+                foreach (var row in group.Rows)
+                {
+                    var formattedCells = row.Select((val, i) => EscapeCsv(FormatCsvCell(val, i, colWidths[i], isHeader: false)));
+                    await writer.WriteLineAsync(string.Join(",", formattedCells));
+                }
 
-        //        var gTotalBill = data.Sum(x => x.TotalBill);
-        //        var gComm = data.Sum(x => x.BillingCommission);
-        //        var gOthers = data.Sum(x => x.OthersBill);
-        //        var gTotCnf = data.Sum(x => x.TotalCNFBilling);
-        //        var gTransBill = data.Sum(x => x.BillingTransportBill);
-        //        var gTotBill = data.Sum(x => x.TotalBilling);
-        //        var gCostRece = data.Sum(x => x.CostingReceptableAmount);
-        //        var gCostNonRece = data.Sum(x => x.CostingNonReceptableAmount);
-        //        var gCnfCosting = data.Sum(x => x.CNFCosting);
-        //        var gCostSwift = data.Sum(x => x.CostingSwiftTransportAmount);
-        //        var gCostHair = data.Sum(x => x.CostingHairTransportAmount);
-        //        var gCostTrans = data.Sum(x => x.CostingTransport);
-        //        var gTotCost = data.Sum(x => x.TotalCosting);
-        //        var gCnfGp = data.Sum(x => x.CNFGP);
-        //        var gTransGp = data.Sum(x => x.TransportGP);
-        //        var gTotGp = data.Sum(x => x.TotalGP);
-        //        string gCnfGpPct = gTotCnf > 0 ? $"{(gCnfGp * 100 / gTotCnf):F2}%" : "0.00%";
-        //        string gTransGpPct = gTransBill > 0 ? $"{(gTransGp * 100 / gTransBill):F2}%" : "0.00%";
-        //        string gTotGpPct = gTotBill > 0 ? $"{(gTotGp * 100 / gTotBill):F2}%" : "0.00%";
+                // Customer Subtotal row
+                var formattedSubTotal = group.SubTotalRow.Select((val, i) => 
+                    EscapeCsv(i < 3 ? (i == 0 ? PadRightAligned(val, colWidths[i]) : "") : FormatCsvCell(val, i, colWidths[i], isHeader: false))
+                );
+                await writer.WriteLineAsync(string.Join(",", formattedSubTotal));
 
-        //        SetNum(ws.Cell(rowIdx, 4), gTotalBill);
-        //        SetNum(ws.Cell(rowIdx, 5), gComm);
-        //        SetNum(ws.Cell(rowIdx, 6), gOthers);
-        //        SetNum(ws.Cell(rowIdx, 7), gTotCnf);
-        //        SetNum(ws.Cell(rowIdx, 8), gTransBill);
-        //        SetNum(ws.Cell(rowIdx, 9), gTotBill);
-        //        SetNum(ws.Cell(rowIdx, 10), gCostRece);
-        //        SetNum(ws.Cell(rowIdx, 11), gCostNonRece);
-        //        SetNum(ws.Cell(rowIdx, 12), gCnfCosting);
-        //        SetNum(ws.Cell(rowIdx, 13), gCostSwift);
-        //        SetNum(ws.Cell(rowIdx, 14), gCostHair);
-        //        SetNum(ws.Cell(rowIdx, 15), gCostTrans);
-        //        SetNum(ws.Cell(rowIdx, 16), gTotCost);
-        //        SetNum(ws.Cell(rowIdx, 17), gCnfGp);
-        //        SetNum(ws.Cell(rowIdx, 18), gTransGp);
-        //        SetNum(ws.Cell(rowIdx, 19), gTotGp);
+                // Blank line between customer groups
+                await writer.WriteLineAsync(new string(',', totalCols - 1));
+            }
 
-        //        ws.Cell(rowIdx, 20).Value = gCnfGpPct;
-        //        ws.Cell(rowIdx, 20).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //        ws.Cell(rowIdx, 21).Value = gTransGpPct;
-        //        ws.Cell(rowIdx, 21).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //        ws.Cell(rowIdx, 22).Value = gTotGpPct;
-        //        ws.Cell(rowIdx, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+            // Grand Total row
+            var formattedGrandTotal = grandTotalRow.Select((val, i) => 
+                EscapeCsv(i < 3 ? (i == 0 ? PadRightAligned(val, colWidths[i]) : "") : FormatCsvCell(val, i, colWidths[i], isHeader: false))
+            );
+            await writer.WriteLineAsync(string.Join(",", formattedGrandTotal));
+        }
 
-        //        var gRowRange = ws.Range(rowIdx, 1, rowIdx, 22);
-        //        gRowRange.Style.Font.Bold = true;
-        //        gRowRange.Style.Font.FontSize = 9.5;
-        //        gRowRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#CBD5E1");
-        //        gRowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
-        //        gRowRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        //    }
+        private static string EscapeCsv(string? val)
+        {
+            if (string.IsNullOrEmpty(val)) return "";
+            val = val.Replace("\"", "\"\"");
+            return $"\"{val}\"";
+        }
 
-        //    ws.Columns().AdjustToContents();
-
-        //    using var ms = new MemoryStream();
-        //    workbook.SaveAs(ms);
-        //    return ms.ToArray();
-        //}
-
-        //private static void SetNum(IXLCell cell, decimal value)
-        //{
-        //    cell.Value = value;
-        //    cell.Style.NumberFormat.Format = "#,##0.00";
-        //    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //}
-        //#endregion
+        #endregion
 
     }
 }
