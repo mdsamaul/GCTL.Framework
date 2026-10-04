@@ -65,9 +65,9 @@ namespace GCTL.UI.Core.Controllers
                 Columns = new List<GridColumn>
                 {
                     new() { Data = "customerId",    Header = "Customer ID",    Width = "6%",  Align = "center", RenderFn = "renderCustomerId" },
-                    new() { Data = "name",          Header = "Name",           Width = "15.5%", Align = "left",   RenderFn = "renderAlignLeft" },
+                    new() { Data = "name",          Header = "Name",           Width = "15%", Align = "left",   RenderFn = "renderAlignLeft" },
                     new() { Data = "address",       Header = "Address",        Width = "20%", Align = "left",   RenderFn = "renderAlignLeft" },
-                    new() { Data = "phone",         Header = "Phone",          Width = "6.5%",  Align = "center" },
+                    new() { Data = "phone",         Header = "Phone",          Width = "6%",  Align = "center" },
                     new() { Data = "fax",           Header = "Fax",            Width = "6%",  Align = "center" },
                     new() { Data = "email",         Header = "Email",          Width = "12%", Align = "center" },
                     new() { Data = "photo",         Header = "Photo",          Width = "5%",  Align = "center", RenderFn = "renderPhoto", Sortable = false },
@@ -252,18 +252,18 @@ namespace GCTL.UI.Core.Controllers
                 if (string.Equals(exportFormat, "Excel", StringComparison.OrdinalIgnoreCase))
                 {
                     var bytes = await _customerReportService.GenerateExcelReportAsync(filter);
-                    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"CustomerReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+                    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"CustomerReport_.xlsx");
                 }
                 else if (string.Equals(exportFormat, "CSV", StringComparison.OrdinalIgnoreCase))
                 {
                     var bytes = await _customerReportService.GenerateCsvReportAsync(filter);
-                    return File(bytes, "text/csv; charset=utf-8", $"CustomerReport_{DateTime.Now:yyyyMMddHHmmss}.csv");
+                    return File(bytes, "text/csv; charset=utf-8", $"CustomerReport_.csv");
                 }
                 else
                 {
                     // Default fallback to PDF
                     var bytes = await _customerReportService.GeneratePdfReportAsync(filter);
-                    return File(bytes, "application/pdf", $"CustomerReport_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+                    return File(bytes, "application/pdf", $"CustomerReport_.pdf");
                 }
             }
             catch (Exception ex)
