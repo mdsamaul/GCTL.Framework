@@ -220,6 +220,11 @@ namespace GCTL.Service.GPAnalysisReport
                 }
             }
 
+            if (fromDate > toDate)
+            {
+                fromDate = toDate;
+            }
+
             if (!string.IsNullOrEmpty(filter.DateUse))
             {
                 dateUse = filter.DateUse;

@@ -579,13 +579,13 @@
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
             <!-- To Date -->
             <div class="filter-group">
                 <label for="filterToDate">To</label>
-                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" />
+                <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" data-min-date="@DateTime.Now.ToString("yyyy-MM-01")" />
             </div>
 
             <!-- Shipment Mode (Multi-Select with checkboxes) -->

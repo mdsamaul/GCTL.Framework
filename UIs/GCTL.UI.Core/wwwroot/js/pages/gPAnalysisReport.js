@@ -28,7 +28,6 @@
             $.fn.dataTable.ext.errMode = 'none';
         }
         initDefaultDates();
-        initDatepickers();
         checkAndLoadFilterOptions();
         initGrid();
         bindEvents();
@@ -48,21 +47,141 @@
             return day + '/' + month + '/' + year;
         };
 
-        if (!$('#filterFromDate').val()) {
-            $('#filterFromDate').val(formatDate(currentMonthFirstDay));
+        var fromStr = formatDate(currentMonthFirstDay);
+        var toStr = formatDate(now);
+
+        var $from = $('#filterFromDate');
+        var $to = $('#filterToDate');
+
+        if (!$from.val()) {
+            $from.val(fromStr);
         }
-        if (!$('#filterToDate').val()) {
-            $('#filterToDate').val(formatDate(now));
+        if (!$to.val()) {
+            $to.val(toStr);
+        }
+
+        // Sync Flatpickr instances so the calendar has the date selected like in screenshots
+        var syncFlatpickr = function () {
+            var fpFrom = $from.data('customFpInstance') || ($from[0] ? $from[0]._flatpickr : null);
+            if (fpFrom) {
+                if (!fpFrom.selectedDates || !fpFrom.selectedDates.length) {
+                    fpFrom.setDate(currentMonthFirstDay, false);
+                }
+                if (fpFrom.altInput && !fpFrom.altInput.value) {
+                    fpFrom.altInput.value = fromStr;
+                }
+            } else if (window.setDate) {
+                window.setDate('#filterFromDate', fromStr);
+            }
+
+            var fpTo = $to.data('customFpInstance') || ($to[0] ? $to[0]._flatpickr : null);
+            if (fpTo) {
+                if (!fpTo.selectedDates || !fpTo.selectedDates.length) {
+                    fpTo.setDate(now, false);
+                }
+                if (fpTo.altInput && !fpTo.altInput.value) {
+                    fpTo.altInput.value = toStr;
+                }
+            } else if (window.setDate) {
+                window.setDate('#filterToDate', toStr);
+            }
+
+            updateDateLimits();
+            bindFlatpickrDateLimits();
+        };
+
+        syncFlatpickr();
+        setTimeout(syncFlatpickr, 100);
+        setTimeout(syncFlatpickr, 300);
+    }
+
+    function parseDate(str) {
+        if (!str) return null;
+        if (str instanceof Date) {
+            var d = new Date(str.getTime());
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+        var s = String(str).trim();
+        var dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (dmy) {
+            return new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10), 0, 0, 0, 0);
+        }
+        var iso = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+        if (iso) {
+            return new Date(parseInt(iso[1], 10), parseInt(iso[2], 10) - 1, parseInt(iso[3], 10), 0, 0, 0, 0);
+        }
+        var p = new Date(s);
+        if (!isNaN(p.getTime())) {
+            p.setHours(0, 0, 0, 0);
+            return p;
+        }
+        return null;
+    }
+
+    function updateDateLimits() {
+        var fromEl = document.getElementById('filterFromDate');
+        var toEl = document.getElementById('filterToDate');
+
+        var fromFp = (fromEl && fromEl._flatpickr) || $('#filterFromDate').data('customFpInstance');
+        var toFp = (toEl && toEl._flatpickr) || $('#filterToDate').data('customFpInstance');
+
+        if (!fromFp || !toFp) return;
+
+        var fromVal = getDateValue('filterFromDate');
+        var toVal = getDateValue('filterToDate');
+
+        var fromDate = parseDate(fromVal);
+        var toDate = parseDate(toVal);
+
+        if (toDate && (!fromFp.config._maxDate || fromFp.config._maxDate.getTime() !== toDate.getTime())) {
+            fromFp.set('maxDate', toDate);
+        }
+        if (fromDate && (!toFp.config._minDate || toFp.config._minDate.getTime() !== fromDate.getTime())) {
+            toFp.set('minDate', fromDate);
         }
     }
 
-    function initDatepickers() {
-        if ($.fn.datepicker) {
-            $('.custom-datepicker').datepicker({
-                format: 'dd/mm/yyyy',
-                autoclose: true,
-                todayHighlight: true
-            }).on('changeDate', function () {
+    var dateLimitsBound = false;
+    function bindFlatpickrDateLimits() {
+        if (dateLimitsBound) return;
+        var fromEl = document.getElementById('filterFromDate');
+        var toEl = document.getElementById('filterToDate');
+
+        var fromFp = (fromEl && fromEl._flatpickr) || $('#filterFromDate').data('customFpInstance');
+        var toFp = (toEl && toEl._flatpickr) || $('#filterToDate').data('customFpInstance');
+
+        if (!fromFp || !toFp) return;
+        dateLimitsBound = true;
+
+        if (fromFp.config && Array.isArray(fromFp.config.onChange)) {
+            fromFp.config.onChange.push(function (selectedDates) {
+                var selected = selectedDates && selectedDates[0];
+                if (selected && toFp && typeof toFp.set === 'function') {
+                    if (!toFp.config._minDate || toFp.config._minDate.getTime() !== selected.getTime()) {
+                        toFp.set('minDate', selected);
+                    }
+                    var curTo = toFp.selectedDates && toFp.selectedDates[0];
+                    if (curTo && curTo < selected) {
+                        toFp.setDate(selected, false);
+                    }
+                }
+                onFilterChanged();
+            });
+        }
+
+        if (toFp.config && Array.isArray(toFp.config.onChange)) {
+            toFp.config.onChange.push(function (selectedDates) {
+                var selected = selectedDates && selectedDates[0];
+                if (selected && fromFp && typeof fromFp.set === 'function') {
+                    if (!fromFp.config._maxDate || fromFp.config._maxDate.getTime() !== selected.getTime()) {
+                        fromFp.set('maxDate', selected);
+                    }
+                    var curFrom = fromFp.selectedDates && fromFp.selectedDates[0];
+                    if (curFrom && curFrom > selected) {
+                        fromFp.setDate(selected, false);
+                    }
+                }
                 onFilterChanged();
             });
         }
@@ -222,6 +341,23 @@
 
     function onFilterChanged() {
         if (!isInitialized) return;
+
+        var fromVal = getDateValue('filterFromDate');
+        var toVal = getDateValue('filterToDate');
+        var fromDate = parseDate(fromVal);
+        var toDate = parseDate(toVal);
+
+        // From Date cannot be after To Date
+        if (fromDate && toDate && fromDate > toDate) {
+            var $from = $('#filterFromDate');
+            $from.val(toVal);
+            var fpFrom = $from.data('customFpInstance') || ($from[0] ? $from[0]._flatpickr : null);
+            if (fpFrom) {
+                fpFrom.setDate(toDate, false);
+                if (fpFrom.altInput) fpFrom.altInput.value = toVal;
+            }
+        }
+
         clearTimeout(filterDebounceTimer);
         filterDebounceTimer = setTimeout(function () {
             reloadGrid();
@@ -249,7 +385,7 @@
     }
 
     function bindEvents() {
-        $(document).on('change', '#filterFromDate, #filterToDate, .filter-section .flatpickr-alt-input', function () {
+        $(document).on('change', '#filterFromDate, #filterToDate', function () {
             onFilterChanged();
         });
 
