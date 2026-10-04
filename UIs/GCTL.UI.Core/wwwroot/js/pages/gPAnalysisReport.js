@@ -1,6 +1,6 @@
 /**
  * GP Analysis Report Page Script
- * CustomGrid with Multi-Level Headers, Server-Side Pagination & Customer Grouping
+ * CustomGrid with Multi-Level Headers, Server-Side Pagination (Default: 10)
  * Formosa Logistics Limited
  */
 (function ($) {
@@ -21,9 +21,9 @@
     $(document).ready(function () {
         initDefaultDates();
         initDatepickers();
+        checkAndLoadFilterOptions();
         initGrid();
         bindEvents();
-        loadSummaryData();
     });
 
     function initDefaultDates() {
@@ -57,15 +57,36 @@
         }
     }
 
+    /**
+     * Helper to safely extract values from custom dropdowns or multi-selects
+     */
+    function getDropdownValue(id) {
+        var $el = $('#' + id);
+        if (!$el.length) return '';
+
+        var inst = $el.data('customDdInstance');
+        if (inst) {
+            if (Array.isArray(inst.selected)) {
+                return inst.selected.filter(function (v) { return !!v; }).join(',');
+            }
+            if (inst.selected !== undefined && inst.selected !== null) {
+                return String(inst.selected).trim();
+            }
+        }
+
+        var val = $el.val();
+        if (Array.isArray(val)) {
+            return val.filter(function (v) { return !!v; }).join(',');
+        }
+
+        return (val || '').trim();
+    }
+
     function getFilterParams() {
-        var shipmentModeVal = $('#filterShipmentMode').val();
-        var customerIdVal = $('#filterCustomerId').val();
-
-        var shipmentMode = Array.isArray(shipmentModeVal) ? shipmentModeVal.join(',') : (shipmentModeVal || '');
-        var customerId = Array.isArray(customerIdVal) ? customerIdVal.join(',') : (customerIdVal || '');
-
         var fromDate = $('#filterFromDate').val() || '';
         var toDate = $('#filterToDate').val() || '';
+        var shipmentMode = getDropdownValue('filterShipmentMode');
+        var customerId = getDropdownValue('filterCustomerId');
 
         return {
             fromDate: fromDate,
@@ -74,6 +95,47 @@
             customerId: customerId,
             dateUse: (fromDate && toDate) ? 'Y' : 'N'
         };
+    }
+
+    function checkAndLoadFilterOptions() {
+        var $modeSelect = $('#filterShipmentMode');
+        var $custSelect = $('#filterCustomerId');
+
+        if ($modeSelect.children('option').length === 0 || $custSelect.children('option').length === 0) {
+            $.ajax({
+                url: '/GPAnalysisReport/GetFilterOptions',
+                type: 'GET',
+                success: function (res) {
+                    if (res && res.success) {
+                        if ($modeSelect.children('option').length === 0 && res.shipmentModes) {
+                            res.shipmentModes.forEach(function (m) {
+                                $modeSelect.append($('<option>', { value: m.value, text: m.text }));
+                            });
+                            if (typeof window.reinitCustomDropdownById === 'function') {
+                                window.reinitCustomDropdownById('filterShipmentMode');
+                            }
+                        }
+                        if ($custSelect.children('option').length === 0 && res.customers) {
+                            res.customers.forEach(function (c) {
+                                $custSelect.append($('<option>', { value: c.value, text: c.text }));
+                            });
+                            if (typeof window.reinitCustomDropdownById === 'function') {
+                                window.reinitCustomDropdownById('filterCustomerId');
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function updateKpiCards(summary) {
+        if (!summary) return;
+        $('#statTotalBills').text(summary.totalBills != null ? summary.totalBills.toLocaleString() : '0');
+        $('#statNetBillValue').text(summary.netBillValue != null ? window.gctlRenderers.formatCurrency(summary.netBillValue) : '0.00');
+        $('#statTotalDue').text(summary.totalCosting != null ? window.gctlRenderers.formatCurrency(summary.totalCosting) : '0.00');
+        $('#statprofit').text(summary.profit != null ? window.gctlRenderers.formatCurrency(summary.profit) : '0.00');
+        $('#statLastServiceDate').text(summary.gpPercent || '0.00%');
     }
 
     function initGrid() {
@@ -89,22 +151,13 @@
                     d.dateUse = filters.dateUse;
                 },
                 extraOptions: {
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
                     drawCallback: function (settings) {
-                        var api = this.api();
-                        var rows = api.rows({ page: 'current' }).nodes();
-                        var lastCustomer = null;
-
-                        api.rows({ page: 'current' }).data().each(function (row, idx) {
-                            var customer = row.customerName || (row.customerID ? 'Customer ID: ' + row.customerID : '');
-                            if (customer && lastCustomer !== customer) {
-                                $(rows).eq(idx).before(
-                                    '<tr class="customer-group-row">' +
-                                    '<td colspan="22"><i class="fas fa-building text-primary me-2"></i>Customer: ' + customer + '</td>' +
-                                    '</tr>'
-                                );
-                                lastCustomer = customer;
-                            }
-                        });
+                        var json = settings.json;
+                        if (json && json.summary) {
+                            updateKpiCards(json.summary);
+                        }
                     }
                 }
             });
@@ -115,14 +168,13 @@
         if (gridTable) {
             gridTable.ajax.reload(null, true);
         }
-        loadSummaryData();
     }
 
     function onFilterChanged() {
         clearTimeout(filterDebounceTimer);
         filterDebounceTimer = setTimeout(function () {
             reloadGrid();
-        }, 300);
+        }, 250);
     }
 
     function bindEvents() {
@@ -139,36 +191,20 @@
             reloadGrid();
         });
 
-        $('#btnExport').on('click', function (e) {
+        // PDF Export
+        $('#btnExportPdf').on('click', function (e) {
             e.preventDefault();
-            window.print();
+            var params = getFilterParams();
+            var url = '/GPAnalysisReport/ExportPdf?' + $.param(params);
+            window.open(url, '_blank');
         });
-    }
 
-    function loadSummaryData() {
-        var filters = getFilterParams();
-
-        $.ajax({
-            url: '/GPAnalysisReport/GetSummary',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(filters),
-            success: function (res) {
-                if (res) {
-                    $('#statTotalBills').text(res.totalBills != null ? res.totalBills.toLocaleString() : '0');
-                    $('#statNetBillValue').text(res.netBillValue != null ? window.gctlRenderers.formatCurrency(res.netBillValue) : '0.00');
-                    $('#statTotalDue').text(res.totalCosting != null ? window.gctlRenderers.formatCurrency(res.totalCosting) : '0.00');
-                    $('#statprofit').text(res.profit != null ? window.gctlRenderers.formatCurrency(res.profit) : '0.00');
-                    $('#statLastServiceDate').text(res.gpPercent || '0.00%');
-                }
-            },
-            error: function () {
-                $('#statTotalBills').text('0');
-                $('#statNetBillValue').text('0.00');
-                $('#statTotalDue').text('0.00');
-                $('#statprofit').text('0.00');
-                $('#statLastServiceDate').text('0.00%');
-            }
+        // Excel Export
+        $('#btnExportExcel').on('click', function (e) {
+            e.preventDefault();
+            var params = getFilterParams();
+            var url = '/GPAnalysisReport/ExportExcel?' + $.param(params);
+            window.location.href = url;
         });
     }
 

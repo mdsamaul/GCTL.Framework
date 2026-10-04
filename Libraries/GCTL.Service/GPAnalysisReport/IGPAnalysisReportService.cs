@@ -7,5 +7,7 @@ namespace GCTL.Service.GPAnalysisReport
     {
         Task<PaginationResponse<GPAnalysisReportDTO>> GetGridDataAsync(GPAnalysisReportFilter filter);
         Task<GPAnalysisReportSummaryDTO> GetSummaryAsync(GPAnalysisReportFilter filter);
+        Task<byte[]> GeneratePdfReportAsync(GPAnalysisReportFilter filter);
+        Task<byte[]> GenerateExcelReportAsync(GPAnalysisReportFilter filter);
     }
 }

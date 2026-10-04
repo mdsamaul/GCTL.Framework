@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using GCTL.Service.BillService;
 using GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer;
@@ -35,7 +36,7 @@ namespace GCTL.UI.Core.Controllers
         {
             var defaultFromDate = DateTime.Now.ToString("01/MM/yyyy");
             var defaultToDate = DateTime.Now.ToString("dd/MM/yyyy");
-            await PopulateDropdowns(defaultFromDate, defaultToDate);
+            await PopulateDropdowns();
 
             var customHeaderHtml = @"
 <tr class=""text-center align-middle small table-header-tier-1"">
@@ -92,7 +93,8 @@ namespace GCTL.UI.Core.Controllers
                 Bordered = true,
                 Compact = true,
                 CustomGridWrapper = false,
-                DefaultPageLength = 25,
+                DefaultPageLength = 10,
+                PageLengths = new[] { 10, 25, 50, 100, -1 },
                 Hover = true,
                 ShowCheckbox = false,
                 ShowPagination = true,
@@ -166,13 +168,15 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 var result = await gPAnalysisReportService.GetGridDataAsync(filter);
+                var summary = await gPAnalysisReportService.GetSummaryAsync(filter);
 
                 return Json(new
                 {
                     draw = filter.Draw ?? 1,
                     recordsTotal = result.TotalCount,
                     recordsFiltered = result.FilteredCount,
-                    data = result.Data ?? new List<GPAnalysisReportDTO>()
+                    data = result.Data ?? new List<GPAnalysisReportDTO>(),
+                    summary = summary
                 });
             }
             catch (Exception ex)
@@ -197,19 +201,72 @@ namespace GCTL.UI.Core.Controllers
                 var summary = await gPAnalysisReportService.GetSummaryAsync(filter);
                 return Json(summary);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return Json(new GPAnalysisReportSummaryDTO());
             }
         }
 
-        private async Task PopulateDropdowns(string? fromDate = null, string? toDate = null)
+        [HttpGet]
+        public async Task<IActionResult> GetFilterOptions()
         {
             try
             {
-                var options = await _reportService.GetFilterOptionsAsync(fromDate, toDate);
-                ViewBag.ShipmentModes = new SelectList(options.ShipmentModes, "Code", "Name");
-                ViewBag.Customers = new SelectList(options.Customers, "Code", "Name");
+                var shipmentModes = await _shipmentMode.GetAllExpenseTypesAsync();
+                var customers = await _customerService.SelectionCustomerAsync();
+                return Json(new
+                {
+                    success = true,
+                    shipmentModes = shipmentModes.Select(m => new { value = m.ExpenseTypeID, text = m.ExpenseType }),
+                    customers = customers.Select(c => new { value = c.Code, text = c.Name })
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportPdf([FromQuery] GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                filter ??= new GPAnalysisReportFilter();
+                var pdfBytes = await gPAnalysisReportService.GeneratePdfReportAsync(filter);
+                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportExcel([FromQuery] GPAnalysisReportFilter filter)
+        {
+            try
+            {
+                filter ??= new GPAnalysisReportFilter();
+                var excelBytes = await gPAnalysisReportService.GenerateExcelReportAsync(filter);
+                string fileName = $"GP_Analysis_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        private async Task PopulateDropdowns()
+        {
+            try
+            {
+                var shipmentModes = await _shipmentMode.GetAllExpenseTypesAsync();
+                var customers = await _customerService.SelectionCustomerAsync();
+                ViewBag.ShipmentModes = new SelectList(shipmentModes, "ExpenseTypeID", "ExpenseType");
+                ViewBag.Customers = new SelectList(customers, "Code", "Name");
             }
             catch
             {
