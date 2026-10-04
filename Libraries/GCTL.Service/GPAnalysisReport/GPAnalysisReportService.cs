@@ -26,19 +26,60 @@ namespace GCTL.Service.GPAnalysisReport
         private readonly IMemoryCache? _cache;
         private readonly IShipmentMode? _shipmentModeService;
         private readonly ISalesCustomerService? _customerService;
+        private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment? _webHostEnvironment;
+        private byte[]? _logoBytes;
+        private bool _logoLoaded;
 
         public GPAnalysisReportService(
             IConfiguration configuration, 
             IMemoryCache? cache = null,
             IShipmentMode? shipmentModeService = null,
-            ISalesCustomerService? customerService = null)
+            ISalesCustomerService? customerService = null,
+            Microsoft.AspNetCore.Hosting.IWebHostEnvironment? env = null)
         {
             _connectionString = configuration.GetConnectionString("connection") 
                 ?? throw new InvalidOperationException("Connection string 'connection' not found.");
             _cache = cache;
             _shipmentModeService = shipmentModeService;
             _customerService = customerService;
+            _webHostEnvironment = env;
         }
+
+        #region Helper Method to Load Logo Bytes (Same as CustomerReport)
+        private byte[]? GetLogoBytes()
+        {
+            if (_logoLoaded) return _logoBytes;
+            _logoLoaded = true;
+
+            try
+            {
+                var candidatePaths = new List<string?>
+                {
+                    _webHostEnvironment?.WebRootPath != null ? Path.Combine(_webHostEnvironment.WebRootPath, "images", "fermosa-wX200.png") : null,
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "UIs", "GCTL.UI.Core", "wwwroot", "images", "fermosa-wX200.png"),
+                    @"D:\Project\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png",
+                    @"D:\GCTL\GCTL\Project\CNF\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png"
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    {
+                        _logoBytes = File.ReadAllBytes(path);
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully without throwing
+            }
+
+            return _logoBytes;
+        }
+        #endregion
 
         public async Task<GPAnalysisReportFilterOptionsDTO> GetFilterOptionsAsync()
         {
@@ -385,6 +426,8 @@ namespace GCTL.Service.GPAnalysisReport
             string dateRangeStr = !string.IsNullOrWhiteSpace(filter.FromDate) && !string.IsNullOrWhiteSpace(filter.ToDate)
                 ? $"{filter.FromDate} - {filter.ToDate}" : "All Dates";
 
+            var logoBytes = GetLogoBytes();
+
             var doc = Document.Create(container =>
             {
                 container.Page(page =>
@@ -392,13 +435,32 @@ namespace GCTL.Service.GPAnalysisReport
                     page.Margin(10);
                     page.Size(PageSizes.A4.Landscape());
 
-                    page.Header().Column(c =>
+                    page.Header().Column(headerCol =>
                     {
-                        c.Item().AlignCenter().Text("Formosa Logistics Limited").FontSize(12).Bold();
-                        c.Item().AlignCenter().Text("21, Hazaribagh, Dhaka-1209").FontSize(7.5f).FontColor(Colors.Grey.Darken2);
-                        c.Item().AlignCenter().Text("GP Analysis Report").FontSize(9.5f).Bold();
-                        c.Item().AlignCenter().Text($"Date : {dateRangeStr}").FontSize(7.5f).SemiBold();
-                        c.Item().PaddingBottom(4);
+                        headerCol.Item().Row(row =>
+                        {
+                            // Left slot: logo (same as CustomerReport)
+                            if (logoBytes != null && logoBytes.Length > 0)
+                            {
+                                row.ConstantItem(75).AlignMiddle().Image(logoBytes).FitArea();
+                            }
+
+                            // Center: company name / address / report title / date
+                            row.RelativeItem().Column(c =>
+                            {
+                                c.Item().AlignCenter().Text("Formosa Logistics Limited").FontSize(13).Bold();
+                                c.Item().AlignCenter().Text("21, Hazaribagh, Dhaka-1209").FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                                c.Item().AlignCenter().Text("GP Analysis Report").FontSize(10.5f).Bold().Underline();
+                                c.Item().AlignCenter().Text($"Date : {dateRangeStr}").FontSize(8f).SemiBold();
+                            });
+
+                            // Right slot: empty, same width as logo, to keep center visually aligned
+                            if (logoBytes != null && logoBytes.Length > 0)
+                            {
+                                row.ConstantItem(75);
+                            }
+                        });
+                        headerCol.Item().PaddingBottom(4);
                     });
 
                     page.Content().Column(col =>
@@ -706,6 +768,28 @@ namespace GCTL.Service.GPAnalysisReport
             ws.Range(4, 1, 4, 22).Merge().Style.Font.Bold = true;
             ws.Range(4, 1, 4, 22).Style.Font.FontSize = 10;
             ws.Range(4, 1, 4, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            // Embed logo at top-left (same as CustomerReport)
+            var logoBytes = GetLogoBytes();
+            if (logoBytes != null && logoBytes.Length > 0)
+            {
+                ws.Row(1).Height = 20;
+                ws.Row(2).Height = 16;
+                ws.Row(3).Height = 18;
+
+                try
+                {
+                    using var logoStream = new MemoryStream(logoBytes);
+                    var logoPicture = ws.AddPicture(logoStream)
+                        .MoveTo(ws.Cell(1, 1), 4, 14);
+                    logoPicture.Width = 90;
+                    logoPicture.Height = 32;
+                }
+                catch
+                {
+                    // Fallback gracefully without throwing if the image can't be embedded
+                }
+            }
 
             int rowIdx = 6;
 
