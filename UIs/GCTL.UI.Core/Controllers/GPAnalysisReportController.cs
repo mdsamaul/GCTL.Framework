@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GCTL.Service.GPAnalysisReport;
 using GCTL.UI.Core.ViewModels;
 using Microsoft.AspNetCore.Mvc;
