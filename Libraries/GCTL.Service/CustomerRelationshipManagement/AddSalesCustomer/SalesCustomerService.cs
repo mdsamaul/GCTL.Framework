@@ -290,7 +290,7 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     Bin = model.Bin ?? "",
                     VatRegNo = model.VatRegNo ?? "",
                     Tin = model.Tin ?? "",
-                    ContactPerson = model.ContactPerson ?? "",
+                  //  ContactPerson = model.ContactPerson ?? "",
                     OpeningBalance = model.OpeningBalance ?? 0,
                     OpeningDate = model.OpeningDate ?? new DateTime(1900, 1, 1),
                     CreditLimit = model.CreditLimit ?? 0,
@@ -317,7 +317,8 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                     DevitOrCredit = "",
                     CustomerCompany = "",
                     CustomerPhoto = model.CustomerPhoto ?? "",
-                    CustomerDigitalSignature = model.CustomerDigitalSignature ?? ""
+                    CustomerDigitalSignature = model.CustomerDigitalSignature ?? "",
+                    ContactPerson = model.ContactPersons != null ? string.Join(",", model.ContactPersons.Select(cp => cp.Cpid)) : ""
                 };
 
                 await _salesCustomer.AddAsync(entity);

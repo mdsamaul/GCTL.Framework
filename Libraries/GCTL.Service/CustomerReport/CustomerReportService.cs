@@ -303,7 +303,7 @@ namespace GCTL.Service.CustomerReport
                                         cols.RelativeColumn(7.0f);
                                         cols.RelativeColumn(2.8f);
                                         cols.RelativeColumn(3.2f);
-                                        cols.RelativeColumn(6.0f);
+                                        cols.RelativeColumn(5.5f);
                                         cols.RelativeColumn(2.0f);
                                         cols.RelativeColumn(9.5f);
                                     });
@@ -323,8 +323,8 @@ namespace GCTL.Service.CustomerReport
                                         {
                                             header.Cell().Element(c => c
                                                 .Border(0.5f)
-                                                .BorderColor(Colors.Grey.Darken1)
-                                                .Background(Colors.Grey.Lighten3)
+                                               // .BorderColor(Colors.Grey.Darken1)
+                                               // .Background(Colors.Grey.Lighten3)
                                                 .PaddingHorizontal(2)
                                                 .PaddingVertical(3)
                                                 .AlignCenter()
@@ -352,7 +352,7 @@ namespace GCTL.Service.CustomerReport
                                         {
                                             table.Cell().Element(c => c
                                                 .Border(0.5f)
-                                                .BorderColor(Colors.Grey.Lighten1)
+                                               // .BorderColor(Colors.Grey.Lighten1)
                                                 .PaddingHorizontal(2)
                                                 .PaddingVertical(2)
                                                 .AlignMiddle()
@@ -370,7 +370,7 @@ namespace GCTL.Service.CustomerReport
                                         BuildDataCell(d.Fax, true);
                                         BuildDataCell(d.Email, true);
 
-                                        table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten1)
+                                        table.Cell().Border(0.5f)/*.BorderColor(Colors.Grey.Lighten1)*/
                                             .PaddingHorizontal(2).PaddingVertical(2)
                                             .AlignCenter().AlignMiddle()
                                             .Height(28)
@@ -538,8 +538,8 @@ namespace GCTL.Service.CustomerReport
             const double baseRowHeight = 15;
             const double lineHeight = 12;
             const double photoImgWidth = 50;
-            const double photoImgHeight = 40;     // font 9 er jonno (age 14.5 chhilo)
-            const double charsPerWidthUnit = 1.2; // Times New Roman 9 e column e beshi char dhore
+            const double photoImgHeight = 40;     
+            const double charsPerWidthUnit = 1.2; 
 
             double EstimateRowHeightForColumn(string text, int columnIndex)
             {
@@ -575,7 +575,7 @@ namespace GCTL.Service.CustomerReport
                 ws.Cell(currRow, 1).Style.Font.Bold = true;
                 ws.Cell(currRow, 1).Style.Font.FontSize = 10;
                 ws.Cell(currRow, 1).Style.Font.FontName = "Times New Roman";
-                ws.Cell(currRow, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#D9E2F3");
+              //  ws.Cell(currRow, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#D9E2F3");
                 ws.Cell(currRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 currRow++;
 
@@ -586,7 +586,7 @@ namespace GCTL.Service.CustomerReport
                     cell.Style.Font.Bold = true;
                     cell.Style.Font.FontSize = 9;
                     cell.Style.Font.FontName = "Times New Roman";
-                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECEF");
+                   // cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E9ECEF");
                     cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     cell.Style.Alignment.WrapText = true;
@@ -613,7 +613,6 @@ namespace GCTL.Service.CustomerReport
                     double neededHeight = baseRowHeight;
                     neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerName, 3));
                     neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.CustomerAddress, 4));
-                   // neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(item.ContactPerson, 9));
                     neededHeight = Math.Max(neededHeight, EstimateRowHeightForColumn(contactClean, 9));
 
                     bool hasPhoto = item.CustomerPhoto != null && item.CustomerPhoto.Length > 0;
@@ -760,7 +759,7 @@ namespace GCTL.Service.CustomerReport
                 item.Phone ?? "",
                 item.Fax ?? "",
                 item.Email ?? "",
-                hasPhoto ? "" : "-",     // Excel er moto: photo thakle blank, na thakle "-"
+                hasPhoto ? "" : "-",    
                 item.ContactPerson ?? ""
             };
 
@@ -789,8 +788,8 @@ namespace GCTL.Service.CustomerReport
                  40, // Phone
                  40, // Fax
                  55, // Email
-                 15,  // Photo
-                 100  // Contact Person
+                 15, // Photo
+                 100 // Contact Person
             };
 
             for (int c = 0; c < totalCols; c++)

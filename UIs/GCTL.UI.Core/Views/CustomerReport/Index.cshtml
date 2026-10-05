@@ -8,12 +8,49 @@
 
 <style>
 
-    /* Compact dropdowns */
+    /* Customer dropdown: wider so names don't break */
     .filter-section .filter-group.filter-group-compact {
+        flex: 1 1 260px !important; /* grow, min base 260px */
+        min-width: 220px !important;
+        max-width: 380px !important;
+        width: auto !important;
+    }
+
+    /* Customer Type dropdown can stay smaller */
+    .filter-section .filter-group.filter-group-type {
+        flex: 0 1 200px !important;
+        min-width: 170px !important;
+        max-width: 220px !important;
+    }
+
+    .filter-section .filter-group.filter-group-compact .custom-dd-wrapper {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Dropdown list: wider than the input, single-line names, scroll if long */
+    .custom-dd-wrapper .custom-dd-menu,
+    .custom-dd-wrapper .custom-dd-list {
+        min-width: 360px !important;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+        .custom-dd-wrapper .custom-dd-menu label,
+        .custom-dd-wrapper .custom-dd-list label,
+        .custom-dd-wrapper .custom-dd-item {
+            white-space: normal; /* wrap only if really long */
+            word-break: normal !important;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+        }
+
+    /* Compact dropdowns */
+   /*  .filter-section .filter-group.filter-group-compact {
         flex: 0.2 1 0% !important; /* grow at 40% of normal rate; lower = narrower */
         min-width: 0 !important; /* remove the 120px floor from .filter-group */
         width: auto !important;
-    }
+    } */
 
         /* Make sure the custom widget inside just fills the (now smaller) parent */
         .filter-section .filter-group.filter-group-compact .custom-dd-wrapper {
@@ -349,7 +386,7 @@
         display: none !important;
     }
 
-    /* ---------- Wrapper: choto screen e scroll ---------- */
+    /* ---------- Wrapper: small screen e horizontal scroll ---------- */
     #customerReportTable_wrapper,
     .dataTables_wrapper {
         width: 100%;
@@ -359,56 +396,87 @@
 
     /* ---------- Table base ---------- */
     #customerReportTable {
-        table-layout: fixed !important;
+        table-layout: auto !important; /* content onujayi width */
         width: 100% !important;
-        min-width: 1000px; /* er niche gele squish na hoye scroll hobe */
-        font-size: clamp(11px, 0.45vw + 7px, 15px); /* screen er sathe font boro/choto */
+        min-width: 1100px; /* er niche gele scroll hobe, squish hobe na */
+        font-size: clamp(11px, 0.35vw + 8px, 15px); /* screen er sathe font boro/choto */
     }
 
         #customerReportTable th,
         #customerReportTable td {
-            overflow-wrap: anywhere;
-            word-break: break-word;
             vertical-align: middle;
-            padding: clamp(4px, 0.35vw, 10px) clamp(4px, 0.5vw, 12px) !important;
+            padding: clamp(4px, 0.35vw, 10px) clamp(5px, 0.5vw, 12px) !important;
+            width: auto !important; /* DataTables er inline width override */
         }
 
-            /* ---------- Column width (1 = checkbox) ---------- */
-            #customerReportTable th:nth-child(1), #customerReportTable td:nth-child(1) {
-                width: 1%;
+            /* ---------- Ek line e thakbe: Customer ID (2), Phone (5), Email (7) ---------- */
+            #customerReportTable th:nth-child(2), #customerReportTable td:nth-child(2),
+            #customerReportTable th:nth-child(5), #customerReportTable td:nth-child(5),
+            #customerReportTable th:nth-child(7), #customerReportTable td:nth-child(7) {
+                white-space: nowrap !important;
+                word-break: keep-all !important;
+                overflow-wrap: normal !important;
             }
 
-            #customerReportTable th:nth-child(2), #customerReportTable td:nth-child(2) {
-                width: 6%;
-            }
-
+            /* ---------- Wrap hobe: Name (3), Address (4), Contact Person (9) ---------- */
             #customerReportTable th:nth-child(3), #customerReportTable td:nth-child(3) {
-                width: 18.5%;
+                min-width: 150px;
+                white-space: normal;
+                overflow-wrap: break-word;
+                word-break: normal;
             }
 
             #customerReportTable th:nth-child(4), #customerReportTable td:nth-child(4) {
-                width: 20%;
-            }
-
-            #customerReportTable th:nth-child(5), #customerReportTable td:nth-child(5) {
-                width: 6.5%;
-            }
-
-            #customerReportTable th:nth-child(6), #customerReportTable td:nth-child(6) {
-                width: 6%;
-            }
-
-            #customerReportTable th:nth-child(7), #customerReportTable td:nth-child(7) {
-                width: 12%;
-            }
-
-            #customerReportTable th:nth-child(8), #customerReportTable td:nth-child(8) {
-                width: 5%;
+                min-width: 200px;
+                white-space: normal;
+                overflow-wrap: break-word;
+                word-break: normal;
             }
 
             #customerReportTable th:nth-child(9), #customerReportTable td:nth-child(9) {
-                width: 25%;
+                min-width: 260px;
+                white-space: normal;
+                overflow-wrap: break-word;
+                word-break: normal;
             }
+
+            /* Fax, Photo choto thakbe */
+            #customerReportTable th:nth-child(6), #customerReportTable td:nth-child(6) {
+                min-width: 50px;
+            }
+
+            #customerReportTable th:nth-child(8), #customerReportTable td:nth-child(8) {
+                width: 1% !important;
+                white-space: nowrap;
+            }
+
+        /* ---------- Photo screen er sathe boro/choto ---------- */
+        #customerReportTable img.js-customer-photo-preview {
+            width: clamp(28px, 2.4vw, 56px) !important;
+            height: clamp(28px, 2.4vw, 56px) !important;
+            object-fit: cover;
+        }
+
+    /* ---------- Boro screen: scroll lagbe na, font max ---------- */
+    @@media (min-width: 1600px) {
+        #customerReportTable {
+            min-width: 0;
+            font-size: 15px;
+        }
+    }
+
+    /* ---------- Choto screen ---------- */
+    @@media (max-width: 992px) {
+        #customerReportTable {
+            min-width: 1000px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        #customerReportTable {
+            min-width: 900px; /* shob column thakbe, shudhu side e scroll korte hobe */
+        }
+    }
 
         /* ---------- Photo screen er sathe boro/choto ---------- */
         #customerReportTable img.js-customer-photo-preview {
