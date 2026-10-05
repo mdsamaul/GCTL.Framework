@@ -1,8 +1,3 @@
-/**
- * GP Analysis Report Page Script
- * CustomGrid with Multi-Level Headers, Server-Side Pagination (Default: 10)
- * Formosa Logistics Limited
- */
 (function ($) {
     'use strict';
 
@@ -213,9 +208,8 @@
         return ($el.val() || '').trim();
     }
 
-    /**
-     * Helper to safely extract values from custom dropdowns or multi-selects
-     */
+    // * Helper to safely extract values from custom dropdowns or multi-selects
+    
     function getDropdownValue(id) {
         var $el = $('#' + id);
         if (!$el.length) return '';
@@ -364,9 +358,8 @@
         }, 300);
     }
 
-    /**
-     * Export report handler (PDF or Excel, defaults to PDF if nothing is selected)
-     */
+     //* Export report handler (PDF or Excel, defaults to PDF if nothing is selected)
+    
     function exportReport() {
         var filters = getFilterParams();
         var exportFormat = (getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
