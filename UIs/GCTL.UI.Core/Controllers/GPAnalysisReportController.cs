@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GCTL.Service.GPAnalysisReport;
 using GCTL.UI.Core.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -208,7 +204,7 @@ namespace GCTL.UI.Core.Controllers
         {
             var customHeaderHtml = @"
 <tr class=""text-center align-middle small table-header-tier-1"">
-    <th rowspan=""3"" class=""align-middle text-center"" style=""width:35px;"">Sl.No.</th>
+    <th rowspan=""3"" class=""align-middle text-center"" style=""width:35px;"">SN.</th>
     <th rowspan=""3"" class=""align-middle text-center"" style=""width:75px;"">Billing Date</th>
     <th rowspan=""3"" class=""align-middle text-center"" style=""width:130px;"">Bill No</th>
     <th rowspan=""3"" class=""align-middle text-center"" style=""width:85px;"">Total Bill<br/>(BDT)</th>
