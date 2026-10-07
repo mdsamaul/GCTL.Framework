@@ -590,7 +590,7 @@
 
             <!-- Shipment Mode (Multi-Select with checkboxes) -->
             <div class="filter-group">
-                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Shipment Mode --">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Shipment Mode --">
                     @if (ViewBag.ShipmentModes != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
@@ -603,7 +603,7 @@
 
             <!-- Customer (Multi-Select with checkboxes) -->
             <div class="filter-group">
-                <select id="filterCustomerId" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Customer --">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Customer --">
                     @if (ViewBag.Customers != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.Customers)

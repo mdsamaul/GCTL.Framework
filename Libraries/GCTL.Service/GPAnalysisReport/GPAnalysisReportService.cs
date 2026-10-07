@@ -271,9 +271,7 @@ namespace GCTL.Service.GPAnalysisReport
                         parameters.Add("@ToDate", toDate, DbType.Date);
 
                         baseRows = (await connection.QueryAsync<GPAnalysisReportDTO>(
-                            "GPAnalysedReport2", parameters,
-                            commandType: CommandType.StoredProcedure,
-                            commandTimeout: 60)).ToList();
+                            "GPAnalysedReport2", parameters, commandType: CommandType.StoredProcedure, commandTimeout: 60)).ToList();
 
                         _cache?.Set(baseCacheKey, baseRows, TimeSpan.FromMinutes(5));
                     }
@@ -516,7 +514,7 @@ namespace GCTL.Service.GPAnalysisReport
                             {
                                 table.ColumnsDefinition(cols =>
                                 {
-                                    cols.RelativeColumn(0.6f); // 1. Sl.No.
+                                    cols.RelativeColumn(0.6f); // 1. SN.
                                     cols.RelativeColumn(1.5f); // 2. Billing Date
                                     cols.RelativeColumn(2.8f); // 3. Bill No
                                     cols.RelativeColumn(1.8f); // 4. Total Bill
@@ -525,7 +523,7 @@ namespace GCTL.Service.GPAnalysisReport
                                     cols.RelativeColumn(1.7f); // 7. TOT (C&F)
                                     cols.RelativeColumn(1.4f); // 8. Transport
                                     cols.RelativeColumn(1.7f); // 9. TOT Bill
-                                    cols.RelativeColumn(1.6f); // 10. Rece
+                                    cols.RelativeColumn(1.7f); // 10. Rece
                                     cols.RelativeColumn(1.6f); // 11. NON Rece
                                     cols.RelativeColumn(1.7f); // 12. TOT Cost
                                     cols.RelativeColumn(1.2f); // 13. Swift
@@ -533,7 +531,7 @@ namespace GCTL.Service.GPAnalysisReport
                                     cols.RelativeColumn(1.4f); // 15. TOT
                                     cols.RelativeColumn(1.7f); // 16. TOT Cost
                                     cols.RelativeColumn(1.6f); // 17. C & F
-                                    cols.RelativeColumn(1.4f); // 18. TRANS
+                                    cols.RelativeColumn(1.5f); // 18. TRANS
                                     cols.RelativeColumn(1.6f); // 19. TOT
                                     cols.RelativeColumn(1.1f); // 20. C & F %
                                     cols.RelativeColumn(1.0f); // 21. TRANS %
@@ -691,7 +689,7 @@ namespace GCTL.Service.GPAnalysisReport
                                     cols.RelativeColumn(1.7f);
                                     cols.RelativeColumn(1.4f);
                                     cols.RelativeColumn(1.7f);
-                                    cols.RelativeColumn(1.6f);
+                                    cols.RelativeColumn(1.7f);
                                     cols.RelativeColumn(1.6f);
                                     cols.RelativeColumn(1.7f);
                                     cols.RelativeColumn(1.2f);
@@ -699,7 +697,7 @@ namespace GCTL.Service.GPAnalysisReport
                                     cols.RelativeColumn(1.4f);
                                     cols.RelativeColumn(1.7f);
                                     cols.RelativeColumn(1.6f);
-                                    cols.RelativeColumn(1.4f);
+                                    cols.RelativeColumn(1.5f);
                                     cols.RelativeColumn(1.6f);
                                     cols.RelativeColumn(1.1f);
                                     cols.RelativeColumn(1.0f);
@@ -1097,7 +1095,7 @@ namespace GCTL.Service.GPAnalysisReport
             ws.Column(18).Width = 10;  // GP TRANS
             ws.Column(19).Width = 12;  // GP TOT
             ws.Column(20).Width = 7;  // GP% C&F
-            ws.Column(21).Width = 7;  // GP% TRANS
+            ws.Column(21).Width = 7;  // GP% TRANS 
             ws.Column(22).Width = 7;  // G. GP%
 
             using var ms = new MemoryStream();
