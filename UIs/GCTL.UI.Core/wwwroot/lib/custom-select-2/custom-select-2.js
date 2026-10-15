@@ -198,6 +198,7 @@
         _openPanelFull() {
             if (this.$wrapper.hasClass('disabled')) return;
             this.$wrapper.addClass('open');
+            this.$wrapper.closest('.vch-ln-row, tr, [data-row-container]').addClass('has-open-dd');
             if (!this.options.isAjax) {
                 this._renderList(this.data);
             } else if (!this._hasFetchedInitially || this.data.length <= 1) {
@@ -211,6 +212,7 @@
         _openPanel() {
             if (this.$wrapper.hasClass('disabled')) return;
             this.$wrapper.addClass('open');
+            this.$wrapper.closest('.vch-ln-row, tr, [data-row-container]').addClass('has-open-dd');
             if (!this.options.isAjax) {
                 this._filterLocal(this.$input.val());
             }
@@ -218,6 +220,7 @@
 
         _closePanel() {
             this.$wrapper.removeClass('open');
+            this.$wrapper.closest('.vch-ln-row, tr, [data-row-container]').removeClass('has-open-dd');
             this.$panel.css({ 'width': '', 'min-width': '', 'max-width': '' });
         }
 
@@ -289,6 +292,11 @@
 
         _appendItemRow(item) {
             var self = this;
+            if (item.group && item.group !== this._lastRenderedGroup) {
+                this._lastRenderedGroup = item.group;
+                var $grpHeader = $('<div class="custom-dd-optgroup-label"></div>').text(item.group);
+                this.$list.append($grpHeader);
+            }
             var isSelected = this.selected.indexOf(item.id) !== -1;
             var $row = $('<div class="custom-dd-option' + (isSelected ? ' selected' : '') + '"></div>');
             if (this.isMulti) {
@@ -394,7 +402,9 @@
         _filterLocal(term) {
             term = (term || '').toLowerCase();
             this.filtered = this.data.filter(function (item) {
-                return item.text.toLowerCase().indexOf(term) !== -1;
+                var textMatch = item.text.toLowerCase().indexOf(term) !== -1;
+                var groupMatch = item.group && item.group.toLowerCase().indexOf(term) !== -1;
+                return textMatch || groupMatch;
             });
             this._renderList(this.filtered);
         }
@@ -402,6 +412,7 @@
         _renderList(items) {
             var self = this;
             this.$list.empty();
+            this._lastRenderedGroup = null;
             if (!items || !items.length) {
                 this.$list.append('<div class="custom-dd-empty">No results found</div>');
                 this.hasMore = false;
@@ -461,7 +472,7 @@
 
         loadStaticItems(items) {
             this.data = (items || []).map(function (i) {
-                return { id: String(i.id ?? i.value), text: i.text, selected: !!i.selected };
+                return { id: String(i.id ?? i.value), text: i.text, group: i.group || '', selected: !!i.selected };
             });
             var self = this;
             this.data.forEach(function (i) {

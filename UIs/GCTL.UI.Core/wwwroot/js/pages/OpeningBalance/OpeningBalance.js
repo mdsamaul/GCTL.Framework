@@ -32,6 +32,36 @@
         }
     }
 
+    function setSelectValue(id, val, text) {
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        if (typeof window.setCustomDropdownValue === 'function') {
+            window.setCustomDropdownValue(rawId, val, text);
+        }
+        $el.val(val || '');
+        if (window.choiceManager && typeof window.choiceManager.setChoiceValue === 'function') {
+            window.choiceManager.setChoiceValue(rawId, val || '');
+        }
+        if ($el.hasClass('select2-hidden-accessible')) {
+            $el.val(val || null).trigger('change');
+        }
+    }
+
+    function clearSelectValue(id) {
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        if (typeof window.clearCustomDropdownById === 'function') {
+            window.clearCustomDropdownById(rawId);
+        }
+        $el.val('');
+        if (window.choiceManager && typeof window.choiceManager.clearChoice === 'function') {
+            window.choiceManager.clearChoice(rawId);
+        }
+        if ($el.hasClass('select2-hidden-accessible')) {
+            $el.val(null).trigger('change');
+        }
+    }
+
     $(document).ready(function () {
         initEvents();
         loadTableData();
@@ -81,13 +111,8 @@
 
     // Reset filters
     $('#btnResetFilters').on('click', function () {
-        if (window.choiceManager) {
-            choiceManager.setChoiceValue('fFinancialYear', '');
-            choiceManager.setChoiceValue('fAccountHead', '');
-        } else {
-            $('#fFinancialYear').val('');
-            $('#fAccountHead').val('');
-        }
+        clearSelectValue('fFinancialYear');
+        clearSelectValue('fAccountHead');
         setDatePickerValue('fFrom', '');
         setDatePickerValue('fTo', '');
         $('#OpeningBalance-searchInput').val('');
@@ -464,15 +489,9 @@
         const currentYear = activeFy.length >= 4 ? activeFy.substring(0, 4) : '2026';
         setDatePickerValue('modalOpeningDate', `${currentYear}-07-01`);
 
-        if (window.choiceManager) {
-            choiceManager.setChoiceValue('modalFinancialYear', activeFy || '');
-            choiceManager.clearChoice('modalAccountHead');
-            choiceManager.clearChoice('modalTrType');
-        } else {
-            $('#modalFinancialYear').val(activeFy);
-            $('#modalAccountHead').val('');
-            $('#modalTrType').val('');
-        }
+        setSelectValue('modalFinancialYear', activeFy || '');
+        clearSelectValue('modalAccountHead');
+        clearSelectValue('modalTrType');
 
         fetchNextCode(activeFy);
         const modal = getFormModal();
@@ -497,19 +516,11 @@
                     $('#modalReference').val(d.reference || '');
                     $('#modalDescription').val(d.description || '');
 
-                    if (window.choiceManager) {
-                        if (d.main_CompanyCode) choiceManager.setChoiceValue('modalCompany', String(d.main_CompanyCode));
-                        if (d.branchCode) choiceManager.setChoiceValue('modalBranch', String(d.branchCode));
-                        if (d.financialCodeNo) choiceManager.setChoiceValue('modalFinancialYear', d.financialCodeNo);
-                        if (d.generalLedgerCodeNo) choiceManager.setChoiceValue('modalAccountHead', d.generalLedgerCodeNo);
-                        if (d.trType) choiceManager.setChoiceValue('modalTrType', d.trType);
-                    } else {
-                        $('#modalCompany').val(d.main_CompanyCode || '');
-                        $('#modalBranch').val(d.branchCode || '');
-                        $('#modalFinancialYear').val(d.financialCodeNo || '');
-                        $('#modalAccountHead').val(d.generalLedgerCodeNo || '');
-                        $('#modalTrType').val(d.trType || '');
-                    }
+                    if (d.main_CompanyCode) setSelectValue('modalCompany', String(d.main_CompanyCode));
+                    if (d.branchCode) setSelectValue('modalBranch', String(d.branchCode));
+                    if (d.financialCodeNo) setSelectValue('modalFinancialYear', d.financialCodeNo);
+                    if (d.generalLedgerCodeNo) setSelectValue('modalAccountHead', d.generalLedgerCodeNo);
+                    if (d.trType) setSelectValue('modalTrType', d.trType);
 
                     const modal = getFormModal();
                     if (modal && $('#openingBalanceModal').length) {
@@ -541,15 +552,9 @@
         const currentYear = activeFy.length >= 4 ? activeFy.substring(0, 4) : '2026';
         setDatePickerValue('modalOpeningDate', `${currentYear}-07-01`);
 
-        if (window.choiceManager) {
-            choiceManager.setChoiceValue('modalFinancialYear', activeFy || '');
-            choiceManager.clearChoice('modalAccountHead');
-            choiceManager.clearChoice('modalTrType');
-        } else {
-            $('#modalFinancialYear').val(activeFy);
-            $('#modalAccountHead').val('');
-            $('#modalTrType').val('');
-        }
+        setSelectValue('modalFinancialYear', activeFy || '');
+        clearSelectValue('modalAccountHead');
+        clearSelectValue('modalTrType');
 
         fetchNextCode(activeFy);
     }

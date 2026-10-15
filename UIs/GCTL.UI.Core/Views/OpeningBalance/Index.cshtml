@@ -229,7 +229,7 @@
                     <!-- Row 1: Company | Branch -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold fs-9" for="modalCompany">@Html.SmartLocalize("Company")</label>
-                        <select class="form-select choiceDD" id="modalCompany">
+                        <select class="form-select form-select-sm custom-select-single" id="modalCompany" data-placeholder="@Html.SmartLocalize("Select Company")">
                             @foreach (var comp in dropdowns.Companies)
                             {
                                 <option value="@comp.Id">@comp.Name</option>
@@ -238,7 +238,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold fs-9" for="modalBranch">@Html.SmartLocalize("Branch")</label>
-                        <select class="form-select choiceDD" id="modalBranch">
+                        <select class="form-select form-select-sm custom-select-single" id="modalBranch" data-placeholder="@Html.SmartLocalize("Select Branch")">
                             @foreach (var br in dropdowns.Branches)
                             {
                                 <option value="@br.Id">@br.Name</option>
@@ -260,7 +260,7 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <label class="form-label fw-semibold fs-9 req" for="modalFinancialYear">@Html.SmartLocalize("Financial Year")</label>
-                                <select class="form-select choiceDD" id="modalFinancialYear" required>
+                                <select class="form-select form-select-sm custom-select-single" id="modalFinancialYear" data-placeholder="@Html.SmartLocalize("Select Financial Year")" required>
                                     <option value="">@Html.SmartLocalize("Select Financial Year")...</option>
                                     @foreach (var fy in dropdowns.FinancialYears)
                                     {
@@ -278,7 +278,7 @@
                     <!-- Row 3: Account Head | Opening Balance + Transaction Type -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold fs-9 req" for="modalAccountHead">@Html.SmartLocalize("Account Head")</label>
-                        <select class="form-select choiceDD" id="modalAccountHead" required>
+                        <select class="form-select form-select-sm custom-select-single" id="modalAccountHead" data-placeholder="@Html.SmartLocalize("Select Account Code - Account Head")" required>
                             <option value="">@Html.SmartLocalize("Select Account Code - Account Head")...</option>
                             @foreach (var grp in dropdowns.AccountHeads.GroupBy(a => a.GroupName))
                             {
@@ -302,7 +302,7 @@
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-semibold fs-9 req" for="modalTrType">@Html.SmartLocalize("Transaction Type")</label>
-                                <select class="form-select choiceDD" id="modalTrType" required>
+                                <select class="form-select form-select-sm custom-select-single" id="modalTrType" data-placeholder="@Html.SmartLocalize("Select Dr / Cr")" required>
                                     <option value="">@Html.SmartLocalize("Select Dr / Cr")...</option>
                                     <option value="Dr">@Html.SmartLocalize("Dr (Debit)")</option>
                                     <option value="Cr">@Html.SmartLocalize("Cr (Credit)")</option>

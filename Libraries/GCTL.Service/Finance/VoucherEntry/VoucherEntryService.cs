@@ -167,11 +167,29 @@ namespace GCTL.Service.Finance.VoucherEntry
                     .AsNoTracking()
                     .ToListAsync();
 
-                var accountDict = glList.ToDictionary(g => g.GeneralLedgerCodeNo, g => new
+                var accountDict = new Dictionary<string, (string Name, string Hierarchy)>(StringComparer.OrdinalIgnoreCase);
+                foreach (var g in glList)
                 {
-                    g.GeneralLedgerName,
-                    Hierarchy = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} › {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} › {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} › {(g.SubSubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubSubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} › {g.GeneralLedgerName}"
-                });
+                    if (!string.IsNullOrWhiteSpace(g.GeneralLedgerCodeNo))
+                    {
+                        var key = g.GeneralLedgerCodeNo.Trim();
+                        var hier = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} › {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} › {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} › {(g.SubSubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubSubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} › {g.GeneralLedgerName}";
+                        accountDict[key] = (g.GeneralLedgerName?.Trim() ?? key, hier);
+                    }
+                }
+
+                var allSubSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToListAsync();
+                foreach (var ss in allSubSubs)
+                {
+                    if (!string.IsNullOrWhiteSpace(ss.SubSubsidiaryLedgerCodeNo))
+                    {
+                        var key = ss.SubSubsidiaryLedgerCodeNo.Trim();
+                        if (!accountDict.ContainsKey(key))
+                        {
+                            accountDict[key] = (ss.SubSubsidiaryLedgerName?.Trim() ?? key, ss.SubSubsidiaryLedgerName?.Trim() ?? key);
+                        }
+                    }
+                }
 
                 var cashCodes = await GetCashAccountCodesAsync();
                 var bankCodes = await GetBankAccountCodesAsync();
@@ -245,7 +263,12 @@ namespace GCTL.Service.Finance.VoucherEntry
                     AmountInWords = NumberToWordsHelper.ConvertToTakaWords(debit),
                     Details = details.Select(d =>
                     {
-                        accountDict.TryGetValue(d.AccCode, out var accInfo);
+                        var accKey = d.AccCode?.Trim() ?? "";
+                        accountDict.TryGetValue(accKey, out var accInfo);
+                        string resolvedAccName = !string.IsNullOrWhiteSpace(accInfo.Name) 
+                            ? accInfo.Name 
+                            : (!string.IsNullOrWhiteSpace(d.Description) ? d.Description.Trim() : accKey);
+
                         string? lineDesc = d.Description?.Trim();
                         var narr = (entity.Narration ?? "").Trim();
                         if (!string.IsNullOrWhiteSpace(lineDesc) && !string.IsNullOrWhiteSpace(narr))
@@ -258,20 +281,26 @@ namespace GCTL.Service.Finance.VoucherEntry
                             }
                         }
 
+                        DateTime? resolvedChequeDate = d.ChequeDate;
+                        if (resolvedChequeDate.HasValue && resolvedChequeDate.Value.Year <= 1950)
+                        {
+                            resolvedChequeDate = null;
+                        }
+
                         return new VoucherEntryDetailVM
                         {
                             AutoId = d.AutoId,
                             VoucherEntryDetailsCodeNo = d.VoucherEntryDetailsCodeNo,
                             VoucherEntryCodeNo = d.VoucherEntryCodeNo,
                             AccCode = d.AccCode,
-                            AccName = accInfo != null ? accInfo.GeneralLedgerName : d.AccCode,
-                            AccountPath = accInfo?.Hierarchy,
+                            AccName = resolvedAccName,
+                            AccountPath = accInfo.Hierarchy,
                             TrType = d.TrType,
                             Description = lineDesc ?? string.Empty,
                             DebitAmount = d.DebitAmount ?? 0m,
                             CreditAmount = d.CreditAmount ?? 0m,
                             ChequeNo = d.ChequeNo,
-                            ChequeDate = d.ChequeDate,
+                            ChequeDate = resolvedChequeDate,
                             BankName = d.BankName,
                             Branch = d.Branch,
                             IsCash = cashCodes.Contains(d.AccCode),
@@ -743,6 +772,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     .Select(x => new VoucherDropdownItemVM
                     {
                         Id = 1,
+                        Code = x.CompanyCode,
                         Name = x.CompanyName
                     })
                     .ToListAsync();
@@ -752,6 +782,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     .Select(x => new VoucherDropdownItemVM
                     {
                         Id = (int)x.AutoId,
+                        Code = x.BranchCode,
                         Name = x.BranchName
                     })
                     .ToListAsync();
@@ -802,7 +833,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                 var subSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo, x => x.SubSubsidiaryLedgerName);
 
                 var gls = await _context.AccGeneralLedgers
-                    .Where(gl => gl.IsActive == "1" || gl.IsActive == null)
+                    .Where(gl => gl.IsActive == null || gl.IsActive != "0")
                     .OrderBy(gl => gl.GeneralLedgerCodeNo)
                     .AsNoTracking()
                     .ToListAsync();

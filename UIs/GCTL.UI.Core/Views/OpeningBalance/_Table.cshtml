@@ -14,7 +14,7 @@
             </div>
             <div class="col-6 col-sm-4 col-md-3">
                 <label class="form-label fs-10 fw-semibold text-muted mb-1" for="fFinancialYear">@Html.SmartLocalize("Financial Year")</label>
-                <select class="form-select form-select-sm choiceDD" id="fFinancialYear">
+                <select class="form-select form-select-sm custom-select-single" id="fFinancialYear" data-placeholder="@Html.SmartLocalize("All Years")">
                     <option value="">@Html.SmartLocalize("All Years")</option>
                     @foreach (var fy in dropdowns.FinancialYears)
                     {
@@ -32,7 +32,7 @@
             </div>
             <div class="col-6 col-sm-4 col-md-3">
                 <label class="form-label fs-10 fw-semibold text-muted mb-1" for="fAccountHead">@Html.SmartLocalize("Account Head")</label>
-                <select class="form-select form-select-sm choiceDD" id="fAccountHead">
+                <select class="form-select form-select-sm custom-select-single" id="fAccountHead" data-placeholder="@Html.SmartLocalize("All Accounts")">
                     <option value="">@Html.SmartLocalize("All Accounts")</option>
                     @foreach (var grp in dropdowns.AccountHeads.GroupBy(a => a.GroupName))
                     {

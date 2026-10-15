@@ -197,6 +197,13 @@
         gap: 6px;
         align-items: center;
         margin-bottom: 6px;
+        position: relative;
+        z-index: 1;
+    }
+    .vch-ln-row:has(.custom-dd-wrapper.open),
+    .vch-ln-row.has-open-dd,
+    .vch-ln-row:focus-within {
+        z-index: 1050 !important;
     }
     .vch-ln-header {
         font-size: 11.5px;
@@ -553,6 +560,152 @@
         width: 100% !important;
     }
 
+    /* Custom Dropdown single styling for Voucher Entry to match 32px height form controls */
+    .vch-form-row-main .custom-dd-wrapper,
+    .vch-filter-toolbar .custom-dd-wrapper {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .vch-form-row-main .custom-dd-box,
+    .vch-filter-toolbar .custom-dd-box {
+        height: 32px !important;
+        min-height: 32px !important;
+        border: 1px solid var(--phoenix-border-color, #cbd0dd) !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        padding: 0 6px !important;
+        box-sizing: border-box !important;
+    }
+
+    .vch-form-row-main .custom-dd-input,
+    .vch-filter-toolbar .custom-dd-input {
+        font-size: 12px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+        padding: 0 !important;
+        font-family: inherit !important;
+        color: var(--phoenix-body-color, #31374a) !important;
+    }
+
+    .vch-form-row-main .custom-dd-arrow,
+    .vch-filter-toolbar .custom-dd-arrow,
+    .vch-form-row-main .custom-dd-clear-icon,
+    .vch-filter-toolbar .custom-dd-clear-icon {
+        font-size: 11px !important;
+        color: #8a94a6 !important;
+        padding: 0 2px !important;
+    }
+
+    .vch-form-row-main .custom-dd-clear-icon,
+    .vch-filter-toolbar .custom-dd-clear-icon {
+        font-size: 14px !important;
+    }
+
+    .vch-form-row-main .custom-dd-wrapper.disabled .custom-dd-box {
+        background-color: #f1f3f7 !important;
+        cursor: not-allowed !important;
+    }
+
+    .vch-form-row-main .custom-dd-panel,
+    .vch-filter-toolbar .custom-dd-panel {
+        font-size: 12px !important;
+        border-radius: 4px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+        z-index: 1060 !important;
+    }
+
+    .vch-filter-item-stat .custom-dd-panel {
+        left: auto !important;
+        right: 0 !important;
+    }
+
+    .vch-form-row-main .custom-dd-option,
+    .vch-filter-toolbar .custom-dd-option {
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+    }
+
+    /* Table row custom dropdown styles */
+    .vch-ln-row {
+        position: relative;
+    }
+    .vch-ln-row .custom-dd-wrapper {
+        position: relative;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .vch-ln-row .custom-dd-box {
+        height: 31px !important;
+        min-height: 31px !important;
+        border: 1px solid var(--phoenix-border-color, #cbd0dd) !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        padding: 0 6px !important;
+        box-sizing: border-box !important;
+    }
+    .vch-ln-row .custom-dd-input {
+        font-size: 12px !important;
+        height: 29px !important;
+        line-height: 29px !important;
+        padding: 0 !important;
+        font-family: inherit !important;
+        color: var(--phoenix-body-color, #31374a) !important;
+    }
+    .vch-ln-row .custom-dd-arrow,
+    .vch-ln-row .custom-dd-clear-icon {
+        font-size: 11px !important;
+        color: #8a94a6 !important;
+        padding: 0 2px !important;
+    }
+    .vch-ln-row .custom-dd-clear-icon {
+        font-size: 14px !important;
+    }
+    .vch-ln-row .custom-dd-panel {
+        font-size: 12px !important;
+        border-radius: 4px !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22) !important;
+        z-index: 2000 !important;
+        max-height: 260px !important;
+        min-width: 100% !important;
+        width: max-content !important;
+        max-width: 440px !important;
+        background: #ffffff !important;
+    }
+    .custom-dd-optgroup-label,
+    .vch-ln-row .custom-dd-optgroup-label {
+        padding: 7px 12px 7px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        color: #0b4d37 !important;
+        background: #eaf6ee !important;
+        border-bottom: 1px solid #cce8d4 !important;
+        border-top: 1px solid #cce8d4 !important;
+        letter-spacing: 0.3px !important;
+        user-select: none !important;
+        line-height: 1.4 !important;
+        display: block !important;
+    }
+    .vch-ln-row .custom-dd-option {
+        padding: 6px 12px 6px 18px !important;
+        font-size: 12.5px !important;
+    }
+    .vch-ln-row .custom-dd-option.selected {
+        background: #0b4d37 !important;
+        color: #fff !important;
+    }
+    .vch-ln-row .custom-dd-wrapper.open {
+        position: relative;
+        z-index: 1060 !important;
+    }
+    .vch-lines-card {
+        overflow: visible !important;
+        position: relative;
+    }
+    #voucherLinesContainer {
+        min-height: auto;
+    }
+
     /* KPI Cards & Type Cards single line layout on desktop & laptop (>= 992px) */
     @@media (min-width: 992px) {
         #vchKpiRow, #vchTypeRow {
@@ -712,13 +865,14 @@
                 <div class="row g-2 mb-2 vch-form-row-main">
                     <div class="col-12 col-sm-6 col-lg-auto vch-col-company">
                         <label class="form-label fs-9 fw-semibold mb-1" for="vCompany">@Html.SmartLocalize("Company")</label>
-                        <select class="form-select form-select-sm" id="vCompany">
+                        <select class="form-select form-select-sm custom-select-single" id="vCompany" data-placeholder="@Html.SmartLocalize("Select Company")">
                             <option value="">@Html.SmartLocalize("Select Company")</option>
                             @if (dropdowns.Companies.Any())
                             {
                                 foreach (var c in dropdowns.Companies)
                                 {
-                                    <option value="@c.Id">@c.Name</option>
+                                    var compVal = !string.IsNullOrWhiteSpace(c.Code) ? c.Code : c.Id.ToString();
+                                    <option value="@compVal" data-code="@c.Code" data-id="@c.Id">@c.Name</option>
                                 }
                             }
                             else
@@ -730,13 +884,14 @@
 
                     <div class="col-12 col-sm-6 col-lg-auto vch-col-branch">
                         <label class="form-label fs-9 fw-semibold mb-1" for="vBranch">@Html.SmartLocalize("Branch")</label>
-                        <select class="form-select form-select-sm" id="vBranch">
+                        <select class="form-select form-select-sm custom-select-single" id="vBranch" data-placeholder="@Html.SmartLocalize("Select Branch")">
                             <option value="">@Html.SmartLocalize("Select Branch")</option>
                             @if (dropdowns.Branches.Any())
                             {
                                 foreach (var b in dropdowns.Branches)
                                 {
-                                    <option value="@b.Id">@b.Name</option>
+                                    var brVal = !string.IsNullOrWhiteSpace(b.Code) ? b.Code : b.Id.ToString();
+                                    <option value="@brVal" data-code="@b.Code" data-id="@b.Id">@b.Name</option>
                                 }
                             }
                             else
@@ -748,7 +903,7 @@
 
                     <div class="col-12 col-sm-4 col-lg-auto vch-col-type">
                         <label class="form-label fs-9 fw-semibold mb-1 req" for="vType">@Html.SmartLocalize("Voucher Type")</label>
-                        <select class="form-select form-select-sm" id="vType" required>
+                        <select class="form-select form-select-sm custom-select-single" id="vType" required data-placeholder="@Html.SmartLocalize("Select Voucher Type")">
                             <option value="">@Html.SmartLocalize("Select Voucher Type")</option>
                             @foreach (var t in dropdowns.VoucherTypes)
                             {
@@ -793,7 +948,7 @@
                 </div>
 
                 <!-- Transaction Lines Table -->
-                <div class="border rounded p-2 mb-2 bg-light-subtle overflow-auto">
+                <div class="border rounded p-2 mb-2 bg-light-subtle vch-lines-card">
                     <div class="vch-ln-row vch-ln-header">
                         <div>@Html.SmartLocalize("Account Head (5th layer)")</div>
                         <div>@Html.SmartLocalize("Description")</div>
@@ -858,7 +1013,7 @@
 
                 <div class="vch-filter-item-type">
                     <label class="form-label fs-9 fw-semibold mb-1" for="vfType">@Html.SmartLocalize("Voucher Type")</label>
-                    <select class="form-select form-select-sm" id="vfType">
+                    <select class="form-select form-select-sm custom-select-single" id="vfType" data-placeholder="@Html.SmartLocalize("All types")">
                         <option value="">@Html.SmartLocalize("All types")</option>
                         @foreach (var t in dropdowns.VoucherTypes)
                         {
@@ -869,7 +1024,7 @@
 
                 <div class="vch-filter-item-stat">
                     <label class="form-label fs-9 fw-semibold mb-1" for="vfStat">@Html.SmartLocalize("Status")</label>
-                    <select class="form-select form-select-sm" id="vfStat">
+                    <select class="form-select form-select-sm custom-select-single" id="vfStat" data-placeholder="@Html.SmartLocalize("All")">
                         <option value="">@Html.SmartLocalize("All")</option>
                         <option value="Pending Approval">@Html.SmartLocalize("Pending")</option>
                         <option value="Posted">@Html.SmartLocalize("Approved")</option>

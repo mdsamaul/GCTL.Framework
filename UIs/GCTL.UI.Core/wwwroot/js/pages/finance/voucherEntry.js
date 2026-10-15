@@ -74,6 +74,43 @@
         }
     }
 
+    /* ===== Flatpickr Footer Helper (Today & Clear Buttons) ===== */
+    function addCalendarTodayClearButtons(fpInstance) {
+        if (!fpInstance || !fpInstance.calendarContainer) return;
+        if (fpInstance.calendarContainer.querySelector('.custom-fp-footer')) return;
+
+        const footer = document.createElement('div');
+        footer.className = 'custom-fp-footer';
+
+        const todayBtn = document.createElement('button');
+        todayBtn.type = 'button';
+        todayBtn.className = 'custom-fp-today-btn';
+        todayBtn.textContent = 'Today';
+        todayBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fpInstance.setDate(new Date(), true);
+            $(fpInstance.input).trigger('change');
+            fpInstance.close();
+        });
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'custom-fp-clear-btn';
+        clearBtn.textContent = 'Clear';
+        clearBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fpInstance.clear();
+            $(fpInstance.input).val('').trigger('change');
+            fpInstance.close();
+        });
+
+        footer.appendChild(todayBtn);
+        footer.appendChild(clearBtn);
+        fpInstance.calendarContainer.appendChild(footer);
+    }
+
     function setDatePicker(id, val, triggerChange = false) {
         const el = document.getElementById(id);
         if (!val) {
@@ -212,43 +249,96 @@
         loadTableData();
     });
 
+    /* ===== Custom Dropdown & Select2 Helpers ===== */
+    function setDropdownValue(id, val, text) {
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        if (typeof window.setCustomDropdownValue === 'function') {
+            window.setCustomDropdownValue(rawId, val, text);
+        }
+        $el.val(val || '');
+        if ($el.hasClass('select2-hidden-accessible')) {
+            $el.val(val || null).trigger('change');
+        } else {
+            $el.trigger('change');
+        }
+    }
+
+    function clearDropdownValue(id) {
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        if (typeof window.clearCustomDropdownById === 'function') {
+            window.clearCustomDropdownById(rawId);
+        }
+        $el.val('');
+        if ($el.hasClass('select2-hidden-accessible')) {
+            $el.val(null).trigger('change');
+        } else {
+            $el.trigger('change');
+        }
+    }
+
+    function setDropdownDisabled(id, disabled) {
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        $el.prop('disabled', !!disabled);
+        const inst = $el.data('customDdInstance');
+        if (inst && typeof inst.setDisabled === 'function') {
+            inst.setDisabled(disabled);
+        }
+    }
+
     function initSelect2Dropdowns() {
+        if (typeof window.initCustomDropdowns === 'function') {
+            window.initCustomDropdowns('#vchFormCard, .vch-filter-toolbar', false);
+        }
+
         if (typeof $.fn.select2 === 'undefined') return;
 
-        $('#vCompany').select2({
-            width: '100%',
-            dropdownAutoWidth: true,
-            placeholder: 'Select Company',
-            allowClear: true
-        });
+        if (!$('#vCompany').hasClass('custom-select-single')) {
+            $('#vCompany').select2({
+                width: '100%',
+                dropdownAutoWidth: true,
+                placeholder: 'Select Company',
+                allowClear: true
+            });
+        }
 
-        $('#vBranch').select2({
-            width: '100%',
-            dropdownAutoWidth: true,
-            placeholder: 'Select Branch',
-            allowClear: true
-        });
+        if (!$('#vBranch').hasClass('custom-select-single')) {
+            $('#vBranch').select2({
+                width: '100%',
+                dropdownAutoWidth: true,
+                placeholder: 'Select Branch',
+                allowClear: true
+            });
+        }
 
-        $('#vType').select2({
-            width: '100%',
-            dropdownAutoWidth: true,
-            placeholder: 'Select Voucher Type',
-            allowClear: true
-        });
+        if (!$('#vType').hasClass('custom-select-single')) {
+            $('#vType').select2({
+                width: '100%',
+                dropdownAutoWidth: true,
+                placeholder: 'Select Voucher Type',
+                allowClear: true
+            });
+        }
 
-        $('#vfType').select2({
-            width: '100%',
-            dropdownAutoWidth: true,
-            placeholder: 'All types',
-            allowClear: true
-        });
+        if (!$('#vfType').hasClass('custom-select-single')) {
+            $('#vfType').select2({
+                width: '100%',
+                dropdownAutoWidth: true,
+                placeholder: 'All types',
+                allowClear: true
+            });
+        }
 
-        $('#vfStat').select2({
-            width: '100%',
-            dropdownAutoWidth: true,
-            placeholder: 'All statuses',
-            allowClear: true
-        });
+        if (!$('#vfStat').hasClass('custom-select-single')) {
+            $('#vfStat').select2({
+                width: '100%',
+                dropdownAutoWidth: true,
+                placeholder: 'All statuses',
+                allowClear: true
+            });
+        }
 
         // Dynamic opened dropdown width: at least the dropdown box width, or as wide as the longest item on 1 line
         $(document).off('select2:open.vchWidth').on('select2:open.vchWidth', function (e) {
@@ -293,9 +383,26 @@
     }
 
     function initDatePickers() {
-        if (typeof initializeDatepickerDMY === 'function') {
-            initializeDatepickerDMY('vDate, vfFrom, vfTo');
-        }
+        ['vDate', 'vfFrom', 'vfTo'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (!el || typeof flatpickr === 'undefined') return;
+            if (el._flatpickr) el._flatpickr.destroy();
+
+            flatpickr(el, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: true,
+                onReady: function (selectedDates, dateStr, instance) {
+                    instance.input.placeholder = "dd/mm/yyyy";
+                    addCalendarTodayClearButtons(instance);
+                },
+                onOpen: function (selectedDates, dateStr, instance) {
+                    addCalendarTodayClearButtons(instance);
+                }
+            });
+        });
+
         setDatePicker('vDate', getTodayDate(), false);
         setDatePicker('vfFrom', getFiscalYearStartDate(), false);
         setDatePicker('vfTo', getTodayDate(), false);
@@ -343,18 +450,18 @@
         isResettingForm = true;
         editingVoucherCode = null;
         $('#vCodeNo').val('');
-        $('#formVoucherTitle').html('<i class="fas fa-edit me-1 text-primary"></i>Voucher Entry');
+        $('#formVoucherTitle').html('<i class="fas fa-edit me-1 text-primary"></i>' + (window.SmartLocalize ? window.SmartLocalize('voucher Entry') : 'voucher Entry'));
         $('#editVoucherBadge').hide();
         $('#vBtnSaveText').text('Save voucher');
-        $('#vType').prop('disabled', false);
+        setDropdownDisabled('vType', false);
 
         // Auto-select Company by default
         const defaultCompany = $('#vCompany option[value!=""]:first').val() || '1';
-        $('#vCompany').val(defaultCompany).trigger('change');
+        setDropdownValue('vCompany', defaultCompany);
 
         // Branch and Voucher Type remain unselected
-        $('#vBranch').val(null).trigger('change');
-        $('#vType').val(null).trigger('change');
+        clearDropdownValue('vBranch');
+        clearDropdownValue('vType');
         $('#vNo').val('');
         $('#vRef').val('');
         $('#vNarr').val('');
@@ -385,8 +492,12 @@
     }
 
     function getActiveVoucherType() {
+        const val = ($('#vType').val() || '').toString();
         const $sel = $('#vType option:selected');
-        return ($sel.data('typename') || $('#vType').val() || '').toString().toUpperCase();
+        const dt = ($sel.data('typename') || '').toString().toUpperCase();
+        if (dt) return dt;
+        if (TYPE_NAMES[val]) return TYPE_NAMES[val];
+        return val.toUpperCase();
     }
 
     function resetLinesForType(type) {
@@ -498,7 +609,7 @@
             const idx = parseInt($(this).data('index'), 10);
             if (lines[idx]) {
                 const accVal = $(this).find('.ln-acc').val();
-                if (accVal) lines[idx].accCode = accVal;
+                lines[idx].accCode = accVal || '';
                 lines[idx].desc = $(this).find('.ln-desc').val() || '';
                 lines[idx].chq = $(this).find('.ln-chq').val() || '';
                 lines[idx].chqd = $(this).find('.ln-chqd').val() || '';
@@ -512,8 +623,12 @@
         const accounts = getAccounts();
         const container = $('#voucherLinesContainer');
 
-        // Destroy existing Select2 instances on lines
+        // Destroy existing custom dropdown and Select2 instances on lines
         container.find('.ln-acc').each(function () {
+            const inst = $(this).data('customDdInstance');
+            if (inst && typeof inst.destroy === 'function') {
+                inst.destroy();
+            }
             if ($(this).data('select2')) {
                 $(this).select2('destroy');
             }
@@ -527,7 +642,10 @@
 
             // Fallback option if current account head is not in active accounts
             if (ln.accCode && !accounts.some(a => a.Code === ln.accCode)) {
-                optionsHtml += `<option value="${escapeHtml(ln.accCode)}" selected>${escapeHtml(ln.accCode)}</option>`;
+                let fallbackTitle = (ln.accName && ln.accName !== ln.accCode) ? ln.accName : '';
+                if (!fallbackTitle && ln.desc) fallbackTitle = ln.desc;
+                const optText = fallbackTitle ? `${ln.accCode} - ${escapeHtml(fallbackTitle)}` : escapeHtml(ln.accCode);
+                optionsHtml += `<option value="${escapeHtml(ln.accCode)}" selected>${optText}</option>`;
             }
 
             let grouped = {};
@@ -564,7 +682,7 @@
             const rowHtml = `
                 <div class="vch-ln-row" data-index="${i}">
                     <div>
-                        <select class="form-select form-select-sm ln-acc" data-index="${i}">
+                        <select class="form-select form-select-sm ln-acc custom-select-single" id="lnAcc_${i}" data-index="${i}" data-page-size="100" data-placeholder="Search code or name…">
                             ${optionsHtml}
                         </select>
                     </div>
@@ -596,23 +714,18 @@
             container.append(rowHtml);
         });
 
-        // Initialize Select2 on each row's account head dropdown
-        container.find('.ln-acc').each(function () {
-            const $sel = $(this);
-            $sel.select2({
-                placeholder: 'Search code or name…',
-                allowClear: false,
-                width: '100%',
-                dropdownAutoWidth: true
-            });
-        });
+        // Initialize custom-select-single on each row's account head dropdown
+        if (typeof window.initCustomDropdowns === 'function') {
+            window.initCustomDropdowns(container, true);
+        }
 
-        // Initialize datepickers on cheque dates
+        // Initialize datepickers on cheque dates with Today & Clear buttons
         container.find('.ln-chqd').each(function () {
             const inputEl = this;
             const idx = parseInt($(inputEl).data('index'), 10);
             const curVal = lines[idx] ? lines[idx].chqd : '';
             if (typeof flatpickr !== 'undefined') {
+                if (inputEl._flatpickr) inputEl._flatpickr.destroy();
                 flatpickr(inputEl, {
                     dateFormat: "d/m/Y",
                     altInput: true,
@@ -621,6 +734,10 @@
                     defaultDate: curVal || undefined,
                     onReady: function (selectedDates, dateStr, instance) {
                         instance.input.placeholder = "dd/mm/yyyy";
+                        addCalendarTodayClearButtons(instance);
+                    },
+                    onOpen: function (selectedDates, dateStr, instance) {
+                        addCalendarTodayClearButtons(instance);
                     },
                     onChange: function (selectedDates, dateStr) {
                         if (!isNaN(idx) && lines[idx]) {
@@ -690,7 +807,21 @@
             }
         });
 
-        // Line inputs event delegation
+        // Line inputs event delegation & active row elevation
+        $(document).on('focus', '.vch-ln-row input, .vch-ln-row select, .vch-ln-row .custom-dd-input', function () {
+            $('.vch-ln-row').removeClass('has-open-dd');
+            $(this).closest('.vch-ln-row').addClass('has-open-dd');
+        });
+
+        $(document).on('blur', '.vch-ln-row input, .vch-ln-row select, .vch-ln-row .custom-dd-input', function () {
+            const $row = $(this).closest('.vch-ln-row');
+            setTimeout(function () {
+                if (!$row.find('.custom-dd-wrapper.open').length && !$row.find(':focus').length) {
+                    $row.removeClass('has-open-dd');
+                }
+            }, 200);
+        });
+
         $(document).on('change', '.ln-acc', function () {
             const idx = parseInt($(this).data('index'), 10);
             if (lines[idx]) {
@@ -866,9 +997,10 @@
 
             if (targetType) {
                 if ($('#vfType').val() === targetType) {
-                    $('#vfType').val(null).trigger('change');
+                    clearDropdownValue('vfType');
                 } else {
-                    $('#vfType').val(targetType).trigger('change');
+                    const optText = $('#vfType option[value="' + targetType + '"]').text() || targetType;
+                    setDropdownValue('vfType', targetType, optText);
                 }
             }
         });
@@ -876,9 +1008,9 @@
         $('#btnResetVFilters').on('click', function () {
             isResettingFilters = true;
 
-            // Reset Select2 dropdowns so displayed selection clears back to placeholder
-            $('#vfType').val(null).trigger('change');
-            $('#vfStat').val(null).trigger('change');
+            // Reset dropdowns so displayed selection clears back to placeholder
+            clearDropdownValue('vfType');
+            clearDropdownValue('vfStat');
 
             // Reset search inputs
             $('#vfQ').val('');
@@ -1365,13 +1497,28 @@
                                 targetType = opt.val();
                             }
                         }
-                        $('#vType').val(targetType).prop('disabled', true).trigger('change.select2');
+                        setDropdownValue('vType', targetType);
+                        setDropdownDisabled('vType', true);
 
                         const compVal = v.companyCode || v.main_CompanyCode || '1';
-                        $('#vCompany').val(compVal).trigger('change.select2');
+                        let compName = v.companyName;
+                        if (!compName || compName === compVal) {
+                            const match = $('#vCompany option').filter(function () {
+                                return $(this).val() == compVal || $(this).data('code') == compVal || parseInt($(this).val(), 10) == parseInt(compVal, 10);
+                            });
+                            if (match.length) compName = match.text();
+                        }
+                        setDropdownValue('vCompany', compVal, compName);
 
                         const branchVal = v.branchCode || '1';
-                        $('#vBranch').val(branchVal).trigger('change.select2');
+                        let brName = v.branchName;
+                        if (!brName || brName === branchVal) {
+                            const match = $('#vBranch option').filter(function () {
+                                return $(this).val() == branchVal || $(this).data('code') == branchVal || parseInt($(this).val(), 10) == parseInt(branchVal, 10);
+                            });
+                            if (match.length) brName = match.text();
+                        }
+                        setDropdownValue('vBranch', branchVal, brName);
 
                         setDatePicker('vDate', v.voucherDateFormatted || v.voucherDate);
                         $('#vNo').val(v.voucherNo);
@@ -1388,11 +1535,11 @@
 
                         lines = (v.details || []).map(function (d) {
                             let chqDateStr = '';
-                            if (d.chequeDateFormatted) {
+                            if (d.chequeDateFormatted && !d.chequeDateFormatted.includes('1900')) {
                                 chqDateStr = d.chequeDateFormatted;
                             } else if (d.chequeDate) {
                                 const cd = new Date(d.chequeDate);
-                                if (!isNaN(cd.getTime())) {
+                                if (!isNaN(cd.getTime()) && cd.getFullYear() > 1950) {
                                     const dd = String(cd.getDate()).padStart(2, '0');
                                     const mm = String(cd.getMonth() + 1).padStart(2, '0');
                                     chqDateStr = `${dd}/${mm}/${cd.getFullYear()}`;
@@ -1418,8 +1565,14 @@
                                 lineDesc = '';
                             }
 
+                            let accTitle = (d.accName || d.AccName || '').trim();
+                            if (!accTitle || accTitle === d.accCode) {
+                                if (lineDesc) accTitle = lineDesc;
+                            }
+
                             return {
-                                accCode: d.accCode || d.AccCode || '',
+                                accCode: (d.accCode || d.AccCode || '').trim(),
+                                accName: accTitle,
                                 desc: lineDesc,
                                 chq: d.chequeNo || d.ChequeNo || '',
                                 chqd: chqDateStr,

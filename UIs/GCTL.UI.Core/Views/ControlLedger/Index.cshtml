@@ -18,7 +18,7 @@
                     <label class="coa-form-label" for="GroupLedgerCodeNo" title="@Html.SmartLocalize("Group Ledger *")">
                         @Html.SmartLocalize("Group Ledger *")
                     </label>
-                    <select class="form-select choiceDD" asp-for="GroupLedgerCodeNo" id="GroupLedgerCodeNo">
+                    <select class="form-select form-select-sm custom-select-single" asp-for="GroupLedgerCodeNo" id="GroupLedgerCodeNo" data-placeholder="@Html.SmartLocalize("Select Group Ledger")">
                         <option value="">-- @Html.SmartLocalize("Select Group Ledger") --</option>
                         @if (ViewBag.Groups != null)
                         {

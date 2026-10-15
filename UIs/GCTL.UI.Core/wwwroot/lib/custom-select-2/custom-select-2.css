@@ -177,6 +177,20 @@
     display: block;
 }
 
+.custom-dd-optgroup-label {
+    padding: 7px 12px 7px 18px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0b4d37;
+    background: #eaf6ee;
+    border-bottom: 1px solid #cce8d4;
+    border-top: 1px solid #cce8d4;
+    letter-spacing: 0.3px;
+    user-select: none;
+    line-height: 1.4;
+    display: block;
+}
+
 .custom-dd-option {
     display: flex;
     align-items: center;

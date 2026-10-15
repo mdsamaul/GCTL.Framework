@@ -18,7 +18,7 @@
                     <label class="coa-form-label" for="SubControlLedger-GroupSelect" title="@Html.SmartLocalize("Group Ledger *")">
                         @Html.SmartLocalize("Group Ledger *")
                     </label>
-                    <select class="form-select choiceDD" asp-for="GroupLedgerCodeNo" id="SubControlLedger-GroupSelect">
+                    <select class="form-select form-select-sm custom-select-single" asp-for="GroupLedgerCodeNo" id="SubControlLedger-GroupSelect" data-placeholder="@Html.SmartLocalize("Select Group Ledger")">
                         <option value="">-- @Html.SmartLocalize("Select Group Ledger") --</option>
                         @if (ViewBag.Groups != null)
                         {
@@ -35,7 +35,7 @@
                     <label class="coa-form-label" for="SubControlLedger-ControlSelect" title="@Html.SmartLocalize("Control Ledger *")">
                         @Html.SmartLocalize("Control Ledger *")
                     </label>
-                    <select class="form-select choiceDD" asp-for="ControlLedgerCodeNo" id="SubControlLedger-ControlSelect" disabled>
+                    <select class="form-select form-select-sm custom-select-single" asp-for="ControlLedgerCodeNo" id="SubControlLedger-ControlSelect" data-placeholder="@Html.SmartLocalize("Select Control Ledger")" disabled>
                         <option value="">-- @Html.SmartLocalize("Select Control Ledger") --</option>
                     </select>
                     <span asp-validation-for="ControlLedgerCodeNo" class="text-danger small"></span>

@@ -18,36 +18,47 @@ $(document).ready(function () {
     }
 
     function setChoiceDisabled(id, disabled) {
-        if (window.choiceManager && typeof window.choiceManager.disableChoice === 'function') {
-            if (disabled) window.choiceManager.disableChoice(id);
-            else window.choiceManager.enableChoice(id);
-        }
-        const $el = $('#' + id);
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
         $el.prop('disabled', disabled);
+        const inst = $el.data('customDdInstance');
+        if (inst && typeof inst.setDisabled === 'function') {
+            inst.setDisabled(disabled);
+        }
+        if (window.choiceManager && typeof window.choiceManager.disableChoice === 'function') {
+            if (disabled) window.choiceManager.disableChoice(rawId);
+            else window.choiceManager.enableChoice(rawId);
+        }
         if ($el.hasClass('select2-hidden-accessible')) {
             $el.prop('disabled', disabled).trigger('change.select2');
         }
     }
 
-    function setChoiceVal(id, val) {
-        if (window.choiceManager && typeof window.choiceManager.setChoiceValue === 'function') {
-            window.choiceManager.setChoiceValue(id, val || '');
-        } else {
-            $('#' + id).val(val || '').trigger('change');
+    function setChoiceVal(id, val, text) {
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        if (typeof window.setCustomDropdownValue === 'function') {
+            window.setCustomDropdownValue(rawId, val, text);
         }
-        const $el = $('#' + id);
+        $el.val(val || '');
+        if (window.choiceManager && typeof window.choiceManager.setChoiceValue === 'function') {
+            window.choiceManager.setChoiceValue(rawId, val || '');
+        }
         if ($el.hasClass('select2-hidden-accessible')) {
             $el.val(val || null).trigger('change');
         }
     }
 
     function clearChoice(id) {
-        if (window.choiceManager && typeof window.choiceManager.clearChoice === 'function') {
-            window.choiceManager.clearChoice(id);
-        } else {
-            $('#' + id).val('').trigger('change');
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        if (typeof window.clearCustomDropdownById === 'function') {
+            window.clearCustomDropdownById(rawId);
         }
-        const $el = $('#' + id);
+        $el.val('');
+        if (window.choiceManager && typeof window.choiceManager.clearChoice === 'function') {
+            window.choiceManager.clearChoice(rawId);
+        }
         if ($el.hasClass('select2-hidden-accessible')) {
             $el.val(null).trigger('change');
         }
@@ -56,39 +67,44 @@ $(document).ready(function () {
     // Load Controls
     function loadControls(groupCode, targetSelectId, selectedVal) {
         const rawId = targetSelectId.replace('#', '');
+        const select = $(targetSelectId);
 
         if (!groupCode) {
+            select.empty().append('<option value="">-- Select Control Ledger --</option>');
             if (window.choiceManager) {
                 window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Control Ledger --' });
-            } else {
-                $(targetSelectId).empty().append('<option value="">-- Select Control Ledger --</option>');
+            }
+            if (typeof window.reinitCustomDropdownById === 'function') {
+                window.reinitCustomDropdownById(rawId);
             }
             setChoiceDisabled(rawId, true);
             return Promise.resolve();
         }
 
         return $.get(`/ControlLedger/GetDropdown?groupCode=${encodeURIComponent(groupCode)}`, function (items) {
+            select.empty().append('<option value="">-- Select Control Ledger --</option>');
             if (items && items.length > 0) {
+                items.forEach(function (c) {
+                    select.append(`<option value="${esc(c.code)}">${esc(c.displayText)}</option>`);
+                });
                 if (window.choiceManager) {
                     window.choiceManager.populateDropdown(rawId, items, {
                         labelKey: 'displayText',
                         valueKey: 'code',
                         placeholder: '-- Select Control Ledger --'
                     });
-                } else {
-                    const select = $(targetSelectId);
-                    select.empty().append('<option value="">-- Select Control Ledger --</option>');
-                    items.forEach(function (c) {
-                        select.append(`<option value="${esc(c.code)}">${esc(c.displayText)}</option>`);
-                    });
+                }
+                if (typeof window.reinitCustomDropdownById === 'function') {
+                    window.reinitCustomDropdownById(rawId);
                 }
                 setChoiceDisabled(rawId, false);
                 if (selectedVal) setChoiceVal(rawId, selectedVal);
             } else {
                 if (window.choiceManager) {
                     window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Control Ledger --' });
-                } else {
-                    $(targetSelectId).empty().append('<option value="">-- Select Control Ledger --</option>');
+                }
+                if (typeof window.reinitCustomDropdownById === 'function') {
+                    window.reinitCustomDropdownById(rawId);
                 }
                 setChoiceDisabled(rawId, true);
             }
@@ -98,39 +114,44 @@ $(document).ready(function () {
     // Load Sub-Controls
     function loadSubControls(controlCode, targetSelectId, selectedVal) {
         const rawId = targetSelectId.replace('#', '');
+        const select = $(targetSelectId);
 
         if (!controlCode) {
+            select.empty().append('<option value="">-- Select Sub-Control --</option>');
             if (window.choiceManager) {
                 window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Sub-Control --' });
-            } else {
-                $(targetSelectId).empty().append('<option value="">-- Select Sub-Control --</option>');
+            }
+            if (typeof window.reinitCustomDropdownById === 'function') {
+                window.reinitCustomDropdownById(rawId);
             }
             setChoiceDisabled(rawId, true);
             return Promise.resolve();
         }
 
         return $.get(`/SubControlLedger/GetDropdown?controlCode=${encodeURIComponent(controlCode)}`, function (items) {
+            select.empty().append('<option value="">-- Select Sub-Control --</option>');
             if (items && items.length > 0) {
+                items.forEach(function (c) {
+                    select.append(`<option value="${esc(c.code)}">${esc(c.displayText)}</option>`);
+                });
                 if (window.choiceManager) {
                     window.choiceManager.populateDropdown(rawId, items, {
                         labelKey: 'displayText',
                         valueKey: 'code',
                         placeholder: '-- Select Sub-Control --'
                     });
-                } else {
-                    const select = $(targetSelectId);
-                    select.empty().append('<option value="">-- Select Sub-Control --</option>');
-                    items.forEach(function (c) {
-                        select.append(`<option value="${esc(c.code)}">${esc(c.displayText)}</option>`);
-                    });
+                }
+                if (typeof window.reinitCustomDropdownById === 'function') {
+                    window.reinitCustomDropdownById(rawId);
                 }
                 setChoiceDisabled(rawId, false);
                 if (selectedVal) setChoiceVal(rawId, selectedVal);
             } else {
                 if (window.choiceManager) {
                     window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Sub-Control --' });
-                } else {
-                    $(targetSelectId).empty().append('<option value="">-- Select Sub-Control --</option>');
+                }
+                if (typeof window.reinitCustomDropdownById === 'function') {
+                    window.reinitCustomDropdownById(rawId);
                 }
                 setChoiceDisabled(rawId, true);
             }
@@ -188,24 +209,24 @@ $(document).ready(function () {
     });
 
     function openDropdown(id) {
-        if (window.choiceManager && typeof window.choiceManager.openChoice === 'function') {
-            window.choiceManager.openChoice(id);
+        const rawId = id.replace('#', '');
+        const $el = $('#' + rawId);
+        const inst = $el.data('customDdInstance');
+        if (inst && typeof inst._openPanelFull === 'function') {
+            inst._openPanelFull();
             return;
         }
-        const $el = $('#' + id);
+        if (window.choiceManager && typeof window.choiceManager.openChoice === 'function') {
+            window.choiceManager.openChoice(rawId);
+            return;
+        }
         if ($el.hasClass('select2-hidden-accessible') || (typeof $el.select2 === 'function' && $el.data('select2'))) {
             try {
                 $el.select2('open');
                 return;
             } catch (e) {}
         }
-        const container = document.getElementById(id)?.closest('.choices');
-        if (container) {
-            const inner = container.querySelector('.choices__inner') || container;
-            inner.click();
-        } else {
-            $el.focus();
-        }
+        $el.focus();
     }
 
     // Reset Form
@@ -225,6 +246,10 @@ $(document).ready(function () {
         } else {
             $('#SubSubsidiaryLedger-ControlSelect').empty().append('<option value="">-- Select Control Ledger --</option>');
             $('#SubSubsidiaryLedger-SubControlSelect').empty().append('<option value="">-- Select Sub-Control --</option>');
+        }
+        if (typeof window.reinitCustomDropdownById === 'function') {
+            window.reinitCustomDropdownById('SubSubsidiaryLedger-ControlSelect');
+            window.reinitCustomDropdownById('SubSubsidiaryLedger-SubControlSelect');
         }
         setChoiceDisabled('SubSubsidiaryLedger-ControlSelect', true);
         setChoiceDisabled('SubSubsidiaryLedger-SubControlSelect', true);
