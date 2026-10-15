@@ -1,0 +1,117 @@
+@model GCTL.Core.ViewModels.Finance.ChartOfAccounts.SubSubsidiaryLedgerAddVM
+
+<div class="coa-wrap">
+    <partial name="~/Views/Shared/_ChartOfAccountsTabs.cshtml" model='@("SubSubsidiaryLedger")' />
+
+    <!-- Setup Form Card -->
+    <div class="coa-card">
+        <div class="coa-ch" id="SubSubsidiaryLedger-formTitle">
+            @Html.SmartLocalize("Sub-Subsidiary Ledger: new entry")
+        </div>
+
+        <form id="SubSubsidiaryLedger-form">
+            <input type="hidden" id="SubSubsidiaryLedger-isEdit" value="0" />
+
+            <!-- Row 1: Parent Hierarchy Selection (Single line, strictly no wrap) -->
+            <div class="coa-parents-row">
+                <div class="coa-form-col">
+                    <label class="coa-form-label" for="SubSubsidiaryLedger-GroupSelect" title="@Html.SmartLocalize("Group Ledger *")">
+                        @Html.SmartLocalize("Group Ledger *")
+                    </label>
+                    <select class="form-select choiceDD" asp-for="GroupLedgerCodeNo" id="SubSubsidiaryLedger-GroupSelect">
+                        <option value="">-- @Html.SmartLocalize("Select Group Ledger") --</option>
+                        @if (ViewBag.Groups != null)
+                        {
+                            foreach (var g in ViewBag.Groups)
+                            {
+                                <option value="@g.Code">@g.DisplayText</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="GroupLedgerCodeNo" class="text-danger small"></span>
+                </div>
+
+                <div class="coa-form-col">
+                    <label class="coa-form-label" for="SubSubsidiaryLedger-ControlSelect" title="@Html.SmartLocalize("Control Ledger *")">
+                        @Html.SmartLocalize("Control Ledger *")
+                    </label>
+                    <select class="form-select choiceDD" asp-for="ControlLedgerCodeNo" id="SubSubsidiaryLedger-ControlSelect" disabled>
+                        <option value="">-- @Html.SmartLocalize("Select Control Ledger") --</option>
+                    </select>
+                    <span asp-validation-for="ControlLedgerCodeNo" class="text-danger small"></span>
+                </div>
+
+                <div class="coa-form-col">
+                    <label class="coa-form-label" for="SubSubsidiaryLedger-SubControlSelect" title="@Html.SmartLocalize("Sub-Control Ledger *")">
+                        @Html.SmartLocalize("Sub-Control Ledger *")
+                    </label>
+                    <select class="form-select choiceDD" asp-for="SubControlLedgerCodeNo" id="SubSubsidiaryLedger-SubControlSelect" disabled>
+                        <option value="">-- @Html.SmartLocalize("Select Sub-Control") --</option>
+                    </select>
+                    <span asp-validation-for="SubControlLedgerCodeNo" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Row 2: Sub-Subsidiary Ledger Entry Fields (Single line within equal columns) -->
+            <div class="coa-entry-row">
+                <div class="coa-form-col">
+                    <label class="coa-form-label" title="@Html.SmartLocalize("SSL Code (auto)")">
+                        @Html.SmartLocalize("SSL Code (auto)")
+                    </label>
+                    <div class="coa-code-preview" id="SubSubsidiaryLedgerCodePreview">
+                        <span class="text-muted">@Html.SmartLocalize("Select Sub-Control first")</span>
+                    </div>
+                    <input type="hidden" asp-for="SubSubsidiaryLedgerCodeNo" id="SubSubsidiaryLedgerCodeNo" />
+                    <span asp-validation-for="SubSubsidiaryLedgerCodeNo" class="text-danger small"></span>
+                </div>
+
+                <div class="coa-form-col">
+                    <label class="coa-form-label" for="SubSubsidiaryLedgerName" title="@Html.SmartLocalize("Sub-Subsidiary Name *")">
+                        @Html.SmartLocalize("Sub-Subsidiary Name *")
+                    </label>
+                    <input type="text" class="coa-form-control" asp-for="SubSubsidiaryLedgerName" id="SubSubsidiaryLedgerName" placeholder="@Html.SmartLocalize("Enter Sub-Subsidiary name")" />
+                    <span asp-validation-for="SubSubsidiaryLedgerName" class="text-danger small"></span>
+                </div>
+
+                <div class="coa-form-col">
+                    <label class="coa-form-label" for="ShortName" title="@Html.SmartLocalize("Short Name")">
+                        @Html.SmartLocalize("Short Name")
+                    </label>
+                    <input type="text" class="coa-form-control" asp-for="ShortName" id="ShortName" placeholder="@Html.SmartLocalize("Short Name")" />
+                    <span asp-validation-for="ShortName" class="text-danger small"></span>
+                </div>
+
+                <div class="coa-form-col-auto">
+                    <label class="coa-form-label d-none d-lg-block">&nbsp;</label>
+                    <div class="d-flex align-items-center" style="height: 38px;">
+                        <label class="coa-in mb-0">
+                            <input type="checkbox" asp-for="IsActive" id="IsActive" value="true" checked />
+                            <span>@Html.SmartLocalize("Active")</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="coa-fa">
+                <button type="submit" class="coa-btn pri" id="SubSubsidiaryLedger-saveBtn">
+                    @Html.SmartLocalize("Save")
+                </button>
+                <button type="button" class="coa-btn" id="SubSubsidiaryLedger-resetBtn">
+                    @Html.SmartLocalize("Clear")
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Card -->
+    <partial name="_Table" />
+</div>
+
+<partial name="_ConfirmDelete" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/pages/finance/subSubsidiaryLedger.js" asp-append-version="true"></script>
+}

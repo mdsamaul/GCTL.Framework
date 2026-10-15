@@ -28,4 +28,14 @@ public partial class AccVoucherEntryDetailsTemp
     public DateTime ChequeDate { get; set; }
 
     public string Luser { get; set; }
+
+    public DateTime? ModifyDate { get; set; }
+
+    public string Lip { get; set; }
+
+    public string IsActive { get; set; }
+
+    public DateTime? Ldate { get; set; }
+
+    public string Lmac { get; set; }
 }

@@ -1,0 +1,53 @@
+<div class="coa-card" id="GroupLedger-tableCard">
+    <div class="coa-tc">
+        <div class="coa-tc-left">
+            <label class="coa-in">
+                @Html.SmartLocalize("Show")
+                <select id="GroupLedger-pageSizeSelect">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                @Html.SmartLocalize("entries")
+            </label>
+        </div>
+
+        <div class="coa-tc-center">
+            <label class="coa-in">
+                <input type="checkbox" id="GroupLedger-showArchived" />
+                <span>@Html.SmartLocalize("Show archived")</span>
+            </label>
+        </div>
+
+        <div class="coa-tc-right">
+            <input type="text" class="coa-sr" id="GroupLedger-searchInput" placeholder="@Html.SmartLocalize("Search code, name...")" />
+        </div>
+    </div>
+
+    <div class="coa-tw">
+        <table class="coa-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 140px;">@Html.SmartLocalize("GRL Code")</th>
+                    <th scope="col">@Html.SmartLocalize("Group Ledger Name")</th>
+                    <th scope="col" style="width: 180px;">@Html.SmartLocalize("Short Name")</th>
+                    <th scope="col" style="width: 130px;">@Html.SmartLocalize("Status")</th>
+                    <th scope="col" style="width: 180px;">@Html.SmartLocalize("Actions")</th>
+                </tr>
+            </thead>
+            <tbody id="GroupLedger-body">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="coa-tc coa-footer-tc">
+        <div class="coa-tc-left">
+            <span id="GroupLedger-paginationInfo" style="color:var(--coa-mut); font-size:0.9em;"></span>
+        </div>
+        <div class="coa-tc-right">
+            <div id="GroupLedger-paginationContainer" class="coa-pagination"></div>
+        </div>
+    </div>
+</div>

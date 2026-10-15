@@ -42,4 +42,6 @@ public partial class AccVoucherEntryDetail
     public DateTime? ModifyDate { get; set; }
 
     public decimal? VoucherEntryAutoId { get; set; }
+
+    public string IsActive { get; set; }
 }

@@ -1,0 +1,132 @@
+@model GCTL.Core.ViewModels.Finance.ChartOfAccountsReports.ChartOfAccountsReportResponseVM
+@{
+    ViewData["Title"] = "Chart of Accounts Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var companyName = Model?.CompanyName ?? "Cantonment Public School & College, Rangpur.";
+}
+
+<link rel="stylesheet" href="~/css/pages/chartOfAccountsReports.css" asp-append-version="true" />
+
+<div class="coar-wrapper tb-wrapper mt-3">
+    <!-- 1. Top Header Banner -->
+    <header class="coar-header nox">
+        <div>
+            <h1>@Html.SmartLocalize("Finance & Accounts")</h1>
+            @* <small id="companySubtitle">@companyName · @Html.SmartLocalize("Amounts in Bangladeshi Taka (৳)")</small> *@
+        </div>
+    </header>
+
+    <!-- 2. Finance Navigation Tabs Component (Chart of Accounts, General Ledger, Trial Balance) -->
+    <partial name="_FinanceReportTabs" model='"ChartOfAccounts"' />
+
+    <!-- 3. Summary Statistics KPI Cards -->
+    <div class="coar-cards nox">
+        <div class="coar-card">
+            <span>@Html.SmartLocalize("Total ledgers")</span>
+            <div class="big" id="statTotal">@(Model?.Stats?.TotalGeneralLedgers ?? 0)</div>
+            <small>@Html.SmartLocalize("5th-layer accounts")</small>
+        </div>
+        <div class="coar-card card-assets">
+            <span>@Html.SmartLocalize("Assets")</span>
+            <div class="big" id="statAssets">@(Model?.Stats?.AssetsGLCount ?? 0)</div>
+            <small>@Html.SmartLocalize("Asset accounts")</small>
+        </div>
+        <div class="coar-card card-equity">
+            <span>@Html.SmartLocalize("Equity & Liabilities")</span>
+            <div class="big" id="statEquity">@(Model?.Stats?.EquityGLCount ?? 0)</div>
+            <small>@Html.SmartLocalize("Equity & liabilities")</small>
+        </div>
+        <div class="coar-card card-income">
+            <span>@Html.SmartLocalize("Income")</span>
+            <div class="big" id="statIncome">@(Model?.Stats?.IncomeGLCount ?? 0)</div>
+            <small>@Html.SmartLocalize("Revenue streams")</small>
+        </div>
+        <div class="coar-card card-expenses">
+            <span>@Html.SmartLocalize("Expenses")</span>
+            <div class="big" id="statExpenses">@(Model?.Stats?.ExpenseGLCount ?? 0)</div>
+            <small>@Html.SmartLocalize("Operational costs")</small>
+        </div>
+    </div>
+
+    <!-- 4. Ledger Code Anatomy Legend (Segment Colors matching /ChartOfAccounts/Index) -->
+    <div class="coa-legend nox">
+        <span>@Html.SmartLocalize("Ledger code anatomy"):</span>
+        <span><i class="s0"></i>@Html.SmartLocalize("Group Ledger 1 digit")</span>
+        <span><i class="s1"></i>@Html.SmartLocalize("Control Ledger 2 digits")</span>
+        <span><i class="s2"></i>@Html.SmartLocalize("Sub-Control Ledger 3 digits")</span>
+        <span><i class="s3"></i>@Html.SmartLocalize("Sub-Subsidiary Ledger 5 digits")</span>
+        <span><i class="s4"></i>@Html.SmartLocalize("General Ledger 5 digits")</span>
+        <span>@Html.SmartLocalize("General ledger code = 16 digits")</span>
+    </div>
+
+    <!-- 5. Main Panel: Controls, Tree view, List view, and Exports -->
+    <div class="coar-panel">
+        <div class="coar-panel-bar nox">
+            <div class="coar-controls-left">
+                <button type="button" class="coar-btn active" id="btnTreeView" title="@Html.SmartLocalize("Tree View")">
+                    <i class="fas fa-sitemap"></i> @Html.SmartLocalize("Tree view")
+                </button>
+                <button type="button" class="coar-btn" id="btnListView" title="@Html.SmartLocalize("List View")">
+                    <i class="fas fa-table"></i> @Html.SmartLocalize("List view")
+                </button>
+
+                <button type="button" class="coar-btn coar-btn-sm" id="btnExpandAll" title="@Html.SmartLocalize("Expand all")">
+                    <i class="fas fa-expand-alt"></i> @Html.SmartLocalize("Expand")
+                </button>
+                <button type="button" class="coar-btn coar-btn-sm" id="btnCollapseAll" title="@Html.SmartLocalize("Collapse all")">
+                    <i class="fas fa-compress-alt"></i> @Html.SmartLocalize("Collapse")
+                </button>
+
+                <input type="text" id="coaSearch" class="coar-search-input ms-2" placeholder="@Html.SmartLocalize("Search code or name...")" />
+
+                <label class="coar-check-lbl ms-2">
+                    <input type="checkbox" id="coaShowArchived" /> @Html.SmartLocalize("Show archived")
+                </label>
+            </div>
+
+            <div class="coar-controls-right">
+                <select id="coaExportFormat" class="form-select form-select-sm coar-export-select w-auto fw-semibold" style="height: 35px;" title="@Html.SmartLocalize("Select Export Format")">
+                    <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Formate")</option>
+                    <option value="pdf">@Html.SmartLocalize("PDF")</option>
+                    <option value="excel">@Html.SmartLocalize("Excel")</option>
+                    <option value="csv">@Html.SmartLocalize("CSV")</option>
+                    <option value="preview">@Html.SmartLocalize("Preview")</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Print Header (Visible only when printing) -->
+        <div class="phead">
+            <b id="pheadCo" class="fs-6">@companyName</b>
+            <h2>@Html.SmartLocalize("Chart of Accounts Report")</h2>
+            <div class="fs-9 text-muted">@Html.SmartLocalize("5-Level Ledger Hierarchy") · @DateTime.Now.ToString("dd/MM/yyyy")</div>
+        </div>
+
+        <!-- 6. View Content: Tree View -->
+        <div id="treeViewContainer" class="coar-tree-wrap">
+            <div class="empty-state">
+                <div class="spinner-border spinner-border-sm text-success me-2"></div>
+                @Html.SmartLocalize("Loading chart of accounts...")
+            </div>
+        </div>
+
+        <!-- 7. View Content: List View (Table) -->
+        <div id="listViewContainer" class="coar-table-responsive d-none">
+            <div class="empty-state">
+                <div class="spinner-border spinner-border-sm text-success me-2"></div>
+                @Html.SmartLocalize("Loading chart of accounts...")
+            </div>
+        </div>
+
+        <!-- Print Footer (Visible only when printing) -->
+        <div class="pfoot">
+            <div class="pfoot-left">@Html.SmartLocalize("Print Date & Time"): <span id="pfootDateTime">@DateTime.Now.ToString("dd/MM/yyyy hh:mm tt")</span></div>
+            <div class="pfoot-center">GCTL Infosys</div>
+            <div class="pfoot-right"><span id="pfootPageCount">@Html.SmartLocalize("Page") 1 / 1</span></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/finance/chartOfAccountsReports.js" asp-append-version="true"></script>
+}

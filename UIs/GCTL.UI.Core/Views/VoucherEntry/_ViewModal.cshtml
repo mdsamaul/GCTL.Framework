@@ -1,0 +1,213 @@
+<style>
+    @@media print {
+        @@page {
+            size: A4 portrait;
+            margin: 0 !important; /* Suppresses browser default title and date/time headers */
+        }
+        html, body {
+            background: #fff !important;
+            color: #000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        body * {
+            visibility: hidden !important;
+        }
+        #voucherPrintModal,
+        #voucherPrintModal * {
+            visibility: visible !important;
+        }
+        #voucherPrintModal {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #fff !important;
+            z-index: 999999 !important;
+            overflow: visible !important;
+            display: block !important;
+            opacity: 1 !important;
+        }
+        #voucherPrintModal .modal-dialog {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
+        }
+        #voucherPrintModal .modal-content {
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+        }
+        #voucherPrintModal .modal-header,
+        #voucherPrintModal .modal-footer,
+        .modal-backdrop {
+            display: none !important;
+        }
+        #voucherPrintModal .modal-body {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #fff !important;
+            overflow: visible !important;
+        }
+        .voucher-paper {
+            position: relative !important;
+            width: 210mm !important;
+            max-width: 210mm !important;
+            min-height: auto !important;
+            height: auto !important;
+            max-height: none !important;
+            margin: 0 auto !important;
+            padding: 16mm 20mm 20mm 20mm !important;
+            box-sizing: border-box !important;
+            background: #fff !important;
+        }
+        .voucher-content-top {
+            width: 100% !important;
+        }
+        .voucher-bottom-block {
+            position: static !important;
+            width: 100% !important;
+            margin-top: 130px !important;
+            padding: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        .voucher-signatures-bottom {
+            width: 100% !important;
+        }
+        .voucher-meta-table,
+        .voucher-meta-table tr,
+        .voucher-meta-table td {
+            border: none !important;
+            border-style: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+    }
+</style>
+
+<div class="modal fade" id="voucherPrintModal" tabindex="-1" aria-labelledby="voucherPrintModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header py-2 px-3 bg-light">
+                <h6 class="modal-title fs-8 fw-bold" id="voucherPrintModalLabel">
+                    <i class="fas fa-file-invoice me-1 text-primary"></i>@Html.SmartLocalize("Voucher Preview")
+                </h6>
+                <button type="button" class="btn-close fs-10" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white" id="voucherPrintArea" style="background-color: #fff !important; color: #000 !important;">
+                <!-- Printable Voucher Paper -->
+                <div class="voucher-paper" id="voucherPaperContent" style="background: #fff; color: #000; font-family: 'Times New Roman', Times, serif, Arial; padding: 10px 18px; box-sizing: border-box;">
+                    
+                    <div class="voucher-content-top" style="width: 100%;">
+                        <!-- Centered Header -->
+                        <div style="text-align: center; margin-bottom: 22px;">
+                            <h3 style="font-family: 'Times New Roman', Times, serif; font-weight: bold; font-size: 22px; text-transform: uppercase; margin: 0 0 4px 0; color: #000; letter-spacing: 0.5px;" id="printOrgName">FORMOSA LOGISTICS LIMITED</h3>
+                            <div style="font-size: 12px; color: #000; margin-bottom: 16px;" id="printCompanySub">21, Hazaribagh, Dhaka-1209 Phone: Email:</div>
+                            <h4 style="font-family: 'Times New Roman', Times, serif; font-weight: bold; font-size: 16px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0; color: #000;" id="printVoucherKind">CONTRA VOUCHER</h4>
+                        </div>
+
+                        <!-- Top Right Metadata Table (Flush right, tight colon alignment, no borders) -->
+                        <div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 12px;">
+                            <table class="voucher-meta-table" style="width: auto !important; border-collapse: collapse; font-family: inherit; font-size: 13px; font-weight: bold; color: #000; border: none !important; margin-left: auto;">
+                                <tr>
+                                    <td style="padding: 1px 3px; text-align: left; border: none !important; white-space: nowrap;">@Html.SmartLocalize("Voucher No")</td>
+                                    <td style="padding: 1px 2px; text-align: center; border: none !important; font-weight: bold;">:</td>
+                                    <td style="padding: 1px 3px; text-align: left; border: none !important; white-space: nowrap;" id="printVoucherNo"></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 1px 3px; text-align: left; border: none !important; white-space: nowrap;">@Html.SmartLocalize("Voucher Date")</td>
+                                    <td style="padding: 1px 2px; text-align: center; border: none !important; font-weight: bold;">:</td>
+                                    <td style="padding: 1px 3px; text-align: left; border: none !important; white-space: nowrap;" id="printVoucherDate"></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Main Double-Entry Table (Gray borders) -->
+                        <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #888 !important; border-left: 1.5px solid #888 !important; border-right: 1.5px solid #888 !important; table-layout: fixed; box-sizing: border-box; font-size: 12.5px; color: #000; margin-bottom: 0;" id="printLinesTable">
+                            <thead>
+                                <tr style="border-bottom: 1.5px solid #888 !important;">
+                                    <th style="width: 18%; border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-bottom: 1.5px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; font-weight: bold; color: #000;">@Html.SmartLocalize("Acc Code")</th>
+                                    <th style="width: 52%; border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-bottom: 1.5px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; font-weight: bold; color: #000;">@Html.SmartLocalize("Particulars")</th>
+                                    <th style="width: 15%; border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-bottom: 1.5px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; font-weight: bold; color: #000;">@Html.SmartLocalize("Debit (BDT)")</th>
+                                    <th style="width: 15%; border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-bottom: 1.5px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; font-weight: bold; color: #000;">@Html.SmartLocalize("Credit (BDT)")</th>
+                                </tr>
+                            </thead>
+                            <tbody id="printLinesBody">
+                                <!-- Populated dynamically via JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr style="border-top: 1.5px solid #888 !important; font-weight: bold;">
+                                    <td colspan="2" style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1.5px solid #888 !important; padding: 6px 8px; text-align: right; font-weight: bold;">@Html.SmartLocalize("Total")</td>
+                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-top: 1.5px solid #888 !important; padding: 6px 8px; text-align: right; font-weight: bold;" id="printTotalDebit">0.00</td>
+                                    <td style="border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1.5px solid #888 !important; padding: 6px 8px; text-align: right; font-weight: bold;" id="printTotalCredit">0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <!-- Attached Box: In words & Narration (Gray borders) -->
+                        <div class="voucher-attached-box" style="border: 1.5px solid #888 !important; border-top: none !important; border-left: 1.5px solid #888 !important; border-right: 1.5px solid #888 !important; border-bottom: 1.5px solid #888 !important; padding: 8px 10px; font-size: 12px; color: #000; line-height: 1.55; margin-bottom: 0; box-sizing: border-box;">
+                            <div style="margin-bottom: 6px;">
+                                <span style="font-weight: bold;">In words : </span>
+                                <span id="printAmountInWords" style="font-weight: normal;"></span>
+                            </div>
+                            <div>
+                                <span style="font-weight: bold;">Narration: </span>
+                                <span id="printNarration" style="font-weight: normal;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Section: 5 Signatures + Footer (Generate Date/Time & Page No) -->
+                    <div class="voucher-bottom-block" style="width: 100%; margin-top: 130px;">
+                        <div class="voucher-signatures-bottom" style="display: flex; justify-content: space-between; text-align: center; font-size: 12px; color: #000; padding: 0 5px; font-family: 'Times New Roman', Times, serif, Arial; width: 100%;">
+                            <div style="width: 18%; text-align: center;">
+                                <div style="height: 20px;"></div>
+                                <div style="font-family: monospace, Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000; letter-spacing: 1.5px; line-height: 1; margin: 4px 0 5px 0; overflow: hidden; white-space: nowrap;">-------------------------</div>
+                                <div style="font-weight: bold;">@Html.SmartLocalize("Received By")</div>
+                            </div>
+                            <div style="width: 22%; text-align: center;">
+                                <div style="min-height: 20px; line-height: 20px; font-weight: bold; font-size: 12px; white-space: nowrap; color: #000;" id="printPreparedByName"></div>
+                                <div style="font-family: monospace, Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000; letter-spacing: 1.5px; line-height: 1; margin: 4px 0 5px 0; overflow: hidden; white-space: nowrap;">-------------------------</div>
+                                <div style="font-weight: bold;">@Html.SmartLocalize("Prepared By")</div>
+                            </div>
+                            <div style="width: 18%; text-align: center;">
+                                <div style="height: 20px;"></div>
+                                <div style="font-family: monospace, Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000; letter-spacing: 1.5px; line-height: 1; margin: 4px 0 5px 0; overflow: hidden; white-space: nowrap;">-------------------------</div>
+                                <div style="font-weight: bold;">@Html.SmartLocalize("Checked By")</div>
+                            </div>
+                            <div style="width: 18%; text-align: center;">
+                                <div style="height: 20px;"></div>
+                                <div style="font-family: monospace, Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000; letter-spacing: 1.5px; line-height: 1; margin: 4px 0 5px 0; overflow: hidden; white-space: nowrap;">-------------------------</div>
+                                <div style="font-weight: bold;">@Html.SmartLocalize("Verified By")</div>
+                            </div>
+                            <div style="width: 18%; text-align: center;">
+                                <div style="height: 20px;"></div>
+                                <div style="font-family: monospace, Arial, sans-serif; font-size: 13px; font-weight: bold; color: #000; letter-spacing: 1.5px; line-height: 1; margin: 4px 0 5px 0; overflow: hidden; white-space: nowrap;">-------------------------</div>
+                                <div style="font-weight: bold; line-height: 1.2;">@Html.SmartLocalize("Authorised")<br />@Html.SmartLocalize("Signature")</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer py-2 px-3 bg-light">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>@Html.SmartLocalize("Close")
+                </button>
+                <button type="button" class="btn btn-dark btn-sm" id="btnPrintVoucherDoc">
+                    <i class="fas fa-print me-1"></i>@Html.SmartLocalize("Print Voucher")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

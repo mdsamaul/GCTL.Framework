@@ -38,4 +38,6 @@ public partial class AccVoucherType
     public string Lmac { get; set; }
 
     public DateTime? ModifyDate { get; set; }
+
+    public string IsActive { get; set; }
 }

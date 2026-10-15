@@ -5,8 +5,31 @@ namespace GCTL.Data.Models
 {
     public partial class GCTL_ERP_DBContext
     {
+        public virtual DbSet<Acc_VoucherInvoicePaymentReceived> Acc_VoucherInvoicePaymentReceived { get; set; }
+
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {
+
+            modelBuilder.Entity<Acc_VoucherInvoicePaymentReceived>(entity =>
+            {
+                entity.HasKey(e => e.AutoId);
+                entity.ToTable("Acc_VoucherInvoicePaymentReceived");
+                entity.Property(e => e.AutoId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("numeric(18, 0)")
+                    .HasColumnName("autoId");
+
+                entity.Property(e => e.VoucherNo).HasMaxLength(50);
+                entity.Property(e => e.InvoiceNo).HasMaxLength(50);
+                entity.Property(e => e.Amount).HasColumnType("numeric(18, 2)");
+                entity.Property(e => e.IsActive).HasMaxLength(1);
+                entity.Property(e => e.LUser).HasMaxLength(128);
+                entity.Property(e => e.LDate).HasColumnType("datetime");
+                entity.Property(e => e.LIP).HasMaxLength(50);
+                entity.Property(e => e.LMAC).HasMaxLength(50);
+                entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            });
+
             modelBuilder.Entity<HrmDefDesignation>(entity =>
             {
                 entity.Property(e => e.AutoId)

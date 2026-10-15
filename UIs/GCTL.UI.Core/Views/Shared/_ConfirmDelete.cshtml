@@ -1,0 +1,17 @@
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <span class="avatar avatar-xl bg-transparent-danger mb-3" style="color: red;">
+                    <i class="fa fa-trash fs-5"></i>
+                </span>
+                <h4 class="modal-title" style="color: red;">@Html.SmartLocalize("Are you sure you want to delete?")</h4>
+                <p class="mb-3">@Html.SmartLocalize("This action cannot be undone.")</p>
+                <div class="d-flex justify-content-center">
+                    <a href="javascript:void(0);" class="btn btn-light me-3" data-bs-dismiss="modal" data-coreui-dismiss="modal">@Html.SmartLocalize("Cancel")</a>
+                    <a class="btn btn-danger" id="confirmDeleteBtn">@Html.SmartLocalize("Yes, Delete")</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

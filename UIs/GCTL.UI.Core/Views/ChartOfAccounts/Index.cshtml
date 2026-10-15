@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Chart of Accounts - Tree View";
+}
+
+<div class="coa-wrap">
+    <partial name="~/Views/Shared/_ChartOfAccountsTabs.cshtml" model='@("ChartOfAccounts")' />
+
+    <div class="coa-card">
+        <div class="coa-tc">
+            <div class="coa-tc-left">
+                <button type="button" class="coa-btn" id="coa-expandAllBtn">@Html.SmartLocalize("Expand all")</button>
+                <button type="button" class="coa-btn ms-1" id="coa-collapseAllBtn">@Html.SmartLocalize("Collapse all")</button>
+            </div>
+            <div class="coa-tc-center">
+                <label class="coa-in">
+                    <input type="checkbox" id="coa-showArchived"> @Html.SmartLocalize("Show archived")
+                </label>
+            </div>
+            <div class="coa-tc-right d-flex align-items-center gap-2">
+                <input id="coa-treeSearch" class="coa-sr" placeholder="@Html.SmartLocalize("Search code or name...")" />
+                <a href="@Url.Action("Index", "GroupLedger")" class="coa-btn pri">
+                    @Html.SmartLocalize("Add Group Ledger")
+                </a>
+            </div>
+        </div>
+        <div id="tree">
+            <div class="coa-em">
+                @Html.SmartLocalize("Loading chart of accounts...")
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/finance/chartOfAccountsTree.js" asp-append-version="true"></script>
+}
