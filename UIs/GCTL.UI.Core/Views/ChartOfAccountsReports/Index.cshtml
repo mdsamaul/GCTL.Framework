@@ -8,13 +8,7 @@
 <link rel="stylesheet" href="~/css/pages/chartOfAccountsReports.css" asp-append-version="true" />
 
 <div class="coar-wrapper tb-wrapper mt-3">
-    <!-- 1. Top Header Banner -->
-    <header class="coar-header nox">
-        <div>
-            <h1>@Html.SmartLocalize("Finance & Accounts")</h1>
-            @* <small id="companySubtitle">@companyName · @Html.SmartLocalize("Amounts in Bangladeshi Taka (৳)")</small> *@
-        </div>
-    </header>
+    <!-- 1. Top Header Banner -->   
 
     <!-- 2. Finance Navigation Tabs Component (Chart of Accounts, General Ledger, Trial Balance) -->
     <partial name="_FinanceReportTabs" model='"ChartOfAccounts"' />

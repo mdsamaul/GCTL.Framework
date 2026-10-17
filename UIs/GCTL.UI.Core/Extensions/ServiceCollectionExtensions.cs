@@ -290,6 +290,11 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<GCTL.Service.Finance.VoucherEntry.IVoucherEntryService, GCTL.Service.Finance.VoucherEntry.VoucherEntryService>();
             services.AddScoped<GCTL.Service.Finance.OpeningBalance.IOpeningBalanceService, GCTL.Service.Finance.OpeningBalance.OpeningBalanceService>();
             services.AddScoped<GCTL.Service.Finance.ChartOfAccountsReports.IChartOfAccountsReportsService, GCTL.Service.Finance.ChartOfAccountsReports.ChartOfAccountsReportsService>();
+            services.AddScoped<GCTL.Service.Finance.GeneralLedgerReport.IGeneralLedgerReportService, GCTL.Service.Finance.GeneralLedgerReport.GeneralLedgerReportService>();
+            services.AddScoped<GCTL.Service.Finance.TrialBalance.ITrialBalanceService, GCTL.Service.Finance.TrialBalance.TrialBalanceService>();
+            services.AddScoped<GCTL.Service.Finance.IncomeStatement.IIncomeStatementService, GCTL.Service.Finance.IncomeStatement.IncomeStatementService>();
+            services.AddScoped<GCTL.Service.Finance.BalanceSheet.IBalanceSheetService, GCTL.Service.Finance.BalanceSheet.BalanceSheetService>();
+            services.AddScoped<GCTL.Service.Finance.CashFlow.ICashFlowService, GCTL.Service.Finance.CashFlow.CashFlowService>();
 
             services.AddMemoryCache();
         }
