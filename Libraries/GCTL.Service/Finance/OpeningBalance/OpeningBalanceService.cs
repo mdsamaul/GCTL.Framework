@@ -38,9 +38,53 @@ namespace GCTL.Service.Finance.OpeningBalance
                     .Where(x => x.DeletedAt == null)
                     .AsQueryable();
 
+                DateTime? filterFrom = filter.FromDate;
+                if (!filterFrom.HasValue && !string.IsNullOrWhiteSpace(filter.FromDateStr))
+                {
+                    if (DateTime.TryParseExact(filter.FromDateStr.Trim(), new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" },
+                        System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                    {
+                        filterFrom = d;
+                    }
+                    else if (DateTime.TryParse(filter.FromDateStr.Trim(), out var d2))
+                    {
+                        filterFrom = d2;
+                    }
+                }
+
+                DateTime? filterTo = filter.ToDate;
+                if (!filterTo.HasValue && !string.IsNullOrWhiteSpace(filter.ToDateStr))
+                {
+                    if (DateTime.TryParseExact(filter.ToDateStr.Trim(), new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" },
+                        System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                    {
+                        filterTo = d;
+                    }
+                    else if (DateTime.TryParse(filter.ToDateStr.Trim(), out var d2))
+                    {
+                        filterTo = d2;
+                    }
+                }
+
                 if (!string.IsNullOrWhiteSpace(filter.FinancialCodeNo))
                 {
-                    query = query.Where(x => x.FinancialCodeNo == filter.FinancialCodeNo);
+                    var targetFy = await _context.AccFinancialYears
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(f => f.FinancialCodeNo == filter.FinancialCodeNo);
+
+                    if (targetFy != null && targetFy.StartDate.HasValue && targetFy.EndDate.HasValue)
+                    {
+                        var sDate = targetFy.StartDate.Value.Date;
+                        var eDate = targetFy.EndDate.Value.Date.AddDays(1).AddTicks(-1);
+                        query = query.Where(x => x.FinancialCodeNo == filter.FinancialCodeNo ||
+                                                ((x.FinancialCodeNo == null || x.FinancialCodeNo == "") &&
+                                                 (x.OpeningDate ?? x.CreatedAt) >= sDate &&
+                                                 (x.OpeningDate ?? x.CreatedAt) <= eDate));
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.FinancialCodeNo == filter.FinancialCodeNo);
+                    }
                 }
 
                 if (!string.IsNullOrWhiteSpace(filter.GeneralLedgerCodeNo))
@@ -48,16 +92,16 @@ namespace GCTL.Service.Finance.OpeningBalance
                     query = query.Where(x => x.GeneralLedgerCodeNo == filter.GeneralLedgerCodeNo);
                 }
 
-                if (filter.FromDate.HasValue)
+                if (filterFrom.HasValue)
                 {
-                    var from = filter.FromDate.Value.Date;
-                    query = query.Where(x => x.OpeningDate >= from);
+                    var from = filterFrom.Value.Date;
+                    query = query.Where(x => (x.OpeningDate ?? x.CreatedAt) >= from);
                 }
 
-                if (filter.ToDate.HasValue)
+                if (filterTo.HasValue)
                 {
-                    var to = filter.ToDate.Value.Date.AddDays(1).AddTicks(-1);
-                    query = query.Where(x => x.OpeningDate <= to);
+                    var to = filterTo.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(x => (x.OpeningDate ?? x.CreatedAt) <= to);
                 }
 
                 if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
@@ -80,15 +124,16 @@ namespace GCTL.Service.Finance.OpeningBalance
                     .Where(x => x.TrType == "Cr")
                     .SumAsync(x => x.OpeningBalance) ?? 0m;
 
-                bool isDesc = string.Equals(filter.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+                bool isDesc = string.Equals(filter.SortOrder, "asc", StringComparison.OrdinalIgnoreCase) == false;
                 query = (filter.SortColumn?.ToLower()) switch
                 {
                     "code" or "comopeningbalancecode" => isDesc ? query.OrderByDescending(x => x.ComOpeningBalanceCode) : query.OrderBy(x => x.ComOpeningBalanceCode),
                     "amount" or "openingbalance" => isDesc ? query.OrderByDescending(x => x.OpeningBalance) : query.OrderBy(x => x.OpeningBalance),
                     "type" or "trtype" => isDesc ? query.OrderByDescending(x => x.TrType) : query.OrderBy(x => x.TrType),
-                    "date" or "openingdate" => isDesc ? query.OrderByDescending(x => x.OpeningDate) : query.OrderBy(x => x.OpeningDate),
+                    "date" or "openingdate" or "openingdateformatted" => isDesc ? query.OrderByDescending(x => (x.OpeningDate ?? x.CreatedAt)) : query.OrderBy(x => (x.OpeningDate ?? x.CreatedAt)),
                     "year" or "financialcodeno" => isDesc ? query.OrderByDescending(x => x.FinancialCodeNo) : query.OrderBy(x => x.FinancialCodeNo),
                     "reference" => isDesc ? query.OrderByDescending(x => x.Reference) : query.OrderBy(x => x.Reference),
+                    "description" => isDesc ? query.OrderByDescending(x => x.Description) : query.OrderBy(x => x.Description),
                     _ => isDesc ? query.OrderByDescending(x => x.ComOpeningBalanceCode) : query.OrderBy(x => x.ComOpeningBalanceCode)
                 };
 
@@ -100,50 +145,95 @@ namespace GCTL.Service.Finance.OpeningBalance
                     .ToListAsync();
 
                 var glCodes = rawList.Select(x => x.GeneralLedgerCodeNo).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
-                var fyCodes = rawList.Select(x => x.FinancialCodeNo).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
                 var branchCodes = rawList.Select(x => x.BranchCode).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
-                var compCodes = rawList.Select(x => x.CompanyCode ?? x.MainCompanyCode).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
+                var compCodes = rawList.Select(x => x.MainCompanyCode).Where(x => !string.IsNullOrEmpty(x)).Distinct().ToList();
 
-                var glDict = await _context.AccGeneralLedgers
+                var glList = await _context.AccGeneralLedgers
                     .Where(g => glCodes.Contains(g.GeneralLedgerCodeNo))
                     .AsNoTracking()
-                    .ToDictionaryAsync(g => g.GeneralLedgerCodeNo, g => g.GeneralLedgerName);
+                    .Select(g => new { g.GeneralLedgerCodeNo, g.GeneralLedgerName })
+                    .ToListAsync();
+                var glDict = glList
+                    .GroupBy(g => g.GeneralLedgerCodeNo)
+                    .ToDictionary(g => g.Key, g => g.First().GeneralLedgerName);
 
-                var fyDict = await _context.AccFinancialYears
-                    .Where(f => fyCodes.Contains(f.FinancialCodeNo))
+                var allFys = await _context.AccFinancialYears
                     .AsNoTracking()
-                    .ToDictionaryAsync(f => f.FinancialCodeNo, f => f.Name);
+                    .ToListAsync();
 
-                var branchDict = await _context.CoreBranches
-                    .Where(b => branchCodes.Contains(b.BranchCode))
-                    .AsNoTracking()
-                    .ToDictionaryAsync(b => b.BranchCode, b => b.BranchName);
-
-                var compDict = await _context.CoreCompanies
-                    .Where(c => compCodes.Contains(c.CompanyCode))
-                    .AsNoTracking()
-                    .ToDictionaryAsync(c => c.CompanyCode, c => c.CompanyName);
-
-                result.Items = rawList.Select(ob => new OpeningBalanceVM
+                Dictionary<string, string> branchDict = new();
+                try
                 {
-                    AutoId = ob.AutoId,
-                    ComOpeningBalanceCode = ob.ComOpeningBalanceCode,
-                    Main_CompanyCode = int.TryParse(ob.MainCompanyCode ?? ob.CompanyCode, out int cId) ? cId : (int?)null,
-                    CompanyName = (ob.MainCompanyCode != null && compDict.TryGetValue(ob.MainCompanyCode, out var cName)) ? cName : "Bay School & College",
-                    BranchCode = int.TryParse(ob.BranchCode, out int bId) ? bId : (int?)null,
-                    BranchName = (ob.BranchCode != null && branchDict.TryGetValue(ob.BranchCode, out var bName)) ? bName : "Head Office",
-                    FinancialCodeNo = (ob.FinancialCodeNo != null && fyDict.TryGetValue(ob.FinancialCodeNo, out var fName)) ? fName : ob.FinancialCodeNo,
-                    GeneralLedgerCodeNo = ob.GeneralLedgerCodeNo ?? string.Empty,
-                    GeneralLedgerName = (ob.GeneralLedgerCodeNo != null && glDict.TryGetValue(ob.GeneralLedgerCodeNo, out var gName)) ? gName : ob.GeneralLedgerCodeNo,
-                    OpeningBalance = ob.OpeningBalance,
-                    TrType = ob.TrType ?? string.Empty,
-                    OpeningDate = ob.OpeningDate,
-                    Reference = ob.Reference,
-                    Description = ob.Description
+                    var branchList = await _context.CoreBranches
+                        .Where(b => branchCodes.Contains(b.BranchCode))
+                        .AsNoTracking()
+                        .Select(b => new { b.BranchCode, b.BranchName })
+                        .ToListAsync();
+                    branchDict = branchList
+                        .GroupBy(b => b.BranchCode)
+                        .ToDictionary(b => b.Key, b => b.First().BranchName);
+                }
+                catch { }
+
+                Dictionary<string, string> compDict = new();
+                try
+                {
+                    var compList = await _context.CoreCompanies
+                        .Where(c => compCodes.Contains(c.CompanyCode))
+                        .AsNoTracking()
+                        .Select(c => new { c.CompanyCode, c.CompanyName })
+                        .ToListAsync();
+                    compDict = compList
+                        .GroupBy(c => c.CompanyCode)
+                        .ToDictionary(c => c.Key, c => c.First().CompanyName);
+                }
+                catch { }
+
+                result.Items = rawList.Select(ob =>
+                {
+                    var resolvedDate = ob.OpeningDate ?? ob.CreatedAt;
+
+                    string fyDisplay = "";
+                    if (!string.IsNullOrEmpty(ob.FinancialCodeNo))
+                    {
+                        var fy = allFys.FirstOrDefault(f => f.FinancialCodeNo == ob.FinancialCodeNo);
+                        fyDisplay = fy?.Name ?? ob.FinancialCodeNo;
+                    }
+                    else if (resolvedDate.HasValue)
+                    {
+                        var matchingFy = allFys.FirstOrDefault(f => f.StartDate <= resolvedDate && f.EndDate >= resolvedDate);
+                        fyDisplay = matchingFy?.Name ?? "";
+                    }
+
+                    string glCode = ob.GeneralLedgerCodeNo ?? string.Empty;
+                    string glName = glCode;
+                    if (!string.IsNullOrEmpty(glCode) && glDict.TryGetValue(glCode, out var gName))
+                    {
+                        glName = gName;
+                    }
+
+                    return new OpeningBalanceVM
+                    {
+                        AutoId = ob.AutoId,
+                        ComOpeningBalanceCode = ob.ComOpeningBalanceCode,
+                        Main_CompanyCode = int.TryParse(ob.MainCompanyCode, out int cId) ? cId : (int?)null,
+                        CompanyName = (ob.MainCompanyCode != null && compDict.TryGetValue(ob.MainCompanyCode, out var cName)) ? cName : "Bay School & College",
+                        BranchCode = int.TryParse(ob.BranchCode, out int bId) ? bId : (int?)null,
+                        BranchName = (ob.BranchCode != null && branchDict.TryGetValue(ob.BranchCode, out var bName)) ? bName : "Head Office",
+                        FinancialCodeNo = fyDisplay,
+                        GeneralLedgerCodeNo = glCode,
+                        GeneralLedgerName = glName,
+                        OpeningBalance = ob.OpeningBalance ?? 0m,
+                        TrType = ob.TrType ?? string.Empty,
+                        OpeningDate = resolvedDate,
+                        Reference = !string.IsNullOrWhiteSpace(ob.Reference) ? ob.Reference : "-",
+                        Description = !string.IsNullOrWhiteSpace(ob.Description) ? ob.Description : "-"
+                    };
                 }).ToList();
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"OpeningBalance GetAllAsync error: {ex.Message}");
             }
 
             return result;
@@ -185,23 +275,31 @@ namespace GCTL.Service.Finance.OpeningBalance
                 string? branchName = null;
                 if (!string.IsNullOrWhiteSpace(record.BranchCode))
                 {
-                    var br = await _context.CoreBranches.FirstOrDefaultAsync(b => b.BranchCode == record.BranchCode);
-                    branchName = br?.BranchName;
+                    try
+                    {
+                        var br = await _context.CoreBranches.FirstOrDefaultAsync(b => b.BranchCode == record.BranchCode);
+                        branchName = br?.BranchName;
+                    }
+                    catch { }
                 }
 
                 string? compName = null;
-                string? compCode = record.MainCompanyCode ?? record.CompanyCode;
+                string? compCode = record.MainCompanyCode;
                 if (!string.IsNullOrWhiteSpace(compCode))
                 {
-                    var cp = await _context.CoreCompanies.FirstOrDefaultAsync(c => c.CompanyCode == compCode);
-                    compName = cp?.CompanyName;
+                    try
+                    {
+                        var cp = await _context.CoreCompanies.FirstOrDefaultAsync(c => c.CompanyCode == compCode);
+                        compName = cp?.CompanyName;
+                    }
+                    catch { }
                 }
 
                 var vm = new OpeningBalanceVM
                 {
                     AutoId = record.AutoId,
                     ComOpeningBalanceCode = record.ComOpeningBalanceCode,
-                    Main_CompanyCode = int.TryParse(record.MainCompanyCode ?? record.CompanyCode, out int cId) ? cId : (int?)null,
+                    Main_CompanyCode = int.TryParse(record.MainCompanyCode, out int cId) ? cId : (int?)null,
                     CompanyName = compName ?? "Bay School & College",
                     BranchCode = int.TryParse(record.BranchCode, out int bId) ? bId : (int?)null,
                     BranchName = branchName ?? "Head Office",
@@ -263,6 +361,20 @@ namespace GCTL.Service.Finance.OpeningBalance
                     return res;
                 }
 
+                if (!model.OpeningDate.HasValue && !string.IsNullOrWhiteSpace(model.OpeningDateRaw))
+                {
+                    if (DateTime.TryParseExact(model.OpeningDateRaw.Trim(), new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" },
+                        System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                    {
+                        model.OpeningDate = d;
+                    }
+                    else if (DateTime.TryParse(model.OpeningDateRaw.Trim(), out var d2))
+                    {
+                        model.OpeningDate = d2;
+                    }
+                }
+                model.OpeningDate ??= DateTime.Today;
+
                 using var transaction = await _context.Database.BeginTransactionAsync();
 
                 var existingEntity = !string.IsNullOrWhiteSpace(model.ComOpeningBalanceCode)
@@ -287,7 +399,6 @@ namespace GCTL.Service.Finance.OpeningBalance
                     }
 
                     existingEntity.MainCompanyCode = model.Main_CompanyCode?.ToString() ?? "1";
-                    existingEntity.CompanyCode = model.Main_CompanyCode?.ToString() ?? "1";
                     existingEntity.BranchCode = model.BranchCode?.ToString() ?? "1";
                     existingEntity.FinancialCodeNo = model.FinancialCodeNo;
                     existingEntity.GeneralLedgerCodeNo = model.GeneralLedgerCodeNo;
@@ -332,7 +443,6 @@ namespace GCTL.Service.Finance.OpeningBalance
                     {
                         ComOpeningBalanceCode = model.ComOpeningBalanceCode,
                         MainCompanyCode = model.Main_CompanyCode?.ToString() ?? "1",
-                        CompanyCode = model.Main_CompanyCode?.ToString() ?? "1",
                         BranchCode = model.BranchCode?.ToString() ?? "1",
                         GeneralLedgerCodeNo = model.GeneralLedgerCodeNo,
                         OpeningBalance = model.OpeningBalance,
@@ -406,6 +516,49 @@ namespace GCTL.Service.Finance.OpeningBalance
 
             return res;
         }
+
+        public async Task<CommonReturnViewModel> BulkDeleteAsync(List<string> codes, int? userId = null)
+        {
+            var res = new CommonReturnViewModel();
+            try
+            {
+                if (codes == null || codes.Count == 0)
+                {
+                    res.Success = false;
+                    res.Message = "No items selected to delete.";
+                    return res;
+                }
+
+                var entities = await _context.AccCompanyOpeningBalances
+                    .Where(x => x.DeletedAt == null && codes.Contains(x.ComOpeningBalanceCode))
+                    .ToListAsync();
+
+                if (entities.Count == 0)
+                {
+                    res.Success = false;
+                    res.Message = "No matching records found to delete.";
+                    return res;
+                }
+
+                var now = DateTime.UtcNow;
+                foreach (var entity in entities)
+                {
+                    entity.DeletedAt = now;
+                    entity.DeletedBy = userId;
+                }
+
+                await _context.SaveChangesAsync();
+                res.Success = true;
+                res.Message = $"{entities.Count} opening balance record(s) deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                res.Success = false;
+                res.Message = ex.Message;
+            }
+
+            return res;
+        }
         #endregion
 
         #region Get Next Code
@@ -449,37 +602,44 @@ namespace GCTL.Service.Finance.OpeningBalance
         public async Task<OpeningBalanceDropdownsVM> GetDropdownsAsync()
         {
             var vm = new OpeningBalanceDropdownsVM();
+
+            // 1. Financial Years directly from Acc_FinancialYear table
             try
             {
-                vm.Companies = await _context.CoreCompanies
-                    .OrderBy(x => x.CompanyName)
-                    .Select(x => new DropdownItemVM
-                    {
-                        Id = 1,
-                        Name = x.CompanyName
-                    })
-                    .ToListAsync();
-
-                vm.Branches = await _context.CoreBranches
-                    .OrderBy(x => x.BranchName)
-                    .Select(x => new DropdownItemVM
-                    {
-                        Id = (int)x.AutoId,
-                        Name = x.BranchName
-                    })
-                    .ToListAsync();
-
-                vm.FinancialYears = await _context.AccFinancialYears
+                var allFys = await _context.AccFinancialYears
                     .OrderByDescending(x => x.FinancialCodeNo)
-                    .Select(x => new DropdownStringItemVM
-                    {
-                        Code = x.FinancialCodeNo,
-                        Name = x.Name
-                    })
+                    .AsNoTracking()
                     .ToListAsync();
 
-                var groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
-                var controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
+                vm.FinancialYears = allFys.Select(x => new DropdownStringItemVM
+                {
+                    Code = x.FinancialCodeNo,
+                    Name = x.Name,
+                    StartDate = x.StartDate,
+                    EndDate = x.EndDate
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Financial Years load error: {ex.Message}");
+            }
+
+            // 2. Account Heads from Acc_GeneralLedger table
+            try
+            {
+                Dictionary<string, string> groups = new();
+                try
+                {
+                    groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
+                }
+                catch { }
+
+                Dictionary<string, string> controls = new();
+                try
+                {
+                    controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
+                }
+                catch { }
 
                 var gls = await _context.AccGeneralLedgers
                     .Where(x => x.IsActive == "1" || x.IsActive == null)
@@ -496,12 +656,55 @@ namespace GCTL.Service.Finance.OpeningBalance
                     {
                         Code = gl.GeneralLedgerCodeNo,
                         Name = gl.GeneralLedgerName,
-                        GroupName = $"{grpName} - {ctlName}",
+                        GroupName = !string.IsNullOrEmpty(grpName) ? $"{grpName} - {ctlName}" : ctlName,
                         DefaultTrType = (gl.GroupLedgerCodeNo == "1" || gl.GroupLedgerCodeNo == "4") ? "Dr" : "Cr"
                     };
                 }).ToList();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Account Heads load error: {ex.Message}");
+            }
+
+            // 3. Companies & Branches (isolated so missing table in School_DB_GCTL_2 never crashes dropdowns)
+            try
+            {
+                vm.Companies = await _context.CoreCompanies
+                    .OrderBy(x => x.CompanyName)
+                    .Select(x => new DropdownItemVM
+                    {
+                        Id = 1,
+                        Name = x.CompanyName
+                    })
+                    .ToListAsync();
+            }
+            catch
+            {
+                vm.Companies = new List<DropdownItemVM>
+                {
+                    new() { Id = 1, Name = "Cantonment Public School & College, Rangpur." }
+                };
+            }
+
+            try
+            {
+                vm.Branches = await _context.CoreBranches
+                    .OrderBy(x => x.BranchName)
+                    .Select(x => new DropdownItemVM
+                    {
+                        Id = (int)x.AutoId,
+                        Name = x.BranchName
+                    })
+                    .ToListAsync();
+            }
+            catch
+            {
+                vm.Branches = new List<DropdownItemVM>
+                {
+                    new() { Id = 1, Name = "Main Branch" },
+                    new() { Id = 2, Name = "Uttara Branch" }
+                };
+            }
 
             return vm;
         }

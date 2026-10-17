@@ -20,6 +20,10 @@ namespace GCTL.Core.ViewModels.Finance.OpeningBalancesVM
     {
         public string Code { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+        public System.DateTime? StartDate { get; set; }
+        public System.DateTime? EndDate { get; set; }
+        public string? StartDateFormatted => StartDate?.ToString("dd/MM/yyyy");
+        public string? EndDateFormatted => EndDate?.ToString("dd/MM/yyyy");
     }
 
     public class AccountHeadDropdownVM

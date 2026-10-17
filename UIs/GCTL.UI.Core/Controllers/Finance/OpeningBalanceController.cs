@@ -46,6 +46,57 @@ namespace GCTL.UI.Core.Controllers.Finance
         }
 
         [HttpPost]
+        [Route("OpeningBalance/GetGridData")]
+        public async Task<IActionResult> GetGridData(
+            int draw = 1,
+            int pageNumber = 1,
+            int pageSize = 10,
+            int start = 0,
+            int length = 10,
+            string searchTerm = "",
+            string sortColumn = "ComOpeningBalanceCode",
+            string sortOrder = "desc",
+            string? financialCodeNo = null,
+            string? generalLedgerCodeNo = null,
+            string? fromDate = null,
+            string? toDate = null)
+        {
+            if (length > 0 && pageNumber == 1 && start > 0)
+            {
+                pageNumber = (start / length) + 1;
+                pageSize = length;
+            }
+            else if (length > 0)
+            {
+                pageSize = length;
+            }
+
+            var filter = new OpeningBalanceFilterVM
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm,
+                SortColumn = sortColumn,
+                SortOrder = sortOrder,
+                FinancialCodeNo = string.IsNullOrWhiteSpace(financialCodeNo) ? null : financialCodeNo.Trim(),
+                GeneralLedgerCodeNo = string.IsNullOrWhiteSpace(generalLedgerCodeNo) ? null : generalLedgerCodeNo.Trim(),
+                FromDateStr = fromDate,
+                ToDateStr = toDate
+            };
+
+            var result = await _openingBalanceService.GetAllAsync(filter);
+
+            return Json(new
+            {
+                draw = draw,
+                recordsTotal = result.TotalCount,
+                recordsFiltered = result.TotalCount,
+                data = result.Items,
+                summary = result.Summary
+            });
+        }
+
+        [HttpPost]
         [Route("OpeningBalance/GetAll")]
         public async Task<IActionResult> GetAll([FromBody] OpeningBalanceFilterVM filter)
         {
@@ -102,6 +153,18 @@ namespace GCTL.UI.Core.Controllers.Finance
 
             int? userId = GetCurrentUserId();
             var result = await _openingBalanceService.DeleteAsync(id, userId);
+            return Json(result);
+        }
+
+        [HttpPost]
+        [Route("OpeningBalance/BulkDelete")]
+        public async Task<IActionResult> BulkDelete([FromBody] List<string> ids)
+        {
+            if (ids == null || ids.Count == 0)
+                return Json(new { success = false, message = "Please select at least one item to delete." });
+
+            int? userId = GetCurrentUserId();
+            var result = await _openingBalanceService.BulkDeleteAsync(ids, userId);
             return Json(result);
         }
 

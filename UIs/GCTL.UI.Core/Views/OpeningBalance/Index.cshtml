@@ -5,6 +5,9 @@
     var dropdowns = ViewBag.Dropdowns as OpeningBalanceDropdownsVM ?? new OpeningBalanceDropdownsVM();
 }
 
+<link rel="stylesheet" href="~/css/Toolbars.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+
 <style>
     .content {
         min-height: 100vh;
@@ -12,13 +15,64 @@
         position: relative;
         padding-bottom: 6rem;
     }
+    
+    /* Standardized Clean Typography */
+    .ob-page-wrapper .form-label,
+    .ob-page-wrapper label {
+        font-size: 13px !important;
+        font-weight: 500;
+        color: #344054;
+        margin-bottom: 3px;
+        text-transform: none !important;
+    }
+    .ob-page-wrapper .form-control,
+    .ob-page-wrapper .form-select {
+        font-size: 13.5px !important;
+        height: 34px !important;
+        color: #1d2939;
+    }
+    .ob-page-wrapper textarea.form-control {
+        height: auto !important;
+        min-height: 54px;
+        font-size: 13.5px !important;
+    }
+    .custom-grid-table th {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: #344054 !important;
+        text-transform: none !important;
+    }
+    .custom-grid-table td {
+        font-size: 13px !important;
+        color: #1f2937 !important;
+    }
+
+    /* Right-side Calendar Icon on Date Inputs */
+    .gc-date-input,
+    input.flatpickr-input,
+    #modalOpeningDate,
+    #fFrom,
+    #fTo {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 10px center !important;
+        background-size: 15px 15px !important;
+        padding-right: 32px !important;
+        cursor: pointer !important;
+    }
+
+    /* Remove broken glyph icon artifacts */
+    .search-box-icon {
+        display: none !important;
+    }
+
     /* Scoped Opening Balance Styles */
     .ob-stat-card {
         background: var(--phoenix-card-bg, #fff);
         border: 1px solid var(--phoenix-border-color, #e3e6ed);
         border-top: 4px solid var(--stat-color, #2563eb);
         border-radius: 8px;
-        padding: 6px 12px;
+        padding: 8px 14px;
         transition: transform .15s ease, box-shadow .15s ease;
         text-align: left;
         width: 100%;
@@ -26,14 +80,14 @@
     }
     .ob-stat-num {
         display: block;
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 700;
         line-height: 1.1;
         color: var(--stat-color, #2563eb);
         font-family: monospace, sans-serif;
     }
     .ob-stat-label {
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
         color: var(--phoenix-tertiary-color, #6c757d);
@@ -43,15 +97,15 @@
         background: var(--phoenix-card-bg, #fff);
         border: 1px solid var(--phoenix-border-color, #e3e6ed);
         border-radius: 8px;
-        padding: 12px 18px;
+        padding: 10px 16px;
     }
 
-    /* Badges matching StudentAdmission style */
+    /* Badges matching ERP standard style */
     .ob-badge-dr {
         display: inline-block;
         padding: 3px 10px;
         border-radius: 99px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 700;
         line-height: 1.35;
         white-space: nowrap;
@@ -64,7 +118,7 @@
         display: inline-block;
         padding: 3px 10px;
         border-radius: 99px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 700;
         line-height: 1.35;
         white-space: nowrap;
@@ -75,9 +129,9 @@
     }
     .ob-badge-fy {
         display: inline-block;
-        padding: 3px 9px;
+        padding: 3px 10px;
         border-radius: 99px;
-        font-size: 11.5px;
+        font-size: 12px;
         font-weight: 700;
         line-height: 1.35;
         white-space: nowrap;
@@ -88,54 +142,15 @@
         border: 1px solid #cbd5e1 !important;
     }
 
-    /* Actions Column Buttons matching StudentAdmission */
-    .adms-act {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-    .adms-act button {
-        border: 1px solid #dfe3ec;
-        background: #fff;
-        border-radius: 5px;
-        padding: 4px 9px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        line-height: 1.4;
-        transition: all .15s ease;
-        white-space: nowrap;
-        color: #16264a;
-        outline: none;
-    }
-    .adms-act button:hover {
-        background: #f4f6fa;
-        border-color: #cbd2e0;
-    }
-    .adms-act .a-no {
-        color: #b83c3c !important;
-    }
-    .adms-act .a-p {
-        color: #16264a !important;
-    }
-
-    /* Normal Title Casing for Grid Headers and Form Labels */
-    #OpeningBalance-table th,
-    .form-label,
-    label {
-        text-transform: none !important;
-    }
-
-    /* Compact Choices.js to match form-control-sm / form-select-sm (32px height) */
+    /* Compact Choices.js to match 34px height */
     .choices {
         margin-bottom: 0 !important;
     }
     .choices__inner {
-        min-height: 32px !important;
-        height: 32px !important;
-        padding: 2px 8px !important;
-        font-size: 0.8rem !important;
+        min-height: 34px !important;
+        height: 34px !important;
+        padding: 3px 10px !important;
+        font-size: 13.5px !important;
         border-radius: 0.25rem !important;
         border-color: var(--phoenix-border-color, #cbd0dd) !important;
         background-color: var(--phoenix-body-bg, #fff) !important;
@@ -143,7 +158,7 @@
         align-items: center !important;
     }
     .choices[data-type*="select-one"] .choices__inner {
-        padding-bottom: 2px !important;
+        padding-bottom: 3px !important;
     }
     .choices[data-type*="select-one"]::after {
         right: 10px !important;
@@ -152,37 +167,20 @@
     }
     .choices__list--single {
         padding: 0 16px 0 0 !important;
-        font-size: 0.8rem !important;
+        font-size: 13.5px !important;
     }
     .choices__list--dropdown .choices__item {
-        font-size: 0.8rem !important;
-        padding: 6px 10px !important;
+        font-size: 13.5px !important;
+        padding: 6px 12px !important;
     }
 </style>
 
-<div class="p-3 pt-0">
-    <!-- Top Header: Title, Workflow hint, Search box, and Export Tools (No Add button) -->
+<div class="p-3 pt-0 ob-page-wrapper">
+    <!-- Top Header: Title and Subtitle -->
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-2 pb-1 border-bottom">
         <div>
-            <h4 class="text-body-emphasis mb-0 fw-bold">@Html.SmartLocalize("Opening Balance Setup")</h4>
-            <p class="text-body-tertiary mb-0 fs-9">@Html.SmartLocalize("Set the starting balance of each ledger account for the financial year.")</p>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <div class="search-box" style="width: 220px;">
-                <input class="form-control form-control-sm search-input search" id="OpeningBalance-headerSearch" type="search" placeholder="@Html.SmartLocalize("Search here...")" aria-label="Search" />
-                <span class="fas fa-search search-box-icon"></span>
-            </div>
-
-            <div class="dropdown">
-                <button class="btn btn-phoenix-secondary btn-sm dropdown-toggle dropdown-caret-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-file-export me-1"></i>@Html.SmartLocalize("Export")
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm fs-9">
-                    <li><a class="dropdown-item" href="javascript:void(0);" id="btnExportPrint"><i class="fas fa-print me-2 text-muted"></i>@Html.SmartLocalize("Print / Preview")</a></li>
-                    <li><a class="dropdown-item" href="javascript:void(0);" id="btnExportPdf"><i class="fas fa-file-pdf me-2 text-danger"></i>@Html.SmartLocalize("Save as PDF")</a></li>
-                    <li><a class="dropdown-item" href="javascript:void(0);" id="btnExportCSV"><i class="fas fa-file-excel me-2 text-success"></i>@Html.SmartLocalize("Excel (.xlsx)")</a></li>
-                </ul>
-            </div>
+            <h4 class="text-body-emphasis mb-0 fw-bold" style="font-size: 1.15rem;">@Html.SmartLocalize("Opening Balance Setup")</h4>
+            <p class="text-body-tertiary mb-0" style="font-size: 13px;">@Html.SmartLocalize("Set the starting balance of each ledger account for the financial year.")</p>
         </div>
     </div>
 
@@ -204,7 +202,7 @@
             <div class="ob-stat-card" id="cardDifference" style="--stat-color: #16a34a;">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="ob-stat-label">@Html.SmartLocalize("Difference")</span>
-                    <span class="badge badge-subtle-success fs-9" id="badgeDiffStatus">
+                    <span class="badge badge-subtle-success" id="badgeDiffStatus" style="font-size: 12px;">
                         <i class="fas fa-check-circle me-1"></i>@Html.SmartLocalize("Balanced")
                     </span>
                 </div>
@@ -213,22 +211,33 @@
         </div>
     </div>
 
-    <!-- Setup of Opening Balance Form (Placed directly below Excel File format) -->
+    <!-- Setup of Opening Balance Form with standard _Toolbars -->
     <div class="card shadow-none border-gray-200 mb-2">
-        <div class="card-header bg-body-highlight border-gray-2000 py-2 px-3">
-            <h6 class="text-body-emphasis mb-0 fw-bold fs-9" id="formTitle">
-                <i class="fas fa-plus-circle me-2 text-primary"></i>@Html.SmartLocalize("Opening Balance")
-            </h6>
+        <div class="card-header p-0">
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title = "Opening Balance Setup",
+                SaveBtnId = "btnSave",
+                SaveBtnClass = "js-ob-save",
+                DeleteBtnId = "btnDelete",
+                DeleteBtnClass = "js-ob-delete-confirm",
+                ClearBtnId = "btnClear",
+                ClearBtnClass = "js-ob-clear",
+                PrintBtnId = "btnPrint",
+                ShowPrint = true,
+                ShowTitle = true
+            })
         </div>
-        <div class="card-body px-3 pt-1 pb-2">
+        <div class="card-body px-3 pt-2 pb-2">
             <form id="OpeningBalance-form" autocomplete="off" novalidate>
                 <div class="alert alert-danger d-none" id="OpeningBalance-modalAlertError"></div>
                 <input type="hidden" id="OpeningBalance-isEdit" value="0" />
+                <input type="hidden" id="OpeningBalance-autoId" value="" />
 
                 <div class="row gx-3">
                     <!-- Row 1: Company | Branch -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold fs-9" for="modalCompany">@Html.SmartLocalize("Company")</label>
+                        <label class="form-label fw-semibold" for="modalCompany">@Html.SmartLocalize("Company")</label>
                         <select class="form-select form-select-sm custom-select-single" id="modalCompany" data-placeholder="@Html.SmartLocalize("Select Company")">
                             @foreach (var comp in dropdowns.Companies)
                             {
@@ -237,7 +246,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold fs-9" for="modalBranch">@Html.SmartLocalize("Branch")</label>
+                        <label class="form-label fw-semibold" for="modalBranch">@Html.SmartLocalize("Branch")</label>
                         <select class="form-select form-select-sm custom-select-single" id="modalBranch" data-placeholder="@Html.SmartLocalize("Select Branch")">
                             @foreach (var br in dropdowns.Branches)
                             {
@@ -246,20 +255,20 @@
                         </select>
                     </div>
 
-                    <!-- hr divided till half -->
-                    <div class="col-12 py-0 mt-1">
-                        <div style="width: 50%; border-top: 1px solid var(--phoenix-border-color, #e3e6ed);"></div>
+                    <!-- hr divider -->
+                    <div class="col-12 py-0 mt-2 mb-2">
+                        <div style="width: 100%; border-top: 1px solid var(--phoenix-border-color, #e3e6ed);"></div>
                     </div>
 
                     <!-- Row 2: OB Code | Financial Year + Opening Date -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold fs-9 req" for="modalObCode">@Html.SmartLocalize("OB Code")</label>
+                        <label class="form-label fw-semibold req" for="modalObCode">@Html.SmartLocalize("OB Code")</label>
                         <input type="text" class="form-control form-control-sm bg-light" id="modalObCode" readonly placeholder="@Html.SmartLocalize("Auto-generated")" />
                     </div>
                     <div class="col-md-6">
                         <div class="row g-2">
                             <div class="col-6">
-                                <label class="form-label fw-semibold fs-9 req" for="modalFinancialYear">@Html.SmartLocalize("Financial Year")</label>
+                                <label class="form-label fw-semibold req" for="modalFinancialYear">@Html.SmartLocalize("Financial Year")</label>
                                 <select class="form-select form-select-sm custom-select-single" id="modalFinancialYear" data-placeholder="@Html.SmartLocalize("Select Financial Year")" required>
                                     <option value="">@Html.SmartLocalize("Select Financial Year")...</option>
                                     @foreach (var fy in dropdowns.FinancialYears)
@@ -269,15 +278,17 @@
                                 </select>
                             </div>
                             <div class="col-6">
-                                <label class="form-label fw-semibold fs-9 req" for="modalOpeningDate">@Html.SmartLocalize("Opening Date")</label>
-                                <input type="text" class="form-control form-control-sm" id="modalOpeningDate" placeholder="dd/mm/yyyy" required />
+                                <label class="form-label fw-semibold req" for="modalOpeningDate">@Html.SmartLocalize("Opening Date")</label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control form-control-sm gc-date-input" id="modalOpeningDate" placeholder="dd/mm/yyyy" required />
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Row 3: Account Head | Opening Balance + Transaction Type -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold fs-9 req" for="modalAccountHead">@Html.SmartLocalize("Account Head")</label>
+                        <label class="form-label fw-semibold req" for="modalAccountHead">@Html.SmartLocalize("Account Head")</label>
                         <select class="form-select form-select-sm custom-select-single" id="modalAccountHead" data-placeholder="@Html.SmartLocalize("Select Account Code - Account Head")" required>
                             <option value="">@Html.SmartLocalize("Select Account Code - Account Head")...</option>
                             @foreach (var grp in dropdowns.AccountHeads.GroupBy(a => a.GroupName))
@@ -294,14 +305,14 @@
                     <div class="col-md-6">
                         <div class="row g-2">
                             <div class="col-6">
-                                <label class="form-label fw-semibold fs-9 req" for="modalAmount">@Html.SmartLocalize("Opening Balance")</label>
+                                <label class="form-label fw-semibold req" for="modalAmount">@Html.SmartLocalize("Opening Balance")</label>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">৳</span>
+                                    <span class="input-group-text" style="font-size: 13px;">৳</span>
                                     <input type="number" class="form-control form-control-sm text-end" id="modalAmount" min="0" step="0.01" placeholder="0.00" required />
                                 </div>
                             </div>
                             <div class="col-6">
-                                <label class="form-label fw-semibold fs-9 req" for="modalTrType">@Html.SmartLocalize("Transaction Type")</label>
+                                <label class="form-label fw-semibold req" for="modalTrType">@Html.SmartLocalize("Transaction Type")</label>
                                 <select class="form-select form-select-sm custom-select-single" id="modalTrType" data-placeholder="@Html.SmartLocalize("Select Dr / Cr")" required>
                                     <option value="">@Html.SmartLocalize("Select Dr / Cr")...</option>
                                     <option value="Dr">@Html.SmartLocalize("Dr (Debit)")</option>
@@ -313,20 +324,20 @@
 
                     <!-- Row 4: Reference | Description (textarea) -->
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold fs-9" for="modalReference">@Html.SmartLocalize("Reference")</label>
+                        <label class="form-label fw-semibold" for="modalReference">@Html.SmartLocalize("Reference")</label>
                         <input type="text" class="form-control form-control-sm" id="modalReference" maxlength="100" placeholder="@Html.SmartLocalize("e.g. OB-JV-001, REF-001")" />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold fs-9" for="modalDescription">@Html.SmartLocalize("Description")</label>
+                        <label class="form-label fw-semibold" for="modalDescription">@Html.SmartLocalize("Description")</label>
                         <textarea class="form-control form-control-sm" id="modalDescription" rows="2" maxlength="255" placeholder="@Html.SmartLocalize("Enter description or remarks (optional)")"></textarea>
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end align-items-center gap-2 mt-1 pt-1">
-                    <button type="button" class="btn btn-phoenix-secondary btn-sm" id="OpeningBalance-resetBtn">
-                        <i class="fas fa-undo me-1"></i>@Html.SmartLocalize("Cancel")
+                <div class="d-flex justify-content-end align-items-center gap-2 mt-2 pt-1 border-top">
+                    <button type="button" class="btn btn-phoenix-secondary btn-sm js-ob-clear" id="OpeningBalance-resetBtn" style="font-size: 13px;">
+                        <i class="fas fa-undo me-1"></i>@Html.SmartLocalize("Clear")
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm" id="OpeningBalance-saveBtn">
+                    <button type="button" class="btn btn-primary btn-sm js-ob-save" id="OpeningBalance-saveBtn" style="font-size: 13px;">
                         <i class="fas fa-save me-1"></i>@Html.SmartLocalize("Save")
                     </button>
                 </div>

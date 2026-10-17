@@ -11,7 +11,9 @@ namespace GCTL.Core.ViewModels.Finance.OpeningBalancesVM
         public string? GeneralLedgerCodeNo { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
+        public string? FromDateStr { get; set; }
+        public string? ToDateStr { get; set; }
         public string? SortColumn { get; set; } = "ComOpeningBalanceCode";
-        public string? SortOrder { get; set; } = "asc";
+        public string? SortOrder { get; set; } = "desc";
     }
 }

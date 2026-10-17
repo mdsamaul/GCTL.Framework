@@ -40,9 +40,14 @@ namespace GCTL.Core.ViewModels.Finance.OpeningBalancesVM
         [Display(Name = "Tr. Type")]
         public string TrType { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Opening Balance Date is required.")]
+        public string? AccountHeadDisplay => !string.IsNullOrEmpty(GeneralLedgerName) && !string.IsNullOrEmpty(GeneralLedgerCodeNo)
+            ? $"{GeneralLedgerCodeNo} - {GeneralLedgerName}"
+            : (GeneralLedgerName ?? GeneralLedgerCodeNo);
+
         [Display(Name = "OB Date")]
         public DateTime? OpeningDate { get; set; }
+
+        public string? OpeningDateRaw { get; set; }
 
         public string? OpeningDateFormatted => OpeningDate?.ToString("dd/MM/yyyy");
 
