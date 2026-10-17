@@ -1,4 +1,5 @@
 @using GCTL.Core.ViewModels.Finance.VoucherEntryVM
+@using GCTL.UI.Core.ViewModels
 @{
     ViewData["Title"] = "Voucher Entry";
     Layout = "_Layout";
@@ -260,47 +261,213 @@
         content: none !important;
     }
 
-    /* Action buttons in Table matching screenshot (View, Edit, Post, Delete) */
+    /* Glass Effect Toolbar & Action Buttons across Voucher Entry - matching OpeningBalance */
+    .toolbar-btn {
+        position: relative !important;
+        overflow: hidden !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: .45rem !important;
+        height: 34px !important;
+        line-height: 1 !important;
+        padding: 0 14px !important;
+        background: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(220, 223, 227, 0.85) !important;
+        border-radius: 4px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.04) !important;
+        transition: color .3s ease, border-color .3s ease, transform .25s ease, box-shadow .25s ease !important;
+        text-decoration: none !important;
+    }
+    .toolbar-btn::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 0 !important;
+        background: #f3f4f6 !important;
+        transition: height .3s ease !important;
+        z-index: 0 !important;
+    }
+    .toolbar-btn:hover::before {
+        height: 100% !important;
+    }
+    .toolbar-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,.12) !important;
+        background: rgba(248, 249, 250, 0.95) !important;
+        border-color: #cfd3d8 !important;
+    }
+    .toolbar-btn span,
+    .toolbar-btn i {
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    .toolbar-btn-save::before {
+        background: rgba(40,167,69,.15) !important;
+    }
+    .toolbar-btn-save {
+        color: #28a745 !important;
+    }
+    .toolbar-btn-save i {
+        color: #28a745 !important;
+    }
+    .toolbar-btn-clear::before {
+        background: rgba(33,37,41,.10) !important;
+    }
+    .toolbar-btn-clear {
+        color: #212529 !important;
+    }
+    .toolbar-btn-clear i {
+        color: #212529 !important;
+    }
+    .toolbar-btn-print::before {
+        background: rgba(13,110,253,.12) !important;
+    }
+    .toolbar-btn-print {
+        color: #0d6efd !important;
+    }
+    .toolbar-btn-print i {
+        color: #0d6efd !important;
+    }
+    .toolbar-btn-delete::before {
+        background: rgba(220,53,69,.15) !important;
+    }
+    .toolbar-btn-delete {
+        color: #dc3545 !important;
+    }
+    .toolbar-btn-delete i {
+        color: #dc3545 !important;
+    }
+    .toolbar-btn-fav::before {
+        background: rgba(245,166,35,.18) !important;
+    }
+    .toolbar-btn-fav {
+        color: #f5a623 !important;
+    }
+    .toolbar-btn-fav i {
+        color: #f5a623 !important;
+    }
+    .toolbar-btn-fav.active {
+        background: #fff8e6 !important;
+        border-color: #f5a623 !important;
+        box-shadow: 0 0 0 2px rgba(245,166,35,0.2) !important;
+    }
+
+    /* Action buttons in Table with Glass Effect (View, Edit, Delete) */
     .vch-btn-action {
-        display: inline-block;
-        padding: 2px 9px;
-        font-size: 11.5px;
-        font-weight: 500;
-        line-height: 1.4;
-        border-radius: 4px;
-        background-color: #ffffff;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.15s ease-in-out;
-        margin: 1px 2px;
-        white-space: nowrap;
+        position: relative !important;
+        overflow: hidden !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 3px 10px !important;
+        font-size: 11.5px !important;
+        font-weight: 500 !important;
+        line-height: 1.4 !important;
+        border-radius: 4px !important;
+        background-color: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+        margin: 1px 2px !important;
+        white-space: nowrap !important;
+        z-index: 1 !important;
     }
-    .vch-btn-action.vch-btn-view,
+    .vch-btn-action::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 0 !important;
+        transition: height .25s ease !important;
+        z-index: -1 !important;
+    }
+    .vch-btn-action:hover::before {
+        height: 100% !important;
+    }
+    .vch-btn-action:hover {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,.12) !important;
+    }
+    .vch-btn-action.vch-btn-view::before {
+        background: rgba(19, 106, 85, .15) !important;
+    }
+    .vch-btn-action.vch-btn-view {
+        border: 1px solid #136a55 !important;
+        color: #136a55 !important;
+    }
+    .vch-btn-action.vch-btn-edit::before {
+        background: rgba(13, 110, 253, .15) !important;
+    }
     .vch-btn-action.vch-btn-edit {
-        border: 1px solid #136a55;
-        color: #136a55;
+        border: 1px solid #0d6efd !important;
+        color: #0d6efd !important;
     }
-    .vch-btn-action.vch-btn-view:hover,
-    .vch-btn-action.vch-btn-edit:hover {
-        background-color: #136a55;
-        color: #ffffff;
-    }
-    .vch-btn-action.vch-btn-post {
-        display: none !important;
-        border: 1px solid #16a34a;
-        color: #15803d;
-    }
-    .vch-btn-action.vch-btn-post:hover {
-        background-color: #16a34a;
-        color: #ffffff;
+    .vch-btn-action.vch-btn-del::before {
+        background: rgba(220, 53, 69, .15) !important;
     }
     .vch-btn-action.vch-btn-del {
-        border: 1px solid #a32a2a;
-        color: #a32a2a;
+        border: 1px solid #dc3545 !important;
+        color: #dc3545 !important;
     }
-    .vch-btn-action.vch-btn-del:hover {
-        background-color: #a32a2a;
-        color: #ffffff;
+
+    /* Line Item Add & Remove Buttons Glass Effect */
+    .btn-add-ln, .btn-rm-ln {
+        position: relative !important;
+        overflow: hidden !important;
+        border-radius: 4px !important;
+        transition: transform .2s ease, box-shadow .2s ease !important;
+    }
+    .btn-add-ln:hover, .btn-rm-ln:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 3px 8px rgba(0,0,0,.15) !important;
+    }
+
+    /* Grid Search Button Glass Effect */
+    #VoucherEntry-searchBtn {
+        position: relative !important;
+        overflow: hidden !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        border: 1px solid #cbd0dd !important;
+        color: #495057 !important;
+        transition: transform .2s ease, box-shadow .2s ease, color .2s ease, border-color .2s ease !important;
+        z-index: 1 !important;
+    }
+    #VoucherEntry-searchBtn::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 0 !important;
+        background: rgba(13, 110, 253, .12) !important;
+        transition: height .25s ease !important;
+        z-index: -1 !important;
+    }
+    #VoucherEntry-searchBtn:hover::before {
+        height: 100% !important;
+    }
+    #VoucherEntry-searchBtn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,.10) !important;
+        color: #0d6efd !important;
+        border-color: #0d6efd !important;
     }
 
     /* Print Paper Styles */
@@ -849,13 +1016,27 @@
         </div>
     </div>
 
-    <!-- Voucher Entry Form Panel -->
+    <!-- Voucher Entry Form Panel with standard _Toolbars -->
     <div class="card border-0 shadow-sm mb-4" id="vchFormCard">
-        <div class="card-header bg-white border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fs-8 fw-bold" id="formVoucherTitle">
-                <i class="fas fa-edit me-1 text-primary"></i>@Html.SmartLocalize("voucher Entry")
-            </h5>
-            <span class="badge bg-light text-secondary fs-9" id="editVoucherBadge" style="display: none;">@Html.SmartLocalize("Editing")</span>
+        <div class="card-header p-0 border-bottom">
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title = "<span id=\"formVoucherTitle\"><i class=\"fas fa-edit me-1 text-primary\"></i>" + Html.SmartLocalize("Voucher Entry") + "</span> <span class=\"badge bg-light text-secondary fs-9 ms-1\" id=\"editVoucherBadge\" style=\"display: none;\">" + Html.SmartLocalize("Editing") + "</span>",
+                SaveBtnId = "btnSave",
+                SaveBtnClass = "js-vch-save",
+                DeleteBtnId = "btnDelete",
+                DeleteBtnClass = "js-vch-delete",
+                ClearBtnId = "btnClear",
+                ClearBtnClass = "js-vch-clear",
+                PrintBtnId = "btnPrint",
+                ShowPrint = true,
+                ShowFavorite = true,
+                FavtBtnId = "btnFavorite",
+                FavtBtnClass = "js-vch-fav",
+                ShowTitle = true,
+                IsPlain = true,
+                CustomStyle = "border-bottom: 1px solid #e3e6ed; padding: 6px 14px !important;"
+            })
         </div>
         <div class="card-body p-3">
             <form id="vchForm" autocomplete="off">
@@ -974,11 +1155,11 @@
 
                 <!-- Form Action Buttons -->
                 <div class="d-flex justify-content-end align-items-center gap-2">
-                    <button type="button" class="btn btn-phoenix-secondary btn-sm" id="vBtnClear">
-                        <i class="fas fa-undo me-1"></i>@Html.SmartLocalize("Clear")
+                    <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="vBtnClear">
+                        <i class="fas fa-redo"></i> <span>@Html.SmartLocalize("Clear")</span>
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm" id="vBtnSave">
-                        <i class="fas fa-save me-1"></i><span id="vBtnSaveText">@Html.SmartLocalize("Save voucher")</span>
+                    <button type="button" class="btn toolbar-btn toolbar-btn-save" id="vBtnSave">
+                        <i class="fas fa-save"></i> <span id="vBtnSaveText">@Html.SmartLocalize("Save voucher")</span>
                     </button>
                 </div>
             </form>
@@ -1032,7 +1213,7 @@
                 </div>
 
                 <div class="vch-filter-item-btn">
-                    <button type="button" class="btn btn-phoenix-secondary btn-sm" id="btnResetVFilters" title="@Html.SmartLocalize("Reset")">
+                    <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="btnResetVFilters" title="@Html.SmartLocalize("Reset")">
                         <i class="fas fa-undo"></i>
                     </button>
                 </div>

@@ -453,6 +453,8 @@
         $('#formVoucherTitle').html('<i class="fas fa-edit me-1 text-primary"></i>' + (window.SmartLocalize ? window.SmartLocalize('voucher Entry') : 'voucher Entry'));
         $('#editVoucherBadge').hide();
         $('#vBtnSaveText').text('Save voucher');
+        $('#btnSave span').text('Save');
+        $('#btnDelete, .js-vch-delete').prop('disabled', true);
         setDropdownDisabled('vType', false);
 
         // Auto-select Company by default
@@ -927,15 +929,53 @@
             recalculateTotals();
         });
 
-        // Clear Form Button
-        $('#vBtnClear').on('click', function () {
+        // Clear Form Buttons (Top toolbar & Form bottom)
+        $(document).on('click', '#vBtnClear, #btnClear, .js-vch-clear', function (e) {
+            e.preventDefault();
             $('#vchForm')[0].reset();
             initDefaultForm();
         });
 
-        // Save Form Button
-        $('#vBtnSave').on('click', function () {
+        // Save Form Buttons (Top toolbar & Form bottom)
+        $(document).on('click', '#vBtnSave, #btnSave, .js-vch-save', function (e) {
+            e.preventDefault();
             saveVoucher();
+        });
+
+        // Delete Button (Top toolbar)
+        $(document).on('click', '#btnDelete, .js-vch-delete', function (e) {
+            e.preventDefault();
+            if (editingVoucherCode) {
+                if (window.voucherManager && typeof window.voucherManager.confirmDelete === 'function') {
+                    window.voucherManager.confirmDelete(editingVoucherCode);
+                } else {
+                    executeDelete(editingVoucherCode);
+                }
+            } else {
+                showToast('Please select or edit a voucher to delete.', 'warning');
+            }
+        });
+
+        // Favorite Button (Top toolbar)
+        $(document).on('click', '#btnFavorite, .js-vch-fav', function (e) {
+            e.preventDefault();
+            $(this).toggleClass('active');
+            if ($(this).hasClass('active')) {
+                showToast('Voucher entry page added to favorites.', 'info');
+            } else {
+                showToast('Voucher entry page removed from favorites.', 'info');
+            }
+        });
+
+        // Print/Export Buttons (PDF & Excel dropdown under #btnPrint)
+        $(document).on('click', '#btnPrintPdfBtn', function (e) {
+            e.preventDefault();
+            exportPdf();
+        });
+
+        $(document).on('click', '#btnPrintExcelBtn', function (e) {
+            e.preventDefault();
+            exportExcel();
         });
 
         // Filter Inputs
@@ -1487,6 +1527,8 @@
                         $('#formVoucherTitle').html(`<i class="fas fa-edit me-1 text-primary"></i>Edit voucher ${escapeHtml(v.voucherNo)}`);
                         $('#editVoucherBadge').show();
                         $('#vBtnSaveText').text('Update voucher');
+                        $('#btnSave span').text('Update');
+                        $('#btnDelete, .js-vch-delete').prop('disabled', false);
 
                         let targetType = v.voucherType_Code;
                         if ($('#vType option[value="' + targetType + '"]').length === 0) {
@@ -1832,6 +1874,10 @@
             success: function (res) {
                 if (res && res.success) {
                     showToast(res.message || 'Voucher deleted successfully.');
+                    if (editingVoucherCode === code) {
+                        $('#vchForm')[0].reset();
+                        initDefaultForm();
+                    }
                     loadTableData();
                 } else {
                     showToast(res ? res.message : 'Failed to delete voucher.', 'error');
