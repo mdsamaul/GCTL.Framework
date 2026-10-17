@@ -63,13 +63,14 @@ $(document).ready(function () {
     }
 
     function renderList(flatList) {
-        if (!flatList || flatList.length === 0) {
+        const validList = (flatList || []).filter(item => item && item.generalLedgerCode && item.generalLedgerCode.trim() !== '');
+        if (!validList || validList.length === 0) {
             $('#listViewContainer').html('<div class="empty-state"><i class="fas fa-list-alt fa-2x mb-2 text-muted"></i><p>No chart of accounts records found.</p></div>');
             return;
         }
 
         let rows = '';
-        flatList.forEach(function (item) {
+        validList.forEach(function (item) {
             rows += `
                 <tr>
                     <td>${seg(item.groupCode)} <span class="fw-semibold">${esc(item.groupName)}</span></td>

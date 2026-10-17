@@ -89,6 +89,9 @@ namespace GCTL.Service.Finance.ChartOfAccountsReports
 
                     foreach (var r in rows)
                     {
+                        var glCode = (string)r.GeneralLedgerCodeNo ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(glCode)) continue;
+
                         flatItems.Add(new ChartOfAccountsReportItemDto
                         {
                             GroupCode = (string)r.GroupLedgerCodeNo ?? string.Empty,
@@ -99,7 +102,7 @@ namespace GCTL.Service.Finance.ChartOfAccountsReports
                             SubControlName = (string)r.SubControlLedgerName ?? string.Empty,
                             SubSubsidiaryCode = (string)r.SubSubsidiaryLedgerCodeNo ?? string.Empty,
                             SubSubsidiaryName = (string)r.SubSubsidiaryLedgerName ?? string.Empty,
-                            GeneralLedgerCode = (string)r.GeneralLedgerCodeNo ?? string.Empty,
+                            GeneralLedgerCode = glCode,
                             GeneralLedgerName = (string)r.GeneralLedgerName ?? string.Empty,
                             ShortName = (string)r.GeneralLedgerShortName,
                             AccountType = (string)r.AccountType ?? "Asset",
