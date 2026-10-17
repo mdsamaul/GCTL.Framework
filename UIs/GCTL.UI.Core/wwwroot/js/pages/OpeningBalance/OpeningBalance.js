@@ -75,22 +75,115 @@
         return `${dd}/${mm}/${yyyy}`;
     }
 
-    function setDatePickerValue(id, val) {
+    /* ===== Flatpickr Footer Helper (Today & Clear Buttons) matching VoucherEntry ===== */
+    function addCalendarTodayClearButtons(fpInstance) {
+        if (!fpInstance || !fpInstance.calendarContainer) return;
+        if (fpInstance.calendarContainer.querySelector('.custom-fp-footer')) return;
+
+        const footer = document.createElement('div');
+        footer.className = 'custom-fp-footer';
+
+        const todayBtn = document.createElement('button');
+        todayBtn.type = 'button';
+        todayBtn.className = 'custom-fp-today-btn';
+        todayBtn.textContent = 'Today';
+        todayBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fpInstance.setDate(new Date(), true);
+            $(fpInstance.input).trigger('change');
+            if (fpInstance.altInput) $(fpInstance.altInput).trigger('change');
+            fpInstance.close();
+        });
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'custom-fp-clear-btn';
+        clearBtn.textContent = 'Clear';
+        clearBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fpInstance.clear();
+            $(fpInstance.input).val('').trigger('change');
+            if (fpInstance.altInput) $(fpInstance.altInput).val('').trigger('change');
+            fpInstance.close();
+        });
+
+        footer.appendChild(todayBtn);
+        footer.appendChild(clearBtn);
+        fpInstance.calendarContainer.appendChild(footer);
+    }
+
+    function initDatePickers() {
+        ['fFrom', 'fTo', 'modalOpeningDate'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (!el || typeof flatpickr === 'undefined') return;
+            if (el._flatpickr) el._flatpickr.destroy();
+
+            flatpickr(el, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: true,
+                onReady: function (selectedDates, dateStr, instance) {
+                    instance.input.placeholder = "dd/mm/yyyy";
+                    addCalendarTodayClearButtons(instance);
+                },
+                onOpen: function (selectedDates, dateStr, instance) {
+                    addCalendarTodayClearButtons(instance);
+                }
+            });
+        });
+
+        function triggerFilterReload() {
+            reloadGrid(true);
+        }
+
+        ['fFrom', 'fTo'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el && el._flatpickr) {
+                el._flatpickr.config.onChange.push(triggerFilterReload);
+                if (el._flatpickr.altInput) {
+                    $(el._flatpickr.altInput).on('change', triggerFilterReload);
+                    $(el._flatpickr.altInput).on('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            triggerFilterReload();
+                        }
+                    });
+                }
+            }
+            $(`#${id}`).on('change', triggerFilterReload);
+        });
+    }
+
+    function setDatePickerValue(id, val, triggerChange = false) {
         const rawId = id.replace('#', '');
         const el = document.getElementById(rawId);
-        if (el && el._flatpickr) {
-            if (val) {
-                const dateObj = parseDateToJsDate(val);
-                if (dateObj) {
-                    el._flatpickr.setDate(dateObj, false);
-                } else {
-                    el._flatpickr.setDate(val, false);
-                }
-            } else {
+        if (!val) {
+            if (el && el._flatpickr) {
                 el._flatpickr.clear();
+                $(el).val('');
+                if (el._flatpickr.altInput) $(el._flatpickr.altInput).val('');
+            } else {
+                $(`#${rawId}`).val('');
+            }
+            return;
+        }
+
+        const dateObj = parseDateToJsDate(val);
+        if (el && el._flatpickr) {
+            if (dateObj && !isNaN(dateObj.getTime())) {
+                el._flatpickr.setDate(dateObj, triggerChange);
+            } else {
+                el._flatpickr.setDate(val, triggerChange);
             }
         } else {
-            $(`#${rawId}`).val(val ? formatDateToDMY(val) : '');
+            if (dateObj && !isNaN(dateObj.getTime())) {
+                $(`#${rawId}`).val(formatDateToDMY(dateObj));
+            } else {
+                $(`#${rawId}`).val(val || '');
+            }
         }
     }
 
@@ -212,15 +305,23 @@
     // 4. DATE FILTER LOGIC
     // ==========================================
     function initializeDateFiltersOnLoad() {
-        const fyVal = $('#fFinancialYear').val();
-        if (fyVal) {
-            const $opt = $('#fFinancialYear').find(`option[value="${fyVal}"]`);
-            if ($opt.length) {
-                const startDate = $opt.attr('data-start') || $opt.data('start');
-                const endDate = $opt.attr('data-end') || $opt.data('end');
-                if (startDate) setDatePickerValue('fFrom', startDate);
-                if (endDate) setDatePickerValue('fTo', endDate);
-            }
+        let $opt = $('#fFinancialYear').find('option[data-current="1"]');
+        if (!$opt.length || !$opt.val()) {
+            $opt = $('#fFinancialYear').find('option:selected');
+        }
+        if (!$opt.length || !$opt.val()) {
+            $opt = $('#fFinancialYear').find('option[value!=""]').last();
+        }
+
+        if ($opt && $opt.length && $opt.val()) {
+            const val = $opt.val();
+            const text = $opt.text().trim();
+            setSelectValue('fFinancialYear', val, text);
+
+            const startDate = $opt.attr('data-start') || $opt.data('start');
+            const endDate = $opt.attr('data-end') || $opt.data('end');
+            if (startDate) setDatePickerValue('fFrom', startDate);
+            if (endDate) setDatePickerValue('fTo', endDate);
         }
     }
 
@@ -228,10 +329,8 @@
     // 5. DOCUMENT READY & EVENT ATTACHMENTS
     // ==========================================
     $(document).ready(function () {
-        // Initialize datepickers
-        if (typeof initializeDatepickerDMY === 'function') {
-            initializeDatepickerDMY("fFrom, fTo, modalOpeningDate");
-        }
+        // Initialize datepickers matching VoucherEntry
+        initDatePickers();
 
         // Set initial date filter values if a financial year is preselected
         initializeDateFiltersOnLoad();
@@ -275,13 +374,11 @@
             reloadGrid(true);
         });
 
-        // Reset Filters Button: Clear all filters and reload grid
+        // Reset Filters Button: Restore default filters (Current Financial Year) and reload grid
         $('#btnResetFilters').on('click', function (e) {
             e.preventDefault();
             clearSelectValue('fAccountHead');
-            clearSelectValue('fFinancialYear');
-            setDatePickerValue('fFrom', '');
-            setDatePickerValue('fTo', '');
+            initializeDateFiltersOnLoad();
             reloadGrid(true);
         });
 
@@ -300,14 +397,8 @@
             resetForm();
         });
 
-        // Delete from Toolbar
+        // Delete from Toolbar (Deletes checked records or loaded form record)
         $(document).on('click', '#btnDelete, .js-ob-delete-confirm', function (e) {
-            e.preventDefault();
-            openDeleteConfirmation();
-        });
-
-        // Bulk Delete Button in Filter Bar
-        $(document).on('click', '#OpeningBalance-delSel', function (e) {
             e.preventDefault();
             openDeleteConfirmation();
         });
@@ -418,12 +509,35 @@
         $('#modalReference').val('');
         $('#modalDescription').val('');
 
-        const $modalOpt = $('#modalFinancialYear').find('option[value!=""]').first();
+        $('#OpeningBalance-saveBtn, #btnSave').html('<i class="fas fa-save"></i> <span>Save</span>');
+
+        // Select Current FY in form
+        let $modalOpt = $('#modalFinancialYear').find('option[data-current="1"]');
+        if (!$modalOpt.length || !$modalOpt.val()) {
+            $modalOpt = $('#modalFinancialYear').find('option:selected');
+        }
+        if (!$modalOpt.length || !$modalOpt.val()) {
+            $modalOpt = $('#modalFinancialYear').find('option[value!=""]').last();
+        }
         const activeFyCode = $modalOpt.val() || '';
         const activeFyText = $modalOpt.text().trim() || '';
         setSelectValue('modalFinancialYear', activeFyCode, activeFyText);
 
         setDatePickerValue('modalOpeningDate', new Date());
+
+        const $compOpt = $('#modalCompany').find('option:selected');
+        if ($compOpt.length && $compOpt.val()) {
+            setSelectValue('modalCompany', $compOpt.val(), $compOpt.text().trim());
+        } else {
+            setSelectValue('modalCompany', '001', 'Formosa Logistics Limited');
+        }
+
+        const $brOpt = $('#modalBranch').find('option:selected');
+        if ($brOpt.length && $brOpt.val()) {
+            setSelectValue('modalBranch', $brOpt.val(), $brOpt.text().trim());
+        } else {
+            setSelectValue('modalBranch', '01', 'Head Office (Dhaka)');
+        }
 
         clearSelectValue('modalAccountHead');
         clearSelectValue('modalTrType');
@@ -457,23 +571,69 @@
                     return;
                 }
 
+                const data = (res && res.data) ? res.data : res;
+                if (!data || res.success === false) {
+                    toastr.error(res.message || 'Record not found.');
+                    return;
+                }
+
                 $('#OpeningBalance-isEdit').val('1');
-                $('#OpeningBalance-autoId').val(res.autoId || '');
-                $('#modalObCode').val(res.comOpeningBalanceCode || code);
+                $('#OpeningBalance-autoId').val(data.autoId || '');
+                $('#modalObCode').val(data.comOpeningBalanceCode || code);
 
-                if (res.main_CompanyCode) setSelectValue('modalCompany', res.main_CompanyCode);
-                if (res.branchCode) setSelectValue('modalBranch', res.branchCode);
-                if (res.financialCodeNo) setSelectValue('modalFinancialYear', res.financialCodeNo);
+                // Company: populate name and code
+                const compVal = data.companyCodeRaw || (data.main_CompanyCode ? String(data.main_CompanyCode).padStart(3, '0') : '001');
+                const compText = data.companyName || 'Formosa Logistics Limited';
+                setSelectValue('modalCompany', compVal, compText);
 
-                const dateVal = res.openingDateFormatted || res.openingDateIso || (res.openingDate ? res.openingDate.slice(0, 10) : '');
+                // Branch: populate branch name instead of numeric code 1
+                const branchVal = data.branchCodeRaw || (data.branchCode ? String(data.branchCode).padStart(2, '0') : '01');
+                const branchText = data.branchName || 'Head Office (Dhaka)';
+                setSelectValue('modalBranch', branchVal, branchText);
+
+                // Financial Year
+                let fyVal = data.financialCodeNo || '';
+                let fyText = '';
+                if (fyVal) {
+                    let $fyMatch = $('#modalFinancialYear').find(`option[value="${fyVal}"]`);
+                    if (!$fyMatch.length) {
+                        $fyMatch = $('#modalFinancialYear').find('option').filter(function () {
+                            return $(this).text().trim() === String(fyVal).trim();
+                        });
+                        if ($fyMatch.length) {
+                            fyVal = $fyMatch.val();
+                        }
+                    }
+                    if ($fyMatch.length) {
+                        fyText = $fyMatch.text().trim();
+                    }
+                    setSelectValue('modalFinancialYear', fyVal, fyText);
+                }
+
+                const dateVal = data.openingDateFormatted || data.openingDateIso || (data.openingDate ? data.openingDate.slice(0, 10) : '');
                 setDatePickerValue('modalOpeningDate', dateVal);
 
-                if (res.generalLedgerCodeNo) setSelectValue('modalAccountHead', res.generalLedgerCodeNo);
-                $('#modalAmount').val(res.openingBalance !== null ? res.openingBalance : '');
-                if (res.trType) setSelectValue('modalTrType', res.trType);
+                // Account Head: populate with Account Head Name e.g. "2030020000100002 - Bay Footwear Ltd (Inter company loan)"
+                const glVal = data.generalLedgerCodeNo || '';
+                const glName = data.generalLedgerName || '';
+                const glText = glName ? `${glVal} - ${glName}` : (data.accountHeadDisplay || glVal);
+                if (glVal) {
+                    setSelectValue('modalAccountHead', glVal, glText);
+                }
 
-                $('#modalReference').val(res.reference === '-' ? '' : (res.reference || ''));
-                $('#modalDescription').val(res.description === '-' ? '' : (res.description || ''));
+                $('#modalAmount').val(data.openingBalance !== null && data.openingBalance !== undefined ? data.openingBalance : '');
+
+                const trVal = data.trType || '';
+                const trText = trVal === 'Dr' ? 'Dr (Debit)' : (trVal === 'Cr' ? 'Cr (Credit)' : trVal);
+                if (trVal) {
+                    setSelectValue('modalTrType', trVal, trText);
+                }
+
+                $('#modalReference').val(data.reference === '-' ? '' : (data.reference || ''));
+                $('#modalDescription').val(data.description === '-' ? '' : (data.description || ''));
+
+                $('#OpeningBalance-saveBtn, #btnSave').html('<i class="fas fa-save"></i> <span>Update</span>');
+                toastr.info(`Editing Opening Balance: ${data.comOpeningBalanceCode || code}`);
 
                 $('html, body').animate({ scrollTop: $('#OpeningBalance-form').offset().top - 80 }, 300);
             },
@@ -490,12 +650,20 @@
             AutoId: $('#OpeningBalance-autoId').val() ? parseFloat($('#OpeningBalance-autoId').val()) : null,
             ComOpeningBalanceCode: ($('#modalObCode').val() || '').trim(),
             Main_CompanyCode: $('#modalCompany').val() ? parseInt($('#modalCompany').val(), 10) : null,
+            CompanyCodeRaw: ($('#modalCompany').val() || '001').trim(),
             BranchCode: $('#modalBranch').val() ? parseInt($('#modalBranch').val(), 10) : null,
+            BranchCodeRaw: ($('#modalBranch').val() || '01').trim(),
             FinancialCodeNo: ($('#modalFinancialYear').val() || '').trim(),
             GeneralLedgerCodeNo: ($('#modalAccountHead').val() || '').trim(),
             OpeningBalance: parseFloat($('#modalAmount').val()),
             TrType: ($('#modalTrType').val() || '').trim(),
-            OpeningDateRaw: ($('#modalOpeningDate').val() || '').trim(),
+            OpeningDateRaw: (function () {
+                const el = document.getElementById('modalOpeningDate');
+                if (el && el._flatpickr && el._flatpickr.selectedDates && el._flatpickr.selectedDates.length > 0) {
+                    return formatDateToDMY(el._flatpickr.selectedDates[0]);
+                }
+                return ($('#modalOpeningDate').val() || '').trim();
+            })(),
             Reference: ($('#modalReference').val() || '').trim(),
             Description: ($('#modalDescription').val() || '').trim()
         };
@@ -561,19 +729,12 @@
             const val = $(this).val();
             if (val) selectedCodes.push(val);
         });
-
-        if (selectedCodes.length > 0) {
-            $('#OpeningBalance-delSel').removeClass('d-none');
-        } else {
-            $('#OpeningBalance-delSel').addClass('d-none');
-        }
     }
 
     function resetBulkSelection() {
         $('.js-ob-check').prop('checked', false);
         $('#selectAllOpeningBalance').prop('checked', false);
         selectedCodes = [];
-        $('#OpeningBalance-delSel').addClass('d-none');
     }
 
     function openDeleteConfirmation() {
@@ -586,7 +747,7 @@
         }
 
         if (!selectedCodes.length) {
-            toastr.warning('Please select at least one record to delete.');
+            toastr.warning('Please select at least one record to delete, or load a record to edit.');
             return;
         }
 
@@ -594,7 +755,11 @@
         isDeletingBulk = true;
 
         $('#obConfirmTitle').text('Confirm Delete');
-        $('#obConfirmMessage').html(`Are you sure you want to delete <strong>${selectedCodes.length}</strong> selected opening balance record(s)?<br/><small class="text-danger mt-1 d-block">This action cannot be undone.</small>`);
+        if (selectedCodes.length === 1) {
+            $('#obConfirmMessage').html(`Are you sure you want to delete Opening Balance <strong>${escapeHtml(selectedCodes[0])}</strong>?<br/><small class="text-danger mt-1 d-block">This action cannot be undone.</small>`);
+        } else {
+            $('#obConfirmMessage').html(`Are you sure you want to delete <strong>${selectedCodes.length}</strong> selected opening balance record(s)?<br/><small class="text-danger mt-1 d-block">This action cannot be undone.</small>`);
+        }
 
         const modal = getConfirmModal();
         if (modal) modal.show();

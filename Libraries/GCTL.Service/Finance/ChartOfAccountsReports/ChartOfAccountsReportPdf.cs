@@ -14,7 +14,8 @@ namespace GCTL.Service.Finance.ChartOfAccountsReports
 
         private static class PdfColors
         {
-            public static readonly string Primary = "#0B4D37";
+            //public static readonly string Primary = "#0B4D37";
+            public static readonly string Primary = "#ffffff";
             public static readonly string HeaderBg = "#F1F5F2";
             public static readonly string AltRowBg = "#F9FBF9";
             public static readonly string Border = "#D4DCD7";

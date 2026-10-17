@@ -14,10 +14,14 @@ namespace GCTL.Core.ViewModels.Finance.OpeningBalancesVM
         [Display(Name = "Company")]
         public int? Main_CompanyCode { get; set; }
 
+        public string? CompanyCodeRaw { get; set; }
+
         public string? CompanyName { get; set; }
 
         [Display(Name = "Branch")]
         public int? BranchCode { get; set; }
+
+        public string? BranchCodeRaw { get; set; }
 
         public string? BranchName { get; set; }
 

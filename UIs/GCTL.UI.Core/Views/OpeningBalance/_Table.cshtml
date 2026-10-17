@@ -7,35 +7,36 @@
 <div class="card shadow-none border-gray-200">
     <!-- Filter Bar -->
     <div class="card-header border-gray-200 bg-body-highlight px-3 py-2">
-        <div class="row g-2 align-items-end">
-            <div class="col-auto d-none d-md-block align-self-center me-1">
+        <div class="row g-2 align-items-end flex-wrap flex-xl-nowrap">
+            <div class="col-auto d-none d-xl-block align-self-center me-1">
                 <span class="fw-semibold text-body-emphasis" style="font-size: 13px;">
                     <i class="fas fa-filter me-1 text-primary"></i>@Html.SmartLocalize("Filter by"):
                 </span>
             </div>
-            <div class="col-6 col-sm-4 col-md-3">
+            <div class="col-6 col-sm-4 col-md-3 col-xl-2">
                 <label class="form-label mb-1 fw-semibold text-muted" for="fFinancialYear" style="font-size: 13px;">@Html.SmartLocalize("Financial Year")</label>
                 <select class="form-select form-select-sm custom-select-single" id="fFinancialYear" data-placeholder="@Html.SmartLocalize("All Years")">
                     <option value="">@Html.SmartLocalize("All Years")</option>
-                    @foreach (var fy in dropdowns.FinancialYears)
+                    @for (int i = 0; i < dropdowns.FinancialYears.Count; i++)
                     {
-                        <option value="@fy.Code" data-start="@fy.StartDateFormatted" data-end="@fy.EndDateFormatted">@fy.Name</option>
+                        var fy = dropdowns.FinancialYears[i];
+                        <option value="@fy.Code" data-start="@fy.StartDateFormatted" data-end="@fy.EndDateFormatted" data-current="@(fy.IsCurrent ? "1" : "0")" selected="@(fy.IsCurrent ? "selected" : null)">@fy.Name</option>
                     }
                 </select>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-6 col-sm-4 col-md-2 col-xl-2">
                 <label class="form-label mb-1 fw-semibold text-muted" for="fFrom" style="font-size: 13px;">@Html.SmartLocalize("Date from")</label>
                 <div class="position-relative">
-                    <input type="text" class="form-control form-control-sm gc-date-input" id="fFrom" placeholder="dd/mm/yyyy" />
+                    <input type="text" class="form-control form-control-sm vch-date-picker gc-date-input" id="fFrom" placeholder="dd/mm/yyyy" />
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-6 col-sm-4 col-md-2 col-xl-2">
                 <label class="form-label mb-1 fw-semibold text-muted" for="fTo" style="font-size: 13px;">@Html.SmartLocalize("To")</label>
                 <div class="position-relative">
-                    <input type="text" class="form-control form-control-sm gc-date-input" id="fTo" placeholder="dd/mm/yyyy" />
+                    <input type="text" class="form-control form-control-sm vch-date-picker gc-date-input" id="fTo" placeholder="dd/mm/yyyy" />
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-3">
+            <div class="col-12 col-sm-8 col-md-5 col-xl-4 flex-grow-1">
                 <label class="form-label mb-1 fw-semibold text-muted" for="fAccountHead" style="font-size: 13px;">@Html.SmartLocalize("Account Head")</label>
                 <select class="form-select form-select-sm custom-select-single" id="fAccountHead" data-placeholder="@Html.SmartLocalize("All Accounts")">
                     <option value="">@Html.SmartLocalize("All Accounts")</option>
@@ -50,12 +51,10 @@
                     }
                 </select>
             </div>
-            <div class="col-auto d-flex gap-2">
-                <button type="button" class="btn btn-phoenix-secondary btn-sm" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")" style="font-size: 13px;">
-                    <i class="fas fa-undo-alt me-1"></i>@Html.SmartLocalize("Reset")
-                </button>
-                <button type="button" class="btn btn-phoenix-danger btn-sm d-none" id="OpeningBalance-delSel" style="font-size: 13px;">
-                    <i class="fas fa-trash me-1"></i>@Html.SmartLocalize("Delete Selected")
+            <div class="col-auto align-self-end">
+                <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")" style="height: 34px;">
+                    <i class="fas fa-undo-alt"></i>
+                    <span>@Html.SmartLocalize("Reset")</span>
                 </button>
             </div>
         </div>
