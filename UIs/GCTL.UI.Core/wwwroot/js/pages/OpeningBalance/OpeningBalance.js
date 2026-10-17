@@ -103,13 +103,13 @@
                 text = $match.text().trim();
             }
         }
+        if (typeof window.setCustomDropdownValue === 'function') {
+            window.setCustomDropdownValue(rawId, val, text);
+        }
         if (window.choiceManager && typeof window.choiceManager.setChoiceValue === 'function') {
             window.choiceManager.setChoiceValue(rawId, val || '');
-        } else if (typeof window.setCustomDropdownValue === 'function') {
-            window.setCustomDropdownValue(rawId, val, text);
-        } else {
-            $el.val(val || '');
         }
+        $el.val(val || '');
         if ($el.hasClass('select2-hidden-accessible')) {
             $el.val(val || null).trigger('change');
         }
@@ -212,25 +212,14 @@
     // 4. DATE FILTER LOGIC
     // ==========================================
     function initializeDateFiltersOnLoad() {
-        let $opt = $('#fFinancialYear').find('option:selected');
-        if (!$opt.length || !$opt.val()) {
-            let $firstOpt = $('#fFinancialYear').find('option[value!=""]').first();
-            if ($firstOpt.length) {
-                const val = $firstOpt.val();
-                const text = $firstOpt.text().trim();
-                setSelectValue('fFinancialYear', val, text);
-                $opt = $firstOpt;
-            }
-        }
-
-        if ($opt && $opt.length && $opt.val()) {
-            const startDate = $opt.data('start') || $opt.attr('data-start');
-            const endDate = $opt.data('end') || $opt.attr('data-end');
-            if (startDate) {
-                setDatePickerValue('fFrom', startDate);
-            }
-            if (endDate) {
-                setDatePickerValue('fTo', endDate);
+        const fyVal = $('#fFinancialYear').val();
+        if (fyVal) {
+            const $opt = $('#fFinancialYear').find(`option[value="${fyVal}"]`);
+            if ($opt.length) {
+                const startDate = $opt.attr('data-start') || $opt.data('start');
+                const endDate = $opt.attr('data-end') || $opt.data('end');
+                if (startDate) setDatePickerValue('fFrom', startDate);
+                if (endDate) setDatePickerValue('fTo', endDate);
             }
         }
     }
@@ -244,7 +233,7 @@
             initializeDatepickerDMY("fFrom, fTo, modalOpeningDate");
         }
 
-        // Set initial date filter values: From = Financial Year Start Date, To = Today's Date
+        // Set initial date filter values if a financial year is preselected
         initializeDateFiltersOnLoad();
 
         // Initialize DataTable
@@ -259,14 +248,18 @@
         // When Financial Year changes: From = start date of FY, To = end date of FY
         $(document).on('change', '#fFinancialYear', function () {
             const fyVal = $(this).val();
-            const $opt = $(this).find(`option[value="${fyVal}"]`).length
-                ? $(this).find(`option[value="${fyVal}"]`)
-                : $(this).find('option:selected');
+            let startDate = '';
+            let endDate = '';
 
-            if (fyVal && $opt.length) {
-                const startDate = $opt.data('start') || $opt.attr('data-start');
-                const endDate = $opt.data('end') || $opt.attr('data-end');
+            if (fyVal) {
+                const $opt = $(this).find(`option[value="${fyVal}"]`);
+                if ($opt.length) {
+                    startDate = $opt.attr('data-start') || $opt.data('start') || '';
+                    endDate = $opt.attr('data-end') || $opt.data('end') || '';
+                }
+            }
 
+            if (fyVal && (startDate || endDate)) {
                 if (startDate) setDatePickerValue('fFrom', startDate);
                 if (endDate) setDatePickerValue('fTo', endDate);
             } else {
@@ -282,26 +275,13 @@
             reloadGrid(true);
         });
 
-        // Reset Filters Button
+        // Reset Filters Button: Clear all filters and reload grid
         $('#btnResetFilters').on('click', function (e) {
             e.preventDefault();
             clearSelectValue('fAccountHead');
-
-            let $firstOpt = $('#fFinancialYear').find('option[value!=""]').first();
-            if ($firstOpt.length) {
-                const val = $firstOpt.val();
-                const text = $firstOpt.text().trim();
-                setSelectValue('fFinancialYear', val, text);
-                const startDate = $firstOpt.data('start') || $firstOpt.attr('data-start');
-                const endDate = $firstOpt.data('end') || $firstOpt.attr('data-end');
-                if (startDate) setDatePickerValue('fFrom', startDate);
-                if (endDate) setDatePickerValue('fTo', endDate);
-            } else {
-                clearSelectValue('fFinancialYear');
-                setDatePickerValue('fFrom', '');
-                setDatePickerValue('fTo', '');
-            }
-
+            clearSelectValue('fFinancialYear');
+            setDatePickerValue('fFrom', '');
+            setDatePickerValue('fTo', '');
             reloadGrid(true);
         });
 
