@@ -203,42 +203,42 @@ namespace GCTL.UI.Core.Controllers
         private GridModel CreateGridModel(string ajaxUrl)
         {
             var customHeaderHtml = @"
-<tr class=""text-center align-middle small table-header-tier-1"">
-    <th rowspan=""3"" class=""align-middle text-center"" style=""width:35px;"">SN.</th>
-    <th rowspan=""3"" class=""align-middle text-center"" style=""width:75px;"">Billing Date</th>
-    <th rowspan=""3"" class=""align-middle text-center"" style=""width:130px;"">Bill No</th>
-    <th rowspan=""3"" class=""align-middle text-center"" style=""width:85px;"">Total Bill<br/>(BDT)</th>
-    <th colspan=""5"" class=""align-middle text-center text-white"" style=""background-color:#0d6efd;"">Billing</th>
-    <th colspan=""7"" class=""align-middle text-center text-white"" style=""background-color:#495057;"">Costing</th>
-    <th colspan=""6"" class=""align-middle text-center text-white"" style=""background-color:#198754;"">PNL</th>
-</tr>
-<tr class=""text-center align-middle small table-header-tier-2"">
-    <th colspan=""3"" class=""align-middle text-center"">C &amp; F</th>
-    <th rowspan=""2"" class=""align-middle text-center"" style=""width:70px;"">Transport</th>
-    <th rowspan=""2"" class=""align-middle text-center"" style=""width:80px;"">TOT Bill</th>
-    <th colspan=""3"" class=""align-middle text-center"">C &amp; F Cost</th>
-    <th colspan=""3"" class=""align-middle text-center"">Transport Cost</th>
-    <th rowspan=""2"" class=""align-middle text-center"" style=""width:75px;"">TOT Cost</th>
-    <th colspan=""3"" class=""align-middle text-center"">GP</th>
-    <th colspan=""3"" class=""align-middle text-center"">GP%</th>
-</tr>
-<tr class=""text-center align-middle small table-header-tier-3"">
-    <th class=""align-middle text-center"" style=""width:70px;"">Comm.</th>
-    <th class=""align-middle text-center"" style=""width:75px;"">Others</th>
-    <th class=""align-middle text-center"" style=""width:75px;"">TOT</th>
-    <th class=""align-middle text-center"" style=""width:70px;"">Rece</th>
-    <th class=""align-middle text-center"" style=""width:70px;"">NON Rece</th>
-    <th class=""align-middle text-center"" style=""width:75px;"">TOT Cost</th>
-    <th class=""align-middle text-center"" style=""width:60px;"">Swift</th>
-    <th class=""align-middle text-center"" style=""width:65px;"">Hair</th>
-    <th class=""align-middle text-center"" style=""width:65px;"">TOT</th>
-    <th class=""align-middle text-center"" style=""width:75px;"">C &amp; F</th>
-    <th class=""align-middle text-center"" style=""width:70px;"">TRANS</th>
-    <th class=""align-middle text-center"" style=""width:75px;"">TOT</th>
-    <th class=""align-middle text-center"" style=""width:60px;"">C &amp; F</th>
-    <th class=""align-middle text-center"" style=""width:60px;"">TRANS</th>
-    <th class=""align-middle text-center"" style=""width:60px;"">G. GP</th>
-</tr>";
+            <tr class=""text-center align-middle small table-header-tier-1"">
+                <th rowspan=""3"" class=""align-middle text-center"" style=""width:35px;"">SN.</th>
+                <th rowspan=""3"" class=""align-middle text-center"" style=""width:75px;"">Billing Date</th>
+                <th rowspan=""3"" class=""align-middle text-center"" style=""width:130px;"">Bill No</th>
+                <th rowspan=""3"" class=""align-middle text-center"" style=""width:85px;"">Total Bill<br/>(BDT)</th>
+                <th colspan=""5"" class=""align-middle text-center text-white"" style=""background-color:#0d6efd;"">Billing</th>
+                <th colspan=""7"" class=""align-middle text-center text-white"" style=""background-color:#495057;"">Costing</th>
+                <th colspan=""6"" class=""align-middle text-center text-white"" style=""background-color:#198754;"">PNL</th>
+            </tr>
+            <tr class=""text-center align-middle small table-header-tier-2"">
+                <th colspan=""3"" class=""align-middle text-center"">C &amp; F</th>
+                <th rowspan=""2"" class=""align-middle text-center"" style=""width:70px;"">Transport</th>
+                <th rowspan=""2"" class=""align-middle text-center"" style=""width:80px;"">TOT Bill</th>
+                <th colspan=""3"" class=""align-middle text-center"">C &amp; F Cost</th>
+                <th colspan=""3"" class=""align-middle text-center"">Transport Cost</th>
+                <th rowspan=""2"" class=""align-middle text-center"" style=""width:75px;"">TOT Cost</th>
+                <th colspan=""3"" class=""align-middle text-center"">GP</th>
+                <th colspan=""3"" class=""align-middle text-center"">GP%</th>
+            </tr>
+            <tr class=""text-center align-middle small table-header-tier-3"">
+                <th class=""align-middle text-center"" style=""width:70px;"">Comm.</th>
+                <th class=""align-middle text-center"" style=""width:75px;"">Others</th>
+                <th class=""align-middle text-center"" style=""width:75px;"">TOT</th>
+                <th class=""align-middle text-center"" style=""width:70px;"">Rece</th>
+                <th class=""align-middle text-center"" style=""width:70px;"">NON Rece</th>
+                <th class=""align-middle text-center"" style=""width:75px;"">TOT Cost</th>
+                <th class=""align-middle text-center"" style=""width:60px;"">Swift</th>
+                <th class=""align-middle text-center"" style=""width:65px;"">Hair</th>
+                <th class=""align-middle text-center"" style=""width:65px;"">TOT</th>
+                <th class=""align-middle text-center"" style=""width:75px;"">C &amp; F</th>
+                <th class=""align-middle text-center"" style=""width:70px;"">TRANS</th>
+                <th class=""align-middle text-center"" style=""width:75px;"">TOT</th>
+                <th class=""align-middle text-center"" style=""width:60px;"">C &amp; F</th>
+                <th class=""align-middle text-center"" style=""width:60px;"">TRANS</th>
+                <th class=""align-middle text-center"" style=""width:60px;"">G. GP</th>
+            </tr>";
 
             return new GridModel
             {
