@@ -61,7 +61,7 @@
     </div>
 
     <!-- Table Grid Body with _CustomGrid -->
-    <div class="card-body p-2 pt-1">
+    <div class="card-body p-2 pt-0 ">
         @await Html.PartialAsync("_CustomGrid", new GridModel
         {
             GridId = "OpeningBalance-table",
@@ -77,7 +77,7 @@
             DefaultSortColumn = "ComOpeningBalanceCode",
             DefaultSortDirection = "desc",
             ShowActionMenu = true,
-            CustomGridWrapper = true,
+            CustomGridWrapper = false,
             Columns = new List<GridColumn>
             {
                 new() { Data = "comOpeningBalanceCode", Header = "OB Code", Width = "9%", Align = "center", SortField = "ComOpeningBalanceCode", IsEditLink = true, EditSelectorClass = "js-ob-edit", IdField = "comOpeningBalanceCode" },

@@ -118,13 +118,17 @@
         ['fFrom', 'fTo', 'modalOpeningDate'].forEach(function (id) {
             const el = document.getElementById(id);
             if (!el || typeof flatpickr === 'undefined') return;
-            if (el._flatpickr) el._flatpickr.destroy();
+            const existingFp = el._flatpickr || $(el).data('customFpInstance');
+            if (existingFp && typeof existingFp.destroy === 'function') {
+                existingFp.destroy();
+            }
 
-            flatpickr(el, {
+            const fp = flatpickr(el, {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "d/m/Y",
                 allowInput: true,
+                defaultDate: id === 'modalOpeningDate' ? new Date() : null,
                 onReady: function (selectedDates, dateStr, instance) {
                     instance.input.placeholder = "dd/mm/yyyy";
                     addCalendarTodayClearButtons(instance);
@@ -133,6 +137,7 @@
                     addCalendarTodayClearButtons(instance);
                 }
             });
+            $(el).data('customFpInstance', fp);
         });
 
         function triggerFilterReload() {
@@ -160,11 +165,13 @@
     function setDatePickerValue(id, val, triggerChange = false) {
         const rawId = id.replace('#', '');
         const el = document.getElementById(rawId);
+        if (!el) return;
+        const fp = el._flatpickr || $(el).data('customFpInstance') || (el.nextElementSibling ? el.nextElementSibling._flatpickr : null);
         if (!val) {
-            if (el && el._flatpickr) {
-                el._flatpickr.clear();
+            if (fp) {
+                fp.clear();
                 $(el).val('');
-                if (el._flatpickr.altInput) $(el._flatpickr.altInput).val('');
+                if (fp.altInput) $(fp.altInput).val('');
             } else {
                 $(`#${rawId}`).val('');
             }
@@ -172,11 +179,11 @@
         }
 
         const dateObj = parseDateToJsDate(val);
-        if (el && el._flatpickr) {
+        if (fp) {
             if (dateObj && !isNaN(dateObj.getTime())) {
-                el._flatpickr.setDate(dateObj, triggerChange);
+                fp.setDate(dateObj, triggerChange);
             } else {
-                el._flatpickr.setDate(val, triggerChange);
+                fp.setDate(val, triggerChange);
             }
         } else {
             if (dateObj && !isNaN(dateObj.getTime())) {
@@ -186,6 +193,7 @@
             }
         }
     }
+
 
     function setSelectValue(id, val, text) {
         const rawId = id.replace('#', '');
@@ -301,6 +309,40 @@
         }
     }
 
+    function updateHeaderFyBadge() {
+        let fyText = $('#fFinancialYear option:selected').text().trim();
+        if (!fyText || fyText === 'All Years' || fyText.toLowerCase().includes('select')) {
+            const val = $('#fFinancialYear').val();
+            if (val) fyText = val;
+            else fyText = '';
+        }
+
+        // 1. Breadcrumb title badge (.page-breadcrumb-title)
+        const $breadcrumbTitle = $('.page-breadcrumb-title');
+        if ($breadcrumbTitle.length) {
+            let $badge = $('#pageHeaderFy');
+            if (!$badge.length) {
+                $breadcrumbTitle.append(' <span id="pageHeaderFy" class="badge bg-primary-subtle text-primary border border-primary-subtle fw-semibold ms-2" style="font-size: 0.825rem; vertical-align: middle; padding: 0.25rem 0.55rem; letter-spacing: normal;"></span>');
+                $badge = $('#pageHeaderFy');
+            }
+            if (fyText) {
+                $badge.text(fyText).removeClass('d-none');
+            } else {
+                $badge.addClass('d-none');
+            }
+        }
+
+        // 2. Also update page-level selectedFyDisplay element if present
+        const $pageBadge = $('#selectedFyDisplay');
+        if ($pageBadge.length) {
+            if (fyText) {
+                $pageBadge.text(fyText).removeClass('d-none');
+            } else {
+                $pageBadge.addClass('d-none');
+            }
+        }
+    }
+
     // ==========================================
     // 4. DATE FILTER LOGIC
     // ==========================================
@@ -323,6 +365,8 @@
             if (startDate) setDatePickerValue('fFrom', startDate);
             if (endDate) setDatePickerValue('fTo', endDate);
         }
+
+        updateHeaderFyBadge();
     }
 
     // ==========================================
@@ -334,6 +378,7 @@
 
         // Set initial date filter values if a financial year is preselected
         initializeDateFiltersOnLoad();
+        updateHeaderFyBadge();
 
         // Initialize DataTable
         initGrid();
@@ -366,6 +411,7 @@
                 setDatePickerValue('fTo', '');
             }
 
+            updateHeaderFyBadge();
             reloadGrid(true);
         });
 
@@ -379,7 +425,26 @@
             e.preventDefault();
             clearSelectValue('fAccountHead');
             initializeDateFiltersOnLoad();
+            updateHeaderFyBadge();
             reloadGrid(true);
+        });
+
+
+        // Ensure Account Head dropdown panel never overflows screen horizontally
+        $(document).on('click focus', '#modalAccountHead + .custom-dd-wrapper, #fAccountHead + .custom-dd-wrapper', function () {
+            const $wrapper = $(this);
+            const $panel = $wrapper.find('.custom-dd-panel');
+            if ($panel.length) {
+                setTimeout(function () {
+                    if (!$wrapper.hasClass('open')) return;
+                    $panel.css({ 'left': '0', 'right': 'auto' });
+                    const rect = $panel[0].getBoundingClientRect();
+                    const winWidth = window.innerWidth || document.documentElement.clientWidth;
+                    if (rect.right > winWidth - 15) {
+                        $panel.css({ 'left': 'auto', 'right': '0' });
+                    }
+                }, 10);
+            }
         });
 
         // ------------------------------------------
@@ -479,7 +544,7 @@
         });
 
         // Print
-        $(document).on('click', '#btnPrint, #btnExportPrint', function (e) {
+        $(document).on('click', '#btnExportPrint', function (e) {
             e.preventDefault();
             window.print();
         });
@@ -487,7 +552,7 @@
         // Export PDF
         $(document).on('click', '#btnPrintPdfBtn, #btnExportPdf', function (e) {
             e.preventDefault();
-            window.print();
+            exportToPdf();
         });
 
         // Export Excel
@@ -902,6 +967,41 @@
         })
         .catch(() => {
             toastr.error('Failed to export Excel.');
+        });
+    }
+
+    function exportToPdf() {
+        const filter = {
+            FinancialCodeNo: $('#fFinancialYear').val() || null,
+            GeneralLedgerCodeNo: $('#fAccountHead').val() || null,
+            FromDate: $('#fFrom').val() || null,
+            ToDate: $('#fTo').val() || null
+        };
+
+        toastr.info('Generating PDF report...');
+
+        fetch('/OpeningBalance/ExportPdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(filter)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Export failed');
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Opening_Balance_${new Date().toISOString().slice(0, 10)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            toastr.success('PDF exported successfully.');
+        })
+        .catch(() => {
+            toastr.error('Failed to export PDF.');
         });
     }
 

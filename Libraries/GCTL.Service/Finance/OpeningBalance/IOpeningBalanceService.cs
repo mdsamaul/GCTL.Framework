@@ -15,5 +15,6 @@ namespace GCTL.Service.Finance.OpeningBalance
         Task<OpeningBalanceDropdownsVM> GetDropdownsAsync();
         Task<string> GetNextCodeAsync(string financialYear);
         Task<CommonReturnViewModel> ImportCsvAsync(List<OpeningBalanceVM> items, int? userId = null, string? ip = null, string? mac = null);
+        Task<byte[]> GeneratePdfAsync(OpeningBalanceFilterVM filter);
     }
 }

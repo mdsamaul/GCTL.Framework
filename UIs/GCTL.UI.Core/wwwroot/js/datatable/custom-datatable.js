@@ -76,6 +76,12 @@
                 pageLength: settings.pageLength,
                 lengthMenu: settings.lengthMenu,
                 order: settings.order,
+                layout: {
+                    topStart: {
+                        rowClass: "row mt-1 justify-content-between",
+                        features: ["pageLength"]
+                    }
+                },
                 language: {
                     emptyTable: "No records available",
                     zeroRecords: "No matching records found",
@@ -365,7 +371,7 @@
                 var isEditLink = c.isEditLink !== undefined ? c.isEditLink : c.IsEditLink;
                 var isTruncate = c.isTruncate !== undefined ? c.isTruncate : c.IsTruncate;
                 var isCopyable = c.isCopyable !== undefined ? c.isCopyable : c.IsCopyable;
-                
+
                 if (defaultSortCol && (colData === defaultSortCol || colSortField === defaultSortCol)) {
                     defaultSortIdx = colIdx;
                 }
@@ -475,8 +481,8 @@
                 ? [[defaultSortIdx, config.defaultSortDirection || "desc"]]
                 : [];
 
-            var showCheckAll = config.showCheckAll !== undefined 
-                ? config.showCheckAll 
+            var showCheckAll = config.showCheckAll !== undefined
+                ? config.showCheckAll
                 : (config.ShowCheckAll !== undefined ? config.ShowCheckAll : true);
             if (config.checkAllId === "none" || config.checkAllId === "false" || !config.checkAllId) {
                 showCheckAll = false;

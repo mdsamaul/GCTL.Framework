@@ -7,6 +7,7 @@ using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.Finance.OpeningBalancesVM;
 using GCTL.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Fluent;
 
 namespace GCTL.Service.Finance.OpeningBalance
 {
@@ -874,6 +875,59 @@ namespace GCTL.Service.Finance.OpeningBalance
             }
 
             return res;
+        }
+        #endregion
+
+        #region Export PDF (QuestPDF)
+        public async Task<byte[]> GeneratePdfAsync(OpeningBalanceFilterVM filter)
+        {
+            filter ??= new OpeningBalanceFilterVM();
+            filter.PageNumber = 1;
+            filter.PageSize = int.MaxValue;
+
+            var result = await GetAllAsync(filter);
+            var items = result.Items ?? new List<OpeningBalanceVM>();
+
+            string companyName = "Greenfield International School";
+            try
+            {
+                var comp = await _context.CoreCompanies.FirstOrDefaultAsync();
+                if (comp != null && !string.IsNullOrWhiteSpace(comp.CompanyName))
+                {
+                    companyName = comp.CompanyName;
+                }
+            }
+            catch { }
+
+            string? fyName = null;
+            if (!string.IsNullOrWhiteSpace(filter.FinancialCodeNo))
+            {
+                try
+                {
+                    var fy = await _context.AccFinancialYears
+                        .FirstOrDefaultAsync(x => x.FinancialCodeNo == filter.FinancialCodeNo);
+                    if (fy != null)
+                    {
+                        fyName = fy.Name;
+                    }
+                }
+                catch { }
+            }
+
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+            var pdfModel = new OpeningBalancePdfModel
+            {
+                CompanyName = companyName,
+                ReportTitle = "Opening Balance Report",
+                FinancialYearName = fyName ?? filter.FinancialCodeNo,
+                FromDate = filter.FromDate,
+                ToDate = filter.ToDate,
+                Items = items
+            };
+
+            var document = new OpeningBalancePdf(pdfModel);
+            return document.GeneratePdf();
         }
         #endregion
     }
