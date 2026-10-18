@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Balance Sheet";
+    var companies = ViewBag.Companies as List<GCTL.Core.ViewModels.CommonSelectVM> ?? new List<GCTL.Core.ViewModels.CommonSelectVM>();
+    var branches = ViewBag.Branches as List<GCTL.Core.ViewModels.CommonSelectVM> ?? new List<GCTL.Core.ViewModels.CommonSelectVM>();
+
+    var firstDayOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).ToString("yyyy-MM-dd");
+    var lastDayOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month)).ToString("yyyy-MM-dd");
+    var defaultCompanyName = companies.Count > 0 ? companies[0].Name : "Formosa Logistics Limited";
+}
+
+<link rel="stylesheet" href="~/css/pages/balanceSheet.css" asp-append-version="true" />
+
+<div class="bs-wrapper tb-wrapper mt-3">
+    <!-- Top Header Banner (Matching General Ledger / Income Statement / Trial Balance) -->
+    @* <header class="tb-header nox">
+        <div>
+            <h1 style="color:white;">@Html.SmartLocalize("Finance & Accounts")</h1>
+        </div>
+    </header> *@
+
+    <!-- Finance Navigation Tabs Component (Chart of Accounts, General Ledger, Trial Balance, Income Statement, Balance Sheet, Cash Flow) -->
+    <partial name="_FinanceReportTabs" model='"BalanceSheet"' />
+
+    <!-- Filter Bar -->
+    <div class="filters-container no-print" id="rf">
+        <div class="filter-by-indicator">
+            <span class="filter-by-text">
+                <i class="fas fa-filter"></i> @Html.SmartLocalize("Filter By:")
+            </span>
+        </div>
+        <div class="filter-fields-grid">
+            <div class="filter-item">
+                <label for="fCo">@Html.SmartLocalize("Company")</label>
+                <select id="fCo" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Company")">
+                    @foreach (var c in companies)
+                    {
+                        <option value="@c.Code">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="fBr">@Html.SmartLocalize("Branch")</label>
+                <select id="fBr" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                    <option value="All">@Html.SmartLocalize("All Branches")</option>
+                    @foreach (var b in branches)
+                    {
+                        <option value="@b.Code">@b.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item date-item">
+                <label for="fFrom">@Html.SmartLocalize("Date From")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" class="form-control form-control-sm flatpickr-input" id="fFrom" value="@firstDayOfMonth" placeholder="dd/mm/yyyy" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item date-item">
+                <label for="fTo">@Html.SmartLocalize("To")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" class="form-control form-control-sm flatpickr-input" id="fTo" value="@lastDayOfMonth" placeholder="dd/mm/yyyy" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item" style="flex: 0 0 auto; min-width: auto;">
+                <button type="button" class="btn-reset" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")">
+                    <i class="fas fa-undo-alt me-1"></i>@Html.SmartLocalize("Reset")
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 KPI Summary Cards matching Mockup -->
+    <div class="cards-grid" id="c-bs"></div>
+
+    <!-- Main Panel & Two-Column Accounting Tables -->
+    <div class="pan panel-box">
+        <div class="panel-bar">
+            <h3 class="mb-0">@Html.SmartLocalize("Balance Sheet")</h3>
+            <span class="ex nox">
+                <select id="bsExportAction" class="form-select form-select-sm w-auto fw-semibold" style="height: 35px;">
+                    <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Formate")</option>
+                    <option value="p">Print/Preview</option>
+                    <option value="pdf">PDF</option>
+                    <option value="x">Excel</option>
+                </select>
+            </span>
+        </div>
+
+        <div id="o-bs">
+            <!-- Print Header (Visible only when printing) -->
+            <div class="phead">
+                <b id="pheadCo" class="fs-6">@defaultCompanyName</b>
+                <h2>@Html.SmartLocalize("Balance Sheet")</h2>
+                <div id="pheadSub" class="fs-9 text-muted"></div>
+            </div>
+
+            <!-- Two Column Side-by-Side Grid matching Mockup -->
+            <div class="two">
+                <!-- Left: Assets -->
+                <div style="overflow-x: auto;">
+                    <table class="report-table" id="bsAssetsTable">
+                        <thead>
+                            <tr>
+                                <th>@Html.SmartLocalize("Assets")</th>
+                                <th class="num" style="width: 28%;">@Html.SmartLocalize("Amount (৳)")</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bsAssetsTableBody">
+                            <!-- Populated dynamically by balanceSheet.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right: Equities & Liabilities -->
+                <div style="overflow-x: auto;">
+                    <table class="report-table" id="bsLiabilitiesTable">
+                        <thead>
+                            <tr>
+                                <th>@Html.SmartLocalize("Equities & Liabilities")</th>
+                                <th class="num" style="width: 28%;">@Html.SmartLocalize("Amount (৳)")</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bsLiabilitiesTableBody">
+                            <!-- Populated dynamically by balanceSheet.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+@section Scripts {
+    <script src="~/js/pages/finance/balanceSheet.js" asp-append-version="true"></script>
+}

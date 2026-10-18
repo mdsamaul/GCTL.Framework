@@ -1,0 +1,561 @@
+@using GCTL.Core.ViewModels.Finance.OpeningBalancesVM
+@{
+    ViewData["Title"] = "Opening Balance";
+    Layout = "_Layout";
+    var dropdowns = ViewBag.Dropdowns as OpeningBalanceDropdownsVM ?? new OpeningBalanceDropdownsVM();
+}
+
+<link rel="stylesheet" href="~/css/Toolbars.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
+
+<style>
+    .content {
+        min-height: 100vh;
+        padding: calc(var(--phoenix-navbar-top-height) + .5rem) 1.5rem 6.375rem 1.5rem;
+        position: relative;
+        padding-bottom: 6rem;
+    }
+    
+    /* Standardized Clean Typography */
+    .ob-page-wrapper .form-label,
+    .ob-page-wrapper label {
+        font-size: 13px !important;
+        font-weight: 500;
+        color: #344054;
+        margin-bottom: 3px;
+        text-transform: none !important;
+    }
+    /* Uniform Standard Height (34px) - Exactly matching Reference & OB Code */
+    .ob-page-wrapper .form-control,
+    .ob-page-wrapper .form-select,
+    .ob-page-wrapper .custom-dd-wrapper,
+    .ob-page-wrapper .custom-dd-box,
+    .ob-page-wrapper .input-group-sm,
+    .ob-page-wrapper .input-group-sm > .form-control,
+    .ob-page-wrapper .input-group-sm > .input-group-text {
+        height: 34px !important;
+        min-height: 34px !important;
+        max-height: 34px !important;
+        font-size: 13.5px !important;
+        color: #1d2939 !important;
+        border-radius: 0.375rem !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Custom Dropdown (custom-select-2) styling to match form-control exactly */
+    .ob-page-wrapper .custom-dd-wrapper {
+        position: relative !important;
+        width: 100% !important;
+        outline: none !important;
+    }
+    .ob-page-wrapper .custom-dd-box {
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+        width: 100% !important;
+        padding: 0 8px !important;
+        border: 1px solid var(--phoenix-border-color, #ced4da) !important;
+        background-color: #fff !important;
+        cursor: text !important;
+    }
+    .ob-page-wrapper .custom-dd-wrapper.open .custom-dd-box {
+        border-color: #80bdff !important;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15) !important;
+    }
+    .ob-page-wrapper .custom-dd-input {
+        height: 32px !important;
+        line-height: 32px !important;
+        font-size: 13.5px !important;
+        font-family: inherit !important;
+        color: #1d2939 !important;
+        padding: 0 2px !important;
+        margin: 0 !important;
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+    }
+    .ob-page-wrapper .custom-dd-clear-icon,
+    .ob-page-wrapper .custom-dd-arrow {
+        height: 32px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #6c757d !important;
+        font-size: 13px !important;
+        line-height: 1 !important;
+        padding: 0 4px !important;
+    }
+    .ob-page-wrapper .custom-dd-clear-icon {
+        font-size: 16px !important;
+        cursor: pointer !important;
+    }
+
+    /* Opening Balance Currency Input Group */
+    .ob-page-wrapper .input-group-sm {
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    .ob-page-wrapper .input-group-sm > .input-group-text {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        border-top-left-radius: 0.375rem !important;
+        border-bottom-left-radius: 0.375rem !important;
+        padding: 0 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background-color: var(--phoenix-gray-100, #f8f9fa) !important;
+        border: 1px solid var(--phoenix-border-color, #ced4da) !important;
+        border-right: none !important;
+        font-size: 13.5px !important;
+        color: #495057 !important;
+    }
+    .ob-page-wrapper .input-group-sm > .form-control {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        border-top-right-radius: 0.375rem !important;
+        border-bottom-right-radius: 0.375rem !important;
+    }
+    .custom-grid-table th {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: #344054 !important;
+        text-transform: none !important;
+    }
+    .custom-grid-table td {
+        font-size: 13px !important;
+        color: #1f2937 !important;
+    }
+
+    /* All date picker inputs have calendar icon on the right side - matching VoucherEntry exactly */
+    .vch-date-wrapper {
+        position: relative;
+        width: 100%;
+        min-width: 0 !important;
+    }
+    input.vch-date-picker,
+    input#fFrom,
+    input#fTo,
+    input#modalOpeningDate,
+    .flatpickr-input,
+    .gc-date-input,
+    input.gc-date-input {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512' fill='%236c757d'%3E%3Cpath d='M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v320c0 35.3 28.7 64 64 64h320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64h-40V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192h352v256c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192zm64 64v48h48v-48h-48zm96 0v48h48v-48h-48zm96 0v48h48v-48h-48zM112 352v48h48v-48h-48zm96 0v48h48v-48h-48zm96 0v48h48v-48h-48z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        background-size: 14px 14px !important;
+        padding-right: 28px !important;
+        cursor: pointer !important;
+    }
+
+    /* Flatpickr Footer: Today / Clear buttons matching VoucherEntry exactly */
+    .custom-fp-footer {
+        display: flex !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        padding: 8px 12px !important;
+        border-top: 1px solid #eef1f4 !important;
+        background: #fafbfc !important;
+    }
+    .custom-fp-today-btn,
+    .custom-fp-clear-btn {
+        flex: 1 !important;
+        border: none !important;
+        background: transparent !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        padding: 6px 10px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+        transition: background .2s ease, color .2s ease !important;
+    }
+    .custom-fp-today-btn {
+        color: #4a90e2 !important;
+    }
+    .custom-fp-today-btn:hover {
+        background: #eef4fc !important;
+    }
+    .custom-fp-clear-btn {
+        color: #c0392b !important;
+    }
+    .custom-fp-clear-btn:hover {
+        background: #ffe3e3 !important;
+    }
+
+    /* Remove broken glyph icon artifacts */
+    .search-box-icon {
+        display: none !important;
+    }
+
+    /* Scoped Opening Balance Styles */
+    .ob-stat-card {
+        background: var(--phoenix-card-bg, #fff);
+        border: 1px solid var(--phoenix-border-color, #e3e6ed);
+        border-top: 4px solid var(--stat-color, #2563eb);
+        border-radius: 8px;
+        padding: 8px 14px;
+        transition: transform .15s ease, box-shadow .15s ease;
+        text-align: left;
+        width: 100%;
+        display: block;
+    }
+    .ob-stat-num {
+        display: block;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--stat-color, #2563eb);
+        font-family: monospace, sans-serif;
+    }
+    .ob-stat-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--phoenix-tertiary-color, #6c757d);
+        letter-spacing: .5px;
+    }
+    .ob-excel-panel {
+        background: var(--phoenix-card-bg, #fff);
+        border: 1px solid var(--phoenix-border-color, #e3e6ed);
+        border-radius: 8px;
+        padding: 10px 16px;
+    }
+
+    /* Badges matching ERP standard style */
+    .ob-badge-dr {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        white-space: nowrap;
+        text-align: center;
+        color: #1e40af !important;
+        background: #eff6ff !important;
+        border: 1px solid #bfdbfe !important;
+    }
+    .ob-badge-cr {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        white-space: nowrap;
+        text-align: center;
+        color: #991b1b !important;
+        background: #fef2f2 !important;
+        border: 1px solid #fecaca !important;
+    }
+    .ob-badge-fy {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+        white-space: nowrap;
+        text-align: center;
+        font-family: monospace, sans-serif;
+        color: #1e293b !important;
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    /* Glass Effect Toolbar Buttons across page */
+    .ob-page-wrapper .toolbar-btn {
+        position: relative !important;
+        overflow: hidden !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: .45rem !important;
+        height: 34px !important;
+        line-height: 1 !important;
+        padding: 0 14px !important;
+        background: #fff !important;
+        border: 1px solid #dcdfe3 !important;
+        border-radius: 4px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: color .3s ease, border-color .3s ease, transform .25s ease, box-shadow .25s ease !important;
+        text-decoration: none !important;
+    }
+    .ob-page-wrapper .toolbar-btn::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 0 !important;
+        background: #f3f4f6 !important;
+        transition: height .3s ease !important;
+        z-index: 0 !important;
+    }
+    .ob-page-wrapper .toolbar-btn:hover::before {
+        height: 100% !important;
+    }
+    .ob-page-wrapper .toolbar-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 14px rgba(0,0,0,.12) !important;
+        background: #f8f9fa !important;
+        border-color: #cfd3d8 !important;
+    }
+    .ob-page-wrapper .toolbar-btn span,
+    .ob-page-wrapper .toolbar-btn i {
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    .ob-page-wrapper .toolbar-btn-save::before {
+        background: rgba(40,167,69,.12) !important;
+    }
+    .ob-page-wrapper .toolbar-btn-save {
+        color: #28a745 !important;
+    }
+    .ob-page-wrapper .toolbar-btn-save i {
+        color: #28a745 !important;
+    }
+    .ob-page-wrapper .toolbar-btn-clear::before {
+        background: rgba(33,37,41,.08) !important;
+    }
+    .ob-page-wrapper .toolbar-btn-clear {
+        color: #212529 !important;
+    }
+    .ob-page-wrapper .toolbar-btn-clear i {
+        color: #212529 !important;
+    }
+    .ob-page-wrapper .toolbar-btn-print::before {
+        background: rgba(13,110,253,.10) !important;
+    }
+    .ob-page-wrapper .toolbar-btn-print {
+        color: #0d6efd !important;
+    }
+    .ob-page-wrapper .toolbar-btn-print i {
+        color: #0d6efd !important;
+    }
+    .ob-page-wrapper .toolbar-btn-delete::before {
+        background: rgba(220,53,69,.12) !important;
+    }
+    .ob-page-wrapper .toolbar-btn-delete {
+        color: #dc3545 !important;
+    }
+    .ob-page-wrapper .toolbar-btn-delete i {
+        color: #dc3545 !important;
+    }
+</style>
+
+<div class="p-3 pt-0 ob-page-wrapper">
+    <!-- Top Header: Title and Subtitle -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-2 pb-1 border-bottom">
+        <div>
+            <h4 class="text-body-emphasis mb-0 fw-bold" style="font-size: 1.15rem;">@Html.SmartLocalize("Opening Balance Setup")</h4>
+            <p class="text-body-tertiary mb-0" style="font-size: 13px;">@Html.SmartLocalize("Set the starting balance of each ledger account for the financial year.")</p>
+        </div>
+    </div>
+
+    <!-- Summary Metrics Row (Debit, Credit, Difference) -->
+    <div class="row g-3 mb-2">
+        <div class="col-12 col-md-4">
+            <div class="ob-stat-card" style="--stat-color: #2563eb;">
+                <span class="ob-stat-label">@Html.SmartLocalize("Total Debit")</span>
+                <b class="ob-stat-num mt-1" id="lblTotalDebit">৳ 0.00</b>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="ob-stat-card" style="--stat-color: #0284c7;">
+                <span class="ob-stat-label">@Html.SmartLocalize("Total Credit")</span>
+                <b class="ob-stat-num mt-1" id="lblTotalCredit">৳ 0.00</b>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="ob-stat-card" id="cardDifference" style="--stat-color: #16a34a;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="ob-stat-label">@Html.SmartLocalize("Difference")</span>
+                    <span class="badge badge-subtle-success" id="badgeDiffStatus" style="font-size: 12px;">
+                        <i class="fas fa-check-circle me-1"></i>@Html.SmartLocalize("Balanced")
+                    </span>
+                </div>
+                <b class="ob-stat-num mt-1 text-success" id="lblDifference">৳ 0.00</b>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup of Opening Balance Form with standard _Toolbars -->
+    <div class="card shadow-none border-gray-200 mb-2">
+        <div class="card-header p-0">
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title = "Opening Balance Setup",
+                SaveBtnId = "btnSave",
+                SaveBtnClass = "js-ob-save",
+                DeleteBtnId = "btnDelete",
+                DeleteBtnClass = "js-ob-delete-confirm",
+                ClearBtnId = "btnClear",
+                ClearBtnClass = "js-ob-clear",
+                PrintBtnId = "btnPrint",
+                ShowPrint = true,
+                ShowTitle = true
+            })
+        </div>
+        <div class="card-body px-3 pt-2 pb-2">
+            <form id="OpeningBalance-form" autocomplete="off" novalidate>
+                <div class="alert alert-danger d-none" id="OpeningBalance-modalAlertError"></div>
+                <input type="hidden" id="OpeningBalance-isEdit" value="0" />
+                <input type="hidden" id="OpeningBalance-autoId" value="" />
+
+                <div class="row gx-3">
+                    <!-- Row 1: Company | Branch -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="modalCompany">@Html.SmartLocalize("Company")</label>
+                        <select class="form-select form-select-sm custom-select-single" id="modalCompany" data-placeholder="@Html.SmartLocalize("Select Company")">
+                            @foreach (var comp in dropdowns.Companies)
+                            {
+                                <option value="@comp.Code" data-id="@comp.Id" selected="@(comp.Code == "001" ? "selected" : null)">@comp.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="modalBranch">@Html.SmartLocalize("Branch")</label>
+                        <select class="form-select form-select-sm custom-select-single" id="modalBranch" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                            @foreach (var br in dropdowns.Branches)
+                            {
+                                <option value="@br.Code" data-id="@br.Id" selected="@(br.Code == "01" || br.Code == "1" ? "selected" : null)">@br.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- hr divider -->
+                    <div class="col-12 py-0 mt-2 mb-2">
+                        <div style="width: 100%; border-top: 1px solid var(--phoenix-border-color, #e3e6ed);"></div>
+                    </div>
+
+                    <!-- Row 2: OB Code | Financial Year + Opening Date -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold req" for="modalObCode">@Html.SmartLocalize("OB Code")</label>
+                        <input type="text" class="form-control form-control-sm bg-light" id="modalObCode" readonly placeholder="@Html.SmartLocalize("Auto-generated")" />
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold req" for="modalFinancialYear">@Html.SmartLocalize("Financial Year")</label>
+                                <select class="form-select form-select-sm custom-select-single" id="modalFinancialYear" data-placeholder="@Html.SmartLocalize("Select Financial Year")" required>
+                                    <option value="">@Html.SmartLocalize("Select Financial Year")...</option>
+                                    @for (int i = 0; i < dropdowns.FinancialYears.Count; i++)
+                                    {
+                                        var fy = dropdowns.FinancialYears[i];
+                                        <option value="@fy.Code" data-current="@(fy.IsCurrent ? "1" : "0")" selected="@(fy.IsCurrent ? "selected" : null)">@fy.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold req" for="modalOpeningDate">@Html.SmartLocalize("Opening Date")</label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control form-control-sm vch-date-picker gc-date-input" id="modalOpeningDate" placeholder="dd/mm/yyyy" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Account Head | Opening Balance + Transaction Type -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold req" for="modalAccountHead">@Html.SmartLocalize("Account Head")</label>
+                        <select class="form-select form-select-sm custom-select-single" id="modalAccountHead" data-placeholder="@Html.SmartLocalize("Select Account Code - Account Head")" required>
+                            <option value="">@Html.SmartLocalize("Select Account Code - Account Head")...</option>
+                            @foreach (var grp in dropdowns.AccountHeads.GroupBy(a => a.GroupName))
+                            {
+                                <optgroup label="@grp.Key">
+                                    @foreach (var acc in grp)
+                                    {
+                                        <option value="@acc.Code" data-deftype="@acc.DefaultTrType">@acc.Code - @acc.Name</option>
+                                    }
+                                </optgroup>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold req" for="modalAmount">@Html.SmartLocalize("Opening Balance")</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text" style="font-size: 13px;">৳</span>
+                                    <input type="number" class="form-control form-control-sm text-end" id="modalAmount" min="0" step="0.01" placeholder="0.00" required />
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold req" for="modalTrType">@Html.SmartLocalize("Transaction Type")</label>
+                                <select class="form-select form-select-sm custom-select-single" id="modalTrType" data-placeholder="@Html.SmartLocalize("Select Dr / Cr")" required>
+                                    <option value="">@Html.SmartLocalize("Select Dr / Cr")...</option>
+                                    <option value="Dr">@Html.SmartLocalize("Dr (Debit)")</option>
+                                    <option value="Cr">@Html.SmartLocalize("Cr (Credit)")</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Reference | Description (textarea) -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="modalReference">@Html.SmartLocalize("Reference")</label>
+                        <input type="text" class="form-control form-control-sm" id="modalReference" maxlength="100" placeholder="@Html.SmartLocalize("e.g. OB-JV-001, REF-001")" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="modalDescription">@Html.SmartLocalize("Description")</label>
+                        <input type="text" class="form-control form-control-sm" id="modalDescription" maxlength="255" placeholder="@Html.SmartLocalize("Enter description or remarks (optional)")" />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end align-items-center gap-2 mt-2 pt-1 border-top">
+                    @* <button type="button" class="btn toolbar-btn toolbar-btn-clear js-ob-clear" id="OpeningBalance-resetBtn">
+                        <i class="fas fa-undo"></i>
+                        <span>@Html.SmartLocalize("Clear")</span>
+                    </button> *@
+                    <button type="button" class="btn toolbar-btn toolbar-btn-save js-ob-save" id="OpeningBalance-saveBtn">
+                        <i class="fas fa-save"></i>
+                        <span>@Html.SmartLocalize("Save")</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Excel File Upload Section (Format: | Download Template | Upload file (.csv) | File save |) -->
+    <div class="ob-excel-panel border-gray-200 mb-2 py-1">
+        <form id="OpeningBalance-formUploadCsv" enctype="multipart/form-data">
+            <div class="d-flex flex-wrap align-items-center gap-3 fs-9">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-body-emphasis">@Html.SmartLocalize("Format"):</span>
+                    <a href="@Url.Action("DownloadTemplate", "OpeningBalance")" class="btn toolbar-btn toolbar-btn-print" id="btnDownloadTemplate">
+                        <i class="fas fa-download"></i>
+                        <span>@Html.SmartLocalize("Download Template")</span>
+                    </a>
+                </div>
+
+                <span class="text-body-tertiary d-none d-md-inline"></span>
+
+                <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 480px;">
+                    <label class="form-label mb-0 fw-semibold text-body-secondary text-nowrap" for="fileCsv">@Html.SmartLocalize("Upload file (.xlsx / .xls)"):</label>
+                    <input class="form-control form-control-sm" type="file" id="fileCsv" accept=".xlsx,.xls,.csv" />
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <button type="submit" class="btn toolbar-btn toolbar-btn-save" id="btnUploadCsv">
+                        <i class="fas fa-save"></i>
+                        <span>@Html.SmartLocalize("File save")</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- Table Grid Partial -->
+    @await Html.PartialAsync("_Table")
+</div>
+
+<!-- Action Confirm Modal (Replaces browser confirm) -->
+@await Html.PartialAsync("_ConfirmModal")
+
+@section Scripts {
+    <script src="~/js/pages/DatePickerCustom/DatePickerCustomBy404.js"></script>
+    <script src="~/js/pages/OpeningBalance/openingBalance.js" asp-append-version="true"></script>
+}

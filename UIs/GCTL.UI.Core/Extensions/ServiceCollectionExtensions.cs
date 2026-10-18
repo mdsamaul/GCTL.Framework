@@ -124,6 +124,10 @@ namespace GCTL.Framework.Extensions
             // This satisfies constructors that still depend on the older context name.
             services.AddDbContext<GctlHrmContext>(options =>
                 options.UseSqlServer(connectionString));
+
+            // Dapper connection registration
+            services.AddScoped<System.Data.IDbConnection>(sp =>
+                new Microsoft.Data.SqlClient.SqlConnection(connectionString));
             // Identity DbContext registration
             //services.AddDbContext<ApplicationDbContext>(options =>
             //    options.UseSqlServer(connectionString));
@@ -275,6 +279,23 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IPaymentReceiveEntryService, PaymentReceiveEntryService>();
             services.AddScoped<IDocumentationReportService, DocumentationReportService>();
             services.AddScoped<IJobStatusReportService, JobStatusReportService>();
+
+            // Finance Module Services
+            services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.IChartOfAccountsService, GCTL.Service.Finance.ChartOfAccounts.ChartOfAccountsService>();
+            services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.IGroupLedgerService, GCTL.Service.Finance.ChartOfAccounts.GroupLedgerService>();
+            services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.IControlLedgerService, GCTL.Service.Finance.ChartOfAccounts.ControlLedgerService>();
+            services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.ISubControlLedgerService, GCTL.Service.Finance.ChartOfAccounts.SubControlLedgerService>();
+            services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.ISubSubsidiaryLedgerService, GCTL.Service.Finance.ChartOfAccounts.SubSubsidiaryLedgerService>();
+            services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.IGeneralLedgerService, GCTL.Service.Finance.ChartOfAccounts.GeneralLedgerService>();
+            services.AddScoped<GCTL.Service.Finance.VoucherEntry.IVoucherEntryService, GCTL.Service.Finance.VoucherEntry.VoucherEntryService>();
+            services.AddScoped<GCTL.Service.Finance.OpeningBalance.IOpeningBalanceService, GCTL.Service.Finance.OpeningBalance.OpeningBalanceService>();
+            services.AddScoped<GCTL.Service.Finance.ChartOfAccountsReports.IChartOfAccountsReportsService, GCTL.Service.Finance.ChartOfAccountsReports.ChartOfAccountsReportsService>();
+            services.AddScoped<GCTL.Service.Finance.GeneralLedgerReport.IGeneralLedgerReportService, GCTL.Service.Finance.GeneralLedgerReport.GeneralLedgerReportService>();
+            services.AddScoped<GCTL.Service.Finance.TrialBalance.ITrialBalanceService, GCTL.Service.Finance.TrialBalance.TrialBalanceService>();
+            services.AddScoped<GCTL.Service.Finance.IncomeStatement.IIncomeStatementService, GCTL.Service.Finance.IncomeStatement.IncomeStatementService>();
+            services.AddScoped<GCTL.Service.Finance.BalanceSheet.IBalanceSheetService, GCTL.Service.Finance.BalanceSheet.BalanceSheetService>();
+            services.AddScoped<GCTL.Service.Finance.CashFlow.ICashFlowService, GCTL.Service.Finance.CashFlow.CashFlowService>();
+
             services.AddMemoryCache();
         }
 

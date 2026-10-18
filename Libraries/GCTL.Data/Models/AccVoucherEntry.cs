@@ -54,4 +54,6 @@ public partial class AccVoucherEntry
     public DateTime? ApprovedDate { get; set; }
 
     public string Reference { get; set; }
+
+    public string IsActive { get; set; }
 }

@@ -1,0 +1,144 @@
+@{
+    ViewData["Title"] = "General Ledger";
+    var companies = ViewBag.Companies as List<GCTL.Core.ViewModels.CommonSelectVM> ?? new List<GCTL.Core.ViewModels.CommonSelectVM>();
+    var branches = ViewBag.Branches as List<GCTL.Core.ViewModels.CommonSelectVM> ?? new List<GCTL.Core.ViewModels.CommonSelectVM>();
+    var accountHeads = ViewBag.AccountHeads as List<GCTL.Core.ViewModels.CommonSelectVM> ?? new List<GCTL.Core.ViewModels.CommonSelectVM>();
+
+    var firstDayOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).ToString("yyyy-MM-dd");
+    var lastDayOfMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month)).ToString("yyyy-MM-dd");
+    var defaultCompanyName = companies.Count > 0 ? companies[0].Name : "Formosa Logistics Limited";
+}
+
+<link rel="stylesheet" href="~/css/pages/generalLedgerReport.css" asp-append-version="true" />
+
+<div class="gl-wrapper tb-wrapper mt-3">
+    <!-- Top Header Banner (Matching TrialBalance View style) -->
+    @* <header class="tb-header nox">
+        <div>
+            <h1>@Html.SmartLocalize("Finance & Accounts")</h1>
+        </div>
+    </header> *@
+
+    <!-- Finance Navigation Tabs Component (Chart of Accounts, General Ledger, Trial Balance, Income Statement, Balance Sheet, Cash Flow) -->
+    <partial name="_FinanceReportTabs" model='"GeneralLedger"' />
+
+    <!-- Filter Bar: 'Filter By:' text at front, all filters and reset button locked on one line -->
+    <div class="filters-container no-print" id="rf">
+        <div class="filter-by-indicator">
+            <span class="filter-by-text">
+                <i class="fas fa-filter"></i> @Html.SmartLocalize("Filter By:")
+            </span>
+        </div>
+        <div class="filter-fields-grid">
+            <div class="filter-item">
+                <label for="fCo">@Html.SmartLocalize("Company")</label>
+                <select id="fCo" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Company")">
+                    @foreach (var c in companies)
+                    {
+                        <option value="@c.Code">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="fBr">@Html.SmartLocalize("Branch")</label>
+                <select id="fBr" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                    <option value="All">@Html.SmartLocalize("All Branches")</option>
+                    @foreach (var b in branches)
+                    {
+                        <option value="@b.Code">@b.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item" style="flex: 2; min-width: 220px;">
+                <label for="fAcc">@Html.SmartLocalize("Account Head")</label>
+                <select id="fAcc" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Account Head")">
+                    @foreach (var grp in accountHeads.GroupBy(a => !string.IsNullOrWhiteSpace(a.GroupName?.Trim(" -".ToCharArray())) ? a.GroupName : "General"))
+                    {
+                        <optgroup label="@grp.Key">
+                            @foreach (var a in grp)
+                            {
+                                <option value="@a.Code" selected="@(a.Code == "1020020000200001" ? "selected" : null)">@a.Name</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+            </div>
+            <div class="filter-item date-item">
+                <label for="fFrom">@Html.SmartLocalize("Date From")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" class="form-control form-control-sm flatpickr-input" id="fFrom" value="@firstDayOfMonth" placeholder="dd/mm/yyyy" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item date-item">
+                <label for="fTo">@Html.SmartLocalize("To")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" class="form-control form-control-sm flatpickr-input" id="fTo" value="@lastDayOfMonth" placeholder="dd/mm/yyyy" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item" style="flex: 0 0 auto; min-width: auto;">
+                <button type="button" class="btn-reset" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")">
+                    <i class="fas fa-undo-alt me-1"></i>@Html.SmartLocalize("Reset")
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Summary KPI Cards (Matching TrialBalance cards-grid) -->
+    <div class="cards-grid" id="c-gl"></div>
+
+    <!-- 3. Main Panel & Accounting Table Grid -->
+    <div class="pan panel-box">
+        <div class="bar panel-bar">
+            <h3 class="mb-0">@Html.SmartLocalize("General Ledger")</h3>
+            <span class="ex nox">
+                <select id="glExportAction" class="form-select form-select-sm w-auto fw-semibold" style="height: 35px;">
+                    <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Formate")</option>
+                    <option value="p">Print/Preview</option>
+                    <option value="pdf">PDF</option>
+                    <option value="x">Excel</option>
+                </select>
+            </span>
+        </div>
+
+        <div id="o-gl">
+            <!-- Print Header (Visible only when printing) -->
+            <div class="phead">
+                <b id="pheadCo" class="fs-6">@defaultCompanyName</b>
+                <h2>@Html.SmartLocalize("General Ledger")</h2>
+                <div id="pheadSub" class="fs-9 text-muted"></div>
+            </div>
+
+            <!-- Subtitle & Breadcrumb Hierarchy Path -->
+            <div class="nox fw-semibold mb-1" id="glSub" style="color: var(--gl-ink);"></div>
+            <div class="nox mb-2" id="glPath" style="font-size: 12px; color: var(--gl-mut);"></div>
+
+            <!-- Table Grid matching Mockup table.g -->
+            <div style="overflow-x: auto;">
+                <table class="g report-table" id="glTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">@Html.SmartLocalize("Date")</th>
+                            <th style="width: 15%;">@Html.SmartLocalize("Voucher No")</th>
+                            <th style="width: 13%;">@Html.SmartLocalize("Invoice No")</th>
+                            <th style="width: 26%;">@Html.SmartLocalize("Narration")</th>
+                            <th class="num" style="width: 12%;">@Html.SmartLocalize("Debit (৳)")</th>
+                            <th class="num" style="width: 12%;">@Html.SmartLocalize("Credit (৳)")</th>
+                            <th class="num" style="width: 12%;">@Html.SmartLocalize("Balance (৳)")</th>
+                        </tr>
+                    </thead>
+                    <tbody id="glTableBody">
+                        <!-- Populated dynamically by generalLedgerReport.js -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+@section Scripts {
+    <script src="~/js/pages/finance/generalLedgerReport.js" asp-append-version="true"></script>
+}

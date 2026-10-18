@@ -1,0 +1,109 @@
+@model GCTL.Core.ViewModels.Finance.TrialBalance.TrialBalanceReportVM
+@{
+    ViewData["Title"] = "Trial Balance Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var defaultFromDate = Model?.Filter?.FromDate?.ToString("yyyy-MM-dd") ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).ToString("yyyy-MM-dd");
+    var defaultToDate = Model?.Filter?.ToDate?.ToString("yyyy-MM-dd") ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month)).ToString("yyyy-MM-dd");
+}
+
+<link rel="stylesheet" href="~/css/pages/trialBalance.css" asp-append-version="true" />
+
+<div class="tb-wrapper mt-3">
+    <!-- Top Header Banner (Matching GeneralLedgerReport style) -->
+    @* <header class="tb-header nox">
+        <div>
+            <h1>@Html.SmartLocalize("Finance & Accounts")</h1>
+        </div>
+    </header> *@
+
+    <!-- Finance Navigation Tabs Component (Chart of Accounts, General Ledger, Trial Balance, Income Statement, Balance Sheet, Cash Flow) -->
+    <partial name="_FinanceReportTabs" model='"TrialBalance"' />
+
+    <!-- Filter Bar: 'Filter By:' text prominently on the left before company -->
+    <div class="filters-container no-print" id="rf">
+        <div class="filter-by-indicator">
+            <span class="filter-by-text">
+                <i class="fas fa-filter"></i> @Html.SmartLocalize("Filter By:")
+            </span>
+        </div>
+        <div class="filter-fields-grid">
+            <div class="filter-item">
+                <label for="companyFilter">@Html.SmartLocalize("Company")</label>
+                <select id="companyFilter" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Company")">
+                    @foreach (var c in Model.Companies)
+                    {
+                        <option value="@c.Code" selected="@(c.Code == Model.Filter.Main_CompanyCode ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="branch">@Html.SmartLocalize("Branch")</label>
+                <select id="branch" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                    <option value="All">@Html.SmartLocalize("All Branches")</option>
+                    @foreach (var b in Model.Branches)
+                    {
+                        <option value="@b.Code" selected="@(b.Code == Model.Filter.BranchCode ? "selected" : null)">@b.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item date-item">
+                <label for="from">@Html.SmartLocalize("Date From")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" id="from" class="form-control form-control-sm flatpickr-input" placeholder="dd/mm/yyyy" value="@defaultFromDate" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item date-item">
+                <label for="to">@Html.SmartLocalize("To")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" id="to" class="form-control form-control-sm flatpickr-input" placeholder="dd/mm/yyyy" value="@defaultToDate" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item" style="flex: 0 0 130px; min-width: 110px; max-width: 140px;">
+                <label for="level">@Html.SmartLocalize("Show levels up to")</label>
+                <select id="level" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Level")">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5" selected>5</option>
+                </select>
+            </div>
+            <div class="filter-item" style="flex: 0 0 auto; min-width: auto;">
+                <button type="button" class="btn-reset" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")">
+                    <i class="fas fa-undo-alt me-1"></i> @Html.SmartLocalize("Reset")
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics Cards -->
+    <div class="cards-grid" id="cards"></div>
+
+    <!-- Report Table Panel -->
+    <section class="panel-box">
+        <div class="panel-bar no-print">
+            <h3 class="mb-0">@Html.SmartLocalize("Trial Balance")</h3>
+            <div class="panel-actions no-print">
+                <select id="exportFormatSelect" class="form-select form-select-sm export-select fw-semibold">
+                    <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Format")</option>
+                    <option value="preview">Print / Preview</option>
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel</option>
+                </select>
+            </div>
+        </div>
+        <div class="tb-table-responsive" id="report">
+            <div class="text-center py-4">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2 text-muted">@Html.SmartLocalize("Loading Trial Balance report...")</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/finance/trialBalance.js" asp-append-version="true"></script>
+}

@@ -36,4 +36,24 @@ public partial class AccCompanyOpeningBalance
     public string UserInfoEmployeeId { get; set; }
 
     public DateTime? OpeningDate { get; set; }
+
+    public string FinancialCodeNo { get; set; }
+
+    public string GeneralLedgerCodeNo { get; set; }
+
+    public string Reference { get; set; }
+
+    public string Description { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+
+    public int? CreatedBy { get; set; }
+
+    public DateTime? DeletedAt { get; set; }
+
+    public int? DeletedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public int? UpdatedBy { get; set; }
 }

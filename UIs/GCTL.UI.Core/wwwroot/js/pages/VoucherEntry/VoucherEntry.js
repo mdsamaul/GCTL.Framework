@@ -710,8 +710,14 @@ function ClearVoucherEntryForm() {
     $("#Description, #ChequeNo, #Amount").val('');
 
     // Clear Flatpickr date
-    if (document.querySelector("#ChequeDate") && $("#ChequeDate")[0]._flatpickr) {
-        $("#ChequeDate")[0]._flatpickr.clear();
+    if (typeof setDate === "function") {
+        setDate("#ChequeDate", "");
+    } else if (document.querySelector("#ChequeDate")) {
+        if ($("#ChequeDate")[0]._flatpickr) {
+            $("#ChequeDate")[0]._flatpickr.clear();
+        } else {
+            $('#ChequeDate').val('');
+        }
     }
 
     $('#AccCode').next('.select2-container').find('.select2-selection__placeholder')
@@ -890,8 +896,8 @@ function fillMainVoucherInfo(main) {
         }
     }
 
-    if (main.lDate) {
-        let entryDate = new Date(main.lDate).toLocaleString('en-GB', {
+    if (main.ldate) {
+        let entryDate = new Date(main.ldate).toLocaleString('en-GB', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
