@@ -1,0 +1,128 @@
+@using GCTL.Core.ViewModels.Finance.OpeningBalancesVM
+@{
+    var dropdowns = ViewBag.Dropdowns as OpeningBalanceDropdownsVM ?? new OpeningBalanceDropdownsVM();
+}
+
+<div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-body-highlight border-bottom py-3">
+                <h5 class="modal-title fw-bold text-body-emphasis" id="openingBalanceModalLabel">
+                    <i class="fas fa-plus-circle me-2 text-primary"></i>@Html.SmartLocalize("Add Opening Balance")
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="OpeningBalance-form" autocomplete="off" novalidate>
+                    <div class="alert alert-danger d-none" id="OpeningBalance-modalAlertError"></div>
+                    <input type="hidden" id="OpeningBalance-isEdit" value="0" />
+
+                    <div class="row g-3">
+                        <!-- Row 1: Company | Branch -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-9" for="modalCompany">@Html.SmartLocalize("Company")</label>
+                            <select class="form-select form-select-sm custom-select-single" id="modalCompany" data-placeholder="@Html.SmartLocalize("Select Company")">
+                                @foreach (var comp in dropdowns.Companies)
+                                {
+                                    <option value="@comp.Id">@comp.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-9" for="modalBranch">@Html.SmartLocalize("Branch")</label>
+                            <select class="form-select form-select-sm custom-select-single" id="modalBranch" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                                @foreach (var br in dropdowns.Branches)
+                                {
+                                    <option value="@br.Id">@br.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- hr divided till half -->
+                        <div class="col-12 py-0 my-1">
+                            <div style="width: 50%; border-top: 1px solid var(--phoenix-border-color, #e3e6ed);"></div>
+                        </div>
+
+                        <!-- Row 2: OB Code | Financial Year + Opening Date -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-9 req" for="modalObCode">@Html.SmartLocalize("OB Code")</label>
+                            <input type="text" class="form-control form-control-sm bg-light" id="modalObCode" readonly placeholder="@Html.SmartLocalize("Auto-generated")" />
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold fs-9 req" for="modalFinancialYear">@Html.SmartLocalize("Financial Year")</label>
+                                    <select class="form-select form-select-sm custom-select-single" id="modalFinancialYear" data-placeholder="@Html.SmartLocalize("Select Financial Year")" required>
+                                        <option value="">@Html.SmartLocalize("Select Financial Year")...</option>
+                                        @foreach (var fy in dropdowns.FinancialYears)
+                                        {
+                                            <option value="@fy.Code">@fy.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold fs-9 req" for="modalOpeningDate">@Html.SmartLocalize("Opening Date")</label>
+                                    <input type="text" class="form-control form-control-sm vch-date-picker gc-date-input" id="modalOpeningDate" placeholder="dd/mm/yyyy" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Account Head | Opening Balance + Transaction Type -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-9 req" for="modalAccountHead">@Html.SmartLocalize("Account Head")</label>
+                            <select class="form-select form-select-sm custom-select-single" id="modalAccountHead" data-placeholder="@Html.SmartLocalize("Select Account Code - Account Head")" required>
+                                <option value="">@Html.SmartLocalize("Select Account Code - Account Head")...</option>
+                                @foreach (var grp in dropdowns.AccountHeads.GroupBy(a => a.GroupName))
+                                {
+                                    <optgroup label="@grp.Key">
+                                        @foreach (var acc in grp)
+                                        {
+                                            <option value="@acc.Code" data-deftype="@acc.DefaultTrType">@acc.Code - @acc.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold fs-9 req" for="modalAmount">@Html.SmartLocalize("Opening Balance")</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">৳</span>
+                                        <input type="number" class="form-control form-control-sm text-end" id="modalAmount" min="0" step="0.01" placeholder="0.00" required />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold fs-9 req" for="modalTrType">@Html.SmartLocalize("Transaction Type")</label>
+                                    <select class="form-select form-select-sm custom-select-single" id="modalTrType" data-placeholder="@Html.SmartLocalize("Select Dr / Cr")" required>
+                                        <option value="">@Html.SmartLocalize("Select Dr / Cr")...</option>
+                                        <option value="Dr">@Html.SmartLocalize("Dr (Debit)")</option>
+                                        <option value="Cr">@Html.SmartLocalize("Cr (Credit)")</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Reference | Description (textarea) -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-9" for="modalReference">@Html.SmartLocalize("Reference")</label>
+                            <input type="text" class="form-control form-control-sm" id="modalReference" maxlength="100" placeholder="@Html.SmartLocalize("e.g. OB-JV-001, REF-001")" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold fs-9" for="modalDescription">@Html.SmartLocalize("Description")</label>
+                            <textarea class="form-control form-control-sm" id="modalDescription" rows="1" maxlength="255" placeholder="@Html.SmartLocalize("Enter description or remarks (optional)")"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-body-highlight border-top py-2 px-4">
+                <button type="button" class="btn btn-phoenix-secondary btn-sm" data-bs-dismiss="modal">
+                    @Html.SmartLocalize("Cancel")
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="OpeningBalance-saveBtn">
+                    <i class="fas fa-save me-1"></i>@Html.SmartLocalize("Save Opening Balance")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

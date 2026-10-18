@@ -35,7 +35,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Acc_FinancialYear]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Acc_GeneralLedger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Acc_GroupLedger]",
          "ObjectType": 0
       },
       {

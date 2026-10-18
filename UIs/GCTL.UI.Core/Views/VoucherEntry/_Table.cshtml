@@ -1,0 +1,71 @@
+<div class="border-0 p-0" id="VoucherEntry-tableCard">
+    <div>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <label class="form-label mb-0 fs-9 text-body-secondary text-nowrap text-uppercase">@Html.SmartLocalize("Show")</label>
+                <select class="form-select form-select-sm" id="VoucherEntry-pageSizeSelect" style="width: 75px;">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <label class="form-label mb-0 fs-9 text-body-secondary text-nowrap text-uppercase">@Html.SmartLocalize("entries")</label>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <div class="input-group input-group-sm" style="max-width: 280px;">
+                    <input type="text" class="form-control" id="VoucherEntry-searchInput" placeholder="@Html.SmartLocalize("Search voucher no / narration...")" />
+                    <button class="btn btn-phoenix-secondary px-2" type="button" id="VoucherEntry-searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle fs-9 mb-0" id="VoucherEntry-table">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="vch-sort cursor-pointer text-uppercase" data-sort="voucherno" style="width: 140px;" title="@Html.SmartLocalize("Click to sort by Voucher No")">
+                            @Html.SmartLocalize("VOUCHER NO") <span class="vch-sort-icon ms-1"></span>
+                        </th>
+                        <th scope="col" class="vch-sort cursor-pointer text-center text-uppercase" data-sort="voucherdate" style="width: 110px;" title="@Html.SmartLocalize("Click to sort by Date")">
+                            @Html.SmartLocalize("DATE") <span class="vch-sort-icon ms-1"><i class="fas fa-arrow-down text-primary fs-10"></i></span>
+                        </th>
+                        <th scope="col" class="vch-sort cursor-pointer text-center text-uppercase" data-sort="vouchertype" style="width: 90px;" title="@Html.SmartLocalize("Click to sort by Type")">
+                            @Html.SmartLocalize("TYPE") <span class="vch-sort-icon ms-1"></span>
+                        </th>
+                        <th scope="col" class="vch-sort cursor-pointer text-uppercase" data-sort="branchname" style="width: 135px;" title="@Html.SmartLocalize("Click to sort by Branch")">
+                            @Html.SmartLocalize("BRANCH") <span class="vch-sort-icon ms-1"></span>
+                        </th>
+                        <th scope="col" class="vch-sort cursor-pointer text-uppercase" data-sort="narration" title="@Html.SmartLocalize("Click to sort by Narration")">
+                            @Html.SmartLocalize("NARRATION") <span class="vch-sort-icon ms-1"></span>
+                        </th>
+                        <th scope="col" class="vch-sort cursor-pointer text-end text-uppercase" data-sort="amount" style="width: 130px;" title="@Html.SmartLocalize("Click to sort by Amount")">
+                            @Html.SmartLocalize("AMOUNT (৳)") <span class="vch-sort-icon ms-1"></span>
+                        </th>
+                        <th scope="col" class="vch-sort cursor-pointer text-center text-uppercase" data-sort="isapproved" style="width: 110px;" title="@Html.SmartLocalize("Click to sort by Status")">
+                            @Html.SmartLocalize("STATUS") <span class="vch-sort-icon ms-1"></span>
+                        </th>
+                        <th scope="col" class="text-center nox text-uppercase" style="width: 155px;">@Html.SmartLocalize("ACTIONS")</th>
+                    </tr>
+                </thead>
+                <tbody id="VoucherEntry-body">
+                    <!-- Dynamically populated via voucherEntry.js -->
+                </tbody>
+                <tfoot id="VoucherEntry-foot" class="table-light fw-bold" style="border-top: 1.5px solid #000; border-bottom: 2.5px double #000;">
+                    <tr>
+                        <td colspan="5" class="text-end pe-2">@Html.SmartLocalize("Total")</td>
+                        <td class="text-end font-monospace pe-2 text-dark" id="vchGridTotalAmount">৳0.00</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-2 border-top">
+            <span class="fs-9 text-body-secondary" id="VoucherEntry-paginationInfo">@Html.SmartLocalize("Showing 0 to 0 of 0 entries")</span>
+            <div id="VoucherEntry-paginationContainer" class="d-flex align-items-center gap-1"></div>
+        </div>
+    </div>
+</div>

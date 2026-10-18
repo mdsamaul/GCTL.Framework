@@ -1,0 +1,95 @@
+@using GCTL.Core.ViewModels.Finance.OpeningBalancesVM
+@using GCTL.UI.Core.ViewModels
+@{
+    var dropdowns = ViewBag.Dropdowns as OpeningBalanceDropdownsVM ?? new OpeningBalanceDropdownsVM();
+}
+
+<div class="card shadow-none border-gray-200">
+    <!-- Filter Bar -->
+    <div class="card-header border-gray-200 bg-body-highlight px-3 py-2">
+        <div class="row g-2 align-items-end flex-wrap flex-xl-nowrap">
+            <div class="col-auto d-none d-xl-block align-self-center me-1">
+                <span class="fw-semibold text-body-emphasis" style="font-size: 13px;">
+                    <i class="fas fa-filter me-1 text-primary"></i>@Html.SmartLocalize("Filter by"):
+                </span>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-xl-2">
+                <label class="form-label mb-1 fw-semibold text-muted" for="fFinancialYear" style="font-size: 13px;">@Html.SmartLocalize("Financial Year")</label>
+                <select class="form-select form-select-sm custom-select-single" id="fFinancialYear" data-placeholder="@Html.SmartLocalize("All Years")">
+                    <option value="">@Html.SmartLocalize("All Years")</option>
+                    @for (int i = 0; i < dropdowns.FinancialYears.Count; i++)
+                    {
+                        var fy = dropdowns.FinancialYears[i];
+                        <option value="@fy.Code" data-start="@fy.StartDateFormatted" data-end="@fy.EndDateFormatted" data-current="@(fy.IsCurrent ? "1" : "0")" selected="@(fy.IsCurrent ? "selected" : null)">@fy.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-6 col-sm-4 col-md-2 col-xl-2">
+                <label class="form-label mb-1 fw-semibold text-muted" for="fFrom" style="font-size: 13px;">@Html.SmartLocalize("Date from")</label>
+                <div class="position-relative">
+                    <input type="text" class="form-control form-control-sm vch-date-picker gc-date-input" id="fFrom" placeholder="dd/mm/yyyy" />
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-2 col-xl-2">
+                <label class="form-label mb-1 fw-semibold text-muted" for="fTo" style="font-size: 13px;">@Html.SmartLocalize("To")</label>
+                <div class="position-relative">
+                    <input type="text" class="form-control form-control-sm vch-date-picker gc-date-input" id="fTo" placeholder="dd/mm/yyyy" />
+                </div>
+            </div>
+            <div class="col-12 col-sm-8 col-md-5 col-xl-4 flex-grow-1">
+                <label class="form-label mb-1 fw-semibold text-muted" for="fAccountHead" style="font-size: 13px;">@Html.SmartLocalize("Account Head")</label>
+                <select class="form-select form-select-sm custom-select-single" id="fAccountHead" data-placeholder="@Html.SmartLocalize("All Accounts")">
+                    <option value="">@Html.SmartLocalize("All Accounts")</option>
+                    @foreach (var grp in dropdowns.AccountHeads.GroupBy(a => a.GroupName))
+                    {
+                        <optgroup label="@grp.Key">
+                            @foreach (var acc in grp)
+                            {
+                                <option value="@acc.Code">@acc.Code - @acc.Name</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")" style="height: 34px;">
+                    <i class="fas fa-undo-alt"></i>
+                    <span>@Html.SmartLocalize("Reset")</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Grid Body with _CustomGrid -->
+    <div class="card-body p-2 pt-1">
+        @await Html.PartialAsync("_CustomGrid", new GridModel
+        {
+            GridId = "OpeningBalance-table",
+            AjaxUrl = "/OpeningBalance/GetGridData",
+            AjaxMethod = "POST",
+            ServerSide = true,
+            ShowCheckbox = true,
+            CheckColumnData = "comOpeningBalanceCode",
+            CheckAllId = "selectAllOpeningBalance",
+            CheckboxClass = "js-ob-check",
+            ShowSearchBox = true,
+            ShowPagination = true,
+            DefaultSortColumn = "ComOpeningBalanceCode",
+            DefaultSortDirection = "desc",
+            ShowActionMenu = true,
+            CustomGridWrapper = true,
+            Columns = new List<GridColumn>
+            {
+                new() { Data = "comOpeningBalanceCode", Header = "OB Code", Width = "9%", Align = "center", SortField = "ComOpeningBalanceCode", IsEditLink = true, EditSelectorClass = "js-ob-edit", IdField = "comOpeningBalanceCode" },
+                new() { Data = "accountHeadDisplay", Header = "Account Head", Width = "22%", Align = "left", SortField = "GeneralLedgerName", RenderFn = "renderAccountHead" },
+                new() { Data = "openingBalance", Header = "Opening Balance", Width = "12%", Align = "right", SortField = "OpeningBalance", RenderFn = "formatOpeningBalanceCurrency", TabularNumber = true },
+                new() { Data = "trType", Header = "Tr. Type", Width = "8%", Align = "center", SortField = "TrType", RenderFn = "renderTrTypeBadge" },
+                new() { Data = "openingDateFormatted", Header = "Opening Date", Width = "11%", Align = "center", SortField = "OpeningDate", RenderFn = "renderNullDash" },
+                new() { Data = "financialCodeNo", Header = "Financial Year", Width = "11%", Align = "center", SortField = "FinancialCodeNo", RenderFn = "renderFyBadge" },
+                new() { Data = "reference", Header = "Reference", Width = "11%", Align = "center", SortField = "Reference", RenderFn = "renderNullDash" },
+                new() { Data = "description", Header = "Description", Width = "12%", Align = "left", SortField = "Description", RenderFn = "renderNullDash" }
+            }
+        })
+    </div>
+</div>
+

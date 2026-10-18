@@ -1,4 +1,4 @@
-﻿
+
 
 namespace GCTL.Core.ViewModels.VoucherEntry
 {
@@ -11,7 +11,7 @@ namespace GCTL.Core.ViewModels.VoucherEntry
         public string Description { get; set; }
         public decimal Amount { get; set; } 
         public string? ChequeNo { get; set; }
-        public DateTime ChequeDate { get; set; }
+        public DateTime? ChequeDate { get; set; }
         public string? DebitCreditType { get; set; }
         public decimal? DebitAmount { get; set; }
         public decimal? CreditAmount { get; set; }

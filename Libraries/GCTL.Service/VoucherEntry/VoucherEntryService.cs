@@ -157,7 +157,7 @@ namespace GCTL.Service.VoucherEntry
                         DebitAmount = tmp.DebitAmount,
                         CreditAmount = tmp.CreditAmount,
                         ChequeNo = tmp.ChequeNo,
-                        ChequeDate = tmp.ChequeDate,
+                        ChequeDate = tmp.ChequeDate.Year > 1900 ? tmp.ChequeDate : null,
                         Luser = tmp.Luser,
                         VoucherEntryAutoId = entity.AutoId,
                         BankName = "",
@@ -232,7 +232,7 @@ namespace GCTL.Service.VoucherEntry
                         detail.DebitAmount = data.DebitAmount;
                         detail.CreditAmount = data.CreditAmount;
                         detail.ChequeNo = data.ChequeNo;
-                        detail.ChequeDate = data.ChequeDate;
+                        detail.ChequeDate = data.ChequeDate.Year > 1900 ? data.ChequeDate : null;
                         detail.Luser = model.Luser.ToString();
                         detail.ModifyDate = DateTime.Now;
 
@@ -252,7 +252,7 @@ namespace GCTL.Service.VoucherEntry
                             DebitAmount = data.DebitAmount,
                             CreditAmount = data.CreditAmount,
                             ChequeNo = data.ChequeNo,
-                            ChequeDate = data.ChequeDate,
+                            ChequeDate = data.ChequeDate.Year > 1900 ? data.ChequeDate : null,
                             Luser = model.Luser.ToString(),
                             VoucherEntryAutoId = entity.AutoId,
                             BankName = "",
@@ -707,7 +707,7 @@ namespace GCTL.Service.VoucherEntry
                                   VoucherEntryDetailsCodeNo = details.VoucherEntryDetailsCodeNo,
                                   VoucherEntryNo = details.VoucherEntryCodeNo,
                                   ChequeNo = details.ChequeNo,
-                                  ChequeDate = details.ChequeDate ?? DateTime.Today
+                                  ChequeDate = details.ChequeDate
                               }).ToListAsync();
 
             return data;
@@ -774,7 +774,7 @@ namespace GCTL.Service.VoucherEntry
                         DebitAmount = tmpdata.DebitAmount,
                         CreditAmount = tmpdata.CreditAmount,
                         ChequeNo = tmpdata.ChequeNo ?? "",
-                        ChequeDate = tmpdata.ChequeDate,
+                        ChequeDate = tmpdata.ChequeDate ?? new DateTime(1900, 1, 1),
                         Luser = currenUserID?.ToString() ?? ""
                     };
                     await _tmpDetails.AddAsync(tmp);

@@ -84,9 +84,15 @@ $(document).ready(function () {
         });
     }
     
-    // Initialize ChequeDate
-    if (document.querySelector("#ChequeDate")) {
-        setDate("#ChequeDate", new Date());
+    // Initialize ChequeDate (empty with placeholder by default)
+    if (typeof setDate === "function") {
+        setDate("#ChequeDate", "");
+    } else if (document.querySelector("#ChequeDate")) {
+        if ($("#ChequeDate")[0]._flatpickr) {
+            $("#ChequeDate")[0]._flatpickr.clear();
+        } else {
+            $('#ChequeDate').val('');
+        }
     }
 
 
@@ -297,8 +303,14 @@ function DetailsSectionClear() {
     $("#Description, #ChequeNo, #Amount").val('');
 
     // Clear Flatpickr date
-    if (document.querySelector("#ChequeDate") && $("#ChequeDate")[0]._flatpickr) {
-        $("#ChequeDate")[0]._flatpickr.clear();
+    if (typeof setDate === "function") {
+        setDate("#ChequeDate", "");
+    } else if (document.querySelector("#ChequeDate")) {
+        if ($("#ChequeDate")[0]._flatpickr) {
+            $("#ChequeDate")[0]._flatpickr.clear();
+        } else {
+            $('#ChequeDate').val('');
+        }
     }
 }
 
@@ -503,15 +515,27 @@ function fillFormFields(data) {
     // Cheque Date
     if (data.chequeDate) {
         const isoDate = data.chequeDate.split('T')[0]; // yyyy-mm-dd
-        const parts = isoDate.split('-');
-        const bdDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // dd-mm-yyyy
-        if ($("#ChequeDate")[0]._flatpickr) {
-            $("#ChequeDate")[0]._flatpickr.setDate(bdDate, true);
+        if (isoDate === "1900-01-01" || isoDate === "0001-01-01") {
+            if (typeof setDate === "function") {
+                setDate("#ChequeDate", "");
+            } else if (document.querySelector("#ChequeDate") && $("#ChequeDate")[0]._flatpickr) {
+                $("#ChequeDate")[0]._flatpickr.clear();
+            } else {
+                $('#ChequeDate').val('');
+            }
         } else {
-            $('#ChequeDate').val(isoDate);
+            const parts = isoDate.split('-');
+            const bdDate = `${parts[2]}-${parts[1]}-${parts[0]}`; // dd-mm-yyyy
+            if ($("#ChequeDate")[0]._flatpickr) {
+                $("#ChequeDate")[0]._flatpickr.setDate(bdDate, true);
+            } else {
+                $('#ChequeDate').val(isoDate);
+            }
         }
     } else {
-        if ($("#ChequeDate")[0]._flatpickr) {
+        if (typeof setDate === "function") {
+            setDate("#ChequeDate", "");
+        } else if (document.querySelector("#ChequeDate") && $("#ChequeDate")[0]._flatpickr) {
             $("#ChequeDate")[0]._flatpickr.clear();
         } else {
             $('#ChequeDate').val('');

@@ -1,0 +1,200 @@
+@model string
+@inject GCTL.Service.Finance.ChartOfAccounts.IChartOfAccountsService coaService
+
+@{
+    var stats = await coaService.GetStatsAsync();
+    var gStats = stats?.GroupStats ?? new List<GCTL.Core.ViewModels.Finance.ChartOfAccounts.GroupStatItemVM>();
+    var assetStats = gStats.FirstOrDefault(g => g.GroupCode == "1" || (g.GroupName != null && g.GroupName.ToLower().Contains("asset")));
+    var equityStats = gStats.FirstOrDefault(g => g.GroupCode == "2" || (g.GroupName != null && (g.GroupName.ToLower().Contains("equity") || g.GroupName.ToLower().Contains("liabilit"))));
+    var incomeStats = gStats.FirstOrDefault(g => g.GroupCode == "3" || (g.GroupName != null && (g.GroupName.ToLower().Contains("income") || g.GroupName.ToLower().Contains("revenue"))));
+    var expenseStats = gStats.FirstOrDefault(g => g.GroupCode == "4" || (g.GroupName != null && g.GroupName.ToLower().Contains("expense")));
+}
+
+<link rel="stylesheet" href="~/css/pages/chartOfAccounts.css" asp-append-version="true" />
+
+<div class="coa-wrap">
+    <!-- Top Header Bar -->
+    <header class="coa-bar">
+        <div>
+            <h1>@Html.SmartLocalize("Chart of Accounts Setup")</h1>
+            <p>@Html.SmartLocalize("School Management, five-level ledger hierarchy")</p>
+        </div>
+        <div class="coa-tools">
+            @* <button type="button" class="coa-btn" id="coa-seed-btn" title="Seed default chart of accounts hierarchy">
+                @Html.SmartLocalize("Seed Default")
+            </button> *@
+            <a href="@Url.Action("ExportCsv", "ChartOfAccounts")" class="coa-btn" id="coa-export-btn">
+                @Html.SmartLocalize("Export CSV")
+            </a>
+            <button type="button" class="coa-btn" onclick="window.print()">
+                @Html.SmartLocalize("Print")
+            </button>
+        </div>
+    </header>
+
+    <!-- 5 Top Statistics Cards -->
+    <section id="coa-stats" class="coa-stats py-0">
+        <div class="coa-st">
+            <b id="coa-stat-total">@(stats?.TotalGeneralLedgers ?? 0)</b>
+            <span>@Html.SmartLocalize("Total ledgers")</span>
+        </div>
+        <div class="coa-st">
+            <b id="coa-stat-assets">@(assetStats?.GLCount ?? 0)</b>
+            <span>@Html.SmartLocalize("Assets")</span>
+        </div>
+        <div class="coa-st">
+            <b id="coa-stat-equity">@(equityStats?.GLCount ?? 0)</b>
+            <span>@Html.SmartLocalize("Equity & Liabilities")</span>
+        </div>
+        <div class="coa-st">
+            <b id="coa-stat-income">@(incomeStats?.GLCount ?? 0)</b>
+            <span>@Html.SmartLocalize("Income")</span>
+        </div>
+        <div class="coa-st">
+            <b id="coa-stat-expenses">@(expenseStats?.GLCount ?? 0)</b>
+            <span>@Html.SmartLocalize("Expenses")</span>
+        </div>
+    </section>
+
+    <!-- Ledger Code Anatomy Legend -->
+    <div id="coa-legend" class="coa-legend">
+        <span>@Html.SmartLocalize("Ledger code anatomy"):</span>
+        <span><i class="s0"></i>@Html.SmartLocalize("Group Ledger 1 digit")</span>
+        <span><i class="s1"></i>@Html.SmartLocalize("Control Ledger 2 digits")</span>
+        <span><i class="s2"></i>@Html.SmartLocalize("Sub-Control Ledger 3 digits")</span>
+        <span><i class="s3"></i>@Html.SmartLocalize("Sub-Subsidiary Ledger 5 digits")</span>
+        <span><i class="s4"></i>@Html.SmartLocalize("General Ledger 5 digits")</span>
+        <span>@Html.SmartLocalize("General ledger code = 16 digits")</span>
+    </div>
+
+    <!-- Navigation Tabs with Row Counts (ExamClasses CPSCR style) -->
+    <ul class="nav nav-underline fs-9 mb-3" id="coa-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link @(Model == "ChartOfAccounts" ? "active" : "")"
+               id="treeView-tab"
+               href="@Url.Action("Index", "ChartOfAccounts")"
+               role="tab"
+               aria-selected="@(Model == "ChartOfAccounts" ? "true" : "false")">
+                <i class="fas fa-sitemap me-1"></i> @Html.SmartLocalize("Tree View")
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model == "GroupLedger" ? "active" : "")"
+               id="groupLedger-tab"
+               href="@Url.Action("Index", "GroupLedger")"
+               role="tab"
+               aria-selected="@(Model == "GroupLedger" ? "true" : "false")">
+                <i class="fas fa-layer-group me-1"></i> @Html.SmartLocalize("Group Ledger")
+                <span class="badge coa-tab-badge ms-1" id="tab-cnt-grl">@(stats?.TotalGroups ?? 0)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model == "ControlLedger" ? "active" : "")"
+               id="controlLedger-tab"
+               href="@Url.Action("Index", "ControlLedger")"
+               role="tab"
+               aria-selected="@(Model == "ControlLedger" ? "true" : "false")">
+                <i class="fas fa-folder me-1"></i> @Html.SmartLocalize("Control Ledger")
+                <span class="badge coa-tab-badge ms-1" id="tab-cnt-cl">@(stats?.TotalControls ?? 0)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model == "SubControlLedger" ? "active" : "")"
+               id="subControlLedger-tab"
+               href="@Url.Action("Index", "SubControlLedger")"
+               role="tab"
+               aria-selected="@(Model == "SubControlLedger" ? "true" : "false")">
+                <i class="fas fa-folder-open me-1"></i> @Html.SmartLocalize("Sub-Control Ledger")
+                <span class="badge coa-tab-badge ms-1" id="tab-cnt-scl">@(stats?.TotalSubControls ?? 0)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model == "SubSubsidiaryLedger" ? "active" : "")"
+               id="subSubsidiaryLedger-tab"
+               href="@Url.Action("Index", "SubSubsidiaryLedger")"
+               role="tab"
+               aria-selected="@(Model == "SubSubsidiaryLedger" ? "true" : "false")">
+                <i class="fas fa-book me-1"></i> @Html.SmartLocalize("Sub-Subsidiary Ledger")
+                <span class="badge coa-tab-badge ms-1" id="tab-cnt-ssl">@(stats?.TotalSubSubsidiaries ?? 0)</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model == "GeneralLedger" ? "active" : "")"
+               id="generalLedger-tab"
+               href="@Url.Action("Index", "GeneralLedger")"
+               role="tab"
+               aria-selected="@(Model == "GeneralLedger" ? "true" : "false")">
+                <i class="fas fa-file-invoice-dollar me-1"></i> @Html.SmartLocalize("General Ledger")
+                <span class="badge coa-tab-badge ms-1" id="tab-cnt-gl">@(stats?.TotalGeneralLedgers ?? 0)</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<script>
+    window.loadCoaGlobalStats = function() {
+        fetch('/ChartOfAccounts/GetStats')
+            .then(res => res.json())
+            .then(res => {
+                if (res && res.success && res.data) {
+                    const d = res.data;
+                    const totalVal = d.totalGeneralLedgers ?? d.TotalGeneralLedgers ?? d.totalLedgers ?? d.TotalLedgers ?? 0;
+                    const totalEl = document.getElementById('coa-stat-total');
+                    if (totalEl) totalEl.textContent = totalVal;
+
+                    const gStats = d.groupStats || d.GroupStats || [];
+                    const assets = gStats.find(g => (g.groupCode || g.GroupCode) === '1' || ((g.groupName || g.GroupName) && (g.groupName || g.GroupName).toLowerCase().includes('asset')));
+                    const equity = gStats.find(g => (g.groupCode || g.GroupCode) === '2' || ((g.groupName || g.GroupName) && ((g.groupName || g.GroupName).toLowerCase().includes('equity') || (g.groupName || g.GroupName).toLowerCase().includes('liabilit'))));
+                    const income = gStats.find(g => (g.groupCode || g.GroupCode) === '3' || ((g.groupName || g.GroupName) && ((g.groupName || g.GroupName).toLowerCase().includes('income') || (g.groupName || g.GroupName).toLowerCase().includes('revenue'))));
+                    const expense = gStats.find(g => (g.groupCode || g.GroupCode) === '4' || ((g.groupName || g.GroupName) && (g.groupName || g.GroupName).toLowerCase().includes('expense')));
+
+                    const elAssets = document.getElementById('coa-stat-assets');
+                    if (elAssets) elAssets.textContent = assets ? (assets.glCount ?? assets.GLCount ?? 0) : 0;
+
+                    const elEquity = document.getElementById('coa-stat-equity');
+                    if (elEquity) elEquity.textContent = equity ? (equity.glCount ?? equity.GLCount ?? 0) : 0;
+
+                    const elIncome = document.getElementById('coa-stat-income');
+                    if (elIncome) elIncome.textContent = income ? (income.glCount ?? income.GLCount ?? 0) : 0;
+
+                    const elExpenses = document.getElementById('coa-stat-expenses');
+                    if (elExpenses) elExpenses.textContent = expense ? (expense.glCount ?? expense.GLCount ?? 0) : 0;
+
+                    // Tab counts
+                    const bGrl = document.getElementById('tab-cnt-grl');
+                    if (bGrl) bGrl.textContent = d.totalGroups ?? d.TotalGroups ?? 0;
+
+                    const bCl = document.getElementById('tab-cnt-cl');
+                    if (bCl) bCl.textContent = d.totalControls ?? d.TotalControls ?? 0;
+
+                    const bScl = document.getElementById('tab-cnt-scl');
+                    if (bScl) bScl.textContent = d.totalSubControls ?? d.TotalSubControls ?? 0;
+
+                    const bSsl = document.getElementById('tab-cnt-ssl');
+                    if (bSsl) bSsl.textContent = d.totalSubSubsidiaries ?? d.TotalSubSubsidiaries ?? 0;
+
+                    const bGl = document.getElementById('tab-cnt-gl');
+                    if (bGl) bGl.textContent = d.totalGeneralLedgers ?? d.TotalGeneralLedgers ?? 0;
+                }
+            })
+            .catch(err => console.warn('Could not load Chart of Accounts stats:', err));
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const seedBtn = document.getElementById('coa-seed-btn');
+        if (seedBtn) {
+            seedBtn.addEventListener('click', function() {
+                if (!confirm('Do you want to seed/ensure default school chart of accounts?')) return;
+                fetch('/ChartOfAccounts/SeedDefault', { method: 'POST' })
+                    .then(r => r.json())
+                    .then(res => {
+                        alert(res.message || 'Accounts seeded successfully!');
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        alert('Failed to seed accounts: ' + err);
+                    });
+            });
+        }
+    });
+</script>

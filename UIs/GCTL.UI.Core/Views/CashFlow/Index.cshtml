@@ -1,0 +1,104 @@
+@model GCTL.Core.ViewModels.Finance.CashFlow.CashFlowReportVM
+@{
+    ViewData["Title"] = "Cash Flow Statement";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/pages/cashFlow.css" asp-append-version="true" />
+
+<div class="cf-wrapper tb-wrapper mt-3">
+    <!-- Top Header Banner (Matching TrialBalance & IncomeStatement style) -->
+    @* <header class="tb-header nox">
+        <div>
+            <h1 style="color:white !important;">@Html.SmartLocalize("Finance & Accounts")</h1>           
+        </div>
+    </header> *@
+
+    <!-- Finance Navigation Tabs Component (Chart of Accounts, General Ledger, Trial Balance, Income Statement, Balance Sheet, Cash Flow) -->
+    <partial name="_FinanceReportTabs" model='"CashFlow"' />
+
+    <!-- Filter Bar -->
+    <div class="filters-container no-print" id="rf">
+        <div class="filter-by-indicator">
+            <span class="filter-by-text">
+                <i class="fas fa-filter"></i> @Html.SmartLocalize("Filter By:")
+            </span>
+        </div>
+        <div class="filter-fields-grid">
+            <div class="filter-item">
+                <label for="companyFilter">@Html.SmartLocalize("Company")</label>
+                <select id="companyFilter" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Company")">
+                    @foreach (var c in Model.Companies)
+                    {
+                        <option value="@c.Code" selected="@(c.Code == Model.Filter.Main_CompanyCode ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="branch">@Html.SmartLocalize("Branch")</label>
+                <select id="branch" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                    <option value="All">@Html.SmartLocalize("All Branches")</option>
+                    @foreach (var b in Model.Branches)
+                    {
+                        <option value="@b.Code" selected="@(b.Code == Model.Filter.BranchCode ? "selected" : null)">@b.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item date-item">
+                <label for="from">@Html.SmartLocalize("Date From")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" id="from" class="form-control form-control-sm flatpickr-input" placeholder="dd/mm/yyyy" value="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item date-item">
+                <label for="to">@Html.SmartLocalize("To")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" id="to" class="form-control form-control-sm flatpickr-input" placeholder="dd/mm/yyyy" value="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd") ?? "")" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+                </div>
+            </div>
+            <div class="filter-item" style="flex: 0 0 auto; min-width: auto;">
+                <button type="button" class="btn-reset" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")">
+                    <i class="fas fa-undo-alt me-1"></i> @Html.SmartLocalize("Reset")
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics Cards -->
+    <div class="cards-grid no-print" id="cards"></div>
+
+    <!-- Report Table Panel -->
+    <section class="panel-box">
+        <div class="panel-bar no-print">
+            <h3 class="mb-0">@Html.SmartLocalize("Cash Flow Statement (Direct method)")</h3>
+            <div class="panel-actions no-print">
+                <select id="exportFormatSelect" class="form-select form-select-sm export-select">
+                    <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Format")</option>
+                    <option value="preview">Print / Preview</option>
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Print Header -->
+        <div class="report-head-print">
+            <b>@(Model.CompanyName)</b>
+            <h2>@Html.SmartLocalize("Cash Flow Statement (Direct Method)")</h2>
+            <div id="printSubTitle"></div>
+        </div>
+
+        <div class="tb-table-responsive" id="report">
+            <div class="text-center py-4">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2 text-muted">@Html.SmartLocalize("Loading Cash Flow report...")</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/finance/cashFlow.js" asp-append-version="true"></script>
+}

@@ -1,4 +1,4 @@
-﻿
+
 using GCTL.UI.Core.Controllers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,12 +13,7 @@ namespace GCTL.Controllers.CharOfAccount
 
         public IActionResult Index()
         {
-
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView();
-            }
-            return View();
+            return RedirectToAction("Index", "ChartOfAccounts");
         }
 
 

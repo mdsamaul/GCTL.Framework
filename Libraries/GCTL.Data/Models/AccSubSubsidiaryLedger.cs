@@ -38,4 +38,12 @@ public partial class AccSubSubsidiaryLedger
     public string CashFlowTypeId { get; set; }
 
     public string CostCenterCodeNo { get; set; }
+
+    public string SubSubsidiaryLedgerCodeNo { get; set; }
+
+    public string SubControlLedgerCodeNo { get; set; }
+
+    public string ControlLedgerCodeNo { get; set; }
+
+    public string GroupLedgerCodeNo { get; set; }
 }

@@ -1,493 +1,109 @@
-@model GCTL.UI.Core.ViewModels.GridModel
-
+@model GCTL.Core.ViewModels.Finance.TrialBalance.TrialBalanceReportVM
 @{
-    ViewData["Title"] = "Trial Balance";
-    ViewData["ShowPageTitle"] = false;
-    Layout = "_Layout";
+    ViewData["Title"] = "Trial Balance Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var defaultFromDate = Model?.Filter?.FromDate?.ToString("yyyy-MM-dd") ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).ToString("yyyy-MM-dd");
+    var defaultToDate = Model?.Filter?.ToDate?.ToString("yyyy-MM-dd") ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month)).ToString("yyyy-MM-dd");
 }
 
-<style>
-    body {
-        background-color: #edf2f7;
-    }
+<link rel="stylesheet" href="~/css/pages/trialBalance.css" asp-append-version="true" />
 
-    .tb-page-wrapper {
-        padding: 8px 4px 30px 4px;
-        color: #1e293b;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
+<div class="tb-wrapper mt-3">
+    <!-- Top Header Banner (Matching GeneralLedgerReport style) -->
+    @* <header class="tb-header nox">
+        <div>
+            <h1>@Html.SmartLocalize("Finance & Accounts")</h1>
+        </div>
+    </header> *@
 
-    /* =========================================================
-       1. Top Section: Filter Bar ("Filter By" on left)
-       ========================================================= */
-    .tb-filter-card {
-        background: #ffffff;
-        border: 1px solid #dce4ec;
-        border-radius: 8px;
-        padding: 10px 16px;
-        margin-bottom: 14px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-    }
+    <!-- Finance Navigation Tabs Component (Chart of Accounts, General Ledger, Trial Balance, Income Statement, Balance Sheet, Cash Flow) -->
+    <partial name="_FinanceReportTabs" model='"TrialBalance"' />
 
-    .tb-filter-row {
-        display: flex;
-        align-items: flex-end;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .tb-filter-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 700;
-        color: #003366;
-        font-size: 0.86rem;
-        white-space: nowrap;
-        align-self: flex-end;
-        margin-bottom: 7px;
-        flex-shrink: 0;
-    }
-
-    .tb-filter-label i {
-        color: #0284c7;
-        font-size: 0.95rem;
-    }
-
-    .tb-filter-group {
-        display: flex;
-        flex-direction: column;
-        flex: 1 1 180px;
-        min-width: 150px;
-    }
-
-    .tb-filter-group.group-company {
-        flex: 1.5 1 240px;
-    }
-
-    .tb-filter-group.group-branch {
-        flex: 1 1 160px;
-    }
-
-    .tb-filter-group.group-date {
-        flex: 1 1 160px;
-    }
-
-    .tb-filter-group label {
-        font-size: 0.76rem;
-        font-weight: 500;
-        color: #64748b;
-        margin-bottom: 4px;
-    }
-
-    .tb-filter-group .form-control,
-    .tb-filter-group .form-select {
-        height: 33px !important;
-        min-height: 33px !important;
-        font-size: 0.82rem;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        color: #1e293b;
-        padding: 3px 10px;
-        background-color: #ffffff;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .tb-filter-group .form-control:focus,
-    .tb-filter-group .form-select:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-    }
-
-    .tb-date-input-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .tb-date-input-wrapper input {
-        padding-right: 32px !important;
-        cursor: pointer;
-    }
-
-    .tb-date-input-wrapper .tb-calendar-icon {
-        position: absolute;
-        right: 10px;
-        color: #64748b;
-        pointer-events: none;
-        font-size: 0.85rem;
-    }
-
-    .tb-filter-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-left: auto;
-        padding-bottom: 1px;
-        flex-shrink: 0;
-    }
-
-    .tb-btn-action {
-        height: 33px;
-        padding: 0 13px;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        background: #ffffff;
-        color: #334155;
-        font-size: 0.8rem;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-    }
-
-    .tb-btn-action:hover {
-        background-color: #f8fafc;
-        border-color: #94a3b8;
-        color: #0f172a;
-    }
-
-    .tb-btn-action i {
-        font-size: 0.85rem;
-        color: #64748b;
-    }
-
-    .tb-btn-action:hover i {
-        color: #1e293b;
-    }
-
-    /* =========================================================
-       2. Middle Section: Dashboard Summary / KPI Cards
-       ========================================================= */
-    .tb-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-        margin-bottom: 14px;
-    }
-
-    .tb-stat-card {
-        background: #ffffff;
-        border: 1px solid #dce4ec;
-        border-radius: 8px;
-        padding: 12px 18px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .tb-stat-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .tb-stat-bar {
-        width: 4px;
-        height: 34px;
-        border-radius: 2px;
-        margin-right: 14px;
-        flex-shrink: 0;
-    }
-
-    .tb-stat-bar.bar-green {
-        background-color: #008060;
-    }
-
-    .tb-stat-bar.bar-dark {
-        background-color: #1e293b;
-    }
-
-    .tb-stat-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .tb-stat-label {
-        font-size: 0.76rem;
-        color: #64748b;
-        font-weight: 500;
-        margin: 0 0 3px 0;
-        letter-spacing: 0.2px;
-    }
-
-    .tb-stat-value {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #0f172a;
-        margin: 0;
-        line-height: 1.15;
-    }
-
-    .tb-stat-value.text-difference {
-        color: #008060;
-    }
-
-    /* =========================================================
-       3. Bottom Section: Grid Card (GPAnalysisReport style)
-       ========================================================= */
-    .job-grid-card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        border: 1px solid #dce4ec;
-        padding: 12px 16px;
-        overflow-x: auto;
-    }
-
-    .tb-header-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .tb-title-badge {
-        background-color: #2563eb;
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 0.95rem;
-        padding: 3px 8px;
-        border-radius: 4px;
-        letter-spacing: 0.2px;
-    }
-
-    .tb-title-suffix {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    /* Grid Table styling matching GPAnalysisReport */
-    #trialBalanceTable {
-        width: 100% !important;
-        font-size: 11.5px !important;
-        table-layout: auto;
-        border-collapse: collapse !important;
-    }
-
-    #trialBalanceTable thead th {
-        vertical-align: middle !important;
-        text-align: center !important;
-        padding: 6px 8px !important;
-        font-size: 11.5px !important;
-        line-height: 1.2 !important;
-        border: 1px solid #c2c9d1 !important;
-        font-weight: 700;
-        background-color: #f1f5f9;
-        color: #334155;
-    }
-
-    #trialBalanceTable tbody td {
-        padding: 6px 8px !important;
-        font-size: 11.5px !important;
-        line-height: 1.25 !important;
-        border: 1px solid #e2e8f0 !important;
-        vertical-align: middle;
-    }
-
-    #trialBalanceTable tbody tr:hover {
-        background-color: #f0f7ff !important;
-    }
-
-    #trialBalanceTable tfoot tr td {
-        padding: 8px 10px !important;
-        font-weight: 700 !important;
-        color: #0f172a !important;
-        border-top: 2px solid #0f172a !important;
-        border-bottom: 2px solid #0f172a !important;
-        background-color: #f8fafc !important;
-        font-size: 12px !important;
-    }
-
-    /* Print View Styles */
-    @@media print {
-        body {
-            background-color: #ffffff !important;
-        }
-
-        .app-sidebar,
-        .app-topnav,
-        .tb-filter-card,
-        .dataTables_length,
-        .dataTables_filter,
-        .dataTables_info,
-        .dataTables_paginate,
-        .tb-btn-action {
-            display: none !important;
-        }
-
-        .tb-page-wrapper {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-
-        .job-grid-card,
-        .tb-stat-card {
-            border: 1px solid #ccc !important;
-            box-shadow: none !important;
-        }
-    }
-
-    @@media (max-width: 1200px) {
-        .tb-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .tb-stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .tb-filter-row {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .tb-filter-actions {
-            margin-left: 0;
-            justify-content: flex-start;
-        }
-    }
-</style>
-
-<div class="tb-page-wrapper" id="tbPrintableArea">
-
-    <!-- 1. FILTER BAR ON TOP -->
-    <div class="tb-filter-card">
-        <div class="tb-filter-row">
-            <!-- Filter By Label -->
-            <div class="tb-filter-label">
-                <i class="fa fa-filter"></i>
-                <span>Filter By:</span>
-            </div>
-
-            <!-- Company -->
-            <div class="tb-filter-group group-company">
-                <label for="tbFilterCompany">Company</label>
-                <select id="tbFilterCompany" class="form-select custom-select-single">
-                    <option value="" selected>All Company</option>
-                    @if (ViewBag.Companies != null)
+    <!-- Filter Bar: 'Filter By:' text prominently on the left before company -->
+    <div class="filters-container no-print" id="rf">
+        <div class="filter-by-indicator">
+            <span class="filter-by-text">
+                <i class="fas fa-filter"></i> @Html.SmartLocalize("Filter By:")
+            </span>
+        </div>
+        <div class="filter-fields-grid">
+            <div class="filter-item">
+                <label for="companyFilter">@Html.SmartLocalize("Company")</label>
+                <select id="companyFilter" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Company")">
+                    @foreach (var c in Model.Companies)
                     {
-                        foreach (SelectListItem item in (SelectList)ViewBag.Companies)
-                        {
-                            <option value="@item.Value">@item.Text</option>
-                        }
-                    }
-                    else
-                    {
-                        <option value="001">Formosa Logistics Limited</option>
+                        <option value="@c.Code" selected="@(c.Code == Model.Filter.Main_CompanyCode ? "selected" : null)">@c.Name</option>
                     }
                 </select>
             </div>
-
-            <!-- Branch -->
-            <div class="tb-filter-group group-branch">
-                <label for="tbFilterBranch">Branch</label>
-                <select id="tbFilterBranch" class="form-select custom-select-single">
-                    <option value="" selected>All Branch</option>
-                    @if (ViewBag.Branches != null)
+            <div class="filter-item">
+                <label for="branch">@Html.SmartLocalize("Branch")</label>
+                <select id="branch" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                    <option value="All">@Html.SmartLocalize("All Branches")</option>
+                    @foreach (var b in Model.Branches)
                     {
-                        foreach (SelectListItem item in (SelectList)ViewBag.Branches)
-                        {
-                            <option value="@item.Value">@item.Text</option>
-                        }
+                        <option value="@b.Code" selected="@(b.Code == Model.Filter.BranchCode ? "selected" : null)">@b.Name</option>
                     }
                 </select>
             </div>
-
-            <!-- Date From -->
-            <div class="tb-filter-group group-date">
-                <label for="tbFilterFromDate">Date From</label>
-                <div class="tb-date-input-wrapper">
-                    <input type="text" id="tbFilterFromDate" class="form-control tb-datepicker" value="01/01/2026" placeholder="DD/MM/YYYY" autocomplete="off" />
-                    <i class="bi bi-calendar tb-calendar-icon"></i>
+            <div class="filter-item date-item">
+                <label for="from">@Html.SmartLocalize("Date From")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" id="from" class="form-control form-control-sm flatpickr-input" placeholder="dd/mm/yyyy" value="@defaultFromDate" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
                 </div>
             </div>
-
-            <!-- To Date -->
-            <div class="tb-filter-group group-date">
-                <label for="tbFilterToDate">To</label>
-                <div class="tb-date-input-wrapper">
-                    <input type="text" id="tbFilterToDate" class="form-control tb-datepicker" value="31/12/2026" placeholder="DD/MM/YYYY" autocomplete="off" />
-                    <i class="bi bi-calendar tb-calendar-icon"></i>
+            <div class="filter-item date-item">
+                <label for="to">@Html.SmartLocalize("To")</label>
+                <div class="flatpickr-input-container">
+                    <input type="text" id="to" class="form-control form-control-sm flatpickr-input" placeholder="dd/mm/yyyy" value="@defaultToDate" />
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
                 </div>
             </div>
-
-            <!-- Action Buttons: Print/Preview, PDF, Excel -->
-            <div class="tb-filter-actions">
-                <button type="button" class="tb-btn-action" id="tbBtnPrint" title="Print or preview report">
-                    <i class="bi bi-printer"></i>
-                    <span>Print/Preview</span>
-                </button>
-                <button type="button" class="tb-btn-action" id="tbBtnPdf" title="Export as PDF">
-                    <span>PDF</span>
-                </button>
-                <button type="button" class="tb-btn-action" id="tbBtnExcel" title="Export as Excel">
-                    <span>Excel</span>
+            <div class="filter-item" style="flex: 0 0 130px; min-width: 110px; max-width: 140px;">
+                <label for="level">@Html.SmartLocalize("Show levels up to")</label>
+                <select id="level" class="form-select form-select-sm custom-select-single" data-placeholder="@Html.SmartLocalize("Select Level")">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5" selected>5</option>
+                </select>
+            </div>
+            <div class="filter-item" style="flex: 0 0 auto; min-width: auto;">
+                <button type="button" class="btn-reset" id="btnResetFilters" title="@Html.SmartLocalize("Reset Filters")">
+                    <i class="fas fa-undo-alt me-1"></i> @Html.SmartLocalize("Reset")
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 2. DASHBOARD SUMMARY BELOW FILTER -->
-    <div class="tb-stats-grid">
-        <!-- Total debit -->
-        <div class="tb-stat-card">
-            <div class="tb-stat-bar bar-green"></div>
-            <div class="tb-stat-content">
-                <span class="tb-stat-label">Total debit</span>
-                <span class="tb-stat-value" id="kpiTotalDebit">৳0.00</span>
+    <!-- Summary Statistics Cards -->
+    <div class="cards-grid" id="cards"></div>
+
+    <!-- Report Table Panel -->
+    <section class="panel-box">
+        <div class="panel-bar no-print">
+            <h3 class="mb-0">@Html.SmartLocalize("Trial Balance")</h3>
+            <div class="panel-actions no-print">
+                <select id="exportFormatSelect" class="form-select form-select-sm export-select fw-semibold">
+                    <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Format")</option>
+                    <option value="preview">Print / Preview</option>
+                    <option value="pdf">PDF</option>
+                    <option value="excel">Excel</option>
+                </select>
             </div>
         </div>
-
-        <!-- Total credit -->
-        <div class="tb-stat-card">
-            <div class="tb-stat-bar bar-green"></div>
-            <div class="tb-stat-content">
-                <span class="tb-stat-label">Total credit</span>
-                <span class="tb-stat-value" id="kpiTotalCredit">৳0.00</span>
+        <div class="tb-table-responsive" id="report">
+            <div class="text-center py-4">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2 text-muted">@Html.SmartLocalize("Loading Trial Balance report...")</p>
             </div>
         </div>
-
-        <!-- Difference -->
-        <div class="tb-stat-card">
-            <div class="tb-stat-bar bar-green"></div>
-            <div class="tb-stat-content">
-                <span class="tb-stat-label">Difference</span>
-                <span class="tb-stat-value text-difference" id="kpiDifference">৳0.00</span>
-            </div>
-        </div>
-
-        <!-- Accounts with balance -->
-        <div class="tb-stat-card">
-            <div class="tb-stat-bar bar-dark"></div>
-            <div class="tb-stat-content">
-                <span class="tb-stat-label">Accounts with balance</span>
-                <span class="tb-stat-value" id="kpiAccountsCount">0</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. TRIAL BALANCE DYNAMIC GRID (GPAnalysisReport style) -->
-    <div class="job-grid-card">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <div class="tb-header-title">
-                <span class="tb-title-badge">Trial Balance</span>
-                <span class="tb-title-suffix">as on <span id="tbAsOnDate">31/12/2026</span></span>
-            </div>
-        </div>
-
-        @await Html.PartialAsync("_CustomGrid", Model)
-    </div>
-
+    </section>
 </div>
 
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="~/js/pages/trialBalance.js" asp-append-version="true"></script>
+    <script src="~/js/pages/finance/trialBalance.js" asp-append-version="true"></script>
 }

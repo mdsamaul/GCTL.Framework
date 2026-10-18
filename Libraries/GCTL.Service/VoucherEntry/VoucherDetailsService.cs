@@ -168,7 +168,7 @@ namespace GCTL.Service.VoucherEntry
                                     CreditAmount = tmp.CreditAmount,
                                     TrType = tmp.TrType,
                                     ChequeNo = tmp.ChequeNo,
-                                    ChequeDate = tmp.ChequeDate,
+                                    ChequeDate = tmp.ChequeDate.Year > 1900 ? tmp.ChequeDate : (DateTime?)null,
                                     AccountHead = subSub.SubSubsidiaryLedgerName
                                 }).ToListAsync();
 
@@ -232,7 +232,7 @@ namespace GCTL.Service.VoucherEntry
                 CreditAmount = raw.CreditAmount,
                 DebitAmount = raw.DebitAmount,
                 ChequeNo = raw.ChequeNo,
-                ChequeDate = raw.ChequeDate,
+                ChequeDate = raw.ChequeDate.Year > 1900 ? raw.ChequeDate : (DateTime?)null,
                 Description = raw.Description,
                 GroupLedgerName = !string.IsNullOrEmpty(raw.GroupCode) ? $"{raw.GroupCode}-{raw.GroupName}" : raw.GroupName,
                 ControlLedgerName = !string.IsNullOrEmpty(raw.ControlCode) ? $"{raw.ControlCode}-{raw.ControlName}" : raw.ControlName,
@@ -297,8 +297,8 @@ namespace GCTL.Service.VoucherEntry
                     Description = model.Description,
                     DebitAmount = model.TrType == "Dr" ? model.DebitAmount : 0,
                     CreditAmount = model.TrType == "Cr" ? model.CreditAmount : 0,
-                    ChequeNo = model.ChequeNo,
-                    ChequeDate = model.ChequeDate.Value,
+                    ChequeNo = model.ChequeNo ?? "",
+                    ChequeDate = model.ChequeDate ?? new DateTime(1900, 1, 1),
                     Luser  = model.Luser?.ToString(),
                     VoucherEntryCodeNo = ""
                 };
@@ -334,8 +334,8 @@ namespace GCTL.Service.VoucherEntry
                 entity.Description = model.Description;
                 entity.DebitAmount = model.TrType == "Dr" ? model.DebitAmount : 0;
                 entity.CreditAmount = model.TrType == "Cr" ? model.CreditAmount : 0;
-                entity.ChequeNo = model.ChequeNo;
-                entity.ChequeDate = model.ChequeDate.Value;
+                entity.ChequeNo = model.ChequeNo ?? "";
+                entity.ChequeDate = model.ChequeDate ?? new DateTime(1900, 1, 1);
                 entity.Luser = model.Luser?.ToString();
 
                 await _repository.UpdateAsync(entity);

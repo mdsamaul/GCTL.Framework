@@ -1,824 +1,1260 @@
+@using GCTL.Core.ViewModels.Finance.VoucherEntryVM
+@using GCTL.UI.Core.ViewModels
 @{
-    ViewBag.Title = "Voucher Entry";
+    ViewData["Title"] = "Voucher Entry";
+    Layout = "_Layout";
+    var dropdowns = ViewBag.Dropdowns as VoucherDropdownsVM ?? new VoucherDropdownsVM();
 }
+
 <style>
-    .form-floating .selectLabel {
-        font-size: 14px !important;
+    /* Page background & container theme matching screenshot */
+    body, 
+    .content, 
+    .content.card, 
+    .content.bg-body-highlight {
+        background-color: #ebf1ec !important;
     }
 
-    .form-floating label {
-        text-transform: none;
-        font-size: 13px;
+    .content {
+        min-height: 100vh;
+        padding: calc(var(--phoenix-navbar-top-height) + 1rem) 1.5rem 6rem 1.5rem;
+        position: relative;
     }
 
-    .VoucherEntrysaveBtn:hover {
-        color: darkgreen !important;
-        background-color: lightgray !important;
-    }
-
-    .VoucherEntrydeleteBtn:hover {
-        color: red !important;
-        background-color: lightgray !important;
-    }
-
-    .VoucherEntryresetBtn:hover {
-        color: lightgoldenrodyellow !important;
-        background-color: lightgray !important;
-    }
-
-    .printBtn:hover {
-        color: blue !important;
-        background-color: lightgray !important;
-    }
-
-    .VoucherEntryfavBtn:hover {
-        color: orangered !important;
-        background-color: lightgray !important;
-    }
-
-    #button-div button {
-        padding: 8px 6px;
-        width: 80px;
-    }
-
-    /* CSS for error styling */
-    .border-error {
-        border: 1px solid red !important;
-    }
-
-    .row.border {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 10px;
-    }
-
-    .btn-sm {
-        margin-top: 8px;
-    }
-
-    .ledger-row {
+    /* Top Header Banner matching screenshot */
+    .vch-top-header {
+        background: #fff;
+        color: #000;
+        padding: 14px 22px;
+        border-radius: 8px;
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        margin-bottom: 3px;
-        font-size: 12.5px;
+        margin-bottom: 12px;
     }
-
-    .ledger-label {
-        font-weight: 500;
-        color: #3e4855;
-        white-space: nowrap;
-        padding-right: 6px;
-    }
-
-    .ledger-value {
-        color: #212529;
-        font-weight: 400;
-        word-break: break-word;
-    }
-
-    .voucher-entry-table thead th {
-        background-color: #f8f9fa;
-        font-size: 13px;
-        padding: 8px;
-    }
-
-    .voucher-entry-table tbody td {
-        font-size: 13px;
-        padding: 8px;
-    }
-
-    .detailsicon {
-        border: none;
-        cursor: pointer;
-        background-color: white;
-    }
-
-        .detailsicon:hover {
-            color: #007bff;
-        }
-
-    /* Uniform height, width and compact styling for all inputs, selects, and datepickers */
-    #VoucherEntry-form .form-control,
-    #VoucherEntry-form .form-select,
-    #VoucherEntry-form .custom-datepicker,
-    #VoucherEntry-form input[type="text"],
-    #VoucherEntry-form input[type="number"] {
-        height: 31px !important;
-        min-height: 31px !important;
-        max-height: 31px !important;
-        font-size: 13px !important;
-        /* padding: 3px 8px !important; */
-        line-height: 1.5 !important;
-        border-color: #cbd0dd !important;
-        border-radius: 4px !important;
-        box-sizing: border-box !important;
-        /* width: 100% !important; */
-    }
-
-    #VoucherEntry-form textarea#Narration {
-        height: 52px !important;
-        min-height: 52px !important;
-        font-size: 13px !important;
-        padding: 4px 8px !important;
-        line-height: 1.4 !important;
-        border-color: #cbd0dd !important;
-        border-radius: 4px !important;
-        resize: vertical;
-        box-sizing: border-box !important;
-        width: 100% !important;
-    }
-
-    /* Select2 container matching 100% width and 31px height */
-    #VoucherEntry-form .select2-container {
-        width: 100% !important;
-        height: 31px !important;
-    }
-
-    #VoucherEntry-form .select2-container .select2-selection--single {
-        height: 31px !important;
-        min-height: 31px !important;
-        max-height: 31px !important;
-        display: flex !important;
-        align-items: center !important;
-        padding: 0 8px !important;
-        border: 1px solid #cbd0dd !important;
-        border-radius: 4px !important;
-        background-color: #fff !important;
-        box-sizing: border-box !important;
-        width: 100% !important;
-    }
-
-    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__rendered {
-        line-height: 29px !important;
-        height: 29px !important;
-        padding-left: 0 !important;
-        padding-right: 20px !important;
-        font-size: 13px !important;
-        color: #333 !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-
-    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__placeholder {
-        line-height: 29px !important;
-        font-size: 13px !important;
-        color: #8a9bb8 !important;
-    }
-
-    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__arrow {
-        height: 29px !important;
-        top: 0 !important;
-        right: 6px !important;
-        display: flex !important;
-        align-items: center !important;
-        margin: 0 !important;
-    }
-
-    #VoucherEntry-form .select2-container .select2-selection--single .select2-selection__arrow b {
-        margin-top: 0 !important;
-    }
-
-    /* Input group alignment inside form */
-    #VoucherEntry-form .input-group,
-    #VoucherEntry-form .input-group-sm {
-        width: 100% !important;
-        height: 31px !important;
-        flex-wrap: nowrap !important;
-    }
-
-    #VoucherEntry-form .input-group > .select2-container {
-        flex: 1 1 auto !important;
-        width: 1% !important;
-    }
-
-    /* =========================================================
-       Screen Responsive Control Layout:
-       - Labels & Inputs Side-by-Side (Inline) for all screens
-       - Label: 25% width (right-aligned) so all controllers start at the exact same vertical line
-       - Narration: 12.5% label + 87.5% input (starts at exact same line and ends with right controller)
-       ========================================================= */
-    #VoucherEntry-form .voucher-section {
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-    }
-
-    #VoucherEntry-form .row.align-items-center {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-    }
-
-    #VoucherEntry-form .row.align-items-center > [class*="col-3"],
-    #VoucherEntry-form .row.align-items-center > .col-3 {
-        flex: 0 0 25% !important;
-        max-width: 25% !important;
-        text-align: right !important;
-        padding-right: 6px !important;
-    }
-
-    #VoucherEntry-form .row.align-items-center > [class*="col-9"],
-    #VoucherEntry-form .row.align-items-center > .col-9 {
-        flex: 0 0 75% !important;
-        max-width: 75% !important;
-    }
-
-    #VoucherEntry-form .form-label {
-        font-size: 12.5px !important;
-        font-weight: 500 !important;
-        white-space: nowrap !important;
-        margin-bottom: 0 !important;
-        color: #3e4855 !important;
-        padding-right: 4px !important;
-    }
-
-    .ledger-row {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-    }
-
-    .ledger-label {
-        flex: 0 0 25% !important;
-        max-width: 25% !important;
-        text-align: right !important;
-        padding-right: 6px !important;
-        font-size: 12.5px !important;
-        font-weight: 500 !important;
-        color: #3e4855 !important;
-        white-space: nowrap !important;
-    }
-
-    .ledger-value {
-        flex: 0 0 75% !important;
-        max-width: 75% !important;
-        text-align: left !important;
-        font-size: 12.5px !important;
-        color: #212529 !important;
-    }
-
-    #VoucherEntry-form .narration-col .row.align-items-center {
-        align-items: flex-start !important;
-    }
-
-    #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-3"],
-    #VoucherEntry-form .narration-col .row.align-items-center > .col-3 {
-        flex: 0 0 12.5% !important;
-        max-width: 12.5% !important;
-        text-align: right !important;
-        padding-right: 6px !important;
-        padding-top: 5px !important;
-    }
-
-    #VoucherEntry-form .narration-col .row.align-items-center > [class*="col-9"],
-    #VoucherEntry-form .narration-col .row.align-items-center > .col-9 {
-        flex: 0 0 87.5% !important;
-        max-width: 87.5% !important;
-    }
-
-    #VoucherEntry-form .narration-col textarea#Narration {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-
-    @@media (min-width: 1400px) {
-        #VoucherEntry-form .form-label {
-            font-size: 13px !important;
-        }
-
-        .ledger-label,
-        .ledger-value {
-            font-size: 13px !important;
-        }
-    }
-
-    /* Voucher Section & Bar Header (matching screenshot) */
-    .voucher-section {
-        margin-bottom: 8px;
-    }
-
-    .voucher-section-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 4px;
-        margin-bottom: 8px;
-    }
-
-    .voucher-section-bar {
-        display: inline-block;
-        width: 3.5px;
-        height: 16px;
-        background-color: #c48325;
-        border-radius: 2px;
-        flex-shrink: 0;
-    }
-
-    .voucher-section-title {
-        font-size: 14px;
+    .vch-top-header h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 21px;
         font-weight: 700;
-        color: #1e3a8a;
-        letter-spacing: 0.2px;
+        color: #000;
+        margin: 0 0 2px 0;
+        letter-spacing: -0.01em;
+    }
+    .vch-top-header small {
+        font-size: 12px;
+        color: #a7f3d0;
+        opacity: 0.95;
+        font-family: "Segoe UI", system-ui, sans-serif;
     }
 
-    .voucher-divider {
-        border: 0 !important;
-        border-top: 1px solid #e9ecef !important;
-        opacity: 0.85 !important;
-        margin-top: 6px !important;
-        margin-bottom: 2px !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        padding: 0 !important;
-        height: 0 !important;
-    }
-
-    /* Top Toolbar Title Icon Badge (matching screenshot) */
-    .voucher-title-icon-badge {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 26px !important;
-        height: 26px !important;
-        background-color: #fff9eb !important;
-        border: 1px solid #fde68a !important;
-        border-radius: 6px !important;
-        color: #c48325 !important;
-        font-size: 13px !important;
-        margin-right: 8px !important;
-        flex-shrink: 0 !important;
-        box-shadow: 0 1px 2px rgba(196, 131, 37, 0.1) !important;
-    }
-
-    .voucher-title-text {
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        color: #1e3a8a !important;
-        letter-spacing: 0.2px !important;
-    }
-
-    .voucher-entry-card {
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    .voucher-entry-card .card-header {
-        border-bottom: none !important;
-    }
-
-    .voucher-entry-card .toolbar-container {
-        border: none !important;
-        box-shadow: none !important;
-        border-bottom: 1px solid #edf2f7 !important;
-        padding-bottom: 4px !important;
-    }
-
-    .voucher-entry-card-body {
-        padding: 4px 16px 12px 16px !important;
-    }
-
-    /* Details Icon Group Compact */
-    .details-icon-group {
-        display: flex;
-        justify-content: end;
+    /* KPI Summary Cards & Type Breakdown - Responsive single line / no ugly line break */
+    #vchKpiRow,
+    #vchTypeRow {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding-bottom: 6px;
         gap: 8px;
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
-        align-content: center;
-    }
-
-    /* Search input right alignment */
-    div.dt-container .dt-layout-row {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        width: 100% !important;
-    }
-
-    div.dt-container .dt-layout-end,
-    div.dt-container .dt-search,
-    .dataTables_wrapper .dataTables_filter,
-    .dt-search {
-        display: flex !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        margin-left: auto !important;
-        float: right !important;
-        text-align: right !important;
-    }
-
-    div.dt-container .dt-search input,
-    .dataTables_wrapper .dataTables_filter input,
-    .dt-search input {
-        margin-left: auto !important;
-        text-align: left !important;
-    }
-
-    /* =========================================================
-       Responsive Grid Tables - STRICTLY NO HORIZONTAL SCROLL
-       ========================================================= */
-    .grid-no-horizontal-scroll,
-    .table-responsive,
-    .custom-grid-wrapper,
-    div.dt-container,
-    div.dt-container .dt-layout-row,
-    div.dt-container .dt-layout-full {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: hidden !important; /* Strictly prevents horizontal scrollbar */
-        box-sizing: border-box !important;
-    }
-
-    #VoucherEntryTempGrid,
-    #voucherEntryTable,
-    table.dataTable,
-    .custom-grid-table {
-        width: 100% !important;
-        max-width: 100% !important;
-        table-layout: fixed !important; /* Forces columns to strictly fit within 100% */
-        box-sizing: border-box !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+        -webkit-overflow-scrolling: touch;
     }
-
-    #VoucherEntryTempGrid thead th,
-    #voucherEntryTable thead th {
-        background-color: #f1f4f8 !important;
-        font-size: 12.5px !important;
-        padding: 4px 6px !important;
-        font-weight: 600 !important;
-        color: #2c3e50 !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: normal !important;
-        word-break: break-word !important;
+    #vchKpiRow::-webkit-scrollbar,
+    #vchTypeRow::-webkit-scrollbar {
+        height: 4px;
     }
-
-    #VoucherEntryTempGrid tbody td,
-    #voucherEntryTable tbody td {
-        font-size: 12.5px !important;
-        padding: 3px 6px !important;
-        vertical-align: middle !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: normal !important;
-        word-break: break-word !important;
-    }
-
-    #VoucherEntryTempGrid thead th.col-select-cell,
-    #VoucherEntryTempGrid tbody td.col-select-cell,
-    #voucherEntryTable thead th.col-select-cell,
-    #voucherEntryTable tbody td.col-select-cell {
-        width: 45px !important;
-        min-width: 45px !important;
-        text-align: center !important;
-        padding-left: 2px !important;
-        padding-right: 2px !important;
-    }
-
-    .voucher-total-box {
-        background-color: #f8f9fa;
-        padding: 4px 10px !important;
-        border: none !important;
-        border-top: 1px solid #e2e8f0 !important;
+    #vchKpiRow::-webkit-scrollbar-thumb,
+    #vchTypeRow::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
         border-radius: 4px;
-        font-size: 12.5px !important;
-        margin-top: 4px !important;
     }
 
-    .consistent-look,
-    .content.consistent-look {
-        overflow-x: hidden !important;
-        max-width: 100% !important;
+    #vchKpiRow > div,
+    #vchTypeRow > div {
+        flex: 1 0 175px !important;
+        min-width: 175px !important;
+        max-width: none !important;
+        width: auto !important;
+        padding: 0 !important;
     }
 
-    /* Toolbar Button Effect for Details Action Icons (Add, Cancel, Refresh) */
-    .details-icon-group {
-        display: flex !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        gap: 8px !important;
-        margin-top: 4px !important;
-        margin-bottom: 4px !important;
+    .vch-card {
+        background: var(--phoenix-card-bg, #fff);
+        border: 1px solid var(--phoenix-border-color, #e3e6ed);
+        border-radius: 8px;
+        padding: 9px 12px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        white-space: nowrap !important;
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .vch-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+    .vch-card span {
+        font-size: 11.5px;
+        color: var(--phoenix-tertiary-color, #6c757d);
+        font-weight: 600;
+        text-transform: capitalize;
+        letter-spacing: .3px;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    .vch-card .vch-big {
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 3px;
+        color: var(--phoenix-emphasis-color, #18262b);
+        font-family: 'Roboto Mono', monospace, sans-serif;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    .vch-card.vch-kpi-1 { border-left: 4px solid #83b9f5; }
+    .vch-card.vch-kpi-2 { border-left: 4px solid #83b9f5; }
+    .vch-card.vch-kpi-3 { border-left: 4px solid #83b9f5; }
+    .vch-card.vch-kpi-4 { border-left: 4px solid #24b99b; }
+    .vch-card.vch-kpi-5 { border-left: 4px solid #35b8ac; }
+    .vch-card.vch-kpi-6 { border-left: 4px solid #12a99b; }
+
+    /* Type Specific Cards */
+    .vch-type-card {
+        background: #fff;
+        border: 1px solid #dfe4ec;
+        border-radius: 8px;
+        padding: 8px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        height: 100%;
+        min-height: 72px;
+        white-space: nowrap !important;
+        cursor: pointer;
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .vch-type-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+    .vch-type-card > span {
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    .vch-type-card .vch-type-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap !important;
+        gap: 6px;
+        white-space: nowrap !important;
+    }
+    .vch-type-card strong {
+        white-space: nowrap !important;
+        font-family: 'Roboto Mono', monospace, sans-serif;
+        font-size: 11.5px;
+    }
+    .vch-type-card.type-BRV { border-left: 4px solid #4b9ed8; }
+    .vch-type-card.type-BPV { border-left: 4px solid #df766a; }
+    .vch-type-card.type-CRV { border-left: 4px solid #51a978; }
+    .vch-type-card.type-CPV { border-left: 4px solid #d9a441; }
+    .vch-type-card.type-JV  { border-left: 4px solid #9270cc; }
+    .vch-type-card.type-CV  { border-left: 4px solid #35a9a1; }
+
+    /* Chips */
+    .vch-chip {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 10px;
+        white-space: nowrap !important;
+        display: inline-block;
+    }
+    .t-BRV { background: #d8ecf8; color: #0b4a73; }
+    .t-BPV { background: #f8dcd8; color: #8a2218; }
+    .t-CRV { background: #d9f0e0; color: #14653a; }
+    .t-CPV { background: #fbe8cc; color: #7a4a00; }
+    .t-JV  { background: #e7defa; color: #4b2a8a; }
+    .t-CV  { background: #d8f0ee; color: #0b5b57; }
+
+    .st-Approved { background: #d9f0e0; color: #14653a; }
+    .st-Pending  { background: #fbe8cc; color: #7a4a00; }
+
+    /* Line item grid rows */
+    .vch-ln-row {
+        display: grid;
+        grid-template-columns: minmax(180px, 2.8fr) minmax(120px, 1.8fr) minmax(90px, 1fr) minmax(110px, 1.1fr) minmax(85px, 0.9fr) minmax(85px, 0.9fr) 36px 36px;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 6px;
+        position: relative;
+        z-index: 1;
+    }
+    .vch-ln-row:has(.custom-dd-wrapper.open),
+    .vch-ln-row.has-open-dd,
+    .vch-ln-row:focus-within {
+        z-index: 1050 !important;
+    }
+    .vch-ln-header {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--phoenix-tertiary-color, #6c757d);
+        text-align: center;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #dfe4ec;
+        margin-bottom: 8px;
     }
 
-    .icon-btn {
+    /* All labels and table headers capitalized */
+    label.form-label,
+    .form-label,
+    .vch-ln-header > div,
+    #VoucherEntry-table th,
+    .vch-filter-label {
+        text-transform: capitalize !important;
+        letter-spacing: .3px;
+        font-size: 11px;
+    }
+    #VoucherEntry-table th.vch-sort,
+    #VoucherEntry-table th.sort {
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    #VoucherEntry-table th.vch-sort:hover,
+    #VoucherEntry-table th.sort:hover {
+        background-color: #eef4f2;
+        color: #0e5a4a;
+    }
+    #VoucherEntry-table th.vch-sort:hover .vch-sort-icon i,
+    #VoucherEntry-table th.sort:hover .sort-icon i {
+        opacity: 0.8 !important;
+    }
+
+    /* Completely eliminate duplicate up-down icons (SVG ::after or FontAwesome fa-sort) */
+    #VoucherEntry-table th::after,
+    #VoucherEntry-table th::before,
+    #VoucherEntry-table th.sort::after,
+    #VoucherEntry-table th.sort::before,
+    #VoucherEntry-table th.vch-sort::after,
+    #VoucherEntry-table th.vch-sort::before,
+    #VoucherEntry-table th[data-sort]::after,
+    #VoucherEntry-table th[data-sort]::before,
+    [data-list] #VoucherEntry-table .sort[data-sort]::after,
+    .table-list #VoucherEntry-table .sort[data-sort]::after,
+    #VoucherEntry-table th .fa-sort,
+    #VoucherEntry-table th i.fa-sort,
+    #VoucherEntry-table th i[class*="fa-sort-"] {
+        display: none !important;
+        content: none !important;
+    }
+
+    /* Glass Effect Toolbar & Action Buttons across Voucher Entry - matching OpeningBalance */
+    .toolbar-btn {
         position: relative !important;
-        width: 32px !important;
-        height: 32px !important;
-        border: 1px solid #dcdfe3 !important;
-        border-radius: 4px !important;
-        background: #fff !important;
+        overflow: hidden !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        padding: 0 !important;
-        flex-shrink: 0 !important;
+        gap: .45rem !important;
+        height: 34px !important;
+        line-height: 1 !important;
+        padding: 0 14px !important;
+        background: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        border: 1px solid rgba(220, 223, 227, 0.85) !important;
+        border-radius: 4px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
         cursor: pointer !important;
-        overflow: hidden !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.04) !important;
         transition: color .3s ease, border-color .3s ease, transform .25s ease, box-shadow .25s ease !important;
+        text-decoration: none !important;
     }
-
-    .icon-btn::before {
+    .toolbar-btn::before {
         content: "" !important;
         position: absolute !important;
         left: 0 !important;
         bottom: 0 !important;
         width: 100% !important;
         height: 0 !important;
+        background: #f3f4f6 !important;
         transition: height .3s ease !important;
         z-index: 0 !important;
     }
-
-    .icon-btn:hover::before {
+    .toolbar-btn:hover::before {
         height: 100% !important;
     }
-
-    .icon-btn:hover {
+    .toolbar-btn:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,.10) !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,.12) !important;
+        background: rgba(248, 249, 250, 0.95) !important;
+        border-color: #cfd3d8 !important;
     }
-
-    .icon-btn .default-icon,
-    .icon-btn .icon-stack {
+    .toolbar-btn span,
+    .toolbar-btn i {
         position: relative !important;
         z-index: 1 !important;
-        font-size: 20px !important;
-        width: 20px !important;
-        height: 20px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
     }
-
-    /* Add button - green */
-    .icon-btn.add {
-        color: #1B873F !important;
-        border-color: #dcdfe3 !important;
+    .toolbar-btn-save::before {
+        background: rgba(40,167,69,.15) !important;
     }
-    .icon-btn.add::before {
-        background: rgba(27, 135, 63, 0.14) !important;
+    .toolbar-btn-save {
+        color: #28a745 !important;
     }
-    .icon-btn.add:hover {
-        border-color: #1B873F !important;
+    .toolbar-btn-save i {
+        color: #28a745 !important;
     }
-
-    /* Cancel button - red */
-    .icon-btn.cancel {
-        color: #C71F2D !important;
-        border-color: #dcdfe3 !important;
+    .toolbar-btn-clear::before {
+        background: rgba(33,37,41,.10) !important;
     }
-    .icon-btn.cancel::before {
-        background: rgba(199, 31, 45, 0.14) !important;
-    }
-    .icon-btn.cancel:hover {
-        border-color: #C71F2D !important;
-    }
-
-    /* Refresh button - clear color (same as top toolbar clear button) */
-    .icon-btn.refresh,
-    .icon-btn.clear {
+    .toolbar-btn-clear {
         color: #212529 !important;
-        border-color: #dcdfe3 !important;
     }
-    .icon-btn.refresh::before,
-    .icon-btn.clear::before {
-        background: rgba(33, 37, 41, 0.08) !important;
+    .toolbar-btn-clear i {
+        color: #212529 !important;
     }
-    .icon-btn.refresh:hover,
-    .icon-btn.clear:hover {
-        border-color: #212529 !important;
+    .toolbar-btn-print::before {
+        background: rgba(13,110,253,.12) !important;
+    }
+    .toolbar-btn-print {
+        color: #0d6efd !important;
+    }
+    .toolbar-btn-print i {
+        color: #0d6efd !important;
+    }
+    .toolbar-btn-delete::before {
+        background: rgba(220,53,69,.15) !important;
+    }
+    .toolbar-btn-delete {
+        color: #dc3545 !important;
+    }
+    .toolbar-btn-delete i {
+        color: #dc3545 !important;
+    }
+    .toolbar-btn-fav::before {
+        background: rgba(245,166,35,.18) !important;
+    }
+    .toolbar-btn-fav {
+        color: #f5a623 !important;
+    }
+    .toolbar-btn-fav i {
+        color: #f5a623 !important;
+    }
+    .toolbar-btn-fav.active {
+        background: #fff8e6 !important;
+        border-color: #f5a623 !important;
+        box-shadow: 0 0 0 2px rgba(245,166,35,0.2) !important;
     }
 
-    /* Refresh icon stack */
-    .icon-stack {
+    /* Action buttons in Table with Glass Effect (View, Edit, Delete) */
+    .vch-btn-action {
         position: relative !important;
+        overflow: hidden !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
+        padding: 3px 10px !important;
+        font-size: 11.5px !important;
+        font-weight: 500 !important;
+        line-height: 1.4 !important;
+        border-radius: 4px !important;
+        background-color: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+        cursor: pointer !important;
+        text-decoration: none !important;
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+        margin: 1px 2px !important;
+        white-space: nowrap !important;
+        z-index: 1 !important;
+    }
+    .vch-btn-action::before {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 0 !important;
+        transition: height .25s ease !important;
+        z-index: -1 !important;
+    }
+    .vch-btn-action:hover::before {
+        height: 100% !important;
+    }
+    .vch-btn-action:hover {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,.12) !important;
+    }
+    .vch-btn-action.vch-btn-view::before {
+        background: rgba(19, 106, 85, .15) !important;
+    }
+    .vch-btn-action.vch-btn-view {
+        border: 1px solid #136a55 !important;
+        color: #136a55 !important;
+    }
+    .vch-btn-action.vch-btn-edit::before {
+        background: rgba(13, 110, 253, .15) !important;
+    }
+    .vch-btn-action.vch-btn-edit {
+        border: 1px solid #0d6efd !important;
+        color: #0d6efd !important;
+    }
+    .vch-btn-action.vch-btn-del::before {
+        background: rgba(220, 53, 69, .15) !important;
+    }
+    .vch-btn-action.vch-btn-del {
+        border: 1px solid #dc3545 !important;
+        color: #dc3545 !important;
     }
 
-    .icon-stack .journal-base,
-    .icon-stack .refresh-icon {
+    /* Line Item Add & Remove Buttons Glass Effect */
+    .btn-add-ln, .btn-rm-ln {
+        position: relative !important;
+        overflow: hidden !important;
+        border-radius: 4px !important;
+        transition: transform .2s ease, box-shadow .2s ease !important;
+    }
+    .btn-add-ln:hover, .btn-rm-ln:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 3px 8px rgba(0,0,0,.15) !important;
+    }
+
+    /* Grid Search Button Glass Effect */
+    #VoucherEntry-searchBtn {
+        position: relative !important;
+        overflow: hidden !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+        border: 1px solid #cbd0dd !important;
+        color: #495057 !important;
+        transition: transform .2s ease, box-shadow .2s ease, color .2s ease, border-color .2s ease !important;
+        z-index: 1 !important;
+    }
+    #VoucherEntry-searchBtn::before {
+        content: "" !important;
         position: absolute !important;
-        top: 0 !important;
         left: 0 !important;
+        bottom: 0 !important;
         width: 100% !important;
+        height: 0 !important;
+        background: rgba(13, 110, 253, .12) !important;
+        transition: height .25s ease !important;
+        z-index: -1 !important;
+    }
+    #VoucherEntry-searchBtn:hover::before {
         height: 100% !important;
+    }
+    #VoucherEntry-searchBtn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,.10) !important;
+        color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+
+    /* Print Paper Styles */
+    .voucher-paper {
+        font-family: "Times New Roman", Georgia, serif;
+        color: #111;
+        background: #fff;
+    }
+    .voucher-paper table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    .voucher-paper th, .voucher-paper td {
+        border: 1px solid #cbd5e1;
+        padding: 6px 8px;
+    }
+
+    /* Select2 Form Controls Custom Styling matching Phoenix theme */
+    .select2.select2-container,
+    .vch-form-row-main .select2.select2-container,
+    .vch-filter-toolbar .select2.select2-container,
+    .vch-ln-row .select2.select2-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        display: block !important;
+    }
+    .select2.select2-container .select2-selection--single {
+        height: 32px !important;
+        border: 1px solid #cbd0dd !important;
+        border-radius: 0.25rem !important;
+        padding: 2px 8px !important;
         display: flex !important;
         align-items: center !important;
-        justify-content: center !important;
-        font-size: 20px !important;
-        line-height: 1 !important;
+        background-color: #fff !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
     }
-
-    .icon-stack .journal-base {
-        opacity: 0.45 !important;
+    .select2.select2-container .select2-selection--single .select2-selection__rendered {
+        color: #31374a !important;
+        font-size: 0.8rem !important;
+        line-height: 28px !important;
+        padding-left: 0 !important;
+        padding-right: 20px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        width: 100% !important;
+        display: block !important;
     }
-
-    .icon-btn.refresh:hover .refresh-icon {
-        transform: rotate(180deg) scale(1.1) !important;
-        transition: transform 0.35s ease !important;
+    .select2.select2-container .select2-selection--single .select2-selection__arrow {
+        height: 30px !important;
+        right: 6px !important;
+        position: absolute !important;
+        top: 1px !important;
+        width: 18px !important;
     }
-
-    /* Borderless Details Table */
-    #VoucherEntryTempGrid,
-    #VoucherEntryTempGrid.table,
-    #VoucherEntryTempGrid.table-bordered,
-    #VoucherEntryTempGrid th,
-    #VoucherEntryTempGrid td {
-        /* border: none !important;
-        border-left: none !important;
-        border-right: none !important;
-        border-top: none !important; */
-    }
-
-    #VoucherEntryTempGrid thead th {
-        border-bottom: 1.5px solid #dcdfe3 !important;
-        background-color: #f8fafc !important;
-    }
-
-    #VoucherEntryTempGrid tbody td {
-        border-bottom: 1px solid #edf2f7 !important;
-    }
-
-    #VoucherEntryTempGrid tbody tr:last-child td {
-        border-bottom: 1px solid #dcdfe3 !important;
-    }
-
-    /* Temp Grid Footer (Total Row Aligned to Columns, Completely Borderless) */
-    #VoucherEntryTempGrid tfoot {
-        display: table-footer-group !important;
-        border: none !important;
-    }
-
-    #VoucherEntryTempGrid tfoot,
-    #VoucherEntryTempGrid tfoot tr,
-    #VoucherEntryTempGrid tfoot th,
-    #VoucherEntryTempGrid tfoot td,
-    #VoucherEntryTempGrid.table tfoot th,
-    #VoucherEntryTempGrid.table tfoot td,
-    #VoucherEntryTempGrid.table-bordered tfoot th,
-    #VoucherEntryTempGrid.table-bordered tfoot td,
-    #VoucherEntryTempGrid tfoot tr.voucher-total-row td {
-        border: none !important;
-        border-top: none !important;
-        border-bottom: none !important;
-        border-left: none !important;
-        border-right: none !important;
-        box-shadow: none !important;
+    .select2-container--default.select2-container--focus .select2-selection--single,
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #0b4d37 !important;
+        box-shadow: 0 0 0 0.2rem rgba(11, 77, 55, 0.15) !important;
         outline: none !important;
     }
+    .select2-container--default.select2-container--disabled .select2-selection--single {
+        background-color: #f1f5f9 !important;
+        cursor: not-allowed !important;
+        border-color: #e2e8f0 !important;
+        opacity: 0.85;
+    }
 
-    #VoucherEntryTempGrid tfoot tr.voucher-total-row td {
-        background-color: transparent !important;
+    /* Floating Select2 Dropdown Popup - expands to longest item width on 1 line, NEVER full page */
+    body > .select2-container--open,
+    .select2-container--open:not(.select2) {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        z-index: 10000 !important;
+    }
+    .select2-dropdown {
+        border: 1px solid #cbd0dd !important;
+        border-radius: 0.35rem !important;
+        box-shadow: 0 0.5rem 1.2rem rgba(0, 0, 0, 0.15) !important;
+        font-size: 0.8rem !important;
+        z-index: 10000 !important;
+        width: max-content !important;
+        max-width: min(520px, 92vw) !important;
+        box-sizing: border-box !important;
+    }
+    .select2-search--dropdown {
+        padding: 6px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid #cbd0dd !important;
+        border-radius: 0.25rem !important;
+        padding: 5px 8px !important;
+        font-size: 0.8rem !important;
+        outline: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .select2-search--dropdown .select2-search__field:focus {
+        border-color: #0b4d37 !important;
+    }
+    .select2-results__option {
+        padding: 5px 8px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+    }
+    .select2-results__option--highlighted[aria-selected] {
+        background-color: #0b4d37 !important;
+        color: #fff !important;
+    }
+    .select2-results__group {
+        font-size: 0.73rem !important;
         font-weight: 700 !important;
-        font-size: 12.5px !important;
-        color: #1e293b !important;
-        padding: 5px 6px !important;
-        vertical-align: middle !important;
+        color: #0b4d37 !important;
+        background: #f0fdf4 !important;
+        padding: 4px 8px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        white-space: nowrap !important;
     }
 
-    #VoucherEntryTempGrid tfoot td#TotalDrValue,
-    #VoucherEntryTempGrid tfoot td#TotalCrValue {
-        text-align: right !important;
-        padding-right: 6px !important;
-        font-variant-numeric: tabular-nums !important;
-        color: #0f172a !important;
+    /* All date picker inputs have calendar icon on the right side */
+    .vch-date-wrapper {
+        position: relative;
+        width: 100%;
+        min-width: 0 !important;
     }
-
-    /* Hide length menu, search box, and pagination for VoucherEntryTempGrid */
-    #VoucherEntryTempGrid_wrapper .dataTables_length,
-    #VoucherEntryTempGrid_wrapper .dataTables_filter,
-    #VoucherEntryTempGrid_wrapper .dataTables_paginate {
-        display: none !important;
-    }
-
-    #VoucherEntryTempGrid_wrapper .dataTables_info {
-        padding-top: 6px !important;
+    input.vch-date-picker,
+    input#vfFrom,
+    input#vfTo,
+    input#vDate,
+    .flatpickr-input,
+    .ln-chqd {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: 32px !important;
         font-size: 12px !important;
-        color: #64748b !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512' fill='%236c757d'%3E%3Cpath d='M152 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H64C28.7 64 0 92.7 0 128v320c0 35.3 28.7 64 64 64h320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64h-40V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H152V24zM48 192h352v256c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192zm64 64v48h48v-48h-48zm96 0v48h48v-48h-48zm96 0v48h48v-48h-48zM112 352v48h48v-48h-48zm96 0v48h48v-48h-48zm96 0v48h48v-48h-48z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        background-size: 14px 14px !important;
+        padding-right: 28px !important;
+        cursor: pointer;
     }
 
-    #dateFrom + input.flatpickr-alt-input,
-    #dateTo + input.flatpickr-alt-input {
-        border-top-left-radius: 0 !important;
-        border-bottom-left-radius: 0 !important;
-        font-size: 13px !important;
+    .vch-ln-row .ln-chqd {
+        min-width: 90px !important;
     }
 
-    .input-group > .custom-dd-wrapper {
-        flex: 1 1 auto !important;
-        width: 1% !important;
+    /* Form Header Row - 1 line on desktop and laptop (>= 992px), responsive proportional resize */
+    .vch-form-row-main {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .vch-form-row-main > div {
+        min-width: 0 !important;
+    }
+    @@media (min-width: 992px) {
+        .vch-form-row-main {
+            flex-wrap: nowrap !important;
+            align-items: flex-end !important;
+        }
+        .vch-form-row-main > div {
+            margin-bottom: 0 !important;
+        }
+        .vch-col-company {
+            flex: 2.7 1 0% !important;
+            min-width: 160px !important;
+        }
+        .vch-col-branch {
+            flex: 1.8 1 0% !important;
+            min-width: 120px !important;
+        }
+        .vch-col-type {
+            flex: 2.1 1 0% !important;
+            min-width: 140px !important;
+        }
+        .vch-col-date {
+            flex: 1.6 1 0% !important;
+            min-width: 115px !important;
+        }
+        .vch-col-no {
+            flex: 1.8 1 0% !important;
+            min-width: 125px !important;
+        }
+    }
+    #vNo {
+        height: 32px !important;
+        font-size: 12px !important;
+    }
+
+    /* Filter Toolbar - 1 line on desktop and laptop (>= 992px), no wrapping, no overlapping */
+    .vch-filter-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 8px;
+        width: 100%;
+    }
+    .vch-filter-item-date,
+    .vch-filter-item-type,
+    .vch-filter-item-stat,
+    .vch-filter-item-btn,
+    .vch-filter-item-export {
+        min-width: 0 !important;
+    }
+    @@media (min-width: 992px) {
+        .vch-filter-toolbar {
+            flex-wrap: nowrap !important;
+            align-items: flex-end !important;
+        }
+        .vch-filter-item-date {
+            flex: 1.1 1 0% !important;
+            min-width: 115px !important;
+            max-width: 165px !important;
+        }
+        .vch-filter-item-type {
+            flex: 1.5 1 0% !important;
+            min-width: 140px !important;
+            max-width: 240px !important;
+        }
+        .vch-filter-item-stat {
+            flex: 1.1 1 0% !important;
+            min-width: 120px !important;
+            max-width: 180px !important;
+        }
+        .vch-filter-item-btn {
+            flex: 0 0 auto !important;
+            margin-bottom: 0 !important;
+        }
+        .vch-filter-item-export {
+            flex: 0 0 auto !important;
+            min-width: 155px !important;
+            max-width: 185px !important;
+            margin-left: auto !important;
+            margin-bottom: 0 !important;
+        }
+    }
+    #btnResetVFilters {
+        height: 32px !important;
+        width: 34px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    #vfExport {
+        height: 32px !important;
+        font-size: 12px !important;
+        width: 100% !important;
+    }
+
+    /* Custom Dropdown single styling for Voucher Entry to match 32px height form controls */
+    .vch-form-row-main .custom-dd-wrapper,
+    .vch-filter-toolbar .custom-dd-wrapper {
+        width: 100% !important;
         min-width: 0 !important;
     }
 
-    .input-group > .custom-dd-wrapper .custom-dd-box {
-        border-top-left-radius: 0 !important;
-        border-bottom-left-radius: 0 !important;
+    .vch-form-row-main .custom-dd-box,
+    .vch-filter-toolbar .custom-dd-box {
+        height: 32px !important;
+        min-height: 32px !important;
+        border: 1px solid var(--phoenix-border-color, #cbd0dd) !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        padding: 0 6px !important;
+        box-sizing: border-box !important;
+    }
+
+    .vch-form-row-main .custom-dd-input,
+    .vch-filter-toolbar .custom-dd-input {
+        font-size: 12px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+        padding: 0 !important;
+        font-family: inherit !important;
+        color: var(--phoenix-body-color, #31374a) !important;
+    }
+
+    .vch-form-row-main .custom-dd-arrow,
+    .vch-filter-toolbar .custom-dd-arrow,
+    .vch-form-row-main .custom-dd-clear-icon,
+    .vch-filter-toolbar .custom-dd-clear-icon {
+        font-size: 11px !important;
+        color: #8a94a6 !important;
+        padding: 0 2px !important;
+    }
+
+    .vch-form-row-main .custom-dd-clear-icon,
+    .vch-filter-toolbar .custom-dd-clear-icon {
+        font-size: 14px !important;
+    }
+
+    .vch-form-row-main .custom-dd-wrapper.disabled .custom-dd-box {
+        background-color: #f1f3f7 !important;
+        cursor: not-allowed !important;
+    }
+
+    .vch-form-row-main .custom-dd-panel,
+    .vch-filter-toolbar .custom-dd-panel {
+        font-size: 12px !important;
+        border-radius: 4px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+        z-index: 1060 !important;
+    }
+
+    .vch-filter-item-stat .custom-dd-panel {
+        left: auto !important;
+        right: 0 !important;
+    }
+
+    .vch-form-row-main .custom-dd-option,
+    .vch-filter-toolbar .custom-dd-option {
+        padding: 6px 10px !important;
+        font-size: 12px !important;
+    }
+
+    /* Table row custom dropdown styles */
+    .vch-ln-row {
+        position: relative;
+    }
+    .vch-ln-row .custom-dd-wrapper {
+        position: relative;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .vch-ln-row .custom-dd-box {
         height: 31px !important;
+        min-height: 31px !important;
+        border: 1px solid var(--phoenix-border-color, #cbd0dd) !important;
+        border-radius: 4px !important;
+        background-color: #fff !important;
+        padding: 0 6px !important;
+        box-sizing: border-box !important;
+    }
+    .vch-ln-row .custom-dd-input {
+        font-size: 12px !important;
+        height: 29px !important;
+        line-height: 29px !important;
+        padding: 0 !important;
+        font-family: inherit !important;
+        color: var(--phoenix-body-color, #31374a) !important;
+    }
+    .vch-ln-row .custom-dd-arrow,
+    .vch-ln-row .custom-dd-clear-icon {
+        font-size: 11px !important;
+        color: #8a94a6 !important;
+        padding: 0 2px !important;
+    }
+    .vch-ln-row .custom-dd-clear-icon {
+        font-size: 14px !important;
+    }
+    .vch-ln-row .custom-dd-panel {
+        font-size: 12px !important;
+        border-radius: 4px !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22) !important;
+        z-index: 2000 !important;
+        max-height: 260px !important;
+        min-width: 100% !important;
+        width: max-content !important;
+        max-width: 440px !important;
+        background: #ffffff !important;
+    }
+    .custom-dd-optgroup-label,
+    .vch-ln-row .custom-dd-optgroup-label {
+        padding: 7px 12px 7px 18px !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        color: #0b4d37 !important;
+        background: #eaf6ee !important;
+        border-bottom: 1px solid #cce8d4 !important;
+        border-top: 1px solid #cce8d4 !important;
+        letter-spacing: 0.3px !important;
+        user-select: none !important;
+        line-height: 1.4 !important;
+        display: block !important;
+    }
+    .vch-ln-row .custom-dd-option {
+        padding: 6px 12px 6px 18px !important;
+        font-size: 12.5px !important;
+    }
+    .vch-ln-row .custom-dd-option.selected {
+        background: #0b4d37 !important;
+        color: #fff !important;
+    }
+    .vch-ln-row .custom-dd-wrapper.open {
+        position: relative;
+        z-index: 1060 !important;
+    }
+    .vch-lines-card {
+        overflow: visible !important;
+        position: relative;
+    }
+    #voucherLinesContainer {
+        min-height: auto;
+    }
+
+    /* KPI Cards & Type Cards single line layout on desktop & laptop (>= 992px) */
+    @@media (min-width: 992px) {
+        #vchKpiRow, #vchTypeRow {
+            flex-wrap: nowrap !important;
+        }
+        #vchKpiRow > div, #vchTypeRow > div {
+            flex: 1 1 0% !important;
+            max-width: 16.666667% !important;
+            min-width: 0 !important;
+        }
+    }
+
+    @@media print {
+        .navbar-top, .navbar-vertical, .footer, .btn, #vchFormCard, #vchKpiRow, #vchTypeRow, .vch-top-header, .nox, .no-print {
+            display: none !important;
+        }
+        body, .content {
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
     }
 </style>
 
-<!-- Content Header (Page header) -->
+<div class="">
+    <!-- Top Header Banner -->
+    <header class="vch-top-header nox">
+        <div>
+            <h1>@Html.SmartLocalize("Finance & Accounts")</h1>           
+        </div>
+    </header>
 
-<section class="content consistent-look container-fuild" style="
-    margin-left: 0px;
-    padding-left: 0px;
-    ">
-    <div class="">
-        <div class="row g-2">
+    <!-- Top KPI Summary Cards -->
+    <div class="row g-2 mb-2" id="vchKpiRow">
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-card vch-kpi-1">
+                <span>@Html.SmartLocalize("Total vouchers")</span>
+                <div class="vch-big" id="kpiTotalVouchers">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-card vch-kpi-2">
+                <span>@Html.SmartLocalize("Vouchers today")</span>
+                <div class="vch-big" id="kpiVouchersToday">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-card vch-kpi-3">
+                <span>@Html.SmartLocalize("Vouchers this month")</span>
+                <div class="vch-big" id="kpiVouchersMonth">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-card vch-kpi-4">
+                <span>@Html.SmartLocalize("Debit = Credit")</span>
+                <div class="vch-big" id="kpiTotalAmount">৳0.00 ✓</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-card vch-kpi-5">
+                <span>@Html.SmartLocalize("Cash balance")</span>
+                <div class="vch-big" id="kpiCashBalance">৳0.00</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-card vch-kpi-6">
+                <span>@Html.SmartLocalize("Bank balance")</span>
+                <div class="vch-big" id="kpiBankBalance">৳0.00</div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Top Setup Form Column -->
-            <div class="col-md-12">
-                <div class="card rounded shadow-none border-0 voucher-entry-card">
-                    <div class="card-header p-0">
-                        @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
-                        {
-                            Title = "<span class=\"voucher-title-icon-badge\"><i class=\"fa-regular fa-file-lines\"></i></span><span class=\"voucher-title-text\">Voucher Entry</span>",
-                            SaveBtnClass = "js-VoucherEntry-save",
-                            DeleteBtnClass = "js-VoucherEntry-delete-confirm",
-                            ClearBtnClass = "js-VoucherEntry-clear",
-                            ShowPrint = true,
-                            PrintBtnId = "btnPrint",
-                            PrintBtnClass = "printBtn",
-                            ExcelBtnClass = "export-excel",
-                            PdfBtnClass = "export-pdf",
-                            EnablePrint = true,
-                        })
-                    </div>
-                    <div class="card-body px-3 py-2 voucher-entry-card-body">
-                        <form asp-action="Setup" method="post" id="VoucherEntry-form" asp-controller="VoucherEntry">
-                            <div class="js-VoucherEntry-form-container">
-                                <partial name="_Setup" />
-                            </div>
-                        </form>
-                    </div>
+    <!-- Type-wise Breakdown Cards (6 Types) -->
+    <div class="row g-2 mb-3" id="vchTypeRow">
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-type-card type-BRV">
+                <span class="fs-9 fw-bold text-dark text-truncate" title="@Html.SmartLocalize("Bank Receipt Voucher")">
+                    @Html.SmartLocalize("Bank Receipt Voucher")
+                </span>
+                <div class="vch-type-card-footer mt-1">
+                    <span class="vch-chip t-BRV">BRV-<span id="cardBrvCount">0</span></span>
+                    <strong class="fs-9 font-monospace text-dark text-nowrap" id="cardBrvAmount">৳0.00</strong>
                 </div>
             </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-type-card type-BPV">
+                <span class="fs-9 fw-bold text-dark text-truncate" title="@Html.SmartLocalize("Bank Payment Voucher")">
+                    @Html.SmartLocalize("Bank Payment Voucher")
+                </span>
+                <div class="vch-type-card-footer mt-1">
+                    <span class="vch-chip t-BPV">BPV-<span id="cardBpvCount">0</span></span>
+                    <strong class="fs-9 font-monospace text-dark text-nowrap" id="cardBpvAmount">৳0.00</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-type-card type-CRV">
+                <span class="fs-9 fw-bold text-dark text-truncate" title="@Html.SmartLocalize("Cash Receipt Voucher")">
+                    @Html.SmartLocalize("Cash Receipt Voucher")
+                </span>
+                <div class="vch-type-card-footer mt-1">
+                    <span class="vch-chip t-CRV">CRV-<span id="cardCrvCount">0</span></span>
+                    <strong class="fs-9 font-monospace text-dark text-nowrap" id="cardCrvAmount">৳0.00</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-type-card type-CPV">
+                <span class="fs-9 fw-bold text-dark text-truncate" title="@Html.SmartLocalize("Cash Payment Voucher")">
+                    @Html.SmartLocalize("Cash Payment Voucher")
+                </span>
+                <div class="vch-type-card-footer mt-1">
+                    <span class="vch-chip t-CPV">CPV-<span id="cardCpvCount">0</span></span>
+                    <strong class="fs-9 font-monospace text-dark text-nowrap" id="cardCpvAmount">৳0.00</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-type-card type-JV">
+                <span class="fs-9 fw-bold text-dark text-truncate" title="@Html.SmartLocalize("Journal Voucher")">
+                    @Html.SmartLocalize("Journal Voucher")
+                </span>
+                <div class="vch-type-card-footer mt-1">
+                    <span class="vch-chip t-JV">JV-<span id="cardJvCount">0</span></span>
+                    <strong class="fs-9 font-monospace text-dark text-nowrap" id="cardJvAmount">৳0.00</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-lg-2">
+            <div class="vch-type-card type-CV">
+                <span class="fs-9 fw-bold text-dark text-truncate" title="@Html.SmartLocalize("Contra Voucher")">
+                    @Html.SmartLocalize("Contra Voucher")
+                </span>
+                <div class="vch-type-card-footer mt-1">
+                    <span class="vch-chip t-CV">CV-<span id="cardCvCount">0</span></span>
+                    <strong class="fs-9 font-monospace text-dark text-nowrap" id="cardCvAmount">৳0.00</strong>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Bottom Table Grid Column -->
-            <div class="col-md-12">
-                <div class="d-flex justify-content-start align-items-center mb-2 gap-2 flex-wrap">
-                    <span class="label-text fw-bold text-secondary" style="font-size: 13px;">Filter By:</span>
-                    <div class="input-group input-group-sm" style="width: 350px;">
-                        <span class="input-group-text">Date From</span>
-                        <input type="text" class="form-control custom-datepicker" id="dateFrom"
-                               value="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))"
-                               data-default-date="@(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).ToString("yyyy-MM-dd"))" placeholder="DD/MM/YYYY" />
-                        <span class="input-group-text">To</span>
-                        <input type="text" class="form-control custom-datepicker" id="dateTo"
-                               value="@DateTime.Now.ToString("yyyy-MM-dd")"
-                               data-default-date="@DateTime.Now.ToString("yyyy-MM-dd")" placeholder="DD/MM/YYYY" />
-                    </div>
-                    <div class="input-group input-group-sm" style="width: 250px;">
-                        <span class="input-group-text">Voucher Type</span>
-                        <select class="form-select form-select-sm custom-select-single" id="filterVoucherType" data-placeholder="All">
-                            <option value="">All</option>
+    <!-- Voucher Entry Form Panel with standard _Toolbars -->
+    <div class="card border-0 shadow-sm mb-4" id="vchFormCard">
+        <div class="card-header p-0 border-bottom">
+            @await Html.PartialAsync("_Toolbars", new GCTL.UI.Core.ViewModels.ToobarModel
+            {
+                Title = "<span id=\"formVoucherTitle\"><i class=\"fas fa-edit me-1 text-primary\"></i>" + Html.SmartLocalize("Voucher Entry") + "</span> <span class=\"badge bg-light text-secondary fs-9 ms-1\" id=\"editVoucherBadge\" style=\"display: none;\">" + Html.SmartLocalize("Editing") + "</span>",
+                SaveBtnId = "btnSave",
+                SaveBtnClass = "js-vch-save",
+                DeleteBtnId = "btnDelete",
+                DeleteBtnClass = "js-vch-delete",
+                ClearBtnId = "btnClear",
+                ClearBtnClass = "js-vch-clear",
+                PrintBtnId = "btnPrint",
+                ShowPrint = true,
+                ShowFavorite = true,
+                FavtBtnId = "btnFavorite",
+                FavtBtnClass = "js-vch-fav",
+                ShowTitle = true,
+                IsPlain = true,
+                CustomStyle = "border-bottom: 1px solid #e3e6ed; padding: 6px 14px !important;"
+            })
+        </div>
+        <div class="card-body p-3">
+            <form id="vchForm" autocomplete="off">
+                <input type="hidden" id="vCodeNo" />
+                
+                <!-- Main Header Fields (Company, Branch, Voucher Type, Voucher Date, Voucher No) -->
+                <div class="row g-2 mb-2 vch-form-row-main">
+                    <div class="col-12 col-sm-6 col-lg-auto vch-col-company">
+                        <label class="form-label fs-9 fw-semibold mb-1" for="vCompany">@Html.SmartLocalize("Company")</label>
+                        <select class="form-select form-select-sm custom-select-single" id="vCompany" data-placeholder="@Html.SmartLocalize("Select Company")">
+                            <option value="">@Html.SmartLocalize("Select Company")</option>
+                            @if (dropdowns.Companies.Any())
+                            {
+                                foreach (var c in dropdowns.Companies)
+                                {
+                                    var compVal = !string.IsNullOrWhiteSpace(c.Code) ? c.Code : c.Id.ToString();
+                                    <option value="@compVal" data-code="@c.Code" data-id="@c.Id">@c.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="1">Bay School &amp; College</option>
+                            }
                         </select>
                     </div>
+
+                    <div class="col-12 col-sm-6 col-lg-auto vch-col-branch">
+                        <label class="form-label fs-9 fw-semibold mb-1" for="vBranch">@Html.SmartLocalize("Branch")</label>
+                        <select class="form-select form-select-sm custom-select-single" id="vBranch" data-placeholder="@Html.SmartLocalize("Select Branch")">
+                            <option value="">@Html.SmartLocalize("Select Branch")</option>
+                            @if (dropdowns.Branches.Any())
+                            {
+                                foreach (var b in dropdowns.Branches)
+                                {
+                                    var brVal = !string.IsNullOrWhiteSpace(b.Code) ? b.Code : b.Id.ToString();
+                                    <option value="@brVal" data-code="@b.Code" data-id="@b.Id">@b.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="1">Head Office</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-sm-4 col-lg-auto vch-col-type">
+                        <label class="form-label fs-9 fw-semibold mb-1 req" for="vType">@Html.SmartLocalize("Voucher Type")</label>
+                        <select class="form-select form-select-sm custom-select-single" id="vType" required data-placeholder="@Html.SmartLocalize("Select Voucher Type")">
+                            <option value="">@Html.SmartLocalize("Select Voucher Type")</option>
+                            @foreach (var t in dropdowns.VoucherTypes)
+                            {
+                                <option value="@t.Code" data-typename="@t.TypeName">@t.DisplayText</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-sm-4 col-lg-auto vch-col-date">
+                        <label class="form-label fs-9 fw-semibold mb-1 req" for="vDate">@Html.SmartLocalize("Voucher Date")</label>
+                        <div class="vch-date-wrapper">
+                            <input type="text" class="form-control form-control-sm vch-date-picker" id="vDate" placeholder="dd/mm/yyyy" required />
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-sm-4 col-lg-auto vch-col-no">
+                        <label class="form-label fs-9 fw-semibold mb-1" for="vNo">@Html.SmartLocalize("Voucher No")</label>
+                        <input type="text" class="form-control form-control-sm bg-light font-monospace fw-bold" id="vNo" readonly placeholder="Auto-generated" />
+                    </div>
                 </div>
-                <div class="table-responsive grid-no-horizontal-scroll">
-                    @await Html.PartialAsync("_CustomGrid", new GCTL.UI.Core.ViewModels.GridModel
-                    {
-                        GridId = "voucherEntryTable",
-                        AjaxUrl = "/VoucherEntry/GetTableData",
-                        AjaxMethod = "POST",
-                        ServerSide = true,
-                        ShowCheckbox = true,
-                        CheckColumnData = "autoId",
-                        CheckAllId = "none",
-                        DefaultSortColumn = "VoucherDate",
-                        DefaultSortDirection = "desc",
-                        Compact = true,
-                        Columns = new()
+
+                <!-- Extra Fields (Reference, Status [Hidden in form], Narration [Textarea]) -->
+                <div class="row g-2 mb-3">
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <label class="form-label fs-9 fw-semibold mb-1" for="vRef">@Html.SmartLocalize("Reference / Invoice No")</label>
+                        <input type="text" class="form-control form-control-sm" id="vRef" placeholder="@Html.SmartLocalize("e.g. INV-1002")" />
+                    </div>
+
+                    <!-- Status hidden in entry form as requested, defaults to Pending Approval -->
+                    <div class="col-12 col-md-3 col-xl-2" style="display: none;">
+                        <label class="form-label fs-9 fw-semibold mb-1" for="vStat">@Html.SmartLocalize("Status")</label>
+                        <select class="form-select form-select-sm" id="vStat">
+                            <option value="Pending Approval" selected>@Html.SmartLocalize("Pending")</option>
+                            <option value="Posted">@Html.SmartLocalize("Approved")</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-8 col-lg-9">
+                        <label class="form-label fs-9 fw-semibold mb-1 req" for="vNarr">@Html.SmartLocalize("Narration")</label>
+                        <textarea class="form-control form-control-sm" id="vNarr" rows="2" required placeholder="@Html.SmartLocalize("e.g. Tuition fee collected for September / Office stationery purchase")"></textarea>
+                    </div>
+                </div>
+
+                <!-- Transaction Lines Table -->
+                <div class="border rounded p-2 mb-2 bg-light-subtle vch-lines-card">
+                    <div class="vch-ln-row vch-ln-header">
+                        <div>@Html.SmartLocalize("Account Head (5th layer)")</div>
+                        <div>@Html.SmartLocalize("Description")</div>
+                        <div>@Html.SmartLocalize("Cheque No")</div>
+                        <div>@Html.SmartLocalize("Cheque Date")</div>
+                        <div class="text-end">@Html.SmartLocalize("Debit (৳)")</div>
+                        <div class="text-end">@Html.SmartLocalize("Credit (৳)")</div>
+                        <div>@Html.SmartLocalize("Add")</div>
+                        <div>@Html.SmartLocalize("Del")</div>
+                    </div>
+                    <div id="voucherLinesContainer">
+                        <!-- Populated by voucherEntry.js -->
+                    </div>
+                </div>
+
+                <!-- Totals & Balance Bar -->
+                <div class="d-flex flex-wrap justify-content-end align-items-center gap-3 py-2 px-3 bg-light rounded border mb-3 fs-9">
+                    <div><b>@Html.SmartLocalize("Total Debit"):</b> <span id="vTotalDebit" class="font-monospace text-primary fw-bold">৳0.00</span></div>
+                    <div><b>@Html.SmartLocalize("Total Credit"):</b> <span id="vTotalCredit" class="font-monospace text-primary fw-bold">৳0.00</span></div>
+                    <div><b>@Html.SmartLocalize("Difference"):</b> <span id="vDifference" class="font-monospace fw-bold">৳0.00</span></div>
+                    <span class="badge bg-danger" id="vBalanceBadge"><i class="fas fa-times me-1"></i>@Html.SmartLocalize("Not balanced")</span>
+                </div>
+
+                <!-- Form Action Buttons -->
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                    <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="vBtnClear">
+                        <i class="fas fa-redo"></i> <span>@Html.SmartLocalize("Clear")</span>
+                    </button>
+                    <button type="button" class="btn toolbar-btn toolbar-btn-save" id="vBtnSave">
+                        <i class="fas fa-save"></i> <span id="vBtnSaveText">@Html.SmartLocalize("Save voucher")</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Voucher List & Filter Panel -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-3">
+            <!-- Filter Section Heading -->
+            <div class="d-flex align-items-center mb-2">
+                <span class="fs-9 fw-bold  text-secondary tracking-wider vch-filter-label">
+                    <i class="fas fa-filter text-primary me-1"></i>@Html.SmartLocalize("Filter By:")
+                </span>
+            </div>
+
+            <!-- Filter Toolbar -->
+            <div class="mb-3 pb-2 border-bottom vch-filter-toolbar">
+                <div class="vch-filter-item-date">
+                    <label class="form-label fs-9 fw-semibold mb-1" for="vfFrom">@Html.SmartLocalize("Date From")</label>
+                    <div class="vch-date-wrapper">
+                        <input type="text" class="form-control form-control-sm vch-date-picker" id="vfFrom" placeholder="dd/mm/yyyy" />
+                    </div>
+                </div>
+
+                <div class="vch-filter-item-date">
+                    <label class="form-label fs-9 fw-semibold mb-1" for="vfTo">@Html.SmartLocalize("To")</label>
+                    <div class="vch-date-wrapper">
+                        <input type="text" class="form-control form-control-sm vch-date-picker" id="vfTo" placeholder="dd/mm/yyyy" />
+                    </div>
+                </div>
+
+                <div class="vch-filter-item-type">
+                    <label class="form-label fs-9 fw-semibold mb-1" for="vfType">@Html.SmartLocalize("Voucher Type")</label>
+                    <select class="form-select form-select-sm custom-select-single" id="vfType" data-placeholder="@Html.SmartLocalize("All types")">
+                        <option value="">@Html.SmartLocalize("All types")</option>
+                        @foreach (var t in dropdowns.VoucherTypes)
                         {
-                            new() { Data = "voucherNo", Header = "Voucher No.", Width = "11%", IsEditLink = true, EditSelectorClass = "js-VoucherEntry-edit", IdField = "autoId", DataAttributes = new() { "voucherEntryCodeNo" } },
-                            new() { Data = "voucherDateDisplay", Header = "Voucher Date", Width = "9%", SortField = "VoucherDate" },
-                            new() { Data = "narration", Header = "Narration", Align = "left", Width = "18%" },
-                            new() { Data = "branchName", Header = "Branch", Width = "10%" },
-                            new() { Data = "amount", Header = "Amount", Width = "10%", Align = "right", RenderFn = "formatCurrency", TabularNumber = true },
-                            new() { Data = "invoiceNo", Header = "Invoice No", Width = "9%" },
-                            new() { Data = "preparedBy", Header = "Prepared By", Width = "11%", SortField = "PreparedBy" },
-                            new() { Data = "entryDate", Header = "Entry Date", Width = "9%", Align = "center", SortField = "Ldate" },
-                            new() { Data = "isApproved", Header = "IsApproved", Width = "9%", Align = "center", SortField = "IsApproved", RenderFn = "renderVoucherApprovalStatus" }
+                            <option value="@t.Code" data-typename="@t.TypeName">@t.DisplayText</option>
                         }
-                    }, new ViewDataDictionary(ViewData) { { "ShowCheckAll", false } })
+                    </select>
+                </div>
+
+                <div class="vch-filter-item-stat">
+                    <label class="form-label fs-9 fw-semibold mb-1" for="vfStat">@Html.SmartLocalize("Status")</label>
+                    <select class="form-select form-select-sm custom-select-single" id="vfStat" data-placeholder="@Html.SmartLocalize("All")">
+                        <option value="">@Html.SmartLocalize("All")</option>
+                        <option value="Pending Approval">@Html.SmartLocalize("Pending")</option>
+                        <option value="Posted">@Html.SmartLocalize("Approved")</option>
+                    </select>
+                </div>
+
+                <div class="vch-filter-item-btn">
+                    <button type="button" class="btn toolbar-btn toolbar-btn-clear" id="btnResetVFilters" title="@Html.SmartLocalize("Reset")">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </div>
+
+                <div class="vch-filter-item-export ms-auto">
+                    <label class="form-label fs-9 fw-semibold mb-1" for="vfExport">@Html.SmartLocalize("Export")</label>
+                    <select class="form-select form-select-sm fw-semibold" id="vfExport" style="height: 32px;">
+                        <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Formate")</option>
+                        <option value="p">@Html.SmartLocalize("Print/Preview")</option>
+                        <option value="pdf">@Html.SmartLocalize("PDF")</option>
+                        <option value="x">@Html.SmartLocalize("Excel")</option>
+                    </select>
                 </div>
             </div>
 
+            <!-- Voucher List Heading right under filters -->
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h5 class="mb-0 fs-8 fw-bold text-dark tracking-wider">
+                    <i class="fas fa-list-ul me-1 text-primary"></i>@Html.SmartLocalize("Voucher List")
+                </h5>
+            </div>
+
+            <!-- Table Grid Partial -->
+            @await Html.PartialAsync("_Table")
         </div>
-
-        <partial name="_BottomNavigation" />
     </div>
-</section>
+</div>
 
-<partial name="DeleteModal" />
+<!-- Preview & Print Modal -->
+@await Html.PartialAsync("_ViewModal")
+
+<!-- Action Confirm Modal -->
+@await Html.PartialAsync("_ConfirmModal")
 
 @section Scripts {
-    <script src="~/js/app.input.validation.js" asp-append-version="true"></script>
-    <script src="~/js/pages/VoucherEntry/VoucherEntry.js" asp-append-version="true"></script>
-    <script src="~/js/pages/VoucherEntry/DetailsVoucher.js" asp-append-version="true"></script>
+    <!-- Serialized Account Heads for Fast Dynamic Dropdown Mapping -->
     <script>
-        // No plugin initialization needed; VoucherEntry.js binds globally on ready.
+        window.VOUCHER_DROPDOWNS = {
+            accounts: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dropdowns.AccountHeads)),
+            types: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dropdowns.VoucherTypes))
+        };
     </script>
+    <script src="~/js/pages/DatePickerCustom/DatePickerCustomBy404.js"></script>
+    <script src="~/js/pages/Finance/voucherEntry.js" asp-append-version="true"></script>
 }

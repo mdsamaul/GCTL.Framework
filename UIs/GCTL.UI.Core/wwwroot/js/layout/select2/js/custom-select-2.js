@@ -5,9 +5,11 @@ $(function () {
         $el.find('option').each(function () {
             var val = $(this).val();
             if (!val) return;
+            var group = $(this).parent('optgroup').attr('label') || '';
             items.push({
                 id: val,
                 text: $(this).text(),
+                group: group,
                 selected: $(this).is(':selected')
             });
         });
@@ -52,7 +54,13 @@ $(function () {
             options.parentSelector = $el.data('parent');
         }
 
-        var instance = new customDropdownSingle('#' + $el.attr('id'), options).init();
+        var elId = $el.attr('id');
+        if (!elId) {
+            elId = 'csd_' + Math.random().toString(36).substring(2, 9);
+            $el.attr('id', elId);
+        }
+
+        var instance = new customDropdownSingle('#' + elId, options).init();
         $el.data('customDdInstance', instance);
         return instance;
     }
@@ -86,7 +94,13 @@ $(function () {
             options.countThreshold = parseInt($el.data('count-threshold'), 10);
         }
 
-        var instance = new customDropdownMulti('#' + $el.attr('id'), options).init();
+        var elMultiId = $el.attr('id');
+        if (!elMultiId) {
+            elMultiId = 'cmd_' + Math.random().toString(36).substring(2, 9);
+            $el.attr('id', elMultiId);
+        }
+
+        var instance = new customDropdownMulti('#' + elMultiId, options).init();
         $el.data('customDdInstance', instance);
         return instance;
     }

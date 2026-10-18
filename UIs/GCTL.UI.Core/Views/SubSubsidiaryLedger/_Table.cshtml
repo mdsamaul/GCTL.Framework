@@ -1,0 +1,54 @@
+<div class="coa-card" id="SubSubsidiaryLedger-tableCard">
+    <div class="coa-tc">
+        <div class="coa-tc-left">
+            <label class="coa-in">
+                @Html.SmartLocalize("Show")
+                <select id="SubSubsidiaryLedger-pageSizeSelect">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                @Html.SmartLocalize("entries")
+            </label>
+        </div>
+
+        <div class="coa-tc-center">
+            <label class="coa-in">
+                <input type="checkbox" id="SubSubsidiaryLedger-showArchived" />
+                <span>@Html.SmartLocalize("Show archived")</span>
+            </label>
+        </div>
+
+        <div class="coa-tc-right">
+            <input type="text" class="coa-sr" id="SubSubsidiaryLedger-searchInput" placeholder="@Html.SmartLocalize("Search code, name or path...")" />
+        </div>
+    </div>
+
+    <div class="coa-tw">
+        <table class="coa-table">
+            <thead>
+                <tr>
+                    <th scope="col" style="width: 170px;">@Html.SmartLocalize("Sub-Subsidiary Code")</th>
+                    <th scope="col">@Html.SmartLocalize("Sub-Subsidiary Ledger Name")</th>
+                    <th scope="col" style="width: 160px;">@Html.SmartLocalize("Short Name")</th>
+                    <th scope="col" style="width: 270px;">@Html.SmartLocalize("Hierarchy path")</th>
+                    <th scope="col" style="width: 120px;">@Html.SmartLocalize("Status")</th>
+                    <th scope="col" style="width: 160px;">@Html.SmartLocalize("Actions")</th>
+                </tr>
+            </thead>
+            <tbody id="SubSubsidiaryLedger-body">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="coa-tc coa-footer-tc">
+        <div class="coa-tc-left">
+            <span id="SubSubsidiaryLedger-paginationInfo" style="color:var(--coa-mut); font-size:0.9em;"></span>
+        </div>
+        <div class="coa-tc-right">
+            <div id="SubSubsidiaryLedger-paginationContainer" class="coa-pagination"></div>
+        </div>
+    </div>
+</div>
