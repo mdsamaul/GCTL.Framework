@@ -955,88 +955,111 @@ namespace GCTL.Service.OFRReport
                                 }
                             }
 
-                            // 3. Totals Summary Table
-                            col.Item().PaddingTop(8).Row(totRow =>
+                            // 3. Totals Summary Table (aligned with 110pt amount columns above)
+                            col.Item().PaddingTop(4).Table(totTable =>
                             {
-                                totRow.RelativeItem(); // Spacer
-                                totRow.ConstantItem(270).Table(totTable =>
+                                totTable.ColumnsDefinition(cols =>
                                 {
-                                    totTable.ColumnsDefinition(cols =>
-                                    {
-                                        cols.ConstantColumn(90);
-                                        cols.ConstantColumn(90);
-                                        cols.ConstantColumn(90);
-                                    });
+                                    cols.RelativeColumn();
+                                    cols.ConstantColumn(110);
+                                    cols.ConstantColumn(110);
+                                });
 
-                                    totTable.Cell().Padding(1).AlignRight().Text("TOT Rece. :").Bold();
-                                    totTable.Cell().Padding(1).AlignRight().Text(master.TotReceiptableReq.ToString("N2"));
-                                    totTable.Cell().Padding(1).AlignRight().Text(master.TotReceiptableApp.ToString("N2"));
+                                // TOT Rece.
+                                totTable.Cell().Padding(1).AlignRight().Text("TOT Rece. :").Bold();
+                                totTable.Cell().Padding(1).AlignRight().Text(master.TotReceiptableReq.ToString("N2"));
+                                totTable.Cell().Padding(1).AlignRight().Text(master.TotReceiptableApp.ToString("N2"));
 
-                                    totTable.Cell().Padding(1).AlignRight().Text("TOT Non Rece. :").Bold();
-                                    totTable.Cell().Padding(1).AlignRight().Text(master.TotNonReceiptableReq.ToString("N2"));
-                                    totTable.Cell().Padding(1).AlignRight().Text(master.TotNonReceiptableApp.ToString("N2"));
+                                // TOT Non Rece.
+                                totTable.Cell().Padding(1).AlignRight().Text("TOT Non Rece. :").Bold();
+                                totTable.Cell().Padding(1).AlignRight().Text(master.TotNonReceiptableReq.ToString("N2"));
+                                totTable.Cell().Padding(1).AlignRight().Text(master.TotNonReceiptableApp.ToString("N2"));
 
-                                    totTable.Cell().Padding(1).AlignRight().Text("TOT Transport :").Bold();
-                                    totTable.Cell().Padding(1).AlignRight().Text(master.TotTransportReq.ToString("N2"));
-                                    totTable.Cell().Padding(1).AlignRight().Text(master.TotTransportApp.ToString("N2"));
+                                // TOT Transport
+                                totTable.Cell().Padding(1).AlignRight().Text("TOT Transport :").Bold();
+                                totTable.Cell().Padding(1).AlignRight().Text(master.TotTransportReq.ToString("N2"));
+                                totTable.Cell().Padding(1).AlignRight().Text(master.TotTransportApp.ToString("N2"));
 
-                                    totTable.Cell().BorderTop(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("GT :").Bold();
-                                    totTable.Cell().BorderTop(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(master.GrandTotalReq.ToString("N2")).Bold();
-                                    totTable.Cell().BorderTop(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(master.GrandTotalApp.ToString("N2")).Bold();
+                                // GT : (with top single line on Req column and double underline on App column)
+                                totTable.Cell().Padding(1).AlignRight().Text("GT :").Bold();
+
+                                totTable.Cell().Padding(1).AlignRight().Column(c =>
+                                {
+                                    c.Item().Width(65).LineHorizontal(0.75f).LineColor(Colors.Black);
+                                    c.Item().PaddingTop(1).Text(master.GrandTotalReq.ToString("N2")).Bold();
+                                });
+
+                                totTable.Cell().Padding(1).AlignRight().Column(c =>
+                                {
+                                    c.Item().PaddingTop(1.75f).Text(master.GrandTotalApp.ToString("N2")).Bold();
+                                    c.Item().PaddingTop(1.5f).Width(65).LineHorizontal(0.75f).LineColor(Colors.Black);
+                                    c.Item().PaddingTop(1.5f).Width(65).LineHorizontal(0.75f).LineColor(Colors.Black);
                                 });
                             });
 
                             // 4. In Words
-                            col.Item().PaddingTop(10).Text(t =>
+                            col.Item().PaddingTop(8).Text(t =>
                             {
                                 t.Span("In Words : ").Bold();
                                 t.Span(master.InWords);
                             });
 
-                            // 5. Department Signatures
-                            col.Item().PaddingTop(40).Row(deptRow =>
+                            // 5. Signatures (matching exact baseline and layout)
+                            col.Item().PaddingTop(35).Row(sigRow =>
                             {
-                                deptRow.RelativeItem().Column(c =>
+                                // Column 1: Custom, Jety/Warehouse, Transport + Prepared By
+                                sigRow.ConstantItem(110).Column(c =>
                                 {
-                                    c.Item().Text($"Custom: {master.CustomUser}").SemiBold();
-                                    c.Item().Text("Jety/Warehouse:").SemiBold();
-                                    c.Item().Text("Transport:").SemiBold();
-                                });
-                                deptRow.ConstantItem(150).AlignRight().Column(c =>
-                                {
-                                    if (!string.IsNullOrWhiteSpace(master.ApproveBy))
+                                    c.Item().Text(t =>
                                     {
-                                        c.Item().AlignCenter().Text(master.ApproveBy).FontSize(8.5f).SemiBold();
-                                    }
+                                        t.Span("Custom: ").Bold();
+                                        t.Span(master.CustomUser);
+                                    });
+                                    c.Item().Text("Jety/Warehouse:").Bold();
+                                    c.Item().Text("Transport:").Bold();
+                                    c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Black);
+                                    c.Item().PaddingTop(2).AlignCenter().Text("Prepared By").Bold();
                                 });
-                            });
 
-                            // 6. Signature Lines
-                            col.Item().PaddingTop(15).Row(sigRow =>
-                            {
-                                sigRow.RelativeItem().Column(c =>
+                                // Middle Gap / Spacer
+                                sigRow.RelativeItem();
+
+                                // Column 2: Received By
+                                sigRow.ConstantItem(85).Column(c =>
                                 {
-                                    c.Item().BorderTop(1).BorderColor(Colors.Black).PaddingTop(2).AlignCenter().Text("Prepared By").Bold();
+                                    c.Item().Height(34);
+                                    c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Black);
+                                    c.Item().PaddingTop(2).AlignCenter().Text("Received By").Bold();
                                 });
-                                sigRow.ConstantItem(15);
-                                sigRow.RelativeItem().Column(c =>
+
+                                sigRow.ConstantItem(12);
+
+                                // Column 3: Checked By
+                                sigRow.ConstantItem(85).Column(c =>
                                 {
-                                    c.Item().BorderTop(1).BorderColor(Colors.Black).PaddingTop(2).AlignCenter().Text("Received By").Bold();
+                                    c.Item().Height(34);
+                                    c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Black);
+                                    c.Item().PaddingTop(2).AlignCenter().Text("Checked By").Bold();
                                 });
-                                sigRow.ConstantItem(15);
-                                sigRow.RelativeItem().Column(c =>
+
+                                sigRow.ConstantItem(12);
+
+                                // Column 4: Certified By
+                                sigRow.ConstantItem(85).Column(c =>
                                 {
-                                    c.Item().BorderTop(1).BorderColor(Colors.Black).PaddingTop(2).AlignCenter().Text("Checked By").Bold();
+                                    c.Item().Height(34);
+                                    c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Black);
+                                    c.Item().PaddingTop(2).AlignCenter().Text("Certified By").Bold();
                                 });
-                                sigRow.ConstantItem(15);
-                                sigRow.RelativeItem().Column(c =>
+
+                                sigRow.ConstantItem(12);
+
+                                // Column 5: Approve By (with Approved User name above line)
+                                sigRow.ConstantItem(85).Column(c =>
                                 {
-                                    c.Item().BorderTop(1).BorderColor(Colors.Black).PaddingTop(2).AlignCenter().Text("Certified By").Bold();
-                                });
-                                sigRow.ConstantItem(15);
-                                sigRow.RelativeItem().Column(c =>
-                                {
-                                    c.Item().BorderTop(1).BorderColor(Colors.Black).PaddingTop(2).AlignCenter().Text("Approve By").Bold();
+                                    c.Item().Height(34).AlignBottom().AlignCenter().Text(master.ApproveBy).FontSize(8.5f);
+                                    c.Item().PaddingTop(3).LineHorizontal(1).LineColor(Colors.Black);
+                                    c.Item().PaddingTop(2).AlignCenter().Text("Approve By").Bold();
                                 });
                             });
                         });
