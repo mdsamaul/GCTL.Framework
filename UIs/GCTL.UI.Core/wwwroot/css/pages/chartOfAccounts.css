@@ -27,7 +27,7 @@
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 5px;
 }
 .coa-bar h1, .coa-bar h2 {
   margin: 0;
@@ -108,7 +108,7 @@
   align-items: center;
   gap: clamp(6px, 0.85vw, 14px);
   color: var(--coa-mut);
-  margin-bottom: 12px;
+/*  margin-bottom: 12px;*/
   font-size: clamp(0.76rem, 0.83vw, 0.88rem);
   overflow-x: auto;
   scrollbar-width: none;

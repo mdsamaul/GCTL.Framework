@@ -1,6 +1,8 @@
 @model GCTL.Core.ViewModels.Finance.TrialBalance.TrialBalanceReportVM
 @{
-    ViewData["Title"] = "Trial Balance Report";
+    ViewData["Title"] = "Trial Balance";
+    ViewData["PageHeaderTitle"] = "Trial Balance";
+    ViewData["ShowPageTitle"] = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     var defaultFromDate = Model?.Filter?.FromDate?.ToString("yyyy-MM-dd") ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).ToString("yyyy-MM-dd");

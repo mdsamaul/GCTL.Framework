@@ -1,6 +1,8 @@
 @model GCTL.Core.ViewModels.Finance.CashFlow.CashFlowReportVM
 @{
-    ViewData["Title"] = "Cash Flow Statement";
+    ViewData["Title"] = "Cash Flow";
+    ViewData["PageHeaderTitle"] = "Cash Flow";
+    ViewData["ShowPageTitle"] = true;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -72,7 +74,7 @@
     <!-- Report Table Panel -->
     <section class="panel-box">
         <div class="panel-bar no-print">
-            <h3 class="mb-0">@Html.SmartLocalize("Cash Flow Statement (Direct method)")</h3>
+            <h3 class="mb-0">@Html.SmartLocalize("Cash Flow")</h3>
             <div class="panel-actions no-print">
                 <select id="exportFormatSelect" class="form-select form-select-sm export-select">
                     <option value="" selected disabled>@Html.SmartLocalize("Select Exp. Format")</option>
@@ -86,7 +88,7 @@
         <!-- Print Header -->
         <div class="report-head-print">
             <b>@(Model.CompanyName)</b>
-            <h2>@Html.SmartLocalize("Cash Flow Statement (Direct Method)")</h2>
+            <h2>@Html.SmartLocalize("Cash Flow")</h2>
             <div id="printSubTitle"></div>
         </div>
 

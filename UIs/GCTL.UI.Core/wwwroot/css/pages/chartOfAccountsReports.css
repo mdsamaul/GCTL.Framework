@@ -157,7 +157,7 @@ body, .content, .content.card, .content.bg-body-highlight {
     align-items: center;
     gap: clamp(6px, 0.85vw, 14px);
     color: var(--mut);
-    margin-bottom: 12px;
+/*    margin-bottom: 12px;*/
     font-size: clamp(0.76rem, 0.83vw, 0.88rem);
     overflow-x: auto;
     scrollbar-width: none;
