@@ -1300,7 +1300,7 @@
         $('#kpiBankBalance').text('৳ ' + formatCurrency(summary.bankBalance));
 
         // Update table footer total row
-        $('#vchGridTotalAmount').text('৳ ' + formatCurrency(summary.totalDebit));
+        $('#vchGridTotalAmount').text(formatCurrency(summary.totalDebit));
 
         $('#cardBrvCount').text(summary.brvCount || 0);
         $('#cardBrvAmount').text('৳ ' + formatCurrency(summary.brvAmount));
@@ -1465,15 +1465,20 @@
                         $('#printVoucherDate').text(vDate);
 
                         let viewerName = (v.preparedBy || '').trim();
-                        if (!viewerName || viewerName === 'Guest User' || viewerName.indexOf('@') !== -1) {
-                            const domName = ($('.dropdown-profile h6').text() || $('#navbarDropdownUser').text() || '').trim();
-                            if (domName && domName.indexOf('@') === -1 && domName !== 'Guest User') {
-                                viewerName = domName;
+                        if (!viewerName || viewerName === 'Guest User' || viewerName.indexOf('Moklesur') !== -1) {
+                            if (window.CURRENT_USER_NAME) {
+                                viewerName = window.CURRENT_USER_NAME;
                             } else {
-                                viewerName = 'Md. Moklesur Rahman';
+                                const domName = ($('.dropdown-profile h6').text() || $('#navbarDropdownUser').text() || '').trim();
+                                if (domName && domName !== 'Guest User') {
+                                    viewerName = domName;
+                                }
                             }
                         }
-                        $('#printPreparedByName').text(viewerName);
+                        if (!viewerName && window.CURRENT_USER_NAME) {
+                            viewerName = window.CURRENT_USER_NAME;
+                        }
+                        $('#printPreparedByName').text(viewerName || '');
 
                         const tbody = $('#printLinesBody');
                         tbody.empty();

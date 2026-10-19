@@ -31,6 +31,7 @@ namespace GCTL.UI.Core.Controllers.VoucherEntry
         {
             var dropdowns = await _voucherEntryService.GetDropdownsAsync();
             ViewBag.Dropdowns = dropdowns;
+            ViewBag.CurrentUserName = await GetCurrentViewerNameAsync();
             return View();
         }
 
@@ -168,26 +169,32 @@ namespace GCTL.UI.Core.Controllers.VoucherEntry
 
         private async Task<string> GetCurrentViewerNameAsync()
         {
+            var claimFullName = User?.FindFirst("FullName")?.Value;
+            if (!string.IsNullOrWhiteSpace(claimFullName) && !claimFullName.Equals("Guest User", StringComparison.OrdinalIgnoreCase))
+            {
+                return claimFullName.Trim();
+            }
+
             var userId = User?.FindFirstValue(ClaimTypes.NameIdentifier);
             var userName = User?.Identity?.Name;
 
             try
             {
                 var resolved = await _voucherEntryService.GetUserFullNameAsync(userId, userName);
-                if (!string.IsNullOrWhiteSpace(resolved) && !resolved.Contains("@") && !resolved.Equals("Guest User", StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(resolved) && !resolved.Equals("Guest User", StringComparison.OrdinalIgnoreCase))
                 {
-                    return resolved;
+                    return resolved.Trim();
                 }
             }
             catch { }
 
             string? viewerName = ViewData["FullName"] as string;
-            if (!string.IsNullOrWhiteSpace(viewerName) && !viewerName.Equals("Guest User", StringComparison.OrdinalIgnoreCase) && !viewerName.Contains("@"))
+            if (!string.IsNullOrWhiteSpace(viewerName) && !viewerName.Equals("Guest User", StringComparison.OrdinalIgnoreCase))
             {
-                return viewerName;
+                return viewerName.Trim();
             }
 
-            return "Md. Moklesur Rahman";
+            return !string.IsNullOrWhiteSpace(userName) ? userName.Trim() : "User";
         }
 
         [HttpGet]

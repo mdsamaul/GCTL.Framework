@@ -260,10 +260,17 @@ public class AccountController : BaseController
             }
         }
 
+        string userFullName = $"{user.FirstName} {user.LastName}".Trim();
+        if (string.IsNullOrWhiteSpace(userFullName))
+        {
+            userFullName = user.Username;
+        }
+
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.Username),
+            new("FullName", userFullName),
             new("EmployeeId", user.EmployeeId ?? string.Empty),
             new("AccessCode", user.AccessCode ?? string.Empty),
             new("CompanyCode", employeeInfo?.CompanyCode ?? string.Empty),

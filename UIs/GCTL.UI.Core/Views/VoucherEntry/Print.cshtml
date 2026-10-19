@@ -464,7 +464,17 @@
                     <div class="sig-label">Received By</div>
                 </div>
                 <div class="sig-col-prep">
-                    <div class="sig-user">@(!string.IsNullOrWhiteSpace(Model.PreparedBy) && !Model.PreparedBy.Contains("@") ? Model.PreparedBy : "Md. Moklesur Rahman")</div>
+                    @{
+                        var loggedInUserName = User.FindFirst("FullName")?.Value;
+                        if (string.IsNullOrWhiteSpace(loggedInUserName))
+                        {
+                            loggedInUserName = User.Identity?.Name;
+                        }
+                        var prepUser = !string.IsNullOrWhiteSpace(Model.PreparedBy) && !Model.PreparedBy.Equals("Md. Moklesur Rahman", StringComparison.OrdinalIgnoreCase)
+                            ? Model.PreparedBy
+                            : loggedInUserName;
+                    }
+                    <div class="sig-user">@(string.IsNullOrWhiteSpace(prepUser) ? "User" : prepUser)</div>
                     <div class="sig-line">-------------------------</div>
                     <div class="sig-label">Prepared By</div>
                 </div>

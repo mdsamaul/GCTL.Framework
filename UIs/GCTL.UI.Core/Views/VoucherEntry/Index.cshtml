@@ -899,11 +899,11 @@
 
 <div class="">
     <!-- Top Header Banner -->
-    <header class="vch-top-header nox">
+    @* <header class="vch-top-header nox">
         <div>
             <h1>@Html.SmartLocalize("Finance & Accounts")</h1>           
         </div>
-    </header>
+    </header> *@
 
     <!-- Top KPI Summary Cards -->
     <div class="row g-2 mb-2" id="vchKpiRow">
@@ -1254,6 +1254,7 @@
             accounts: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dropdowns.AccountHeads)),
             types: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dropdowns.VoucherTypes))
         };
+        window.CURRENT_USER_NAME = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CurrentUserName ?? User.Identity?.Name ?? ""));
     </script>
     <script src="~/js/pages/DatePickerCustom/DatePickerCustomBy404.js"></script>
     <script src="~/js/pages/Finance/voucherEntry.js" asp-append-version="true"></script>

@@ -11,19 +11,28 @@ using GCTL.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 
+using System.Threading;
+using Microsoft.Extensions.Caching.Memory;
+
 namespace GCTL.Service.Finance.VoucherEntry
 {
     public class VoucherEntryService : IVoucherEntryService
     {
+        private static int _summaryCacheVersion = 0;
+        public static void InvalidateSummaryCache() => Interlocked.Increment(ref _summaryCacheVersion);
+
         private readonly GCTL_ERP_DBContext _context;
         private readonly IDbConnection _dbConnection;
+        private readonly IMemoryCache _memoryCache;
 
         public VoucherEntryService(
             GCTL_ERP_DBContext context,
-            IDbConnection dbConnection)
+            IDbConnection dbConnection,
+            IMemoryCache memoryCache)
         {
             _context = context;
             _dbConnection = dbConnection;
+            _memoryCache = memoryCache;
         }
 
         #region Get All (Filtered, Sorted, Paginated + KPI Summary via Stored Procedure)
@@ -42,17 +51,24 @@ namespace GCTL.Service.Finance.VoucherEntry
                 string? statusParam = string.IsNullOrWhiteSpace(filter.Status) ? null : filter.Status.Trim();
                 string? searchParam = string.IsNullOrWhiteSpace(filter.SearchTerm) ? null : filter.SearchTerm.Trim();
 
+                string branchParam = string.IsNullOrWhiteSpace(filter.BranchCode) ? "" : filter.BranchCode.Trim();
+                string compParam = string.IsNullOrWhiteSpace(filter.CompanyCode) ? "" : filter.CompanyCode.Trim();
+
+                string summaryCacheKey = $"VchSummary_{_summaryCacheVersion}_{branchParam}_{compParam}";
+                bool hasCachedSummary = _memoryCache.TryGetValue(summaryCacheKey, out VoucherEntrySummaryVM? cachedSummary) && cachedSummary != null;
+
                 parameters.Add("@FromDate", filter.FromDate?.Date);
                 parameters.Add("@ToDate", filter.ToDate?.Date);
                 parameters.Add("@VoucherType", vTypeParam);
                 parameters.Add("@Status", statusParam);
                 parameters.Add("@SearchTerm", searchParam);
-                parameters.Add("@BranchCode", string.IsNullOrWhiteSpace(filter.BranchCode) ? null : filter.BranchCode.Trim());
-                parameters.Add("@CompanyCode", string.IsNullOrWhiteSpace(filter.CompanyCode) ? null : filter.CompanyCode.Trim());
+                parameters.Add("@BranchCode", string.IsNullOrEmpty(branchParam) ? null : branchParam);
+                parameters.Add("@CompanyCode", string.IsNullOrEmpty(compParam) ? null : compParam);
                 parameters.Add("@PageNumber", result.PageNumber);
                 parameters.Add("@PageSize", result.PageSize);
                 parameters.Add("@SortColumn", filter.SortColumn ?? "VoucherDate");
                 parameters.Add("@SortOrder", filter.SortOrder ?? "DESC");
+                parameters.Add("@SkipSummary", hasCachedSummary ? 1 : 0);
 
                 using var multi = await _dbConnection.QueryMultipleAsync("dbo.sp_GetVoucherList", parameters, commandType: CommandType.StoredProcedure, commandTimeout: 120);
 
@@ -64,7 +80,12 @@ namespace GCTL.Service.Finance.VoucherEntry
                 static string ToStringSafe(object? val) => val == null || val is DBNull ? string.Empty : Convert.ToString(val)!;
                 static DateTime ToDateTime(object? val) => val == null || val is DBNull ? DateTime.Today : Convert.ToDateTime(val);
 
-                if (summaryRow != null)
+                if (hasCachedSummary && cachedSummary != null)
+                {
+                    result.Summary = cachedSummary;
+                    result.TotalCount = cachedSummary.TotalVouchers;
+                }
+                else if (summaryRow != null)
                 {
                     var sDict = (IDictionary<string, object>)summaryRow;
                     result.TotalCount = ToInt(sDict.TryGetValue("TotalVouchers", out var tv) ? tv : 0);
@@ -87,6 +108,8 @@ namespace GCTL.Service.Finance.VoucherEntry
                     result.Summary.JvAmount = ToDecimal(sDict.TryGetValue("JvAmount", out var jva) ? jva : 0);
                     result.Summary.CvCount = ToInt(sDict.TryGetValue("CvCount", out var cvc) ? cvc : 0);
                     result.Summary.CvAmount = ToDecimal(sDict.TryGetValue("CvAmount", out var cva) ? cva : 0);
+
+                    _memoryCache.Set(summaryCacheKey, result.Summary, TimeSpan.FromMinutes(5));
                 }
 
                 foreach (var row in pagedRows)
@@ -226,7 +249,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     try
                     {
                         var resolvedName = await GetUserFullNameAsync(preparedBy, preparedBy);
-                        if (!string.IsNullOrWhiteSpace(resolvedName) && !resolvedName.Contains("@"))
+                        if (!string.IsNullOrWhiteSpace(resolvedName))
                         {
                             preparedBy = resolvedName;
                         }
@@ -541,6 +564,7 @@ namespace GCTL.Service.Finance.VoucherEntry
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
+                    InvalidateSummaryCache();
 
                     res.Success = true;
                     res.Message = $"Voucher {existing.VoucherNo} updated successfully.";
@@ -624,6 +648,7 @@ namespace GCTL.Service.Finance.VoucherEntry
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
+                    InvalidateSummaryCache();
 
                     res.Success = true;
                     res.Message = $"Voucher {voucherNo} created successfully.";
@@ -684,6 +709,8 @@ namespace GCTL.Service.Finance.VoucherEntry
                     vCode = voucher.VoucherEntryCodeNo,
                     vNo = voucher.VoucherNo
                 });
+
+                InvalidateSummaryCache();
 
                 res.Success = true;
                 res.Message = $"Voucher {voucher.VoucherNo} approved and posted.";
@@ -746,6 +773,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                 }
 
                 await _dbConnection.ExecuteAsync(sql, new { vCode, vNo });
+                InvalidateSummaryCache();
 
                 res.Success = true;
                 res.Message = $"Voucher {vNo} deleted successfully.";
@@ -955,28 +983,50 @@ namespace GCTL.Service.Finance.VoucherEntry
         #region GetUserFullNameAsync
         public async Task<string> GetUserFullNameAsync(string? userId, string? userName)
         {
+            if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(userName))
+                return string.Empty;
+
             try
             {
-                const string query = @"
+                const string query1 = @"
 SELECT TOP 1
     COALESCE(
         NULLIF(RTRIM(LTRIM(ISNULL(e.FirstName, '') + ' ' + ISNULL(e.LastName, ''))), ''),
-        NULLIF(RTRIM(LTRIM(u.FullName)), '')
+        NULLIF(RTRIM(LTRIM(ISNULL(u.FirstName, '') + ' ' + ISNULL(u.LastName, ''))), ''),
+        NULLIF(RTRIM(LTRIM(u.Username)), '')
+    ) AS ResolvedFullName
+FROM Core_UserInfo u
+LEFT JOIN HRM_Employee e ON e.EmployeeID = u.EmployeeID
+WHERE (@UserId IS NOT NULL AND CAST(u.ID AS VARCHAR(50)) = @UserId)
+   OR (@UserName IS NOT NULL AND (u.Username = @UserName OR u.OffEmail = @UserName OR u.PerEmail = @UserName));
+";
+                var name = await _dbConnection.QueryFirstOrDefaultAsync<string>(query1, new { UserId = userId, UserName = userName });
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    return name.Trim();
+                }
+
+                const string query2 = @"
+SELECT TOP 1
+    COALESCE(
+        NULLIF(RTRIM(LTRIM(ISNULL(e.FirstName, '') + ' ' + ISNULL(e.LastName, ''))), ''),
+        NULLIF(RTRIM(LTRIM(u.FullName)), ''),
+        NULLIF(RTRIM(LTRIM(u.UserName)), '')
     ) AS ResolvedFullName
 FROM AspNetUsers u
-LEFT JOIN [Employees] e ON e.EmployeeID = u.PersonID
+LEFT JOIN HRM_Employee e ON e.EmployeeID = u.EmployeeId
 WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
    OR (@UserName IS NOT NULL AND (u.UserName = @UserName OR u.Email = @UserName));
 ";
-                var name = await _dbConnection.QueryFirstOrDefaultAsync<string>(query, new { UserId = userId, UserName = userName });
-                if (!string.IsNullOrWhiteSpace(name) && !name.Contains("@"))
+                name = await _dbConnection.QueryFirstOrDefaultAsync<string>(query2, new { UserId = userId, UserName = userName });
+                if (!string.IsNullOrWhiteSpace(name))
                 {
                     return name.Trim();
                 }
             }
             catch { }
 
-            return "Md. Moklesur Rahman";
+            return userName ?? userId ?? string.Empty;
         }
         #endregion
 

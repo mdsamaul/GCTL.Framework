@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.Finance.BalanceSheet;
 using GCTL.Data.Models;
@@ -15,10 +17,18 @@ namespace GCTL.Service.Finance.BalanceSheet
     public class BalanceSheetService : IBalanceSheetService
     {
         private readonly GCTL_ERP_DBContext _context;
+        private readonly IDbConnection _dbConnection;
+
+        public BalanceSheetService(GCTL_ERP_DBContext context, IDbConnection dbConnection)
+        {
+            _context = context;
+            _dbConnection = dbConnection;
+        }
 
         public BalanceSheetService(GCTL_ERP_DBContext context)
         {
             _context = context;
+            _dbConnection = context.Database.GetDbConnection();
         }
 
         public async Task<List<CommonSelectVM>> GetCompaniesAsync()
@@ -79,7 +89,6 @@ namespace GCTL.Service.Finance.BalanceSheet
             var now = DateTime.Today;
             report.FromDate = filter.FromDate ?? new DateTime(now.Year, now.Month, 1);
             report.ToDate = filter.ToDate ?? new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
-            var toDateEndOfDay = report.ToDate.Date.AddDays(1).AddTicks(-1);
 
             // 2. Company & Branch Information
             if (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All")
@@ -103,244 +112,120 @@ namespace GCTL.Service.Finance.BalanceSheet
                 report.BranchName = "All Branches";
             }
 
-            // 3. Opening Balances
-            var obQuery = _context.AccCompanyOpeningBalances
-                .Where(ob => ob.DeletedAt == null);
+            // 3. Execute Stored Procedure [Rpt_proc_BalanceSheetReportF2] via Dapper
+            var branchParam = (filter.BranchCode == "All" || string.IsNullOrEmpty(filter.BranchCode)) ? string.Empty : filter.BranchCode;
+            var companyParam = (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All") ? filter.CompanyCode : string.Empty;
 
-            if (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All")
+            if (!string.IsNullOrEmpty(companyParam) && companyParam.Length < 3 && int.TryParse(companyParam, out var cNum))
             {
-                obQuery = obQuery.Where(ob => ob.MainCompanyCode == filter.CompanyCode || ob.CompanyCode == filter.CompanyCode);
+                companyParam = cNum.ToString("D3");
             }
 
-            if (!string.IsNullOrEmpty(filter.BranchCode) && filter.BranchCode != "All")
+            var parameters = new DynamicParameters();
+            parameters.Add("@Main_CompanyCode", companyParam);
+            parameters.Add("@BranchCode", branchParam);
+            parameters.Add("@FromDate", report.FromDate);
+            parameters.Add("@ToDate", report.ToDate);
+
+            List<BalanceSheetSpResultDto> spList = new List<BalanceSheetSpResultDto>();
+            try
             {
-                obQuery = obQuery.Where(ob => ob.BranchCode == filter.BranchCode);
-            }
-
-            var obList = await obQuery.ToListAsync();
-            var netOpeningByCode = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var ob in obList)
-            {
-                var code = ob.GeneralLedgerCodeNo?.Trim();
-                if (string.IsNullOrEmpty(code)) continue;
-
-                decimal amt = ob.OpeningBalance ?? 0m;
-                var tr = (ob.TrType ?? "").Trim().ToLowerInvariant();
-
-                decimal netDr = (tr == "credit" || tr == "cr" || tr == "c") ? -amt : amt;
-
-                if (netOpeningByCode.TryGetValue(code, out var cur))
-                    netOpeningByCode[code] = cur + netDr;
-                else
-                    netOpeningByCode[code] = netDr;
-            }
-
-            // 4. Voucher Details up to ToDate
-            var voucherQuery = from d in _context.AccVoucherEntryDetails
-                               join v in _context.AccVoucherEntries on d.VoucherEntryCodeNo equals v.VoucherEntryCodeNo
-                               where v.VoucherDate <= toDateEndOfDay &&
-                                     (v.IsActive == null || v.IsActive == "1") &&
-                                     (v.IsApproved == "1" || v.IsApproved == "Y" || v.IsApproved == "Posted" || string.IsNullOrEmpty(v.IsApproved))
-                               select new { d.AccCode, d.DebitAmount, d.CreditAmount, v.CompanyCode, v.MainCompanyCode, v.BranchCode };
-
-            if (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All")
-            {
-                voucherQuery = voucherQuery.Where(x => x.MainCompanyCode == filter.CompanyCode || x.CompanyCode == filter.CompanyCode);
-            }
-
-            if (!string.IsNullOrEmpty(filter.BranchCode) && filter.BranchCode != "All")
-            {
-                voucherQuery = voucherQuery.Where(x => x.BranchCode == filter.BranchCode);
-            }
-
-            var periodTotals = await voucherQuery
-                .GroupBy(d => d.AccCode)
-                .Select(g => new
+                var conn = _dbConnection ?? _context.Database.GetDbConnection();
+                if (conn.State != ConnectionState.Open)
                 {
-                    AccCode = g.Key,
-                    Debit = g.Sum(x => x.DebitAmount ?? 0m),
-                    Credit = g.Sum(x => x.CreditAmount ?? 0m)
-                })
-                .ToListAsync();
-
-            var vchByCode = periodTotals.ToDictionary(
-                x => x.AccCode?.Trim() ?? string.Empty,
-                x => (Debit: x.Debit, Credit: x.Credit),
-                StringComparer.OrdinalIgnoreCase);
-
-            // 5. Load All Active General Ledgers
-            var coaAccounts = await _context.AccGeneralLedgers
-                .Where(g => g.IsActive == null || g.IsActive == "1")
-                .OrderBy(g => g.GeneralLedgerCodeNo)
-                .ToListAsync();
-
-            var controls = new Dictionary<string, string>();
-            var subControls = new Dictionary<string, string>();
-            try { controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName); } catch { }
-            try { subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName); } catch { }
-
-            // Helper to get closing Net Dr
-            decimal GetClosingNetDr(string code)
-            {
-                decimal net = 0m;
-                if (netOpeningByCode.TryGetValue(code, out var op)) net += op;
-                if (vchByCode.TryGetValue(code, out var v)) net += (v.Debit - v.Credit);
-                return net;
-            }
-
-            // 6. Build Assets Section (Group 1)
-            var assetAccounts = coaAccounts.Where(g => g.GroupLedgerCodeNo != null && g.GroupLedgerCodeNo.StartsWith("1")).ToList();
-            var (assetItems, totalAssets) = BuildTree(assetAccounts, GetClosingNetDr, isAsset: true, controls, subControls);
-            report.AssetsItems = assetItems;
-            report.TotalAssetsAmount = totalAssets;
-            report.TotalAssets = totalAssets;
-
-            // 7. Build Equities & Liabilities Section (Group 2)
-            var liabEqAccounts = coaAccounts.Where(g => g.GroupLedgerCodeNo != null && g.GroupLedgerCodeNo.StartsWith("2")).ToList();
-            var (liabEqItems, totalLiabEqAccounts) = BuildTree(liabEqAccounts, GetClosingNetDr, isAsset: false, controls, subControls);
-
-            // 8. Calculate Current Period Surplus / (Deficit) from Groups 3 and 4
-            var pnlAccounts = coaAccounts.Where(g => g.GroupLedgerCodeNo != null && (g.GroupLedgerCodeNo.StartsWith("3") || g.GroupLedgerCodeNo.StartsWith("4"))).ToList();
-            decimal surplus = 0m;
-            foreach (var acc in pnlAccounts)
-            {
-                var code = acc.GeneralLedgerCodeNo?.Trim() ?? string.Empty;
-                surplus -= GetClosingNetDr(code);
-            }
-            report.CurrentPeriodSurplus = surplus;
-
-            // Add Surplus row inside Equities & Liabilities list
-            liabEqItems.Add(new BalanceSheetItemVM
-            {
-                Code = string.Empty,
-                Name = "Current period surplus / (deficit)",
-                Level = 3,
-                Section = "Surplus",
-                Amount = surplus,
-                AmountFormatted = FormatCurrency(surplus),
-                IsHighlighted = true
-            });
-
-            decimal totalEquitiesAndLiabilities = totalLiabEqAccounts + surplus;
-            report.EquitiesAndLiabilitiesItems = liabEqItems;
-            report.TotalEquitiesAndLiabilitiesAmount = totalEquitiesAndLiabilities;
-
-            // 9. Separate Equity vs Liabilities for KPI Summary Cards
-            decimal equityWithoutSurplus = 0m;
-            foreach (var acc in liabEqAccounts)
-            {
-                var ctrlCode = acc.ControlLedgerCodeNo ?? string.Empty;
-                var ctrlName = controls.TryGetValue(ctrlCode, out var cn) ? cn : string.Empty;
-                if (ctrlCode.StartsWith("201") || ctrlName.IndexOf("Equity", StringComparison.OrdinalIgnoreCase) >= 0 || ctrlName.IndexOf("Capital", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    equityWithoutSurplus += -GetClosingNetDr(acc.GeneralLedgerCodeNo?.Trim() ?? string.Empty);
+                    if (conn is System.Data.Common.DbConnection dbConn)
+                    {
+                        await dbConn.OpenAsync();
+                    }
+                    else
+                    {
+                        conn.Open();
+                    }
                 }
+
+                var results = await conn.QueryAsync<BalanceSheetSpResultDto>(
+                    "Rpt_proc_BalanceSheetReportF2",
+                    parameters,
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 120
+                );
+                spList = results.ToList();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SP BalanceSheet error: {ex.Message}");
+                spList = new List<BalanceSheetSpResultDto>();
             }
 
-            decimal totalEquity = equityWithoutSurplus + surplus;
-            decimal totalLiabilities = totalEquitiesAndLiabilities - totalEquity;
+            // 4. Map SP Result to BalanceSheetReportVM
+            if (spList.Any())
+            {
+                // Assets items (excluding grand total row)
+                report.AssetsItems = spList
+                    .Where(x => !x.IsTotal && x.Section == "Assets")
+                    .Select(x => new BalanceSheetItemVM
+                    {
+                        Code = x.Code,
+                        Name = x.ParticularName,
+                        Level = x.Level,
+                        Section = x.Section,
+                        Amount = x.Amount,
+                        AmountFormatted = FormatCurrency(x.Amount),
+                        IsTotal = x.IsTotal,
+                        IsHighlighted = x.IsHighlighted
+                    })
+                    .ToList();
 
-            report.TotalEquity = totalEquity;
-            report.TotalLiabilities = totalLiabilities;
+                // Equities & Liabilities items (including Surplus row, excluding grand total row)
+                report.EquitiesAndLiabilitiesItems = spList
+                    .Where(x => !x.IsTotal && (x.Section == "Equities & Liabilities" || x.Section == "Surplus"))
+                    .Select(x => new BalanceSheetItemVM
+                    {
+                        Code = x.Code,
+                        Name = x.ParticularName,
+                        Level = x.Level,
+                        Section = x.Section,
+                        Amount = x.Amount,
+                        AmountFormatted = FormatCurrency(x.Amount),
+                        IsTotal = x.IsTotal,
+                        IsHighlighted = x.IsHighlighted
+                    })
+                    .ToList();
+
+                var totalAssetRow = spList.FirstOrDefault(x => x.IsTotal && x.Section == "Assets");
+                var totalLiabEqRow = spList.FirstOrDefault(x => x.IsTotal && x.Section == "Equities & Liabilities");
+                var surplusRow = spList.FirstOrDefault(x => x.Section == "Surplus");
+
+                decimal totalAssets = totalAssetRow?.Amount ?? report.AssetsItems.Where(x => x.Level == 2).Sum(x => x.Amount);
+                decimal surplus = surplusRow?.Amount ?? 0m;
+
+                report.TotalAssetsAmount = totalAssets;
+                report.TotalAssets = totalAssets;
+                report.TotalEquitiesAndLiabilitiesAmount = totalLiabEqRow?.Amount ?? totalAssets;
+                report.CurrentPeriodSurplus = surplus;
+
+                // KPI Card Separation:
+                // Control Ledgers in Group 2 not starting with '201' are Liabilities (202 Non-Current, 203 Current)
+                decimal totalLiabilities = report.EquitiesAndLiabilitiesItems
+                    .Where(x => x.Level == 2 && !x.Code.StartsWith("201"))
+                    .Sum(x => x.Amount);
+
+                report.TotalLiabilities = totalLiabilities;
+                report.TotalEquity = report.TotalEquitiesAndLiabilitiesAmount - totalLiabilities;
+            }
+            else
+            {
+                report.AssetsItems = new List<BalanceSheetItemVM>();
+                report.EquitiesAndLiabilitiesItems = new List<BalanceSheetItemVM>();
+                report.TotalAssets = 0;
+                report.TotalAssetsAmount = 0;
+                report.TotalLiabilities = 0;
+                report.TotalEquity = 0;
+                report.TotalEquitiesAndLiabilitiesAmount = 0;
+                report.CurrentPeriodSurplus = 0;
+            }
 
             return report;
-        }
-
-        private static (List<BalanceSheetItemVM> items, decimal total) BuildTree(
-            List<AccGeneralLedger> accounts,
-            Func<string, decimal> getClosingNetDr,
-            bool isAsset,
-            Dictionary<string, string> controls,
-            Dictionary<string, string> subControls)
-        {
-            var result = new List<BalanceSheetItemVM>();
-            decimal sectionTotal = 0m;
-
-            // Group by Control Ledger (Level 2)
-            var controlGroups = accounts
-                .GroupBy(a => new
-                {
-                    Code = a.ControlLedgerCodeNo ?? string.Empty,
-                    Name = controls.TryGetValue(a.ControlLedgerCodeNo ?? string.Empty, out var cn) ? cn : "General"
-                })
-                .OrderBy(g => g.Key.Code);
-
-            foreach (var cGroup in controlGroups)
-            {
-                var controlItems = new List<BalanceSheetItemVM>();
-                decimal controlTotal = 0m;
-
-                // Group by SubControl Ledger (Level 3)
-                var subControlGroups = cGroup
-                    .GroupBy(a => new
-                    {
-                        Code = a.SubControlLedgerCodeNo ?? string.Empty,
-                        Name = subControls.TryGetValue(a.SubControlLedgerCodeNo ?? string.Empty, out var scn) ? scn : "General"
-                    })
-                    .OrderBy(g => g.Key.Code);
-
-                foreach (var scGroup in subControlGroups)
-                {
-                    var subControlItems = new List<BalanceSheetItemVM>();
-                    decimal subControlTotal = 0m;
-
-                    // Leaf Accounts (Level 5)
-                    foreach (var acc in scGroup.OrderBy(a => a.GeneralLedgerCodeNo))
-                    {
-                        string code = acc.GeneralLedgerCodeNo?.Trim() ?? string.Empty;
-                        decimal netDr = getClosingNetDr(code);
-
-                        decimal amount = isAsset ? netDr : -netDr;
-
-                        if (Math.Abs(amount) >= 0.005m)
-                        {
-                            subControlTotal += amount;
-                            subControlItems.Add(new BalanceSheetItemVM
-                            {
-                                Code = acc.GeneralLedgerCodeNo,
-                                Name = acc.GeneralLedgerName,
-                                Level = 5,
-                                Section = isAsset ? "Assets" : "Equities & Liabilities",
-                                Amount = amount,
-                                AmountFormatted = FormatCurrency(amount)
-                            });
-                        }
-                    }
-
-                    if (subControlItems.Count > 0)
-                    {
-                        controlTotal += subControlTotal;
-                        controlItems.Add(new BalanceSheetItemVM
-                        {
-                            Code = scGroup.Key.Code,
-                            Name = scGroup.Key.Name,
-                            Level = 3,
-                            Section = isAsset ? "Assets" : "Equities & Liabilities",
-                            Amount = subControlTotal,
-                            AmountFormatted = FormatCurrency(subControlTotal)
-                        });
-                        controlItems.AddRange(subControlItems);
-                    }
-                }
-
-                if (controlItems.Count > 0)
-                {
-                    sectionTotal += controlTotal;
-                    result.Add(new BalanceSheetItemVM
-                    {
-                        Code = cGroup.Key.Code,
-                        Name = cGroup.Key.Name,
-                        Level = 2,
-                        Section = isAsset ? "Assets" : "Equities & Liabilities",
-                        Amount = controlTotal,
-                        AmountFormatted = FormatCurrency(controlTotal)
-                    });
-                    result.AddRange(controlItems);
-                }
-            }
-
-            return (result, sectionTotal);
         }
 
         private static string FormatCurrency(decimal val)
