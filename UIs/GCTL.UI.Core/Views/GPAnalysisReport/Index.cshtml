@@ -724,7 +724,7 @@
             <!-- From Date -->
             <div class="filter-group">
                 <label for="filterFromDate">From</label>
-                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/08/yyyy")" data-default-date="@DateTime.Now.ToString("01/08/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
 
             <!-- To Date -->
@@ -735,7 +735,7 @@
 
             <!-- Shipment Mode (Multi-Select with checkboxes) -->
             <div class="filter-group">
-                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Shipment Mode --">
+                <select id="filterShipmentMode" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Shipment Mode --">
                     @if (ViewBag.ShipmentModes != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.ShipmentModes)
@@ -748,7 +748,7 @@
 
             <!-- Customer (Multi-Select with checkboxes) -->
             <div class="filter-group">
-                <select id="filterCustomerId" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Customer --">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Customer --">
                     @if (ViewBag.Customers != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.Customers)

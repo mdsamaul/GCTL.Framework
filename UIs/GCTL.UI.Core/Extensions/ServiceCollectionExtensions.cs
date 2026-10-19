@@ -94,6 +94,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using GCTL.Service.GPAnalysisReport;
+using GCTL.Service.OFRReport;
+using GCTL.Service.TrialBalance;
 
 namespace GCTL.Framework.Extensions
 {
@@ -215,6 +217,8 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<ICustomerTypeService, CustomerTypeService>();
             services.AddScoped<ICustomerReportService, CustomerReportService>();
             services.AddScoped<IGPAnalysisReportService, GPAnalysisReportService>();
+            services.AddScoped<IOFRReportService, OFRReportService>();
+            services.AddScoped<ITrialBalanceService, TrialBalanceService>();
 
 
             services.AddScoped<IMenuTabService, MenuTabService>();
