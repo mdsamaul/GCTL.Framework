@@ -817,56 +817,56 @@ namespace GCTL.Service.OFRReport
                                 // Row 1
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).Text("Customer Name").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(70).AlignRight().Text("Customer Name").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.CustomerName).SemiBold();
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).Text("Quantity").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(48).AlignRight().Text("Quantity").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.Quantity);
                                 });
 
                                 // Row 2
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).Text("Invoice No.").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(70).AlignRight().Text("Invoice No.").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.InvoiceNo);
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).Text("Date").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(48).AlignRight().Text("Date").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.Date);
                                 });
 
                                 // Row 3
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).Text("Job No.").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(70).AlignRight().Text("Job No.").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.JobNo).SemiBold();
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).Text("LC Value").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(48).AlignRight().Text("LC Value").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.LCValue);
                                 });
 
                                 // Row 4
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).Text("B/L No").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(70).AlignRight().Text("B/L No").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.BLNo);
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).Text("Weight").SemiBold();
-                                    r.ConstantItem(8).Text(":");
+                                    r.ConstantItem(48).AlignRight().Text("Weight").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.Weight);
                                 });
                             });
