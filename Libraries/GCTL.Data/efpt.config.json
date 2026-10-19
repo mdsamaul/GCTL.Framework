@@ -1,4 +1,4 @@
-﻿{
+{
    "CodeGenerationMode": 4,
    "ContextClassName": "GCTL_ERP_DBContext",
    "ContextNamespace": null,
@@ -27,6 +27,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Acc_Company_Opening_Balance_Old_Backup]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Acc_ControlLedger]",
          "ObjectType": 0
       },
@@ -52,10 +56,6 @@
       },
       {
          "Name": "[dbo].[Acc_SubsidiaryLedger]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Acc_SubSubsidiaryLedger]",
          "ObjectType": 0
       },
       {

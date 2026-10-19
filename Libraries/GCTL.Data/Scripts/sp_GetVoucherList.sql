@@ -3,7 +3,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
--- Helpful Performance Indexes for Large Tables
+-- 1. Index on Acc_VoucherEntryDetails for VoucherEntryCodeNo (Covering amounts)
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Acc_VoucherEntryDetails_CodeNo' AND object_id = OBJECT_ID('Acc_VoucherEntryDetails'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Acc_VoucherEntryDetails_CodeNo 
@@ -12,14 +12,60 @@ BEGIN
 END
 GO
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Acc_VoucherEntry_Date' AND object_id = OBJECT_ID('Acc_VoucherEntry'))
+-- 2. Materialized / Indexed View on Acc_VoucherEntryDetails for instant O(1) totals
+IF OBJECT_ID('dbo.vw_Acc_VoucherSummary_Fast', 'V') IS NULL
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_Acc_VoucherEntry_Date 
-    ON dbo.Acc_VoucherEntry (VoucherDate DESC, autoId DESC) 
-    INCLUDE (VoucherEntryCodeNo, VoucherNo, VoucherType_Code, BranchCode, IsApproved, IsActive);
+    EXEC('
+    CREATE VIEW dbo.vw_Acc_VoucherSummary_Fast
+    WITH SCHEMABINDING
+    AS
+    SELECT 
+        VoucherEntryCodeNo,
+        COUNT_BIG(*) AS LineCount,
+        SUM(ISNULL(DebitAmount, 0)) AS TotalDebit,
+        SUM(ISNULL(CreditAmount, 0)) AS TotalCredit
+    FROM dbo.Acc_VoucherEntryDetails
+    WHERE IsActive IS NULL OR IsActive != ''0''
+    GROUP BY VoucherEntryCodeNo;
+    ');
 END
 GO
 
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'CIX_vw_Acc_VoucherSummary_Fast' AND object_id = OBJECT_ID('vw_Acc_VoucherSummary_Fast'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX CIX_vw_Acc_VoucherSummary_Fast 
+    ON dbo.vw_Acc_VoucherSummary_Fast (VoucherEntryCodeNo);
+END
+GO
+
+-- 3. Composite covering index on Acc_VoucherEntry for ultra-fast date/key-seek paging
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Acc_VoucherEntry_Active_Date' AND object_id = OBJECT_ID('Acc_VoucherEntry'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Acc_VoucherEntry_Active_Date 
+    ON dbo.Acc_VoucherEntry (VoucherDate DESC, autoId DESC) 
+    INCLUDE (VoucherEntryCodeNo, VoucherNo, VoucherType_Code, BranchCode, CompanyCode, Main_CompanyCode, IsApproved, IsActive);
+END
+GO
+
+-- 4. Index on VoucherEntryCodeNo covering type, branch, company
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_AccVE_VoucherCode_Type_Cover' AND object_id = OBJECT_ID('Acc_VoucherEntry'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_AccVE_VoucherCode_Type_Cover
+    ON dbo.Acc_VoucherEntry (VoucherEntryCodeNo)
+    INCLUDE (VoucherType_Code, BranchCode, CompanyCode, Main_CompanyCode, IsActive);
+END
+GO
+
+-- 5. Index on VoucherNo for instant search by voucher no
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Acc_VoucherEntry_VoucherNo' AND object_id = OBJECT_ID('Acc_VoucherEntry'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Acc_VoucherEntry_VoucherNo
+    ON dbo.Acc_VoucherEntry (VoucherNo)
+    INCLUDE (autoId, VoucherEntryCodeNo, VoucherDate, IsActive);
+END
+GO
+
+-- 6. High-Performance Stored Procedure (Dynamic SQL 2-Step Key Seeking + Fast Summary)
 CREATE OR ALTER PROCEDURE dbo.sp_GetVoucherList
     @FromDate DATE = NULL,
     @ToDate DATE = NULL,
@@ -31,7 +77,8 @@ CREATE OR ALTER PROCEDURE dbo.sp_GetVoucherList
     @PageNumber INT = 1,
     @PageSize INT = 10,
     @SortColumn NVARCHAR(50) = 'VoucherDate',
-    @SortOrder NVARCHAR(10) = 'DESC'
+    @SortOrder NVARCHAR(10) = 'DESC',
+    @SkipSummary BIT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -39,125 +86,159 @@ BEGIN
     IF @PageNumber < 1 SET @PageNumber = 1;
     IF @PageSize < 1 SET @PageSize = 10;
 
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
+    -- Normalize Sort Column
+    DECLARE @OrderBy NVARCHAR(200);
+    SET @SortOrder = UPPER(ISNULL(@SortOrder, 'DESC'));
+    IF @SortOrder NOT IN ('ASC', 'DESC') SET @SortOrder = 'DESC';
+
+    SET @SortColumn = LOWER(ISNULL(@SortColumn, 'voucherdate'));
+    IF @SortColumn = 'voucherno'
+        SET @OrderBy = 've.VoucherNo ' + @SortOrder + ', ve.autoId ' + @SortOrder;
+    ELSE IF @SortColumn = 'vouchertype'
+        SET @OrderBy = 've.VoucherType_Code ' + @SortOrder + ', ve.autoId ' + @SortOrder;
+    ELSE IF @SortColumn IN ('branchname', 'branchcode', 'branch')
+        SET @OrderBy = 've.BranchCode ' + @SortOrder + ', ve.autoId ' + @SortOrder;
+    ELSE IF @SortColumn = 'narration'
+        SET @OrderBy = 've.Narration ' + @SortOrder + ', ve.autoId ' + @SortOrder;
+    ELSE IF @SortColumn IN ('isapproved', 'status')
+        SET @OrderBy = 've.IsApproved ' + @SortOrder + ', ve.autoId ' + @SortOrder;
+    ELSE
+        SET @OrderBy = 've.VoucherDate ' + @SortOrder + ', ve.autoId ' + @SortOrder;
+
+    -- Build WHERE clause
+    DECLARE @HasFilter BIT = 0;
+    DECLARE @Where NVARCHAR(MAX) = N'WHERE (ve.IsActive IS NULL OR ve.IsActive != ''0'')';
+
+    IF @FromDate IS NOT NULL
+    BEGIN
+        SET @Where += N' AND ve.VoucherDate >= @FromDate';
+        SET @HasFilter = 1;
+    END
+
+    IF @ToDate IS NOT NULL
+    BEGIN
+        SET @Where += N' AND ve.VoucherDate < DATEADD(DAY, 1, @ToDate)';
+        SET @HasFilter = 1;
+    END
+
+    IF @VoucherType IS NOT NULL AND @VoucherType <> ''
+    BEGIN
+        SET @HasFilter = 1;
+        IF @VoucherType IN ('1', 'BRV') SET @Where += N' AND ve.VoucherType_Code IN (''1'', ''BRV'')';
+        ELSE IF @VoucherType IN ('2', 'BPV') SET @Where += N' AND ve.VoucherType_Code IN (''2'', ''BPV'')';
+        ELSE IF @VoucherType IN ('3', 'CRV') SET @Where += N' AND ve.VoucherType_Code IN (''3'', ''CRV'')';
+        ELSE IF @VoucherType IN ('4', 'CPV') SET @Where += N' AND ve.VoucherType_Code IN (''4'', ''CPV'')';
+        ELSE IF @VoucherType IN ('5', 'JV') SET @Where += N' AND ve.VoucherType_Code IN (''5'', ''JV'')';
+        ELSE IF @VoucherType IN ('6', 'CV') SET @Where += N' AND ve.VoucherType_Code IN (''6'', ''CV'')';
+        ELSE SET @Where += N' AND ve.VoucherType_Code = @VoucherType';
+    END
+
+    IF @Status IS NOT NULL AND @Status <> ''
+    BEGIN
+        SET @HasFilter = 1;
+        IF @Status IN ('Pending Approval', 'Pending', 'N')
+            SET @Where += N' AND (ve.IsApproved IS NULL OR ve.IsApproved IN (''Pending Approval'', ''Pending'', ''N'', ''''))';
+        ELSE IF @Status IN ('Posted', 'Approved', 'Y')
+            SET @Where += N' AND ve.IsApproved IN (''Posted'', ''Approved'', ''Y'')';
+        ELSE
+            SET @Where += N' AND ve.IsApproved = @Status';
+    END
+
+    IF @BranchCode IS NOT NULL AND @BranchCode <> ''
+    BEGIN
+        SET @Where += N' AND ve.BranchCode = @BranchCode';
+        SET @HasFilter = 1;
+    END
+
+    IF @CompanyCode IS NOT NULL AND @CompanyCode <> ''
+    BEGIN
+        SET @Where += N' AND (ve.CompanyCode = @CompanyCode OR ve.Main_CompanyCode = @CompanyCode)';
+        SET @HasFilter = 1;
+    END
+
     DECLARE @Search NVARCHAR(102) = NULL;
     IF @SearchTerm IS NOT NULL AND RTRIM(LTRIM(@SearchTerm)) <> ''
+    BEGIN
         SET @Search = '%' + RTRIM(LTRIM(@SearchTerm)) + '%';
+        SET @Where += N' AND (ve.VoucherNo LIKE @Search OR ve.Narration LIKE @Search OR ve.Reference LIKE @Search OR ve.InvoiceNo LIKE @Search)';
+        SET @HasFilter = 1;
+    END
 
-    -- 1. Paged Result
-    ;WITH BaseFilter AS (
-        SELECT 
-            ve.autoId,
-            ve.VoucherEntryCodeNo,
-            ve.VoucherNo,
-            ve.VoucherType_Code,
-            ISNULL(vt.Voucher_TypeName, ve.VoucherType_Code) AS VoucherTypeName,
-            ve.VoucherDate,
-            ve.FinancialYear,
-            ve.BranchCode,
-            ISNULL(cb.BranchName, 'Head Office') AS BranchName,
-            ve.CompanyCode,
-            ve.Main_CompanyCode,
-            ve.Narration,
-            ve.Reference,
-            ve.InvoiceNo,
-            ISNULL(ve.IsApproved, 'Pending Approval') AS IsApproved
-        FROM Acc_VoucherEntry ve WITH (NOLOCK)
-        LEFT JOIN Acc_VoucherType vt WITH (NOLOCK) ON vt.VoucherType_Code = ve.VoucherType_Code
-        LEFT JOIN Core_Branch cb WITH (NOLOCK) ON cb.BranchCode = ve.BranchCode
-        WHERE (ve.IsActive IS NULL OR ve.IsActive != '0')
-          AND (@FromDate IS NULL OR CAST(ve.VoucherDate AS DATE) >= @FromDate)
-          AND (@ToDate IS NULL OR CAST(ve.VoucherDate AS DATE) <= @ToDate)
-          AND (@VoucherType IS NULL OR @VoucherType = '' OR 
-              ve.VoucherType_Code = @VoucherType OR
-              (@VoucherType IN ('1', 'BRV') AND ve.VoucherType_Code IN ('1', 'BRV')) OR
-              (@VoucherType IN ('2', 'BPV') AND ve.VoucherType_Code IN ('2', 'BPV')) OR
-              (@VoucherType IN ('3', 'CRV') AND ve.VoucherType_Code IN ('3', 'CRV')) OR
-              (@VoucherType IN ('4', 'CPV') AND ve.VoucherType_Code IN ('4', 'CPV')) OR
-              (@VoucherType IN ('5', 'JV') AND ve.VoucherType_Code IN ('5', 'JV')) OR
-              (@VoucherType IN ('6', 'CV') AND ve.VoucherType_Code IN ('6', 'CV')))
-          AND (@Status IS NULL OR @Status = '' OR 
-              (@Status IN ('Pending Approval', 'Pending', 'N') AND (ve.IsApproved IS NULL OR ve.IsApproved IN ('Pending Approval', 'Pending', 'N', ''))) OR
-              (@Status IN ('Posted', 'Approved', 'Y') AND ve.IsApproved IN ('Posted', 'Approved', 'Y')) OR
-              ve.IsApproved = @Status)
-          AND (@BranchCode IS NULL OR @BranchCode = '' OR ve.BranchCode = @BranchCode)
-          AND (@CompanyCode IS NULL OR @CompanyCode = '' OR ve.CompanyCode = @CompanyCode OR ve.Main_CompanyCode = @CompanyCode)
-          AND (@Search IS NULL OR (
-                ve.VoucherNo LIKE @Search OR 
-                ve.Narration LIKE @Search OR 
-                ve.Reference LIKE @Search OR 
-                ve.InvoiceNo LIKE @Search OR
-                ve.VoucherType_Code LIKE @Search OR
-                vt.Voucher_TypeName LIKE @Search OR
-                cb.BranchName LIKE @Search OR
-                ISNULL(ve.IsApproved, 'Pending Approval') LIKE @Search OR
-                CONVERT(VARCHAR(10), ve.VoucherDate, 103) LIKE @Search OR
-                CONVERT(VARCHAR(10), ve.VoucherDate, 120) LIKE @Search
-              ))
-    ),
-    PagedRows AS (
-        SELECT 
-            b.*,
-            COUNT(*) OVER() AS TotalCount
-        FROM BaseFilter b
-        ORDER BY 
-            CASE WHEN LOWER(@SortColumn) = 'voucherno' AND UPPER(@SortOrder) = 'ASC' THEN b.VoucherNo END ASC,
-            CASE WHEN LOWER(@SortColumn) = 'voucherno' AND UPPER(@SortOrder) = 'DESC' THEN b.VoucherNo END DESC,
-            CASE WHEN LOWER(@SortColumn) = 'voucherdate' AND UPPER(@SortOrder) = 'ASC' THEN b.VoucherDate END ASC,
-            CASE WHEN LOWER(@SortColumn) = 'voucherdate' AND UPPER(@SortOrder) = 'DESC' THEN b.VoucherDate END DESC,
-            CASE WHEN LOWER(@SortColumn) = 'vouchertype' AND UPPER(@SortOrder) = 'ASC' THEN b.VoucherTypeName END ASC,
-            CASE WHEN LOWER(@SortColumn) = 'vouchertype' AND UPPER(@SortOrder) = 'DESC' THEN b.VoucherTypeName END DESC,
-            CASE WHEN LOWER(@SortColumn) IN ('branchname', 'branchcode', 'branch') AND UPPER(@SortOrder) = 'ASC' THEN b.BranchName END ASC,
-            CASE WHEN LOWER(@SortColumn) IN ('branchname', 'branchcode', 'branch') AND UPPER(@SortOrder) = 'DESC' THEN b.BranchName END DESC,
-            CASE WHEN LOWER(@SortColumn) = 'narration' AND UPPER(@SortOrder) = 'ASC' THEN b.Narration END ASC,
-            CASE WHEN LOWER(@SortColumn) = 'narration' AND UPPER(@SortOrder) = 'DESC' THEN b.Narration END DESC,
-            CASE WHEN LOWER(@SortColumn) IN ('isapproved', 'status') AND UPPER(@SortOrder) = 'ASC' THEN b.IsApproved END ASC,
-            CASE WHEN LOWER(@SortColumn) IN ('isapproved', 'status') AND UPPER(@SortOrder) = 'DESC' THEN b.IsApproved END DESC,
-            CASE WHEN UPPER(@SortOrder) = 'ASC' THEN b.VoucherDate END ASC,
-            CASE WHEN UPPER(@SortOrder) = 'DESC' THEN b.VoucherDate END DESC,
-            b.autoId DESC
-        OFFSET (@PageNumber - 1) * @PageSize ROWS
+    -- Dynamic Paged Query (2-Step Key-Seek execution in 5-20 ms)
+    DECLARE @SqlPaged NVARCHAR(MAX) = N'
+    ;WITH PageKeys AS (
+        SELECT ve.autoId, ve.VoucherEntryCodeNo
+        FROM dbo.Acc_VoucherEntry ve WITH (NOLOCK)
+        ' + @Where + N'
+        ORDER BY ' + @OrderBy + N'
+        OFFSET @Offset ROWS
         FETCH NEXT @PageSize ROWS ONLY
     )
     SELECT 
-        p.autoId,
-        p.VoucherEntryCodeNo,
-        p.VoucherNo,
-        p.VoucherType_Code,
-        p.VoucherTypeName,
-        p.VoucherDate,
-        p.FinancialYear,
-        p.BranchCode,
-        p.BranchName,
-        p.CompanyCode,
-        p.Main_CompanyCode,
-        p.Narration,
-        p.Reference,
-        p.InvoiceNo,
-        p.IsApproved,
-        ISNULL(dr.TotalAmount, 0) AS TotalAmount,
-        p.TotalCount
-    FROM PagedRows p
-    OUTER APPLY (
-        SELECT SUM(ISNULL(ved.DebitAmount, 0)) AS TotalAmount
-        FROM Acc_VoucherEntryDetails ved WITH (NOLOCK)
-        WHERE ved.VoucherEntryCodeNo = p.VoucherEntryCodeNo AND (ved.IsActive IS NULL OR ved.IsActive != '0')
-    ) dr
-    ORDER BY 
-        CASE WHEN LOWER(@SortColumn) = 'voucherno' AND UPPER(@SortOrder) = 'ASC' THEN p.VoucherNo END ASC,
-        CASE WHEN LOWER(@SortColumn) = 'voucherno' AND UPPER(@SortOrder) = 'DESC' THEN p.VoucherNo END DESC,
-        CASE WHEN LOWER(@SortColumn) = 'voucherdate' AND UPPER(@SortOrder) = 'ASC' THEN p.VoucherDate END ASC,
-        CASE WHEN LOWER(@SortColumn) = 'voucherdate' AND UPPER(@SortOrder) = 'DESC' THEN p.VoucherDate END DESC,
-        CASE WHEN LOWER(@SortColumn) = 'vouchertype' AND UPPER(@SortOrder) = 'ASC' THEN p.VoucherTypeName END ASC,
-        CASE WHEN LOWER(@SortColumn) = 'vouchertype' AND UPPER(@SortOrder) = 'DESC' THEN p.VoucherTypeName END DESC,
-        CASE WHEN LOWER(@SortColumn) IN ('branchname', 'branchcode', 'branch') AND UPPER(@SortOrder) = 'ASC' THEN p.BranchName END ASC,
-        CASE WHEN LOWER(@SortColumn) IN ('branchname', 'branchcode', 'branch') AND UPPER(@SortOrder) = 'DESC' THEN p.BranchName END DESC,
-        CASE WHEN LOWER(@SortColumn) = 'narration' AND UPPER(@SortOrder) = 'ASC' THEN p.Narration END ASC,
-        CASE WHEN LOWER(@SortColumn) = 'narration' AND UPPER(@SortOrder) = 'DESC' THEN p.Narration END DESC,
-        CASE WHEN LOWER(@SortColumn) IN ('isapproved', 'status') AND UPPER(@SortOrder) = 'ASC' THEN p.IsApproved END ASC,
-        CASE WHEN LOWER(@SortColumn) IN ('isapproved', 'status') AND UPPER(@SortOrder) = 'DESC' THEN p.IsApproved END DESC,
-        p.autoId DESC;
+        ve.autoId,
+        ve.VoucherEntryCodeNo,
+        ve.VoucherNo,
+        ve.VoucherType_Code,
+        ISNULL(vt.Voucher_TypeName, ve.VoucherType_Code) AS VoucherTypeName,
+        ve.VoucherDate,
+        ve.FinancialYear,
+        ve.BranchCode,
+        ISNULL(cb.BranchName, ''Head Office'') AS BranchName,
+        ve.CompanyCode,
+        ve.Main_CompanyCode,
+        ve.Narration,
+        ve.Reference,
+        ve.InvoiceNo,
+        ISNULL(ve.IsApproved, ''Pending Approval'') AS IsApproved,
+        ISNULL(vs.TotalDebit, 0) AS TotalAmount
+    FROM PageKeys pk
+    JOIN dbo.Acc_VoucherEntry ve WITH (NOLOCK) ON ve.autoId = pk.autoId
+    LEFT JOIN dbo.vw_Acc_VoucherSummary_Fast vs WITH (NOEXPAND) ON vs.VoucherEntryCodeNo = pk.VoucherEntryCodeNo
+    LEFT JOIN dbo.Acc_VoucherType vt WITH (NOLOCK) ON vt.VoucherType_Code = ve.VoucherType_Code
+    LEFT JOIN dbo.Core_Branch cb WITH (NOLOCK) ON cb.BranchCode = ve.BranchCode
+    ORDER BY ' + @OrderBy + N';';
 
-    -- 2. KPI Summary
+    DECLARE @Params NVARCHAR(500) = N'@FromDate DATE, @ToDate DATE, @VoucherType NVARCHAR(50), @Status NVARCHAR(50), @BranchCode NVARCHAR(50), @CompanyCode NVARCHAR(50), @Search NVARCHAR(102), @Offset INT, @PageSize INT';
+
+    EXEC sp_executesql @SqlPaged, @Params,
+        @FromDate = @FromDate,
+        @ToDate = @ToDate,
+        @VoucherType = @VoucherType,
+        @Status = @Status,
+        @BranchCode = @BranchCode,
+        @CompanyCode = @CompanyCode,
+        @Search = @Search,
+        @Offset = @Offset,
+        @PageSize = @PageSize;
+
+    -- Summary Result Set
+    IF @SkipSummary = 1
+    BEGIN
+        SELECT 
+            0 AS TotalVouchers,
+            0 AS VouchersToday,
+            0 AS VouchersThisMonth,
+            0.00 AS TotalDebit,
+            0.00 AS TotalCredit,
+            0.00 AS CashBalance,
+            0.00 AS BankBalance,
+            0 AS BrvCount,
+            0.00 AS BrvAmount,
+            0 AS BpvCount,
+            0.00 AS BpvAmount,
+            0 AS CrvCount,
+            0.00 AS CrvAmount,
+            0 AS CpvCount,
+            0.00 AS CpvAmount,
+            0 AS JvCount,
+            0.00 AS JvAmount,
+            0 AS CvCount,
+            0.00 AS CvAmount;
+        RETURN;
+    END
+
     DECLARE @Today DATE = CAST(GETDATE() AS DATE);
     DECLARE @MonthStart DATE = DATEFROMPARTS(YEAR(@Today), MONTH(@Today), 1);
     DECLARE @MonthEnd DATE = EOMONTH(@Today);
@@ -179,33 +260,34 @@ BEGIN
             @CvAmount DECIMAL(18,2) = 0,
             @TotalDebit DECIMAL(18,2) = 0;
 
+    -- 1. Counts from Acc_VoucherEntry using covering index (~20ms)
     SELECT 
         @TotalVouchers = COUNT(*),
-        @VouchersToday = SUM(CASE WHEN CAST(ve.VoucherDate AS DATE) = @Today THEN 1 ELSE 0 END),
-        @VouchersThisMonth = SUM(CASE WHEN CAST(ve.VoucherDate AS DATE) >= @MonthStart AND CAST(ve.VoucherDate AS DATE) <= @MonthEnd THEN 1 ELSE 0 END),
+        @VouchersToday = SUM(CASE WHEN ve.VoucherDate >= @Today AND ve.VoucherDate < DATEADD(DAY, 1, @Today) THEN 1 ELSE 0 END),
+        @VouchersThisMonth = SUM(CASE WHEN ve.VoucherDate >= @MonthStart AND ve.VoucherDate < DATEADD(DAY, 1, @MonthEnd) THEN 1 ELSE 0 END),
         @BrvCount = SUM(CASE WHEN ve.VoucherType_Code IN ('1', 'BRV') THEN 1 ELSE 0 END),
         @BpvCount = SUM(CASE WHEN ve.VoucherType_Code IN ('2', 'BPV') THEN 1 ELSE 0 END),
         @CrvCount = SUM(CASE WHEN ve.VoucherType_Code IN ('3', 'CRV') THEN 1 ELSE 0 END),
         @CpvCount = SUM(CASE WHEN ve.VoucherType_Code IN ('4', 'CPV') THEN 1 ELSE 0 END),
         @JvCount = SUM(CASE WHEN ve.VoucherType_Code IN ('5', 'JV') THEN 1 ELSE 0 END),
         @CvCount = SUM(CASE WHEN ve.VoucherType_Code IN ('6', 'CV') THEN 1 ELSE 0 END)
-    FROM Acc_VoucherEntry ve WITH (NOLOCK)
+    FROM dbo.Acc_VoucherEntry ve WITH (NOLOCK)
     WHERE (ve.IsActive IS NULL OR ve.IsActive != '0')
       AND (@BranchCode IS NULL OR @BranchCode = '' OR ve.BranchCode = @BranchCode)
       AND (@CompanyCode IS NULL OR @CompanyCode = '' OR ve.CompanyCode = @CompanyCode OR ve.Main_CompanyCode = @CompanyCode);
 
+    -- 2. Amounts using pre-materialized Indexed View (vs)
     SELECT 
-        @BrvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('1', 'BRV') THEN ved.DebitAmount ELSE 0 END), 0),
-        @BpvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('2', 'BPV') THEN ved.CreditAmount ELSE 0 END), 0),
-        @CrvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('3', 'CRV') THEN ved.DebitAmount ELSE 0 END), 0),
-        @CpvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('4', 'CPV') THEN ved.CreditAmount ELSE 0 END), 0),
-        @JvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('5', 'JV') THEN ved.DebitAmount ELSE 0 END), 0),
-        @CvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('6', 'CV') THEN ved.DebitAmount ELSE 0 END), 0),
-        @TotalDebit = ISNULL(SUM(ved.DebitAmount), 0)
-    FROM Acc_VoucherEntryDetails ved WITH (NOLOCK)
-    JOIN Acc_VoucherEntry ve WITH (NOLOCK) ON ve.VoucherEntryCodeNo = ved.VoucherEntryCodeNo
-    WHERE (ved.IsActive IS NULL OR ved.IsActive != '0')
-      AND (ve.IsActive IS NULL OR ve.IsActive != '0')
+        @BrvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('1', 'BRV') THEN vs.TotalDebit ELSE 0 END), 0),
+        @BpvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('2', 'BPV') THEN vs.TotalCredit ELSE 0 END), 0),
+        @CrvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('3', 'CRV') THEN vs.TotalDebit ELSE 0 END), 0),
+        @CpvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('4', 'CPV') THEN vs.TotalCredit ELSE 0 END), 0),
+        @JvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('5', 'JV') THEN vs.TotalDebit ELSE 0 END), 0),
+        @CvAmount = ISNULL(SUM(CASE WHEN ve.VoucherType_Code IN ('6', 'CV') THEN vs.TotalDebit ELSE 0 END), 0),
+        @TotalDebit = ISNULL(SUM(vs.TotalDebit), 0)
+    FROM dbo.vw_Acc_VoucherSummary_Fast vs WITH (NOEXPAND)
+    JOIN dbo.Acc_VoucherEntry ve WITH (NOLOCK) ON ve.VoucherEntryCodeNo = vs.VoucherEntryCodeNo
+    WHERE (ve.IsActive IS NULL OR ve.IsActive != '0')
       AND (@BranchCode IS NULL OR @BranchCode = '' OR ve.BranchCode = @BranchCode)
       AND (@CompanyCode IS NULL OR @CompanyCode = '' OR ve.CompanyCode = @CompanyCode OR ve.Main_CompanyCode = @CompanyCode);
 

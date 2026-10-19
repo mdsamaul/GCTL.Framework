@@ -6,9 +6,51 @@ namespace GCTL.Data.Models
     public partial class GCTL_ERP_DBContext
     {
         public virtual DbSet<Acc_VoucherInvoicePaymentReceived> Acc_VoucherInvoicePaymentReceived { get; set; }
+        public virtual DbSet<AccSubSubsidiaryLedger> AccSubSubsidiaryLedgers { get; set; }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AccSubSubsidiaryLedger>(entity =>
+            {
+                entity.HasKey(e => e.AutoId);
+                entity.ToTable("Acc_SubSubsidiaryLedger");
+                entity.Property(e => e.AutoId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("numeric(18, 0)")
+                    .HasColumnName("autoId");
+                entity.Property(e => e.ControlLedgerCodeNo).HasMaxLength(50);
+                entity.Property(e => e.GroupLedgerCodeNo).HasMaxLength(50);
+                entity.Property(e => e.IsActive)
+                    .HasMaxLength(1)
+                    .IsUnicode(false)
+                    .IsFixedLength();
+                entity.Property(e => e.Ldate)
+                    .HasColumnType("smalldatetime")
+                    .HasColumnName("LDate");
+                entity.Property(e => e.Lip)
+                    .HasMaxLength(100)
+                    .HasColumnName("LIP");
+                entity.Property(e => e.Lmac)
+                    .HasMaxLength(150)
+                    .HasColumnName("LMAC");
+                entity.Property(e => e.Luser)
+                    .HasMaxLength(100)
+                    .IsFixedLength()
+                    .HasColumnName("LUser");
+                entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+                entity.Property(e => e.ShortName).HasMaxLength(50);
+                entity.Property(e => e.SubControlLedgerCodeNo).HasMaxLength(50);
+                entity.Property(e => e.SubSubsidiaryLedgerCodeNo).HasMaxLength(50);
+                entity.Property(e => e.SubSubsidiaryLedgerName).HasMaxLength(100);
+                entity.Property(e => e.SubSusidiaryLedgerCodeNo).HasMaxLength(50);
+                entity.Property(e => e.SubsidiaryLedgerCodeNo).HasMaxLength(50);
+                entity.Property(e => e.OpeningBalance).HasColumnType("numeric(18, 2)");
+                entity.Property(e => e.OpeningDate).HasColumnType("datetime");
+                entity.Property(e => e.TrType).HasMaxLength(2).IsUnicode(false).IsFixedLength();
+                entity.Property(e => e.CashFlowTypeId).HasMaxLength(50).HasColumnName("CashFlowTypeID");
+                entity.Property(e => e.CostCenterCodeNo).HasMaxLength(50);
+            });
+
 
             modelBuilder.Entity<Acc_VoucherInvoicePaymentReceived>(entity =>
             {
