@@ -404,6 +404,13 @@ namespace GCTL.Service.GPAnalysisReport
                     {
                         pagedData[i].TotalBill = pagedData[i].TotalBilling;
                     }
+
+                    if (pagedData[i].CNFGPPercent == "0.00%" || pagedData[i].CNFGPPercent == "0.00" || pagedData[i].CNFGPPercent == "0%")
+                        pagedData[i].CNFGPPercent = "0";
+                    if (pagedData[i].TransportGPPercent == "0.00%" || pagedData[i].TransportGPPercent == "0.00" || pagedData[i].TransportGPPercent == "0%")
+                        pagedData[i].TransportGPPercent = "0";
+                    if (pagedData[i].TotalGPPercent == "0.00%" || pagedData[i].TotalGPPercent == "0.00" || pagedData[i].TotalGPPercent == "0%")
+                        pagedData[i].TotalGPPercent = "0";
                 }
 
                 return new PaginationResponse<GPAnalysisReportDTO>
@@ -432,9 +439,9 @@ namespace GCTL.Service.GPAnalysisReport
             decimal netBillValue = allRows.Sum(r => r.TotalBilling);
             decimal totalCosting = allRows.Sum(r => r.TotalCosting);
             decimal profit = allRows.Sum(r => r.TotalGP);
-            string gpPercent = netBillValue > 0 
+            string gpPercent = (netBillValue > 0 && profit != 0) 
                 ? $"{(profit * 100 / netBillValue):F2}%" 
-                : "0.00%";
+                : "0";
 
             return new GPAnalysisReportSummaryDTO
             {
@@ -449,6 +456,23 @@ namespace GCTL.Service.GPAnalysisReport
         #endregion
 
         #region PDF Report Generation (QuestPDF)
+
+        private static string FormatPdfAmt(decimal value) =>
+            value == 0 ? "0" : value.ToString("N2", CultureInfo.InvariantCulture);
+
+        private static string FormatPdfPct(string? pct)
+        {
+            if (string.IsNullOrWhiteSpace(pct) || pct == "0.00%" || pct == "0.00" || pct == "0%" || pct == "0")
+                return "0";
+            return pct;
+        }
+
+        private static string FormatCalcPct(decimal numerator, decimal denominator)
+        {
+            if (denominator <= 0 || numerator == 0) return "0";
+            decimal pct = numerator * 100 / denominator;
+            return pct == 0 ? "0" : $"{pct:F2}%";
+        }
 
         public async Task<byte[]> GeneratePdfReportAsync(GPAnalysisReportFilter filter)
         {
@@ -588,25 +612,25 @@ namespace GCTL.Service.GPAnalysisReport
                                     table.Cell().Element(DCell).AlignCenter().Text(sl++.ToString());
                                     table.Cell().Element(DCell).AlignCenter().Text(r.BillDate ?? "");
                                     table.Cell().Element(DCell).AlignLeft().Text(r.BillNo ?? "");
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TotalBill.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.BillingCommission.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.OthersBill.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TotalCNFBilling.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.BillingTransportBill.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TotalBilling.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CostingReceptableAmount.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CostingNonReceptableAmount.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CNFCosting.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CostingSwiftTransportAmount.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CostingHairTransportAmount.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CostingTransport.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TotalCosting.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CNFGP.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TransportGP.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TotalGP.ToString("N2"));
-                                    table.Cell().Element(DCell).AlignRight().Text(r.CNFGPPercent ?? "0.00%");
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TransportGPPercent ?? "0.00%");
-                                    table.Cell().Element(DCell).AlignRight().Text(r.TotalGPPercent ?? "0.00%");
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.TotalBill));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.BillingCommission));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.OthersBill));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.TotalCNFBilling));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.BillingTransportBill));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.TotalBilling));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.CostingReceptableAmount));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.CostingNonReceptableAmount));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.CNFCosting));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.CostingSwiftTransportAmount));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.CostingHairTransportAmount));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.CostingTransport));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.TotalCosting));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.CNFGP));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.TransportGP));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfAmt(r.TotalGP));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfPct(r.CNFGPPercent));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfPct(r.TransportGPPercent));
+                                    table.Cell().Element(DCell).AlignRight().Text(FormatPdfPct(r.TotalGPPercent));
                                 }
 
                                 // Customer Subtotal Row
@@ -626,27 +650,27 @@ namespace GCTL.Service.GPAnalysisReport
                                 var cCnfGp = group.Sum(x => x.CNFGP);
                                 var cTransGp = group.Sum(x => x.TransportGP);
                                 var cTotGp = group.Sum(x => x.TotalGP);
-                                string cCnfGpPct = cTotCnf > 0 ? $"{(cCnfGp * 100 / cTotCnf):F2}%" : "0.00%";
-                                string cTransGpPct = cTransBill > 0 ? $"{(cTransGp * 100 / cTransBill):F2}%" : "0.00%";
-                                string cTotGpPct = cTotBill > 0 ? $"{(cTotGp * 100 / cTotBill):F2}%" : "0.00%";
+                                string cCnfGpPct = FormatCalcPct(cCnfGp, cTotCnf);
+                                string cTransGpPct = FormatCalcPct(cTransGp, cTransBill);
+                                string cTotGpPct = FormatCalcPct(cTotGp, cTotBill);
 
                                 table.Cell().ColumnSpan(3).Element(SubtotalCell).AlignRight().Text("Sub Total:").Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cTotalBill.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cComm.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cOthers.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cTotCnf.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cTransBill.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cTotBill.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cCostRece.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cCostNonRece.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cCnfCosting.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cCostSwift.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cCostHair.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cCostTrans.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cTotCost.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cCnfGp.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cTransGp.ToString("N2")).Bold();
-                                table.Cell().Element(SubtotalCell).AlignRight().Text(cTotGp.ToString("N2")).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cTotalBill)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cComm)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cOthers)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cTotCnf)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cTransBill)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cTotBill)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cCostRece)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cCostNonRece)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cCnfCosting)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cCostSwift)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cCostHair)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cCostTrans)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cTotCost)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cCnfGp)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cTransGp)).Bold();
+                                table.Cell().Element(SubtotalCell).AlignRight().Text(FormatPdfAmt(cTotGp)).Bold();
                                 table.Cell().Element(SubtotalCell).AlignRight().Text(cCnfGpPct).Bold();
                                 table.Cell().Element(SubtotalCell).AlignRight().Text(cTransGpPct).Bold();
                                 table.Cell().Element(SubtotalCell).AlignRight().Text(cTotGpPct).Bold();
@@ -672,9 +696,9 @@ namespace GCTL.Service.GPAnalysisReport
                             var gCnfGp = data.Sum(x => x.CNFGP);
                             var gTransGp = data.Sum(x => x.TransportGP);
                             var gTotGp = data.Sum(x => x.TotalGP);
-                            string gCnfGpPct = gTotCnf > 0 ? $"{(gCnfGp * 100 / gTotCnf):F2}%" : "0.00%";
-                            string gTransGpPct = gTransBill > 0 ? $"{(gTransGp * 100 / gTransBill):F2}%" : "0.00%";
-                            string gTotGpPct = gTotBill > 0 ? $"{(gTotGp * 100 / gTotBill):F2}%" : "0.00%";
+                            string gCnfGpPct = FormatCalcPct(gCnfGp, gTotCnf);
+                            string gTransGpPct = FormatCalcPct(gTransGp, gTransBill);
+                            string gTotGpPct = FormatCalcPct(gTotGp, gTotBill);
 
                             col.Item().PaddingTop(6).Table(table =>
                             {
@@ -705,22 +729,22 @@ namespace GCTL.Service.GPAnalysisReport
                                 });
 
                                 table.Cell().ColumnSpan(3).Element(GrandTotalCell).AlignRight().Text("Grand Total:").Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gTotalBill.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gComm.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gOthers.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gTotCnf.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gTransBill.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gTotBill.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gCostRece.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gCostNonRece.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gCnfCosting.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gCostSwift.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gCostHair.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gCostTrans.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gTotCost.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gCnfGp.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gTransGp.ToString("N2")).Bold();
-                                table.Cell().Element(GrandTotalCell).AlignRight().Text(gTotGp.ToString("N2")).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gTotalBill)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gComm)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gOthers)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gTotCnf)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gTransBill)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gTotBill)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gCostRece)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gCostNonRece)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gCnfCosting)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gCostSwift)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gCostHair)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gCostTrans)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gTotCost)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gCnfGp)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gTransGp)).Bold();
+                                table.Cell().Element(GrandTotalCell).AlignRight().Text(FormatPdfAmt(gTotGp)).Bold();
                                 table.Cell().Element(GrandTotalCell).AlignRight().Text(gCnfGpPct).Bold();
                                 table.Cell().Element(GrandTotalCell).AlignRight().Text(gTransGpPct).Bold();
                                 table.Cell().Element(GrandTotalCell).AlignRight().Text(gTotGpPct).Bold();
@@ -934,11 +958,11 @@ namespace GCTL.Service.GPAnalysisReport
                     SetNum(ws.Cell(rowIdx, 18), r.TransportGP);
                     SetNum(ws.Cell(rowIdx, 19), r.TotalGP);
 
-                    ws.Cell(rowIdx, 20).Value = r.CNFGPPercent ?? "0.00%";
+                    ws.Cell(rowIdx, 20).Value = FormatPdfPct(r.CNFGPPercent);
                     ws.Cell(rowIdx, 20).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                    ws.Cell(rowIdx, 21).Value = r.TransportGPPercent ?? "0.00%";
+                    ws.Cell(rowIdx, 21).Value = FormatPdfPct(r.TransportGPPercent);
                     ws.Cell(rowIdx, 21).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                    ws.Cell(rowIdx, 22).Value = r.TotalGPPercent ?? "0.00%";
+                    ws.Cell(rowIdx, 22).Value = FormatPdfPct(r.TotalGPPercent);
                     ws.Cell(rowIdx, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                     ws.Range(rowIdx, 1, rowIdx, 22).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -970,9 +994,9 @@ namespace GCTL.Service.GPAnalysisReport
                 var cCnfGp = group.Sum(x => x.CNFGP);
                 var cTransGp = group.Sum(x => x.TransportGP);
                 var cTotGp = group.Sum(x => x.TotalGP);
-                string cCnfGpPct = cTotCnf > 0 ? $"{(cCnfGp * 100 / cTotCnf):F2}%" : "0.00%";
-                string cTransGpPct = cTransBill > 0 ? $"{(cTransGp * 100 / cTransBill):F2}%" : "0.00%";
-                string cTotGpPct = cTotBill > 0 ? $"{(cTotGp * 100 / cTotBill):F2}%" : "0.00%";
+                string cCnfGpPct = FormatCalcPct(cCnfGp, cTotCnf);
+                string cTransGpPct = FormatCalcPct(cTransGp, cTransBill);
+                string cTotGpPct = FormatCalcPct(cTotGp, cTotBill);
 
                 SetNum(ws.Cell(rowIdx, 4), cTotalBill);
                 SetNum(ws.Cell(rowIdx, 5), cComm);
@@ -1032,9 +1056,9 @@ namespace GCTL.Service.GPAnalysisReport
                 var gCnfGp = data.Sum(x => x.CNFGP);
                 var gTransGp = data.Sum(x => x.TransportGP);
                 var gTotGp = data.Sum(x => x.TotalGP);
-                string gCnfGpPct = gTotCnf > 0 ? $"{(gCnfGp * 100 / gTotCnf):F2}%" : "0.00%";
-                string gTransGpPct = gTransBill > 0 ? $"{(gTransGp * 100 / gTransBill):F2}%" : "0.00%";
-                string gTotGpPct = gTotBill > 0 ? $"{(gTotGp * 100 / gTotBill):F2}%" : "0.00%";
+                string gCnfGpPct = FormatCalcPct(gCnfGp, gTotCnf);
+                string gTransGpPct = FormatCalcPct(gTransGp, gTransBill);
+                string gTotGpPct = FormatCalcPct(gTotGp, gTotBill);
 
                 SetNum(ws.Cell(rowIdx, 4), gTotalBill);
                 SetNum(ws.Cell(rowIdx, 5), gComm);
@@ -1105,8 +1129,16 @@ namespace GCTL.Service.GPAnalysisReport
 
         private static void SetNum(IXLCell cell, decimal value)
         {
-            cell.Value = value;
-            cell.Style.NumberFormat.Format = "#,##0.00";
+            if (value == 0)
+            {
+                cell.Value = 0;
+                cell.Style.NumberFormat.Format = "0";
+            }
+            else
+            {
+                cell.Value = value;
+                cell.Style.NumberFormat.Format = "#,##0.00;(#,##0.00);0";
+            }
             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
         }
 
@@ -1192,7 +1224,7 @@ namespace GCTL.Service.GPAnalysisReport
             return $"{EscapeCsv(customerTitle)}{new string(',', totalCols - 1)}";
         }
 
-        private static string FormatAmt(decimal value) => value.ToString("#,##0.00", CultureInfo.InvariantCulture);
+        private static string FormatAmt(decimal value) => value == 0 ? "0" : value.ToString("#,##0.00", CultureInfo.InvariantCulture);
 
         private static async Task WriteGpAnalysisCsvAsync(StreamWriter writer, List<GPAnalysisReportDTO> data, GPAnalysisReportFilter filter)
         {
@@ -1246,9 +1278,9 @@ namespace GCTL.Service.GPAnalysisReport
                         FormatAmt(r.CNFGP),
                         FormatAmt(r.TransportGP),
                         FormatAmt(r.TotalGP),
-                        r.CNFGPPercent ?? "0.00%",
-                        r.TransportGPPercent ?? "0.00%",
-                        r.TotalGPPercent ?? "0.00%"
+                        FormatPdfPct(r.CNFGPPercent),
+                        FormatPdfPct(r.TransportGPPercent),
+                        FormatPdfPct(r.TotalGPPercent)
                     };
 
                     for (int c = 0; c < totalCols; c++)
@@ -1281,9 +1313,9 @@ namespace GCTL.Service.GPAnalysisReport
                 var cCnfGp = group.Sum(x => x.CNFGP);
                 var cTransGp = group.Sum(x => x.TransportGP);
                 var cTotGp = group.Sum(x => x.TotalGP);
-                string cCnfGpPct = cTotCnf > 0 ? $"{(cCnfGp * 100 / cTotCnf):F2}%" : "0.00%";
-                string cTransGpPct = cTransBill > 0 ? $"{(cTransGp * 100 / cTransBill):F2}%" : "0.00%";
-                string cTotGpPct = cTotBill > 0 ? $"{(cTotGp * 100 / cTotBill):F2}%" : "0.00%";
+                string cCnfGpPct = FormatCalcPct(cCnfGp, cTotCnf);
+                string cTransGpPct = FormatCalcPct(cTransGp, cTransBill);
+                string cTotGpPct = FormatCalcPct(cTotGp, cTotBill);
 
                 var subTotalRow = new[]
                 {
@@ -1341,9 +1373,9 @@ namespace GCTL.Service.GPAnalysisReport
             var gCnfGp = data.Sum(x => x.CNFGP);
             var gTransGp = data.Sum(x => x.TransportGP);
             var gTotGp = data.Sum(x => x.TotalGP);
-            string gCnfGpPct = gTotCnf > 0 ? $"{(gCnfGp * 100 / gTotCnf):F2}%" : "0.00%";
-            string gTransGpPct = gTransBill > 0 ? $"{(gTransGp * 100 / gTransBill):F2}%" : "0.00%";
-            string gTotGpPct = gTotBill > 0 ? $"{(gTotGp * 100 / gTotBill):F2}%" : "0.00%";
+            string gCnfGpPct = FormatCalcPct(gCnfGp, gTotCnf);
+            string gTransGpPct = FormatCalcPct(gTransGp, gTransBill);
+            string gTotGpPct = FormatCalcPct(gTotGp, gTotBill);
 
             var grandTotalRow = new[]
             {

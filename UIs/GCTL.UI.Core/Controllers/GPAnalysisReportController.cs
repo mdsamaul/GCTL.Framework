@@ -288,9 +288,9 @@ namespace GCTL.UI.Core.Controllers
                     new() { Data = "cnfGP", Header = "C & F", Width = "75px", Align = "right", RenderFn = "formatCurrency", SortField = "CNFGP" },
                     new() { Data = "transportGP", Header = "TRANS", Width = "70px", Align = "right", RenderFn = "formatCurrency", SortField = "TransportGP" },
                     new() { Data = "totalGP", Header = "TOT", Width = "75px", Align = "right", RenderFn = "formatCurrency", SortField = "TotalGP" },
-                    new() { Data = "cnfGPPercent", Header = "C & F", Width = "60px", Align = "right", Sortable = false },
-                    new() { Data = "transportGPPercent", Header = "TRANS", Width = "60px", Align = "right", Sortable = false },
-                    new() { Data = "totalGPPercent", Header = "G. GP", Width = "60px", Align = "right", Sortable = false }
+                    new() { Data = "cnfGPPercent", Header = "C & F", Width = "60px", Align = "right", RenderFn = "formatPercent", Sortable = false },
+                    new() { Data = "transportGPPercent", Header = "TRANS", Width = "60px", Align = "right", RenderFn = "formatPercent", Sortable = false },
+                    new() { Data = "totalGPPercent", Header = "G. GP", Width = "60px", Align = "right", RenderFn = "formatPercent", Sortable = false }
                 }
             };
         }

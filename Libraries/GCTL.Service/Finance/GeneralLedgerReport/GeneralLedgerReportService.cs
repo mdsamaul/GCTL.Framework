@@ -112,17 +112,20 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
             report.FromDate = filter.FromDate ?? new DateTime(now.Year, now.Month, 1);
             report.ToDate = filter.ToDate ?? new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
 
-            // Select Target Account Head
+            // Select Target Account Head (Default to Cash In Hand: 1020040000100001)
             if (string.IsNullOrWhiteSpace(filter.GeneralLedgerCodeNo))
             {
-                filter.GeneralLedgerCodeNo = "1020020000200001";
+                filter.GeneralLedgerCodeNo = "1020040000100001";
             }
 
             var glAccount = await _context.AccGeneralLedgers
+                .AsNoTracking()
                 .FirstOrDefaultAsync(g => g.GeneralLedgerCodeNo == filter.GeneralLedgerCodeNo)
                 ?? await _context.AccGeneralLedgers
-                .FirstOrDefaultAsync(g => g.GeneralLedgerCodeNo == "1020020000200001")
+                .AsNoTracking()
+                .FirstOrDefaultAsync(g => g.GeneralLedgerCodeNo == "1020040000100001")
                 ?? await _context.AccGeneralLedgers
+                .AsNoTracking()
                 .OrderBy(g => g.GeneralLedgerCodeNo)
                 .FirstOrDefaultAsync();
 
@@ -140,22 +143,22 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
             {
                 if (!string.IsNullOrEmpty(glAccount.GroupLedgerCodeNo))
                 {
-                    var g = await _context.AccGroupLedgers.FirstOrDefaultAsync(x => x.GroupLedgerCodeNo == glAccount.GroupLedgerCodeNo);
+                    var g = await _context.AccGroupLedgers.AsNoTracking().FirstOrDefaultAsync(x => x.GroupLedgerCodeNo == glAccount.GroupLedgerCodeNo);
                     if (g != null) pathParts.Add($"{g.GroupLedgerCodeNo}-{g.GroupLedgerName}");
                 }
                 if (!string.IsNullOrEmpty(glAccount.ControlLedgerCodeNo))
                 {
-                    var c = await _context.AccControlLedgers.FirstOrDefaultAsync(x => x.ControlLedgerCodeNo == glAccount.ControlLedgerCodeNo);
+                    var c = await _context.AccControlLedgers.AsNoTracking().FirstOrDefaultAsync(x => x.ControlLedgerCodeNo == glAccount.ControlLedgerCodeNo);
                     if (c != null) pathParts.Add($"{c.ControlLedgerCodeNo}-{c.ControlLedgerName}");
                 }
                 if (!string.IsNullOrEmpty(glAccount.SubControlLedgerCodeNo))
                 {
-                    var sc = await _context.AccSubControlLedgers.FirstOrDefaultAsync(x => x.SubControlLedgerCodeNo == glAccount.SubControlLedgerCodeNo);
+                    var sc = await _context.AccSubControlLedgers.AsNoTracking().FirstOrDefaultAsync(x => x.SubControlLedgerCodeNo == glAccount.SubControlLedgerCodeNo);
                     if (sc != null) pathParts.Add($"{sc.SubControlLedgerCodeNo}-{sc.SubControlLedgerName}");
                 }
                 if (!string.IsNullOrEmpty(glAccount.SubSubsidiaryLedgerCodeNo))
                 {
-                    var ss = await _context.AccSubSubsidiaryLedgers.FirstOrDefaultAsync(x => x.SubSubsidiaryLedgerCodeNo == glAccount.SubSubsidiaryLedgerCodeNo);
+                    var ss = await _context.AccSubSubsidiaryLedgers.AsNoTracking().FirstOrDefaultAsync(x => x.SubSubsidiaryLedgerCodeNo == glAccount.SubSubsidiaryLedgerCodeNo);
                     if (ss != null) pathParts.Add($"{ss.SubSubsidiaryLedgerCodeNo}-{ss.SubSubsidiaryLedgerName}");
                 }
             }
@@ -165,18 +168,18 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
             // Company & Branch Names
             if (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All")
             {
-                var comp = await _context.CoreCompanies.FirstOrDefaultAsync(c => c.CompanyCode == filter.CompanyCode);
+                var comp = await _context.CoreCompanies.AsNoTracking().FirstOrDefaultAsync(c => c.CompanyCode == filter.CompanyCode);
                 report.CompanyName = comp?.CompanyName ?? "All Companies";
             }
             else
             {
-                var defaultComp = await _context.CoreCompanies.FirstOrDefaultAsync();
+                var defaultComp = await _context.CoreCompanies.AsNoTracking().FirstOrDefaultAsync();
                 report.CompanyName = defaultComp?.CompanyName ?? "Formosa Logistics Limited";
             }
 
             if (!string.IsNullOrEmpty(filter.BranchCode) && filter.BranchCode != "All")
             {
-                var br = await _context.CoreBranches.FirstOrDefaultAsync(b => b.BranchCode == filter.BranchCode);
+                var br = await _context.CoreBranches.AsNoTracking().FirstOrDefaultAsync(b => b.BranchCode == filter.BranchCode);
                 report.BranchName = br?.BranchName ?? filter.BranchCode;
             }
             else
@@ -187,6 +190,7 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
             // 1. Initial Opening Balance from Acc_Company_Opening_Balance
             decimal initialOpeningBalance = 0m;
             var obQuery = _context.AccCompanyOpeningBalances
+                .AsNoTracking()
                 .Where(ob => ob.GeneralLedgerCodeNo == report.AccountCode && ob.DeletedAt == null);
 
             if (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All")
@@ -222,7 +226,7 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
                                   where d.AccCode == report.AccountCode &&
                                         v.VoucherDate < report.FromDate.Date &&
                                         (v.IsActive == null || v.IsActive == "1") &&
-                                        (v.IsApproved == "1" || v.IsApproved == "Y" || v.IsApproved == "Posted" || string.IsNullOrEmpty(v.IsApproved))
+                                        (v.IsApproved == "1" || v.IsApproved == "Y" || v.IsApproved == "Posted" || v.IsApproved == "Approved" || string.IsNullOrEmpty(v.IsApproved))
                                   select new { d, v };
 
             if (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All")
@@ -239,13 +243,20 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
                 preVoucherQuery = preVoucherQuery.Where(x => x.v.BranchCode == br || x.v.BranchCode == brTrim);
             }
 
-            var preVouchers = await preVoucherQuery.Select(x => new
-            {
-                Dr = x.d.DebitAmount ?? 0m,
-                Cr = x.d.CreditAmount ?? 0m
-            }).ToListAsync();
+            // High-performance server-side aggregation for pre-period transactions (avoids pulling tens of thousands of rows to memory)
+            var preVoucherSummary = await preVoucherQuery
+                .GroupBy(_ => 1)
+                .Select(g => new
+                {
+                    TotalDebit = g.Sum(x => x.d.DebitAmount ?? 0m),
+                    TotalCredit = g.Sum(x => x.d.CreditAmount ?? 0m)
+                })
+                .FirstOrDefaultAsync();
 
-            decimal preVoucherNet = preVouchers.Sum(x => x.Dr - x.Cr);
+            decimal preVoucherNet = preVoucherSummary != null
+                ? preVoucherSummary.TotalDebit - preVoucherSummary.TotalCredit
+                : 0m;
+
             report.OpeningBalance = initialOpeningBalance + preVoucherNet;
             report.OpeningBalanceFormatted = FormatDrCr(report.OpeningBalance);
 
@@ -258,7 +269,7 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
                                     v.VoucherDate >= report.FromDate.Date &&
                                     v.VoucherDate <= toDateEndOfDay &&
                                     (v.IsActive == null || v.IsActive == "1") &&
-                                    (v.IsApproved == "1" || v.IsApproved == "Y" || v.IsApproved == "Posted" || string.IsNullOrEmpty(v.IsApproved))
+                                    (v.IsApproved == "1" || v.IsApproved == "Y" || v.IsApproved == "Posted" || v.IsApproved == "Approved" || string.IsNullOrEmpty(v.IsApproved))
                               select new { d, v };
 
             if (!string.IsNullOrEmpty(filter.CompanyCode) && filter.CompanyCode != "0" && filter.CompanyCode != "All")
@@ -289,6 +300,7 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
                     Debit = x.d.DebitAmount ?? 0m,
                     Credit = x.d.CreditAmount ?? 0m
                 })
+                .AsNoTracking()
                 .ToListAsync();
 
             decimal runningBal = report.OpeningBalance;

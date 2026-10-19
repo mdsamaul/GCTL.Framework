@@ -1,17 +1,35 @@
 (function ($) {
     'use strict';
 
-    // Global Renderers for Currency
+    // Global Renderers for Currency & Percentages
     window.gctlRenderers = window.gctlRenderers || {};
     window.gctlRenderers.formatCurrency = function (data, type) {
         if (data === null || data === undefined || data === '' || isNaN(data)) {
-            return (type === 'sort' || type === 'type') ? 0 : '0.00';
+            return (type === 'sort' || type === 'type') ? 0 : '0';
         }
         var num = parseFloat(data);
         if (type === 'sort' || type === 'type') {
             return num;
         }
+        if (Math.abs(num) < 0.00001) {
+            return '0';
+        }
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    window.gctlRenderers.formatPercent = function (data, type) {
+        if (data === null || data === undefined || data === '') {
+            return (type === 'sort' || type === 'type') ? 0 : '0';
+        }
+        var s = String(data).trim();
+        if (s === '0.00%' || s === '0.00' || s === '0%' || s === '0') {
+            return (type === 'sort' || type === 'type') ? 0 : '0';
+        }
+        if (type === 'sort' || type === 'type') {
+            var num = parseFloat(s.replace('%', ''));
+            return isNaN(num) ? 0 : num;
+        }
+        return s;
     };
 
     let gridTable = null;
@@ -286,10 +304,12 @@
     function updateKpiCards(summary) {
         if (!summary) return;
         $('#statTotalBills').text(summary.totalBills != null ? summary.totalBills.toLocaleString() : '0');
-        $('#statNetBillValue').text(summary.netBillValue != null ? window.gctlRenderers.formatCurrency(summary.netBillValue) : '0.00');
-        $('#statTotalDue').text(summary.totalCosting != null ? window.gctlRenderers.formatCurrency(summary.totalCosting) : '0.00');
-        $('#statprofit').text(summary.profit != null ? window.gctlRenderers.formatCurrency(summary.profit) : '0.00');
-        $('#statLastServiceDate').text(summary.gpPercent || '0.00%');
+        $('#statNetBillValue').text(summary.netBillValue != null ? window.gctlRenderers.formatCurrency(summary.netBillValue) : '0');
+        $('#statTotalDue').text(summary.totalCosting != null ? window.gctlRenderers.formatCurrency(summary.totalCosting) : '0');
+        $('#statprofit').text(summary.profit != null ? window.gctlRenderers.formatCurrency(summary.profit) : '0');
+        var gp = summary.gpPercent || '0';
+        if (gp === '0.00%' || gp === '0.00' || gp === '0%') gp = '0';
+        $('#statLastServiceDate').text(gp);
     }
 
     function initGrid() {
@@ -419,6 +439,17 @@
             e.preventDefault();
             var params = getFilterParams();
             window.location.href = '/GPAnalysisReport/Export?' + $.param($.extend({}, params, { exportFormat: 'CSV' }));
+        });
+
+        // Window resize & sidebar toggle column adjust
+        var resizeDebounce = null;
+        $(window).on('resize', function () {
+            clearTimeout(resizeDebounce);
+            resizeDebounce = setTimeout(function () {
+                if (gridTable && typeof gridTable.columns === 'function' && typeof gridTable.columns.adjust === 'function') {
+                    gridTable.columns.adjust();
+                }
+            }, 150);
         });
     }
 

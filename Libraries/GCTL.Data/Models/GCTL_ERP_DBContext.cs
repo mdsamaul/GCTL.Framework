@@ -17,6 +17,8 @@ public partial class GCTL_ERP_DBContext : DbContext
 
     public virtual DbSet<AccCompanyOpeningBalance> AccCompanyOpeningBalances { get; set; }
 
+    public virtual DbSet<AccCompanyOpeningBalanceOldBackup> AccCompanyOpeningBalanceOldBackups { get; set; }
+
     public virtual DbSet<AccControlLedger> AccControlLedgers { get; set; }
 
     public virtual DbSet<AccDurationType> AccDurationTypes { get; set; }
@@ -28,8 +30,6 @@ public partial class GCTL_ERP_DBContext : DbContext
     public virtual DbSet<AccGroupLedger> AccGroupLedgers { get; set; }
 
     public virtual DbSet<AccSubControlLedger> AccSubControlLedgers { get; set; }
-
-    public virtual DbSet<AccSubSubsidiaryLedger> AccSubSubsidiaryLedgers { get; set; }
 
     public virtual DbSet<AccSubsidiaryLedger> AccSubsidiaryLedgers { get; set; }
 
@@ -347,9 +347,13 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccCompanyOpeningBalance>(entity =>
         {
-            entity.HasKey(e => e.AutoId).HasName("PK__Acc_Comp__385EFE48771A2B0E");
+            entity.HasKey(e => e.AutoId).HasName("PK__Acc_Comp__385EFE488C013C05");
 
             entity.ToTable("Acc_Company_Opening_Balance");
+
+            entity.HasIndex(e => new { e.MainCompanyCode, e.BranchCode }, "IX_AccOB_Main_Branch_Cover");
+
+            entity.HasIndex(e => new { e.GeneralLedgerCodeNo, e.FinancialCodeNo, e.OpeningDate }, "IX_Acc_Company_Opening_Balance_GL");
 
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
@@ -361,9 +365,7 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasMaxLength(100);
             entity.Property(e => e.CompanyCode).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
-            entity.Property(e => e.CreatedBy);
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
-            entity.Property(e => e.DeletedBy);
             entity.Property(e => e.FinancialCodeNo).HasMaxLength(100);
             entity.Property(e => e.GeneralLedgerCodeNo).HasMaxLength(100);
             entity.Property(e => e.Ldate)
@@ -377,47 +379,91 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .HasColumnName("LMAC");
             entity.Property(e => e.Luser)
                 .HasMaxLength(100)
+                .IsFixedLength()
                 .HasColumnName("LUser");
             entity.Property(e => e.MainCompanyCode)
-                .HasColumnName("Main_CompanyCode")
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .HasColumnName("Main_CompanyCode");
             entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
             entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.OpeningDate).HasColumnType("smalldatetime");
             entity.Property(e => e.Reference).HasMaxLength(500);
-            entity.Property(e => e.Description);
             entity.Property(e => e.SubSusidiaryLedgerCodeNo).HasMaxLength(100);
             entity.Property(e => e.TrType).HasMaxLength(100);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-            entity.Property(e => e.UpdatedBy);
             entity.Property(e => e.UserInfoEmployeeId)
-                .HasColumnName("UserInfoEmployeeID")
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .HasColumnName("UserInfoEmployeeID");
         });
 
-
-        modelBuilder.Entity<AccControlLedger>(entity =>
+        modelBuilder.Entity<AccCompanyOpeningBalanceOldBackup>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
-
-            entity.ToTable("Acc_ControlLedger");
+            entity
+                .HasNoKey()
+                .ToTable("Acc_Company_Opening_Balance_Old_Backup");
 
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
-            entity.Property(e => e.ControlLedgerCodeNo)
+            entity.Property(e => e.BranchCode).HasMaxLength(50);
+            entity.Property(e => e.ComOpeningBalanceCode)
                 .IsRequired()
                 .HasMaxLength(50);
+            entity.Property(e => e.CompanyCode).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.DeletedAt).HasColumnType("datetime");
+            entity.Property(e => e.FinancialCodeNo).HasMaxLength(50);
+            entity.Property(e => e.GeneralLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(150)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .IsFixedLength()
+                .HasColumnName("LUser");
+            entity.Property(e => e.MainCompanyCode)
+                .HasMaxLength(50)
+                .HasColumnName("Main_CompanyCode");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.OpeningBalance).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.OpeningDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.Reference).HasMaxLength(250);
+            entity.Property(e => e.SubSusidiaryLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.TrType).HasMaxLength(50);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.UserInfoEmployeeId)
+                .HasMaxLength(50)
+                .HasColumnName("UserInfoEmployeeID");
+        });
+
+        modelBuilder.Entity<AccControlLedger>(entity =>
+        {
+            entity.HasKey(e => e.ControlLedgerCodeNo);
+
+            entity.ToTable("Acc_ControlLedger");
+
+            entity.Property(e => e.ControlLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
             entity.Property(e => e.ControlLedgerName)
                 .IsRequired()
                 .HasMaxLength(100);
-            entity.Property(e => e.GroupLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.GroupLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.IsActive)
                 .HasMaxLength(1)
                 .IsUnicode(false)
-                .HasDefaultValue("1")
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Acc_ControlLedger_IsActive");
+                .IsFixedLength();
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("LDate");
@@ -505,144 +551,11 @@ public partial class GCTL_ERP_DBContext : DbContext
 
         modelBuilder.Entity<AccGeneralLedger>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity.HasKey(e => e.GeneralLedgerCodeNo);
 
             entity.ToTable("Acc_GeneralLedger");
 
-            entity.Property(e => e.AutoId)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("autoId");
-            entity.Property(e => e.ControlLedgerCodeNo).HasMaxLength(50);
-            entity.Property(e => e.GeneralLedgerCodeNo)
-                .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.GeneralLedgerName)
-                .IsRequired()
-                .HasMaxLength(100);
-            entity.Property(e => e.GroupLedgerCodeNo).HasMaxLength(50);
-            entity.Property(e => e.IsActive)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValue("1")
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Acc_GeneralLedger_IsActive");
-            entity.Property(e => e.IsSameNameGl)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("IsSameNameGL");
-            entity.Property(e => e.IsSameNameSl)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("IsSameNameSL");
-            entity.Property(e => e.Ldate)
-                .HasColumnType("smalldatetime")
-                .HasColumnName("LDate");
-            entity.Property(e => e.Lip)
-                .HasMaxLength(100)
-                .HasColumnName("LIP");
-            entity.Property(e => e.Lmac)
-                .HasMaxLength(150)
-                .HasColumnName("LMAC");
-            entity.Property(e => e.Luser)
-                .HasMaxLength(100)
-                .IsFixedLength()
-                .HasColumnName("LUser");
-            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
-            entity.Property(e => e.ShortName).HasMaxLength(50);
-            entity.Property(e => e.SubControlLedgerCodeNo)
-                .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.SubSubsidiaryLedgerCodeNo).HasMaxLength(50);
-        });
-
-        modelBuilder.Entity<AccGroupLedger>(entity =>
-        {
-            entity.HasKey(e => e.GroupLedgerCodeNo).HasName("PK__Acc_Grou__4AE6CDAAF2F26F13");
-
-            entity.ToTable("Acc_GroupLedger");
-
-            entity.Property(e => e.GroupLedgerCodeNo).HasMaxLength(50);
-            entity.Property(e => e.AutoId)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("autoId");
-            entity.Property(e => e.GroupLedgerName)
-                .IsRequired()
-                .HasMaxLength(100);
-            entity.Property(e => e.IsActive)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValue("1")
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Acc_GroupLedger_IsActive");
-            entity.Property(e => e.Ldate)
-                .HasColumnType("smalldatetime")
-                .HasColumnName("LDate");
-            entity.Property(e => e.Lip)
-                .HasMaxLength(100)
-                .HasColumnName("LIP");
-            entity.Property(e => e.Lmac)
-                .HasMaxLength(150)
-                .HasColumnName("LMAC");
-            entity.Property(e => e.Luser)
-                .HasMaxLength(100)
-                .IsFixedLength()
-                .HasColumnName("LUser");
-            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
-            entity.Property(e => e.ShortName).HasMaxLength(50);
-        });
-
-        modelBuilder.Entity<AccSubControlLedger>(entity =>
-        {
-            entity.HasKey(e => e.AutoId);
-
-            entity.ToTable("Acc_SubControlLedger");
-
-            entity.Property(e => e.AutoId)
-                .ValueGeneratedOnAdd()
-                .HasColumnType("numeric(18, 0)")
-                .HasColumnName("autoId");
-            entity.Property(e => e.ControlLedgerCodeNo)
-                .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.GroupLedgerCodeNo).HasMaxLength(50);
-            entity.Property(e => e.IsActive)
-                .HasMaxLength(1)
-                .IsUnicode(false)
-                .HasDefaultValue("1")
-                .HasAnnotation("Relational:DefaultConstraintName", "DF_Acc_SubControlLedger_IsActive");
-            entity.Property(e => e.Ldate)
-                .HasColumnType("smalldatetime")
-                .HasColumnName("LDate");
-            entity.Property(e => e.Lip)
-                .HasMaxLength(100)
-                .HasColumnName("LIP");
-            entity.Property(e => e.Lmac)
-                .HasMaxLength(150)
-                .HasColumnName("LMAC");
-            entity.Property(e => e.Luser)
-                .HasMaxLength(100)
-                .IsFixedLength()
-                .HasColumnName("LUser");
-            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
-            entity.Property(e => e.ShortName)
-                .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.SubControlLedgerCodeNo)
-                .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.SubControlLedgerName)
-                .IsRequired()
-                .HasMaxLength(100);
-        });
-
-        modelBuilder.Entity<AccSubSubsidiaryLedger>(entity =>
-        {
-            entity.HasKey(e => e.AutoId);
-
-            entity.ToTable("Acc_SubSubsidiaryLedger");
-
+            entity.Property(e => e.GeneralLedgerCodeNo).HasMaxLength(50);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
@@ -650,9 +563,16 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.CashFlowTypeId)
                 .HasMaxLength(50)
                 .HasColumnName("CashFlowTypeID");
-            entity.Property(e => e.ControlLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.ControlLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.CostCenterCodeNo).HasMaxLength(50);
-            entity.Property(e => e.GroupLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.GeneralLedgerName)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.GroupLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.IsActive)
                 .HasMaxLength(1)
                 .IsUnicode(false)
@@ -676,15 +596,10 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ShortName)
                 .IsRequired()
                 .HasMaxLength(50);
-            entity.Property(e => e.SubControlLedgerCodeNo).HasMaxLength(50);
-            entity.Property(e => e.SubSubsidiaryLedgerCodeNo).HasMaxLength(50);
-            entity.Property(e => e.SubSubsidiaryLedgerName)
-                .IsRequired()
-                .HasMaxLength(100);
-            entity.Property(e => e.SubSusidiaryLedgerCodeNo)
+            entity.Property(e => e.SubControlLedgerCodeNo)
                 .IsRequired()
                 .HasMaxLength(50);
-            entity.Property(e => e.SubsidiaryLedgerCodeNo)
+            entity.Property(e => e.SubSubsidiaryLedgerCodeNo)
                 .IsRequired()
                 .HasMaxLength(50);
             entity.Property(e => e.TrType)
@@ -693,24 +608,24 @@ public partial class GCTL_ERP_DBContext : DbContext
                 .IsFixedLength();
         });
 
-        modelBuilder.Entity<AccSubsidiaryLedger>(entity =>
+        modelBuilder.Entity<AccGroupLedger>(entity =>
         {
-            entity.HasKey(e => e.AutoId);
+            entity.HasKey(e => e.GroupLedgerCodeNo);
 
-            entity.ToTable("Acc_SubsidiaryLedger");
+            entity.ToTable("Acc_GroupLedger");
 
+            entity.Property(e => e.GroupLedgerCodeNo).HasMaxLength(50);
             entity.Property(e => e.AutoId)
                 .ValueGeneratedOnAdd()
                 .HasColumnType("numeric(18, 0)")
                 .HasColumnName("autoId");
-            entity.Property(e => e.GeneralLedgerCodeNo)
+            entity.Property(e => e.GroupLedgerName)
                 .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.IsSameNameSl)
+                .HasMaxLength(100);
+            entity.Property(e => e.IsActive)
                 .HasMaxLength(1)
                 .IsUnicode(false)
-                .IsFixedLength()
-                .HasColumnName("IsSameNameSL");
+                .IsFixedLength();
             entity.Property(e => e.Ldate)
                 .HasColumnType("smalldatetime")
                 .HasColumnName("LDate");
@@ -728,12 +643,95 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.ShortName)
                 .IsRequired()
                 .HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<AccSubControlLedger>(entity =>
+        {
+            entity.HasKey(e => e.SubControlLedgerCodeNo);
+
+            entity.ToTable("Acc_SubControlLedger");
+
+            entity.Property(e => e.SubControlLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.ControlLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.GroupLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.IsActive)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(150)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .IsFixedLength()
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.ShortName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.SubControlLedgerName)
+                .IsRequired()
+                .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<AccSubsidiaryLedger>(entity =>
+        {
+            entity.HasKey(e => e.SubsidiaryLedgerCodeNo);
+
+            entity.ToTable("Acc_SubsidiaryLedger");
+
+            entity.Property(e => e.SubsidiaryLedgerCodeNo).HasMaxLength(50);
+            entity.Property(e => e.AutoId)
+                .ValueGeneratedOnAdd()
+                .HasColumnType("numeric(18, 0)")
+                .HasColumnName("autoId");
+            entity.Property(e => e.ControlLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.GroupLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.IsActive)
+                .HasMaxLength(1)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.Ldate)
+                .HasColumnType("smalldatetime")
+                .HasColumnName("LDate");
+            entity.Property(e => e.Lip)
+                .HasMaxLength(100)
+                .HasColumnName("LIP");
+            entity.Property(e => e.Lmac)
+                .HasMaxLength(150)
+                .HasColumnName("LMAC");
+            entity.Property(e => e.Luser)
+                .HasMaxLength(100)
+                .IsFixedLength()
+                .HasColumnName("LUser");
+            entity.Property(e => e.ModifyDate).HasColumnType("smalldatetime");
+            entity.Property(e => e.ShortName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.SubControlLedgerCodeNo)
+                .IsRequired()
+                .HasMaxLength(50);
             entity.Property(e => e.SubsidiaryLedgerName)
                 .IsRequired()
                 .HasMaxLength(100);
-            entity.Property(e => e.SusidiaryLedgerCodeNo)
-                .IsRequired()
-                .HasMaxLength(50);
         });
 
         modelBuilder.Entity<AccVoucherEntry>(entity =>
@@ -741,6 +739,12 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.HasKey(e => e.AutoId);
 
             entity.ToTable("Acc_VoucherEntry");
+
+            entity.HasIndex(e => e.VoucherEntryCodeNo, "IX_AccVE_Code_Cover");
+
+            entity.HasIndex(e => new { e.CompanyCode, e.BranchCode, e.VoucherDate }, "IX_AccVE_Company_Branch_Date");
+
+            entity.HasIndex(e => new { e.MainCompanyCode, e.BranchCode, e.VoucherDate }, "IX_AccVE_Main_Branch_Date");
 
             entity.HasIndex(e => new { e.VoucherDate, e.AutoId }, "IX_Acc_VoucherEntry_Date").IsDescending();
 
@@ -807,6 +811,12 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.HasKey(e => e.AutoId);
 
             entity.ToTable("Acc_VoucherEntryDetails");
+
+            entity.HasIndex(e => e.AccCode, "IX_AccVED_AccCode_Cover");
+
+            entity.HasIndex(e => e.VoucherEntryCodeNo, "IX_AccVED_VoucherCode_Cover");
+
+            entity.HasIndex(e => e.AccCode, "IX_Acc_VoucherEntryDetails_AccCode");
 
             entity.HasIndex(e => e.VoucherEntryCodeNo, "IX_Acc_VoucherEntryDetails_CodeNo");
 

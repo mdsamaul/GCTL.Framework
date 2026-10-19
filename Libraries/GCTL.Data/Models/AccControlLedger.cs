@@ -9,11 +9,15 @@ public partial class AccControlLedger
 {
     public decimal AutoId { get; set; }
 
+    public string GroupLedgerCodeNo { get; set; }
+
     public string ControlLedgerCodeNo { get; set; }
 
     public string ControlLedgerName { get; set; }
 
     public string ShortName { get; set; }
+
+    public string IsActive { get; set; }
 
     public string Luser { get; set; }
 
@@ -24,8 +28,4 @@ public partial class AccControlLedger
     public string Lmac { get; set; }
 
     public DateTime? ModifyDate { get; set; }
-
-    public string GroupLedgerCodeNo { get; set; }
-
-    public string IsActive { get; set; }
 }

@@ -249,14 +249,14 @@
         border-radius: 10px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         border: 1px solid var(--border);
-        padding: 10px 12px;
+        padding: 8px 10px;
         overflow-x: auto;
     }
 
-    /* Table optimization for GP Analysis Report */
+    /* Base Table Styles for GP Analysis Report */
     #gPAnalysisReportTable {
         width: 100% !important;
-        font-size: 11px !important;
+        font-size: 11px;
         table-layout: auto;
         border-collapse: collapse !important;
     }
@@ -289,7 +289,7 @@
         }
 
         #gPAnalysisReportTable tbody td {
-            padding: 4px 5px !important;
+            padding: 3px 4px !important;
             font-size: 11px !important;
             line-height: 1.25 !important;
             border: 1px solid #e2e8f0 !important;
@@ -307,8 +307,8 @@
         }
 
         #gPAnalysisReportTable tbody tr.customer-group-row td {
-            padding: 6px 10px !important;
-            font-size: 12px !important;
+            padding: 5px 8px !important;
+            font-size: 11.5px !important;
             font-weight: 700 !important;
             color: #1e293b !important;
             background-color: #f1f5f9 !important;
@@ -323,7 +323,101 @@
         display: inline !important;
     }
 
-    /* Screen width 1600px and above: original full layout, text, and sizing */
+    /* ==========================================================================
+       Laptop Devices Responsive Grid (Screen widths below 1600px down to 1024px)
+       Eliminates horizontal scrolling by making font sizes, cell padding,
+       and widths completely responsive and fluid.
+       ========================================================================== */
+    @@media (max-width: 1599.98px) {
+        .job-grid-card {
+            padding: 6px 6px !important;
+            overflow-x: hidden !important; /* No horizontal scroll bar on laptop devices */
+        }
+
+        .job-grid-card .table-responsive {
+            overflow-x: hidden !important; /* Prevent scrollbar inside table-responsive */
+        }
+
+        #gPAnalysisReportTable {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: auto !important;
+            /* Fluid responsive font size: scales smoothly across 1024px to 1599px */
+            font-size: clamp(8px, 0.70vw, 10.5px) !important;
+        }
+
+            /* Clear hardcoded widths on laptop screens so columns share width proportionally */
+            #gPAnalysisReportTable thead th,
+            #gPAnalysisReportTable tbody td {
+                width: auto !important;
+                min-width: 0 !important;
+            }
+
+            #gPAnalysisReportTable thead th {
+                padding: 2.5px 1.5px !important;
+                font-size: clamp(8px, 0.70vw, 10.5px) !important;
+                line-height: 1.12 !important;
+                white-space: normal !important;
+                word-break: normal;
+                letter-spacing: -0.15px;
+            }
+
+            #gPAnalysisReportTable thead tr.table-header-tier-1 th {
+                font-size: clamp(8.5px, 0.74vw, 11px) !important;
+                padding: 3px 1.5px !important;
+            }
+
+            #gPAnalysisReportTable thead tr.table-header-tier-2 th {
+                font-size: clamp(8.2px, 0.72vw, 10.5px) !important;
+                padding: 2.5px 1.5px !important;
+            }
+
+            #gPAnalysisReportTable thead tr.table-header-tier-3 th {
+                font-size: clamp(8px, 0.68vw, 10px) !important;
+                padding: 2px 1.2px !important;
+            }
+
+            #gPAnalysisReportTable tbody td {
+                padding: 2px 2px !important;
+                font-size: clamp(8.2px, 0.70vw, 10.5px) !important;
+                line-height: 1.2 !important;
+                letter-spacing: -0.1px;
+            }
+
+            #gPAnalysisReportTable tbody td.text-end {
+                white-space: nowrap !important;
+                padding: 2px 2px !important;
+            }
+
+            #gPAnalysisReportTable tbody tr.customer-group-row td {
+                padding: 4px 6px !important;
+                font-size: clamp(9px, 0.76vw, 11px) !important;
+            }
+
+            /* Responsive DataTables Controls */
+            div.dt-container .dt-layout-row {
+                margin-bottom: 0.25rem !important;
+            }
+
+            div.dt-container .dt-search input,
+            div.dt-container .dt-length select {
+                font-size: 11px !important;
+                height: 28px !important;
+                padding: 2px 6px !important;
+            }
+
+            div.dt-container .dt-info,
+            div.dt-container .dt-paging {
+                font-size: 11px !important;
+            }
+
+            div.dt-container .dt-paging .dt-paging-button {
+                padding: 2px 6px !important;
+                font-size: 11px !important;
+            }
+    }
+
+    /* Screen width 1600px and above: original full layout, text, and sizing for Desktop */
     @@media (min-width: 1600px) {
         .th-full {
             display: inline !important;
@@ -416,32 +510,40 @@
 
         .job-grid-card {
             padding: 14px;
+            overflow-x: auto;
         }
 
-        #jobBillEntryReportTable {
-            font-size: 12.5px !important;
+        #gPAnalysisReportTable {
+            font-size: 11.5px !important;
         }
 
-            #jobBillEntryReportTable thead th {
-                font-size: 12.5px !important;
-                padding: 0.35rem 0.5rem !important;
+            #gPAnalysisReportTable thead th {
+                font-size: 11.5px !important;
+                padding: 4px 4px !important;
                 white-space: nowrap !important;
             }
 
-            #jobBillEntryReportTable tbody td {
-                font-size: 12.5px !important;
-                padding: 0.35rem 0.5rem !important;
+            #gPAnalysisReportTable thead tr.table-header-tier-1 th {
+                font-size: 12px !important;
+                font-weight: 700;
             }
 
-            #jobBillEntryReportTable th.col-select-cell,
-            #jobBillEntryReportTable td.col-select-cell {
-                width: 45px !important;
-                min-width: 45px !important;
-                max-width: 45px !important;
+            #gPAnalysisReportTable thead tr.table-header-tier-2 th {
+                font-size: 11px !important;
+            }
+
+            #gPAnalysisReportTable thead tr.table-header-tier-3 th {
+                font-size: 10.5px !important;
+            }
+
+            #gPAnalysisReportTable tbody td {
+                font-size: 11.5px !important;
+                padding: 4px 5px !important;
             }
     }
 
-    @@media (max-width: 1399px) {
+    /* Standard Laptops (1200px - 1399px) Filter & Grid tweaks */
+    @@media (max-width: 1399.98px) {
         .filter-section {
             gap: 6px;
             padding: 8px 10px;
@@ -450,9 +552,22 @@
         .filter-group label {
             font-size: 0.74rem;
         }
+
+        .job-grid-card {
+            padding: 5px 5px !important;
+        }
+
+        #gPAnalysisReportTable thead th {
+            padding: 2px 1.2px !important;
+        }
+
+        #gPAnalysisReportTable tbody td {
+            padding: 2px 1.5px !important;
+        }
     }
 
-    @@media (max-width: 1199px) {
+    /* Compact Laptops (1024px - 1199px) */
+    @@media (max-width: 1199.98px) {
         .stats-grid {
             grid-template-columns: repeat(3, 1fr);
         }
@@ -471,6 +586,36 @@
             grid-column: 1 / -1;
             margin-left: 0;
             justify-content: flex-end;
+        }
+
+        .job-grid-card {
+            padding: 4px 3px !important;
+        }
+
+        #gPAnalysisReportTable thead th {
+            padding: 2px 1px !important;
+            letter-spacing: -0.2px;
+        }
+
+        #gPAnalysisReportTable tbody td {
+            padding: 1.5px 1px !important;
+            letter-spacing: -0.15px;
+        }
+    }
+
+    /* Touch / Tablet / Mobile Screens (< 1024px): Allow horizontal scroll */
+    @@media (max-width: 1023.98px) {
+        .job-grid-card {
+            overflow-x: auto !important;
+        }
+
+        .job-grid-card .table-responsive {
+            overflow-x: auto !important;
+        }
+
+        #gPAnalysisReportTable {
+            min-width: 960px !important;
+            font-size: 9px !important;
         }
     }
 
