@@ -406,18 +406,8 @@
         var qs = buildQueryString(extra);
         var url = '/OFRReport/PreviewPdf?' + qs;
 
-        var reportTitle = getDropdownValue('filterReportType') || 'Operational Fund Approval Report';
-        $('#ofrPreviewModalLabel').html('<i class="fas fa-file-invoice text-primary me-2"></i>' + reportTitle + (specificJobNo ? ' - ' + specificJobNo : ''));
-
-        $('#modalPdfFrame').attr('src', url);
-
-        var modalEl = document.getElementById('ofrPreviewModal');
-        if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-            modal.show();
-        } else {
-            $('#ofrPreviewModal').modal('show');
-        }
+        // Open in a new browser tab
+        window.open(url, '_blank');
     }
 
     function exportReport(format) {

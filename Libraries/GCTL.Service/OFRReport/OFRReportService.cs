@@ -657,11 +657,51 @@ namespace GCTL.Service.OFRReport
             };
         }
 
+        #region Logo Helper
+        private byte[]? _logoBytes;
+        private bool _logoLoaded;
+
+        private byte[]? GetLogoBytes()
+        {
+            if (_logoLoaded) return _logoBytes;
+            _logoLoaded = true;
+
+            try
+            {
+                var candidatePaths = new List<string?>
+                {
+                    _env?.WebRootPath != null ? Path.Combine(_env.WebRootPath, "images", "fermosa-wX200.png") : null,
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "fermosa-wX200.png"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "..", "UIs", "GCTL.UI.Core", "wwwroot", "images", "fermosa-wX200.png"),
+                    @"D:\Project\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png",
+                    @"D:\GCTL\GCTL\Project\CNF\GCTL.Framework\UIs\GCTL.UI.Core\wwwroot\images\fermosa-wX200.png"
+                };
+
+                foreach (var path in candidatePaths)
+                {
+                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    {
+                        _logoBytes = File.ReadAllBytes(path);
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully without throwing
+            }
+
+            return _logoBytes;
+        }
+        #endregion
+
         #region QuestPDF Report Generation
         public async Task<byte[]> GeneratePdfReportAsync(OFRReportFilter filter, string printUser = "")
         {
             QuestPDF.Settings.License = LicenseType.Community;
             var dataList = await GetReportDataAsync(filter);
+            var logoBytes = GetLogoBytes();
 
             if (!dataList.Any())
             {
@@ -692,31 +732,53 @@ namespace GCTL.Service.OFRReport
                         page.Size(PageSizes.A4);
                         page.DefaultTextStyle(x => x.FontFamily("Arial").FontSize(8.5f));
 
-                        // Header
+                        // Header with Formosa Logo on Left, Organization/Address/Report in Center, Mode on Right
                         page.Header().Column(headerCol =>
                         {
-                            var orgTitle = !string.IsNullOrWhiteSpace(master.OrganizationName) ? master.OrganizationName : "Formosa Logistics Limited";
-                            headerCol.Item().AlignCenter().Text(orgTitle).FontSize(14).Bold();
+                            headerCol.Item().Row(topRow =>
+                            {
+                                // 1. Formosa Logo on Left (Aligned to top)
+                                if (logoBytes != null && logoBytes.Length > 0)
+                                {
+                                    topRow.ConstantItem(85).AlignTop().Image(logoBytes).FitArea();
+                                }
+                                else
+                                {
+                                    topRow.ConstantItem(85);
+                                }
 
-                            var addrText = !string.IsNullOrWhiteSpace(master.CompanyAddress) ? master.CompanyAddress : "21, Hazaribagh, Dhaka-1209";
-                            if (!string.IsNullOrWhiteSpace(master.BranchName))
-                            {
-                                addrText = $"{master.BranchName} - {addrText}";
-                            }
-                            headerCol.Item().AlignCenter().Text(addrText).FontSize(8.5f).FontColor(Colors.Grey.Darken2);
-                            headerCol.Item().PaddingTop(6).Row(row =>
-                            {
-                                row.RelativeItem().PaddingLeft(50).AlignCenter().Text(master.OFRReportType).FontSize(11).Bold();
-                                row.ConstantItem(80).AlignRight().Text(master.ShipmentMode).FontSize(8.5f).SemiBold();
+                                // 2. Center: Company Name, Address, Report Title
+                                topRow.RelativeItem().Column(centerCol =>
+                                {
+                                    var orgTitle = !string.IsNullOrWhiteSpace(master.OrganizationName) ? master.OrganizationName : "Formosa Logistics Limited";
+                                    centerCol.Item().AlignCenter().Text(orgTitle).FontSize(13).Bold();
+
+                                    var addrText = !string.IsNullOrWhiteSpace(master.CompanyAddress) ? master.CompanyAddress : "21, Hazaribagh, Dhaka-1209";
+                                    if (!string.IsNullOrWhiteSpace(master.BranchName))
+                                    {
+                                        addrText = $"{master.BranchName} - {addrText}";
+                                    }
+                                    centerCol.Item().AlignCenter().Text(addrText).FontSize(8.5f).FontColor(Colors.Grey.Darken2);
+                                    centerCol.Item().PaddingTop(3).AlignCenter().Text(master.OFRReportType).FontSize(11).Bold();
+                                });
+
+                                // 3. Right: Mode (balanced with left logo width)
+                                topRow.ConstantItem(85).AlignBottom().AlignRight().Column(rightCol =>
+                                {
+                                    rightCol.Item().AlignRight().Text(master.ShipmentMode).FontSize(8.5f).SemiBold();
+                                });
                             });
+
                             headerCol.Item().PaddingBottom(4);
                         });
 
                         // Content
                         page.Content().Column(col =>
                         {
+                            var tableBorderColor = Colors.Grey.Lighten1;
+
                             // 1. Details Grid Box (2 columns matching screenshot)
-                            col.Item().PaddingBottom(6).Border(1).BorderColor(Colors.Black).Table(metaTable =>
+                            col.Item().PaddingBottom(6).Border(0.5f).BorderColor(tableBorderColor).Table(metaTable =>
                             {
                                 metaTable.ColumnsDefinition(cols =>
                                 {
@@ -725,13 +787,13 @@ namespace GCTL.Service.OFRReport
                                 });
 
                                 // Row 1
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(70).Text("Customer Name").SemiBold();
                                     r.ConstantItem(8).Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.CustomerName).SemiBold();
                                 });
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(48).Text("Quantity").SemiBold();
                                     r.ConstantItem(8).Text(":");
@@ -739,13 +801,13 @@ namespace GCTL.Service.OFRReport
                                 });
 
                                 // Row 2
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(70).Text("Invoice No.").SemiBold();
                                     r.ConstantItem(8).Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.InvoiceNo);
                                 });
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(48).Text("Date").SemiBold();
                                     r.ConstantItem(8).Text(":");
@@ -753,13 +815,13 @@ namespace GCTL.Service.OFRReport
                                 });
 
                                 // Row 3
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(70).Text("Job No.").SemiBold();
                                     r.ConstantItem(8).Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.JobNo).SemiBold();
                                 });
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(48).Text("LC Value").SemiBold();
                                     r.ConstantItem(8).Text(":");
@@ -767,13 +829,13 @@ namespace GCTL.Service.OFRReport
                                 });
 
                                 // Row 4
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(70).Text("B/L No").SemiBold();
                                     r.ConstantItem(8).Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.BLNo);
                                 });
-                                metaTable.Cell().Border(0.5f).Padding(3).Row(r =>
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
                                     r.ConstantItem(48).Text("Weight").SemiBold();
                                     r.ConstantItem(8).Text(":");
@@ -791,7 +853,7 @@ namespace GCTL.Service.OFRReport
                                 {
                                     col.Item().PaddingTop(1).PaddingLeft(40).Text("Receiptable Expenses").FontSize(8.5f).Bold();
 
-                                    col.Item().PaddingTop(1).Border(0.5f).BorderColor(Colors.Black).Table(table =>
+                                    col.Item().PaddingTop(1).Border(0.5f).BorderColor(tableBorderColor).Table(table =>
                                     {
                                         table.ColumnsDefinition(cols =>
                                         {
@@ -803,25 +865,25 @@ namespace GCTL.Service.OFRReport
 
                                         table.Header(h =>
                                         {
-                                            h.Cell().Border(0.5f).Padding(2).AlignCenter().Text("SL No.").Bold();
-                                            h.Cell().Border(0.5f).Padding(2).AlignLeft().Text("Expense Head").Bold();
-                                            h.Cell().Border(0.5f).Padding(2).AlignRight().Text("Requisition Amount").Bold();
-                                            h.Cell().Border(0.5f).Padding(2).AlignRight().Text("App: Amount").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignCenter().Text("SL No.").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignLeft().Text("Expense Head").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("Requisition Amount").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("App: Amount").Bold();
                                         });
 
                                         int idx = 1;
                                         foreach (var exp in group.ReceiptableExpenses)
                                         {
-                                            table.Cell().Border(0.5f).Padding(2).AlignCenter().Text(idx++.ToString());
-                                            table.Cell().Border(0.5f).Padding(2).AlignLeft().Text(exp.ExpenseHead);
-                                            table.Cell().Border(0.5f).Padding(2).AlignRight().Text(exp.RequisitionAmount.ToString("N2"));
-                                            table.Cell().Border(0.5f).Padding(2).AlignRight().Text(exp.ApprovalAmount.ToString("N2"));
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignCenter().Text(idx++.ToString());
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignLeft().Text(exp.ExpenseHead);
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(exp.RequisitionAmount.ToString("N2"));
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(exp.ApprovalAmount.ToString("N2"));
                                         }
 
                                         // Sub Total Row
-                                        table.Cell().ColumnSpan(2).Border(0.5f).Padding(2).AlignRight().Text("Sub Total").Bold();
-                                        table.Cell().Border(0.5f).Padding(2).AlignRight().Text(group.ReceiptableSubTotalReq.ToString("N2")).Bold();
-                                        table.Cell().Border(0.5f).Padding(2).AlignRight().Text(group.ReceiptableSubTotalApp.ToString("N2")).Bold();
+                                        table.Cell().ColumnSpan(2).Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("Sub Total").Bold();
+                                        table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(group.ReceiptableSubTotalReq.ToString("N2")).Bold();
+                                        table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(group.ReceiptableSubTotalApp.ToString("N2")).Bold();
                                     });
                                 }
 
@@ -830,7 +892,7 @@ namespace GCTL.Service.OFRReport
                                 {
                                     col.Item().PaddingTop(3).PaddingLeft(40).Text("Non Receiptable Expenses").FontSize(8.5f).Bold();
 
-                                    col.Item().PaddingTop(1).Border(0.5f).BorderColor(Colors.Black).Table(table =>
+                                    col.Item().PaddingTop(1).Border(0.5f).BorderColor(tableBorderColor).Table(table =>
                                     {
                                         table.ColumnsDefinition(cols =>
                                         {
@@ -842,25 +904,25 @@ namespace GCTL.Service.OFRReport
 
                                         table.Header(h =>
                                         {
-                                            h.Cell().Border(0.5f).Padding(2).AlignCenter().Text("SN").Bold();
-                                            h.Cell().Border(0.5f).Padding(2).AlignLeft().Text("Expense Head").Bold();
-                                            h.Cell().Border(0.5f).Padding(2).AlignRight().Text("Requisition Amount").Bold();
-                                            h.Cell().Border(0.5f).Padding(2).AlignRight().Text("App: Amount").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignCenter().Text("SN").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignLeft().Text("Expense Head").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("Requisition Amount").Bold();
+                                            h.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("App: Amount").Bold();
                                         });
 
                                         int idx = 1;
                                         foreach (var exp in group.NonReceiptableExpenses)
                                         {
-                                            table.Cell().Border(0.5f).Padding(2).AlignCenter().Text(idx++.ToString());
-                                            table.Cell().Border(0.5f).Padding(2).AlignLeft().Text(exp.ExpenseHead);
-                                            table.Cell().Border(0.5f).Padding(2).AlignRight().Text(exp.RequisitionAmount.ToString("N2"));
-                                            table.Cell().Border(0.5f).Padding(2).AlignRight().Text(exp.ApprovalAmount.ToString("N2"));
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignCenter().Text(idx++.ToString());
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignLeft().Text(exp.ExpenseHead);
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(exp.RequisitionAmount.ToString("N2"));
+                                            table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(exp.ApprovalAmount.ToString("N2"));
                                         }
 
                                         // Sub Total Row
-                                        table.Cell().ColumnSpan(2).Border(0.5f).Padding(2).AlignRight().Text("Sub Total").Bold();
-                                        table.Cell().Border(0.5f).Padding(2).AlignRight().Text(group.NonReceiptableSubTotalReq.ToString("N2")).Bold();
-                                        table.Cell().Border(0.5f).Padding(2).AlignRight().Text(group.NonReceiptableSubTotalApp.ToString("N2")).Bold();
+                                        table.Cell().ColumnSpan(2).Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("Sub Total").Bold();
+                                        table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(group.NonReceiptableSubTotalReq.ToString("N2")).Bold();
+                                        table.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(group.NonReceiptableSubTotalApp.ToString("N2")).Bold();
                                     });
                                 }
                             }
@@ -890,9 +952,9 @@ namespace GCTL.Service.OFRReport
                                     totTable.Cell().Padding(1).AlignRight().Text(master.TotTransportReq.ToString("N2"));
                                     totTable.Cell().Padding(1).AlignRight().Text(master.TotTransportApp.ToString("N2"));
 
-                                    totTable.Cell().BorderTop(1).Padding(2).AlignRight().Text("GT :").Bold();
-                                    totTable.Cell().BorderTop(1).Padding(2).AlignRight().Text(master.GrandTotalReq.ToString("N2")).Bold();
-                                    totTable.Cell().BorderTop(1).Padding(2).AlignRight().Text(master.GrandTotalApp.ToString("N2")).Bold();
+                                    totTable.Cell().BorderTop(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text("GT :").Bold();
+                                    totTable.Cell().BorderTop(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(master.GrandTotalReq.ToString("N2")).Bold();
+                                    totTable.Cell().BorderTop(0.5f).BorderColor(tableBorderColor).Padding(2).AlignRight().Text(master.GrandTotalApp.ToString("N2")).Bold();
                                 });
                             });
 
