@@ -46,6 +46,15 @@ BEGIN
         WHERE LTRIM(RTRIM(value)) <> '';
     END
 
+    CREATE TABLE #SelectedServiceTypes (ServiceTypeId NVARCHAR(100) COLLATE DATABASE_DEFAULT);
+    IF @ServiceProvidedById IS NOT NULL AND LTRIM(RTRIM(@ServiceProvidedById)) <> ''
+    BEGIN
+        INSERT INTO #SelectedServiceTypes (ServiceTypeId)
+        SELECT LTRIM(RTRIM(value))
+        FROM STRING_SPLIT(@ServiceProvidedById, ',')
+        WHERE LTRIM(RTRIM(value)) <> '';
+    END
+
     -- 2. Resolve Dynamic Organization (Company) and Branch
     DECLARE @OrgName NVARCHAR(200);
     DECLARE @OrgAddress NVARCHAR(500);
@@ -125,6 +134,12 @@ BEGIN
       AND (@CompanyCode IS NULL OR @CompanyCode = '' OR ofr.CompanyCode = @CompanyCode OR doc.CompanyCode = @CompanyCode)
       AND (@FromDate IS NULL OR COALESCE(ofr.OFRDate, doc.[Date]) >= @FromDate)
       AND (@ToDate IS NULL OR COALESCE(ofr.OFRDate, doc.[Date]) <= DATEADD(SECOND, -1, DATEADD(DAY, 1, @ToDate)))
+      AND (
+          @OFRReportType IS NULL OR @OFRReportType = ''
+          OR (@OFRReportType = 'OFR Report')
+          OR (@OFRReportType = 'OFR Approval Report' AND ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '')
+          OR (@OFRReportType = 'OFR Final Report' AND ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '')
+      )
     ORDER BY ofr.OFRDate DESC, ofr.TC DESC;
 
     -- Return 1st Result Set: Master Records
@@ -151,7 +166,9 @@ BEGIN
     INNER JOIN #MasterRecords m ON det.JobNo = m.JobNo
     LEFT JOIN CF_Def_ExpenseHead head ON det.ExpenseHeadId = head.ExpenseHeadId
     LEFT JOIN Core_ServiceType st ON det.ServiceTypeId = st.ServiceTypeId
-    WHERE (@ServiceProvidedById IS NULL OR @ServiceProvidedById = '' OR det.ServiceTypeId = @ServiceProvidedById)
+    WHERE (NOT EXISTS (SELECT 1 FROM #SelectedServiceTypes) 
+           OR det.ServiceTypeId IN (SELECT ServiceTypeId FROM #SelectedServiceTypes)
+           OR st.ServiceTypeName IN (SELECT ServiceTypeId FROM #SelectedServiceTypes))
     ORDER BY det.JobNo, det.TC;
 
     -- Cleanup
@@ -159,5 +176,6 @@ BEGIN
     DROP TABLE #SelectedJobs;
     DROP TABLE #SelectedCustomers;
     DROP TABLE #SelectedShipmentModes;
+    DROP TABLE #SelectedServiceTypes;
 END
 GO

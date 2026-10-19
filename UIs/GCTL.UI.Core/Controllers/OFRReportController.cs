@@ -247,8 +247,7 @@ namespace GCTL.UI.Core.Controllers
                     new() { Data = "totalApprovedAmount", Header = "App. Amount", Width = "100px", Align = "right", RenderFn = "formatCurrency" },
                     new() { Data = "totalReceiptableAmount", Header = "Receiptable", Width = "95px", Align = "right", RenderFn = "formatCurrency" },
                     new() { Data = "totalNonReceiptableAmount", Header = "Non-Rece.", Width = "95px", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "status", Header = "Status", Width = "85px", Align = "center" },
-                    new() { Data = "action", Header = "Action", Width = "80px", Align = "center", Sortable = false }
+                    new() { Data = "status", Header = "Status", Width = "85px", Align = "center" }
                 }
             };
         }

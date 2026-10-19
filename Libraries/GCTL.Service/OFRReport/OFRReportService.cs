@@ -398,6 +398,18 @@ namespace GCTL.Service.OFRReport
                 query = query.Where(x => (x.OFR.Ofrdate ?? (x.Doc != null ? x.Doc.Date : DateTime.MaxValue)) <= tDateEnd);
             }
 
+            if (!string.IsNullOrWhiteSpace(filter.OFRReportType))
+            {
+                if (filter.OFRReportType.Equals("OFR Approval Report", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => !string.IsNullOrEmpty(x.OFR.ApprovedUser));
+                }
+                else if (filter.OFRReportType.Equals("OFR Final Report", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(x => !string.IsNullOrEmpty(x.OFR.BillAdjustApprovalUser));
+                }
+            }
+
             var masterList = await query
                 .OrderByDescending(x => x.OFR.Ofrdate)
                 .ThenByDescending(x => x.OFR.Tc)
@@ -456,7 +468,11 @@ namespace GCTL.Service.OFRReport
                 var detailsQuery = _ofrDetailRepo.All().AsNoTracking().Where(x => x.JobNo == m.JobNo);
                 if (!string.IsNullOrWhiteSpace(filter.ServiceProvidedById))
                 {
-                    detailsQuery = detailsQuery.Where(x => x.ServiceTypeId == filter.ServiceProvidedById.Trim());
+                    var stIds = filter.ServiceProvidedById.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (stIds.Length > 0)
+                    {
+                        detailsQuery = detailsQuery.Where(x => stIds.Contains(x.ServiceTypeId));
+                    }
                 }
 
                 var rawDetails = await detailsQuery.OrderBy(x => x.Tc).ToListAsync();
@@ -587,7 +603,9 @@ namespace GCTL.Service.OFRReport
                 TotalApprovedAmount = m.GrandTotalApp,
                 TotalReceiptableAmount = m.TotReceiptableReq,
                 TotalNonReceiptableAmount = m.TotNonReceiptableReq,
-                Status = "Approved",
+                Status = filter.OFRReportType?.Contains("Final", StringComparison.OrdinalIgnoreCase) == true ? "Final"
+                       : filter.OFRReportType?.Contains("Requisition", StringComparison.OrdinalIgnoreCase) == true || filter.OFRReportType == "OFR Report" ? "Requisition"
+                       : "Approved",
                 Action = $"<button type='button' class='btn btn-sm btn-outline-primary btn-preview-row py-0 px-2' data-job='{m.JobNo}' title='Preview Report'><i class='fas fa-eye'></i></button> <a href='/OFRReport/ExportPdf?jobNo={m.JobNo}&ofrReportType={filter.OFRReportType}' class='btn btn-sm btn-outline-danger py-0 px-2 ms-1' title='Export PDF'><i class='fas fa-file-pdf'></i></a>"
             });
 

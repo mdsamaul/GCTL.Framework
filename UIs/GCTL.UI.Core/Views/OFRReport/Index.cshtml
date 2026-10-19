@@ -189,6 +189,37 @@
             min-width: 0 !important;
         }
 
+        /* Dropdown panel width and single-line option styling */
+        .filter-section .custom-dd-panel {
+            min-width: 100% !important;
+            width: max-content !important;
+            max-width: 480px !important;
+            right: auto !important;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.14) !important;
+        }
+
+        .filter-section .custom-dd-option,
+        .filter-section .custom-dd-item,
+        .filter-section .custom-dd-panel span {
+            white-space: nowrap !important;
+            word-break: keep-all !important;
+        }
+
+        .filter-group.filter-group-service {
+            min-width: 170px !important;
+            flex: 1.1 1 0;
+        }
+
+        .filter-group.filter-group-job {
+            min-width: 170px !important;
+            flex: 1.1 1 0;
+        }
+
+        .filter-group.filter-group-ofr-type {
+            min-width: 155px !important;
+            flex: 1.0 1 0;
+        }
+
     .filter-actions {
         display: flex;
         align-items: center;
@@ -575,7 +606,7 @@
             </div>
 
             <!-- Job No (Multi-Select with checkboxes) -->
-            <div class="filter-group">
+            <div class="filter-group filter-group-job">
                 <select id="filterJobNo" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Select Job No --">
                     @if (ViewBag.JobNos != null)
                     {
@@ -587,20 +618,19 @@
                 </select>
             </div>
 
-            <!-- OFR Report Type (Single Select) -->
-            <div class="filter-group">
-                <select id="filterReportType" class="form-select form-select-sm custom-select-single" data-placeholder="Select OFR Type">
-                    <option value="">Select OFR Type</option>
+            <!-- OFR Report Type (Single Select: OFR Report, OFR Approval Report, OFR Final Report) -->
+            <div class="filter-group filter-group-ofr-type">
+                <select id="filterReportType" class="form-select form-select-sm custom-select-single" data-placeholder="OFR Report Type">
+                    <option value="">OFR Report Type</option>
                     <option value="OFR Report">OFR Report</option>
-                    <option value="OFR Approval Report">OFR Approval Report</option>
+                    <option value="OFR Approval Report" selected="selected">OFR Approval Report</option>
                     <option value="OFR Final Report">OFR Final Report</option>
                 </select>
             </div>
 
-            <!-- Service Provided By (Single Select) -->
-            <div class="filter-group">
-                <select id="filterServiceProvidedBy" class="form-select form-select-sm custom-select-single" data-placeholder="Service Provided By">
-                    <option value="">-- All Services --</option>
+            <!-- Service Type (Multi-Select with checkboxes: Custom, Jetty / Warehouse, Transport) -->
+            <div class="filter-group filter-group-service">
+                <select id="filterServiceProvidedBy" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="Select Service Type">
                     @if (ViewBag.ServiceProviders != null)
                     {
                         foreach (SelectListItem item in (SelectList)ViewBag.ServiceProviders)
