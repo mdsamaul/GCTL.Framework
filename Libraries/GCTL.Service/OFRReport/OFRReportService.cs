@@ -1000,7 +1000,7 @@ namespace GCTL.Service.OFRReport
                             // 4. In Words
                             col.Item().PaddingTop(8).Text(t =>
                             {
-                                t.Span("In Words : ").Bold();
+                                t.Span("In words: ").Bold();
                                 t.Span(master.InWords);
                             });
 
@@ -1233,7 +1233,7 @@ namespace GCTL.Service.OFRReport
                 // In Words Row
                 if (!string.IsNullOrWhiteSpace(master.InWords))
                 {
-                    ws.Cell(row, 1).Value = "In Words:";
+                    ws.Cell(row, 1).Value = "In words:";
                     ws.Cell(row, 1).Style.Font.SetBold(true);
                     ws.Cell(row, 2).Value = master.InWords;
                     ws.Range(row, 2, row, 5).Merge().Style.Font.SetItalic(true);
@@ -1313,13 +1313,13 @@ namespace GCTL.Service.OFRReport
         #region Helpers: Number to Words
         public static string ConvertAmountToWords(decimal amount)
         {
-            if (amount == 0) return "Taka Zero Only.";
+            if (amount == 0) return "Zero Only.";
 
             long whole = (long)Math.Floor(amount);
             int paisa = (int)Math.Round((amount - whole) * 100);
 
             string words = NumberToWords(whole);
-            string result = $"Taka {words}";
+            string result = $"{words}";
 
             if (paisa > 0)
             {
