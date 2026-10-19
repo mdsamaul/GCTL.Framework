@@ -87,7 +87,6 @@ namespace GCTL.UI.Core.Controllers
                 }
 
                 var result = await _ofrReportService.GetGridDataAsync(filter);
-                var summary = await _ofrReportService.GetSummaryAsync(filter);
 
                 return Json(new
                 {
@@ -95,7 +94,7 @@ namespace GCTL.UI.Core.Controllers
                     recordsTotal = result.TotalCount,
                     recordsFiltered = result.FilteredCount,
                     data = result.Data ?? new List<OFRReportGridRowDTO>(),
-                    summary = summary
+                    summary = result.Summary
                 });
             }
             catch (Exception ex)
@@ -237,17 +236,17 @@ namespace GCTL.UI.Core.Controllers
                 DefaultSortDirection = "desc",
                 Columns = new List<GridColumn>
                 {
-                    new() { Data = "slNo", Header = "Sl.No.", Width = "45px", Align = "center", Sortable = false },
-                    new() { Data = "ofrDate", Header = "Date", Width = "85px", Align = "center", SortField = "Ofrdate" },
-                    new() { Data = "ofrNo", Header = "OFR No", Width = "150px", Align = "left", SortField = "Ofrno" },
-                    new() { Data = "jobNo", Header = "Job No", Width = "150px", Align = "left", SortField = "JobNo" },
-                    new() { Data = "customerName", Header = "Customer Name", Width = "180px", Align = "left", SortField = "CustomerName" },
-                    new() { Data = "shipmentMode", Header = "Mode", Width = "95px", Align = "center" },
-                    new() { Data = "totalRequisitionAmount", Header = "Req. Amount", Width = "100px", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "totalApprovedAmount", Header = "App. Amount", Width = "100px", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "totalReceiptableAmount", Header = "Receiptable", Width = "95px", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "totalNonReceiptableAmount", Header = "Non-Rece.", Width = "95px", Align = "right", RenderFn = "formatCurrency" },
-                    new() { Data = "status", Header = "Status", Width = "85px", Align = "center" }
+                    new() { Data = "slNo", Header = "SN", Width = "35px", Align = "center", Sortable = false },
+                    new() { Data = "ofrDate", Header = "Date", Width = "75px", Align = "center", SortField = "Ofrdate" },
+                    new() { Data = "ofrNo", Header = "OFR No", Width = "115px", Align = "left", SortField = "Ofrno" },
+                    new() { Data = "jobNo", Header = "Job No", Width = "115px", Align = "left", SortField = "JobNo" },
+                    new() { Data = "customerName", Header = "Customer", Width = "150px", Align = "left", SortField = "CustomerName" },
+                    new() { Data = "shipmentMode", Header = "Mode", Width = "75px", Align = "center" },
+                    new() { Data = "totalRequisitionAmount", Header = "Req. Amt", Width = "85px", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "totalApprovedAmount", Header = "App. Amt", Width = "85px", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "totalReceiptableAmount", Header = "Rece. Amt", Width = "80px", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "totalNonReceiptableAmount", Header = "Non-Rece.", Width = "80px", Align = "right", RenderFn = "formatCurrency" },
+                    new() { Data = "status", Header = "Status", Width = "65px", Align = "center" }
                 }
             };
         }

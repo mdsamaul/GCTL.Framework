@@ -627,11 +627,21 @@ namespace GCTL.Service.OFRReport
 
             var paged = allList.Skip(start).Take(length).ToList();
 
+            var summary = new OFRReportSummaryDTO
+            {
+                TotalRequisitions = masters.Count,
+                TotalRequisitionAmount = masters.Sum(x => x.GrandTotalReq),
+                TotalApprovedAmount = masters.Sum(x => x.GrandTotalApp),
+                TotalReceiptableAmount = masters.Sum(x => x.TotReceiptableApp > 0 ? x.TotReceiptableApp : x.TotReceiptableReq),
+                TotalNonReceiptableAmount = masters.Sum(x => x.TotNonReceiptableApp > 0 ? x.TotNonReceiptableApp : x.TotNonReceiptableReq)
+            };
+
             return new OFRReportGridResult
             {
                 TotalCount = masters.Count,
                 FilteredCount = total,
-                Data = paged
+                Data = paged,
+                Summary = summary
             };
         }
 

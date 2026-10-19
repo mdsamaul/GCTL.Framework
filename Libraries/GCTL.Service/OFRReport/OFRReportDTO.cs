@@ -179,6 +179,7 @@ namespace GCTL.Service.OFRReport
         public int TotalCount { get; set; }
         public int FilteredCount { get; set; }
         public List<OFRReportGridRowDTO> Data { get; set; } = new();
+        public OFRReportSummaryDTO Summary { get; set; } = new();
     }
 }
 

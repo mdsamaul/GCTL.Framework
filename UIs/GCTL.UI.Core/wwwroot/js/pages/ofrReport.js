@@ -354,7 +354,7 @@
         clearTimeout(filterDebounceTimer);
         filterDebounceTimer = setTimeout(function () {
             reloadGrid();
-        }, 300);
+        }, 100);
     }
 
 
@@ -472,7 +472,7 @@
         $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-tag-remove, .custom-dd-select-all', function () {
             setTimeout(function () {
                 onFilterChanged();
-            }, 60);
+            }, 25);
         });
 
         // Cascade JobNos when Customer or ShipmentMode changes (option or clear click)
