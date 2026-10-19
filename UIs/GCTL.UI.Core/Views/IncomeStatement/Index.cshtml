@@ -1,5 +1,7 @@
 @{
     ViewData["Title"] = "Income Statement";
+    ViewData["PageHeaderTitle"] = "Income Statement";
+    ViewData["ShowPageTitle"] = true;
     var companies = ViewBag.Companies as List<GCTL.Core.ViewModels.CommonSelectVM> ?? new List<GCTL.Core.ViewModels.CommonSelectVM>();
     var branches = ViewBag.Branches as List<GCTL.Core.ViewModels.CommonSelectVM> ?? new List<GCTL.Core.ViewModels.CommonSelectVM>();
 
