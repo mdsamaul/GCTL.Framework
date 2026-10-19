@@ -37,32 +37,32 @@ namespace GCTL.Service.GPAnalysisReport
 
         // Billing
         [JsonPropertyName("totalBill")]
-        public decimal TotalBill { get; set; }           // Total Bill (BDT)
+        public decimal TotalBill { get; set; }  // Total Bill (BDT)
 
         [JsonPropertyName("billingCommission")]
-        public decimal BillingCommission { get; set; }   // Comm.
+        public decimal BillingCommission { get; set; }  // Comm.
 
         [JsonPropertyName("othersBill")]
-        public decimal OthersBill { get; set; }          // Others
+        public decimal OthersBill { get; set; }  // Others
 
         [JsonPropertyName("totalCNFBilling")]
-        public decimal TotalCNFBilling { get; set; }     // TOT (C & F)
+        public decimal TotalCNFBilling { get; set; }  // TOT (C & F)
 
         [JsonPropertyName("billingTransportBill")]
-        public decimal BillingTransportBill { get; set; }// Transport
+        public decimal BillingTransportBill { get; set; }  // Transport
 
         [JsonPropertyName("totalBilling")]
-        public decimal TotalBilling { get; set; }        // TOT Bill
+        public decimal TotalBilling { get; set; }  // TOT Bill
 
         // Costing - C & F Cost
         [JsonPropertyName("costingReceptableAmount")]
-        public decimal CostingReceptableAmount { get; set; }    // Rece
+        public decimal CostingReceptableAmount { get; set; }  // Rece
 
         [JsonPropertyName("costingNonReceptableAmount")]
-        public decimal CostingNonReceptableAmount { get; set; } // NON Rece
+        public decimal CostingNonReceptableAmount { get; set; }  // NON Rece
 
         [JsonPropertyName("cnfCosting")]
-        public decimal CNFCosting { get; set; }                 // TOT Cost (C & F Cost)
+        public decimal CNFCosting { get; set; }  // TOT Cost (C & F Cost)
 
         // Costing - Transport Cost
         [JsonPropertyName("costingSwiftTransportAmount")]
@@ -72,14 +72,14 @@ namespace GCTL.Service.GPAnalysisReport
         public decimal CostingHairTransportAmount { get; set; }  // Hair
 
         [JsonPropertyName("costingTransport")]
-        public decimal CostingTransport { get; set; }            // TOT (Transport)
+        public decimal CostingTransport { get; set; }  // TOT (Transport)
 
         [JsonPropertyName("totalCosting")]
-        public decimal TotalCosting { get; set; }                // TOT Cost
+        public decimal TotalCosting { get; set; }  // TOT Cost
 
         // PNL - GP
         [JsonPropertyName("cnfGP")]
-        public decimal CNFGP { get; set; }        // C & F
+        public decimal CNFGP { get; set; }   // C & F
 
         [JsonPropertyName("transportGP")]
         public decimal TransportGP { get; set; }  // TRANS
@@ -89,13 +89,13 @@ namespace GCTL.Service.GPAnalysisReport
 
         // PNL - GP%
         [JsonPropertyName("cnfGPPercent")]
-        public string? CNFGPPercent { get; set; }       // C & F
+        public string? CNFGPPercent { get; set; }  // C & F
 
         [JsonPropertyName("transportGPPercent")]
         public string? TransportGPPercent { get; set; } // TRANS
 
         [JsonPropertyName("totalGPPercent")]
-        public string? TotalGPPercent { get; set; }     // G. GP
+        public string? TotalGPPercent { get; set; }   // G. GP
 
         // Totals from Stored Procedure
         public decimal CustomerBillingTransportBill { get; set; }

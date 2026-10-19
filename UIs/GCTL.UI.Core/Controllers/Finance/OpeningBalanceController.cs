@@ -393,6 +393,23 @@ namespace GCTL.UI.Core.Controllers.Finance
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Opening_Balance_{DateTime.Now:yyyyMMdd}.xlsx");
         }
 
+        [HttpPost]
+        [Route("OpeningBalance/ExportPdf")]
+        public async Task<IActionResult> ExportPdf([FromBody] OpeningBalanceFilterVM filter)
+        {
+            try
+            {
+                filter ??= new OpeningBalanceFilterVM();
+                var pdfBytes = await _openingBalanceService.GeneratePdfAsync(filter);
+                var fileName = $"Opening_Balance_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                return File(pdfBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = "Failed to export PDF: " + ex.Message });
+            }
+        }
+
         private static OpeningBalanceVM? ParseRowToVM(
             string? rawCode,
             string? rawAmt,

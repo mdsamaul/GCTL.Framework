@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using ClosedXML.Excel;
 using Dapper;
 using GCTL.Core.DataTables;
@@ -24,6 +19,7 @@ namespace GCTL.Service.GPAnalysisReport
     {
 
         #region Private Fields
+        private static readonly SemaphoreSlim _loadLock = new(1, 1);
         private readonly string _connectionString;
         private readonly IMemoryCache? _cache;
         private readonly IShipmentMode? _shipmentModeService;
@@ -261,22 +257,28 @@ namespace GCTL.Service.GPAnalysisReport
 
             if (baseRows == null)
             {
-                using var connection = new SqlConnection(_connectionString);
-                var parameters = new DynamicParameters();
-                parameters.Add("@ShipmentMode", string.Empty);
-                parameters.Add("@CustomerID", string.Empty);
-                parameters.Add("@DateUse", dateUse);
-                parameters.Add("@FromDate", fromDate, DbType.Date);
-                parameters.Add("@ToDate", toDate, DbType.Date);
+                await _loadLock.WaitAsync();
+                try
+                {
+                    if (_cache == null || !_cache.TryGetValue(baseCacheKey, out baseRows) || baseRows == null)
+                    {
+                        using var connection = new SqlConnection(_connectionString);
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@ShipmentMode", string.Empty);
+                        parameters.Add("@CustomerID", string.Empty);
+                        parameters.Add("@DateUse", dateUse);
+                        parameters.Add("@FromDate", fromDate, DbType.Date);
+                        parameters.Add("@ToDate", toDate, DbType.Date);
 
-                baseRows = (await connection.QueryAsync<GPAnalysisReportDTO>(
-                    "GPAnalysedReport2",
-                    parameters,
-                    commandType: CommandType.StoredProcedure,
-                    commandTimeout: 180
-                )).ToList();
+                        baseRows = (await connection.QueryAsync<GPAnalysisReportDTO>(
+                            "GPAnalysedReport2", parameters,
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: 60)).ToList();
 
-                _cache?.Set(baseCacheKey, baseRows, TimeSpan.FromMinutes(3));
+                        _cache?.Set(baseCacheKey, baseRows, TimeSpan.FromMinutes(5));
+                    }
+                }
+                finally { _loadLock.Release(); }
             }
 
             // Work on a copy of the cached list
@@ -503,7 +505,7 @@ namespace GCTL.Service.GPAnalysisReport
                             // Left slot: logo (same as CustomerReport)
                             if (logoBytes != null && logoBytes.Length > 0)
                             {
-                                row.ConstantItem(75).AlignMiddle().Image(logoBytes).FitArea();
+                                row.ConstantItem(75).AlignTop().Image(logoBytes).FitArea();
                             }
 
                             // Center: company name / address / report title / date
@@ -512,7 +514,7 @@ namespace GCTL.Service.GPAnalysisReport
                                 c.Item().AlignCenter().Text("Formosa Logistics Limited").FontSize(13).Bold();
                                 c.Item().AlignCenter().Text("21, Hazaribagh, Dhaka-1209").FontSize(8.5f).FontColor(Colors.Grey.Darken2);
                                 c.Item().AlignCenter().Text("GP Analysis Report").FontSize(10.5f).Bold().Underline();
-                                c.Item().AlignCenter().Text($"Date : {dateRangeStr}").FontSize(8f).SemiBold();
+                                c.Item().AlignCenter().PaddingTop(3f).Text($"Date : {dateRangeStr}").FontSize(8f).SemiBold();
                             });
 
                             // Right slot: empty, same width as logo, to keep center visually aligned
@@ -534,72 +536,76 @@ namespace GCTL.Service.GPAnalysisReport
 
                         foreach (var group in customerGroups)
                         {
-                            col.Item().PaddingTop(4).PaddingBottom(2)
-                                .Text($"Customer: {group.Key}").FontSize(8f).Bold();
-
                             col.Item().Table(table =>
                             {
                                 table.ColumnsDefinition(cols =>
                                 {
-                                    cols.RelativeColumn(0.9f); // 1. Sl.No.
-                                    cols.RelativeColumn(1.7f); // 2. Billing Date
-                                    cols.RelativeColumn(2.6f); // 3. Bill No
+                                    cols.RelativeColumn(0.6f); // 1. Sl.No.
+                                    cols.RelativeColumn(1.5f); // 2. Billing Date
+                                    cols.RelativeColumn(2.8f); // 3. Bill No
                                     cols.RelativeColumn(1.8f); // 4. Total Bill
-                                    cols.RelativeColumn(1.4f); // 5. Comm.
-                                    cols.RelativeColumn(1.5f); // 6. Others
-                                    cols.RelativeColumn(1.6f); // 7. TOT (C&F)
+                                    cols.RelativeColumn(1.6f); // 5. Comm.
+                                    cols.RelativeColumn(1.7f); // 6. Others
+                                    cols.RelativeColumn(1.7f); // 7. TOT (C&F)
                                     cols.RelativeColumn(1.4f); // 8. Transport
-                                    cols.RelativeColumn(1.6f); // 9. TOT Bill
-                                    cols.RelativeColumn(1.4f); // 10. Rece
-                                    cols.RelativeColumn(1.4f); // 11. NON Rece
-                                    cols.RelativeColumn(1.6f); // 12. TOT Cost
+                                    cols.RelativeColumn(1.7f); // 9. TOT Bill
+                                    cols.RelativeColumn(1.6f); // 10. Rece
+                                    cols.RelativeColumn(1.6f); // 11. NON Rece
+                                    cols.RelativeColumn(1.7f); // 12. TOT Cost
                                     cols.RelativeColumn(1.2f); // 13. Swift
-                                    cols.RelativeColumn(1.3f); // 14. Hair
+                                    cols.RelativeColumn(1.4f); // 14. Hair
                                     cols.RelativeColumn(1.4f); // 15. TOT
-                                    cols.RelativeColumn(1.6f); // 16. TOT Cost
+                                    cols.RelativeColumn(1.7f); // 16. TOT Cost
                                     cols.RelativeColumn(1.6f); // 17. C & F
                                     cols.RelativeColumn(1.4f); // 18. TRANS
                                     cols.RelativeColumn(1.6f); // 19. TOT
-                                    cols.RelativeColumn(1.3f); // 20. C & F %
-                                    cols.RelativeColumn(1.3f); // 21. TRANS %
-                                    cols.RelativeColumn(1.3f); // 22. G. GP %
+                                    cols.RelativeColumn(1.1f); // 20. C & F %
+                                    cols.RelativeColumn(1.0f); // 21. TRANS %
+                                    cols.RelativeColumn(1.0f); // 22. G. GP %
                                 });
 
-                                // Header Row 1
-                                table.Cell().Row(1).Column(1).RowSpan(3).Element(HCell).Text("Sl.No.");
-                                table.Cell().Row(1).Column(2).RowSpan(3).Element(HCell).Text("Billing\nDate");
-                                table.Cell().Row(1).Column(3).RowSpan(3).Element(HCell).Text("Bill No");
-                                table.Cell().Row(1).Column(4).RowSpan(3).Element(HCell).Text("Total Bill\n(BDT)");
-                                table.Cell().Row(1).Column(5).ColumnSpan(5).Element(HCell).Text("Billing");
-                                table.Cell().Row(1).Column(10).ColumnSpan(7).Element(HCell).Text("Costing");
-                                table.Cell().Row(1).Column(17).ColumnSpan(6).Element(HCell).Text("PNL");
+                                table.Header(header =>
+                                {
+                                    // Customer Header: repeats automatically on every new page where this customer's table continues
+                                    header.Cell().Row(1).Column(1).ColumnSpan(22).ShowEntire().PaddingTop(4).PaddingBottom(2)
+                                        .Text($"Customer: {group.Key}").FontSize(8f).Bold();
 
-                                // Header Row 2
-                                table.Cell().Row(2).Column(5).ColumnSpan(3).Element(HCell).Text("C & F");
-                                table.Cell().Row(2).Column(8).RowSpan(2).Element(HCell).Text("Transport");
-                                table.Cell().Row(2).Column(9).RowSpan(2).Element(HCell).Text("TOT Bill");
-                                table.Cell().Row(2).Column(10).ColumnSpan(3).Element(HCell).Text("C & F Cost");
-                                table.Cell().Row(2).Column(13).ColumnSpan(3).Element(HCell).Text("Transport Cost");
-                                table.Cell().Row(2).Column(16).RowSpan(2).Element(HCell).Text("TOT Cost");
-                                table.Cell().Row(2).Column(17).ColumnSpan(3).Element(HCell).Text("GP");
-                                table.Cell().Row(2).Column(20).ColumnSpan(3).Element(HCell).Text("GP%");
+                                    // Header Row 1 (Tier 1)
+                                    header.Cell().Row(2).Column(1).RowSpan(3).Element(HCell).Text("SN.");
+                                    header.Cell().Row(2).Column(2).RowSpan(3).Element(HCell).Text("Billing\nDate");
+                                    header.Cell().Row(2).Column(3).RowSpan(3).Element(HCell).Text("Bill No");
+                                    header.Cell().Row(2).Column(4).RowSpan(3).Element(HCell).Text("Total Bill\n   (BDT)");
+                                    header.Cell().Row(2).Column(5).ColumnSpan(5).Element(HCell).Text("Billing");
+                                    header.Cell().Row(2).Column(10).ColumnSpan(7).Element(HCell).Text("Costing");
+                                    header.Cell().Row(2).Column(17).ColumnSpan(6).Element(HCell).Text("PNL");
 
-                                // Header Row 3
-                                table.Cell().Row(3).Column(5).Element(HCell).Text("Comm.");
-                                table.Cell().Row(3).Column(6).Element(HCell).Text("Others");
-                                table.Cell().Row(3).Column(7).Element(HCell).Text("TOT");
-                                table.Cell().Row(3).Column(10).Element(HCell).Text("Rece");
-                                table.Cell().Row(3).Column(11).Element(HCell).Text("NON Rece");
-                                table.Cell().Row(3).Column(12).Element(HCell).Text("TOT Cost");
-                                table.Cell().Row(3).Column(13).Element(HCell).Text("Swift");
-                                table.Cell().Row(3).Column(14).Element(HCell).Text("Hair");
-                                table.Cell().Row(3).Column(15).Element(HCell).Text("TOT");
-                                table.Cell().Row(3).Column(17).Element(HCell).Text("C & F");
-                                table.Cell().Row(3).Column(18).Element(HCell).Text("TRANS");
-                                table.Cell().Row(3).Column(19).Element(HCell).Text("TOT");
-                                table.Cell().Row(3).Column(20).Element(HCell).Text("C & F");
-                                table.Cell().Row(3).Column(21).Element(HCell).Text("TRANS");
-                                table.Cell().Row(3).Column(22).Element(HCell).Text("G. GP");
+                                    // Header Row 2 (Tier 2)
+                                    header.Cell().Row(3).Column(5).ColumnSpan(3).Element(HCell).Text("C & F");
+                                    header.Cell().Row(3).Column(8).RowSpan(2).Element(HCell).Text("Transport");
+                                    header.Cell().Row(3).Column(9).RowSpan(2).Element(HCell).Text("TOT Bill");
+                                    header.Cell().Row(3).Column(10).ColumnSpan(3).Element(HCell).Text("C & F Cost");
+                                    header.Cell().Row(3).Column(13).ColumnSpan(3).Element(HCell).Text("Transport Cost");
+                                    header.Cell().Row(3).Column(16).RowSpan(2).Element(HCell).Text("TOT Cost");
+                                    header.Cell().Row(3).Column(17).ColumnSpan(3).Element(HCell).Text("GP");
+                                    header.Cell().Row(3).Column(20).ColumnSpan(3).Element(HCell).Text("GP%");
+
+                                    // Header Row 3 (Tier 3)
+                                    header.Cell().Row(4).Column(5).Element(HCell).Text("Comm.");
+                                    header.Cell().Row(4).Column(6).Element(HCell).Text("Others");
+                                    header.Cell().Row(4).Column(7).Element(HCell).Text("TOT");
+                                    header.Cell().Row(4).Column(10).Element(HCell).Text("Rece");
+                                    header.Cell().Row(4).Column(11).Element(HCell).Text("NON Rece");
+                                    header.Cell().Row(4).Column(12).Element(HCell).Text("TOT Cost");
+                                    header.Cell().Row(4).Column(13).Element(HCell).Text("Swift");
+                                    header.Cell().Row(4).Column(14).Element(HCell).Text("Hair");
+                                    header.Cell().Row(4).Column(15).Element(HCell).Text("TOT");
+                                    header.Cell().Row(4).Column(17).Element(HCell).Text("C & F");
+                                    header.Cell().Row(4).Column(18).Element(HCell).Text("TRANS");
+                                    header.Cell().Row(4).Column(19).Element(HCell).Text("TOT");
+                                    header.Cell().Row(4).Column(20).Element(HCell).Text("C & F");
+                                    header.Cell().Row(4).Column(21).Element(HCell).Text("TRANS");
+                                    header.Cell().Row(4).Column(22).Element(HCell).Text("G. GP");
+                                });
 
                                 // Data Rows
                                 int sl = 1;
@@ -700,28 +706,28 @@ namespace GCTL.Service.GPAnalysisReport
                             {
                                 table.ColumnsDefinition(cols =>
                                 {
-                                    cols.RelativeColumn(0.9f);
-                                    cols.RelativeColumn(1.7f);
-                                    cols.RelativeColumn(2.6f);
-                                    cols.RelativeColumn(1.8f);
-                                    cols.RelativeColumn(1.4f);
+                                    cols.RelativeColumn(0.6f);
                                     cols.RelativeColumn(1.5f);
+                                    cols.RelativeColumn(2.8f);
+                                    cols.RelativeColumn(1.8f);
                                     cols.RelativeColumn(1.6f);
+                                    cols.RelativeColumn(1.7f);
+                                    cols.RelativeColumn(1.7f);
                                     cols.RelativeColumn(1.4f);
+                                    cols.RelativeColumn(1.7f);
                                     cols.RelativeColumn(1.6f);
-                                    cols.RelativeColumn(1.4f);
-                                    cols.RelativeColumn(1.4f);
                                     cols.RelativeColumn(1.6f);
+                                    cols.RelativeColumn(1.7f);
                                     cols.RelativeColumn(1.2f);
-                                    cols.RelativeColumn(1.3f);
+                                    cols.RelativeColumn(1.4f);
+                                    cols.RelativeColumn(1.4f);
+                                    cols.RelativeColumn(1.7f);
+                                    cols.RelativeColumn(1.6f);
                                     cols.RelativeColumn(1.4f);
                                     cols.RelativeColumn(1.6f);
-                                    cols.RelativeColumn(1.6f);
-                                    cols.RelativeColumn(1.4f);
-                                    cols.RelativeColumn(1.6f);
-                                    cols.RelativeColumn(1.3f);
-                                    cols.RelativeColumn(1.3f);
-                                    cols.RelativeColumn(1.3f);
+                                    cols.RelativeColumn(1.1f);
+                                    cols.RelativeColumn(1.0f);
+                                    cols.RelativeColumn(1.0f);
                                 });
 
                                 table.Cell().ColumnSpan(3).Element(GrandTotalCell).AlignRight().Text("Grand Total:").Bold();
@@ -750,14 +756,14 @@ namespace GCTL.Service.GPAnalysisReport
 
                     page.Footer().Row(r =>
                     {
-                        r.RelativeItem().Text($"Print Date : {DateTime.Now:d/M/yyyy}").FontSize(6.5f);
-                        r.RelativeItem().AlignCenter().Text($"Print By: User").FontSize(6.5f);
+                        r.RelativeItem().Text($"Print Date : {DateTime.Now:d/M/yyyy HH:mm:ss}").FontSize(6.5f);
+                        r.RelativeItem().AlignCenter().Text($"GCTL Infosys – C&F System").FontSize(6.5f);
                         r.RelativeItem().AlignRight().Text(t =>
                         {
-                            t.Span("Page ");
-                            t.CurrentPageNumber();
-                            t.Span(" of ");
-                            t.TotalPages();
+                            t.Span("Page ").FontSize(6.5f);
+                            t.CurrentPageNumber().FontSize(6.5f);
+                            t.Span(" of ").FontSize(6.5f);
+                            t.TotalPages().FontSize(6.5f);
                         });
                     });
                 });
@@ -767,31 +773,36 @@ namespace GCTL.Service.GPAnalysisReport
         }
 
         private static IContainer HCell(IContainer container) =>
-            container.Border(0.4f).BorderColor(Colors.Grey.Medium)
-                     .Background(Colors.Grey.Lighten4)
-                     .PaddingVertical(1.5f).PaddingHorizontal(1)
+            container.ShowEntire()
+                     .Border(0.4f).BorderColor(Colors.Grey.Lighten2)
+                   //.Background(Colors.Grey.Lighten4)
+                     .PaddingVertical(2.5f).PaddingHorizontal(1)
                      .AlignCenter().AlignMiddle()
-                     .DefaultTextStyle(x => x.FontSize(5.5f).Bold().FontColor(Colors.Black));
+                     .DefaultTextStyle(x => x.FontSize(5.7f).Bold().FontColor(Colors.Black));
 
         private static IContainer DCell(IContainer container) =>
-            container.Border(0.3f).BorderColor(Colors.Grey.Lighten2)
-                     .PaddingVertical(1.2f).PaddingHorizontal(1)
+            container.ShowEntire()
+                     .Border(0.3f).BorderColor(Colors.Grey.Lighten2)
+                     .PaddingVertical(2.5f).PaddingHorizontal(1).PaddingRight(1.5f)
                      .AlignMiddle()
-                     .DefaultTextStyle(x => x.FontSize(5.2f).FontColor(Colors.Black));
+                     .DefaultTextStyle(x => x.FontSize(5.7f).FontColor(Colors.Black));
 
         private static IContainer SubtotalCell(IContainer container) =>
-            container.Border(0.4f).BorderColor(Colors.Grey.Medium)
-                     .Background(Colors.Grey.Lighten3)
-                     .PaddingVertical(1.5f).PaddingHorizontal(1)
+            container.ShowEntire()
+                     .Border(0.4f).BorderColor(Colors.Grey.Lighten2)
+                   //.Background(Colors.Grey.Lighten3)
+                     .PaddingVertical(1.5f).PaddingHorizontal(1).PaddingRight(1.5f)
                      .AlignMiddle()
-                     .DefaultTextStyle(x => x.FontSize(5.4f).Bold().FontColor(Colors.Black));
+                     .DefaultTextStyle(x => x.FontSize(5.7f).Bold().FontColor(Colors.Black));
 
         private static IContainer GrandTotalCell(IContainer container) =>
-            container.Border(0.5f).BorderColor(Colors.Black)
-                     .Background(Colors.Grey.Lighten2)
-                     .PaddingVertical(1.8f).PaddingHorizontal(1)
+            container.ShowEntire()
+                     .Border(0.5f).BorderColor(Colors.Grey.Lighten2)
+                   //.Background(Colors.Grey.Lighten2)
+                     .PaddingVertical(1.8f).PaddingHorizontal(1).PaddingRight(1.5f)
                      .AlignMiddle()
-                     .DefaultTextStyle(x => x.FontSize(5.6f).Bold().FontColor(Colors.Black));
+                     .DefaultTextStyle(x => x.FontSize(5.7f).Bold().FontColor(Colors.Black));
+
         #endregion
 
         #region Excel Report Generation (ClosedXML)
@@ -863,7 +874,7 @@ namespace GCTL.Service.GPAnalysisReport
                 custRange.Merge();
                 custRange.Style.Font.Bold = true;
                 custRange.Style.Font.FontSize = 11;
-                custRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
+              //  custRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
                 custRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 rowIdx++;
 
@@ -913,7 +924,7 @@ namespace GCTL.Service.GPAnalysisReport
                 headerRange.Style.Font.FontSize = 9;
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#F1F5F9");
+               // headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#F1F5F9");
                 headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
@@ -1016,7 +1027,7 @@ namespace GCTL.Service.GPAnalysisReport
                 var subRowRange = ws.Range(rowIdx, 1, rowIdx, 22);
                 subRowRange.Style.Font.Bold = true;
                 subRowRange.Style.Font.FontSize = 9;
-                subRowRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
+               // subRowRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#E2E8F0");
                 subRowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 subRowRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
@@ -1078,8 +1089,8 @@ namespace GCTL.Service.GPAnalysisReport
                 var gRowRange = ws.Range(rowIdx, 1, rowIdx, 22);
                 gRowRange.Style.Font.Bold = true;
                 gRowRange.Style.Font.FontSize = 9.5;
-                gRowRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#CBD5E1");
-                gRowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+               // gRowRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#CBD5E1");
+                gRowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 gRowRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
             }
 
@@ -1087,31 +1098,31 @@ namespace GCTL.Service.GPAnalysisReport
             ws.Column(1).Width = 6;    // SN.
             ws.Column(2).Width = 11;   // Billing Date
             ws.Column(3).Width = 24;   // Bill No
-            ws.Column(4).Width = 12;   // Total Bill (BDT)
+            ws.Column(4).Width = 13;   // Total Bill (BDT)
 
             // Billing
-            ws.Column(5).Width = 11;   // Comm.
-            ws.Column(6).Width = 11;   // Others
-            ws.Column(7).Width = 12;   // C&F TOT
+            ws.Column(5).Width = 12;   // Comm.
+            ws.Column(6).Width = 13;   // Others
+            ws.Column(7).Width = 13;   // C&F TOT
             ws.Column(8).Width = 10;   // Transport
-            ws.Column(9).Width = 12;   // TOT Bill
+            ws.Column(9).Width = 13;   // TOT Bill
 
             // Costing
             ws.Column(10).Width = 12;  // Rece
-            ws.Column(11).Width = 11;  // NON Rece
+            ws.Column(11).Width = 12;  // NON Rece
             ws.Column(12).Width = 13;  // C&F TOT Cost
             ws.Column(13).Width = 8;  // Swift
-            ws.Column(14).Width = 8;  // Hair
-            ws.Column(15).Width = 10;  // Transport TOT
-            ws.Column(16).Width = 12;  // TOT Cost
+            ws.Column(14).Width = 11;  // Hair
+            ws.Column(15).Width = 11;  // Transport TOT
+            ws.Column(16).Width = 13;  // TOT Cost
 
             // PNL
             ws.Column(17).Width = 13;  // GP C&F
-            ws.Column(18).Width = 12;  // GP TRANS
-            ws.Column(19).Width = 13;  // GP TOT
-            ws.Column(20).Width = 9;  // GP% C&F
-            ws.Column(21).Width = 9;  // GP% TRANS
-            ws.Column(22).Width = 9;  // G. GP%
+            ws.Column(18).Width = 10;  // GP TRANS
+            ws.Column(19).Width = 12;  // GP TOT
+            ws.Column(20).Width = 7;  // GP% C&F
+            ws.Column(21).Width = 7;  // GP% TRANS
+            ws.Column(22).Width = 7;  // G. GP%
 
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
