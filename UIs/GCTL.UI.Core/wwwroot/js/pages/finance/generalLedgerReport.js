@@ -139,13 +139,14 @@
         const tbody = $('#glTableBody');
         tbody.empty();
 
+        const rows = [];
         // 1. Opening balance row: tr.l2
-        tbody.append(`<tr class="l2"><td colspan="6">Opening balance</td><td class="num">${bl(d.openingBalance)}</td></tr>`);
+        rows.push(`<tr class="l2"><td colspan="6">Opening balance</td><td class="num">${bl(d.openingBalance)}</td></tr>`);
 
         // 2. Transaction Rows
         if (d.items && d.items.length > 0) {
             d.items.forEach(function (tx) {
-                const tr = `<tr>` +
+                rows.push(`<tr>` +
                     `<td>${esc(tx.dateFormatted)}</td>` +
                     `<td class="fw-bold" style="color: var(--gl-pri);">${esc(tx.voucherNo)}</td>` +
                     `<td style="color: var(--gl-mut);">${esc(tx.invoiceNo || '–')}</td>` +
@@ -153,15 +154,15 @@
                     `<td class="num">${tx.debit > 0 ? fmt(tx.debit) : ''}</td>` +
                     `<td class="num">${tx.credit > 0 ? fmt(tx.credit) : ''}</td>` +
                     `<td class="num fw-semibold">${bl(tx.runningBalance)}</td>` +
-                    `</tr>`;
-                tbody.append(tr);
+                    `</tr>`);
             });
         } else {
-            tbody.append(`<tr><td colspan="7" class="empty-cell">No transactions in this period.</td></tr>`);
+            rows.push(`<tr><td colspan="7" class="empty-cell">No transactions in this period.</td></tr>`);
         }
 
         // 3. Total / Closing row: tr.tot
-        tbody.append(`<tr class="tot"><td colspan="4">Total / Closing</td><td class="num">${fmt(d.totalDebit)}</td><td class="num">${fmt(d.totalCredit)}</td><td class="num">${bl(d.closingBalance)}</td></tr>`);
+        rows.push(`<tr class="tot"><td colspan="4">Total / Closing</td><td class="num">${fmt(d.totalDebit)}</td><td class="num">${fmt(d.totalCredit)}</td><td class="num">${bl(d.closingBalance)}</td></tr>`);
+        tbody.html(rows.join(''));
     }
 
     function renderEmpty(msg) {
@@ -231,7 +232,7 @@
         const firstCo = $('#fCo option:first').val();
         if (firstCo) $('#fCo').val(firstCo);
         $('#fBr').val('All');
-        const defaultAcc = $('#fAcc option[value="1020020000200001"]').length ? '1020020000200001' : $('#fAcc option:first').val();
+        const defaultAcc = $('#fAcc option[value="1020040000100001"]').length ? '1020040000100001' : $('#fAcc option:first').val();
         if (defaultAcc) $('#fAcc').val(defaultAcc);
 
         if (typeof window.reinitCustomDropdownById === 'function') {
@@ -271,12 +272,12 @@
 
         initDatePickers();
 
-        // Ensure default account head is 1020020000200001 if available
-        if ($('#fAcc option[value="1020020000200001"]').length) {
+        // Ensure default account head is 1020040000100001 (Cash In Hand) if available
+        if ($('#fAcc option[value="1020040000100001"]').length) {
             if (typeof window.setCustomDropdownValue === 'function') {
-                window.setCustomDropdownValue('fAcc', '1020020000200001');
+                window.setCustomDropdownValue('fAcc', '1020040000100001');
             } else {
-                $('#fAcc').val('1020020000200001');
+                $('#fAcc').val('1020040000100001');
             }
         }
 
