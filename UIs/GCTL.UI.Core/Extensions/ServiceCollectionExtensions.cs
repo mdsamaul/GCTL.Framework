@@ -97,6 +97,7 @@ using Microsoft.Extensions.Options;
 using GCTL.Service.GPAnalysisReport;
 using GCTL.Service.OFRReport;
 using GCTL.Service.TrialBalance;
+using GCTL.Service.CustomerTopSheetReport;
 
 namespace GCTL.Framework.Extensions
 {
@@ -220,6 +221,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IGPAnalysisReportService, GPAnalysisReportService>();
             services.AddScoped<IOFRReportService, OFRReportService>();
             services.AddScoped<ITrialBalanceService, TrialBalanceService>();
+            services.AddScoped<ICustomerTopSheetReportService, CustomerTopSheetReportService>();
 
 
             services.AddScoped<IMenuTabService, MenuTabService>();
