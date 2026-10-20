@@ -454,6 +454,7 @@ namespace GCTL.Service.CustomerTopSheetReport
                 ws.Cell("B1").Value = cust.CompanyName;
                 ws.Cell("B1").Style.Font.Bold = true;
                 ws.Cell("B1").Style.Font.FontSize = 14;
+                ws.Range("B1:I1").Merge();
 
                 // Row 2: Customer Name & Head Office
                 ws.Cell("A2").Value = "To:";
@@ -461,40 +462,66 @@ namespace GCTL.Service.CustomerTopSheetReport
                 ws.Cell("B2").Value = cust.CustomerName;
                 ws.Cell("B2").Style.Font.Bold = true;
                 ws.Cell("B2").Style.Font.FontSize = 11;
+                ws.Range("B2:I2").Merge();
+
                 ws.Cell("J2").Value = "Head Office";
                 ws.Cell("J2").Style.Font.Bold = true;
+                ws.Range("J2:L2").Merge();
 
                 // Row 3: Customer Address & HQ Address
                 ws.Cell("B3").Value = cust.CustomerAddress;
+                ws.Range("B3:I4").Merge();
+                ws.Cell("B3").Style.Alignment.WrapText = true;
+
                 ws.Cell("J3").Value = cust.HeadOfficeAddress;
+                ws.Range("J3:P4").Merge();
+                ws.Cell("J3").Style.Alignment.WrapText = true;
 
                 // Row 5: HQ Contact
                 ws.Cell("J5").Value = cust.ContactPhoneFax;
+                ws.Range("J5:P5").Merge();
 
                 // Row 6: ATTN
                 ws.Cell("A6").Value = "ATTN";
                 ws.Cell("A6").Style.Font.Bold = true;
                 ws.Cell("B6").Value = cust.Attn;
                 ws.Cell("B6").Style.Font.Bold = true;
+                ws.Range("B6:I6").Merge();
 
                 // Row 7: REF
                 ws.Cell("A7").Value = "REF";
                 ws.Cell("A7").Style.Font.Bold = true;
                 ws.Cell("B7").Value = cust.Ref;
                 ws.Cell("B7").Style.Font.Bold = true;
+                ws.Range("B7:I7").Merge();
 
                 // Row 8: Date
                 ws.Cell("J8").Value = $"Date: {cust.ReportDate}";
                 ws.Cell("J8").Style.Font.Bold = true;
+                ws.Range("J8:L8").Merge();
 
                 // --- ROW 9: 18 TABLE HEADERS ---
                 int headerRow = 9;
                 string[] headers = new[]
                 {
-                    "SL No.", "Bill No", "LC/LCA No.", "Invoice No.", "Invoice Date", "B/E Reg. No", "B/E Reg. Date",
-                    "DTI & Association Service Charge", "Vat & Global Tax", "Customs Misc", "Warehouse Rent",
-                    "Freight Forwarder NOC", "Labour Charge", "Others Misc.", "Air Frieght Charge",
-                    "Transport Bill", "Commission", "Total Bill / Tk."
+                    "SL No.",
+                    "Bill No",
+                    "LC/LCA\nNo.",
+                    "Invoice\nNo.",
+                    "Invoice\nDate",
+                    "B/E Reg.\nNo",
+                    "B/E Reg.\nDate",
+                    "DTI & Association\nService Charge",
+                    "Vat & Global\nTax",
+                    "Cust. Misc",
+                    "Warehouse\nRent",
+                    "Freight Forwarder\nNOC",
+                    "Labour\nCharge",
+                    "Others\nMisc.",
+                    "Air Freight\nCharge",
+                    "Transport\nBill",
+                    "Commission",
+                    "Total Bill\n/ Tk."
                 };
 
                 for (int col = 1; col <= headers.Length; col++)
@@ -503,14 +530,14 @@ namespace GCTL.Service.CustomerTopSheetReport
                     cell.Value = headers[col - 1];
                     cell.Style.Font.Bold = true;
                     cell.Style.Font.FontSize = 9.5;
-                    cell.Style.Alignment.Horizontal = col <= 7 ? XLAlignmentHorizontalValues.Center : XLAlignmentHorizontalValues.Right;
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     cell.Style.Alignment.WrapText = true;
                     cell.Style.Fill.BackgroundColor = XLColor.FromArgb(235, 241, 248);
                     cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     cell.Style.Border.OutsideBorderColor = XLColor.FromArgb(180, 195, 215);
                 }
-                ws.Row(headerRow).Height = 28;
+                ws.Row(headerRow).Height = 32;
 
                 // --- DATA ROWS ---
                 int currentRow = 10;
@@ -625,9 +652,10 @@ namespace GCTL.Service.CustomerTopSheetReport
                 ws.Cell(sigRow, 17).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                 // Auto-fit column widths
-                ws.Columns(1, 18).AdjustToContents(10.0, 35.0);
-                ws.Column(1).Width = 7;
-                ws.Column(2).Width = 24;
+                ws.Columns(1, 18).AdjustToContents(9.0, 30.0);
+                ws.Column(1).Width = 6.5;   // SL No.
+                ws.Column(2).Width = 24.0;  // Bill No
+                ws.Column(10).Width = 11.5; // Cust. Misc (Compact & Narrow)
             }
 
             using var ms = new MemoryStream();
