@@ -655,7 +655,9 @@ namespace GCTL.Service.CustomerTopSheetReport
                 ws.Columns(1, 18).AdjustToContents(9.0, 30.0);
                 ws.Column(1).Width = 6.5;   // SL No.
                 ws.Column(2).Width = 24.0;  // Bill No
+                ws.Column(8).Width = 18.0;  // DTI & Association Service Charge
                 ws.Column(10).Width = 11.5; // Cust. Misc (Compact & Narrow)
+                ws.Column(12).Width = 20.0; // Freight Forwarder NOC (fits cleanly in 2 lines)
             }
 
             using var ms = new MemoryStream();
