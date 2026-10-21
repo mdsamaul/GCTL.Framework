@@ -72,6 +72,7 @@ using GCTL.Service.PortName;
 using GCTL.Service.PortType;
 using GCTL.Service.Relationships;
 using GCTL.Service.Religions;
+using GCTL.Service.RequisitionSummaryReport;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.Services;
 using GCTL.Service.ShipmentMode;
@@ -228,6 +229,7 @@ namespace GCTL.Framework.Extensions
             //services.AddScoped<IJobService, JobService>();
             services.AddScoped<IBillService, BillService>();
             services.AddScoped<IJobBillEntryReportService, JobBillEntryReportService>();
+            services.AddScoped<IRequisitionSummaryReportService, RequisitionSummaryReportService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
             services.AddScoped<ICustomerWiseApprovalRateService, CustomerWiseApprovalRateService>();
 
