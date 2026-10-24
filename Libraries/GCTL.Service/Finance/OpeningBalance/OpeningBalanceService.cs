@@ -152,12 +152,12 @@ namespace GCTL.Service.Finance.OpeningBalance
                 var glDict = new Dictionary<string, string>();
                 try
                 {
-                    var subSubList = await _context.AccSubSubsidiaryLedgers
-                        .Where(s => glCodes.Contains(s.SubSubsidiaryLedgerCodeNo) || glCodes.Contains(s.SubSusidiaryLedgerCodeNo))
+                    var subSubList = await _context.AccSubsidiaryLedgers
+                        .Where(s => glCodes.Contains(s.SubsidiaryLedgerCodeNo) || glCodes.Contains(s.SusidiaryLedgerCodeNo))
                         .AsNoTracking()
                         .Select(s => new { 
-                            Code = s.SubSubsidiaryLedgerCodeNo ?? s.SubSusidiaryLedgerCodeNo, 
-                            Name = s.SubSubsidiaryLedgerName 
+                            Code = s.SubsidiaryLedgerCodeNo ?? s.SusidiaryLedgerCodeNo, 
+                            Name = s.SubsidiaryLedgerName 
                         })
                         .ToListAsync();
 
@@ -300,12 +300,12 @@ namespace GCTL.Service.Finance.OpeningBalance
                 {
                     try
                     {
-                        var subSub = await _context.AccSubSubsidiaryLedgers
+                        var subSub = await _context.AccSubsidiaryLedgers
                             .AsNoTracking()
-                            .FirstOrDefaultAsync(s => s.SubSubsidiaryLedgerCodeNo == record.GeneralLedgerCodeNo || s.SubSusidiaryLedgerCodeNo == record.GeneralLedgerCodeNo);
-                        if (subSub != null && !string.IsNullOrWhiteSpace(subSub.SubSubsidiaryLedgerName))
+                            .FirstOrDefaultAsync(s => s.SubsidiaryLedgerCodeNo == record.GeneralLedgerCodeNo || s.SusidiaryLedgerCodeNo == record.GeneralLedgerCodeNo);
+                        if (subSub != null && !string.IsNullOrWhiteSpace(subSub.SubsidiaryLedgerName))
                         {
-                            glName = subSub.SubSubsidiaryLedgerName;
+                            glName = subSub.SubsidiaryLedgerName;
                         }
                         else
                         {

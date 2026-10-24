@@ -96,6 +96,7 @@ using Microsoft.Extensions.Options;
 using GCTL.Service.GPAnalysisReport;
 using GCTL.Service.OFRReport;
 using GCTL.Service.TrialBalance;
+using GCTL.Service.BillAdjustment;
 
 namespace GCTL.Framework.Extensions
 {
@@ -225,6 +226,7 @@ namespace GCTL.Framework.Extensions
 
             //services.AddScoped<IJobService, JobService>();
             services.AddScoped<IBillService, BillService>();
+            services.AddScoped<IBillAdjustmentService, BillAdjustmentService>();
             services.AddScoped<IJobBillEntryReportService, JobBillEntryReportService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
             services.AddScoped<ICustomerWiseApprovalRateService, CustomerWiseApprovalRateService>();

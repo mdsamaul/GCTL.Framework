@@ -153,7 +153,7 @@ namespace GCTL.Service.Finance.TrialBalance
                 try { groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName); } catch { }
                 try { controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName); } catch { }
                 try { subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName); } catch { }
-                try { subSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo, x => x.SubSubsidiaryLedgerName); } catch { }
+                try { subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName); } catch { }
 
                 var glHierarchy = await _context.AccGeneralLedgers
                     .Where(x => x.IsActive == null || x.IsActive == "1")
@@ -184,7 +184,7 @@ namespace GCTL.Service.Finance.TrialBalance
                             Code = gl.GeneralLedgerCodeNo,
                             Name = gl.GeneralLedgerName,
                             Level = 5,
-                            ParentCode = gl.SubSubsidiaryLedgerCodeNo,
+                            ParentCode = gl.SubsidiaryLedgerCodeNo,
                             OpeningDebit = opDr,
                             OpeningCredit = opCr,
                             PeriodDebit = pDr,
@@ -195,7 +195,7 @@ namespace GCTL.Service.Finance.TrialBalance
                     }
 
                     // Level 4: Sub-Subsidiary Ledger
-                    string l4Code = gl.SubSubsidiaryLedgerCodeNo ?? string.Empty;
+                    string l4Code = gl.SubsidiaryLedgerCodeNo ?? string.Empty;
                     string l4Key = $"L4_{l4Code}";
                     if (!hierarchyMap.ContainsKey(l4Key))
                     {

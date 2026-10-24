@@ -16,7 +16,7 @@ namespace GCTL.Service.VoucherEntry
         private readonly IRepository<AccSubControlLedger> _controlledger;
         private readonly IRepository<AccGeneralLedger> _subcontrolLedger;
         private readonly IRepository<AccSubsidiaryLedger> _subsidiledger;
-        private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
+        private readonly IRepository<AccGeneralLedger> _generalLedger;
         public VoucherDetailsService(
             IRepository<AccVoucherEntryDetailsTemp> genericRepository,
             IRepository<AccVoucherEntryDetailsTemp> repository,
@@ -24,7 +24,7 @@ namespace GCTL.Service.VoucherEntry
             IRepository<AccSubControlLedger> controlledger,
             IRepository<AccGeneralLedger> subcontrolLedger, 
             IRepository<AccSubsidiaryLedger> subsidiledger, 
-            IRepository<AccSubSubsidiaryLedger> generalLedger
+            IRepository<AccGeneralLedger> generalLedger
             ) 
     : base(genericRepository)
         {

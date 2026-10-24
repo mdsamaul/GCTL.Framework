@@ -24,7 +24,7 @@ namespace GCTL.Service.OFRBillAdjust
         private readonly IRepository<Sep_Documentation> _documentation;
         private readonly IRepository<CfDefExpenseHead> _accountsHead;
         private readonly IRepository<Core_ServiceType> _serviceType;
-        private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
+        private readonly IRepository<AccGeneralLedger> _generalLedger;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
 
 
@@ -40,7 +40,7 @@ namespace GCTL.Service.OFRBillAdjust
                 IRepository<CfDefExpenseHead> accountsHead,
                 IRepository<Core_ServiceType> serviceType,
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails,
-                IRepository<AccSubSubsidiaryLedger> generalLedger,
+                IRepository<AccGeneralLedger> generalLedger,
                 IRepository<Sep_Documentation> sepDocumentation
             ) : base(genericRepository)
         {

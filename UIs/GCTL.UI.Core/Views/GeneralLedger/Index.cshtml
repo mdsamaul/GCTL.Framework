@@ -52,13 +52,13 @@
                 </div>
 
                 <div class="coa-form-col">
-                    <label class="coa-form-label" for="GeneralLedger-SubSubsidiarySelect" title="@Html.SmartLocalize("Sub-Subsidiary Ledger *")">
-                        @Html.SmartLocalize("Sub-Subsidiary Ledger *")
+                    <label class="coa-form-label" for="GeneralLedger-SubSubsidiarySelect" title="@Html.SmartLocalize("Sub-Sidiary Ledger *")">
+                        @Html.SmartLocalize("Sub-Sidiary Ledger *")
                     </label>
-                    <select class="form-select form-select-sm custom-select-single" asp-for="SubSubsidiaryLedgerCodeNo" id="GeneralLedger-SubSubsidiarySelect" data-placeholder="@Html.SmartLocalize("Select Sub-Subsidiary")" disabled>
-                        <option value="">-- @Html.SmartLocalize("Select Sub-Subsidiary") --</option>
+                    <select class="form-select form-select-sm custom-select-single" asp-for="SubsidiaryLedgerCodeNo" id="GeneralLedger-SubSubsidiarySelect" data-placeholder="@Html.SmartLocalize("Select Sub-Sidiary")" disabled>
+                        <option value="">-- @Html.SmartLocalize("Select Sub-Sidiary") --</option>
                     </select>
-                    <span asp-validation-for="SubSubsidiaryLedgerCodeNo" class="text-danger small"></span>
+                    <span asp-validation-for="SubsidiaryLedgerCodeNo" class="text-danger small"></span>
                 </div>
             </div>
 
@@ -69,7 +69,7 @@
                         @Html.SmartLocalize("GL Code (auto)")
                     </label>
                     <div class="coa-code-preview" id="GeneralLedgerCodePreview">
-                        <span class="text-muted">@Html.SmartLocalize("Select Sub-Subsidiary first")</span>
+                        <span class="text-muted">@Html.SmartLocalize("Select Sub-Sidiary first")</span>
                     </div>
                     <input type="hidden" asp-for="GeneralLedgerCodeNo" id="GeneralLedgerCodeNo" />
                     <span asp-validation-for="GeneralLedgerCodeNo" class="text-danger small"></span>

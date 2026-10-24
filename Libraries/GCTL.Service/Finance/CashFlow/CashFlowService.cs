@@ -252,10 +252,10 @@ namespace GCTL.Service.Finance.CashFlow
                 .ToListAsync();
 
             var subSubs = new Dictionary<string, string>();
-            try { subSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo, x => x.SubSubsidiaryLedgerName); } catch { }
+            try { subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName); } catch { }
 
             var cashBankGls = allGls.Where(g =>
-                (g.SubSubsidiaryLedgerCodeNo != null && g.SubSubsidiaryLedgerCodeNo.StartsWith("102002")) ||
+                (g.SubsidiaryLedgerCodeNo != null && g.SubsidiaryLedgerCodeNo.StartsWith("102002")) ||
                 g.SubControlLedgerCodeNo == "102002"
             ).ToList();
 
@@ -343,7 +343,7 @@ namespace GCTL.Service.Finance.CashFlow
                     glMap.TryGetValue(accCode, out var glObj);
 
                     string glName = glObj?.GeneralLedgerName ?? accCode;
-                    string subName = (glObj?.SubSubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(glObj.SubSubsidiaryLedgerCodeNo, out var sn)) ? sn : string.Empty;
+                    string subName = (glObj?.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(glObj.SubsidiaryLedgerCodeNo, out var sn)) ? sn : string.Empty;
 
                     string groupNo = glObj?.GroupLedgerCodeNo ?? string.Empty;
                     string ctrlNo = glObj?.ControlLedgerCodeNo ?? string.Empty;

@@ -44,10 +44,10 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 .OrderBy(x => x.SubControlLedgerCodeNo)
                 .ToListAsync();
 
-            var subSubsidiaries = await context.AccSubSubsidiaryLedgers
+            var subsidiaries = await context.AccSubsidiaryLedgers
                 .AsNoTracking()
                 .Where(x => showArchived || x.IsActive == "1" || x.IsActive == null)
-                .OrderBy(x => x.SubSubsidiaryLedgerCodeNo)
+                .OrderBy(x => x.SubsidiaryLedgerCodeNo)
                 .ToListAsync();
 
             var generalLedgers = await context.AccGeneralLedgers
@@ -56,12 +56,12 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 .OrderBy(x => x.GeneralLedgerCodeNo)
                 .ToListAsync();
 
-            // Lookup GL count by SubSubsidiary
-            var glBySSL = generalLedgers
-                .GroupBy(x => x.SubSubsidiaryLedgerCodeNo ?? string.Empty)
+            // Lookup GL count by Subsidiary
+            var glBySL = generalLedgers
+                .GroupBy(x => x.SubsidiaryLedgerCodeNo ?? string.Empty)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            var sslBySCL = subSubsidiaries
+            var slBySCL = subsidiaries
                 .GroupBy(x => x.SubControlLedgerCodeNo ?? string.Empty)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
@@ -115,40 +115,40 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                                     IsActive = sc.IsActive == "1" || sc.IsActive == null
                                 };
 
-                                if (sslBySCL.TryGetValue(sc.SubControlLedgerCodeNo, out var scSubSubs))
+                                if (slBySCL.TryGetValue(sc.SubControlLedgerCodeNo, out var scSubs))
                                 {
-                                    foreach (var ssl in scSubSubs)
+                                    foreach (var sl in scSubs)
                                     {
-                                        var sslCode = ssl.SubSubsidiaryLedgerCodeNo ?? ssl.SubSusidiaryLedgerCodeNo ?? string.Empty;
-                                        var sslNode = new ChartOfAccountsTreeItemVM
+                                        var slCode = sl.SubsidiaryLedgerCodeNo ?? sl.SusidiaryLedgerCodeNo ?? string.Empty;
+                                        var slNode = new ChartOfAccountsTreeItemVM
                                         {
-                                            Code = sslCode,
-                                            Name = ssl.SubSubsidiaryLedgerName,
-                                            ShortName = ssl.ShortName,
+                                            Code = slCode,
+                                            Name = sl.SubsidiaryLedgerName,
+                                            ShortName = sl.ShortName,
                                             Level = 3,
                                             ParentCode = sc.SubControlLedgerCodeNo,
-                                            IsActive = ssl.IsActive == "1" || ssl.IsActive == null
+                                            IsActive = sl.IsActive == "1" || sl.IsActive == null
                                         };
 
-                                        if (glBySSL.TryGetValue(sslCode, out var sslGLs))
+                                        if (glBySL.TryGetValue(slCode, out var slGLs))
                                         {
-                                            foreach (var gl in sslGLs)
+                                            foreach (var gl in slGLs)
                                             {
-                                                sslNode.Children.Add(new ChartOfAccountsTreeItemVM
+                                                slNode.Children.Add(new ChartOfAccountsTreeItemVM
                                                 {
                                                     Code = gl.GeneralLedgerCodeNo,
                                                     Name = gl.GeneralLedgerName,
                                                     ShortName = gl.ShortName,
                                                     Level = 4,
-                                                    ParentCode = sslCode,
+                                                    ParentCode = slCode,
                                                     IsActive = gl.IsActive == "1" || gl.IsActive == null,
                                                     GLCount = 1
                                                 });
                                             }
                                         }
 
-                                        sslNode.GLCount = sslNode.Children.Count;
-                                        scNode.Children.Add(sslNode);
+                                        slNode.GLCount = slNode.Children.Count;
+                                        scNode.Children.Add(slNode);
                                     }
                                 }
 
@@ -209,7 +209,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
             var groupCount = await context.AccGroupLedgers.CountAsync();
             var controlCount = await context.AccControlLedgers.CountAsync();
             var subControlCount = await context.AccSubControlLedgers.CountAsync();
-            var subSubsidiaryCount = await context.AccSubSubsidiaryLedgers.CountAsync();
+            var subsidiaryCount = await context.AccSubsidiaryLedgers.CountAsync();
             var glCount = await context.AccGeneralLedgers.CountAsync();
 
             var groups = await context.AccGroupLedgers
@@ -240,7 +240,8 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 TotalGroups = groupCount,
                 TotalControls = controlCount,
                 TotalSubControls = subControlCount,
-                TotalSubSubsidiaries = subSubsidiaryCount,
+                TotalSubsidiaries = subsidiaryCount,
+                TotalSubSubsidiaries = subsidiaryCount,
                 TotalGeneralLedgers = glCount,
                 GroupStats = groupStats
             };
@@ -256,10 +257,10 @@ namespace GCTL.Service.Finance.ChartOfAccounts
             var groups = await context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
             var controls = await context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
             var subControls = await context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
-            var subSubs = await context.AccSubSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo ?? x.SubSusidiaryLedgerCodeNo ?? string.Empty, x => x.SubSubsidiaryLedgerName);
+            var subsidiaries = await context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo ?? x.SusidiaryLedgerCodeNo ?? string.Empty, x => x.SubsidiaryLedgerName);
 
             var sb = new StringBuilder();
-            sb.AppendLine("GL Code,GL Name,Group,Control,Sub-Control,Sub-Subsidiary,Status");
+            sb.AppendLine("GL Code,GL Name,Group,Control,Sub-Control,Subsidiary,Status");
 
             foreach (var x in gls)
             {
@@ -268,11 +269,11 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 var grp = EscapeCsv(x.GroupLedgerCodeNo != null && groups.TryGetValue(x.GroupLedgerCodeNo, out var gn) ? gn : "");
                 var ctrl = EscapeCsv(x.ControlLedgerCodeNo != null && controls.TryGetValue(x.ControlLedgerCodeNo, out var cn) ? cn : "");
                 var subCtrl = EscapeCsv(x.SubControlLedgerCodeNo != null && subControls.TryGetValue(x.SubControlLedgerCodeNo, out var scn) ? scn : "");
-                var sslCode = x.SubSubsidiaryLedgerCodeNo ?? "";
-                var subSub = EscapeCsv(subSubs.TryGetValue(sslCode, out var ssn) ? ssn : "");
+                var slCode = x.SubsidiaryLedgerCodeNo ?? "";
+                var sub = EscapeCsv(subsidiaries.TryGetValue(slCode, out var sn) ? sn : "");
                 var status = x.IsActive == "1" || x.IsActive == null ? "Active" : "Archived";
 
-                sb.AppendLine($"{glCode},{glName},{grp},{ctrl},{subCtrl},{subSub},{status}");
+                sb.AppendLine($"{glCode},{glName},{grp},{ctrl},{subCtrl},{sub},{status}");
             }
 
             return Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
@@ -419,7 +420,7 @@ Expenses
                 var groups = new List<AccGroupLedger>();
                 var controls = new List<AccControlLedger>();
                 var subControls = new List<AccSubControlLedger>();
-                var subSubsidiaries = new List<AccSubSubsidiaryLedger>();
+                var subsidiaries = new List<AccSubsidiaryLedger>();
                 var generalLedgers = new List<AccGeneralLedger>();
 
                 foreach (var line in lines)
@@ -477,14 +478,14 @@ Expenses
                             });
                             break;
                         case 3:
-                            subSubsidiaries.Add(new AccSubSubsidiaryLedger
+                            subsidiaries.Add(new AccSubsidiaryLedger
                             {
-                                SubSubsidiaryLedgerCodeNo = code,
-                                SubSusidiaryLedgerCodeNo = code,
+                                SubsidiaryLedgerCodeNo = code,
+                                SusidiaryLedgerCodeNo = code,
                                 GroupLedgerCodeNo = stack[0],
                                 ControlLedgerCodeNo = stack[1],
                                 SubControlLedgerCodeNo = stack[2],
-                                SubSubsidiaryLedgerName = name,
+                                SubsidiaryLedgerName = name,
                                 ShortName = name.Length > 20 ? name.Substring(0, 20) : name,
                                 IsActive = "1",
                                 Ldate = DateTime.Now
@@ -497,7 +498,7 @@ Expenses
                                 GroupLedgerCodeNo = stack[0],
                                 ControlLedgerCodeNo = stack[1],
                                 SubControlLedgerCodeNo = stack[2],
-                                SubSubsidiaryLedgerCodeNo = stack[3],
+                                SubsidiaryLedgerCodeNo = stack[3],
                                 GeneralLedgerName = name,
                                 ShortName = name.Length > 20 ? name.Substring(0, 20) : name,
                                 IsActive = "1",
@@ -516,14 +517,14 @@ Expenses
                 await context.AccSubControlLedgers.AddRangeAsync(subControls);
                 await context.SaveChangesAsync();
 
-                await context.AccSubSubsidiaryLedgers.AddRangeAsync(subSubsidiaries);
+                await context.AccSubsidiaryLedgers.AddRangeAsync(subsidiaries);
                 await context.SaveChangesAsync();
 
                 await context.AccGeneralLedgers.AddRangeAsync(generalLedgers);
                 await context.SaveChangesAsync();
 
                 res.Success = true;
-                res.Message = $"Default Chart of Accounts seeded successfully with {groups.Count} Groups, {controls.Count} Controls, {subControls.Count} Sub-Controls, {subSubsidiaries.Count} Sub-Subsidiaries, and {generalLedgers.Count} General Ledgers.";
+                res.Message = $"Default Chart of Accounts seeded successfully with {groups.Count} Groups, {controls.Count} Controls, {subControls.Count} Sub-Controls, {subsidiaries.Count} Subsidiaries, and {generalLedgers.Count} General Ledgers.";
             }
             catch (Exception ex)
             {

@@ -8,7 +8,7 @@
 
         public string SubSusidiaryLedgerCodeNo { get; set; }
 
-        public string SubSubsidiaryLedgerName { get; set; }
+        public string SubsidiaryLedgerName { get; set; }
 
         public string? ShortName { get; set; }
 

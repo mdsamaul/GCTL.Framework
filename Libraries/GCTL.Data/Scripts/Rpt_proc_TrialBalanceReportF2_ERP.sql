@@ -144,7 +144,7 @@ BEGIN
         CASE WHEN (rl.InitOp + rl.PerDr - rl.PerCr) > 0 THEN  (rl.InitOp + rl.PerDr - rl.PerCr) ELSE 0 END,
         CASE WHEN (rl.InitOp + rl.PerDr - rl.PerCr) < 0 THEN -(rl.InitOp + rl.PerDr - rl.PerCr) ELSE 0 END
     FROM #RawLeaves rl
-    LEFT JOIN dbo.Acc_SubSubsidiaryLedger ssl ON ssl.SubSubsidiaryLedgerCodeNo = rl.AccCode
+    LEFT JOIN dbo.Acc_SubSubsidiaryLedger ssl ON ssl.SubsidiaryLedgerCodeNo = rl.AccCode
     LEFT JOIN dbo.Acc_GeneralLedger gl       ON gl.GeneralLedgerCodeNo        = rl.AccCode
     WHERE rl.InitOp <> 0 OR rl.PerDr <> 0 OR rl.PerCr <> 0;
 
@@ -196,7 +196,7 @@ BEGIN
     SELECT DISTINCT
         SubCode,
         COALESCE(sc.SubControlLedgerName,
-                 (SELECT TOP 1 ssl.SubSubsidiaryLedgerName FROM dbo.Acc_SubSubsidiaryLedger ssl WHERE ssl.SubSubsidiaryLedgerCodeNo LIKE l.SubCode + '%' AND ssl.SubSubsidiaryLedgerName IS NOT NULL),
+                 (SELECT TOP 1 ssl.SubSubsidiaryLedgerName FROM dbo.Acc_SubSubsidiaryLedger ssl WHERE ssl.SubsidiaryLedgerCodeNo LIKE l.SubCode + '%' AND ssl.SubSubsidiaryLedgerName IS NOT NULL),
                  N'Sub-Control ' + SubCode)
     FROM #Leaf l
     LEFT JOIN dbo.Acc_SubControlLedger sc ON sc.SubControlLedgerCodeNo = l.SubCode;
@@ -207,10 +207,10 @@ BEGIN
     SELECT DISTINCT
         SubSubCode,
         COALESCE(ssl4.SubSubsidiaryLedgerName,
-                 (SELECT TOP 1 ssl.SubSubsidiaryLedgerName FROM dbo.Acc_SubSubsidiaryLedger ssl WHERE ssl.SubSubsidiaryLedgerCodeNo LIKE l.SubSubCode + '%' AND ssl.SubSubsidiaryLedgerName IS NOT NULL),
+                 (SELECT TOP 1 ssl.SubSubsidiaryLedgerName FROM dbo.Acc_SubSubsidiaryLedger ssl WHERE ssl.SubsidiaryLedgerCodeNo LIKE l.SubSubCode + '%' AND ssl.SubSubsidiaryLedgerName IS NOT NULL),
                  N'Sub-Subsidiary ' + SubSubCode)
     FROM #Leaf l
-    LEFT JOIN dbo.Acc_SubSubsidiaryLedger ssl4 ON ssl4.SubSubsidiaryLedgerCodeNo = l.SubSubCode;
+    LEFT JOIN dbo.Acc_SubSubsidiaryLedger ssl4 ON ssl4.SubsidiaryLedgerCodeNo = l.SubSubCode;
 
     ------------------------------------------------------------------
     -- 6. Hierarchical Roll-Up (Sum of Children Guarantees 100% Balance)

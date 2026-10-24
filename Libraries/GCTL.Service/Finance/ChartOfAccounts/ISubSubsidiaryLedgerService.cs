@@ -9,7 +9,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
 {
     public interface ISubSubsidiaryLedgerService
     {
-        Task<PaginationService<AccSubSubsidiaryLedger, GetAllSubSubsidiaryLedgerVM>.PaginationResult<GetAllSubSubsidiaryLedgerVM>> GetAllAsync(
+        Task<PaginationService<AccSubsidiaryLedger, GetAllSubSubsidiaryLedgerVM>.PaginationResult<GetAllSubSubsidiaryLedgerVM>> GetAllAsync(
             int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "", string currentSortOrder = "", string? subControlCode = null, string? controlCode = null, string? groupCode = null, bool showArchived = false);
 
         Task<CommonReturnViewModel> GetByIdAsync(string code);

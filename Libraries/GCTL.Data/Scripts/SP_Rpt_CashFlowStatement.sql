@@ -32,7 +32,7 @@ BEGIN
     SELECT gl.GeneralLedgerCodeNo
     FROM dbo.Acc_GeneralLedger gl
     WHERE gl.SubControlLedgerCodeNo = '102002' 
-       OR gl.SubSubsidiaryLedgerCodeNo LIKE '102002%';
+       OR gl.SubsidiaryLedgerCodeNo LIKE '102002%';
 
     ------------------------------------------------------------------------------------------
     -- 2. Calculate Opening Cash & Bank Balance before @FromDate
@@ -151,7 +151,7 @@ BEGIN
     INNER JOIN #CashInvolvingVouchers civ ON vd.VoucherEntryCodeNo = civ.VoucherEntryCodeNo
     LEFT JOIN #CashBankLedgers cbl ON vd.AccCode = cbl.GeneralLedgerCodeNo
     INNER JOIN dbo.Acc_GeneralLedger gl ON vd.AccCode = gl.GeneralLedgerCodeNo
-    LEFT JOIN dbo.Acc_SubSubsidiaryLedger ssl ON gl.SubSubsidiaryLedgerCodeNo = ssl.SubSubsidiaryLedgerCodeNo
+    LEFT JOIN dbo.Acc_SubSubsidiaryLedger ssl ON gl.SubsidiaryLedgerCodeNo = ssl.SubsidiaryLedgerCodeNo
     WHERE cbl.GeneralLedgerCodeNo IS NULL -- Skip Cash/Bank accounts themselves
     GROUP BY 
         gl.ControlLedgerCodeNo,

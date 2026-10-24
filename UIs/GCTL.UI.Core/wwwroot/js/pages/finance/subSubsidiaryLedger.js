@@ -161,7 +161,7 @@ $(document).ready(function () {
     // Top Dropdowns Cascade & Filter Grid!
     $('#SubSubsidiaryLedger-GroupSelect').on('change', function () {
         const groupCode = $(this).val();
-        $('#SubSubsidiaryLedgerCodeNo').val('');
+        $('#SubsidiaryLedgerCodeNo').val('');
         $('#SubSubsidiaryLedgerCodePreview').html('<span class="text-muted">Select Sub-Control first</span>');
         if (window.choiceManager) {
             window.choiceManager.populateDropdown('SubSubsidiaryLedger-SubControlSelect', [], { placeholder: '-- Select Sub-Control --' });
@@ -178,7 +178,7 @@ $(document).ready(function () {
 
     $('#SubSubsidiaryLedger-ControlSelect').on('change', function () {
         const controlCode = $(this).val();
-        $('#SubSubsidiaryLedgerCodeNo').val('');
+        $('#SubsidiaryLedgerCodeNo').val('');
         $('#SubSubsidiaryLedgerCodePreview').html('<span class="text-muted">Select Sub-Control first</span>');
 
         loadSubControls(controlCode, '#SubSubsidiaryLedger-SubControlSelect').then(() => {
@@ -192,12 +192,12 @@ $(document).ready(function () {
 
         if ($('#SubSubsidiaryLedger-isEdit').val() !== '1') {
             if (!subControlCode) {
-                $('#SubSubsidiaryLedgerCodeNo').val('');
+                $('#SubsidiaryLedgerCodeNo').val('');
                 $('#SubSubsidiaryLedgerCodePreview').html('<span class="text-muted">Select Sub-Control first</span>');
             } else {
                 $.get(`/SubSubsidiaryLedger/GetNextCode?subControlCode=${encodeURIComponent(subControlCode)}`, function (res) {
                     if (res && res.success) {
-                        $('#SubSubsidiaryLedgerCodeNo').val(res.code);
+                        $('#SubsidiaryLedgerCodeNo').val(res.code);
                         $('#SubSubsidiaryLedgerCodePreview').html(seg(res.code));
                     }
                 });
@@ -253,9 +253,9 @@ $(document).ready(function () {
         }
         setChoiceDisabled('SubSubsidiaryLedger-ControlSelect', true);
         setChoiceDisabled('SubSubsidiaryLedger-SubControlSelect', true);
-        $('#SubSubsidiaryLedgerCodeNo').val('');
+        $('#SubsidiaryLedgerCodeNo').val('');
         $('#SubSubsidiaryLedgerCodePreview').html('<span class="text-muted">Select Sub-Control first</span>');
-        $('#SubSubsidiaryLedger-formTitle').text('Sub-Subsidiary Ledger: new entry');
+        $('#SubSubsidiaryLedger-formTitle').text('Sub-Sidiary Ledger: new entry');
         $('#SubSubsidiaryLedger-saveBtn').text('Save');
         $('#SubSubsidiaryLedger-form').find('.text-danger').text('');
         currentPage = 1;
@@ -306,8 +306,8 @@ $(document).ready(function () {
         // Validation: Required Name
         const nameVal = $('#SubSubsidiaryLedgerName').val() ? $('#SubSubsidiaryLedgerName').val().trim() : '';
         if (!nameVal) {
-            form.find('[data-valmsg-for="SubSubsidiaryLedgerName"]').text('Please enter Sub-Subsidiary Name');
-            if (typeof toastr !== 'undefined') toastr.warning('Please enter Sub-Subsidiary Name');
+            form.find('[data-valmsg-for="SubSubsidiaryLedgerName"]').text('Please enter Sub-Sidiary Name');
+            if (typeof toastr !== 'undefined') toastr.warning('Please enter Sub-Sidiary Name');
             $('#SubSubsidiaryLedgerName').focus();
             return false;
         }
@@ -352,7 +352,7 @@ $(document).ready(function () {
     // Edit
     $(document).on('click', '.SubSubsidiaryLedgerEditBtn', async function (e) {
         e.preventDefault();
-        const code = $(this).data('code');
+        const code = $(this).data('code') || $(this).attr('data-code');
         if (!code) return;
 
         try {
@@ -362,8 +362,8 @@ $(document).ready(function () {
                 const grpCode = item.groupLedgerCodeNo || item.GroupLedgerCodeNo;
                 const ctrlCode = item.controlLedgerCodeNo || item.ControlLedgerCodeNo;
                 const subCtrlCode = item.subControlLedgerCodeNo || item.SubControlLedgerCodeNo;
-                const sslCode = item.subSubsidiaryLedgerCodeNo || item.SubSubsidiaryLedgerCodeNo;
-                const sslName = item.subSubsidiaryLedgerName || item.SubSubsidiaryLedgerName;
+                const sslCode = item.subsidiaryLedgerCodeNo || item.subSidiaryLedgerCodeNo || item.subSubsidiaryLedgerCodeNo || item.susidiaryLedgerCodeNo || item.SubsidiaryLedgerCodeNo || item.SubSidiaryLedgerCodeNo || code;
+                const sslName = item.subSidiaryLedgerName || item.subsidiaryLedgerName || item.subSubsidiaryLedgerName || item.SubSubsidiaryLedgerName || item.SubsidiaryLedgerName || '';
                 const shortName = item.shortName || item.ShortName || '';
                 const isActive = item.isActive ?? item.IsActive ?? true;
 
@@ -377,27 +377,27 @@ $(document).ready(function () {
                 await loadSubControls(ctrlCode, '#SubSubsidiaryLedger-SubControlSelect', subCtrlCode);
                 setChoiceDisabled('SubSubsidiaryLedger-SubControlSelect', true);
 
-                $('#SubSubsidiaryLedgerCodeNo').val(sslCode);
+                $('#SubsidiaryLedgerCodeNo').val(sslCode);
                 $('#SubSubsidiaryLedgerCodePreview').html(seg(sslCode));
                 $('#SubSubsidiaryLedgerName').val(sslName);
                 $('#ShortName').val(shortName);
                 $('#IsActive').prop('checked', isActive);
 
-                $('#SubSubsidiaryLedger-formTitle').text(`Sub-Subsidiary Ledger: editing ${sslCode}`);
+                $('#SubSubsidiaryLedger-formTitle').text(`Sub-Sidiary Ledger: editing ${sslCode}`);
                 $('#SubSubsidiaryLedger-saveBtn').text('Update');
                 $('html, body').animate({ scrollTop: $('#SubSubsidiaryLedger-form').offset().top - 80 }, 'fast');
             } else {
                 if (typeof toastr !== 'undefined') toastr.warning(res.message || "Data not found.");
             }
         } catch (error) {
-            if (typeof toastr !== 'undefined') toastr.error("Failed to fetch sub-subsidiary details.");
+            if (typeof toastr !== 'undefined') toastr.error("Failed to fetch sub-sidiary details.");
         }
     });
 
     // Archive / Restore
     $(document).on('click', '.SubSubsidiaryLedgerArchiveBtn', function (e) {
         e.preventDefault();
-        const code = $(this).data('code');
+        const code = $(this).data('code') || $(this).attr('data-code');
         const isArchived = $(this).data('archived') === true || $(this).data('archived') === 'true';
 
         $.ajax({
@@ -422,7 +422,7 @@ $(document).ready(function () {
     // Delete single
     $(document).on('click', '.SubSubsidiaryLedgerDeleteBtn', function (e) {
         e.preventDefault();
-        const code = $(this).data('code');
+        const code = $(this).data('code') || $(this).attr('data-code');
         if (!code) return;
 
         if (!confirm(`Delete ledger ${code}?`)) return;
@@ -540,8 +540,12 @@ $(document).ready(function () {
 
                 if (response.data && response.data.length > 0) {
                     response.data.forEach(function (item) {
-                        const codeHtml = seg(item.subSubsidiaryLedgerCodeNo);
-                        const isAr = !item.isActive;
+                        const code = item.subsidiaryLedgerCodeNo || item.subSidiaryLedgerCodeNo || item.subSubsidiaryLedgerCodeNo || item.susidiaryLedgerCodeNo || item.SubsidiaryLedgerCodeNo || item.SubSidiaryLedgerCodeNo || item.code || '';
+                        const name = item.subSidiaryLedgerName || item.subsidiaryLedgerName || item.subSubsidiaryLedgerName || item.SubSubsidiaryLedgerName || item.SubsidiaryLedgerName || item.name || '';
+                        const shortName = item.shortName || item.ShortName || '-';
+                        const hierPath = item.hierarchyPath || item.HierarchyPath || '';
+                        const codeHtml = seg(code);
+                        const isAr = item.isActive === false || item.IsActive === false;
                         const rowClass = isAr ? 'ar' : '';
                         const statusBadge = `<span class="coa-bd ${isAr ? 'off' : 'on'}">${isAr ? 'Archived' : 'Active'}</span>`;
                         const archiveActionText = isAr ? 'Restore' : 'Archive';
@@ -549,14 +553,14 @@ $(document).ready(function () {
                         tableBody.append(`
                             <tr class="${rowClass}">
                                 <td class="text-center">${codeHtml}</td>
-                                <td>${esc(item.subSubsidiaryLedgerName)}</td>
-                                <td class="text-center">${esc(item.shortName || '-')}</td>
-                                <td><span class="coa-pa">${esc(item.hierarchyPath)}</span></td>
+                                <td>${esc(name)}</td>
+                                <td class="text-center">${esc(shortName)}</td>
+                                <td><span class="coa-pa">${esc(hierPath)}</span></td>
                                 <td class="text-center">${statusBadge}</td>
                                 <td class="coa-ac text-center">
-                                    <a href="#" class="SubSubsidiaryLedgerEditBtn" data-code="${esc(item.subSubsidiaryLedgerCodeNo)}">Edit</a>
-                                    <a href="#" class="SubSubsidiaryLedgerArchiveBtn" data-code="${esc(item.subSubsidiaryLedgerCodeNo)}" data-archived="${isAr}">${archiveActionText}</a>
-                                    <a href="#" class="SubSubsidiaryLedgerDeleteBtn dl" data-code="${esc(item.subSubsidiaryLedgerCodeNo)}">Delete</a>
+                                    <a href="#" class="SubSubsidiaryLedgerEditBtn" data-code="${esc(code)}">Edit</a>
+                                    <a href="#" class="SubSubsidiaryLedgerArchiveBtn" data-code="${esc(code)}" data-archived="${isAr}">${archiveActionText}</a>
+                                    <a href="#" class="SubSubsidiaryLedgerDeleteBtn dl" data-code="${esc(code)}">Delete</a>
                                 </td>
                             </tr>
                         `);

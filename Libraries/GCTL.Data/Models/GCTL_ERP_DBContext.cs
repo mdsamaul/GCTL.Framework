@@ -619,7 +619,7 @@ public partial class GCTL_ERP_DBContext : DbContext
             entity.Property(e => e.SubControlLedgerCodeNo)
                 .IsRequired()
                 .HasMaxLength(50);
-            entity.Property(e => e.SubSubsidiaryLedgerCodeNo)
+            entity.Property(e => e.SubsidiaryLedgerCodeNo)
                 .IsRequired()
                 .HasMaxLength(50);
             entity.Property(e => e.TrType)

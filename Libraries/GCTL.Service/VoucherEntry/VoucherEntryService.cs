@@ -21,7 +21,7 @@ namespace GCTL.Service.VoucherEntry
         private readonly IRepository<AccVoucherType> _voucherType;
         private readonly IRepository<AccVoucherEntryDetailsTemp> _tmpDetails;
         private readonly IRepository<AccVoucherEntryDetail> _voucherDetails;
-        private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger;
+        private readonly IRepository<AccGeneralLedger> _generalLedger;
         private readonly IRepository<CoreBranch> _branch;
 
         public VoucherEntryService(
@@ -29,7 +29,7 @@ namespace GCTL.Service.VoucherEntry
             IRepository<AccVoucherType> voucherType,
             IRepository<AccVoucherEntryDetailsTemp> tmpDetails,
             IRepository<AccVoucherEntryDetail> voucherDetails,
-            IRepository<AccSubSubsidiaryLedger> generalLedger,
+            IRepository<AccGeneralLedger> generalLedger,
             IRepository<CoreBranch> branch
             ) 
             

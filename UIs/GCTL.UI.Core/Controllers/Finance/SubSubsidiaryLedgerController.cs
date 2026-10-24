@@ -90,7 +90,7 @@ namespace GCTL.UI.Core.Controllers.Finance
         [HttpPost]
         public async Task<IActionResult> Update(SubSubsidiaryLedgerAddVM model)
         {
-            if (model == null || string.IsNullOrWhiteSpace(model.SubSubsidiaryLedgerCodeNo))
+            if (model == null || string.IsNullOrWhiteSpace(model.SubsidiaryLedgerCodeNo))
                 return Json(new { success = false, message = "Invalid data." });
 
             if (string.IsNullOrWhiteSpace(model.SubSubsidiaryLedgerName))

@@ -21,7 +21,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
         private readonly ICommonService commonService;
         private readonly IDeleteHistoryService deleteHistoryService;
         private readonly IRepository<AccSubsidiaryLedger> subLedgerRepo;
-        private readonly IRepository<AccSubSubsidiaryLedger> subSubLedgerRepo;
+        private readonly IRepository<AccGeneralLedger> subSubLedgerRepo;
         private readonly IRepository<CoreAccessCode> accessCodeRepository;
 
         string strMaxNO = string.Empty;
@@ -34,7 +34,7 @@ namespace GCTL.Service.ShipmentModeLedgerSetup
              ICommonService commonService,
             IDeleteHistoryService deleteHistoryService,
             IRepository<AccSubsidiaryLedger> subLedgerRepo,
-            IRepository<AccSubSubsidiaryLedger> subSubLedgerRepo
+            IRepository<AccGeneralLedger> subSubLedgerRepo
 
             )
     : base(shipmentModeLedgerrepository)

@@ -6,7 +6,7 @@
     <!-- Setup Form Card -->
     <div class="coa-card">
         <div class="coa-ch" id="SubSubsidiaryLedger-formTitle">
-            @Html.SmartLocalize("Sub-Subsidiary Ledger: new entry")
+            @Html.SmartLocalize("Sub-Sidiary Ledger: new entry")
         </div>
 
         <form id="SubSubsidiaryLedger-form">
@@ -52,24 +52,24 @@
                 </div>
             </div>
 
-            <!-- Row 2: Sub-Subsidiary Ledger Entry Fields (Single line within equal columns) -->
+            <!-- Row 2: Sub-Sidiary Ledger Entry Fields (Single line within equal columns) -->
             <div class="coa-entry-row">
                 <div class="coa-form-col">
-                    <label class="coa-form-label" title="@Html.SmartLocalize("SSL Code (auto)")">
-                        @Html.SmartLocalize("SSL Code (auto)")
+                    <label class="coa-form-label" title="@Html.SmartLocalize("Sub-Sidiary Code (auto)")">
+                        @Html.SmartLocalize("Sub-Sidiary Code (auto)")
                     </label>
                     <div class="coa-code-preview" id="SubSubsidiaryLedgerCodePreview">
                         <span class="text-muted">@Html.SmartLocalize("Select Sub-Control first")</span>
                     </div>
-                    <input type="hidden" asp-for="SubSubsidiaryLedgerCodeNo" id="SubSubsidiaryLedgerCodeNo" />
-                    <span asp-validation-for="SubSubsidiaryLedgerCodeNo" class="text-danger small"></span>
+                    <input type="hidden" asp-for="SubsidiaryLedgerCodeNo" id="SubsidiaryLedgerCodeNo" />
+                    <span asp-validation-for="SubsidiaryLedgerCodeNo" class="text-danger small"></span>
                 </div>
 
                 <div class="coa-form-col">
-                    <label class="coa-form-label" for="SubSubsidiaryLedgerName" title="@Html.SmartLocalize("Sub-Subsidiary Name *")">
-                        @Html.SmartLocalize("Sub-Subsidiary Name *")
+                    <label class="coa-form-label" for="SubSubsidiaryLedgerName" title="@Html.SmartLocalize("Sub-Sidiary Name *")">
+                        @Html.SmartLocalize("Sub-Sidiary Name *")
                     </label>
-                    <input type="text" class="coa-form-control" asp-for="SubSubsidiaryLedgerName" id="SubSubsidiaryLedgerName" placeholder="@Html.SmartLocalize("Enter Sub-Subsidiary name")" />
+                    <input type="text" class="coa-form-control" asp-for="SubSubsidiaryLedgerName" id="SubSubsidiaryLedgerName" placeholder="@Html.SmartLocalize("Enter Sub-Sidiary name")" />
                     <span asp-validation-for="SubSubsidiaryLedgerName" class="text-danger small"></span>
                 </div>
 

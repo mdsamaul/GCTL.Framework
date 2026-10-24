@@ -62,7 +62,7 @@
         <span><i class="s0"></i>@Html.SmartLocalize("Group Ledger 1 digit")</span>
         <span><i class="s1"></i>@Html.SmartLocalize("Control Ledger 2 digits")</span>
         <span><i class="s2"></i>@Html.SmartLocalize("Sub-Control Ledger 3 digits")</span>
-        <span><i class="s3"></i>@Html.SmartLocalize("Sub-Subsidiary Ledger 5 digits")</span>
+        <span><i class="s3"></i>@Html.SmartLocalize("Sub-Sidiary Ledger 5 digits")</span>
         <span><i class="s4"></i>@Html.SmartLocalize("General Ledger 5 digits")</span>
         <span>@Html.SmartLocalize("General ledger code = 16 digits")</span>
     </div>
@@ -114,7 +114,7 @@
                href="@Url.Action("Index", "SubSubsidiaryLedger")"
                role="tab"
                aria-selected="@(Model == "SubSubsidiaryLedger" ? "true" : "false")">
-                <i class="fas fa-book me-1"></i> @Html.SmartLocalize("Sub-Subsidiary Ledger")
+                <i class="fas fa-book me-1"></i> @Html.SmartLocalize("Sub-Sidiary Ledger")
                 <span class="badge coa-tab-badge ms-1" id="tab-cnt-ssl">@(stats?.TotalSubSubsidiaries ?? 0)</span>
             </a>
         </li>

@@ -164,9 +164,9 @@ $(document).ready(function () {
         const select = $(targetSelectId);
 
         if (!subControlCode) {
-            select.empty().append('<option value="">-- Select Sub-Subsidiary --</option>');
+            select.empty().append('<option value="">-- Select Sub-Sidiary --</option>');
             if (window.choiceManager) {
-                window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Sub-Subsidiary --' });
+                window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Sub-Sidiary --' });
             }
             if (typeof window.reinitCustomDropdownById === 'function') {
                 window.reinitCustomDropdownById(rawId);
@@ -176,7 +176,7 @@ $(document).ready(function () {
         }
 
         return $.get(`/SubSubsidiaryLedger/GetDropdown?subControlCode=${encodeURIComponent(subControlCode)}`, function (items) {
-            select.empty().append('<option value="">-- Select Sub-Subsidiary --</option>');
+            select.empty().append('<option value="">-- Select Sub-Sidiary --</option>');
             if (items && items.length > 0) {
                 items.forEach(function (c) {
                     select.append(`<option value="${esc(c.code)}">${esc(c.displayText)}</option>`);
@@ -185,7 +185,7 @@ $(document).ready(function () {
                     window.choiceManager.populateDropdown(rawId, items, {
                         labelKey: 'displayText',
                         valueKey: 'code',
-                        placeholder: '-- Select Sub-Subsidiary --'
+                        placeholder: '-- Select Sub-Sidiary --'
                     });
                 }
                 if (typeof window.reinitCustomDropdownById === 'function') {
@@ -195,7 +195,7 @@ $(document).ready(function () {
                 if (selectedVal) setChoiceVal(rawId, selectedVal);
             } else {
                 if (window.choiceManager) {
-                    window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Sub-Subsidiary --' });
+                    window.choiceManager.populateDropdown(rawId, [], { placeholder: '-- Select Sub-Sidiary --' });
                 }
                 if (typeof window.reinitCustomDropdownById === 'function') {
                     window.reinitCustomDropdownById(rawId);
@@ -209,13 +209,13 @@ $(document).ready(function () {
     $('#GeneralLedger-GroupSelect').on('change', function () {
         const groupCode = $(this).val();
         $('#GeneralLedgerCodeNo').val('');
-        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Subsidiary first</span>');
+        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Sidiary first</span>');
         if (window.choiceManager) {
             window.choiceManager.populateDropdown('GeneralLedger-SubControlSelect', [], { placeholder: '-- Select Sub-Control --' });
-            window.choiceManager.populateDropdown('GeneralLedger-SubSubsidiarySelect', [], { placeholder: '-- Select Sub-Subsidiary --' });
+            window.choiceManager.populateDropdown('GeneralLedger-SubSubsidiarySelect', [], { placeholder: '-- Select Sub-Sidiary --' });
         } else {
             $('#GeneralLedger-SubControlSelect').empty().append('<option value="">-- Select Sub-Control --</option>');
-            $('#GeneralLedger-SubSubsidiarySelect').empty().append('<option value="">-- Select Sub-Subsidiary --</option>');
+            $('#GeneralLedger-SubSubsidiarySelect').empty().append('<option value="">-- Select Sub-Sidiary --</option>');
         }
         setChoiceDisabled('GeneralLedger-SubControlSelect', true);
         setChoiceDisabled('GeneralLedger-SubSubsidiarySelect', true);
@@ -229,11 +229,11 @@ $(document).ready(function () {
     $('#GeneralLedger-ControlSelect').on('change', function () {
         const controlCode = $(this).val();
         $('#GeneralLedgerCodeNo').val('');
-        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Subsidiary first</span>');
+        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Sidiary first</span>');
         if (window.choiceManager) {
-            window.choiceManager.populateDropdown('GeneralLedger-SubSubsidiarySelect', [], { placeholder: '-- Select Sub-Subsidiary --' });
+            window.choiceManager.populateDropdown('GeneralLedger-SubSubsidiarySelect', [], { placeholder: '-- Select Sub-Sidiary --' });
         } else {
-            $('#GeneralLedger-SubSubsidiarySelect').empty().append('<option value="">-- Select Sub-Subsidiary --</option>');
+            $('#GeneralLedger-SubSubsidiarySelect').empty().append('<option value="">-- Select Sub-Sidiary --</option>');
         }
         setChoiceDisabled('GeneralLedger-SubSubsidiarySelect', true);
 
@@ -246,7 +246,7 @@ $(document).ready(function () {
     $('#GeneralLedger-SubControlSelect').on('change', function () {
         const subControlCode = $(this).val();
         $('#GeneralLedgerCodeNo').val('');
-        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Subsidiary first</span>');
+        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Sidiary first</span>');
 
         loadSubSubsidiaries(subControlCode, '#GeneralLedger-SubSubsidiarySelect').then(() => {
             currentPage = 1;
@@ -260,7 +260,7 @@ $(document).ready(function () {
         if ($('#GeneralLedger-isEdit').val() !== '1') {
             if (!subSubCode) {
                 $('#GeneralLedgerCodeNo').val('');
-                $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Subsidiary first</span>');
+                $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Sidiary first</span>');
             } else {
                 $.get(`/GeneralLedger/GetNextCode?subSubsidiaryCode=${encodeURIComponent(subSubCode)}`, function (res) {
                     if (res && res.success) {
@@ -310,11 +310,11 @@ $(document).ready(function () {
         if (window.choiceManager) {
             window.choiceManager.populateDropdown('GeneralLedger-ControlSelect', [], { placeholder: '-- Select Control Ledger --' });
             window.choiceManager.populateDropdown('GeneralLedger-SubControlSelect', [], { placeholder: '-- Select Sub-Control --' });
-            window.choiceManager.populateDropdown('GeneralLedger-SubSubsidiarySelect', [], { placeholder: '-- Select Sub-Subsidiary --' });
+            window.choiceManager.populateDropdown('GeneralLedger-SubSubsidiarySelect', [], { placeholder: '-- Select Sub-Sidiary --' });
         } else {
             $('#GeneralLedger-ControlSelect').empty().append('<option value="">-- Select Control Ledger --</option>');
             $('#GeneralLedger-SubControlSelect').empty().append('<option value="">-- Select Sub-Control --</option>');
-            $('#GeneralLedger-SubSubsidiarySelect').empty().append('<option value="">-- Select Sub-Subsidiary --</option>');
+            $('#GeneralLedger-SubSubsidiarySelect').empty().append('<option value="">-- Select Sub-Sidiary --</option>');
         }
         if (typeof window.reinitCustomDropdownById === 'function') {
             window.reinitCustomDropdownById('GeneralLedger-ControlSelect');
@@ -325,7 +325,7 @@ $(document).ready(function () {
         setChoiceDisabled('GeneralLedger-SubControlSelect', true);
         setChoiceDisabled('GeneralLedger-SubSubsidiarySelect', true);
         $('#GeneralLedgerCodeNo').val('');
-        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Subsidiary first</span>');
+        $('#GeneralLedgerCodePreview').html('<span class="text-muted">Select Sub-Sidiary first</span>');
         $('#GeneralLedger-formTitle').text('General Ledger: new entry');
         $('#GeneralLedger-saveBtn').text('Save');
         $('#GeneralLedger-form').find('.text-danger').text('');
@@ -374,11 +374,11 @@ $(document).ready(function () {
             return false;
         }
 
-        // Validation: Required Sub-Subsidiary Dropdown
+        // Validation: Required Sub-Sidiary Dropdown
         const subSubCode = $('#GeneralLedger-SubSubsidiarySelect').val();
         if (!subSubCode) {
-            form.find('[data-valmsg-for="SubSubsidiaryLedgerCodeNo"]').text('Please select Sub-Subsidiary Ledger');
-            if (typeof toastr !== 'undefined') toastr.warning('Please select Sub-Subsidiary Ledger');
+            form.find('[data-valmsg-for="SubsidiaryLedgerCodeNo"]').text('Please select Sub-Sidiary Ledger');
+            if (typeof toastr !== 'undefined') toastr.warning('Please select Sub-Sidiary Ledger');
             openDropdown('GeneralLedger-SubSubsidiarySelect');
             return false;
         }
@@ -444,7 +444,7 @@ $(document).ready(function () {
                 const grpCode = item.groupLedgerCodeNo || item.GroupLedgerCodeNo;
                 const ctrlCode = item.controlLedgerCodeNo || item.ControlLedgerCodeNo;
                 const subCtrlCode = item.subControlLedgerCodeNo || item.SubControlLedgerCodeNo;
-                const sslCode = item.subSubsidiaryLedgerCodeNo || item.SubSubsidiaryLedgerCodeNo;
+                const sslCode = item.SubsidiaryLedgerCodeNo || item.SubsidiaryLedgerCodeNo;
                 const glCode = item.generalLedgerCodeNo || item.GeneralLedgerCodeNo;
                 const glName = item.generalLedgerName || item.GeneralLedgerName;
                 const shortName = item.shortName || item.ShortName || '';

@@ -10,16 +10,16 @@ using System.Net.Sockets;
 
 namespace GCTL.Service.ChartOfAccounts.GeneralLedger
 {
-    public class GeneralLedgerService : AppService<AccSubSubsidiaryLedger>, IGeneralLedger
+    public class GeneralLedgerService : AppService<AccGeneralLedger>, IGeneralLedger
     {
         private readonly IRepository<AccControlLedger> _groupLedger;
         private readonly IRepository<AccSubControlLedger> _controlLedger;
         private readonly IRepository<AccGeneralLedger> _subcontrolLedger;
         private readonly IRepository<AccSubsidiaryLedger> _subsidiaryLedger;
-        private readonly IRepository<AccSubSubsidiaryLedger> _repository;
+        private readonly IRepository<AccGeneralLedger> _repository;
         private readonly IRepository<AccCashFlowType> _cashFlow;
 
-        public GeneralLedgerService(IRepository<AccSubSubsidiaryLedger> genericRepository, IRepository<AccGeneralLedger> subcontrolLedger, IRepository<AccSubControlLedger> controlLedger, IRepository<AccControlLedger> groupLedger, IRepository<AccSubsidiaryLedger> subsidiaryLedger, IRepository<AccCashFlowType> cashFlow) : base(genericRepository)
+        public GeneralLedgerService(IRepository<AccGeneralLedger> genericRepository, IRepository<AccGeneralLedger> subcontrolLedger, IRepository<AccSubControlLedger> controlLedger, IRepository<AccControlLedger> groupLedger, IRepository<AccSubsidiaryLedger> subsidiaryLedger, IRepository<AccCashFlowType> cashFlow) : base(genericRepository)
         {
             _subsidiaryLedger = subsidiaryLedger;
             _controlLedger = controlLedger;
@@ -87,7 +87,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
 
         public async Task<List<GeneralLedgerVM>> GetAllAsync(string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "", string subSididaryLedger = "")
         {
-            IQueryable<AccSubSubsidiaryLedger> generalQuery;
+            IQueryable<AccGeneralLedger> generalQuery;
 
             if (string.IsNullOrEmpty(groupLedgerCode) &&
                 string.IsNullOrEmpty(controlLedgerCode) &&
@@ -134,8 +134,8 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
             var result = entity.Select(model => new GeneralLedgerVM
             {
                 autoId = model.AutoId,
-                SubSusidiaryLedgerCodeNo = model.SubSusidiaryLedgerCodeNo,
-                SubSubsidiaryLedgerName = model.SubSubsidiaryLedgerName,
+                SubSusidiaryLedgerCodeNo = model.GeneralLedgerCodeNo,
+                SubsidiaryLedgerName = model.GeneralLedgerName,
                 ShortName = model.ShortName,
                 CashFlowTypeID = model.CashFlowTypeId,
                 CashFlowTypeName = (!string.IsNullOrEmpty(model.CashFlowTypeId) && cashFlows.ContainsKey(model.CashFlowTypeId)) ? cashFlows[model.CashFlowTypeId] : "",
@@ -149,7 +149,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
         {
             var data = await (from general in _repository.All()
                               join subsidi in _subsidiaryLedger.All()
-                                  on general.SubsidiaryLedgerCodeNo equals subsidi.SusidiaryLedgerCodeNo
+                                  on general.GeneralLedgerCodeNo equals subsidi.SusidiaryLedgerCodeNo
                               join subcrl in _subcontrolLedger.All()
                                   on subsidi.GeneralLedgerCodeNo equals subcrl.GeneralLedgerCodeNo
                               join crl in _controlLedger.All()
@@ -161,8 +161,8 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
                               {
                                   autoId = general.AutoId,
                                   SubsidiaryLedgerCodeNo = general.SubsidiaryLedgerCodeNo,
-                                  SubSusidiaryLedgerCodeNo = general.SubSusidiaryLedgerCodeNo,
-                                  SubSubsidiaryLedgerName = general.SubSubsidiaryLedgerName,
+                                  SubSusidiaryLedgerCodeNo = general.SubsidiaryLedgerCodeNo,
+                                  SubsidiaryLedgerName = general.GeneralLedgerName,
                                   ShortName = general.ShortName,
                                   CashFlowTypeID = general.CashFlowTypeId,
                                   IsActive = general.IsActive,
@@ -196,7 +196,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
                         autoId = general.AutoId,
                         SubsidiaryLedgerCodeNo = general.SubsidiaryLedgerCodeNo,
                         SubSusidiaryLedgerCodeNo = general.SubSusidiaryLedgerCodeNo,
-                        SubSubsidiaryLedgerName = general.SubSubsidiaryLedgerName,
+                        SubsidiaryLedgerName  = general.SubSubsidiaryLedgerName,
                         ShortName = general.ShortName,
                         CashFlowTypeID = general.CashFlowTypeId,
                         IsActive = general.IsActive,
@@ -348,7 +348,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
         //    return paginatedResult;
         //}
 
-        public async Task<PaginationService<AccSubSubsidiaryLedger, GeneralLedgerVM>.PaginationResult<GeneralLedgerVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "SubSusidiaryLedgerCodeNo", string sortOrder = "desc", string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "", string subSididaryLedger = "")
+        public async Task<PaginationService<AccGeneralLedger, GeneralLedgerVM>.PaginationResult<GeneralLedgerVM>> GetPaginatedAsync(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "SubSusidiaryLedgerCodeNo", string sortOrder = "desc", string groupLedgerCode = "", string controlLedgerCode = "", string subcontrolLedgerCode = "", string subSididaryLedger = "")
         {
 
             var query = from general in _repository.All()
@@ -406,7 +406,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
             }
 
             // Pagination Service 
-            var paginatedResult = await PaginationService<AccSubSubsidiaryLedger, GeneralLedgerVM>.GetPaginatedData(
+            var paginatedResult = await PaginationService<AccGeneralLedger, GeneralLedgerVM>.GetPaginatedData(
                 query.Select(x => x.general),
                 pageNumber,
                 pageSize,
@@ -423,7 +423,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
                     autoId = pt.AutoId,
                     SubsidiaryLedgerCodeNo = pt.SubsidiaryLedgerCodeNo,
                     SubSusidiaryLedgerCodeNo = pt.SubSusidiaryLedgerCodeNo,
-                    SubSubsidiaryLedgerName = query.Where(x => x.general.SubSusidiaryLedgerCodeNo == pt.SubSusidiaryLedgerCodeNo).Select(x => x.SubSubsidiaryLedgerFullName).FirstOrDefault(),
+                    SubsidiaryLedgerName = query.Where(x => x.general.SubSusidiaryLedgerCodeNo == pt.SubSusidiaryLedgerCodeNo).Select(x => x.SubSubsidiaryLedgerFullName).FirstOrDefault(),
                     IsActive = pt.IsActive,
                     LIP = pt.Lip,
                     LMAC = pt.Lmac,
@@ -446,7 +446,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
             var alldata = await _repository.All().ToListAsync();
 
             var isDuplicate = alldata.Any(pm =>
-            string.Equals(pm.SubSubsidiaryLedgerName, model.SubSubsidiaryLedgerName, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(pm.SubSubsidiaryLedgerName, model.SubsidiaryLedgerName, StringComparison.OrdinalIgnoreCase) &&
              pm.AutoId != model.autoId
 
             );
@@ -471,7 +471,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
                 {
                     SubsidiaryLedgerCodeNo = model.SubsidiaryLedgerCodeNo,
                     SubSusidiaryLedgerCodeNo = model.SubSusidiaryLedgerCodeNo,
-                    SubSubsidiaryLedgerName = model.SubSubsidiaryLedgerName,
+                    SubSubsidiaryLedgerName = model.SubsidiaryLedgerName,
                     ShortName = model.ShortName ?? "",
                     OpeningBalance = 0,
                     TrType = "",
@@ -508,7 +508,7 @@ namespace GCTL.Service.ChartOfAccounts.GeneralLedger
 
                 entity.SubsidiaryLedgerCodeNo = model.SubsidiaryLedgerCodeNo;
                 entity.SubSusidiaryLedgerCodeNo = model.SubSusidiaryLedgerCodeNo;
-                entity.SubSubsidiaryLedgerName = model.SubSubsidiaryLedgerName;
+                entity.SubSubsidiaryLedgerName = model.SubsidiaryLedgerName;
                 entity.ShortName = model.ShortName ?? "";
                 entity.OpeningBalance = 0;
                 entity.TrType = "";

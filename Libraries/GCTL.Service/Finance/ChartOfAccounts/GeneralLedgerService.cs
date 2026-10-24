@@ -30,7 +30,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
 
                 if (!string.IsNullOrWhiteSpace(subSubsidiaryCode))
                 {
-                    query = query.Where(x => x.SubSubsidiaryLedgerCodeNo == subSubsidiaryCode);
+                    query = query.Where(x => x.SubsidiaryLedgerCodeNo == subSubsidiaryCode);
                 }
                 else if (!string.IsNullOrWhiteSpace(subControlCode))
                 {
@@ -79,10 +79,10 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     .Take(pageSize)
                     .ToListAsync();
 
-                var sslCodes = pagedEntities.Select(x => x.SubSubsidiaryLedgerCodeNo).Distinct().ToList();
-                var sslNames = await context.AccSubSubsidiaryLedgers
-                    .Where(x => sslCodes.Contains(x.SubSubsidiaryLedgerCodeNo))
-                    .ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo, x => x.SubSubsidiaryLedgerName);
+                var sslCodes = pagedEntities.Select(x => x.SubsidiaryLedgerCodeNo).Distinct().ToList();
+                var sslNames = await context.AccSubsidiaryLedgers
+                    .Where(x => sslCodes.Contains(x.SubsidiaryLedgerCodeNo))
+                    .ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
 
                 var sclCodes = pagedEntities.Select(x => x.SubControlLedgerCodeNo).Distinct().ToList();
                 var sclNames = await context.AccSubControlLedgers
@@ -103,8 +103,8 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 {
                     AutoId = x.AutoId,
                     GeneralLedgerCodeNo = x.GeneralLedgerCodeNo,
-                    SubSubsidiaryLedgerCodeNo = x.SubSubsidiaryLedgerCodeNo,
-                    SubSubsidiaryLedgerName = sslNames.TryGetValue(x.SubSubsidiaryLedgerCodeNo, out var ssName) ? ssName : string.Empty,
+                    SubsidiaryLedgerCodeNo = x.SubsidiaryLedgerCodeNo,
+                    SubSubsidiaryLedgerName = sslNames.TryGetValue(x.SubsidiaryLedgerCodeNo, out var ssName) ? ssName : string.Empty,
                     SubControlLedgerCodeNo = x.SubControlLedgerCodeNo,
                     SubControlLedgerName = sclNames.TryGetValue(x.SubControlLedgerCodeNo, out var scName) ? scName : string.Empty,
                     ControlLedgerCodeNo = x.ControlLedgerCodeNo,
@@ -158,7 +158,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 res.Data = new GeneralLedgerAddVM
                 {
                     GeneralLedgerCodeNo = entity.GeneralLedgerCodeNo,
-                    SubSubsidiaryLedgerCodeNo = entity.SubSubsidiaryLedgerCodeNo,
+                    SubsidiaryLedgerCodeNo = entity.SubsidiaryLedgerCodeNo,
                     SubControlLedgerCodeNo = entity.SubControlLedgerCodeNo,
                     ControlLedgerCodeNo = entity.ControlLedgerCodeNo,
                     GroupLedgerCodeNo = entity.GroupLedgerCodeNo,
@@ -185,7 +185,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 subSubsidiaryCode = subSubsidiaryCode.Trim();
 
                 var codes = await context.AccGeneralLedgers
-                    .Where(x => x.SubSubsidiaryLedgerCodeNo == subSubsidiaryCode)
+                    .Where(x => x.SubsidiaryLedgerCodeNo == subSubsidiaryCode)
                     .Select(x => x.GeneralLedgerCodeNo)
                     .ToListAsync();
 
@@ -214,7 +214,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
             var res = new CommonReturnViewModel();
             try
             {
-                if (string.IsNullOrWhiteSpace(model.SubSubsidiaryLedgerCodeNo))
+                if (string.IsNullOrWhiteSpace(model.SubsidiaryLedgerCodeNo))
                 {
                     res.Success = false;
                     res.Message = "Sub-Subsidiary Ledger is required.";
@@ -228,19 +228,19 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     return res;
                 }
 
-                var ssl = await context.AccSubSubsidiaryLedgers
+                var ssl = await context.AccSubsidiaryLedgers
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.SubSubsidiaryLedgerCodeNo == model.SubSubsidiaryLedgerCodeNo);
+                    .FirstOrDefaultAsync(x => x.SubsidiaryLedgerCodeNo == model.SubsidiaryLedgerCodeNo);
 
                 if (ssl == null)
                 {
                     res.Success = false;
-                    res.Message = "Selected Sub-Subsidiary Ledger does not exist.";
+                    res.Message = "Selected Subsidiary Ledger does not exist.";
                     return res;
                 }
 
                 var nameExists = await context.AccGeneralLedgers
-                    .AnyAsync(x => x.SubSubsidiaryLedgerCodeNo == model.SubSubsidiaryLedgerCodeNo &&
+                    .AnyAsync(x => x.SubsidiaryLedgerCodeNo == model.SubsidiaryLedgerCodeNo &&
                                    x.GeneralLedgerName.ToLower() == model.GeneralLedgerName.Trim().ToLower());
                 if (nameExists)
                 {
@@ -250,19 +250,19 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 }
 
                 var code = string.IsNullOrWhiteSpace(model.GeneralLedgerCodeNo)
-                    ? await GetNextCodeAsync(model.SubSubsidiaryLedgerCodeNo)
+                    ? await GetNextCodeAsync(model.SubsidiaryLedgerCodeNo)
                     : model.GeneralLedgerCodeNo.Trim();
 
                 var codeExists = await context.AccGeneralLedgers.AnyAsync(x => x.GeneralLedgerCodeNo == code);
                 if (codeExists)
                 {
-                    code = await GetNextCodeAsync(model.SubSubsidiaryLedgerCodeNo);
+                    code = await GetNextCodeAsync(model.SubsidiaryLedgerCodeNo);
                 }
 
                 var entity = new AccGeneralLedger
                 {
                     GeneralLedgerCodeNo = code,
-                    SubSubsidiaryLedgerCodeNo = model.SubSubsidiaryLedgerCodeNo.Trim(),
+                    SubsidiaryLedgerCodeNo = model.SubsidiaryLedgerCodeNo.Trim(),
                     SubControlLedgerCodeNo = ssl.SubControlLedgerCodeNo,
                     ControlLedgerCodeNo = ssl.ControlLedgerCodeNo,
                     GroupLedgerCodeNo = ssl.GroupLedgerCodeNo,
@@ -303,7 +303,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 }
 
                 var nameExists = await context.AccGeneralLedgers
-                    .AnyAsync(x => x.SubSubsidiaryLedgerCodeNo == entity.SubSubsidiaryLedgerCodeNo &&
+                    .AnyAsync(x => x.SubsidiaryLedgerCodeNo == entity.SubsidiaryLedgerCodeNo &&
                                    x.GeneralLedgerName.ToLower() == model.GeneralLedgerName.Trim().ToLower() &&
                                    x.GeneralLedgerCodeNo != model.GeneralLedgerCodeNo);
                 if (nameExists)
@@ -423,7 +423,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
 
             if (!string.IsNullOrWhiteSpace(subSubsidiaryCode))
             {
-                q = q.Where(x => x.SubSubsidiaryLedgerCodeNo == subSubsidiaryCode);
+                q = q.Where(x => x.SubsidiaryLedgerCodeNo == subSubsidiaryCode);
             }
 
             return await q
@@ -432,7 +432,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 {
                     Code = x.GeneralLedgerCodeNo,
                     Name = x.GeneralLedgerName,
-                    ParentCode = x.SubSubsidiaryLedgerCodeNo
+                    ParentCode = x.SubsidiaryLedgerCodeNo
                 })
                 .ToListAsync();
         }

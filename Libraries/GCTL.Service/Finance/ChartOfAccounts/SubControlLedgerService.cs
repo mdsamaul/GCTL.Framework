@@ -72,7 +72,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     .ToListAsync();
 
                 var sclCodes = pagedEntities.Select(x => x.SubControlLedgerCodeNo).ToList();
-                var childCounts = await context.AccSubSubsidiaryLedgers
+                var childCounts = await context.AccSubsidiaryLedgers
                     .Where(x => sclCodes.Contains(x.SubControlLedgerCodeNo))
                     .GroupBy(x => x.SubControlLedgerCodeNo)
                     .Select(g => new { Code = g.Key, Count = g.Count() })
@@ -336,13 +336,13 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     return res;
                 }
 
-                var hasChildren = await context.AccSubSubsidiaryLedgers
+                var hasChildren = await context.AccSubsidiaryLedgers
                     .AnyAsync(x => requestVM.Codes.Contains(x.SubControlLedgerCodeNo));
 
                 if (hasChildren)
                 {
                     res.Success = false;
-                    res.Message = "Cannot delete: One or more selected Sub-Control Ledgers have child Sub-Subsidiary Ledgers. Delete child ledgers first.";
+                    res.Message = "Cannot delete: One or more selected Sub-Control Ledgers have child Subsidiary Ledgers. Delete child ledgers first.";
                     return res;
                 }
 
