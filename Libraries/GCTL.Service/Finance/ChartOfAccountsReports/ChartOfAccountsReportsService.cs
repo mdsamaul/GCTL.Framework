@@ -100,7 +100,7 @@ namespace GCTL.Service.Finance.ChartOfAccountsReports
                             ControlName = (string)r.ControlLedgerName ?? string.Empty,
                             SubControlCode = (string)r.SubControlLedgerCodeNo ?? string.Empty,
                             SubControlName = (string)r.SubControlLedgerName ?? string.Empty,
-                            SubSubsidiaryCode = (string)r.SubSubsidiaryLedgerCodeNo ?? string.Empty,
+                            SubSubsidiaryCode = (string)r.SubsidiaryLedgerCodeNo ?? string.Empty,
                             SubSubsidiaryName = (string)r.SubSubsidiaryLedgerName ?? string.Empty,
                             GeneralLedgerCode = glCode,
                             GeneralLedgerName = (string)r.GeneralLedgerName ?? string.Empty,
@@ -262,7 +262,7 @@ namespace GCTL.Service.Finance.ChartOfAccountsReports
             var groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
             var controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
             var subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
-            var subSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo, x => x.SubSubsidiaryLedgerName);
+            var subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
 
             var glList = await glQuery.ToListAsync();
 
@@ -274,8 +274,8 @@ namespace GCTL.Service.Finance.ChartOfAccountsReports
                 ControlName = controls.TryGetValue(gl.ControlLedgerCodeNo ?? "", out var cn) ? cn : "",
                 SubControlCode = gl.SubControlLedgerCodeNo ?? "",
                 SubControlName = subControls.TryGetValue(gl.SubControlLedgerCodeNo ?? "", out var scn) ? scn : "",
-                SubSubsidiaryCode = gl.SubSubsidiaryLedgerCodeNo ?? "",
-                SubSubsidiaryName = subSubs.TryGetValue(gl.SubSubsidiaryLedgerCodeNo ?? "", out var ssn) ? ssn : "",
+                SubSubsidiaryCode = gl.SubsidiaryLedgerCodeNo ?? "",
+                SubSubsidiaryName = subSubs.TryGetValue(gl.SubsidiaryLedgerCodeNo ?? "", out var ssn) ? ssn : "",
                 GeneralLedgerCode = gl.GeneralLedgerCodeNo ?? "",
                 GeneralLedgerName = gl.GeneralLedgerName ?? "",
                 ShortName = gl.ShortName,
@@ -316,7 +316,7 @@ namespace GCTL.Service.Finance.ChartOfAccountsReports
                 TotalGroups = await _context.AccGroupLedgers.AsNoTracking().Where(x => showArchived || x.IsActive == "1" || x.IsActive == null).CountAsync(),
                 TotalControls = await _context.AccControlLedgers.AsNoTracking().Where(x => showArchived || x.IsActive == "1" || x.IsActive == null).CountAsync(),
                 TotalSubControls = await _context.AccSubControlLedgers.AsNoTracking().Where(x => showArchived || x.IsActive == "1" || x.IsActive == null).CountAsync(),
-                TotalSubSubsidiaries = await _context.AccSubSubsidiaryLedgers.AsNoTracking().Where(x => showArchived || x.IsActive == "1" || x.IsActive == null).CountAsync(),
+                TotalSubSubsidiaries = await _context.AccSubsidiaryLedgers.AsNoTracking().Where(x => showArchived || x.IsActive == "1" || x.IsActive == null).CountAsync(),
                 AssetsGLCount = await glQuery.CountAsync(x => x.GroupLedgerCodeNo == "1"),
                 EquityGLCount = await glQuery.CountAsync(x => x.GroupLedgerCodeNo == "2"),
                 IncomeGLCount = await glQuery.CountAsync(x => x.GroupLedgerCodeNo == "3"),

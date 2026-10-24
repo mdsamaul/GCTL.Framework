@@ -54,10 +54,10 @@ END
 GO
 
 -- 4. Add columns to Acc_SubSubsidiaryLedger
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Acc_SubSubsidiaryLedger' AND COLUMN_NAME = 'SubSubsidiaryLedgerCodeNo')
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Acc_SubSubsidiaryLedger' AND COLUMN_NAME = 'SubsidiaryLedgerCodeNo')
 BEGIN
-    ALTER TABLE dbo.Acc_SubSubsidiaryLedger ADD SubSubsidiaryLedgerCodeNo NVARCHAR(50) NULL;
-    EXEC('UPDATE dbo.Acc_SubSubsidiaryLedger SET SubSubsidiaryLedgerCodeNo = SubSusidiaryLedgerCodeNo WHERE SubSubsidiaryLedgerCodeNo IS NULL;');
+    ALTER TABLE dbo.Acc_SubSubsidiaryLedger ADD SubsidiaryLedgerCodeNo NVARCHAR(50) NULL;
+    EXEC('UPDATE dbo.Acc_SubSubsidiaryLedger SET SubsidiaryLedgerCodeNo = SubSusidiaryLedgerCodeNo WHERE SubsidiaryLedgerCodeNo IS NULL;');
 END
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Acc_SubSubsidiaryLedger' AND COLUMN_NAME = 'SubControlLedgerCodeNo')
 BEGIN
@@ -87,9 +87,9 @@ IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Acc_
 BEGIN
     ALTER TABLE dbo.Acc_GeneralLedger ADD ControlLedgerCodeNo NVARCHAR(50) NULL;
 END
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Acc_GeneralLedger' AND COLUMN_NAME = 'SubSubsidiaryLedgerCodeNo')
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Acc_GeneralLedger' AND COLUMN_NAME = 'SubsidiaryLedgerCodeNo')
 BEGIN
-    ALTER TABLE dbo.Acc_GeneralLedger ADD SubSubsidiaryLedgerCodeNo NVARCHAR(50) NULL;
+    ALTER TABLE dbo.Acc_GeneralLedger ADD SubsidiaryLedgerCodeNo NVARCHAR(50) NULL;
 END
 GO
 

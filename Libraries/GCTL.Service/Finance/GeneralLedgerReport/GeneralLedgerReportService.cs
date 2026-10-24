@@ -156,10 +156,10 @@ namespace GCTL.Service.Finance.GeneralLedgerReport
                     var sc = await _context.AccSubControlLedgers.AsNoTracking().FirstOrDefaultAsync(x => x.SubControlLedgerCodeNo == glAccount.SubControlLedgerCodeNo);
                     if (sc != null) pathParts.Add($"{sc.SubControlLedgerCodeNo}-{sc.SubControlLedgerName}");
                 }
-                if (!string.IsNullOrEmpty(glAccount.SubSubsidiaryLedgerCodeNo))
+                if (!string.IsNullOrEmpty(glAccount.SubsidiaryLedgerCodeNo))
                 {
-                    var ss = await _context.AccSubSubsidiaryLedgers.AsNoTracking().FirstOrDefaultAsync(x => x.SubSubsidiaryLedgerCodeNo == glAccount.SubSubsidiaryLedgerCodeNo);
-                    if (ss != null) pathParts.Add($"{ss.SubSubsidiaryLedgerCodeNo}-{ss.SubSubsidiaryLedgerName}");
+                    var ss = await _context.AccSubsidiaryLedgers.AsNoTracking().FirstOrDefaultAsync(x => x.SubsidiaryLedgerCodeNo == glAccount.SubsidiaryLedgerCodeNo);
+                    if (ss != null) pathParts.Add($"{ss.SubsidiaryLedgerCodeNo}-{ss.SubsidiaryLedgerName}");
                 }
             }
             catch { }

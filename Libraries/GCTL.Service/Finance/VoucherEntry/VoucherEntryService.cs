@@ -184,7 +184,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                 var groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
                 var controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
                 var subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
-                var subSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo, x => x.SubSubsidiaryLedgerName);
+                var subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
 
                 var glList = await _context.AccGeneralLedgers
                     .AsNoTracking()
@@ -196,20 +196,20 @@ namespace GCTL.Service.Finance.VoucherEntry
                     if (!string.IsNullOrWhiteSpace(g.GeneralLedgerCodeNo))
                     {
                         var key = g.GeneralLedgerCodeNo.Trim();
-                        var hier = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} › {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} › {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} › {(g.SubSubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubSubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} › {g.GeneralLedgerName}";
+                        var hier = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} › {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} › {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} › {(g.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} › {g.GeneralLedgerName}";
                         accountDict[key] = (g.GeneralLedgerName?.Trim() ?? key, hier);
                     }
                 }
 
-                var allSubSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToListAsync();
+                var allSubSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToListAsync();
                 foreach (var ss in allSubSubs)
                 {
-                    if (!string.IsNullOrWhiteSpace(ss.SubSubsidiaryLedgerCodeNo))
+                    if (!string.IsNullOrWhiteSpace(ss.SubsidiaryLedgerCodeNo))
                     {
-                        var key = ss.SubSubsidiaryLedgerCodeNo.Trim();
+                        var key = ss.SubsidiaryLedgerCodeNo.Trim();
                         if (!accountDict.ContainsKey(key))
                         {
-                            accountDict[key] = (ss.SubSubsidiaryLedgerName?.Trim() ?? key, ss.SubSubsidiaryLedgerName?.Trim() ?? key);
+                            accountDict[key] = (ss.SubsidiaryLedgerName?.Trim() ?? key, ss.SubsidiaryLedgerName?.Trim() ?? key);
                         }
                     }
                 }
@@ -858,7 +858,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                 var groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
                 var controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
                 var subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
-                var subSubs = await _context.AccSubSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubSubsidiaryLedgerCodeNo, x => x.SubSubsidiaryLedgerName);
+                var subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
 
                 var gls = await _context.AccGeneralLedgers
                     .Where(gl => gl.IsActive == null || gl.IsActive != "0")
@@ -871,7 +871,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     string grpName = gl.GroupLedgerCodeNo != null && groups.TryGetValue(gl.GroupLedgerCodeNo, out var gn) ? gn : "";
                     string ctlName = gl.ControlLedgerCodeNo != null && controls.TryGetValue(gl.ControlLedgerCodeNo, out var cn) ? cn : "";
                     string sctlName = gl.SubControlLedgerCodeNo != null && subControls.TryGetValue(gl.SubControlLedgerCodeNo, out var scn) ? scn : "";
-                    string ssName = gl.SubSubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(gl.SubSubsidiaryLedgerCodeNo, out var ssn) ? ssn : "";
+                    string ssName = gl.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(gl.SubsidiaryLedgerCodeNo, out var ssn) ? ssn : "";
 
                     return new VoucherAccountHeadDropdownVM
                     {
@@ -882,11 +882,11 @@ namespace GCTL.Service.Finance.VoucherEntry
                         DefaultTrType = (gl.GroupLedgerCodeNo == "1" || gl.GroupLedgerCodeNo == "4") ? "Dr" : "Cr",
                         IsCash = cashCodes.Contains(gl.GeneralLedgerCodeNo) ||
                                  (gl.GeneralLedgerName != null && gl.GeneralLedgerName.Contains("Cash")) ||
-                                 (gl.SubSubsidiaryLedgerCodeNo == "10200200001"),
+                                 (gl.SubsidiaryLedgerCodeNo == "10200200001"),
                         IsBank = bankCodes.Contains(gl.GeneralLedgerCodeNo) ||
                                  (gl.GeneralLedgerName != null && gl.GeneralLedgerName.Contains("Bank")) ||
                                  (gl.GeneralLedgerName != null && gl.GeneralLedgerName.Contains("DBBL")) ||
-                                 (gl.SubSubsidiaryLedgerCodeNo == "10200200002")
+                                 (gl.SubsidiaryLedgerCodeNo == "10200200002")
                     };
                 }).ToList();
             }
@@ -1035,7 +1035,7 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
         {
             var codes = await _context.AccGeneralLedgers
                 .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
-                            (x.SubSubsidiaryLedgerCodeNo == "10200200001" ||
+                            (x.SubsidiaryLedgerCodeNo == "10200200001" ||
                              x.GeneralLedgerName.Contains("Cash in Hand") ||
                              x.GeneralLedgerName.Contains("Cash")))
                 .Select(x => x.GeneralLedgerCodeNo)
@@ -1048,7 +1048,7 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
         {
             var codes = await _context.AccGeneralLedgers
                 .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
-                            (x.SubSubsidiaryLedgerCodeNo == "10200200002" ||
+                            (x.SubsidiaryLedgerCodeNo == "10200200002" ||
                              x.GeneralLedgerName.Contains("Bank Account") ||
                              x.GeneralLedgerName.Contains("Bank") ||
                              x.GeneralLedgerName.Contains("DBBL")))

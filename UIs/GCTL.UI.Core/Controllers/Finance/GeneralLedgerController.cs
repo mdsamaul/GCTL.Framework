@@ -79,7 +79,7 @@ namespace GCTL.UI.Core.Controllers.Finance
             if (model == null)
                 return Json(new { success = false, message = "Invalid data." });
 
-            if (string.IsNullOrWhiteSpace(model.SubSubsidiaryLedgerCodeNo))
+            if (string.IsNullOrWhiteSpace(model.SubsidiaryLedgerCodeNo))
                 return Json(new { success = false, message = "Sub-Subsidiary Ledger is required." });
 
             if (string.IsNullOrWhiteSpace(model.GeneralLedgerName))

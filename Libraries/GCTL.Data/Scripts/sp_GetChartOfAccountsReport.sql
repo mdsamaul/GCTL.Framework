@@ -22,7 +22,7 @@ BEGIN
         gl.ShortName AS GeneralLedgerShortName,
         ISNULL(gl.IsActive, '1') AS IsActive,
         
-        ISNULL(ssl.SubSubsidiaryLedgerCodeNo, gl.SubSubsidiaryLedgerCodeNo) AS SubSubsidiaryLedgerCodeNo,
+        ISNULL(ssl.SubsidiaryLedgerCodeNo, gl.SubsidiaryLedgerCodeNo) AS SubsidiaryLedgerCodeNo,
         ISNULL(ssl.SubSubsidiaryLedgerName, '') AS SubSubsidiaryLedgerName,
         ssl.ShortName AS SubSubsidiaryShortName,
         
@@ -47,7 +47,7 @@ BEGIN
             ELSE 'Other'
         END AS AccountType
     FROM Acc_GeneralLedger gl
-    LEFT JOIN Acc_SubSubsidiaryLedger ssl ON ssl.SubSubsidiaryLedgerCodeNo = gl.SubSubsidiaryLedgerCodeNo
+    LEFT JOIN Acc_SubSubsidiaryLedger ssl ON ssl.SubsidiaryLedgerCodeNo = gl.SubsidiaryLedgerCodeNo
     LEFT JOIN Acc_SubControlLedger sc ON sc.SubControlLedgerCodeNo = gl.SubControlLedgerCodeNo
     LEFT JOIN Acc_ControlLedger c ON c.ControlLedgerCodeNo = gl.ControlLedgerCodeNo
     LEFT JOIN Acc_GroupLedger g ON g.GroupLedgerCodeNo = gl.GroupLedgerCodeNo
@@ -55,7 +55,7 @@ BEGIN
       AND (@Search IS NULL OR (
             gl.GeneralLedgerCodeNo LIKE @Search OR 
             gl.GeneralLedgerName LIKE @Search OR 
-            ssl.SubSubsidiaryLedgerCodeNo LIKE @Search OR 
+            ssl.SubsidiaryLedgerCodeNo LIKE @Search OR 
             ssl.SubSubsidiaryLedgerName LIKE @Search OR 
             sc.SubControlLedgerCodeNo LIKE @Search OR 
             sc.SubControlLedgerName LIKE @Search OR 
@@ -68,7 +68,7 @@ BEGIN
         gl.GroupLedgerCodeNo, 
         gl.ControlLedgerCodeNo, 
         gl.SubControlLedgerCodeNo, 
-        gl.SubSubsidiaryLedgerCodeNo, 
+        gl.SubsidiaryLedgerCodeNo, 
         gl.GeneralLedgerCodeNo;
 
     -- 2. Statistical Summary
@@ -77,7 +77,7 @@ BEGIN
         (SELECT COUNT(DISTINCT GroupLedgerCodeNo) FROM Acc_GeneralLedger WHERE (@ShowArchived = 1 OR IsActive = '1' OR IsActive IS NULL)) AS TotalGroups,
         (SELECT COUNT(DISTINCT ControlLedgerCodeNo) FROM Acc_GeneralLedger WHERE (@ShowArchived = 1 OR IsActive = '1' OR IsActive IS NULL)) AS TotalControls,
         (SELECT COUNT(DISTINCT SubControlLedgerCodeNo) FROM Acc_GeneralLedger WHERE (@ShowArchived = 1 OR IsActive = '1' OR IsActive IS NULL)) AS TotalSubControls,
-        (SELECT COUNT(DISTINCT SubSubsidiaryLedgerCodeNo) FROM Acc_GeneralLedger WHERE (@ShowArchived = 1 OR IsActive = '1' OR IsActive IS NULL)) AS TotalSubSubsidiaries,
+        (SELECT COUNT(DISTINCT SubsidiaryLedgerCodeNo) FROM Acc_GeneralLedger WHERE (@ShowArchived = 1 OR IsActive = '1' OR IsActive IS NULL)) AS TotalSubSubsidiaries,
         
         -- Asset GL count
         (SELECT COUNT(*) FROM Acc_GeneralLedger gl 

@@ -15,7 +15,7 @@ public partial class AccGeneralLedger
 
     public string SubControlLedgerCodeNo { get; set; }
 
-    public string SubSubsidiaryLedgerCodeNo { get; set; }
+    public string SubsidiaryLedgerCodeNo { get; set; }
 
     public string GeneralLedgerCodeNo { get; set; }
 
@@ -48,4 +48,30 @@ public partial class AccGeneralLedger
     public string IsSameNameGl { get; set; }
 
     public string IsSameNameSl { get; set; }
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string SubSusidiaryLedgerCodeNo
+    {
+        get => GeneralLedgerCodeNo ?? SubsidiaryLedgerCodeNo;
+        set { if (string.IsNullOrEmpty(GeneralLedgerCodeNo)) GeneralLedgerCodeNo = value; }
+    }
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string SubSubsidiaryLedgerCodeNo
+    {
+        get => GeneralLedgerCodeNo ?? SubsidiaryLedgerCodeNo;
+        set { if (string.IsNullOrEmpty(GeneralLedgerCodeNo)) GeneralLedgerCodeNo = value; }
+    }
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string SubSubsidiaryLedgerName
+    {
+        get => GeneralLedgerName;
+        set => GeneralLedgerName = value;
+    }
+}
+
+[Obsolete("AccSubSubsidiaryLedger does not exist in DB; use AccGeneralLedger instead.")]
+public class AccSubSubsidiaryLedger : AccGeneralLedger
+{
 }

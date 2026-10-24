@@ -93,7 +93,7 @@ $(document).ready(function () {
                             <th style="width: 15%;">Group Ledger (1st Layer)</th>
                             <th style="width: 17%;">Control Ledger (2nd Layer)</th>
                             <th style="width: 18%;">Sub-Control Ledger (3rd Layer)</th>
-                            <th style="width: 20%;">Sub-Subsidiary Ledger (4th Layer)</th>
+                            <th style="width: 20%;">Sub-Sidiary Ledger (4th Layer)</th>
                             <th style="width: 12%;">Account Code</th>
                             <th style="width: 18%;">Account Head (5th Layer)</th>
                         </tr>

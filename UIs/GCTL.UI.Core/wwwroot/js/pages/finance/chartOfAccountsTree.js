@@ -1,7 +1,7 @@
 $(document).ready(function () {
     const CUT = [1, 3, 6, 11, 16];
     const CONTROLLERS = ['GroupLedger', 'ControlLedger', 'SubControlLedger', 'SubSubsidiaryLedger', 'GeneralLedger'];
-    const CHILD_NAMES = ['Control Ledger', 'Sub-Control Ledger', 'Sub-Subsidiary Ledger', 'General Ledger'];
+    const CHILD_NAMES = ['Control Ledger', 'Sub-Control Ledger', 'Subsidiary Ledger', 'General Ledger'];
 
     function esc(s) {
         return $('<div>').text(s || '').html();

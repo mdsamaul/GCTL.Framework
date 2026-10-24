@@ -1,4 +1,4 @@
-{
+﻿{
    "CodeGenerationMode": 4,
    "ContextClassName": "GCTL_ERP_DBContext",
    "ContextNamespace": null,
@@ -71,6 +71,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Acc_VoucherInvoicePaymentReceived]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[Acc_VoucherType]",
          "ObjectType": 0
       },
@@ -135,6 +139,18 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[CF_AdjustJobCancellServiceType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_BillAdjustDetails]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_BillAdjustmentEntry]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[CF_BillEntry]",
          "ObjectType": 0
       },
@@ -144,6 +160,14 @@
       },
       {
          "Name": "[dbo].[CF_BillEntryDetails_CHCHead]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_BillEntryDetails_CHCHead_ForBillAdjust]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CF_BillEntryDetails_ForBillAdjust]",
          "ObjectType": 0
       },
       {
@@ -284,6 +308,10 @@
       },
       {
          "Name": "[dbo].[EmployeeSalarySettings]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FinalBillInfo_ForBillAdjust]",
          "ObjectType": 0
       },
       {

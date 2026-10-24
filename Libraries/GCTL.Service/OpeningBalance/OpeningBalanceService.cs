@@ -15,7 +15,7 @@ namespace GCTL.Service.OpeningBalance
         private readonly IRepository<AccCompanyOpeningBalance> _repository;
         private readonly IRepository<CoreCompany> _company;
         private readonly IRepository<CoreBranch> _branch;
-        private readonly IRepository<AccSubSubsidiaryLedger> _generalLedger; 
+        private readonly IRepository<AccGeneralLedger> _generalLedger; 
         private readonly IRepository<AccSubsidiaryLedger> _subsidiary;
         private readonly IRepository<AccGeneralLedger> _subcontrol;
         private readonly IRepository<SalesCustomer> _salesCustomer;
@@ -23,7 +23,7 @@ namespace GCTL.Service.OpeningBalance
             IRepository<AccCompanyOpeningBalance> genericRepository, 
             IRepository<CoreCompany> company, 
             IRepository<CoreBranch> branch,
-            IRepository<AccSubSubsidiaryLedger> generalLedger,
+            IRepository<AccGeneralLedger> generalLedger,
             IRepository<SalesCustomer> salesCustomer,
             IRepository<AccSubsidiaryLedger> subsidiary,
             IRepository<AccGeneralLedger> subcontrol

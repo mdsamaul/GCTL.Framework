@@ -135,8 +135,8 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
     #region Sub-Subsidiary Ledger (Level 3 - SSL)
     public class SubSubsidiaryLedgerAddVM
     {
-        [Display(Name = "Sub-Subsidiary Ledger Code")]
-        public string? SubSubsidiaryLedgerCodeNo { get; set; }
+        [Display(Name = "Sub-Sidiary Ledger Code")]
+        public string? SubsidiaryLedgerCodeNo { get; set; }
 
         [Required(ErrorMessage = "Group Ledger is required!")]
         [Display(Name = "Group Ledger")]
@@ -150,9 +150,9 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
         [Display(Name = "Sub-Control Ledger")]
         public string SubControlLedgerCodeNo { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Sub-Subsidiary Ledger Name is required!")]
+        [Required(ErrorMessage = "Sub-Sidiary Ledger Name is required!")]
         [StringLength(100, ErrorMessage = "{0} must be at most {1} characters long.")]
-        [Display(Name = "Sub-Subsidiary Ledger Name")]
+        [Display(Name = "Sub-Sidiary Ledger Name")]
         public string SubSubsidiaryLedgerName { get; set; } = string.Empty;
 
         [StringLength(50, ErrorMessage = "{0} must be at most {1} characters long.")]
@@ -179,12 +179,24 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
 
         [Display(Name = "Active")]
         public bool IsActive { get; set; } = true;
+
+        public string? SubSidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        public string? SubSubsidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        public string? SubSusidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        public string? SusidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        public string? SubSidiaryLedgerName { get => SubSubsidiaryLedgerName; set => SubSubsidiaryLedgerName = value; }
+        public string? SubsidiaryLedgerName { get => SubSubsidiaryLedgerName; set => SubSubsidiaryLedgerName = value; }
     }
 
     public class GetAllSubSubsidiaryLedgerVM
     {
         public decimal AutoId { get; set; }
-        public string SubSubsidiaryLedgerCodeNo { get; set; } = string.Empty;
+        public string SubsidiaryLedgerCodeNo { get; set; } = string.Empty;
+        public string SubSidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        public string SubSubsidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        public string SubSusidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        public string SusidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        public string Code => SubsidiaryLedgerCodeNo;
         public string GroupLedgerCodeNo { get; set; } = string.Empty;
         public string GroupLedgerName { get; set; } = string.Empty;
         public string ControlLedgerCodeNo { get; set; } = string.Empty;
@@ -192,6 +204,9 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
         public string SubControlLedgerCodeNo { get; set; } = string.Empty;
         public string SubControlLedgerName { get; set; } = string.Empty;
         public string SubSubsidiaryLedgerName { get; set; } = string.Empty;
+        public string SubSidiaryLedgerName => SubSubsidiaryLedgerName;
+        public string SubsidiaryLedgerName => SubSubsidiaryLedgerName;
+        public string Name => SubSubsidiaryLedgerName;
         public string? ShortName { get; set; }
         public decimal? OpeningBalance { get; set; }
         public string? TrType { get; set; }
@@ -223,7 +238,7 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
 
         [Required(ErrorMessage = "Sub-Subsidiary Ledger is required!")]
         [Display(Name = "Sub-Subsidiary Ledger")]
-        public string SubSubsidiaryLedgerCodeNo { get; set; } = string.Empty;
+        public string SubsidiaryLedgerCodeNo { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "General Ledger Name is required!")]
         [StringLength(100, ErrorMessage = "{0} must be at most {1} characters long.")]
@@ -251,11 +266,11 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
         public string ControlLedgerName { get; set; } = string.Empty;
         public string SubControlLedgerCodeNo { get; set; } = string.Empty;
         public string SubControlLedgerName { get; set; } = string.Empty;
-        public string SubSubsidiaryLedgerCodeNo { get; set; } = string.Empty;
+        public string SubsidiaryLedgerCodeNo { get; set; } = string.Empty;
         public string SubSubsidiaryLedgerName { get; set; } = string.Empty;
         public string GeneralLedgerName { get; set; } = string.Empty;
         public string? ShortName { get; set; }
-        public string HierarchyPath => $"{GroupLedgerCodeNo} - {GroupLedgerName} › {ControlLedgerCodeNo} - {ControlLedgerName} › {SubControlLedgerCodeNo} - {SubControlLedgerName} › {SubSubsidiaryLedgerCodeNo} - {SubSubsidiaryLedgerName}";
+        public string HierarchyPath => $"{GroupLedgerCodeNo} - {GroupLedgerName} › {ControlLedgerCodeNo} - {ControlLedgerName} › {SubControlLedgerCodeNo} - {SubControlLedgerName} › {SubsidiaryLedgerCodeNo} - {SubSubsidiaryLedgerName}";
         public bool IsActive { get; set; }
         public string StatusText => IsActive ? "Active" : "Archived";
     }
@@ -273,7 +288,7 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
             0 => "Group Ledger",
             1 => "Control Ledger",
             2 => "Sub-Control Ledger",
-            3 => "Sub-Subsidiary Ledger",
+            3 => "Subsidiary Ledger",
             4 => "General Ledger",
             _ => "Ledger"
         };
@@ -297,6 +312,7 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
         public int TotalControls { get; set; }
         public int TotalSubControls { get; set; }
         public int TotalSubSubsidiaries { get; set; }
+        public int TotalSubsidiaries { get => TotalSubSubsidiaries; set => TotalSubSubsidiaries = value; }
         public int TotalGeneralLedgers { get; set; }
         public List<GroupStatItemVM> GroupStats { get; set; } = new List<GroupStatItemVM>();
     }
