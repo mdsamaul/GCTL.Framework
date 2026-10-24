@@ -1,0 +1,377 @@
+@model GCTL.UI.Core.ViewModels.GridModel
+
+@{
+    ViewData["Title"] = "Customer Rate Report";
+    ViewData["ShowPageTitle"] = true;
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .customer-rate-report-dashboard {
+        color: var(--text-main);
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .dashboard-container {
+        padding: 6px 0 25px 0;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Stats Grid (4 Cards) */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 10px 14px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 3px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+
+    .stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 1.1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+        font-size: 0.72rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin: 0 0 2px 0;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+    }
+
+    .stat-info p {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--secondary);
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        padding: 8px 14px;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.82rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1 1 300px;
+        max-width: 450px;
+        min-width: 0 !important;
+    }
+
+    .filter-group label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #475569;
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+    .filter-group select.form-select {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 4px 22px 4px 7px !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 6px !important;
+        font-size: 0.78rem !important;
+        outline: none;
+        background-color: #ffffff;
+        color: var(--text-main) !important;
+        height: 29px !important;
+        min-height: 29px !important;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+    .btn-preview-rep {
+        background-color: #0288d1;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        height: 29px;
+    }
+
+    .btn-preview-rep:hover {
+        background-color: #026aa7;
+        color: #ffffff;
+    }
+
+    .btn-export-rep {
+        background-color: #d32f2f;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        height: 29px;
+    }
+
+    .btn-export-rep:hover {
+        background-color: #b71c1c;
+        color: #ffffff;
+    }
+
+    .job-grid-card {
+        background: white;
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        overflow-x: auto;
+    }
+
+    #customerRateReportTable {
+        width: 100% !important;
+        font-size: 11.5px !important;
+        table-layout: auto;
+    }
+
+    #customerRateReportTable thead th {
+        white-space: normal !important;
+        vertical-align: middle !important;
+        padding: 6px 8px !important;
+        font-size: 11.5px !important;
+        font-weight: 600;
+        background-color: #f8fafc;
+    }
+
+    #customerRateReportTable tbody td {
+        padding: 6px 8px !important;
+        font-size: 11.5px !important;
+        line-height: 1.2 !important;
+    }
+
+    #customerRateReportTable tbody tr.customer-header-row {
+        background-color: #e2e8f0 !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+    }
+
+    #customerRateReportTable tbody tr.rate-section-header {
+        background-color: #f1f5f9 !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+    }
+
+    #customerRateReportTable tbody tr.rate-section-header td {
+        font-weight: 700 !important;
+    }
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-group {
+            max-width: 100%;
+        }
+        .filter-actions {
+            margin-left: 0;
+            justify-content: flex-end;
+        }
+    }
+</style>
+
+<div class="customer-rate-report-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Top 4 KPI Cards -->
+        <div class="stats-grid">
+            <!-- 1. Total CHC Items -->
+            <div class="stat-card" style="border-color: #0056b3;">
+                <div class="stat-icon" style="background: #0056b3;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Total CHC Items</h3>
+                    <p id="statTotalChcItems">0</p>
+                </div>
+            </div>
+
+            <!-- 2. Total Handling Charges (BDT) -->
+            <div class="stat-card" style="border-color: #2e7d32;">
+                <div class="stat-icon" style="background: #2e7d32;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Handling Charges (BDT)</h3>
+                    <p id="statTotalHandlingAmount">0.00</p>
+                </div>
+            </div>
+
+            <!-- 3. Min. Agency Comm. (BDT) -->
+            <div class="stat-card" style="border-color: #ed6c02;">
+                <div class="stat-icon" style="background: #ed6c02;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                        <line x1="12" y1="18" x2="12" y2="20"></line>
+                        <line x1="12" y1="4" x2="12" y2="6"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>Min. Agency Comm.</h3>
+                    <p id="statMinAgencyCommission">0.00</p>
+                </div>
+            </div>
+
+            <!-- 4. On Invoice Value (%) -->
+            <div class="stat-card" style="border-color: #9c27b0;">
+                <div class="stat-icon" style="background: #9c27b0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <circle cx="15" cy="15" r="2"></circle>
+                        <line x1="16" y1="8" x2="8" y2="16"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <h3>On Invoice Value</h3>
+                    <p id="statOnInvoiceValue">0.00%</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-section">
+            <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+
+            <!-- Multi-Select Customer -->
+            <div class="filter-group">
+                <select id="filterCustomerId" class="form-select form-select-sm custom-select-multi" multiple="multiple" data-placeholder="-- Customer --">
+                    @if (ViewBag.Customers != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Customers)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Export Format & Actions Dropdown -->
+            <div class="filter-group filter-group-export" style="max-width: 170px; margin-left: auto;">
+                <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" data-placeholder="Select Exp. Format">
+                    <option value="">Select Exp. Format</option>
+                    <option value="Preview">Preview</option>
+                    <option value="PDF">PDF</option>
+                    <option value="Excel">Excel</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CustomGrid Table Container -->
+        <div class="job-grid-card">
+            @await Html.PartialAsync("_CustomGrid", Model)
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/customerRateReport.js" asp-append-version="true"></script>
+}
