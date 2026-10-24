@@ -404,15 +404,20 @@
             const rowCount = DOM.tblChcBody.find('tr[data-chcid]').length + 1;
             const newRow = `
                 <tr data-chcid="${escapeHtml(headVal)}">
-                    <td class="text-center align-middle">${rowCount}</td>
+                    <td class="text-center align-middle chc-sl">${rowCount}</td>
                     <td class="text-center align-middle"><input type="text" class="form-control form-control-sm chc-id bg-light text-center" value="${escapeHtml(headVal)}" readonly /></td>
-                    <td class="text-center align-middle"><input type="text" class="form-control form-control-sm chc-head bg-light text-center" value="${escapeHtml(headName)}" readonly /></td>
-                    <td class="text-center align-middle"><input type="text" class="form-control form-control-sm chc-desc text-center" value="${escapeHtml(defaultDesc)}" placeholder="Enter Description" /></td>
+                    <td class="align-middle"><input type="text" class="form-control form-control-sm chc-head bg-light text-start" value="${escapeHtml(headName)}" readonly /></td>
+                    <td class="align-middle"><input type="text" class="form-control form-control-sm chc-desc text-start" value="${escapeHtml(defaultDesc)}" placeholder="Enter Description" /></td>
                     <td class="text-center align-middle">
-                        <input type="number" step="0.01" min="0" class="form-control form-control-sm text-center chc-amount font-weight-bold" value="${amount}" />
+                        <input type="number" step="0.01" min="0" class="form-control form-control-sm text-end chc-amount font-weight-bold" value="${amount}" />
                     </td>
                     <td class="text-center align-middle">
                         <input type="checkbox" class="chc-receiptable" ${isRcpt ? 'checked' : ''} />
+                    </td>
+                    <td class="text-center align-middle">
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-delete-chc py-0 px-2 d-inline-flex align-items-center justify-content-center gap-1" title="Delete Row" style="font-size: 11px; height: 26px;">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </td>
                 </tr>`;
 
@@ -431,6 +436,19 @@
                 DOM.ddlChcHead.val('').trigger('change');
             }
             showToast(`Added charge '${headName}'`, 'info');
+        });
+
+        // E.2 Delete CHC Head Row
+        DOM.tblChcBody.on('click', '.btn-delete-chc', function (e) {
+            e.preventDefault();
+            const $row = $(this).closest('tr');
+            const headName = $row.find('.chc-head').val() || $row.attr('data-chcid');
+            $row.fadeOut(150, function () {
+                $(this).remove();
+                reindexChcRows();
+                calculateChcTotals();
+                showToast(`Removed charge '${headName}'`, 'info');
+            });
         });
 
         // F. Dynamic Calculation in Grid 2 (Expenses in Detail)
@@ -555,7 +573,7 @@
                     let adjTypeBadge = `<span class="text-muted">-</span>`;
                     if (b.adjustmentType) {
                         const isDebit = b.adjustmentType.toLowerCase().includes('debit');
-                        const badgeClass = isDebit ? 'badge bg-warning-subtle text-dark border' : 'badge bg-info-subtle text-info border';
+                        const badgeClass = isDebit ? 'badge bg-warning-subtle text-dark border' : 'badge bg-info-subtle text-dark border';
                         adjTypeBadge = `<span class="${badgeClass}">${escapeHtml(b.adjustmentType)}</span>`;
                     }
 
@@ -761,12 +779,23 @@
         DOM.lblLastUpdateDate.text(formatDate(h.lastUpdateDate));
     }
 
+    function reindexChcRows() {
+        const $rows = DOM.tblChcBody.find('tr[data-chcid]');
+        if ($rows.length === 0) {
+            DOM.tblChcBody.html('<tr><td colspan="7" class="text-center text-muted py-3">Select a Bill to populate charges.</td></tr>');
+        } else {
+            $rows.each(function (idx) {
+                $(this).find('.chc-sl').text(idx + 1);
+            });
+        }
+    }
+
     function populateChcGrid(chcList) {
         DOM.tblChcBody.empty();
         chcList = chcList || [];
 
         if (chcList.length === 0) {
-            DOM.tblChcBody.html(`<tr><td colspan="6" class="text-center text-muted">No custom handling charges recorded.</td></tr>`);
+            DOM.tblChcBody.html(`<tr><td colspan="7" class="text-center text-muted py-3">No custom handling charges recorded.</td></tr>`);
             calculateChcTotals();
             return;
         }
@@ -776,15 +805,20 @@
             const checked = item.isReceiptable ? 'checked' : '';
             rows += `
                 <tr data-chcid="${escapeHtml(item.chcId)}">
-                    <td class="text-center align-middle">${idx + 1}</td>
+                    <td class="text-center align-middle chc-sl">${idx + 1}</td>
                     <td class="text-center align-middle"><input type="text" class="form-control form-control-sm chc-id bg-light text-center" value="${escapeHtml(item.chcId)}" readonly /></td>
-                    <td class="text-center align-middle"><input type="text" class="form-control form-control-sm chc-head bg-light text-center" value="${escapeHtml(item.billHead || '')}" readonly /></td>
-                    <td class="text-center align-middle"><input type="text" class="form-control form-control-sm chc-desc bg-light text-center" value="${escapeHtml(item.chcHeadDescription || '')}" readonly /></td>
+                    <td class="align-middle"><input type="text" class="form-control form-control-sm chc-head bg-light text-start" value="${escapeHtml(item.billHead || '')}" readonly /></td>
+                    <td class="align-middle"><input type="text" class="form-control form-control-sm chc-desc text-start" value="${escapeHtml(item.chcHeadDescription || '')}" placeholder="Enter Description" /></td>
                     <td class="text-center align-middle">
-                        <input type="number" step="0.01" min="0" class="form-control form-control-sm text-center chc-amount font-weight-bold" value="${item.amount || 0}" />
+                        <input type="number" step="0.01" min="0" class="form-control form-control-sm text-end chc-amount font-weight-bold" value="${item.amount || 0}" />
                     </td>
                     <td class="text-center align-middle">
                         <input type="checkbox" class="chc-receiptable" ${checked} />
+                    </td>
+                    <td class="text-center align-middle">
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-delete-chc py-0 px-2 d-inline-flex align-items-center justify-content-center gap-1" title="Delete Row" style="font-size: 11px; height: 26px;">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </td>
                 </tr>`;
         });
@@ -1041,8 +1075,8 @@
         DOM.txtBillNo.val('');
         DOM.hdnCustomerId.val('');
         selectedBillNo = '';
-        DOM.tblChcBody.empty();
-        DOM.tblExpenseBody.empty();
+        DOM.tblChcBody.html('<tr><td colspan="7" class="text-center text-muted py-3">Select a Bill to populate charges.</td></tr>');
+        DOM.tblExpenseBody.html('<tr><td colspan="6" class="text-center text-muted py-3">Select a Bill to populate expense details.</td></tr>');
         DOM.lblTotalChcAmount.text('0.00');
         DOM.lblTotalEstimated.text('0.00');
         DOM.lblTotalActual.text('0.00');

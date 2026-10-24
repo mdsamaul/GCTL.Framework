@@ -81,16 +81,16 @@
         text-align: center !important;
     }
 
-    #tblChcGrid input,
+    /* #tblChcGrid input,
     #tblExpenseGrid input {
         text-align: center !important;
-    }
+    } */
 
     .table-header-custom {
         background-color: #f8fafc;
         color: #1e293b;
         font-weight: 600;
-        text-align: center !important;
+        /* text-align: center !important; */
         vertical-align: middle !important;
     }
 
@@ -230,8 +230,21 @@
         border-color: #0d6efd !important;
         box-shadow: 0 4px 10px rgba(13, 110, 253, 0.18) !important;
     }
-    .toolbar-btn-add:hover i {
-        color: #0a58ca !important;
+    .btn-delete-chc {
+        border-color: #fca5a5 !important;
+        background: #fff5f5 !important;
+        color: #dc2626 !important;
+        transition: all .2s ease !important;
+        font-weight: 500 !important;
+    }
+    .btn-delete-chc:hover {
+        background: #dc2626 !important;
+        color: #ffffff !important;
+        border-color: #dc2626 !important;
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25) !important;
+    }
+    .btn-delete-chc:hover i {
+        color: #ffffff !important;
     }
 
     /* Flatpickr Footer: Today / Clear buttons */
@@ -713,23 +726,24 @@
                             <thead class="table-header-custom sticky-top">
                                 <tr>
                                     <th style="width: 40px;" class="text-center">#</th>
-                                    <th style="width: 100px;">CHCID</th>
-                                    <th style="width: 130px;">Bill Head</th>
-                                    <th>Description</th>
-                                    <th style="width: 110px;" class="text-end">Amount</th>
-                                    <th style="width: 50px;" class="text-center" title="Is Receiptable">Rcpt</th>
+                                    <th style="width: 85px;" class="text-center">CHCID</th>
+                                    <th style="min-width: 150px;" class="text-start">CHC Head</th>
+                                    <th style="min-width: 140px;" class="text-start">Description</th>
+                                    <th style="width: 105px;" class="text-end">Amount</th>
+                                    <th style="width: 45px;" class="text-center" title="Is Receiptable">Rcpt</th>
+                                    <th style="width: 75px;" class="text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-3">Select a Bill to populate charges.</td>
+                                    <td colspan="7" class="text-center text-muted py-3">Select a Bill to populate charges.</td>
                                 </tr>
                             </tbody>
                             <tfoot class="table-light font-weight-bold">
                                 <tr>
                                     <td colspan="4" class="text-end">Total CHC Adjustment:</td>
                                     <td class="text-end text-primary" id="lblTotalChcAmount">0.00</td>
-                                    <td></td>
+                                    <td colspan="2"></td>
                                 </tr>
                             </tfoot>
                         </table>

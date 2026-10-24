@@ -86,7 +86,7 @@ BEGIN
     -- 1. If FinalBillInfo_ForBillAdjust has rows, query it
     IF EXISTS (SELECT 1 FROM dbo.FinalBillInfo_ForBillAdjust WITH (NOLOCK))
     BEGIN
-        SELECT DISTINCT TOP (300)
+        SELECT DISTINCT
             fb.BillNo,
             COALESCE(TRY_CAST(fb.BillDate AS DATETIME), TRY_CONVERT(DATETIME, fb.BillDate, 103), TRY_CONVERT(DATETIME, fb.BillDate, 105), TRY_CONVERT(DATETIME, fb.BillDate, 120), TRY_CONVERT(DATETIME, fb.BillDate, 106)) AS BillDate,
             ISNULL(fb.JobNo, '')                            AS JobNo,
@@ -138,10 +138,10 @@ BEGIN
         ORDER BY BillDate DESC, fb.BillNo DESC
         OPTION (RECOMPILE);
     END
-    -- 2. Otherwise query live CF_BillEntry + Sales_Customer with SARGable index seek (sub-10ms)
+    -- 2. Otherwise query live CF_BillEntry + Sales_Customer
     ELSE
     BEGIN
-        SELECT TOP (300)
+        SELECT
             b.BillNo,
             b.BillDate                                      AS BillDate,
             ISNULL(b.JobNo, '')                             AS JobNo,

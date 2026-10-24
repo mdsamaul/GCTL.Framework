@@ -72,7 +72,7 @@ namespace GCTL.Service.BillAdjustment
             var sql = @"
                 IF EXISTS (SELECT 1 FROM dbo.FinalBillInfo_ForBillAdjust WITH (NOLOCK))
                 BEGIN
-                    SELECT DISTINCT TOP (300)
+                    SELECT DISTINCT
                         fb.BillNo,
                         COALESCE(TRY_CAST(fb.BillDate AS DATETIME), TRY_CONVERT(DATETIME, fb.BillDate, 103), TRY_CONVERT(DATETIME, fb.BillDate, 120)) AS BillDate,
                         ISNULL(fb.JobNo, '')                            AS JobNo,
@@ -120,7 +120,7 @@ namespace GCTL.Service.BillAdjustment
                 END
                 ELSE
                 BEGIN
-                    SELECT DISTINCT TOP (300)
+                    SELECT DISTINCT
                         b.BillNo,
                         b.BillDate                                      AS BillDate,
                         ISNULL(b.JobNo, '')                             AS JobNo,
