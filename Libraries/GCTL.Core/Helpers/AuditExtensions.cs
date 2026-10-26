@@ -12,6 +12,7 @@ namespace GCTL.Core.Helpers
             model.Lmac = info?.MacAddress ?? string.Empty;
             model.Luser = info?.Username ?? string.Empty;
             model.UserInfoEmployeeId = info?.EmployeeId ?? string.Empty;
+            model.UserCompany = info?.CompanyCode ?? string.Empty;
             if (isUpdate)
                 model.ModifyDate = DateTime.Now;
             else
