@@ -73,6 +73,7 @@ using GCTL.Service.PortType;
 using GCTL.Service.Relationships;
 using GCTL.Service.Religions;
 using GCTL.Service.CustomerRateReport;
+using GCTL.Service.JobWiseReconcileStatement;
 using GCTL.Service.RequisitionSummaryReport;
 using GCTL.Service.SepDocumentation;
 using GCTL.Service.Services;
@@ -99,6 +100,7 @@ using GCTL.Service.GPAnalysisReport;
 using GCTL.Service.OFRReport;
 using GCTL.Service.TrialBalance;
 using GCTL.Service.BillAdjustment;
+using GCTL.Service.CustomerTopSheetReport;
 
 namespace GCTL.Framework.Extensions
 {
@@ -233,6 +235,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<IJobBillEntryReportService, JobBillEntryReportService>();
             services.AddScoped<IRequisitionSummaryReportService, RequisitionSummaryReportService>();
             services.AddScoped<ICustomerRateReportService, CustomerRateReportService>();
+            services.AddScoped<IJobWiseReconcileStatementService, JobWiseReconcileStatementService>();
             services.AddScoped<ISepDocumentationService, SepDocumentationService>();
             services.AddScoped<ICustomerWiseApprovalRateService, CustomerWiseApprovalRateService>();
 

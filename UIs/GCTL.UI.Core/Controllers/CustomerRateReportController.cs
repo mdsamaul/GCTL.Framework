@@ -155,7 +155,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 filter ??= new CustomerRateReportFilterVM();
                 var pdfBytes = await _reportService.GeneratePdfAsync(filter);
-                var fileName = $"CustomerRateReport_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                var fileName = $"CustomerRateReport.pdf";
 
                 if (download)
                 {
@@ -178,7 +178,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 filter ??= new CustomerRateReportFilterVM();
                 var excelBytes = await _reportService.GenerateExcelAsync(filter);
-                var fileName = $"CustomerRateReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+                var fileName = $"CustomerRateReport.xlsx";
 
                 return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
