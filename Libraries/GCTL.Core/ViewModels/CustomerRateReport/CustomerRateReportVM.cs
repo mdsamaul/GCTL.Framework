@@ -33,6 +33,29 @@ namespace GCTL.Core.ViewModels.CustomerRateReport
         public bool IsCustomerHeader { get; set; }
     }
 
+    public class CustomerRateReportCustomerRowDTO
+    {
+        public string CustomerId { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerCompany { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string CustomerAddress { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Fax { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Photo { get; set; } = string.Empty;
+        public string ContactPerson { get; set; } = string.Empty;
+        public int TotalChcItems { get; set; }
+        public decimal TotalHandlingAmount { get; set; }
+        public string FormattedHandlingAmount { get; set; } = "0.00";
+        public decimal MinAgencyCommission { get; set; }
+        public string FormattedMinAgencyCommission { get; set; } = "0.00";
+        public decimal OnInvoiceValue { get; set; }
+        public string FormattedOnInvoiceValue { get; set; } = "0.00%";
+        public List<CustomerRateReportItemDTO> RateItems { get; set; } = new();
+    }
+
     public class CustomerRateReportSummaryDTO
     {
         public int TotalCustomers { get; set; }

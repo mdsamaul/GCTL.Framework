@@ -207,39 +207,75 @@
 
     #customerRateReportTable {
         width: 100% !important;
-        font-size: 11.5px !important;
-        table-layout: auto;
+        font-size: clamp(11px, 0.35vw + 8px, 13.5px) !important;
+        table-layout: auto !important;
     }
 
-    #customerRateReportTable thead th {
-        white-space: normal !important;
+    #customerRateReportTable th,
+    #customerRateReportTable td {
         vertical-align: middle !important;
-        padding: 6px 8px !important;
-        font-size: 11.5px !important;
+        padding: clamp(4px, 0.35vw, 7px) clamp(5px, 0.5vw, 9px) !important;
+    }
+
+    .job-no-cell {
+        color: var(--primary);
         font-weight: 600;
+    }
+
+    /* Customer ID, Phone, Fax, Email: nowrap */
+    #customerRateReportTable th:nth-child(3), #customerRateReportTable td:nth-child(3),
+    #customerRateReportTable th:nth-child(6), #customerRateReportTable td:nth-child(6),
+    #customerRateReportTable th:nth-child(7), #customerRateReportTable td:nth-child(7),
+    #customerRateReportTable th:nth-child(8), #customerRateReportTable td:nth-child(8) {
+        white-space: nowrap !important;
+        word-break: keep-all !important;
+    }
+
+    /* Name, Address, Contact Person: wrap */
+    #customerRateReportTable th:nth-child(4), #customerRateReportTable td:nth-child(4) {
+        min-width: 150px;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+
+    #customerRateReportTable th:nth-child(5), #customerRateReportTable td:nth-child(5) {
+        min-width: 180px;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+
+    #customerRateReportTable th:nth-child(10), #customerRateReportTable td:nth-child(10) {
+        min-width: 200px;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+
+    #customerRateReportTable img.js-customer-photo-preview {
+        width: clamp(28px, 2.4vw, 36px) !important;
+        height: clamp(28px, 2.4vw, 36px) !important;
+        object-fit: cover;
+    }
+
+    .customer-rate-subrow {
         background-color: #f8fafc;
+        border-radius: 6px;
     }
 
-    #customerRateReportTable tbody td {
-        padding: 6px 8px !important;
-        font-size: 11.5px !important;
-        line-height: 1.2 !important;
+    .customer-rate-subrow table thead th {
+        background-color: #edf2f7 !important;
+        font-weight: 600;
+        font-size: 11px !important;
     }
 
-    #customerRateReportTable tbody tr.customer-header-row {
-        background-color: #e2e8f0 !important;
-        font-weight: 700 !important;
-        color: #1e293b !important;
+    .customer-rate-subrow table tbody td {
+        font-size: 11px !important;
+        padding: 4px 8px !important;
     }
 
-    #customerRateReportTable tbody tr.rate-section-header {
-        background-color: #f1f5f9 !important;
-        font-weight: 700 !important;
-        color: #0f172a !important;
-    }
-
-    #customerRateReportTable tbody tr.rate-section-header td {
-        font-weight: 700 !important;
+    .col-subrow {
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
     }
 
     @@media (max-width: 1200px) {
@@ -369,6 +405,24 @@
             @await Html.PartialAsync("_CustomGrid", Model)
         </div>
 
+    </div>
+</div>
+
+<!-- Customer Photo Preview Modal -->
+<div class="modal fade" id="customerPhotoModal" tabindex="-1" aria-labelledby="customerPhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+        <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
+            <div class="modal-header py-2 px-3 bg-light border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fas fa-image text-primary"></i>
+                    <h6 class="modal-title mb-0 fw-semibold" id="customerPhotoModalLabel">Customer Photo</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 text-center bg-white">
+                <img id="customerPhotoModalImg" src="" alt="Customer Photo" class="img-fluid rounded shadow-sm" style="max-height: 480px; width: auto; object-fit: contain;" />
+            </div>
+        </div>
     </div>
 </div>
 

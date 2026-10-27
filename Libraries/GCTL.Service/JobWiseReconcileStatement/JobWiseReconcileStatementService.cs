@@ -51,7 +51,7 @@ namespace GCTL.Service.JobWiseReconcileStatement
             {
                 vm.ShipmentModes = await _shipmentModeRepo.All()
                     .Where(x => !string.IsNullOrEmpty(x.ExpenseTypeId) && !string.IsNullOrEmpty(x.ExpenseType))
-                    .OrderBy(x => x.ExpenseType)
+                    .OrderBy(x => x.ExpenseTypeId)
                     .Select(x => new CommonSelectModel
                     {
                         Code = x.ExpenseTypeId,
@@ -68,7 +68,7 @@ namespace GCTL.Service.JobWiseReconcileStatement
             {
                 vm.Customers = await _customerRepo.All()
                     .Where(x => !string.IsNullOrEmpty(x.CustomerId) && !string.IsNullOrEmpty(x.CustomerName))
-                    .OrderBy(x => x.CustomerName)
+                    .OrderBy(x => x.CustomerId)
                     .Select(x => new CommonSelectModel
                     {
                         Code = x.CustomerId,
