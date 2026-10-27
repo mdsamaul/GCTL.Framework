@@ -19,17 +19,23 @@ namespace GCTL.Service.CustomerRateReport
         private readonly IRepository<CustomerWiseCostingEntry> _cwcRepo;
         private readonly IRepository<CustomerWiseCostingDetailsEntry> _cwcdeRepo;
         private readonly IRepository<CustomerHandilingCharge> _chcRepo;
+        private readonly IRepository<SalesContactPerson> _contactPersonRepo;
+        private readonly IRepository<HrmDefDesignation> _designationRepo;
 
         public CustomerRateReportService(
             IRepository<SalesCustomer> customerRepo,
             IRepository<CustomerWiseCostingEntry> cwcRepo,
             IRepository<CustomerWiseCostingDetailsEntry> cwcdeRepo,
-            IRepository<CustomerHandilingCharge> chcRepo)
+            IRepository<CustomerHandilingCharge> chcRepo,
+            IRepository<SalesContactPerson> contactPersonRepo,
+            IRepository<HrmDefDesignation> designationRepo)
         {
             _customerRepo = customerRepo;
             _cwcRepo = cwcRepo;
             _cwcdeRepo = cwcdeRepo;
             _chcRepo = chcRepo;
+            _contactPersonRepo = contactPersonRepo;
+            _designationRepo = designationRepo;
         }
 
         public async Task<List<CommonSelectModel>> GetCustomerListAsync()
@@ -44,17 +50,26 @@ namespace GCTL.Service.CustomerRateReport
                 .ToListAsync();
         }
 
-        public async Task<(List<CustomerRateReportItemDTO> Data, int TotalCount, int FilteredCount)> GetGridDataAsync(CustomerRateReportFilterVM filter)
+        public async Task<(List<CustomerRateReportCustomerRowDTO> Data, int TotalCount, int FilteredCount)> GetGridDataAsync(CustomerRateReportFilterVM filter)
         {
             filter ??= new CustomerRateReportFilterVM();
             var customerIds = ParseCustomerIds(filter.CustomerIds, filter.CustomerId);
 
             if (!customerIds.Any())
             {
-                return (new List<CustomerRateReportItemDTO>(), 0, 0);
+                customerIds = await _customerRepo.All().AsNoTracking()
+                    .Where(c => !string.IsNullOrEmpty(c.CustomerId))
+                    .OrderBy(c => c.CustomerId)
+                    .Select(c => c.CustomerId)
+                    .ToListAsync();
             }
 
-            var rows = await BuildReportRowsAsync(customerIds);
+            if (!customerIds.Any())
+            {
+                return (new List<CustomerRateReportCustomerRowDTO>(), 0, 0);
+            }
+
+            var rows = await BuildCustomerRowsAsync(customerIds);
 
             int totalCount = rows.Count;
             var query = rows.AsEnumerable();
@@ -64,12 +79,16 @@ namespace GCTL.Service.CustomerRateReport
                 var term = filter.SearchTerm.Trim();
                 query = query.Where(x =>
                     x.CustomerName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                    x.Particulars.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                    x.FormattedAmount.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                    x.Remarks.Contains(term, StringComparison.OrdinalIgnoreCase));
+                    x.CustomerId.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    x.CustomerAddress.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    x.Phone.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    x.Fax.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    x.Email.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    x.ContactPerson.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    x.RateItems.Any(r => r.Particulars.Contains(term, StringComparison.OrdinalIgnoreCase)));
             }
 
-            var list = query.ToList();
+            var list = query.OrderBy(x => x.CustomerId, StringComparer.OrdinalIgnoreCase).ToList();
             int filteredCount = list.Count;
 
             if (filter.Length.HasValue && filter.Length.Value > 0)
@@ -85,6 +104,14 @@ namespace GCTL.Service.CustomerRateReport
         {
             var summary = new CustomerRateReportSummaryDTO();
             var parsedIds = ParseCustomerIds(customerIds, null);
+            if (!parsedIds.Any())
+            {
+                parsedIds = await _customerRepo.All().AsNoTracking()
+                    .Where(c => !string.IsNullOrEmpty(c.CustomerId))
+                    .Select(c => c.CustomerId)
+                    .ToListAsync();
+            }
+
             if (!parsedIds.Any())
                 return summary;
 
@@ -419,46 +446,24 @@ namespace GCTL.Service.CustomerRateReport
                 row += 2;
             }
 
-            // Signatures block
-            row += 2;
-            ws.Cell(row, 1).Value = "Prepared By";
-            ws.Cell(row, 1).Style.Border.TopBorder = XLBorderStyleValues.Thin;
-            ws.Cell(row, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            ws.Cell(row, 1).Style.Font.FontSize = 9;
-
-            ws.Cell(row, 2).Value = "Checked By";
-            ws.Cell(row, 2).Style.Border.TopBorder = XLBorderStyleValues.Thin;
-            ws.Cell(row, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            ws.Cell(row, 2).Style.Font.FontSize = 9;
-
-            ws.Cell(row, 3).Value = "Certified By";
-            ws.Cell(row, 3).Style.Border.TopBorder = XLBorderStyleValues.Thin;
-            ws.Cell(row, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            ws.Cell(row, 3).Style.Font.FontSize = 9;
-
-            ws.Cell(row, 4).Value = "Approve By";
-            ws.Cell(row, 4).Style.Border.TopBorder = XLBorderStyleValues.Thin;
-            ws.Cell(row, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            ws.Cell(row, 4).Style.Font.FontSize = 9;
-
-            row++;
-            ws.Range(row, 1, row, 4).Merge();
-            ws.Cell(row, 1).Value = $"Print Date: {DateTime.Now:dd/MM/yyyy hh:mm:ss tt}";
-            ws.Cell(row, 1).Style.Font.FontSize = 8;
-            ws.Cell(row, 1).Style.Font.FontColor = XLColor.FromHtml("#64748b");
-
             using var ms = new MemoryStream();
             workbook.SaveAs(ms);
             return ms.ToArray();
         }
 
-        private async Task<List<CustomerRateReportItemDTO>> BuildReportRowsAsync(List<string> customerIds)
+        private async Task<List<CustomerRateReportCustomerRowDTO>> BuildCustomerRowsAsync(List<string> customerIds)
         {
-            var rows = new List<CustomerRateReportItemDTO>();
+            var result = new List<CustomerRateReportCustomerRowDTO>();
 
-            var customers = await _customerRepo.All().AsNoTracking()
+            customerIds = customerIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase).ToList();
+
+            var custList = await _customerRepo.All().AsNoTracking()
                 .Where(c => customerIds.Contains(c.CustomerId))
-                .ToDictionaryAsync(c => c.CustomerId, StringComparer.OrdinalIgnoreCase);
+                .ToListAsync();
+            var customers = custList
+                .Where(c => !string.IsNullOrEmpty(c.CustomerId))
+                .GroupBy(c => c.CustomerId)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
             var chcList = await _chcRepo.All().AsNoTracking()
                 .Where(x => !string.IsNullOrEmpty(x.Chcid))
@@ -467,7 +472,19 @@ namespace GCTL.Service.CustomerRateReport
                 .GroupBy(x => x.Chcid)
                 .ToDictionary(g => g.Key, g => g.First().Chchead ?? g.Key);
 
-            bool multipleCustomers = customerIds.Count > 1;
+            var desigList = await _designationRepo.All().AsNoTracking()
+                .Where(d => !string.IsNullOrEmpty(d.DesignationCode))
+                .ToListAsync();
+            var designations = desigList
+                .GroupBy(d => d.DesignationCode)
+                .ToDictionary(g => g.Key, g => g.First().DesignationName ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+
+            var cpList = await _contactPersonRepo.All().AsNoTracking()
+                .Where(cp => !string.IsNullOrEmpty(cp.Cpid))
+                .ToListAsync();
+            var contactPersons = cpList
+                .GroupBy(cp => cp.Cpid)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
             foreach (var custId in customerIds)
             {
@@ -482,25 +499,83 @@ namespace GCTL.Service.CustomerRateReport
                     .Where(d => (costing != null && d.CostingId == costing.CostingId) || d.CustomerId == custId)
                     .ToListAsync();
 
-                if (multipleCustomers)
+                decimal totalHandling = detailsList.Sum(d => d.BillAmount ?? 0m);
+                decimal minComm = costing?.MinimumAgencyCommission ?? 0m;
+                decimal onInvVal = costing?.OnInvoiceValue ?? 0m;
+
+                string photoUrl = string.Empty;
+                if (!string.IsNullOrWhiteSpace(customer?.CustomerPhoto))
                 {
-                    // Add customer header row
-                    rows.Add(new CustomerRateReportItemDTO
-                    {
-                        CustomerId = custId,
-                        CustomerName = custName,
-                        Section = string.Empty,
-                        Particulars = $"Customer: {custName}",
-                        Amount = null,
-                        FormattedAmount = string.Empty,
-                        Remarks = string.Empty,
-                        IsHeader = true,
-                        IsCustomerHeader = true
-                    });
+                    photoUrl = customer.CustomerPhoto.StartsWith("/") || customer.CustomerPhoto.StartsWith("http") || customer.CustomerPhoto.StartsWith("data:")
+                        ? customer.CustomerPhoto
+                        : $"/uploads/CRM/Image/{customer.CustomerPhoto}";
                 }
 
+                string contactPersonFormatted = string.Empty;
+                if (!string.IsNullOrWhiteSpace(customer?.ContactPerson))
+                {
+                    var cpIds = customer.ContactPerson.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .ToList();
+
+                    var lines = new List<string>();
+                    foreach (var cpId in cpIds)
+                    {
+                        if (contactPersons.TryGetValue(cpId, out var cp))
+                        {
+                            string desig = (!string.IsNullOrEmpty(cp.DesignationCode) && designations.TryGetValue(cp.DesignationCode, out var dName))
+                                ? dName
+                                : string.Empty;
+
+                            var parts = new[] { cp.ContactPersonName, desig, cp.ContactPersonMobile, cp.ContactPersonEmail }
+                                .Where(s => !string.IsNullOrWhiteSpace(s))
+                                .Select(s => s.Trim());
+
+                            var line = string.Join(", ", parts);
+                            if (!string.IsNullOrWhiteSpace(line))
+                            {
+                                lines.Add(line);
+                            }
+                        }
+                    }
+
+                    if (lines.Any())
+                    {
+                        contactPersonFormatted = string.Join(",\r\n", lines);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(contactPersonFormatted))
+                {
+                    contactPersonFormatted = customer?.ContatPerson1 ?? string.Empty;
+                }
+
+                var customerRow = new CustomerRateReportCustomerRowDTO
+                {
+                    CustomerId = custId,
+                    Name = custName,
+                    CustomerName = custName,
+                    CustomerCompany = customer?.CustomerCompany ?? string.Empty,
+                    Address = customer?.CustomerAddress ?? string.Empty,
+                    CustomerAddress = customer?.CustomerAddress ?? string.Empty,
+                    Phone = customer?.Phone ?? string.Empty,
+                    Fax = customer?.Fax ?? string.Empty,
+                    Email = customer?.Email ?? string.Empty,
+                    Photo = photoUrl,
+                    ContactPerson = contactPersonFormatted,
+                    TotalChcItems = detailsList.Count,
+                    TotalHandlingAmount = totalHandling,
+                    FormattedHandlingAmount = totalHandling.ToString("#,##0.00", CultureInfo.InvariantCulture),
+                    MinAgencyCommission = minComm,
+                    FormattedMinAgencyCommission = minComm.ToString("#,##0.00", CultureInfo.InvariantCulture),
+                    OnInvoiceValue = onInvVal,
+                    FormattedOnInvoiceValue = $"{onInvVal.ToString("0.00", CultureInfo.InvariantCulture)}%",
+                    RateItems = new List<CustomerRateReportItemDTO>()
+                };
+
                 // Section A: Custom Handling Charge
-                rows.Add(new CustomerRateReportItemDTO
+                customerRow.RateItems.Add(new CustomerRateReportItemDTO
                 {
                     CustomerId = custId,
                     CustomerName = custName,
@@ -518,7 +593,7 @@ namespace GCTL.Service.CustomerRateReport
                         ? h
                         : (detail.Chcid ?? "-");
 
-                    rows.Add(new CustomerRateReportItemDTO
+                    customerRow.RateItems.Add(new CustomerRateReportItemDTO
                     {
                         CustomerId = custId,
                         CustomerName = custName,
@@ -532,7 +607,7 @@ namespace GCTL.Service.CustomerRateReport
                 }
 
                 // Section B: Agency Commission
-                rows.Add(new CustomerRateReportItemDTO
+                customerRow.RateItems.Add(new CustomerRateReportItemDTO
                 {
                     CustomerId = custId,
                     CustomerName = custName,
@@ -544,7 +619,7 @@ namespace GCTL.Service.CustomerRateReport
                     IsHeader = true
                 });
 
-                rows.Add(new CustomerRateReportItemDTO
+                customerRow.RateItems.Add(new CustomerRateReportItemDTO
                 {
                     CustomerId = custId,
                     CustomerName = custName,
@@ -556,7 +631,7 @@ namespace GCTL.Service.CustomerRateReport
                     IsHeader = false
                 });
 
-                rows.Add(new CustomerRateReportItemDTO
+                customerRow.RateItems.Add(new CustomerRateReportItemDTO
                 {
                     CustomerId = custId,
                     CustomerName = custName,
@@ -567,9 +642,11 @@ namespace GCTL.Service.CustomerRateReport
                     Remarks = string.Empty,
                     IsHeader = false
                 });
+
+                result.Add(customerRow);
             }
 
-            return rows;
+            return result.OrderBy(x => x.CustomerId, StringComparer.OrdinalIgnoreCase).ToList();
         }
 
         private static List<string> ParseCustomerIds(string? customerIds, string? singleCustomerId)

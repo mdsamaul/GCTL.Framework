@@ -34,24 +34,31 @@ namespace GCTL.UI.Core.Controllers
                 AjaxMethod = "POST",
                 ServerSide = true,
                 Bordered = true,
+                HasSubRow = true,
+                SubRowRenderFn = "renderCustomerRateSubRow",
+                ShowCheckbox = true,
                 CheckAllId = "chkSelectAllCustomerRates",
-                CheckboxClass = "chk-rate-item",
-                CheckColumnData = "particulars",
+                CheckboxClass = "chk-customer-item",
+                CheckColumnData = "customerId",
                 Compact = true,
                 CustomGridWrapper = false,
-                DefaultPageLength = 100,
+                DefaultPageLength = 25,
                 Hover = true,
-                ShowCheckbox = false,
-                ShowPagination = false,
-                ShowRowNumbers = false,
-                ShowSearchBox = false,
+                ShowPagination = true,
+                ShowSearchBox = true,
+                DefaultSortColumn = "customerId",
+                DefaultSortDirection = "asc",
                 Striped = true,
                 Columns = new List<GridColumn>
                 {
-                    new() { Data = "section", Header = " ", Width = "8%", Align = "center", Sortable = false },
-                    new() { Data = "particulars", Header = "Particulars", Width = "52%", Align = "left", Sortable = false },
-                    new() { Data = "formattedAmount", Header = "Amount (BDT)", Width = "20%", Align = "right", Sortable = false },
-                    new() { Data = "remarks", Header = "Remarks", Width = "20%", Align = "left", Sortable = false }
+                    new() { Data = "customerId",    Header = "Customer ID",    Width = "7%",  Align = "center", RenderFn = "renderCustomerId", Sortable = false },
+                    new() { Data = "name",          Header = "Name",           Width = "16%", Align = "left",   RenderFn = "renderAlignLeft", Sortable = false },
+                    new() { Data = "address",       Header = "Address",        Width = "20%", Align = "left",   RenderFn = "renderAlignLeft", Sortable = false },
+                    new() { Data = "phone",         Header = "Phone",          Width = "7%",  Align = "center", Sortable = false },
+                    new() { Data = "fax",           Header = "Fax",            Width = "6%",  Align = "center", Sortable = false },
+                    new() { Data = "email",         Header = "Email",          Width = "12%", Align = "center", Sortable = false },
+                    new() { Data = "photo",         Header = "Photo",          Width = "5%",  Align = "center", RenderFn = "renderPhoto", Sortable = false },
+                    new() { Data = "contactPerson", Header = "Contact Person", Width = "23%", Align = "left",   RenderFn = "renderContactPerson", Sortable = false }
                 }
             };
 

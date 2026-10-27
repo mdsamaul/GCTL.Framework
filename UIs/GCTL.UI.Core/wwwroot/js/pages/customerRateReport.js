@@ -1,8 +1,79 @@
-/**
- * Customer Rate Report Page Script
- * CustomGrid with Multi-Select Customer Filter, KPI Cards, Preview, PDF & Excel Export
- * Formosa Logistics Limited
- */
+// Register renderers for CustomGrid
+window.gctlRenderers = window.gctlRenderers || {};
+
+window.gctlRenderers.renderPhoto = function (data) {
+    if (data) {
+        var src = (data.startsWith('/') || data.startsWith('http') || data.startsWith('data:'))
+            ? data
+            : 'data:image/jpeg;base64,' + data;
+        return '<img src="' + src + '" alt="Photo" loading="lazy" class="js-customer-photo-preview" data-src="' + src + '" title="Click to view large photo" style="width:36px;height:36px;border-radius:6px;object-fit:cover;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;" onmouseover="this.style.transform=\'scale(1.15)\';this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.25)\';" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'none\';" onerror="this.onerror=null;this.parentElement.innerHTML=\'<span class=\\\'text-muted\\\'>-</span>\';" />';
+    }
+    return '<span class="text-muted">-</span>';
+};
+
+window.gctlRenderers.renderContactPerson = function (data) {
+    return '<span style="text-align:left; display:block; white-space:pre-line;">' + escapeHtml(data) + '</span>';
+};
+
+window.gctlRenderers.renderAlignLeft = function (data) {
+    return '<span style="text-align:left; display:block;">' + escapeHtml(data) + '</span>';
+};
+
+window.gctlRenderers.renderCustomerId = function (data) {
+    return '<span class="job-no-cell">' + escapeHtml(data) + '</span>';
+};
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return $('<div>').text(str).html();
+}
+
+window.gctlRenderers.renderCustomerRateSubRow = function (row) {
+    if (!row) return '';
+    var items = row.rateItems || [];
+    if (!items.length) {
+        return '<div class="customer-rate-subrow p-3 text-muted small"><i class="fas fa-info-circle me-1"></i> No rate details found for this customer.</div>';
+    }
+
+    var html = '<div class="customer-rate-subrow p-2 bg-light border rounded m-1">';
+
+    // Rate details table
+    html += '<div class="table-responsive">';
+    html += '<table class="table table-sm table-bordered bg-white mb-0" style="font-size: 11px;">';
+    html += '<thead class="table-light">';
+    html += '<tr>';
+    html += '<th style="width: 8%;" class="text-center align-middle">Sec.</th>';
+    html += '<th style="width: 52%;" class="text-start align-middle">Particulars</th>';
+    html += '<th style="width: 20%;" class="text-end align-middle">Amount (BDT)</th>';
+    html += '<th style="width: 20%;" class="text-start align-middle">Remarks</th>';
+    html += '</tr>';
+    html += '</thead>';
+    html += '<tbody>';
+
+    items.forEach(function (item) {
+        if (item.isHeader) {
+            html += '<tr class="table-secondary fw-bold">';
+            html += '<td class="text-center">' + (item.section || '') + '</td>';
+            html += '<td colspan="3" class="text-start text-primary fw-bold">' + (item.particulars || '') + '</td>';
+            html += '</tr>';
+        } else {
+            html += '<tr>';
+            html += '<td class="text-center text-muted">' + (item.section || '') + '</td>';
+            html += '<td class="text-start ps-3">' + (item.particulars || '') + '</td>';
+            html += '<td class="text-end fw-semibold tabular-number">' + (item.formattedAmount || '') + '</td>';
+            html += '<td class="text-start text-muted">' + (item.remarks || '') + '</td>';
+            html += '</tr>';
+        }
+    });
+
+    html += '</tbody>';
+    html += '</table>';
+    html += '</div>';
+    html += '</div>';
+
+    return html;
+};
+
 (function ($) {
     'use strict';
 
@@ -12,6 +83,7 @@
     $(document).ready(function () {
         initGrid();
         bindEvents();
+        loadSummaryData();
     });
 
     /**
@@ -40,82 +112,36 @@
     }
 
     function initGrid() {
-        var $table = $('#customerRateReportTable');
-        if (!$table.length) return;
-
-        gridTable = $table.DataTable({
-            processing: true,
-            serverSide: true,
-            searching: false,
-            paging: false,
-            info: false,
-            ordering: false,
-            ajax: {
-                url: '/CustomerRateReport/GetGridData',
-                type: 'POST',
-                data: function (d) {
+        if ($.gctlGrid && typeof $.gctlGrid.initFromModel === 'function') {
+            gridTable = $.gctlGrid.initFromModel({
+                gridId: 'customerRateReportTable',
+                ajaxData: function (d) {
                     d.CustomerIds = getDropdownValue('filterCustomerId');
                 }
-            },
-            columns: [
-                {
-                    data: 'section',
-                    className: 'text-center fw-bold',
-                    width: '6%',
-                    render: function (data) {
-                        return data || '';
-                    }
-                },
-                {
-                    data: 'particulars',
-                    className: 'text-start',
-                    width: '54%',
-                    render: function (data, type, row) {
-                        if (row.isCustomerHeader) {
-                            return '<span class="fw-bold text-primary fs-6">' + (data || '') + '</span>';
-                        }
-                        if (row.isHeader) {
-                            return '<span class="fw-bold text-dark">' + (data || '') + '</span>';
-                        }
-                        return data || '';
-                    }
-                },
-                {
-                    data: 'formattedAmount',
-                    className: 'text-end',
-                    width: '20%',
-                    render: function (data, type, row) {
-                        if (row.isHeader || row.isCustomerHeader) {
-                            return '';
-                        }
-                        return data || '';
-                    }
-                },
-                {
-                    data: 'remarks',
-                    className: 'text-start',
-                    width: '20%',
-                    render: function (data) {
-                        return data || '';
-                    }
-                }
-            ],
-            rowCallback: function (row, data) {
-                if (data.isCustomerHeader) {
-                    $(row).addClass('customer-header-row table-secondary');
-                } else if (data.isHeader) {
-                    $(row).addClass('rate-section-header table-light');
-                }
-            },
-            language: {
-                emptyTable: 'Please select one or more customers to view rate details.'
-            }
-        });
+            });
+        }
     }
 
     function bindEvents() {
         $('#filterCustomerId').on('change', function () {
             triggerFilterChange();
+        });
+
+        // Photo Preview click
+        $(document).on('click', '.js-customer-photo-preview', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var src = $(this).attr('data-src') || $(this).attr('src');
+            if (src) {
+                $('#customerPhotoModalImg').attr('src', src);
+                var modalEl = document.getElementById('customerPhotoModal');
+                if (modalEl && window.bootstrap) {
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                } else {
+                    window.open(src, '_blank');
+                }
+            }
         });
 
         // Handle Export Format dropdown selection (native change)
@@ -138,22 +164,42 @@
         });
     }
 
+    /**
+     * Get customer IDs for export: prioritizes checked checkboxes in grid,
+     * falls back to filter dropdown selection.
+     */
+    function getSelectedCustomerIdsForExport() {
+        var checkedIds = [];
+        $('.chk-customer-item:checked').each(function () {
+            var val = $(this).val();
+            if (val && checkedIds.indexOf(val) === -1) {
+                checkedIds.push(val);
+            }
+        });
+
+        if (checkedIds.length > 0) {
+            return checkedIds.join(',');
+        }
+
+        return getDropdownValue('filterCustomerId');
+    }
+
     function handleExportAction(action) {
         if (!action) return;
         var act = String(action).trim().toUpperCase();
 
-        var customerIds = getDropdownValue('filterCustomerId');
+        var customerIds = getSelectedCustomerIdsForExport();
         if (!customerIds) {
             if (typeof toastr !== 'undefined') {
-                toastr.warning('Please select at least one Customer.');
+                toastr.warning('Please select at least one Customer (via row checkbox or Customer filter).');
             } else {
-                alert('Please select at least one Customer.');
+                alert('Please select at least one Customer (via row checkbox or Customer filter).');
             }
             clearExportDropdown();
             return;
         }
 
-        var queryParams = getExportQueryParams();
+        var queryParams = $.param({ CustomerIds: customerIds });
 
         if (act === 'PREVIEW' || act.indexOf('PREVIEW') !== -1) {
             window.open('/CustomerRateReport/ExportPdf?' + queryParams, '_blank');
@@ -190,7 +236,9 @@
     }
 
     function onCustomerChanged() {
-        if (gridTable) {
+        if ($.gctlGrid && typeof $.gctlGrid.reload === 'function') {
+            $.gctlGrid.reload('customerRateReportTable', true);
+        } else if (gridTable) {
             gridTable.ajax.reload();
         }
         loadSummaryData();
