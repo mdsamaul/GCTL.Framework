@@ -676,7 +676,7 @@ namespace GCTL.Service.ExpenseHead
                     new Font(new Bold()),
                     new Font(new Bold(), new FontSize() { Val = 16 }),
                     new Font(new FontSize() { Val = 11 }),
-                    new Font(new Bold(), new FontSize() { Val = 10 })
+                    new Font(new FontSize() { Val = 10 })
                 );
                 stylesPart.Stylesheet.Fonts = fonts;
 
@@ -823,12 +823,12 @@ namespace GCTL.Service.ExpenseHead
                 var headerRow = new Row() { Height = 25, CustomHeight = true };
                 headerRow.Append(
                     new Cell() { CellValue = new CellValue("Expense Head ID"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
-                    new Cell() { CellValue = new CellValue("Expense Head"), DataType = CellValues.String, StyleIndex = tableHeaderLeftStyleIndex },
-                    new Cell() { CellValue = new CellValue("Short Name"), DataType = CellValues.String, StyleIndex = tableHeaderLeftStyleIndex },
+                    new Cell() { CellValue = new CellValue("Expense Head"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
+                    new Cell() { CellValue = new CellValue("Short Name"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
                     new Cell() { CellValue = new CellValue("Serial No"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
                     new Cell() { CellValue = new CellValue("Is Receiptable?"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
-                    new Cell() { CellValue = new CellValue("Service Provided By"), DataType = CellValues.String, StyleIndex = tableHeaderLeftStyleIndex },
-                    new Cell() { CellValue = new CellValue("Shipment Mode"), DataType = CellValues.String, StyleIndex = tableHeaderLeftStyleIndex },
+                    new Cell() { CellValue = new CellValue("Service Provided By"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
+                    new Cell() { CellValue = new CellValue("Shipment Mode"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
                     new Cell() { CellValue = new CellValue("Amount"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex },
                     new Cell() { CellValue = new CellValue("Status"), DataType = CellValues.String, StyleIndex = tableHeaderCenterStyleIndex }
                 );
@@ -938,7 +938,7 @@ namespace GCTL.Service.ExpenseHead
                             r.ConstantItem(85);
                         });
 
-                        headerCol.Item().PaddingTop(4).PaddingBottom(6).LineHorizontal(0.75f).LineColor("#cccccc");
+                        // removed header line
                     });
 
                     // Content Table
@@ -959,15 +959,15 @@ namespace GCTL.Service.ExpenseHead
 
                         table.Header(header =>
                         {
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignCenter().AlignMiddle().Text("Expense Head ID").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignLeft().AlignMiddle().Text("Expense Head").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignLeft().AlignMiddle().Text("Short Name").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignCenter().AlignMiddle().Text("Serial No").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignCenter().AlignMiddle().Text("Is Receiptable?").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignLeft().AlignMiddle().Text("Service Provided By").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignLeft().AlignMiddle().Text("Shipment Mode").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignRight().AlignMiddle().Text("Amount").Bold().FontSize(8.5f).FontColor("#000000");
-                            header.Cell().Border(0.5f).BorderColor("#333333").Padding(4).AlignCenter().AlignMiddle().Text("Status").Bold().FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Expense Head ID").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Expense Head").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Short Name").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Serial No").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Is Receiptable?").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Service Provided By").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Shipment Mode").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Amount").FontSize(8.5f).FontColor("#000000");
+                            header.Cell().Border(0.5f).BorderColor("#cccccc").Padding(4).AlignCenter().AlignMiddle().Text("Status").FontSize(8.5f).FontColor("#000000");
                         });
 
                         foreach (var d in data)
@@ -987,7 +987,7 @@ namespace GCTL.Service.ExpenseHead
                     // Footer
                     page.Footer().PaddingTop(4).Column(footerCol =>
                     {
-                        footerCol.Item().LineHorizontal(0.5f).LineColor("#cccccc");
+                        // removed footer top line
                         footerCol.Item().PaddingTop(3).Row(row =>
                         {
                             row.RelativeItem().AlignLeft().Text($"Printed: {DateTime.Now:dd/MM/yyyy hh:mm tt}")
