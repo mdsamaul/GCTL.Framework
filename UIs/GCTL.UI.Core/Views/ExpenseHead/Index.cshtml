@@ -1,20 +1,1220 @@
-<link rel="stylesheet" href="~/css/custom/custom-datatable.css" asp-append-version="true" />
-<section class="content consistent-look">
-    <div class="">
-        <div class="row g-2">
-            <div class="col-12" id="expenseFormContainer">
-                @await Html.PartialAsync("ExpenseForm")
-            </div>
-            <div class="col-xxl-6 col-xl-8 col-lg-8 col-12 mt-3" id="expenseList">
-                @await Html.PartialAsync("ExpenseList")
-            </div>
-        </div>
-    </div>
-</section>
+@{
 
+    ViewData["Title"] = "Expense Head";
+
+    ViewData["HideBreadcrumb"] = true;
+
+}
+
+
+
+<div id="expenseHeadApp" class="expense-head-scope">
+
+    <!-- Top Header Bar (Full Width, Edge to Edge) -->
+
+    <header class="eh-top">
+
+        <div class="eh-wrap">
+
+            <div class="eh-logo">C&amp;F</div>
+
+            <div>
+
+                <h1 class="eh-title">Expense Head Setup</h1>
+
+                <div class="eh-crumbs">Home / Master Setup / C&amp;F Management / <b>Expense Head</b></div>
+
+            </div>
+
+            <div class="eh-sp"></div>
+
+            <button class="eh-btn eh-fav" id="favBtn" title="Add to favorites">
+
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>Favorite
+
+            </button>
+
+            <button class="eh-btn eh-primary" id="newBtn" style="background:#0e9f8e;border-color:#0e9f8e">
+
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>New Expense Head
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <main class="eh-wrap">
+
+        <!-- Real-Time KPI Dashboard (5 KPI Cards) -->
+
+        <section class="eh-kpis" id="kpis"></section>
+
+
+
+        <!-- Interactive Visual Analytics Charts (Full Width) -->
+
+        <section class="eh-charts">
+
+            <div class="eh-card">
+
+                <h3>Expense heads by shipment mode <span style="text-transform:none;letter-spacing:0;font-weight:400">(click to filter)</span></h3>
+
+                <div id="chMode"></div>
+
+            </div>
+
+            <div class="eh-card">
+
+                <h3>By service provider</h3>
+
+                <div class="eh-donutbox">
+
+                    <div class="eh-donut" id="dnSvc"></div>
+
+                    <div class="eh-leg" id="lgSvc"></div>
+
+                </div>
+
+            </div>
+
+            <div class="eh-card">
+
+                <h3>Receiptable split</h3>
+
+                <div class="eh-donutbox">
+
+                    <div class="eh-donut" id="dnRec"></div>
+
+                    <div class="eh-leg" id="lgRec"></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- Instant Filter Controls with custom-select-single & Flatpickr Native Integration -->
+
+        <section class="eh-card eh-filters">
+
+            <div class="eh-fld">
+
+                <label>Shipment Mode</label>
+
+                <select class="form-select form-select-sm custom-select-single" id="fMode" data-placeholder="All shipment modes">
+
+                    <option value="">All shipment modes</option>
+
+                    @if (ViewBag.ShipmentModes != null)
+
+                    {
+
+                        foreach (var item in (List<GCTL.Core.ViewModels.Common.CommonSelectModel>)ViewBag.ShipmentModes)
+
+                        {
+
+                            <option value="@item.Name">@item.Name</option>
+
+                        }
+
+                    }
+
+                </select>
+
+            </div>
+
+            <div class="eh-fld">
+
+                <label>Service Provided By</label>
+
+                <select class="form-select form-select-sm custom-select-single" id="fSvc" data-placeholder="All service providers">
+
+                    <option value="">All service providers</option>
+
+                    @if (ViewBag.ServiceProviders != null)
+
+                    {
+
+                        foreach (var item in (List<GCTL.Core.ViewModels.Common.CommonSelectModel>)ViewBag.ServiceProviders)
+
+                        {
+
+                            <option value="@item.Name">@item.Name</option>
+
+                        }
+
+                    }
+
+                </select>
+
+            </div>
+
+            <div class="eh-fld">
+
+                <label>Is Receiptable Expense</label>
+
+                <select class="form-select form-select-sm custom-select-single" id="fRec" data-placeholder="All">
+
+                    <option value="">All</option>
+
+                    <option value="1">Yes</option>
+
+                    <option value="0">No</option>
+
+                </select>
+
+            </div>
+
+            <div class="eh-fld">
+
+                <label>Status</label>
+
+                <select class="form-select form-select-sm custom-select-single" id="fSta" data-placeholder="All">
+
+                    <option value="">All</option>
+
+                    <option value="Active">Active</option>
+
+                    <option value="Inactive">Inactive</option>
+
+                </select>
+
+            </div>
+
+            <div class="eh-fld">
+
+                <label>From Date</label>
+
+                <div class="flatpickr-input-container">
+
+                    <input type="text" class="form-control form-control-sm flatpickr-input" id="fFromDate" placeholder="dd/mm/yyyy" autocomplete="off" />
+
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+
+                </div>
+
+            </div>
+
+            <div class="eh-fld">
+
+                <label>To Date</label>
+
+                <div class="flatpickr-input-container">
+
+                    <input type="text" class="form-control form-control-sm flatpickr-input" id="fToDate" placeholder="dd/mm/yyyy" autocomplete="off" />
+
+                    <i class="fas fa-calendar-alt flatpickr-icon"></i>
+
+                </div>
+
+            </div>
+
+            <div class="eh-fld eh-fld-search">
+
+                <label>Search</label>
+
+                <input class="eh-in" id="fQ" placeholder="ID, expense head, short name…" autocomplete="off">
+
+            </div>
+
+            <div class="eh-fbtns">
+
+                <button class="eh-btn" id="resetBtn" title="Reset all filters">
+
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8M3 3v5h5"/></svg>Reset
+
+                </button>
+
+                <div class="eh-menu" id="expMenu">
+
+                    <button class="eh-btn eh-primary" id="expBtn">
+
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>Report Export ▾
+
+                    </button>
+
+                    <div class="eh-pop">
+
+                        <button type="button" data-x="preview">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>Print / Preview
+
+                        </button>
+
+                        <button type="button" data-x="pdf">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg>PDF
+
+                        </button>
+
+                        <button type="button" data-x="excel">
+
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Excel
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- Millisecond Execution Grid Table (Edge to Edge Full Width) -->
+
+        <section class="eh-card eh-gridcard">
+
+            <div class="eh-gh">
+
+                <h2>Expense Head List</h2>
+
+                <span class="eh-pill" id="cnt">Loading...</span>
+
+                <span class="eh-sp"></span>
+
+                <button class="eh-btn eh-danger eh-sm" id="bulkDel" disabled>Delete selected (<span id="selN">0</span>)</button>
+
+                <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px;margin:0">Rows
+
+                    <select class="eh-in" id="pgSize" style="width:auto;min-height:32px;padding:4px 8px">
+
+                        <option>10</option>
+
+                        <option selected>15</option>
+
+                        <option>25</option>
+
+                        <option>50</option>
+
+                        <option>100</option>
+
+                    </select>
+
+                </label>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table id="tbl" class="eh-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="eh-ns eh-ctr eh-chk0" style="width:36px"><input type="checkbox" id="selAll" title="Select page"></th>
+
+                            <th data-k="id" style="width:70px">ID<span class="eh-ar"></span></th>
+
+                            <th data-k="name">Expense Head<span class="eh-ar"></span></th>
+
+                            <th data-k="short" class="eh-hide-md">Short Name<span class="eh-ar"></span></th>
+
+                            <th data-k="serial" class="eh-num" style="width:70px">Serial<span class="eh-ar"></span></th>
+
+                            <th data-k="rec" class="eh-ctr">Receiptable<span class="eh-ar"></span></th>
+
+                            <th data-k="svc">Service By<span class="eh-ar"></span></th>
+
+                            <th data-k="mode">Shipment Mode<span class="eh-ar"></span></th>
+
+                            <th data-k="amt" class="eh-num eh-hide-sm">Amount<span class="eh-ar"></span></th>
+
+                            <th data-k="status" class="eh-ctr eh-hide-sm">Status<span class="eh-ar"></span></th>
+
+                            <th class="eh-ns eh-ctr" style="width:84px">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tb"></tbody>
+
+                </table>
+
+            </div>
+
+            <div class="eh-gf">
+
+                <span class="eh-info" id="info">Loading...</span>
+
+                <span class="eh-sp"></span>
+
+                <div class="eh-pager" id="pager"></div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- Add / Edit Modal Dialog with Select2 Integration -->
+
+    <dialog id="dlg" class="eh-dlg">
+
+        <form method="dialog" id="frm" novalidate onsubmit="return false;">
+
+            <div class="eh-dh">
+
+                <h2 id="dlgT">Expense Head Info</h2>
+
+                <button type="button" class="eh-x" data-close>&times;</button>
+
+            </div>
+
+            <div class="eh-db">
+
+                <div class="eh-form">
+
+                    <input type="hidden" id="eTc" value="0">
+
+                    <div class="eh-fld">
+
+                        <label>Expense Head ID</label>
+
+                        <input class="eh-in" id="eId" readonly>
+
+                    </div>
+
+                    <div class="eh-fld">
+
+                        <label>Shipment Mode <em>*</em></label>
+
+                        <select class="form-select form-select-sm custom-select-single" id="eMode" data-placeholder="Select Shipment Mode">
+
+                            <option value="">Select Shipment Mode</option>
+
+                            @if (ViewBag.ShipmentModes != null)
+
+                            {
+
+                                foreach (var item in (List<GCTL.Core.ViewModels.Common.CommonSelectModel>)ViewBag.ShipmentModes)
+
+                                {
+
+                                    <option value="@item.Code" data-name="@item.Name">@item.Name</option>
+
+                                }
+
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="eh-fld">
+
+                        <label>Expense Head <em>*</em></label>
+
+                        <input class="eh-in" id="eName" placeholder="Expense Head">
+
+                    </div>
+
+                    <div class="eh-fld">
+
+                        <label>Service Provided By <em>*</em></label>
+
+                        <select class="form-select form-select-sm custom-select-single" id="eSvc" data-placeholder="Select Service Provider">
+
+                            <option value="">Select Service Provider</option>
+
+                            @if (ViewBag.ServiceProviders != null)
+
+                            {
+
+                                foreach (var item in (List<GCTL.Core.ViewModels.Common.CommonSelectModel>)ViewBag.ServiceProviders)
+
+                                {
+
+                                    <option value="@item.Code" data-name="@item.Name">@item.Name</option>
+
+                                }
+
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="eh-fld">
+
+                        <label>Short Name</label>
+
+                        <input class="eh-in" id="eShort" placeholder="Short Name">
+
+                    </div>
+
+                    <div class="eh-fld">
+
+                        <label>Amount</label>
+
+                        <input class="eh-in" id="eAmt" type="number" min="0" step="0.01" placeholder="Amount">
+
+                    </div>
+
+                    <div class="eh-fld">
+
+                        <label>Serial No <em>*</em></label>
+
+                        <input class="eh-in" id="eSerial" type="number" min="1" placeholder="Serial No">
+
+                    </div>
+
+                    <div class="eh-fld">
+
+                        <label>Status</label>
+
+                        <select class="form-select form-select-sm custom-select-single" id="eSta" data-placeholder="Select Status">
+
+                            <option value="Active">Active</option>
+
+                            <option value="Inactive">Inactive</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="eh-fld eh-full">
+
+                        <label class="eh-chk">
+
+                            <input type="checkbox" id="eRec"> Is Receiptable Expense
+
+                        </label>
+
+                    </div>
+
+                    <div class="eh-fld" id="lDateContainer" style="display:none;">
+
+                        <label>Creation Date</label>
+
+                        <input class="eh-in" id="eLdate" readonly>
+
+                    </div>
+
+                    <div class="eh-fld" id="modifyDateContainer" style="display:none;">
+
+                        <label>Modify Date</label>
+
+                        <input class="eh-in" id="eModifyDate" readonly>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="eh-df">
+
+                <button type="button" class="eh-btn eh-danger" id="eDel" style="margin-right:auto">Delete</button>
+
+                <button type="button" class="eh-btn" id="eClear">Clear</button>
+
+                <button type="button" class="eh-btn" data-close>Cancel</button>
+
+                <button type="button" class="eh-btn eh-primary" id="eSave">Save</button>
+
+            </div>
+
+        </form>
+
+    </dialog>
+
+
+
+    <!-- Report Preview Dialog -->
+
+    <dialog id="pv" class="eh-dlg">
+
+        <div class="eh-dh">
+
+            <h2>Report Preview</h2>
+
+            <button type="button" class="eh-x" data-close>&times;</button>
+
+        </div>
+
+        <div class="eh-db">
+
+            <div class="eh-preview" id="pvBody"></div>
+
+        </div>
+
+        <div class="eh-df">
+
+            <button type="button" class="eh-btn" data-close>Close</button>
+
+            <button type="button" class="eh-btn" id="pvPdf">Save as PDF</button>
+
+            <button type="button" class="eh-btn eh-primary" id="pvPrint">Print</button>
+
+        </div>
+
+    </dialog>
+
+
+
+    <!-- Fast Toast Notification Container -->
+
+    <div class="eh-toast" id="toast"></div>
+
+<!-- Bootstrap Delete Confirmation Modal -->
 <partial name="DeleteModal" />
 
+
+</div>
+
+
+
+<style>
+
+/* =========================================================================
+
+   EXPENSE HEAD SETUP STYLES - 100% Full Width (No Left/Right Outer Margin)
+
+   With Select2 & Flatpickr Native Integration Matching Project Design
+
+   ========================================================================= */
+
+.expense-head-scope {
+
+  --bg:#fff; --surface:#fff; --surface2:#f6f8fb; --line:#e2e7ef; --line2:#cfd7e3;
+
+  --ink:#1b2437; --muted:#6b7690;
+
+  --brand:#14315f; --brand2:#1d4a8f; --accent:#0e9f8e; --amber:#e8a317; --danger:#d64550; --ok:#1e9e5a;
+
+  --radius:10px; --shadow:0 1px 2px rgba(20,49,95,.06),0 6px 18px rgba(20,49,95,.06);
+
+  --font:"Segoe UI",Inter,system-ui,-apple-system,Roboto,Arial,sans-serif;
+
+  font-family:var(--font);
+
+  background:var(--bg);
+
+  color:var(--ink);
+
+  font-size:14px;
+
+  line-height:1.4;
+
+  width:100% !important;
+
+  max-width:100% !important;
+
+  margin:0 !important;
+
+  padding:0 !important;
+
+}
+
+.expense-head-scope *{box-sizing:border-box}
+
+.expense-head-scope button, .expense-head-scope input, .expense-head-scope select{font:inherit;color:inherit}
+
+
+
+/* Full Width Wrappers with flush 0 left/right margin */
+
+.eh-wrap {
+
+  width:100% !important;
+
+  max-width:100% !important;
+
+  margin:0 !important;
+
+  padding:0 2px 16px !important;
+
+}
+
+
+
+/* Ensure outer main container in layout has no restrictive margins */
+
+.app-content-wrapper .app-main-content {
+
+  padding:4px 8px 12px 8px !important;
+
+}
+
+
+
+/* Top Bar */
+
+.eh-top{color:var(--ink);border-bottom:1px solid var(--line);background:#fff;margin-bottom:10px;width:100% !important}
+
+.eh-top .eh-wrap{display:flex;align-items:center;gap:14px;padding-top:8px !important;padding-bottom:8px !important;flex-wrap:wrap}
+
+.eh-logo{width:38px;height:38px;border-radius:10px;background:var(--brand2);color:#fff;display:grid;place-items:center;font-weight:700;letter-spacing:.5px}
+
+.eh-top h1{font-size:18px;margin:0;font-weight:650;color:var(--ink)}
+
+.eh-crumbs{font-size:12px;opacity:.8;margin-top:2px;color:var(--muted)}
+
+.eh-crumbs b{font-weight:600;color:var(--ink)}
+
+.eh-sp{flex:1}
+
+
+
+/* Buttons */
+
+.eh-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);background:var(--surface);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:550;font-size:13px;white-space:nowrap;transition:.15s;color:var(--ink);line-height:1.2}
+
+.eh-btn:hover{background:var(--surface2);border-color:var(--brand2);color:var(--brand2)}
+
+.eh-btn svg{width:15px;height:15px;flex:none}
+
+.eh-btn.eh-primary{background:var(--brand2);border-color:var(--brand2);color:#fff}
+
+.eh-btn.eh-primary:hover{filter:brightness(1.1);color:#fff}
+
+.eh-btn.eh-danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line2))}
+
+.eh-btn.eh-danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
+.eh-btn.eh-fav.on{color:var(--amber);border-color:var(--amber)}
+
+.eh-btn.eh-sm{padding:5px 8px;font-size:12px}
+
+.eh-btn[disabled]{opacity:.45;pointer-events:none}
+
+
+
+/* Cards & KPIs (Full Width) */
+
+.eh-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+.eh-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:0 0 10px;width:100%}
+
+.eh-kpi{padding:12px 14px;position:relative;overflow:hidden}
+
+.eh-kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--brand2))}
+
+.eh-kpi .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+
+.eh-kpi .v{font-size:26px;font-weight:700;margin-top:3px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2}
+
+.eh-kpi .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+
+
+/* Charts (Full Width) */
+
+.eh-charts{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;margin-bottom:10px;width:100%}
+
+.eh-charts .eh-card{padding:12px 14px}
+
+.eh-charts h3{margin:0 0 10px;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+
+.eh-bar{display:grid;grid-template-columns:160px 1fr 40px;align-items:center;gap:8px;font-size:12px;padding:3px 4px;border-radius:6px;cursor:pointer}
+
+.eh-bar:hover,.eh-bar.on{background:var(--surface2)}
+
+.eh-bar .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.eh-bar .t{height:8px;background:var(--surface2);border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+
+.eh-bar .t i{display:block;height:100%;background:linear-gradient(90deg,var(--brand2),var(--accent));border-radius:8px}
+
+.eh-bar .c{text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+
+.eh-donutbox{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+
+.eh-donut{width:96px;height:96px;border-radius:50%;position:relative;flex:none}
+
+.eh-donut:after{content:attr(data-c);position:absolute;inset:18px;background:var(--surface);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:var(--ink)}
+
+.eh-leg{display:grid;gap:4px;font-size:12px;flex:1;min-width:110px}
+
+.eh-leg div{display:flex;align-items:center;gap:6px;cursor:pointer;padding:2px 4px;border-radius:5px}
+
+.eh-leg div:hover{background:var(--surface2)}
+
+.eh-leg i{width:9px;height:9px;border-radius:3px;flex:none}
+
+.eh-leg b{margin-left:auto;font-variant-numeric:tabular-nums}
+
+
+
+/* Filters Layout with Select2 & Flatpickr */
+
+.eh-filters{padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:repeat(4, 1.15fr) 1fr 1fr 1.4fr auto;gap:8px;align-items:end;width:100%}
+
+.eh-fld label{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:3px}
+
+.eh-fld label em{color:var(--danger);font-style:normal}
+
+.eh-in{width:100%;padding:6px 9px;border:1px solid var(--line2);border-radius:6px;background:var(--surface);outline:none;min-height:35px;height:35px;color:var(--ink);box-sizing:border-box;font-size:13px}
+
+.eh-in:focus{border-color:var(--brand2);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand2) 20%,transparent)}
+
+.eh-in[readonly]{background:var(--surface2);color:var(--muted)}
+
+.eh-in.err{border-color:var(--danger)}
+
+.eh-fbtns{display:flex;gap:7px;flex-wrap:wrap}
+
+
+
+/* Flatpickr input container matching project theme */
+
+.flatpickr-input-container {
+
+    position: relative !important;
+
+    width: 100% !important;
+
+}
+
+.flatpickr-input-container .flatpickr-icon {
+
+    position: absolute !important;
+
+    top: 50% !important;
+
+    right: 9px !important;
+
+    transform: translateY(-50%) !important;
+
+    pointer-events: none !important;
+
+    font-size: 13px !important;
+
+    color: var(--muted) !important;
+
+    z-index: 5 !important;
+
+}
+
+.flatpickr-input-container input.flatpickr-input,
+
+.flatpickr-input-container .form-control {
+
+    padding-left: 9px !important;
+
+    padding-right: 28px !important;
+
+    background-color: #fff !important;
+
+    background-image: none !important;
+
+    cursor: pointer !important;
+
+    height: 35px !important;
+
+    font-size: 13px !important;
+
+    border: 1px solid var(--line2) !important;
+
+    border-radius: 6px !important;
+
+    box-sizing: border-box !important;
+
+    width: 100% !important;
+
+}
+
+.flatpickr-input-container input.flatpickr-input:focus,
+
+.flatpickr-input-container .form-control:focus {
+
+    border-color: var(--brand2) !important;
+
+    outline: 2px solid var(--brand2) !important;
+
+    outline-offset: 1px !important;
+
+    box-shadow: none !important;
+
+}
+
+
+
+/* Native Custom Dropdown (custom-select-single) Styling */
+
+.expense-head-scope .custom-dd-wrapper {
+
+    width: 100% !important;
+
+    position: relative !important;
+
+}
+
+.expense-head-scope .custom-dd-box {
+
+    min-height: 35px !important;
+
+    height: 35px !important;
+
+    border: 1px solid var(--line2) !important;
+
+    border-radius: 6px !important;
+
+    background-color: var(--surface) !important;
+
+    padding: 0 8px !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+
+    box-sizing: border-box !important;
+
+}
+
+.expense-head-scope .custom-dd-wrapper:focus .custom-dd-box,
+
+.expense-head-scope .custom-dd-wrapper.open .custom-dd-box {
+
+    border-color: var(--brand2) !important;
+
+    outline: 2px solid var(--brand2) !important;
+
+    outline-offset: 1px !important;
+
+}
+
+.expense-head-scope .custom-dd-input {
+
+    font-size: 13px !important;
+
+    color: var(--ink) !important;
+
+    padding: 0 !important;
+
+    height: 100% !important;
+
+    border: none !important;
+
+    outline: none !important;
+
+    background: transparent !important;
+
+    cursor: pointer !important;
+
+}
+
+.expense-head-scope .custom-dd-arrow {
+
+    color: var(--muted) !important;
+
+    font-size: 11px !important;
+
+    margin-left: auto !important;
+
+}
+
+.expense-head-scope .custom-dd-clear-icon {
+
+    font-size: 14px !important;
+
+    color: var(--muted) !important;
+
+    margin-right: 4px !important;
+
+    cursor: pointer !important;
+
+}
+
+.expense-head-scope .custom-dd-wrapper:not(.has-value) .custom-dd-clear-icon {
+
+    display: none !important;
+
+}
+
+.expense-head-scope .custom-dd-wrapper.has-value .custom-dd-clear-icon {
+
+    display: inline-flex !important;
+
+}
+
+.expense-head-scope .custom-dd-copy-icon {
+
+    font-size: 11px !important;
+
+    color: var(--muted) !important;
+
+    margin-right: 4px !important;
+
+    cursor: pointer !important;
+
+}
+
+.expense-head-scope .custom-dd-panel {
+
+    z-index: 105000 !important;
+
+    border: 1px solid var(--line2) !important;
+
+    border-radius: 6px !important;
+
+    box-shadow: 0 8px 24px rgba(20,49,95,.14) !important;
+
+    font-size: 13px !important;
+
+    background: #fff !important;
+
+    max-height: 220px !important;
+
+    overflow-y: auto !important;
+
+}
+
+.expense-head-scope .custom-dd-opt {
+
+    padding: 6px 10px !important;
+
+    font-size: 13px !important;
+
+    cursor: pointer !important;
+
+    color: var(--ink) !important;
+
+}
+
+.expense-head-scope .custom-dd-opt:hover {
+
+    background-color: var(--brand2) !important;
+
+    color: #fff !important;
+
+}
+
+.expense-head-scope .custom-dd-opt.selected {
+
+    background-color: var(--surface2) !important;
+
+    font-weight: 600 !important;
+
+}
+
+
+
+/* Grid Table */
+
+.eh-gridcard{padding:0;overflow:hidden;width:100%}
+
+.eh-gh{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+
+.eh-gh h2{margin:0;font-size:15px;font-weight:650;color:var(--ink)}
+
+.eh-gh .eh-sp{flex:1}
+
+.eh-pill{background:var(--surface2);border:1px solid var(--line);padding:2px 10px;border-radius:99px;font-size:12px;color:var(--muted)}
+
+.eh-table{width:100%;border-collapse:collapse;table-layout:auto;margin:0}
+
+.eh-table th{background:var(--surface2);text-align:left;font-size:11.5px;text-transform:capitalize;letter-spacing:.4px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line2);cursor:pointer;user-select:none;white-space:nowrap}
+
+.eh-table th.eh-ns{cursor:default}
+
+.eh-table th .eh-ar{opacity:.35;margin-left:3px;font-size:10px}
+
+.eh-table th.sorted .eh-ar{opacity:1;color:var(--brand2)}
+
+.eh-table td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--ink);font-size:13px}
+
+.eh-table tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface2) 55%,transparent)}
+
+.eh-table tbody tr:hover{background:color-mix(in srgb,var(--brand2) 8%,var(--surface))}
+
+.eh-table tbody tr.sel{background:color-mix(in srgb,var(--amber) 16%,var(--surface))}
+
+.eh-table td.eh-id a{color:var(--brand2);font-weight:650;text-decoration:none;cursor:pointer}
+
+.eh-table td.eh-id a:hover{text-decoration:underline}
+
+.eh-table td.eh-num, .eh-table th.eh-num{text-align:right;font-variant-numeric:tabular-nums}
+
+.eh-table td.eh-ctr, .eh-table th.eh-ctr{text-align:center}
+
+.eh-nm{font-weight:550}
+
+.eh-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:650}
+
+.b-yes{background:#dff5e8;color:#157a45}
+
+.b-no{background:#eceff5;color:#59647c}
+
+.b-act{background:#dcf0ff;color:#1a62a8}
+
+.b-ina{background:#fde5e7;color:#b3303b}
+
+.eh-acts{display:flex;gap:4px;justify-content:center}
+
+.eh-gf{display:flex;align-items:center;gap:12px;padding:9px 14px;flex-wrap:wrap;border-top:1px solid var(--line)}
+
+.eh-gf .eh-info{color:var(--muted);font-size:12.5px}
+
+.eh-gf .eh-sp{flex:1}
+
+.eh-pager{display:flex;gap:4px;flex-wrap:wrap}
+
+.eh-pager button{min-width:32px;height:32px;border:1px solid var(--line2);background:var(--surface);border-radius:6px;cursor:pointer;font-weight:550;color:var(--ink);font-size:12.5px}
+
+.eh-pager button:hover{border-color:var(--brand2);color:var(--brand2)}
+
+.eh-pager button.on{background:var(--brand2);border-color:var(--brand2);color:#fff}
+
+.eh-pager button[disabled]{opacity:.4;pointer-events:none}
+
+.eh-empty{text-align:center;color:var(--muted);padding:35px 10px}
+
+.expense-head-scope input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand2);cursor:pointer;vertical-align:middle}
+
+
+
+/* Dialogs */
+
+.eh-dlg{border:none;border-radius:12px;padding:0;background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:94vw;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);margin:0;z-index:9999}
+
+.eh-dlg::backdrop{background:rgba(10,20,40,.5);backdrop-filter:blur(2px)}
+
+.eh-dh{display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);gap:10px}
+
+.eh-dh h2{margin:0;font-size:16px;flex:1;font-weight:650;color:var(--ink)}
+
+.eh-dh .eh-x{border:none;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:0}
+
+.eh-db{padding:16px 18px;max-height:75vh;overflow-y:auto}
+
+.eh-df{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line);background:var(--surface2);border-radius:0 0 12px 12px;flex-wrap:wrap}
+
+.eh-form{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;width:min(720px,88vw)}
+
+.eh-form .eh-full{grid-column:1/-1}
+
+.eh-chk{display:flex;align-items:center;gap:8px;min-height:35px;cursor:pointer;user-select:none;font-weight:550;color:var(--ink);margin:0}
+
+.eh-preview{width:min(1000px,92vw);max-height:68vh;overflow:auto;background:#fff;color:#111;border:1px solid var(--line);border-radius:8px;padding:20px}
+
+.eh-preview table{font-size:12px;width:100%;border-collapse:collapse}
+
+.eh-preview th{cursor:default;color:#222;background:#eef1f6;padding:6px;border:1px solid #ccc;text-align:left}
+
+.eh-preview td{border:1px solid #ddd;padding:4px 6px}
+
+.eh-preview .rh{text-align:center;margin-bottom:10px}
+
+.eh-preview .rh h2{margin:0;font-size:20px}.eh-preview .rh p{margin:2px 0;color:#444}
+
+
+
+/* Toast */
+
+.eh-toast{position:fixed;right:20px;bottom:20px;background:#12233f;color:#fff;padding:11px 16px;border-radius:8px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:99999;max-width:80vw}
+
+.eh-toast.show{opacity:1;transform:none}
+
+
+
+/* Popover Menu */
+
+.eh-menu{position:relative}
+
+.eh-menu .eh-pop{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line2);border-radius:8px;box-shadow:var(--shadow);min-width:190px;z-index:20;padding:5px;color:var(--ink)}
+
+.eh-menu.open .eh-pop{display:block}
+
+.eh-pop button{display:flex;width:100%;gap:9px;align-items:center;background:none;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;text-align:left;color:var(--ink);font-size:13px}
+
+.eh-pop button:hover{background:var(--surface2)}
+
+.eh-pop svg{width:16px;height:16px}
+
+
+
+/* Responsive Rules */
+
+@@media (max-width:1400px){
+
+  .eh-filters{grid-template-columns:repeat(3, 1fr) 1fr 1fr 1.5fr auto}
+
+}
+
+@@media (max-width:1100px){
+
+  .eh-hide-md{display:none}
+
+  .eh-filters{grid-template-columns:repeat(2, 1fr) 1fr 1fr}
+
+  .eh-fbtns{grid-column:1/-1}
+
+}
+
+@@media (max-width:860px){
+
+  .eh-hide-sm{display:none}
+
+  .eh-kpis{grid-template-columns:repeat(3,1fr)}
+
+  .eh-charts{grid-template-columns:1fr 1fr}
+
+  .eh-filters{grid-template-columns:1fr 1fr}
+
+  .eh-form{grid-template-columns:1fr}
+
+}
+
+@@media (max-width:640px){
+
+  .eh-table thead{display:none}
+
+  .eh-table, .eh-table tbody, .eh-table tr, .eh-table td{display:block;width:100%}
+
+  .eh-table tr{padding:10px 12px;border-bottom:1px solid var(--line)}
+
+  .eh-table td{border:none;padding:3px 0;display:flex;justify-content:space-between;gap:12px;text-align:right!important}
+
+  .eh-table td:before{content:attr(data-l);color:var(--muted);font-size:12px;text-align:left}
+
+  .eh-table td.eh-hide-md, .eh-table td.eh-hide-sm{display:flex}
+
+  .eh-table td.eh-chk0{display:none}
+
+  .eh-filters{grid-template-columns:1fr}
+
+  .eh-kpis{grid-template-columns:repeat(2,1fr)}
+
+  .eh-charts{grid-template-columns:1fr}
+
+}
+
+@@media print{
+
+  body{background:#fff}
+
+  .eh-top, .eh-kpis, .eh-charts, .eh-filters, .eh-gridcard, .eh-toast, #app-sidebar, .app-topnav, .app-footer{display:none!important}
+
+}
+
+</style>
+
+
+
 @section Scripts {
+
+    <script>
+
+        window.INITIAL_EXPENSE_HEADS = @Html.Raw(ViewBag.InitialDataJson ?? "[]");
+
+        window.INITIAL_DROPDOWNS = @Html.Raw(ViewBag.DropdownsJson ?? "{}");
+
+    </script>
+
     <script src="~/js/pages/ExpenseHead.js" asp-append-version="true"></script>
+
 }
 

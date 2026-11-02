@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expense Head Setup – C&amp;F Management</title>
+<!--
+  EXPENSE HEAD SETUP DASHBOARD  |  single-file, no dependencies, fully editable
+  Sections:  1) CSS theme tokens (:root)   2) Layout/components   3) HTML   4) JS (CONFIG, DATA, state, render, export)
+  To change company name/address/colors → edit CONFIG (JS) and the :root variables (CSS).
+  To connect to your backend → replace load()/persist() in the JS "STORAGE" block with fetch() calls.
+-->
+<style>
+:root{
+  --bg:#fff; --surface:#fff; --surface2:#f6f8fb; --line:#e2e7ef; --line2:#cfd7e3;
+  --ink:#1b2437; --muted:#6b7690;
+  --brand:#14315f; --brand2:#1d4a8f; --accent:#0e9f8e; --amber:#e8a317; --danger:#d64550; --ok:#1e9e5a;
+  --radius:12px; --shadow:0 1px 2px rgba(20,49,95,.06),0 6px 18px rgba(20,49,95,.06);
+  --font:"Segoe UI",Inter,system-ui,-apple-system,Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.4}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:1480px;margin:0 auto;padding:0 20px 28px}
+
+/* top bar */
+.top{color:var(--ink)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--brand2);color:#fff;display:grid;place-items:center;font-weight:700;letter-spacing:.5px}
+.top h1{font-size:18px;margin:0;font-weight:650}
+.crumbs{font-size:12px;opacity:.8;margin-top:2px}
+.crumbs b{font-weight:600}
+.top .sp{flex:1}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);background:var(--surface);padding:8px 13px;border-radius:9px;cursor:pointer;font-weight:550;font-size:13px;white-space:nowrap;transition:.15s}
+.btn:hover{background:var(--surface2);border-color:var(--brand2)}
+.btn svg{width:15px;height:15px;flex:none}
+.btn.primary{background:var(--brand2);border-color:var(--brand2);color:#fff}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line2))}
+.btn.danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn.fav.on{color:var(--amber);border-color:var(--amber)}
+.btn.sm{padding:5px 8px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:18px 0 14px}
+.kpi{padding:14px 16px;position:relative;overflow:hidden}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--brand2))}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.kpi .v{font-size:28px;font-weight:700;margin-top:4px;color:var(--ink);font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted)}
+
+.charts{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.charts .card{padding:14px 16px}
+.charts h3{margin:0 0 10px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.bar{display:grid;grid-template-columns:150px 1fr 38px;align-items:center;gap:8px;font-size:12.5px;padding:3px 4px;border-radius:6px;cursor:pointer}
+.bar:hover,.bar.on{background:var(--surface2)}
+.bar .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .t{height:9px;background:var(--surface2);border-radius:9px;overflow:hidden;border:1px solid var(--line)}
+.bar .t i{display:block;height:100%;background:linear-gradient(90deg,var(--brand2),var(--accent));border-radius:9px}
+.bar .c{text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+.donutbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.donut{width:104px;height:104px;border-radius:50%;position:relative;flex:none}
+.donut:after{content:attr(data-c);position:absolute;inset:20px;background:var(--surface);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px}
+.leg{display:grid;gap:5px;font-size:12.5px;flex:1;min-width:110px}
+.leg div{display:flex;align-items:center;gap:7px;cursor:pointer;padding:2px 4px;border-radius:5px}
+.leg div:hover{background:var(--surface2)}
+.leg i{width:10px;height:10px;border-radius:3px;flex:none}
+.leg b{margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* filters */
+.filters{padding:14px 16px;margin-bottom:14px;display:grid;grid-template-columns:repeat(4,1fr) 1.2fr auto;gap:12px;align-items:end}
+.fld label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.fld label em{color:var(--danger);font-style:normal}
+.in{width:100%;padding:8px 10px;border:1px solid var(--line2);border-radius:9px;background:var(--surface);outline:none;min-height:36px}
+.in:focus{border-color:var(--brand2);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand2) 20%,transparent)}
+.in[readonly]{background:var(--surface2);color:var(--muted)}
+.in.err{border-color:var(--danger)}
+.fbtns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* grid */
+.gridcard{padding:0;overflow:hidden}
+.gh{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.gh h2{margin:0;font-size:15px}
+.gh .sp{flex:1}
+.gh .pill{background:var(--surface2);border:1px solid var(--line);padding:2px 10px;border-radius:99px;font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;table-layout:auto}
+th{background:var(--surface2);text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px 10px;border-bottom:1px solid var(--line2);cursor:pointer;user-select:none;white-space:nowrap}
+th.ns{cursor:default}
+th .ar{opacity:.35;margin-left:3px;font-size:10px}
+th.sorted .ar{opacity:1;color:var(--brand2)}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface2) 55%,transparent)}
+tbody tr:hover{background:color-mix(in srgb,var(--brand2) 8%,var(--surface))}
+tbody tr.sel{background:color-mix(in srgb,var(--amber) 16%,var(--surface))}
+td.id a{color:var(--brand2);font-weight:650;text-decoration:none;cursor:pointer}
+td.id a:hover{text-decoration:underline}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.ctr,th.ctr{text-align:center}
+.nm{font-weight:550}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:650}
+.b-yes{background:#dff5e8;color:#157a45}.b-no{background:#eceff5;color:#59647c}
+.b-act{background:#dcf0ff;color:#1a62a8}.b-ina{background:#fde5e7;color:#b3303b}
+.acts{display:flex;gap:5px;justify-content:center}
+.gf{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.gf .info{color:var(--muted);font-size:12.5px}
+.gf .sp{flex:1}
+.pager{display:flex;gap:4px;flex-wrap:wrap}
+.pager button{min-width:32px;height:32px;border:1px solid var(--line2);background:var(--surface);border-radius:8px;cursor:pointer;font-weight:550}
+.pager button:hover{border-color:var(--brand2)}
+.pager button.on{background:var(--brand2);border-color:var(--brand2);color:#fff}
+.pager button[disabled]{opacity:.4;pointer-events:none}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand2);cursor:pointer}
+
+/* dialogs */
+dialog{border:none;border-radius:14px;padding:0;background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:94vw}
+dialog::backdrop{background:rgba(10,20,40,.5);backdrop-filter:blur(2px)}
+.dh{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);gap:10px}
+.dh h2{margin:0;font-size:16px;flex:1}
+.dh .x{border:none;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1}
+.db{padding:18px 20px}
+.df{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--line);background:var(--surface2);border-radius:0 0 14px 14px;flex-wrap:wrap}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;width:min(720px,88vw)}
+.form .full{grid-column:1/-1}
+.chk{display:flex;align-items:center;gap:8px;min-height:36px}
+.preview{width:min(1000px,92vw);max-height:68vh;overflow:auto;background:#fff;color:#111;border:1px solid var(--line);border-radius:8px;padding:22px}
+.preview table{font-size:12px}
+.preview th{cursor:default;color:#222;background:#eef1f6}
+.preview td{border:1px solid #ddd}.preview th{border:1px solid #ccc}
+.preview .rh{text-align:center;margin-bottom:10px}
+.preview .rh h2{margin:0;font-size:20px}.preview .rh p{margin:2px 0;color:#444}
+
+.toast{position:fixed;right:20px;bottom:20px;background:#12233f;color:#fff;padding:11px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:99;max-width:80vw}
+.toast.show{opacity:1;transform:none}
+.menu{position:relative}
+.menu .pop{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--shadow);min-width:190px;z-index:20;padding:5px;color:var(--ink)}
+.menu.open .pop{display:block}
+.pop button{display:flex;width:100%;gap:9px;align-items:center;background:none;border:none;padding:9px 11px;border-radius:7px;cursor:pointer;text-align:left}
+.pop button:hover{background:var(--surface2)}
+.pop svg{width:16px;height:16px}
+
+/* responsive: tablet → hide low-priority columns (no horizontal scroll) */
+@media (max-width:1280px){.kpis{grid-template-columns:repeat(3,1fr)}.charts{grid-template-columns:1fr 1fr}.charts .card:first-child{grid-column:1/-1}.filters{grid-template-columns:repeat(3,1fr)}.fbtns{grid-column:1/-1}}
+@media (max-width:1100px){.hide-md{display:none}}
+@media (max-width:860px){.hide-sm{display:none}.wrap{padding:0 12px 20px}.kpis{grid-template-columns:repeat(3,1fr)}.charts{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr}}
+/* phone → rows become cards */
+@media (max-width:640px){
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{padding:10px 12px;border-bottom:1px solid var(--line)}
+  td{border:none;padding:3px 0;display:flex;justify-content:space-between;gap:12px;text-align:right!important}
+  td:before{content:attr(data-l);color:var(--muted);font-size:12px;text-align:left}
+  td.hide-md,td.hide-sm{display:flex}
+  td.chk0{display:none}
+  .filters{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}.charts{grid-template-columns:1fr}
+}
+@media print{body{background:#fff}.top,.kpis,.charts,.filters,.gridcard,.toast{display:none}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <div class="logo">C&amp;F</div>
+  <div>
+    <h1>Expense Head Setup</h1>
+    <div class="crumbs">Home / Master Setup / C&amp;F Management / <b>Expense Head</b></div>
+  </div>
+  <div class="sp"></div>
+  <button class="btn fav" id="favBtn" title="Add to favorites"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>Favorite</button>
+  <button class="btn primary" id="newBtn" style="background:#0e9f8e;border-color:#0e9f8e"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>New Expense Head</button>
+</div></header>
+
+<main class="wrap">
+  <!-- KPI dashboard (reflects active filters) -->
+  <section class="kpis" id="kpis"></section>
+  <section class="charts">
+    <div class="card"><h3>Expense heads by shipment mode <span style="text-transform:none;letter-spacing:0;font-weight:400">(click to filter)</span></h3><div id="chMode"></div></div>
+    <div class="card"><h3>By service provider</h3><div class="donutbox"><div class="donut" id="dnSvc"></div><div class="leg" id="lgSvc"></div></div></div>
+    <div class="card"><h3>Receiptable split</h3><div class="donutbox"><div class="donut" id="dnRec"></div><div class="leg" id="lgRec"></div></div></div>
+  </section>
+
+  <!-- Filters -->
+  <section class="card filters">
+    <div class="fld"><label>Shipment Mode</label><select class="in" id="fMode"></select></div>
+    <div class="fld"><label>Service Provided By</label><select class="in" id="fSvc"></select></div>
+    <div class="fld"><label>Is Receiptable Expense</label><select class="in" id="fRec"><option value="">All</option><option value="1">Yes</option><option value="0">No</option></select></div>
+    <div class="fld"><label>Status</label><select class="in" id="fSta"><option value="">All</option><option>Active</option><option>Inactive</option></select></div>
+    <div class="fld"><label>Search</label><input class="in" id="fQ" placeholder="ID, expense head, short name…"></div>
+    <div class="fbtns">
+      <button class="btn" id="resetBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8M3 3v5h5"/></svg>Reset</button>
+      <div class="menu" id="expMenu">
+        <button class="btn primary" id="expBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>Report Export ▾</button>
+        <div class="pop">
+          <button data-x="preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>Print / Preview</button>
+          <button data-x="pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6"/></svg>PDF</button>
+          <button data-x="excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Excel</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grid -->
+  <section class="card gridcard">
+    <div class="gh">
+      <h2>Expense Head List</h2><span class="pill" id="cnt"></span>
+      <span class="sp"></span>
+      <button class="btn danger sm" id="bulkDel" disabled>Delete selected (<span id="selN">0</span>)</button>
+      <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px">Rows
+        <select class="in" id="pgSize" style="width:auto;min-height:32px;padding:4px 8px"><option>10</option><option selected>15</option><option>25</option><option>50</option><option>100</option></select></label>
+    </div>
+    <table id="tbl">
+      <thead><tr>
+        <th class="ns ctr chk0" style="width:36px"><input type="checkbox" id="selAll" title="Select page"></th>
+        <th data-k="id" style="width:70px">ID<span class="ar"></span></th>
+        <th data-k="name">Expense Head<span class="ar"></span></th>
+        <th data-k="short" class="hide-md">Short Name<span class="ar"></span></th>
+        <th data-k="serial" class="num" style="width:70px">Serial<span class="ar"></span></th>
+        <th data-k="rec" class="ctr">Receiptable<span class="ar"></span></th>
+        <th data-k="svc">Service By<span class="ar"></span></th>
+        <th data-k="mode">Shipment Mode<span class="ar"></span></th>
+        <th data-k="amt" class="num hide-sm">Amount<span class="ar"></span></th>
+        <th data-k="status" class="ctr hide-sm">Status<span class="ar"></span></th>
+        <th class="ns ctr" style="width:84px">Action</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div class="gf"><span class="info" id="info"></span><span class="sp"></span><div class="pager" id="pager"></div></div>
+  </section>
+</main>
+
+<!-- Add / Edit dialog -->
+<dialog id="dlg">
+  <form method="dialog" id="frm" novalidate>
+    <div class="dh"><h2 id="dlgT">Expense Head Info</h2><button type="button" class="x" data-close>&times;</button></div>
+    <div class="db"><div class="form">
+      <div class="fld"><label>Expense Head ID</label><input class="in" id="eId" readonly></div>
+      <div class="fld"><label>Shipment Mode <em>*</em></label><select class="in" id="eMode"></select></div>
+      <div class="fld"><label>Expense Head <em>*</em></label><input class="in" id="eName" placeholder="Expense Head"></div>
+      <div class="fld"><label>Service Provided By <em>*</em></label><select class="in" id="eSvc"></select></div>
+      <div class="fld"><label>Short Name</label><input class="in" id="eShort" placeholder="Short Name"></div>
+      <div class="fld"><label>Amount</label><input class="in" id="eAmt" type="number" min="0" step="0.01" placeholder="Amount"></div>
+      <div class="fld"><label>Serial No <em>*</em></label><input class="in" id="eSerial" type="number" min="1" placeholder="Serial No"></div>
+      <div class="fld"><label>Status</label><select class="in" id="eSta"><option>Active</option><option>Inactive</option></select></div>
+      <div class="fld full"><label class="chk"><input type="checkbox" id="eRec"> Is Receiptable Expense</label></div>
+    </div></div>
+    <div class="df">
+      <button type="button" class="btn danger" id="eDel" style="margin-right:auto">Delete</button>
+      <button type="button" class="btn" id="eClear">Clear</button>
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="button" class="btn primary" id="eSave">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Report preview dialog -->
+<dialog id="pv">
+  <div class="dh"><h2>Report Preview</h2><button class="x" data-close>&times;</button></div>
+  <div class="db"><div class="preview" id="pvBody"></div></div>
+  <div class="df"><button class="btn" data-close>Close</button><button class="btn" id="pvPdf">Save as PDF</button><button class="btn primary" id="pvPrint">Print</button></div>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= CONFIG (edit me) ================= */
+const CONFIG = {
+  company: "Formosa Logistics Limited",
+  address: "21, Hazaribagh, Dhaka-1209",
+  reportTitle: "Expense Head Setup Report",
+  storageKey: "efh_dashboard_v1",
+  defaultPageSize: 15
+};
+
+/* ================= DATA (from ExpenseHeadSetupReport.xlsx) =================
+   [id, expenseHead, shortName, serialNo, receiptable(1/0), serviceProvidedBy, shipmentMode]  */
+const SEED = /*DATA*/[["0496","AEPZ (Export) Road Transport Bill","",1,1,"Transport","Adamjee EPZ (Export)"],["0336","Customs Duty","",1,1,"Custom","Adamjee EPZ (Import)"],["0339","D.T.I","",2,1,"Custom","Adamjee EPZ (Import)"],["0475","Association Fee","",3,1,"Custom","Adamjee EPZ (Import)"],["0476","VAT","",4,1,"Custom","Adamjee EPZ (Import)"],["0337","Assessment","",2,0,"Custom","Adamjee EPZ (Import)"],["0340","Examine","",3,0,"Custom","Adamjee EPZ (Import)"],["0456","Custom Misc.@ As per contract","",4,0,"Custom","Adamjee EPZ (Import)"],["0477","Minimum Commission","",5,0,"Custom","Adamjee EPZ (Import)"],["0478","Documentation Customs Misc.","",6,0,"Custom","Adamjee EPZ (Import)"],["0479","Extra Misc.","",7,0,"Custom","Adamjee EPZ (Import)"],["0465","Courier Charge","",5,1,"Jetty / Warehouse","Adamjee EPZ (Import)"],["0338","Delivery Expeness","",1,0,"Jetty / Warehouse","Adamjee EPZ (Import)"],["0341","Others","",2,0,"Jetty / Warehouse","Adamjee EPZ (Import)"],["0480","Part Delivery","",3,0,"Jetty / Warehouse","Adamjee EPZ (Import)"],["0342","AEPZ (Import) Road Transport Bill","",1,1,"Transport","Adamjee EPZ (Import)"],["0221","DF/Vat","",1,1,"Custom","Air Export"],["0224","DTI","",2,1,"Custom","Air Export"],["0227","COURT FEE","",3,1,"Custom","Air Export"],["0497","Association Service Charge","",4,1,"Custom","Air Export"],["0222","BANK EXPENSES","",2,0,"Custom","Air Export"],["0223","ASSESSMENT","",3,0,"Custom","Air Export"],["0225","EXAMINE","",4,0,"Custom","Air Export"],["0226","EXP RELEASE","",5,0,"Custom","Air Export"],["0228","BOOK ENTRY FEE","",6,0,"Custom","Air Export"],["0229","SEL, GREEN, PION ETC.","",7,0,"Custom","Air Export"],["0230","EXTRA","",8,0,"Custom","Air Export"],["0485","Airport Road Transport Bill","",1,1,"Transport","Air Export"],["0231","Transport","",2,1,"Transport","Air Export"],["0033","DTI & Association Service Charge","",1,1,"Custom","Air Import"],["0034","Duty, Vat & Global Tax","",2,1,"Custom","Air Import"],["0035","Court Fee","",3,1,"Custom","Air Import"],["0036","Treasury","",4,1,"Custom","Air Import"],["0037","Air Freight Charge","",5,1,"Custom","Air Import"],["0038","Forwarder NOC","",5,1,"Custom","Air Import"],["0039","Noting to Delivery","",1,0,"Custom","Air Import"],["0154","Association Service Charge","",2,0,"Custom","Air Import"],["0194","Assesment","",3,0,"Custom","Air Import"],["0198","Examine","",4,0,"Custom","Air Import"],["0463","Extra Misc. for Currency does not submit in IGM","",5,0,"Custom","Air Import"],["0200","Airway Bill (A.W.B)","",6,0,"Custom","Air Import"],["0204","HAWB Amendment","",6,0,"Custom","Air Import"],["0205","Value Assesment","",7,0,"Custom","Air Import"],["0206","F.T","",8,0,"Custom","Air Import"],["0367","Extra Misc.","",9,0,"Custom","Air Import"],["0368","Others","",10,0,"Custom","Air Import"],["0046","IGM Amendment Expense","",12,0,"Custom","Air Import"],["0420","Extra Misc. for BIN no does not submit in IGM","",13,0,"Custom","Air Import"],["0421","Extra Misc.for Non-Importers name in IGM","",14,0,"Custom","Air Import"],["0425","HAWB Doest Not Posting In IGM","",15,0,"Custom","Air Import"],["0426","Goods Does Not Match As Per Declarer","",16,0,"Custom","Air Import"],["0436","Importer Name Does Not Posting In Original AWB","",17,0,"Custom","Air Import"],["0442","IGM Correction For Notify Party","",18,0,"Custom","Air Import"],["0443","IGM Correction For Consignee Name","",19,0,"Custom","Air Import"],["0450","Extra Misc.for Non-Bank name in IGM","",20,0,"Custom","Air Import"],["0484","Original MAWB Did Not Come","",21,0,"Custom","Air Import"],["0040","Warehouse Rent","",1,1,"Jetty / Warehouse","Air Import"],["0041","Labour Charge","",2,1,"Jetty / Warehouse","Air Import"],["0418","Freight Forwarder NOC","",4,1,"Jetty / Warehouse","Air Import"],["0419","Air Freight Charge","",5,1,"Jetty / Warehouse","Air Import"],["0042","Load-Unload Expense","",1,0,"Jetty / Warehouse","Air Import"],["0043","BGMEA Expense","",2,0,"Jetty / Warehouse","Air Import"],["0044","Master Air Way Bill Expense","",3,0,"Jetty / Warehouse","Air Import"],["0045","CR Extra Expense","",4,0,"Jetty / Warehouse","Air Import"],["0047","Bank Tips","",6,0,"Jetty / Warehouse","Air Import"],["0048","Gate (B) Security Expense","",7,0,"Jetty / Warehouse","Air Import"],["0195","Delivery Expenses","",8,0,"Jetty / Warehouse","Air Import"],["0196","Biman Out Loader","",9,0,"Jetty / Warehouse","Air Import"],["0197","Extra","",10,0,"Jetty / Warehouse","Air Import"],["0202","Fork lift","",11,0,"Jetty / Warehouse","Air Import"],["0203","Palate","",12,0,"Jetty / Warehouse","Air Import"],["0437","DEPZ Road Transport Bill","",1,1,"Transport","Air Import"],["0417","Airport Road Transport Bill","",2,1,"Transport","Air Import"],["0344","Customs Duty","",1,1,"Custom","Benapole Port (export)"],["0347","D.T.I","",2,1,"Custom","Benapole Port (export)"],["0345","Assessment","",2,0,"Custom","Benapole Port (export)"],["0348","Examine","",3,0,"Custom","Benapole Port (export)"],["0351","Others","",4,0,"Custom","Benapole Port (export)"],["0346","Delivery Expenses","",3,0,"Jetty / Warehouse","Benapole Port (export)"],["0350","Photocopy","",4,0,"Jetty / Warehouse","Benapole Port (export)"],["0410","Labor Bill","",9,0,"Jetty / Warehouse","Benapole Port (export)"],["0412","Computer Bill","",11,0,"Jetty / Warehouse","Benapole Port (export)"],["0413","Extra","",13,0,"Jetty / Warehouse","Benapole Port (export)"],["0349","Benapole (Export) Road Transport Bill(India Side)","",1,1,"Transport","Benapole Port (export)"],["0491","Benapole (Export) Road Transport Bill","",2,1,"Transport","Benapole Port (export)"],["0411","Car Parking","",10,0,"Transport","Benapole Port (export)"],["0394","Custom Duty","",1,1,"Custom","Benapole Port (import)"],["0398","D. T. I","",2,1,"Custom","Benapole Port (import)"],["0395","Bank Expenses","",2,0,"Custom","Benapole Port (import)"],["0396","Assessment","",3,0,"Custom","Benapole Port (import)"],["0399","Examine","",4,0,"Custom","Benapole Port (import)"],["0460","Bond & AIN Tracking","",5,0,"Custom","Benapole Port (import)"],["0461","Manifest Extra","",6,0,"Custom","Benapole Port (import)"],["0400","Warehouse Rent (CR)","",2,1,"Jetty / Warehouse","Benapole Port (import)"],["0439","Port Bill","",3,1,"Jetty / Warehouse","Benapole Port (import)"],["0397","Delivery Expenses","",4,0,"Jetty / Warehouse","Benapole Port (import)"],["0401","Loder/ Load Unload Expenses","",5,0,"Jetty / Warehouse","Benapole Port (import)"],["0402","Biman out labour/Truck loder","",6,0,"Jetty / Warehouse","Benapole Port (import)"],["0403","Photocopy","",7,0,"Jetty / Warehouse","Benapole Port (import)"],["0404","Extra","",7,0,"Jetty / Warehouse","Benapole Port (import)"],["0459","Carpenter","",8,0,"Jetty / Warehouse","Benapole Port (import)"],["0462","Storekeeper","",10,0,"Jetty / Warehouse","Benapole Port (import)"],["0492","Benapole Road Transport Bill","",1,1,"Transport","Benapole Port (import)"],["0269","Custom Duty","",1,1,"Custom","C/H,ICD (Export)"],["0271","Risk Bond","",2,1,"Custom","C/H,ICD (Export)"],["0272","Court Fee","",3,1,"Custom","C/H,ICD (Export)"],["0273","Stamp","",4,1,"Custom","C/H,ICD (Export)"],["0274","Bank Treasury","",5,1,"Custom","C/H,ICD (Export)"],["0278","Weightment Export","",9,1,"Custom","C/H,ICD (Export)"],["0280","D/F Vat","",11,1,"Custom","C/H,ICD (Export)"],["0306","Association Service Charge","",12,1,"Custom","C/H,ICD (Export)"],["0275","Extra Misc.","",6,0,"Custom","C/H,ICD (Export)"],["0276","Port Bill","",7,1,"Jetty / Warehouse","C/H,ICD (Export)"],["0277","VGM","",8,1,"Jetty / Warehouse","C/H,ICD (Export)"],["0279","Gate Pass (60x2)","",10,1,"Jetty / Warehouse","C/H,ICD (Export)"],["0281","Misc. Expence","",12,0,"Jetty / Warehouse","C/H,ICD (Export)"],["0282","Photocopy","",13,0,"Jetty / Warehouse","C/H,ICD (Export)"],["0283","Conveyance","",14,0,"Jetty / Warehouse","C/H,ICD (Export)"],["0284","Fooding","",15,0,"Jetty / Warehouse","C/H,ICD (Export)"],["0490","C/H, ICD (Export) Road Transport Bill","",1,1,"Transport","C/H,ICD (Export)"],["0369","Association & Data Entry","",1,1,"Custom","C/H,ICD (import)"],["0372","Court Fees Stamp","",4,1,"Custom","C/H,ICD (import)"],["0373","Gang Booking (For Examination)","",5,1,"Custom","C/H,ICD (import)"],["0376","D/O","",8,1,"Custom","C/H,ICD (import)"],["0377","Misc. Expenses","",1,0,"Custom","C/H,ICD (import)"],["0378","Seal For Container Lock","",2,0,"Custom","C/H,ICD (import)"],["0379","Scale (Hire)","",3,0,"Custom","C/H,ICD (import)"],["0380","Photocopy","",4,0,"Custom","C/H,ICD (import)"],["0381","Conveyance","",5,0,"Custom","C/H,ICD (import)"],["0370","Port Bill (For Examination)","",1,1,"Jetty / Warehouse","C/H,ICD (import)"],["0371","Port Bill (For Delivery)","",2,1,"Jetty / Warehouse","C/H,ICD (import)"],["0374","Gang Booking (For Delivery)","",3,1,"Jetty / Warehouse","C/H,ICD (import)"],["0375","Gate Pass (60X3)","",4,1,"Jetty / Warehouse","C/H,ICD (import)"],["0382","Extra","",1,0,"Jetty / Warehouse","C/H,ICD (import)"],["0383","Others","",2,0,"Jetty / Warehouse","C/H,ICD (import)"],["0495","C/H,ICD (Import) Road Transport Bill","",1,1,"Transport","C/H,ICD (import)"],["0208","CUSTOMS DUTY","",2,1,"Custom","Courier Import"],["0209","D.T.I","",2,1,"Custom","Courier Import"],["0210","COURT FEE","",4,1,"Custom","Courier Import"],["0216","Treasury","",5,1,"Custom","Courier Import"],["0455","Custom Misc.@ As per contract","",1,0,"Custom","Courier Import"],["0207","ASSESMENT","",2,0,"Custom","Courier Import"],["0214","BANK EXPENSES","",3,0,"Custom","Courier Import"],["0215","R.O ASSESMENT","",3,0,"Custom","Courier Import"],["0217","BGMEA","",4,0,"Custom","Courier Import"],["0218","RED","",5,0,"Custom","Courier Import"],["0220","DC Stop","",5,0,"Custom","Courier Import"],["0232","Leather Ass. FOC Charge","",7,0,"Custom","Courier Import"],["0406","Misc. for RO/ARO & gate custom (Duty save)","",8,0,"Custom","Courier Import"],["0212","EXTRA","",10,0,"Custom","Courier Import"],["0441","Spacial Unloading delivery","",11,0,"Custom","Courier Import"],["0444","IGM Correction For Notify Party","",12,0,"Custom","Courier Import"],["0445","IGM Correction for Consignee Name","",13,0,"Custom","Courier Import"],["0451","Goods Does Not Match As Per Declarer","",14,0,"Custom","Courier Import"],["0452","Extra Misc.for Get Custom (BSTI NOC)","",15,0,"Custom","Courier Import"],["0454","Examin","",16,0,"Custom","Courier Import"],["0211","WAREHOUSE RENT(CR)","",2,1,"Jetty / Warehouse","Courier Import"],["0213","DELIVRY EXPENSES","",3,0,"Jetty / Warehouse","Courier Import"],["0424","DC Stop","",6,0,"Jetty / Warehouse","Courier Import"],["0448","Load-Unload Expense","",7,0,"Jetty / Warehouse","Courier Import"],["0466","Extra","",8,0,"Jetty / Warehouse","Courier Import"],["0435","Airport Road Transport Bill","",1,1,"Transport","Courier Import"],["0483","Sundarban Courier Service","",3,1,"Transport","Courier Import"],["0219","Truck Rent","",8,0,"Transport","Courier Import"],["0468","DTI","",2,1,"Custom","Cumilla EPZ (import)"],["0470","Custom Duty","",4,1,"Custom","Cumilla EPZ (import)"],["0467","Assessment","",1,0,"Custom","Cumilla EPZ (import)"],["0469","Examine","",3,0,"Custom","Cumilla EPZ (import)"],["0472","Extra","",5,0,"Custom","Cumilla EPZ (import)"],["0471","Delivery Expenses","",1,0,"Jetty / Warehouse","Cumilla EPZ (import)"],["0473","Extra","",2,0,"Jetty / Warehouse","Cumilla EPZ (import)"],["0474","Cumilla EPZ (Import) Road Transport Bill","",1,1,"Transport","Cumilla EPZ (import)"],["0268","Custom Duty","",1,1,"Custom","Cumilla EPZ(export)"],["0309","DTI","",2,1,"Custom","Cumilla EPZ(export)"],["0307","Assessment","",2,0,"Custom","Cumilla EPZ(export)"],["0310","Examine","",3,0,"Custom","Cumilla EPZ(export)"],["0384","Extra Misc. ARO/RO","",4,0,"Custom","Cumilla EPZ(export)"],["0428","Partial & Short Shipment","",5,0,"Custom","Cumilla EPZ(export)"],["0308","Delivery Expenses","",3,0,"Jetty / Warehouse","Cumilla EPZ(export)"],["0311","Extra","",4,0,"Jetty / Warehouse","Cumilla EPZ(export)"],["0489","Cumilla EPZ Export Road Transport Bill","",1,1,"Transport","Cumilla EPZ(export)"],["0494","DEPZ (Export) Road Transport Bill","",1,1,"Transport","DEPZ (export)"],["0323","Customs Duty","",1,1,"Custom","DEPZ (import)"],["0327","D.T.I","",2,1,"Custom","DEPZ (import)"],["0324","Bank Expenses","",2,0,"Custom","DEPZ (import)"],["0325","Assessment","",3,0,"Custom","DEPZ (import)"],["0328","Examine","",4,0,"Custom","DEPZ (import)"],["0329","Forwarder NOC","",5,0,"Custom","DEPZ (import)"],["0326","Delivery Expenses","",4,0,"Jetty / Warehouse","DEPZ (import)"],["0330","CR Extra","",5,0,"Jetty / Warehouse","DEPZ (import)"],["0331","BGMEA","",6,0,"Jetty / Warehouse","DEPZ (import)"],["0332","Load/Unload Expenses","",7,0,"Jetty / Warehouse","DEPZ (import)"],["0334","Biman Out Loader","",8,0,"Jetty / Warehouse","DEPZ (import)"],["0335","Extra","",9,0,"Jetty / Warehouse","DEPZ (import)"],["0438","DEPZ Road Transport Bill","",1,1,"Transport","DEPZ (import)"],["0493","Karnophuli EPZ (Export) Road Transport Bill","",1,1,"Transport","Karnophuli EPZ (export)"],["0049","Duty, Vat & Global Tax","",1,1,"Custom","Sea Export (CTG)"],["0123","DOCUMENT FEE","",2,1,"Custom","Sea Export (CTG)"],["0052","Association & Data Entry","",4,1,"Custom","Sea Export (CTG)"],["0053","Risk Bond","",5,1,"Custom","Sea Export (CTG)"],["0055","Court Fee","",7,1,"Custom","Sea Export (CTG)"],["0133","N.J STAMP FOR ON CHASSIS","",13,1,"Custom","Sea Export (CTG)"],["0304","Booking Expenses","",14,1,"Custom","Sea Export (CTG)"],["0060","Assessment Expense","",3,0,"Custom","Sea Export (CTG)"],["0124","ON CHASSIS PERMISSION","",4,0,"Custom","Sea Export (CTG)"],["0125","EMPTY CONTAINER SENT TO FACTORY PREMISES","",5,0,"Custom","Sea Export (CTG)"],["0126","DELIVERY PERMISSION","",6,0,"Custom","Sea Export (CTG)"],["0127","RISK BOND & UNDERTAKING TYPE","",7,0,"Custom","Sea Export (CTG)"],["0128","RISK BOND CANCEL","",8,0,"Custom","Sea Export (CTG)"],["0129","CARGO LOAD COV. VAN TO COV. VAN","",9,0,"Custom","Sea Export (CTG)"],["0130","BULET LOCK","",10,0,"Custom","Sea Export (CTG)"],["0131","C/O ATTESTED BY ARO/RO","",11,0,"Custom","Sea Export (CTG)"],["0132","SHUT OUT","",12,0,"Custom","Sea Export (CTG)"],["0063","Pay Order Commission","",13,0,"Custom","Sea Export (CTG)"],["0134","DEPOT AMENDMENT","",14,0,"Custom","Sea Export (CTG)"],["0135","OTHERS AMENDMENT","",15,0,"Custom","Sea Export (CTG)"],["0136","DOCUMENT SCANNING","",16,0,"Custom","Sea Export (CTG)"],["0234","Conveyance with Fooding expenses (Pickup)","",17,0,"Custom","Sea Export (CTG)"],["0247","Scoting Charge","",18,0,"Custom","Sea Export (CTG)"],["0248","Conveyance with Fooding expenses(Good Examine)","",19,0,"Custom","Sea Export (CTG)"],["0255","Conveyance With Fooding Expenses(Container Fixed)","",20,0,"Custom","Sea Export (CTG)"],["0257","Conveyance With Fooding Expenses","",21,0,"Custom","Sea Export (CTG)"],["0263","C/O ATTESTED BY ARO/RO (2nd Time)","",22,0,"Custom","Sea Export (CTG)"],["0267","On Chassis New/Part File Open","",23,0,"Custom","Sea Export (CTG)"],["0300","Conveyance With Fooding Expenses(Goods Handover)","",24,0,"Custom","Sea Export (CTG)"],["0303","Goods Carrying Purpose Expenses","",25,0,"Custom","Sea Export (CTG)"],["0305","Other Expenses","",26,0,"Custom","Sea Export (CTG)"],["0405","Fine/Penalty Reduce Purpose","",27,0,"Custom","Sea Export (CTG)"],["0434","Assorted item & HS code extra Misc.","",28,0,"Custom","Sea Export (CTG)"],["0056","LABOUR BILL","",1,1,"Jetty / Warehouse","Sea Export (CTG)"],["0050","Port Charge","",2,1,"Jetty / Warehouse","Sea Export (CTG)"],["0137","EX-WORK CHARGE/STUFFING CHARGE","",4,1,"Jetty / Warehouse","Sea Export (CTG)"],["0058","VGM Charge","",5,1,"Jetty / Warehouse","Sea Export (CTG)"],["0051","Ocean Freight Charge","",6,1,"Jetty / Warehouse","Sea Export (CTG)"],["0054","Gate Pass","",8,1,"Jetty / Warehouse","Sea Export (CTG)"],["0142","SORTING CHARGE","",11,1,"Jetty / Warehouse","Sea Export (CTG)"],["0057","Landing Charge","",12,1,"Jetty / Warehouse","Sea Export (CTG)"],["0059","Gang Booking Expense","",13,1,"Jetty / Warehouse","Sea Export (CTG)"],["0144","REWARK CHARGE","",14,1,"Jetty / Warehouse","Sea Export (CTG)"],["0151","Others","",15,1,"Jetty / Warehouse","Sea Export (CTG)"],["0295","Scal Charge","",16,1,"Jetty / Warehouse","Sea Export (CTG)"],["0297","BULET LOCK","",17,1,"Jetty / Warehouse","Sea Export (CTG)"],["0352","Shut-out Purpose","",18,1,"Jetty / Warehouse","Sea Export (CTG)"],["0355","PART CARGO CHARGE","",19,1,"Jetty / Warehouse","Sea Export (CTG)"],["0356","PARKING CHARGE","",20,1,"Jetty / Warehouse","Sea Export (CTG)"],["0357","LOCAL CHARGE","",21,1,"Jetty / Warehouse","Sea Export (CTG)"],["0366","Depo Load/Unload Expenses (Shutout)","",22,1,"Jetty / Warehouse","Sea Export (CTG)"],["0409","Container Handling Charge","",23,1,"Jetty / Warehouse","Sea Export (CTG)"],["0446","Goods inspection charge","",24,1,"Jetty / Warehouse","Sea Export (CTG)"],["0457","Payorder Commission","",25,1,"Jetty / Warehouse","Sea Export (CTG)"],["0481","Document Charge","",26,1,"Jetty / Warehouse","Sea Export (CTG)"],["0482","Lift-on charge","",27,1,"Jetty / Warehouse","Sea Export (CTG)"],["0061","Delivery Expense","",2,0,"Jetty / Warehouse","Sea Export (CTG)"],["0062","Holiday Allowance","",3,0,"Jetty / Warehouse","Sea Export (CTG)"],["0138","EXAMINE","",5,0,"Jetty / Warehouse","Sea Export (CTG)"],["0139","CARGO UNLOAD","",6,0,"Jetty / Warehouse","Sea Export (CTG)"],["0140","Extra Misc. For Febric issue","",7,0,"Jetty / Warehouse","Sea Export (CTG)"],["0141","CONTAINER KEEPDOWN PERMISSION","",8,0,"Jetty / Warehouse","Sea Export (CTG)"],["0147","NIGHT ALLOWANCE","",9,0,"Jetty / Warehouse","Sea Export (CTG)"],["0064","Gate Permission","",10,0,"Jetty / Warehouse","Sea Export (CTG)"],["0065","CONVEYENCE WITH FOODING EXPENSES","",11,0,"Jetty / Warehouse","Sea Export (CTG)"],["0143","E-mail, Printing & Photocopy","",13,0,"Jetty / Warehouse","Sea Export (CTG)"],["0149","DAMAGE CARTOON REPAIR(MISS)","",14,0,"Jetty / Warehouse","Sea Export (CTG)"],["0148","BAR CODE WRONG PURPOSE(MISS)","",15,0,"Jetty / Warehouse","Sea Export (CTG)"],["0145","MOBILE BILL","",18,0,"Jetty / Warehouse","Sea Export (CTG)"],["0146","Others","",19,0,"Jetty / Warehouse","Sea Export (CTG)"],["0233","Invoice/Paking List & Others Print & Photocopy","Print & Photocopy",20,0,"Jetty / Warehouse","Sea Export (CTG)"],["0242","Container Repair Expenses","",21,0,"Jetty / Warehouse","Sea Export (CTG)"],["0243","ARO & RO","",22,0,"Jetty / Warehouse","Sea Export (CTG)"],["0244","Goods wrong description/declaration","",23,0,"Jetty / Warehouse","Sea Export (CTG)"],["0245","Agent Lock","",24,0,"Jetty / Warehouse","Sea Export (CTG)"],["0246","Examine (2nd Time)","",25,0,"Jetty / Warehouse","Sea Export (CTG)"],["0249","Goods Unload","",26,0,"Jetty / Warehouse","Sea Export (CTG)"],["0250","CEPZ/KEPZ Customs","",27,0,"Jetty / Warehouse","Sea Export (CTG)"],["0251","Cargo Carrying Purpose Expenses","",28,0,"Jetty / Warehouse","Sea Export (CTG)"],["0252","Cargo in CEPZ/KEPZ (Without Documents)","",29,0,"Jetty / Warehouse","Sea Export (CTG)"],["0254","Net weight problem","",30,0,"Jetty / Warehouse","Sea Export (CTG)"],["0256","Conveyance With Fooding Expenses(Document H/O)","",31,0,"Jetty / Warehouse","Sea Export (CTG)"],["0258","Conveyance With Fooding Expenses(Pickup)","",32,0,"Jetty / Warehouse","Sea Export (CTG)"],["0259","Late Cargo Arrived","",33,0,"Jetty / Warehouse","Sea Export (CTG)"],["0260","Scal","",34,0,"Jetty / Warehouse","Sea Export (CTG)"],["0261","Goods Weight Mismatch/Problem","",35,0,"Jetty / Warehouse","Sea Export (CTG)"],["0262","Late Document Handover","",36,0,"Jetty / Warehouse","Sea Export (CTG)"],["0270","Hyster/Driver","",37,0,"Jetty / Warehouse","Sea Export (CTG)"],["0299","Conveyance With Fooding Expenses(Fixed up)","",38,0,"Jetty / Warehouse","Sea Export (CTG)"],["0301","Conveyance With Fooding Expenses(Goods Hand over)","",39,0,"Jetty / Warehouse","Sea Export (CTG)"],["0315","Conveyance with Fooding Expenses(Goods Examine)","",40,0,"Jetty / Warehouse","Sea Export (CTG)"],["0318","Special Permission","",41,0,"Jetty / Warehouse","Sea Export (CTG)"],["0322","Assorted Item & H.S code (Paid to custom officer)","",42,0,"Jetty / Warehouse","Sea Export (CTG)"],["0353","Shut-Out Purpose","",43,0,"Jetty / Warehouse","Sea Export (CTG)"],["0358","Re-work charge","",44,0,"Jetty / Warehouse","Sea Export (CTG)"],["0359","UP Problem","",45,0,"Jetty / Warehouse","Sea Export (CTG)"],["0364","Documents Red Open","",46,0,"Jetty / Warehouse","Sea Export (CTG)"],["0365","Goods Load","",47,0,"Jetty / Warehouse","Sea Export (CTG)"],["0407","Re-Examine Purpose","",48,0,"Jetty / Warehouse","Sea Export (CTG)"],["0408","Labour Tips (Sorting/Re-packing)","",49,0,"Jetty / Warehouse","Sea Export (CTG)"],["0433","Cover Van to Cover Van Fee Export by Sea","",67,0,"Jetty / Warehouse","Sea Export (CTG)"],["0464","Amendment","",68,0,"Jetty / Warehouse","Sea Export (CTG)"],["0487","Sea Export Road Transport Bill","",1,1,"Transport","Sea Export (CTG)"],["0066","Duty, Vat & Global Tax","",1,1,"Custom","Sea Export (Pangaon)"],["0069","Association & Data Entry","",4,1,"Custom","Sea Export (Pangaon)"],["0070","Risk Bond","",5,1,"Custom","Sea Export (Pangaon)"],["0072","Court Fee","",7,1,"Custom","Sea Export (Pangaon)"],["0073","Labour Charge","",8,1,"Custom","Sea Export (Pangaon)"],["0077","Assessment Expense","",1,0,"Custom","Sea Export (Pangaon)"],["0080","Pay Order Commission","",4,0,"Custom","Sea Export (Pangaon)"],["0067","Port Charge","",2,1,"Jetty / Warehouse","Sea Export (Pangaon)"],["0068","Ocean Freight Charge","",3,1,"Jetty / Warehouse","Sea Export (Pangaon)"],["0071","Gate Pass","",6,1,"Jetty / Warehouse","Sea Export (Pangaon)"],["0074","Landing Charge","",9,1,"Jetty / Warehouse","Sea Export (Pangaon)"],["0075","VGA Charge","",10,1,"Jetty / Warehouse","Sea Export (Pangaon)"],["0076","Gang Booking Expense","",11,1,"Jetty / Warehouse","Sea Export (Pangaon)"],["0078","Delivery Expense","",2,0,"Jetty / Warehouse","Sea Export (Pangaon)"],["0079","Holiday/Night Allowance","",3,0,"Jetty / Warehouse","Sea Export (Pangaon)"],["0081","Gate Permission","",5,0,"Jetty / Warehouse","Sea Export (Pangaon)"],["0082","Fooding Expense","",6,0,"Jetty / Warehouse","Sea Export (Pangaon)"],["0488","Pangaon Road Transport Bill","",1,1,"Transport","Sea Export (Pangaon)"],["0003","Duty, Vat & Global Tax","",1,1,"Custom","Sea Import (CTG)"],["0153","On Chassis S/C","",7,1,"Custom","Sea Import (CTG)"],["0001","Association Service Charge","",8,1,"Custom","Sea Import (CTG)"],["0002","Documents Processing Fee","",17,1,"Custom","Sea Import (CTG)"],["0009","Court Fee","",19,1,"Custom","Sea Import (CTG)"],["0092","N.J Stamp for On Chassis Delivery","",21,1,"Custom","Sea Import (CTG)"],["0083","Pay Order Commission","",23,1,"Custom","Sea Import (CTG)"],["0165","BCSIR Radiation Test Fee","",24,1,"Custom","Sea Import (CTG)"],["0084","C & F Association S/C for on Chassis Delivery","",25,1,"Custom","Sea Import (CTG)"],["0423","B/L Verify charge","",26,1,"Custom","Sea Import (CTG)"],["0447","BUET/CUET Test","BUET/CUET Test",27,1,"Custom","Sea Import (CTG)"],["0453","Fine/Penalty","",28,1,"Custom","Sea Import (CTG)"],["0162","Com. Peon For Avoid Exa","",6,0,"Custom","Sea Import (CTG)"],["0007","Note Sheet Type","",7,0,"Custom","Sea Import (CTG)"],["0093","Miscellaneous for Avoid Examine(Fabric Purpose)","",8,0,"Custom","Sea Import (CTG)"],["0163","Document Doc At./Despatch","",9,0,"Custom","Sea Import (CTG)"],["0094","File for Avoid Examine","",10,0,"Custom","Sea Import (CTG)"],["0091","Miscellaneous for Excess Item","",11,0,"Custom","Sea Import (CTG)"],["0095","Extra Miscellaneous(Miss Diclar)","",12,0,"Custom","Sea Import (CTG)"],["0164","Assessment By Copy BL","",13,0,"Custom","Sea Import (CTG)"],["0096","Sample Draw","",14,0,"Custom","Sea Import (CTG)"],["0166","BCSIR Letter Issue From Custom","",15,0,"Custom","Sea Import (CTG)"],["0097","Lab Test Expenses","",16,0,"Custom","Sea Import (CTG)"],["0086","Noteing","",17,0,"Custom","Sea Import (CTG)"],["0167","Radiation NOC","",18,0,"Custom","Sea Import (CTG)"],["0098","On Chassis Part File","",19,0,"Custom","Sea Import (CTG)"],["0168","Sample Send To BCSIR","",20,0,"Custom","Sea Import (CTG)"],["0169","Drug Certificate","",21,0,"Custom","Sea Import (CTG)"],["0099","AD PA & Peon","",22,0,"Custom","Sea Import (CTG)"],["0170","IGM Correction","",23,0,"Custom","Sea Import (CTG)"],["0101","Others(Customs Purpose)","",24,0,"Custom","Sea Import (CTG)"],["0171","GB Wearhouse Code Wrong","",25,0,"Custom","Sea Import (CTG)"],["0152","Notice & Photocopy","NT & PC",26,0,"Custom","Sea Import (CTG)"],["0172","ASYCUDA Valuation","",27,0,"Custom","Sea Import (CTG)"],["0173","Value Sheet Print","",28,0,"Custom","Sea Import (CTG)"],["0156","ADC Peon","",29,0,"Custom","Sea Import (CTG)"],["0174","On Chassis New/Part File Open","",30,0,"Custom","Sea Import (CTG)"],["0085","On Chassis Delivery Permission","",31,0,"Custom","Sea Import (CTG)"],["0175","BSTI Noc","",32,0,"Custom","Sea Import (CTG)"],["0157","Chemical Test-Miss. Exp.","",33,0,"Custom","Sea Import (CTG)"],["0176","New Passbook Issuance","",34,0,"Custom","Sea Import (CTG)"],["0087","Assessment","",35,0,"Custom","Sea Import (CTG)"],["0235","ARO & R/O (Without 100%  Examine)","",36,0,"Custom","Sea Import (CTG)"],["0088","Noteing(Excess Item)","",37,0,"Custom","Sea Import (CTG)"],["0241","Post Bill Of Entry","",38,0,"Custom","Sea Import (CTG)"],["0253","P.I Made","",39,0,"Custom","Sea Import (CTG)"],["0158","DC & Peon","",40,0,"Custom","Sea Import (CTG)"],["0100","Commission PA & Peon","",41,0,"Custom","Sea Import (CTG)"],["0005","Out Pass","",42,0,"Custom","Sea Import (CTG)"],["0155","RD Issuance","",43,0,"Custom","Sea Import (CTG)"],["0159","AIR Posting","",44,0,"Custom","Sea Import (CTG)"],["0089","A/C & PEON","",45,0,"Custom","Sea Import (CTG)"],["0264","Avoid Examine For IGM Problem","",46,0,"Custom","Sea Import (CTG)"],["0160","AIR File Open & Others","",47,0,"Custom","Sea Import (CTG)"],["0321","Pass Book Renew/ BOE Entry (Custom House)","",48,0,"Custom","Sea Import (CTG)"],["0006","Red Safe/Red Open","",49,0,"Custom","Sea Import (CTG)"],["0161","AIR(ARO, R/O & DC)","",50,0,"Custom","Sea Import (CTG)"],["0343","Import Information Verify","",51,0,"Custom","Sea Import (CTG)"],["0090","J/C  & Peon","",52,0,"Custom","Sea Import (CTG)"],["0360","Seemless Pipe Test (BUET)","",53,0,"Custom","Sea Import (CTG)"],["0361","BIN Verification (Programmer)","",54,0,"Custom","Sea Import (CTG)"],["0362","Miscellaneous of sample sent to BUET","",55,0,"Custom","Sea Import (CTG)"],["0363","Sample receive from (AIR-Group)","",56,0,"Custom","Sea Import (CTG)"],["0385","Bank Guarantee Verification/ B.G Letter Issue","",57,0,"Custom","Sea Import (CTG)"],["0386","Duty Paid (Out of Bank Gaurantee amount)","",58,0,"Custom","Sea Import (CTG)"],["0387","Bank Gaurantee Deposit (Treasury Section-Custom)","",59,0,"Custom","Sea Import (CTG)"],["0388","Bank Garuntee Posting TO Asycuda World","",60,0,"Custom","Sea Import (CTG)"],["0389","BUET Letter Type","",61,0,"Custom","Sea Import (CTG)"],["0392","Letter Type/Issue","",62,0,"Custom","Sea Import (CTG)"],["0414","Bill of Entry(B/E) Cancellation","",63,0,"Custom","Sea Import (CTG)"],["0415","IGM Amendment","",64,0,"Custom","Sea Import (CTG)"],["0430","Special Deliver Permision Expenses","",65,0,"Custom","Sea Import (CTG)"],["0432","Assorted item & HS code extra Misc.","",66,0,"Custom","Sea Import (CTG)"],["0449","Escorting Charge","",67,0,"Custom","Sea Import (CTG)"],["0011","Shipping Agent","",1,1,"Jetty / Warehouse","Sea Import (CTG)"],["0013","Port Charge","",2,1,"Jetty / Warehouse","Sea Import (CTG)"],["0102","Freight Forwarder NOC","",3,1,"Jetty / Warehouse","Sea Import (CTG)"],["0010","Ocean Freight Charge","",4,1,"Jetty / Warehouse","Sea Import (CTG)"],["0016","Depot Charge","",4,1,"Jetty / Warehouse","Sea Import (CTG)"],["0017","Off Dock/Depot Charge","",5,1,"Jetty / Warehouse","Sea Import (CTG)"],["0019","Survey Report","",6,1,"Jetty / Warehouse","Sea Import (CTG)"],["0014","Berth Operator","",9,1,"Jetty / Warehouse","Sea Import (CTG)"],["0186","PAYORDER TO ATOMIC ENERGY","",10,1,"Jetty / Warehouse","Sea Import (CTG)"],["0103","B/L Verify Charge","",11,1,"Jetty / Warehouse","Sea Import (CTG)"],["0107","Security Pay Order Issue Charge","",13,1,"Jetty / Warehouse","Sea Import (CTG)"],["0236","Security Pay Order Cancellation Charge","",14,1,"Jetty / Warehouse","Sea Import (CTG)"],["0238","Security Pay Order Deposit(S/A)","",15,1,"Jetty / Warehouse","Sea Import (CTG)"],["0265","Pay Order Commission(D/O & Delivery Purpose)","",16,1,"Jetty / Warehouse","Sea Import (CTG)"],["0314","Shipping Agent (Cash Payment)","",17,1,"Jetty / Warehouse","Sea Import (CTG)"],["0121","Pay Order Commission(S/A)","",53,1,"Jetty / Warehouse","Sea Import (CTG)"],["0032","DG Purpose","",1,0,"Jetty / Warehouse","Sea Import (CTG)"],["0106","Gate Permission","",2,0,"Jetty / Warehouse","Sea Import (CTG)"],["0108","DEL Exp. FCL/LCL","",4,0,"Jetty / Warehouse","Sea Import (CTG)"],["0028","CTMS","",5,0,"Jetty / Warehouse","Sea Import (CTG)"],["0110","Special Delivery Permission Expenses","",6,0,"Jetty / Warehouse","Sea Import (CTG)"],["0112","Hyster Delivery Expenses","",7,0,"Jetty / Warehouse","Sea Import (CTG)"],["0113","Nil/Wrong Mark Expenses","",8,0,"Jetty / Warehouse","Sea Import (CTG)"],["0025","Remark Expense","",9,0,"Jetty / Warehouse","Sea Import (CTG)"],["0115","Jetty Examine Expenses","",10,0,"Jetty / Warehouse","Sea Import (CTG)"],["0104","Emty container receving charge","",11,0,"Jetty / Warehouse","Sea Import (CTG)"],["0116","Holiday","",12,0,"Jetty / Warehouse","Sea Import (CTG)"],["0117","Conveyence","",13,0,"Jetty / Warehouse","Sea Import (CTG)"],["0118","Late Indent Expenses","",14,0,"Jetty / Warehouse","Sea Import (CTG)"],["0119","Container Lock","",15,0,"Jetty / Warehouse","Sea Import (CTG)"],["0029","Section-82 Expense","",16,0,"Jetty / Warehouse","Sea Import (CTG)"],["0030","Chain Coppa Expense","",17,0,"Jetty / Warehouse","Sea Import (CTG)"],["0120","Others(Delivery Purpose)","",18,0,"Jetty / Warehouse","Sea Import (CTG)"],["0150","Shipping Agent(Security)","",19,0,"Jetty / Warehouse","Sea Import (CTG)"],["0177","Fire Service NOC","",20,0,"Jetty / Warehouse","Sea Import (CTG)"],["0109","Container Keepdown Expenses","",21,0,"Jetty / Warehouse","Sea Import (CTG)"],["0178","Security Handover","",22,0,"Jetty / Warehouse","Sea Import (CTG)"],["0179","DETENTION & SECURITY NOC","",23,0,"Jetty / Warehouse","Sea Import (CTG)"],["0180","Scanning Officer","",24,0,"Jetty / Warehouse","Sea Import (CTG)"],["0181","PART DELIVERY","",25,0,"Jetty / Warehouse","Sea Import (CTG)"],["0182","LOCK/CARPENTER/L.TIPS/TRUCK SEAL","",26,0,"Jetty / Warehouse","Sea Import (CTG)"],["0183","AUCTION","",27,0,"Jetty / Warehouse","Sea Import (CTG)"],["0184","FUMIGATION","",28,0,"Jetty / Warehouse","Sea Import (CTG)"],["0185","FOODING/CONVEYENCE","",29,0,"Jetty / Warehouse","Sea Import (CTG)"],["0187","RADIATION OFFICER","",30,0,"Jetty / Warehouse","Sea Import (CTG)"],["0188","Intend Cancellation","",31,0,"Jetty / Warehouse","Sea Import (CTG)"],["0189","RE-INTEND","",32,0,"Jetty / Warehouse","Sea Import (CTG)"],["0190","Yard Amendment","",33,0,"Jetty / Warehouse","Sea Import (CTG)"],["0191","CTMS UPDATE","",34,0,"Jetty / Warehouse","Sea Import (CTG)"],["0111","UNSTUFFING EXPENSES","",35,0,"Jetty / Warehouse","Sea Import (CTG)"],["0192","IGM VERIFY","",36,0,"Jetty / Warehouse","Sea Import (CTG)"],["0237","Security Pay Order Cancellation Charge","",37,0,"Jetty / Warehouse","Sea Import (CTG)"],["0239","Night Bill","",38,0,"Jetty / Warehouse","Sea Import (CTG)"],["0240","One Stop IGM","",39,0,"Jetty / Warehouse","Sea Import (CTG)"],["0285","Sample Collection/Issue","",40,0,"Jetty / Warehouse","Sea Import (CTG)"],["0286","Print & Photocopy","",41,0,"Jetty / Warehouse","Sea Import (CTG)"],["0287","Shee Incharge Purpose","",42,0,"Jetty / Warehouse","Sea Import (CTG)"],["0288","Wrong Description","",43,0,"Jetty / Warehouse","Sea Import (CTG)"],["0289","AIR Driver","",44,0,"Jetty / Warehouse","Sea Import (CTG)"],["0291","Breakings & Chequer","",45,0,"Jetty / Warehouse","Sea Import (CTG)"],["0122","Others","",46,0,"Jetty / Warehouse","Sea Import (CTG)"],["0292","Cash Security Deposit To Shipping Agent","",47,0,"Jetty / Warehouse","Sea Import (CTG)"],["0293","Unstuffing Officer","",48,0,"Jetty / Warehouse","Sea Import (CTG)"],["0193","Audit, Inspection & Reserch(AIR)","",49,0,"Jetty / Warehouse","Sea Import (CTG)"],["0294","V. Clark Purpose","",50,0,"Jetty / Warehouse","Sea Import (CTG)"],["0296","Repeater","",51,0,"Jetty / Warehouse","Sea Import (CTG)"],["0298","Unstuffing without  chequer","",52,0,"Jetty / Warehouse","Sea Import (CTG)"],["0302","Intend inforce & computer operator","",53,0,"Jetty / Warehouse","Sea Import (CTG)"],["0312","Hyster Delivery Expenses (2nd Time)","",54,0,"Jetty / Warehouse","Sea Import (CTG)"],["0105","Expenses of D/O Collect","",55,0,"Jetty / Warehouse","Sea Import (CTG)"],["0313","Container Discharge","",56,0,"Jetty / Warehouse","Sea Import (CTG)"],["0316","Shed Traffic Incharge(Tally)","",57,0,"Jetty / Warehouse","Sea Import (CTG)"],["0317","Goods Repacking","",58,0,"Jetty / Warehouse","Sea Import (CTG)"],["0319","Jetty Examine Officer","",59,0,"Jetty / Warehouse","Sea Import (CTG)"],["0320","Jetty (Custom-ARO)","",60,0,"Jetty / Warehouse","Sea Import (CTG)"],["0354","Port Security Officer Permission(Insp/ASI/DSP)","",61,0,"Jetty / Warehouse","Sea Import (CTG)"],["0390","Crane/Elevator Purpose Expenses","",62,0,"Jetty / Warehouse","Sea Import (CTG)"],["0391","Soling Expenses","",63,0,"Jetty / Warehouse","Sea Import (CTG)"],["0393","Special Cargo Unstuffing","",64,0,"Jetty / Warehouse","Sea Import (CTG)"],["0416","IGM  Amendment","",65,0,"Jetty / Warehouse","Sea Import (CTG)"],["0431","Cover Van to Cover Van Fee Export by Sea","",66,0,"Jetty / Warehouse","Sea Import (CTG)"],["0458","SCALE CHARGE","",67,0,"Jetty / Warehouse","Sea Import (CTG)"],["0486","Sea Road Transport Bill","",1,1,"Transport","Sea Import (CTG)"]];
+
+/* ================= STATE & STORAGE ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let rows = [];
+let S = { mode:"", svc:"", rec:"", sta:"", q:"", sort:"", dir:1, page:1, size:CONFIG.defaultPageSize, sel:new Set() };
+
+function seedRows(){ return SEED.map(r => ({id:r[0], name:r[1], short:r[2], serial:r[3], rec:r[4], svc:r[5], mode:r[6], amt:"", status:"Active"})); }
+function load(){            // STORAGE: replace with fetch('/api/expense-heads') if you have a backend
+  try{ const j = localStorage.getItem(CONFIG.storageKey); if(j) return JSON.parse(j); }catch(e){}
+  return seedRows();
+}
+function persist(){ try{ localStorage.setItem(CONFIG.storageKey, JSON.stringify(rows)); }catch(e){} }
+
+/* ================= FILTER / SORT ================= */
+function filtered(){
+  const q = S.q.trim().toLowerCase();
+  let r = rows.filter(x =>
+    (!S.mode || x.mode===S.mode) && (!S.svc || x.svc===S.svc) &&
+    (S.rec==="" || String(x.rec)===S.rec) && (!S.sta || x.status===S.sta) &&
+    (!q || (x.id+" "+x.name+" "+x.short).toLowerCase().includes(q)));
+  if(S.sort){
+    const k=S.sort, d=S.dir;
+    r = r.slice().sort((a,b)=>{
+      let A=a[k], B=b[k];
+      if(["serial","rec"].includes(k)||k==="amt"){A=+A||0;B=+B||0;return (A-B)*d}
+      return String(A).localeCompare(String(B),undefined,{numeric:true,sensitivity:"base"})*d;
+    });
+  }
+  return r;
+}
+const uniq = k => [...new Set(rows.map(r=>r[k]).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+function fillSelects(){
+  const opt=(arr,ph)=>`<option value="">${ph}</option>`+arr.map(v=>`<option>${esc(v)}</option>`).join("");
+  const keep=[S.mode,S.svc];
+  $("#fMode").innerHTML = opt(uniq("mode"),"All shipment modes");
+  $("#fSvc").innerHTML  = opt(uniq("svc"),"All service providers");
+  $("#eMode").innerHTML = opt(uniq("mode"),"Select Shipment Mode");
+  $("#eSvc").innerHTML  = opt(uniq("svc"),"Select Service Provider");
+  $("#fMode").value=keep[0]; $("#fSvc").value=keep[1];
+}
+
+/* ================= RENDER ================= */
+function render(){
+  const all = filtered();
+  const pages = Math.max(1, Math.ceil(all.length / S.size));
+  if(S.page>pages) S.page=pages;
+  const start=(S.page-1)*S.size, view=all.slice(start,start+S.size);
+
+  // KPIs
+  const rec=all.filter(r=>r.rec).length, act=all.filter(r=>r.status==="Active").length;
+  const kp=[["Total Expense Heads",all.length,"of "+rows.length+" overall","var(--brand2)"],
+            ["Receiptable",rec,pct(rec,all.length)+" of selection","var(--ok)"],
+            ["Non-Receiptable",all.length-rec,pct(all.length-rec,all.length)+" of selection","var(--amber)"],
+            ["Active",act,(all.length-act)+" inactive","var(--accent)"],
+            ["Shipment Modes",new Set(all.map(r=>r.mode)).size,new Set(all.map(r=>r.svc)).size+" service providers","#8a5cd0"]];
+  $("#kpis").innerHTML = kp.map(k=>`<div class="card kpi" style="--c:${k[3]}"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${k[2]}</div></div>`).join("");
+
+  // charts
+  const cm={}; all.forEach(r=>cm[r.mode]=(cm[r.mode]||0)+1);
+  const ms=Object.entries(cm).sort((a,b)=>b[1]-a[1]), mx=ms.length?ms[0][1]:1;
+  $("#chMode").innerHTML = ms.slice(0,8).map(([n,c])=>`<div class="bar ${S.mode===n?"on":""}" data-mode="${esc(n)}"><span class="n" title="${esc(n)}">${esc(n)}</span><span class="t"><i style="width:${c/mx*100}%"></i></span><span class="c">${c}</span></div>`).join("") || '<div class="empty">No data</div>';
+  const cs={}; all.forEach(r=>cs[r.svc]=(cs[r.svc]||0)+1);
+  donut("#dnSvc","#lgSvc",Object.entries(cs).sort((a,b)=>b[1]-a[1]),["#1d4a8f","#0e9f8e","#e8a317","#8a5cd0","#d64550"],"svc",all.length);
+  donut("#dnRec","#lgRec",[["Yes",rec],["No",all.length-rec]],["#1e9e5a","#b8c2d6"],"rec",all.length,{Yes:"1",No:"0"});
+
+  // grid
+  $("#tb").innerHTML = view.map(r=>`<tr class="${S.sel.has(r.id)?"sel":""}">
+    <td class="ctr chk0"><input type="checkbox" data-sel="${esc(r.id)}" ${S.sel.has(r.id)?"checked":""}></td>
+    <td class="id" data-l="ID"><a data-edit="${esc(r.id)}">${esc(r.id)}</a></td>
+    <td data-l="Expense Head" class="nm">${esc(r.name)}</td>
+    <td data-l="Short Name" class="hide-md">${esc(r.short)||'<span style="color:var(--muted)">—</span>'}</td>
+    <td data-l="Serial" class="num">${esc(r.serial)}</td>
+    <td data-l="Receiptable" class="ctr"><span class="badge ${r.rec?"b-yes":"b-no"}">${r.rec?"Yes":"No"}</span></td>
+    <td data-l="Service By">${esc(r.svc)}</td>
+    <td data-l="Shipment Mode">${esc(r.mode)}</td>
+    <td data-l="Amount" class="num hide-sm">${r.amt!==""&&r.amt!=null?Number(r.amt).toLocaleString(undefined,{minimumFractionDigits:2}):'<span style="color:var(--muted)">—</span>'}</td>
+    <td data-l="Status" class="ctr hide-sm"><span class="badge ${r.status==="Active"?"b-act":"b-ina"}">${r.status}</span></td>
+    <td class="ctr"><div class="acts"><button class="btn sm" data-edit="${esc(r.id)}" title="Edit">✎</button><button class="btn sm danger" data-del="${esc(r.id)}" title="Delete">🗑</button></div></td></tr>`).join("")
+    || `<tr><td colspan="11" class="empty">No expense heads match the current filters.</td></tr>`;
+  $("#cnt").textContent = all.length+" records";
+  $("#info").textContent = all.length ? `Showing ${start+1} to ${start+view.length} of ${all.length} entries`+(all.length!==rows.length?` (filtered from ${rows.length})`:"") : "No entries";
+  $("#selN").textContent=S.sel.size; $("#bulkDel").disabled=!S.sel.size;
+  $("#selAll").checked = view.length>0 && view.every(r=>S.sel.has(r.id));
+  document.querySelectorAll("th[data-k]").forEach(th=>{th.classList.toggle("sorted",th.dataset.k===S.sort);th.querySelector(".ar").textContent=th.dataset.k===S.sort?(S.dir>0?"▲":"▼"):"⇅"});
+  pager(pages);
+}
+const pct=(a,b)=>b?Math.round(a/b*100)+"%":"0%";
+function donut(dn,lg,data,cols,key,total,map){
+  let a=0,g=[];
+  data.slice(0,5).forEach(([n,c],i)=>{const s=a;a+=c/(total||1)*360;g.push(`${cols[i]} ${s}deg ${a}deg`)});
+  $(dn).style.background = total? `conic-gradient(${g.join(",")})` : "var(--surface2)";
+  $(dn).dataset.c = total;
+  $(lg).innerHTML = data.slice(0,5).map(([n,c],i)=>`<div data-${key}="${esc(map?map[n]:n)}"><i style="background:${cols[i]}"></i>${esc(n)}<b>${c}</b></div>`).join("");
+}
+function pager(pages){
+  const p=S.page, b=[]; const add=(t,pg,on,dis)=>b.push(`<button data-pg="${pg}" class="${on?"on":""}" ${dis?"disabled":""}>${t}</button>`);
+  add("«",1,0,p===1); add("‹",p-1,0,p===1);
+  let s=Math.max(1,p-2), e=Math.min(pages,s+4); s=Math.max(1,e-4);
+  for(let i=s;i<=e;i++) add(i,i,i===p);
+  add("›",p+1,0,p===pages); add("»",pages,0,p===pages);
+  $("#pager").innerHTML=b.join("");
+}
+
+/* ================= EVENTS ================= */
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2600)}
+function setF(k,v){S[k]=v;S.page=1;if(k==="mode")$("#fMode").value=v;if(k==="svc")$("#fSvc").value=v;if(k==="rec")$("#fRec").value=v;render()}
+$("#fMode").onchange=e=>setF("mode",e.target.value);
+$("#fSvc").onchange=e=>setF("svc",e.target.value);
+$("#fRec").onchange=e=>setF("rec",e.target.value);
+$("#fSta").onchange=e=>setF("sta",e.target.value);
+$("#fQ").oninput=e=>setF("q",e.target.value);
+$("#pgSize").onchange=e=>{S.size=+e.target.value;S.page=1;render()};
+$("#resetBtn").onclick=()=>{Object.assign(S,{mode:"",svc:"",rec:"",sta:"",q:"",page:1,sort:"",dir:1});["#fMode","#fSvc","#fRec","#fSta","#fQ"].forEach(i=>$(i).value="");render();toast("Filters reset")};
+$("#chMode").onclick=e=>{const b=e.target.closest("[data-mode]");if(b)setF("mode",S.mode===b.dataset.mode?"":b.dataset.mode)};
+$("#lgSvc").onclick=e=>{const b=e.target.closest("[data-svc]");if(b)setF("svc",S.svc===b.dataset.svc?"":b.dataset.svc)};
+$("#lgRec").onclick=e=>{const b=e.target.closest("[data-rec]");if(b)setF("rec",S.rec===b.dataset.rec?"":b.dataset.rec)};
+$("#pager").onclick=e=>{const b=e.target.closest("[data-pg]");if(b){S.page=+b.dataset.pg;render()}};
+document.querySelector("thead").onclick=e=>{const th=e.target.closest("th[data-k]");if(!th)return;const k=th.dataset.k;S.dir=S.sort===k?-S.dir:1;S.sort=k;render()};
+$("#tb").onclick=e=>{
+  const ed=e.target.closest("[data-edit]"); if(ed) return openForm(ed.dataset.edit);
+  const dl=e.target.closest("[data-del]"); if(dl) return del([dl.dataset.del]);
+};
+$("#tb").onchange=e=>{const c=e.target.closest("[data-sel]");if(c){c.checked?S.sel.add(c.dataset.sel):S.sel.delete(c.dataset.sel);render()}};
+$("#selAll").onchange=e=>{const all=filtered().slice((S.page-1)*S.size,S.page*S.size);all.forEach(r=>e.target.checked?S.sel.add(r.id):S.sel.delete(r.id));render()};
+$("#bulkDel").onclick=()=>del([...S.sel]);
+function del(ids){
+  if(!ids.length||!confirm(`Delete ${ids.length} expense head(s)? This cannot be undone.`))return;
+  rows=rows.filter(r=>!ids.includes(r.id)); ids.forEach(i=>S.sel.delete(i)); persist(); fillSelects(); render(); toast(ids.length+" deleted");
+}
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
+$("#favBtn").onclick=e=>{e.currentTarget.classList.toggle("on");toast(e.currentTarget.classList.contains("on")?"Added to favorites":"Removed from favorites")};
+/* ---- form ---- */
+let editing=null;
+const nextId=()=>String(rows.reduce((m,r)=>Math.max(m,parseInt(r.id,10)||0),0)+1).padStart(4,"0");
+function openForm(id){
+  editing=id?rows.find(r=>r.id===id):null;
+  $("#dlgT").textContent=editing?"Edit Expense Head":"Expense Head Info";
+  $("#eDel").style.display=editing?"":"none";
+  fillForm(editing||{id:nextId(),name:"",short:"",serial:"",rec:0,svc:"",mode:S.mode,amt:"",status:"Active"});
+  $("#dlg").showModal(); $("#eName").focus();
+}
+function fillForm(r){
+  $("#eId").value=r.id;$("#eName").value=r.name;$("#eShort").value=r.short;$("#eSerial").value=r.serial;$("#eAmt").value=r.amt;
+  $("#eRec").checked=!!r.rec;$("#eMode").value=r.mode;$("#eSvc").value=r.svc;$("#eSta").value=r.status;
+  document.querySelectorAll("#frm .in").forEach(i=>i.classList.remove("err"));
+}
+$("#newBtn").onclick=()=>openForm();
+$("#eClear").onclick=()=>fillForm({id:$("#eId").value,name:"",short:"",serial:"",rec:0,svc:"",mode:"",amt:"",status:"Active"});
+$("#eDel").onclick=()=>{$("#dlg").close();del([editing.id])};
+$("#eSave").onclick=()=>{
+  let ok=true;
+  [["#eMode"],["#eName"],["#eSvc"],["#eSerial"]].forEach(([s])=>{const bad=!$(s).value.trim();$(s).classList.toggle("err",bad);if(bad)ok=false});
+  if(!ok) return toast("Please fill all required (*) fields");
+  const rec={id:$("#eId").value,name:$("#eName").value.trim(),short:$("#eShort").value.trim(),serial:+$("#eSerial").value,rec:$("#eRec").checked?1:0,
+             svc:$("#eSvc").value,mode:$("#eMode").value,amt:$("#eAmt").value,status:$("#eSta").value};
+  if(rows.some(r=>r!==editing&&r.mode===rec.mode&&r.name.toLowerCase()===rec.name.toLowerCase())) return toast("This expense head already exists for the selected shipment mode");
+  if(editing) Object.assign(editing,rec); else rows.unshift(rec);
+  persist(); fillSelects(); $("#dlg").close(); render(); toast("Saved: "+rec.name);
+};
+
+/* ---- export ---- */
+$("#expBtn").onclick=e=>{e.stopPropagation();$("#expMenu").classList.toggle("open")};
+document.addEventListener("click",()=>$("#expMenu").classList.remove("open"));
+$("#expMenu").onclick=e=>{const b=e.target.closest("[data-x]");if(!b)return;$("#expMenu").classList.remove("open");
+  ({preview:openPreview,pdf:()=>{toast("In the print window choose “Save as PDF”");printFrame()},excel:exportExcel})[b.dataset.x]()};
+function filterText(){
+  const p=[];if(S.mode)p.push("Shipment Mode: "+S.mode);if(S.svc)p.push("Service By: "+S.svc);
+  if(S.rec!=="")p.push("Receiptable: "+(S.rec==="1"?"Yes":"No"));if(S.sta)p.push("Status: "+S.sta);if(S.q)p.push("Search: "+S.q);
+  return p.join(" | ")||"All records";
+}
+function reportTable(data){
+  return `<table style="width:100%;border-collapse:collapse"><thead><tr>${["Expense Head ID","Expense Head","Short Name","Serial No","Is Receiptable?","Service Provided By","Shipment Mode","Amount","Status"].map(h=>`<th style="padding:6px;text-align:left">${h}</th>`).join("")}</tr></thead><tbody>`+
+  data.map(r=>`<tr><td style="padding:4px 6px">${esc(r.id)}</td><td style="padding:4px 6px">${esc(r.name)}</td><td style="padding:4px 6px">${esc(r.short)}</td><td style="padding:4px 6px">${esc(r.serial)}</td><td style="padding:4px 6px">${r.rec?"Yes":"No"}</td><td style="padding:4px 6px">${esc(r.svc)}</td><td style="padding:4px 6px">${esc(r.mode)}</td><td style="padding:4px 6px">${esc(r.amt)}</td><td style="padding:4px 6px">${r.status}</td></tr>`).join("")+`</tbody></table>`;
+}
+function reportHTML(){
+  const d=filtered();
+  return `<div class="rh"><h2>${esc(CONFIG.company)}</h2><p>${esc(CONFIG.address)}</p><h3 style="margin:8px 0 2px">${esc(CONFIG.reportTitle)}</h3><p style="font-size:12px">${esc(filterText())} &nbsp;•&nbsp; ${d.length} record(s) &nbsp;•&nbsp; Printed ${new Date().toLocaleString()}</p></div>`+reportTable(d);
+}
+function openPreview(){$("#pvBody").innerHTML=reportHTML();$("#pv").showModal()}
+function printFrame(){
+  const f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);
+  f.srcdoc=`<html><head><title>${esc(CONFIG.reportTitle)}</title><style>body{font-family:Arial,sans-serif;font-size:11px;color:#111;margin:14mm}table{border-collapse:collapse}th,td{border:1px solid #bbb}th{background:#e9edf4}thead{display:table-header-group}tr{page-break-inside:avoid}.rh{text-align:center;margin-bottom:10px}.rh h2{margin:0}.rh p{margin:2px 0}@page{size:A4 landscape;margin:8mm}</style></head><body>${reportHTML()}</body></html>`;
+  f.onload=()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000)};
+}
+$("#pvPrint").onclick=printFrame;
+$("#pvPdf").onclick=()=>{toast("Choose “Save as PDF” as the destination");printFrame()};
+function exportExcel(){
+  const d=filtered();
+  const html=`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1"><tr><td colspan="9" style="font-size:16pt;font-weight:bold">${esc(CONFIG.company)}</td></tr><tr><td colspan="9">${esc(CONFIG.address)}</td></tr><tr><td colspan="9" style="font-weight:bold">${esc(CONFIG.reportTitle)} — ${esc(filterText())}</td></tr>`+
+   `<tr style="background:#14315f;color:#fff;font-weight:bold">${["Expense Head ID","Expense Head","Short Name","Serial No","Is Receiptable?","Service Provided By","Shipment Mode","Amount","Status"].map(h=>`<td>${h}</td>`).join("")}</tr>`+
+   d.map(r=>`<tr><td style="mso-number-format:'\\@'">${esc(r.id)}</td><td>${esc(r.name)}</td><td>${esc(r.short)}</td><td>${esc(r.serial)}</td><td>${r.rec?"Yes":"No"}</td><td>${esc(r.svc)}</td><td>${esc(r.mode)}</td><td>${esc(r.amt)}</td><td>${r.status}</td></tr>`).join("")+`</table></body></html>`;
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+html],{type:"application/vnd.ms-excel"}));
+  a.download="ExpenseHeadSetupReport_"+new Date().toISOString().slice(0,10)+".xls";document.body.appendChild(a);a.click();a.remove();toast("Excel exported ("+d.length+" rows)");
+}
+
+/* ================= INIT ================= */
+rows=load(); $("#pgSize").value=String(S.size); fillSelects(); render();
+</script>
+</body>
+</html>

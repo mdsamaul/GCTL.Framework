@@ -104,6 +104,27 @@
             this.$arrow = $arrow;
             this.$panel = $panel;
             this.$list = $list;
+            this._updateClearState();
+        }
+
+        _updateClearState() {
+            var hasVal = false;
+            if (this.isMulti) {
+                hasVal = Array.isArray(this.selected) && this.selected.length > 0;
+            } else {
+                var v = this.selected ? this.selected[0] : null;
+                hasVal = (v !== null && v !== undefined && String(v).trim() !== '');
+            }
+            if (this.$wrapper) {
+                this.$wrapper.toggleClass('has-value', hasVal);
+            }
+            if (this.$clearIcon) {
+                if (hasVal && this.options.showClear) {
+                    this.$clearIcon.show();
+                } else {
+                    this.$clearIcon.hide();
+                }
+            }
         }
 
         _bindCommonEvents() {
@@ -496,6 +517,7 @@
         }
 
         clear() {
+            var hadSelection = this.selected && this.selected.length > 0;
             this.selected = [];
             this.$input.val('');
             if (this.isMulti) this.$tagsArea.empty();
@@ -504,8 +526,11 @@
                 this._hasFetchedInitially = false;
             }
             this._renderList(this.data);
+            this._updateClearState();
             if (typeof this.options.onClear === 'function') this.options.onClear(this);
-            this._triggerChange();
+            if (hadSelection) {
+                this._triggerChange();
+            }
         }
 
         _triggerChange() {
@@ -521,6 +546,11 @@
 
         setValue(id, text) {
             if (id === null || id === undefined || id === '' || (Array.isArray(id) && id.length === 0)) {
+                if (this.selected && this.selected.length === 0) {
+                    this.$input.val('');
+                    this._updateClearState();
+                    return;
+                }
                 this.clear();
                 return;
             }
@@ -587,6 +617,7 @@
                 }
             }
 
+            this._updateClearState();
             return this;
         }
     }
@@ -602,6 +633,7 @@
             this.$input.val(item.text);
             this._syncOriginalSelect();
             this._closePanel();
+            this._updateClearState();
             this._renderList(this.data);
             this._triggerChange();
         }
@@ -609,6 +641,7 @@
         _addSelected(item) {
             this.selected = [item.id];
             this.$input.val(item.text);
+            this._updateClearState();
         }
 
         _syncOriginalSelect() {
@@ -643,6 +676,7 @@
             }
             this._renderTags();
             this._syncOriginalSelect();
+            this._updateClearState();
             this._renderList(this.filtered.length ? this.filtered : this.data);
             this._triggerChange();
         }
