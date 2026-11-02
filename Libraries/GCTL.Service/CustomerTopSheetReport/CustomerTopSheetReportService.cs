@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using ClosedXML.Excel;
 using Dapper;
 using GCTL.Core.Data;
@@ -504,7 +499,7 @@ namespace GCTL.Service.CustomerTopSheetReport
                 int headerRow = 9;
                 string[] headers = new[]
                 {
-                    "SL No.",
+                    "SN",
                     "Bill No",
                     "LC/LCA\nNo.",
                     "Invoice\nNo.",
@@ -655,9 +650,7 @@ namespace GCTL.Service.CustomerTopSheetReport
                 ws.Columns(1, 18).AdjustToContents(9.0, 30.0);
                 ws.Column(1).Width = 6.5;   // SL No.
                 ws.Column(2).Width = 24.0;  // Bill No
-                ws.Column(8).Width = 18.0;  // DTI & Association Service Charge
                 ws.Column(10).Width = 11.5; // Cust. Misc (Compact & Narrow)
-                ws.Column(12).Width = 20.0; // Freight Forwarder NOC (fits cleanly in 2 lines)
             }
 
             using var ms = new MemoryStream();
@@ -762,7 +755,7 @@ namespace GCTL.Service.CustomerTopSheetReport
                                     // Table Headers (18 Columns)
                                     string[] headers = new[]
                                     {
-                                        "SL", "Bill No", "LC/LCA No.", "Invoice No.", "Inv Date", "B/E Reg.", "B/E Date",
+                                        "SN", "Bill No", "LC/LCA No.", "Invoice No.", "Inv Date", "B/E Reg.", "B/E Date",
                                         "DTI & Ass.", "Vat & Tax", "Cust. Misc", "Wh. Rent", "NOC",
                                         "Labour", "Misc.", "Air Frt.", "Transport", "Comm.", "Total (Tk.)"
                                     };

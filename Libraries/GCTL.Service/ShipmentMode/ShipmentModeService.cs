@@ -4,14 +4,6 @@ using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using GCTL.Core.DataTables;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GCTL.Service.ShipmentMode
 {

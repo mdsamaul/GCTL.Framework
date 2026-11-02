@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using GCTL.Core.ViewModels.Common;
 
 namespace GCTL.Service.CustomerTopSheetReport

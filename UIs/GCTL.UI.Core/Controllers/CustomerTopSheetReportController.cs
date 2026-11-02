@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using GCTL.Core.ViewModels.Common;
 using GCTL.Service.CustomerTopSheetReport;
 using GCTL.UI.Core.ViewModels;
@@ -257,7 +254,7 @@ namespace GCTL.UI.Core.Controllers
                 DefaultSortDirection = "asc",
                 Columns = new List<GridColumn>
                 {
-                    new() { Data = "slNo", Header = "SL", Width = "30px", Align = "center", Sortable = false },
+                    new() { Data = "slNo", Header = "SN", Width = "30px", Align = "center", Sortable = false },
                     new() { Data = "customerName", Header = "Customer", Width = "140px", Align = "left", SortField = "CustomerName" },
                     new() { Data = "billNo", Header = "Bill No", Width = "115px", Align = "left", SortField = "BillNo" },
                     new() { Data = "lcLcaNo", Header = "LC/LCA No", Width = "100px", Align = "left" },
