@@ -1857,15 +1857,15 @@
         return `<table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11px">` +
             `<thead>` +
                 `<tr style="height:28px">` +
-                    `<th style="padding:6px;text-align:center;border:1px solid #333;width:75px;color:#000;font-weight:bold;background:#fff">Expense Head ID</th>` +
-                    `<th style="padding:6px;text-align:left;border:1px solid #333;color:#000;font-weight:bold;background:#fff">Expense Head</th>` +
-                    `<th style="padding:6px;text-align:left;border:1px solid #333;color:#000;font-weight:bold;background:#fff">Short Name</th>` +
-                    `<th style="padding:6px;text-align:center;border:1px solid #333;width:50px;color:#000;font-weight:bold;background:#fff">Serial No</th>` +
-                    `<th style="padding:6px;text-align:center;border:1px solid #333;width:75px;color:#000;font-weight:bold;background:#fff">Is Receiptable?</th>` +
-                    `<th style="padding:6px;text-align:left;border:1px solid #333;color:#000;font-weight:bold;background:#fff">Service Provided By</th>` +
-                    `<th style="padding:6px;text-align:left;border:1px solid #333;color:#000;font-weight:bold;background:#fff">Shipment Mode</th>` +
-                    `<th style="padding:6px;text-align:right;border:1px solid #333;width:75px;color:#000;font-weight:bold;background:#fff">Amount</th>` +
-                    `<th style="padding:6px;text-align:center;border:1px solid #333;width:60px;color:#000;font-weight:bold;background:#fff">Status</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;width:75px;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Expense Head ID</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Expense Head</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Short Name</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;width:50px;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Serial No</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;width:75px;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Is Receiptable?</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Service Provided By</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Shipment Mode</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;width:75px;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Amount</th>` +
+                    `<th style="padding:6px;text-align:center;vertical-align:middle;border:1px solid #ccc;width:60px;color:#000;font-weight:normal;text-transform:capitalize;background:#fff">Status</th>` +
                 `</tr>` +
             `</thead>` +
             `<tbody>` +
@@ -1890,7 +1890,7 @@
         const printDateStr = new Date().toLocaleDateString("en-GB") + " " + new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
         return `
             <div class="rpt-container" style="font-family:Arial,sans-serif;color:#111;padding:4px">` +
-                `<div class="rpt-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1.5px solid #333;margin-bottom:10px">` +
+                `<div class="rpt-header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;margin-bottom:10px">` +
                     `<div style="width:130px;flex-shrink:0;text-align:left">` +
                         `<img src="/images/fermosa-wX200.png" style="max-height:40px;max-width:130px;object-fit:contain" alt="Formosa Logo" onerror="this.style.display='none'" />` +
                     `</div>` +
@@ -1903,7 +1903,7 @@
                     `<div style="width:130px;flex-shrink:0"></div>` +
                 `</div>` +
                 reportTable(d) +
-                `<div class="rpt-footer" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:6px;border-top:1px solid #ccc;font-size:10px;color:#666">` +
+                `<div class="rpt-footer" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:6px;font-size:10px;color:#666">` +
                     `<div style="text-align:left">Printed: ${printDateStr}</div>` +
                     `<div style="text-align:center">Formosa Logistics Limited - C&F Management System</div>` +
                     `<div style="text-align:right">Page 1 of 1</div>` +
@@ -1921,7 +1921,7 @@
         const f = document.createElement("iframe");
         f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
         document.body.appendChild(f);
-        f.srcdoc = `<!DOCTYPE html><html><head><title>${esc(CONFIG.reportTitle)}</title><style>@page{size:A4 landscape;margin:12mm 10mm 14mm 10mm}body{font-family:Arial,sans-serif;font-size:10px;color:#111;margin:0;padding:0;padding-bottom:25px}table{width:100%;border-collapse:collapse}thead{display:table-header-group}tr{page-break-inside:avoid}th{background:#fff !important;color:#000 !important;padding:5px 6px;font-size:10px;border:1px solid #333}td{padding:4px 6px;font-size:9.5px;border:1px solid #ccc}.rpt-footer{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:9px;color:#666;border-top:1px solid #ccc;padding-top:4px;background:#fff}</style></head><body>${reportHTML()}</body></html>`;
+        f.srcdoc = `<!DOCTYPE html><html><head><title>${esc(CONFIG.reportTitle)}</title><style>@page{size:A4 landscape;margin:12mm 10mm 14mm 10mm}body{font-family:Arial,sans-serif;font-size:10px;color:#111;margin:0;padding:0;padding-bottom:25px}table{width:100%;border-collapse:collapse}thead{display:table-header-group}tr{page-break-inside:avoid}th{background:#fff !important;color:#000 !important;font-weight:normal !important;text-transform:capitalize !important;text-align:center !important;vertical-align:middle !important;padding:5px 6px;font-size:10px;border:1px solid #ccc}td{padding:4px 6px;font-size:9.5px;border:1px solid #ccc}.rpt-footer{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:9px;color:#666;padding-top:4px;background:#fff}</style></head><body>${reportHTML()}</body></html>`;
         f.onload = () => {
             f.contentWindow.focus();
             f.contentWindow.print();
@@ -1955,7 +1955,7 @@
             `<tr><td colspan="9" align="center" valign="middle" style="font-size:14pt;font-weight:bold;height:30px;text-align:center;vertical-align:middle;color:#222;mso-number-format:'\\@'">${esc(CONFIG.reportTitle)}</td></tr>` +
             `<tr><td colspan="9" align="center" valign="middle" style="font-size:10pt;color:#666;height:22px;text-align:center;vertical-align:middle;mso-number-format:'\\@'">${esc(filterText())} &nbsp;•&nbsp; ${d.length} record(s) &nbsp;•&nbsp; Printed: ${printDateStr}</td></tr>` +
             `<tr><td colspan="9" style="height:12px;border:none"></td></tr>` +
-            `<tr style="font-weight:bold;height:28px"><th style="color:#000;text-align:center;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Expense Head ID</th><th style="color:#000;text-align:left;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Expense Head</th><th style="color:#000;text-align:left;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Short Name</th><th style="color:#000;text-align:center;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Serial No</th><th style="color:#000;text-align:center;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Is Receiptable?</th><th style="color:#000;text-align:left;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Service Provided By</th><th style="color:#000;text-align:left;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Shipment Mode</th><th style="color:#000;text-align:right;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Amount</th><th style="color:#000;text-align:center;vertical-align:middle;padding:6px;border:1px solid #333;background:#fff">Status</th></tr>` +
+            `<tr style="height:28px"><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Expense Head ID</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Expense Head</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Short Name</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Serial No</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Is Receiptable?</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Service Provided By</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Shipment Mode</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Amount</th><th style="color:#000;font-weight:normal;text-transform:capitalize;text-align:center;vertical-align:middle;padding:6px;border:1px solid #ccc;background:#fff">Status</th></tr>` +
             d.map(r => `
                 <tr>` +
                     `<td align="center" valign="middle" style="mso-number-format:'\\@';text-align:center;vertical-align:middle;border:1px solid #ccc;color:#000">${esc(r.id)}</td>` +

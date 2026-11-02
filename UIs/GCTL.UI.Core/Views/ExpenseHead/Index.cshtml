@@ -314,19 +314,13 @@
 
                             <th data-k="id" style="width:70px">ID<span class="eh-ar"></span></th>
 
-                            <th data-k="name">Expense Head<span class="eh-ar"></span></th>
-
-                            <th data-k="short" class="eh-hide-md">Short Name<span class="eh-ar"></span></th>
-
-                            <th data-k="serial" class="eh-num" style="width:70px">Serial<span class="eh-ar"></span></th>
-
+                            <th data-k="name" class="eh-ctr">Expense Head<span class="eh-ar"></span></th>
+                            <th data-k="short" class="eh-ctr eh-hide-md">Short Name<span class="eh-ar"></span></th>
+                            <th data-k="serial" class="eh-ctr" style="width:70px">Serial<span class="eh-ar"></span></th>
                             <th data-k="rec" class="eh-ctr">Receiptable<span class="eh-ar"></span></th>
-
-                            <th data-k="svc">Service By<span class="eh-ar"></span></th>
-
-                            <th data-k="mode">Shipment Mode<span class="eh-ar"></span></th>
-
-                            <th data-k="amt" class="eh-num eh-hide-sm">Amount<span class="eh-ar"></span></th>
+                            <th data-k="svc" class="eh-ctr">Service By<span class="eh-ar"></span></th>
+                            <th data-k="mode" class="eh-ctr">Shipment Mode<span class="eh-ar"></span></th>
+                            <th data-k="amt" class="eh-ctr eh-hide-sm">Amount<span class="eh-ar"></span></th>
 
                             <th data-k="status" class="eh-ctr eh-hide-sm">Status<span class="eh-ar"></span></th>
 
@@ -1016,7 +1010,7 @@
 
 .eh-table{width:100%;border-collapse:collapse;table-layout:auto;margin:0}
 
-.eh-table th{background:var(--surface2);text-align:left;font-size:11.5px;text-transform:capitalize;letter-spacing:.4px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line2);cursor:pointer;user-select:none;white-space:nowrap}
+.eh-table th{background:var(--surface2);text-align:center !important;vertical-align:middle !important;font-size:11.5px;font-weight:normal !important;text-transform:capitalize;letter-spacing:.4px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line2);cursor:pointer;user-select:none;white-space:nowrap}
 
 .eh-table th.eh-ns{cursor:default}
 
@@ -1036,7 +1030,8 @@
 
 .eh-table td.eh-id a:hover{text-decoration:underline}
 
-.eh-table td.eh-num, .eh-table th.eh-num{text-align:right;font-variant-numeric:tabular-nums}
+.eh-table td.eh-num{text-align:right;font-variant-numeric:tabular-nums}
+.eh-table th.eh-num{text-align:center !important;vertical-align:middle !important;font-variant-numeric:tabular-nums}
 
 .eh-table td.eh-ctr, .eh-table th.eh-ctr{text-align:center}
 
