@@ -1,17 +1,17 @@
-﻿
-
 namespace GCTL.Core.ViewModels.ExpenseHead
 {
     public class ExpenseHeadReportVM
     {
-        public string ExpenseHeadID { get; set; }
-        public string ExpenseHead { get; set; }
-        public string ShortName { get; set; }
-        public string SerialNo { get; set; }
-        public string IsReceiptable { get; set; }
-        public string ServiceProvidedBy { get; set; }
-        public string ExpenseType { get; set; }
-        public string Company { get; set; }
-        public string Address { get; set; }
+        public string ExpenseHeadID { get; set; } = string.Empty;
+        public string ExpenseHead { get; set; } = string.Empty;
+        public string ShortName { get; set; } = string.Empty;
+        public string SerialNo { get; set; } = string.Empty;
+        public string IsReceiptable { get; set; } = string.Empty;
+        public string ServiceProvidedBy { get; set; } = string.Empty;
+        public string ExpenseType { get; set; } = string.Empty;
+        public decimal? Amount { get; set; }
+        public string Status { get; set; } = "Active";
+        public string Company { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
     }
 }
