@@ -13,9 +13,28 @@
                 <p class="title text-secondary mb-0" style="font-size: 13px;">Are you sure you want to delete these item(s)? This process cannot be undone.</p>
             </div>
             <div class="modal-footer border-0 justify-content-center pt-0 pb-4 px-4">
-                <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold me-2" data-bs-dismiss="modal" data-dismiss="modal" style="border-radius: 10px; min-width: 100px;">No, Cancel</button>
-                <button type="button" class="btn btn-danger px-4 py-2 fw-semibold js-expensehead-delete" style="border-radius: 10px; min-width: 100px; background-color: #dc2626; border: none;">Yes, Delete</button>
+                <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold me-2" data-bs-dismiss="modal" data-dismiss="modal" style="border-radius: 10px; min-width: 110px; font-weight: 600; font-size: 14px;">No, Cancel</button>
+                <button type="button" class="btn btn-danger px-4 py-2 fw-semibold js-expensehead-delete" style="border-radius: 10px; min-width: 110px; background-color: #dc2626 !important; color: #ffffff !important; border: none; font-weight: 600; font-size: 14px;"><span style="color: #ffffff !important; font-weight: 600;">Yes, Delete</span></button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    #ExpenseHead-delete-modal .js-expensehead-delete,
+    #ExpenseHead-delete-modal .js-expensehead-delete * {
+        color: #ffffff !important;
+    }
+    #ExpenseHead-delete-modal .js-expensehead-delete {
+        background-color: #dc2626 !important;
+        border-color: #dc2626 !important;
+    }
+    #ExpenseHead-delete-modal .js-expensehead-delete:hover,
+    #ExpenseHead-delete-modal .js-expensehead-delete:focus,
+    #ExpenseHead-delete-modal .js-expensehead-delete:active {
+        background-color: #b91c1c !important;
+        border-color: #b91c1c !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.3) !important;
+    }
+</style>

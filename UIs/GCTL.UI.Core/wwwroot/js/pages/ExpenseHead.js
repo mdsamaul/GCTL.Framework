@@ -68,9 +68,9 @@
 
         q: "",
 
-        sort: "",
+        sort: "id",
 
-        dir: 1,
+        dir: -1,
 
         page: 1,
 
@@ -484,6 +484,22 @@
 
                 let B = b[k];
 
+                if (k === "id") {
+
+                    const numA = parseFloat(A);
+
+                    const numB = parseFloat(B);
+
+                    if (!isNaN(numA) && !isNaN(numB)) {
+
+                        return (numA - numB) * d;
+
+                    }
+
+                    return String(A || "").localeCompare(String(B || ""), undefined, { numeric: true, sensitivity: "base" }) * d;
+
+                }
+
                 if (["serial", "rec"].includes(k) || k === "amt") {
 
                     A = +A || 0;
@@ -649,72 +665,70 @@
 
 
         // 3. Table Rows
-
         $("#tb").html(view.map(r => {
             const idStr = String(r.id || "").trim();
             const isChecked = S.sel.has(idStr);
+            const amtDisplay = (r.amt !== "" && r.amt !== null && !isNaN(r.amt))
+                ? Number(r.amt).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                : '<span class="text-muted">—</span>';
+            const shortDisplay = esc(r.short) || '<span class="text-muted">—</span>';
+            const recBadge = r.rec
+                ? `<span class="badge badge-subtle-success text-success" style="font-size:11.5px;font-weight:500;padding:2px 8px;">Yes</span>`
+                : `<span class="badge badge-subtle-secondary text-secondary" style="font-size:11.5px;font-weight:500;padding:2px 8px;">No</span>`;
+            const staBadge = (r.status === "Active")
+                ? `<span class="badge badge-subtle-primary text-primary" style="font-size:11.5px;font-weight:500;padding:2px 8px;">Active</span>`
+                : `<span class="badge badge-subtle-danger text-danger" style="font-size:11.5px;font-weight:500;padding:2px 8px;">${esc(r.status)}</span>`;
+
             return `
             <tr class="${isChecked ? "sel" : ""}">
-
-                <td class="eh-ctr eh-chk0"><input type="checkbox" data-sel="${esc(idStr)}" ${isChecked ? "checked" : ""}></td>
-
-                <td class="eh-id" data-l="ID"><a href="javascript:void(0)" class="eh-edit-btn" data-edit="${esc(idStr)}" data-tc="${r.tc}">${esc(idStr)}</a></td>
-
-                <td data-l="Expense Head" class="eh-nm">${esc(r.name)}</td>
-
-                <td data-l="Short Name" class="eh-hide-md">${esc(r.short) || '<span style="color:var(--muted)">—</span>'}</td>
-
-                <td data-l="Serial" class="eh-num">${esc(r.serial)}</td>
-
-                <td data-l="Receiptable" class="eh-ctr"><span class="eh-badge ${r.rec ? "b-yes" : "b-no"}">${r.rec ? "Yes" : "No"}</span></td>
-
-                <td data-l="Service By">${esc(r.svc)}</td>
-
-                <td data-l="Shipment Mode">${esc(r.mode)}</td>
-
-                <td data-l="Amount" class="eh-num eh-hide-sm">${r.amt !== "" && r.amt !== null && !isNaN(r.amt) ? Number(r.amt).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '<span style="color:var(--muted)">—</span>'}</td>
-
-                <td data-l="Status" class="eh-ctr eh-hide-sm"><span class="eh-badge ${r.status === "Active" ? "b-act" : "b-ina"}">${r.status}</span></td>
-
-                <td class="eh-ctr">
-
-                    <div class="eh-acts">
-
-                        <button type="button" class="eh-btn eh-sm eh-edit-btn" data-edit="${esc(idStr)}" data-tc="${r.tc}" title="Edit">✎</button>
-
-                        <button type="button" class="eh-btn eh-sm eh-danger" data-del="${esc(idStr)}" data-tc="${r.tc}" title="Delete">🗑</button>
-
+                <td class="col-select-cell text-center"><input class="form-check-input" type="checkbox" data-sel="${esc(idStr)}" ${isChecked ? "checked" : ""}></td>
+                <td class="text-center"><a href="javascript:void(0)" class="custom-grid-link fw-semibold text-primary" data-edit="${esc(idStr)}" data-tc="${r.tc}">${esc(idStr)}</a></td>
+                <td>${esc(r.name)}</td>
+                <td>${shortDisplay}</td>
+                <td class="text-center">${esc(r.serial)}</td>
+                <td class="text-center">${recBadge}</td>
+                <td class="text-center align-middle">${esc(r.svc)}</td>
+                <td class="text-center align-middle">${esc(r.mode)}</td>
+                <td class="text-end" style="font-family: monospace, sans-serif;">${amtDisplay}</td>
+                <td class="text-center">${staBadge}</td>
+                <td class="text-center text-nowrap">
+                    <div class="d-inline-flex align-items-center gap-1">
+                        <a href="javascript:void(0)" class="toolbar-btn-edit js-eh-edit" data-edit="${esc(idStr)}" data-tc="${r.tc}" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="javascript:void(0)" class="toolbar-btn-del js-eh-delete" data-del="${esc(idStr)}" data-tc="${r.tc}" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
                     </div>
-
                 </td>
-
             </tr>
-
-        `;
-        }).join("") || `<tr><td colspan="11" class="eh-empty">No expense heads match the current filters.</td></tr>`);
-
-
+            `;
+        }).join("") || `<tr><td colspan="11" class="text-center py-4 text-muted">No expense heads match the current filters.</td></tr>`);
 
         $("#cnt").text(all.length + " records");
-
         $("#info").text(all.length ? `Showing ${start + 1} to ${start + view.length} of ${all.length} entries` + (all.length !== rows.length ? ` (filtered from ${rows.length})` : "") : "No entries");
-
         $("#selN").text(S.sel.size);
 
-        $("#bulkDel").prop("disabled", !S.sel.size);
+        if (S.sel.size > 0) {
+            $("#bulkDel").removeClass("d-none").prop("disabled", false);
+        } else {
+            $("#bulkDel").addClass("d-none").prop("disabled", true);
+        }
 
         $("#selAll").prop("checked", view.length > 0 && view.every(r => S.sel.has(String(r.id || "").trim())));
 
-
-
         $("th[data-k]").each(function () {
-
             const k = $(this).data("k");
-
-            $(this).toggleClass("sorted", k === S.sort);
-
-            $(this).find(".eh-ar").text(k === S.sort ? (S.dir > 0 ? "▲" : "▼") : "⇅");
-
+            const $icon = $(this).find(".sort-icon");
+            if (k === S.sort) {
+                if (S.dir > 0) {
+                    $icon.attr("class", "fas fa-sort-up text-primary ms-1 sort-icon");
+                } else {
+                    $icon.attr("class", "fas fa-sort-down text-primary ms-1 sort-icon");
+                }
+            } else {
+                $icon.attr("class", "fas fa-sort text-muted ms-1 sort-icon");
+            }
         });
 
 
@@ -768,27 +782,24 @@
 
 
     function pager(pages) {
+        const p = S.page;
+        const b = [];
+        b.push(`<li class="page-item ${p === 1 ? "disabled" : ""}"><a class="page-link" href="javascript:void(0)" data-pg="1" title="First">«</a></li>`);
+        b.push(`<li class="page-item ${p === 1 ? "disabled" : ""}"><a class="page-link" href="javascript:void(0)" data-pg="${Math.max(1, p - 1)}" title="Previous">‹</a></li>`);
 
-        const p = S.page, b = [];
-
-        const add = (t, pg, on, dis) => b.push(`<button data-pg="${pg}" class="${on ? "on" : ""}" ${dis ? "disabled" : ""}>${t}</button>`);
-
-        add("«", 1, 0, p === 1);
-
-        add("‹", p - 1, 0, p === 1);
-
-        let s = Math.max(1, p - 2), e = Math.min(pages, s + 4);
-
+        let s = Math.max(1, p - 2);
+        let e = Math.min(pages, s + 4);
         s = Math.max(1, e - 4);
+        if (s < 1) s = 1;
 
-        for (let i = s; i <= e; i++) add(i, i, i === p);
+        for (let i = s; i <= e; i++) {
+            b.push(`<li class="page-item ${i === p ? "active" : ""}"><a class="page-link" href="javascript:void(0)" data-pg="${i}">${i}</a></li>`);
+        }
 
-        add("›", p + 1, 0, p === pages);
-
-        add("»", pages, 0, p === pages);
+        b.push(`<li class="page-item ${p === pages ? "disabled" : ""}"><a class="page-link" href="javascript:void(0)" data-pg="${Math.min(pages, p + 1)}" title="Next">›</a></li>`);
+        b.push(`<li class="page-item ${p === pages ? "disabled" : ""}"><a class="page-link" href="javascript:void(0)" data-pg="${pages}" title="Last">»</a></li>`);
 
         $("#pager").html(b.join(""));
-
     }
 
 
@@ -937,8 +948,8 @@
             toDate: null,
             q: "",
             page: 1,
-            sort: "",
-            dir: 1
+            sort: "id",
+            dir: -1
         });
         S.sel.clear();
 
@@ -999,13 +1010,11 @@
 
 
     // Pagination
-
-    $("#pager").on("click", "[data-pg]", function () {
-
+    $("#pager").on("click", "[data-pg]", function (e) {
+        e.preventDefault();
+        if ($(this).parent().hasClass("disabled") || $(this).parent().hasClass("active")) return;
         S.page = +$(this).data("pg");
-
         render();
-
     });
 
 
@@ -1029,13 +1038,14 @@
     // Row Actions: Edit & Delete
     $("#tb").on("click", "[data-edit]", function (e) {
         e.preventDefault();
-        const id = $(this).attr("data-edit");
+        const id = $(this).closest("[data-edit]").attr("data-edit");
         openForm(id);
     });
 
     $("#tb").on("click", "[data-del]", function (e) {
         e.preventDefault();
-        const id = $(this).attr("data-del") || $(this).data("del");
+        const btn = $(this).closest("[data-del]");
+        const id = btn.attr("data-del") || btn.data("del");
         if (id) del([id]);
     });
 

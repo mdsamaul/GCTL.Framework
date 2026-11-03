@@ -1,5 +1,5 @@
 -- =========================================================================
--- EXPENSE HEAD SETUP PROCEDURES (Formosa Logistics Limited / C&F Management)
+-- Expense Head PROCEDURES (Formosa Logistics Limited / C&F Management)
 -- =========================================================================
 
 -- 1. High Performance Data Retrieval for Dashboard, Charts & Millisecond Grid
@@ -60,11 +60,8 @@ BEGIN
           st.ServiceTypeName LIKE '%' + @SearchTerm + '%'
       )
     ORDER BY 
-        ISNULL(et.ExpenseType, ''),
-        ISNULL(st.ServiceTypeName, ''),
-        CASE WHEN eh.IsReceiptable IN ('Y', 'Yes', 'YES', '1') THEN 0 ELSE 1 END,
-        TRY_CAST(eh.SerialNo AS INT),
-        eh.ExpenseHeadID;
+        TRY_CAST(eh.ExpenseHeadID AS INT) DESC,
+        eh.ExpenseHeadID DESC;
 END;
 GO
 
@@ -301,11 +298,8 @@ BEGIN
     CROSS JOIN (SELECT TOP 1 CompanyName, Address1 FROM dbo.Core_Company WITH (NOLOCK)) c
     WHERE (@ExpenseTypeId IS NULL OR @ExpenseTypeId = '' OR et.ExpenseTypeID = @ExpenseTypeId)
     ORDER BY 
-        ISNULL(et.ExpenseType, ''),
-        ISNULL(st.ServiceTypeName, ''),
-        CASE WHEN eh.IsReceiptable IN ('Y', 'Yes', 'YES', '1') THEN 0 ELSE 1 END,
-        TRY_CAST(eh.SerialNo AS INT),
-        eh.ExpenseHeadID;
+        TRY_CAST(eh.ExpenseHeadID AS INT) DESC,
+        eh.ExpenseHeadID DESC;
 END;
 GO
 
