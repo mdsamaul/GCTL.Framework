@@ -122,7 +122,7 @@ namespace GCTL.Service.ExpenseHead
                 var modeDict = modes.ToDictionary(m => m.ExpenseTypeId, m => m.ExpenseType);
                 var svcDict = svcs.ToDictionary(s => s.ServiceTypeId, s => s.ServiceTypeName);
 
-                return list.Select(m => new ExpenseHeadVM
+                return list.OrderByDescending(x => int.TryParse(x.ExpenseHeadId, out var idVal) ? idVal : 0).Select(m => new ExpenseHeadVM
                 {
                     TC = m.Tc,
                     ExpenseHeadID = m.ExpenseHeadId,
@@ -782,7 +782,7 @@ namespace GCTL.Service.ExpenseHead
 
                 string company = data.FirstOrDefault()?.Company ?? "Formosa Logistics Limited";
                 string address = data.FirstOrDefault()?.Address ?? "21, Hazaribagh, Dhaka-1209";
-                string reportTitle = "Expense Head Setup Report";
+                string reportTitle = "Expense Head Report";
 
                 var filterParts = new List<string>();
                 if (!string.IsNullOrWhiteSpace(expenseTypeId)) filterParts.Add($"Shipment Mode: {expenseTypeId}");
@@ -894,7 +894,7 @@ namespace GCTL.Service.ExpenseHead
 
             string company = data.FirstOrDefault()?.Company ?? "Formosa Logistics Limited";
             string address = data.FirstOrDefault()?.Address ?? "21, Hazaribagh, Dhaka-1209";
-            string reportTitle = "Expense Head Setup Report";
+            string reportTitle = "Expense Head Report";
 
             var filterParts = new List<string>();
             if (!string.IsNullOrWhiteSpace(expenseTypeId)) filterParts.Add($"Shipment Mode: {expenseTypeId}");

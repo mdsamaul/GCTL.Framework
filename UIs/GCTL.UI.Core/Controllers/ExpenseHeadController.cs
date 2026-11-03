@@ -58,7 +58,7 @@ namespace GCTL.Controllers
 
             ViewData["Title"] = "Expense Head";
 
-            ViewData["HideBreadcrumb"] = true;
+            // ViewData["HideBreadcrumb"] removed
 
             try
 
