@@ -18,8 +18,12 @@ BEGIN
     -- 1. Full 5-Level Hierarchy Records (For each 5th-layer General Ledger account)
     SELECT 
         gl.GeneralLedgerCodeNo,
-        gl.GeneralLedgerName,
-        gl.ShortName AS GeneralLedgerShortName,
+        CASE 
+            WHEN cust.CustomerID IS NOT NULL AND gl.GeneralLedgerName NOT LIKE '%(%)%'
+                THEN CONCAT(cust.CustomerName, ' (', cust.CustomerID, ')')
+            ELSE gl.GeneralLedgerName 
+        END AS GeneralLedgerName,
+        ISNULL(NULLIF(gl.ShortName, ''), ISNULL(cust.ShortName, '')) AS GeneralLedgerShortName,
         ISNULL(gl.IsActive, '1') AS IsActive,
         
         ISNULL(ssl.SubsidiaryLedgerCodeNo, gl.SubsidiaryLedgerCodeNo) AS SubsidiaryLedgerCodeNo,
@@ -47,6 +51,8 @@ BEGIN
             ELSE 'Other'
         END AS AccountType
     FROM Acc_GeneralLedger gl
+    LEFT JOIN dbo.Sales_Customer cust WITH (NOLOCK) 
+        ON (gl.GeneralLedgerName = cust.CustomerID OR gl.GeneralLedgerName LIKE '%(' + cust.CustomerID + ')')
     LEFT JOIN Acc_SubSubsidiaryLedger ssl ON ssl.SubsidiaryLedgerCodeNo = gl.SubsidiaryLedgerCodeNo
     LEFT JOIN Acc_SubControlLedger sc ON sc.SubControlLedgerCodeNo = gl.SubControlLedgerCodeNo
     LEFT JOIN Acc_ControlLedger c ON c.ControlLedgerCodeNo = gl.ControlLedgerCodeNo
@@ -55,6 +61,8 @@ BEGIN
       AND (@Search IS NULL OR (
             gl.GeneralLedgerCodeNo LIKE @Search OR 
             gl.GeneralLedgerName LIKE @Search OR 
+            (cust.CustomerName IS NOT NULL AND cust.CustomerName LIKE @Search) OR
+            (cust.CustomerID IS NOT NULL AND cust.CustomerID LIKE @Search) OR
             ssl.SubsidiaryLedgerCodeNo LIKE @Search OR 
             ssl.SubSubsidiaryLedgerName LIKE @Search OR 
             sc.SubControlLedgerCodeNo LIKE @Search OR 
