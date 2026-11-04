@@ -1,5 +1,7 @@
 
+using System.Data;
 using Azure.Core;
+using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
@@ -28,6 +30,7 @@ namespace GCTL.Service.OFRApproval
         private readonly IRepository<AccGeneralLedger> _generalLedger;
         private readonly IRepository<CoreBankAccountInformation> _bankAccountInfo;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
+        private readonly IDbConnection? _dbConnection;
 
 
         public OFRApprovalService(
@@ -43,7 +46,8 @@ namespace GCTL.Service.OFRApproval
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails, 
                 IRepository<AccGeneralLedger> generalLedger, 
                 IRepository<CoreBankAccountInformation> bankAccountInfo,
-                IRepository<Sep_Documentation> sepDocumentation
+                IRepository<Sep_Documentation> sepDocumentation,
+                IDbConnection? dbConnection = null
             ) : base(genericRepository)
         {
             //_userInfoService = userInfoService;
@@ -58,6 +62,7 @@ namespace GCTL.Service.OFRApproval
             _generalLedger = generalLedger;
             _bankAccountInfo = bankAccountInfo;
             _sepDocumentation = sepDocumentation;
+            _dbConnection = dbConnection;
         }
         #endregion
 
@@ -342,6 +347,34 @@ namespace GCTL.Service.OFRApproval
                     }
                 }
                 await _repository.CommitTransactionAsync();
+
+                // Trigger Requisition Approval Voucher Posting
+                string jobNo = entry?.JobNo;
+                if (!string.IsNullOrEmpty(jobNo) && _dbConnection != null)
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@JobNo", jobNo, DbType.String);
+                        parameters.Add("@LUser", Approveduser ?? "admin", DbType.String);
+
+                        if (_dbConnection.State != ConnectionState.Open)
+                        {
+                            _dbConnection.Open();
+                        }
+
+                        await _dbConnection.ExecuteAsync(
+                            "dbo.VoucherEntryForOperationalFundRequisitionApprovalF",
+                            parameters,
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: 120
+                        );
+                    }
+                    catch (Exception vEx)
+                    {
+                        Console.WriteLine($"[OFRApproval] Voucher generation failed for Job {jobNo}: {vEx.Message}");
+                    }
+                }
                 return true;
             }
             catch(Exception ex)

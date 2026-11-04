@@ -1,3 +1,5 @@
+using System.Data;
+using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
@@ -26,6 +28,7 @@ namespace GCTL.Service.OFRAdjustApproval
         private readonly IRepository<AccGeneralLedger> _generalLedger;
         private readonly IRepository<CoreBankAccountInformation> _bankAccountInfo;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
+        private readonly IDbConnection? _dbConnection;
 
         public OFRAdjustApprovalService
             (
@@ -40,7 +43,8 @@ namespace GCTL.Service.OFRAdjustApproval
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails,
                 IRepository<AccGeneralLedger> generalLedger,
                 IRepository<CoreBankAccountInformation> bankAccountInfo,
-                IRepository<Sep_Documentation> sepDocumentation
+                IRepository<Sep_Documentation> sepDocumentation,
+                IDbConnection? dbConnection = null
             ) : base(genericRepository)
         {
             _repository = repository;
@@ -54,6 +58,7 @@ namespace GCTL.Service.OFRAdjustApproval
             _generalLedger = generalLedger;
             _bankAccountInfo = bankAccountInfo;
             _sepDocumentation = sepDocumentation;
+            _dbConnection = dbConnection;
         }
         #endregion
 
@@ -393,6 +398,34 @@ namespace GCTL.Service.OFRAdjustApproval
                 }
 
                 await _repository.CommitTransactionAsync();
+
+                // Trigger Adjust Approval Voucher Posting
+                string jobNo = entry?.JobNo;
+                if (!string.IsNullOrEmpty(jobNo) && _dbConnection != null)
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@JobNo", jobNo, DbType.String);
+                        parameters.Add("@LUser", Approveduser ?? "admin", DbType.String);
+
+                        if (_dbConnection.State != ConnectionState.Open)
+                        {
+                            _dbConnection.Open();
+                        }
+
+                        await _dbConnection.ExecuteAsync(
+                            "dbo.VoucherEntryforAdjustApprovalF",
+                            parameters,
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: 120
+                        );
+                    }
+                    catch (Exception vEx)
+                    {
+                        Console.WriteLine($"[OFRAdjustApproval] Adjust Voucher generation failed for Job {jobNo}: {vEx.Message}");
+                    }
+                }
                 return true;
             }
             catch (Exception ex)
