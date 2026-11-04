@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
@@ -371,30 +371,40 @@ namespace GCTL.Service.OFRAdjustApproval
 
                 await _repository.UpdateAsync(entry);
 
-                // DETAILS UPDATE (ROW-WISE)
+                // DETAILS UPDATE (BATCH LOAD & UPDATE: 1 query, 1 save instead of N individual roundtrips)
+                var detailIds = model.Select(x => x.OFR_DetailsID).ToHashSet();
+                var detailsList = await _details.All()
+                    .Where(x => detailIds.Contains(x.OfrDetailsId) && x.Ofrno == ofrNo)
+                    .ToListAsync();
+                var detailsMap = detailsList.ToDictionary(x => x.OfrDetailsId);
+
                 foreach (var item in model)
                 {
-                    var details = await _details.All().FirstOrDefaultAsync(x => x.OfrDetailsId == item.OFR_DetailsID && x.Ofrno == ofrNo);
+                    if (item.OFR_DetailsID != null && detailsMap.TryGetValue(item.OFR_DetailsID, out var details))
+                    {
+                        details.AdjustApprovalAmount = item.ConfirmAmount;
+                        details.DifferentAmount2 = item.DifferentAmount;
 
-                    if (details == null) throw new Exception($"Details not found: {item.OFR_DetailsID}");
-
-                    details.AdjustApprovalAmount = item.ConfirmAmount;
-                    details.DifferentAmount2 = item.DifferentAmount;
-
-                    // Row-wise Cash / Bank
-                    details.AdjustDetailsCashBank = item.CashBank;
-                    details.AdjustDetailsBankAccount = item.BankAcount;
-                    details.AdjustUser = Approveduser;
-
-                    await _details.UpdateAsync(details);
+                        // Row-wise Cash / Bank
+                        details.AdjustDetailsCashBank = item.CashBank;
+                        details.AdjustDetailsBankAccount = item.BankAcount;
+                        details.AdjustUser = Approveduser;
+                    }
                 }
 
-                // TEMP DATA CLEANUP
-                var tmpToDelete = await _Tmpdetails.All().Where(x => x.Ofrno == ofrNo && x.Luser == Approveduser).ToListAsync();
-
-                foreach (var tmp in tmpToDelete)
+                if (detailsList.Any())
                 {
-                    await _Tmpdetails.DeleteAsync(tmp.Tc);
+                    await _details.UpdateRangeAsync(detailsList);
+                }
+
+                // TEMP DATA CLEANUP - BATCH DELETE (1 command instead of loop)
+                var tmpToDelete = await _Tmpdetails.All()
+                    .Where(x => x.Ofrno == ofrNo && x.Luser == Approveduser)
+                    .ToListAsync();
+
+                if (tmpToDelete.Any())
+                {
+                    await _Tmpdetails.DeleteRangeAsync(tmpToDelete);
                 }
 
                 await _repository.CommitTransactionAsync();
