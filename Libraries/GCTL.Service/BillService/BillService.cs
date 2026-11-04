@@ -1,9 +1,11 @@
-using GCTL.Core.Data;
+﻿using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
 using GCTL.Core.ViewModels.Accounts;
 using GCTL.Core.ViewModels.ClearAndF.BillEntry;
 using GCTL.Core.ViewModels.ClearAndF.Update;
+using GCTL.Core.ViewModels.Finance.VoucherEntryVM;
+using GCTL.Service.Finance.VoucherEntry;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +32,8 @@ namespace GCTL.Service.BillService
         private readonly IRepository<CustomerHandilingCharge> _cRepository;
         private readonly IRepository<CfBillEntryDetail> _billDetailRepository;
         private readonly IRepository<CfBillEntryDetailsChchead> _billChcRepository;
+        private readonly IRepository<AccGeneralLedger> _accGeneralLedgerRepository;
+        private readonly IVoucherEntryService _voucherEntryService;
         private readonly IRepository<RmgProdDefUnitType>? _unitRepository;
         private readonly IRepository<SalesDefPortName>? _portNameRepository;
         private readonly IRepository<CaDefCurrency>? _currencyRepository;
@@ -47,6 +51,8 @@ namespace GCTL.Service.BillService
             IRepository<CustomerHandilingCharge> cRepository,
             IRepository<CfBillEntryDetail> billDetailRepository,
             IRepository<CfBillEntryDetailsChchead> billChcRepository,
+            IRepository<AccGeneralLedger> accGeneralLedgerRepository,
+            IVoucherEntryService voucherEntryService,
             IRepository<RmgProdDefUnitType>? unitRepository = null,
             IRepository<SalesDefPortName>? portNameRepository = null,
             IRepository<CaDefCurrency>? currencyRepository = null)
@@ -63,6 +69,8 @@ namespace GCTL.Service.BillService
             _cRepository = cRepository;
             _billDetailRepository = billDetailRepository;
             _billChcRepository = billChcRepository;
+            _accGeneralLedgerRepository = accGeneralLedgerRepository;
+            _voucherEntryService = voucherEntryService;
             _unitRepository = unitRepository;
             _portNameRepository = portNameRepository;
             _currencyRepository = currencyRepository;
@@ -953,6 +961,7 @@ namespace GCTL.Service.BillService
 
                 string billNo = request.BillNo?.Trim() ?? string.Empty;
 
+                bool isNewBill = false;
                 CfBillEntry? bill = null;
                 if (!string.IsNullOrWhiteSpace(billNo))
                 {
@@ -962,6 +971,7 @@ namespace GCTL.Service.BillService
 
                 if (bill == null)
                 {
+                    isNewBill = true;
                     // Generate new BillNo if not provided or doesn't exist
                     if (string.IsNullOrWhiteSpace(billNo))
                     {
@@ -1114,10 +1124,42 @@ namespace GCTL.Service.BillService
 
                 await _billEntryRepository.CommitTransactionAsync();
 
+                string finalMessage = "Bill saved successfully.";
+
+                if (isNewBill)
+                {
+                    decimal billAmt = request.Amount ?? 0m;
+                    if (billAmt <= 0)
+                    {
+                        decimal chcTotal = request.ChcItems?.Sum(x => x.BillAmount ?? 0m) ?? 0m;
+                        decimal expTotal = request.ExpenseItems?.Sum(x => x.BillAmt ?? 0m) ?? 0m;
+                        billAmt = chcTotal + expTotal;
+                    }
+
+                    string effectiveCustomerId = !string.IsNullOrWhiteSpace(request.CustomerId)
+                        ? request.CustomerId
+                        : doc.CustomerId;
+
+                    var vResult = await CreateJournalVoucherForBillAsync(
+                        billNo,
+                        billDate.Value,
+                        doc.JobNo,
+                        effectiveCustomerId,
+                        doc.ExpenseTypeId,
+                        billAmt,
+                        companyCode,
+                        userInfo);
+
+                    if (vResult != null && vResult.Success)
+                    {
+                        finalMessage = $"Bill saved successfully. Journal Voucher '{vResult.Data}' created.";
+                    }
+                }
+
                 return new CommonReturnViewModel
                 {
                     Success = true,
-                    Message = "Bill saved successfully.",
+                    Message = finalMessage,
                     Data = billNo
                 };
             }
@@ -1210,6 +1252,8 @@ namespace GCTL.Service.BillService
                 }
 
                 await _billEntryRepository.CommitTransactionAsync();
+
+
 
                 return new CommonReturnViewModel
                 {
@@ -1440,5 +1484,169 @@ namespace GCTL.Service.BillService
 
             return JobBillPdfGenerator.GeneratePdf(printModel);
         }
+
+        #region Auto Journal Voucher Creation for New Bill
+        private async Task<CommonReturnViewModel?> CreateJournalVoucherForBillAsync(
+            string billNo,
+            DateTime billDate,
+            string jobNo,
+            string customerId,
+            string expenseTypeId,
+            decimal billAmount,
+            string companyCode,
+            UserInfoViewModel? userInfo)
+        {
+            if (billAmount <= 0) return null;
+
+            try
+            {
+                // 1. Resolve Customer Account (Debit)
+                string? customerAccCode = null;
+                string? customerName = null;
+                string? rawCustomerName = null;
+
+                if (!string.IsNullOrWhiteSpace(customerId))
+                {
+                    var customer = await _customerRepository.All()
+                        .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+                    rawCustomerName = customer?.CustomerName;
+                    customerName = rawCustomerName ?? customerId;
+
+                    // Match customer in AccGeneralLedger under Trade Receivable (10200100001)
+                    var custGl = await _accGeneralLedgerRepository.All()
+                        .FirstOrDefaultAsync(g => g.SubsidiaryLedgerCodeNo == "10200100001"
+                                               && (g.GeneralLedgerName.Contains(customerId) || g.GeneralLedgerCodeNo == customerId));
+
+                    if (custGl == null && !string.IsNullOrWhiteSpace(customerName))
+                    {
+                        custGl = await _accGeneralLedgerRepository.All()
+                            .FirstOrDefaultAsync(g => g.SubsidiaryLedgerCodeNo == "10200100001"
+                                                   && g.GeneralLedgerName.Contains(customerName));
+                    }
+
+                    if (custGl != null)
+                    {
+                        customerAccCode = custGl.GeneralLedgerCodeNo;
+                        customerName = custGl.GeneralLedgerName;
+                    }
+                }
+
+                // Fallback customer account if specific GL was not found
+                if (string.IsNullOrEmpty(customerAccCode))
+                {
+                    var fallbackCust = await _accGeneralLedgerRepository.All()
+                        .FirstOrDefaultAsync(g => g.SubsidiaryLedgerCodeNo == "10200100001");
+                    if (fallbackCust != null)
+                    {
+                        customerAccCode = fallbackCust.GeneralLedgerCodeNo;
+                        customerName ??= fallbackCust.GeneralLedgerName;
+                    }
+                }
+
+                // 2. Resolve Service Revenue Account (Credit)
+                string? serviceRevenueAccCode = null;
+                string? serviceRevenueName = null;
+                string shipmentModeName = "Service";
+
+                if (!string.IsNullOrWhiteSpace(expenseTypeId))
+                {
+                    var expType = await _shipmentModeRepository.All()
+                        .FirstOrDefaultAsync(e => e.ExpenseTypeId == expenseTypeId);
+
+                    if (expType != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(expType.ExpenseType))
+                        {
+                            shipmentModeName = expType.ExpenseType;
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(expType.RevenueLedgerCodeNo))
+                        {
+                            serviceRevenueAccCode = expType.RevenueLedgerCodeNo.Trim();
+
+                            var revGl = await _accGeneralLedgerRepository.All()
+                                .FirstOrDefaultAsync(g => g.GeneralLedgerCodeNo == serviceRevenueAccCode);
+                            serviceRevenueName = revGl?.GeneralLedgerName ?? expType.ExpenseType;
+                        }
+                    }
+                }
+
+                // Fallback revenue account if not mapped
+                if (string.IsNullOrEmpty(serviceRevenueAccCode))
+                {
+                    var fallbackRev = await _accGeneralLedgerRepository.All()
+                        .FirstOrDefaultAsync(g => g.GeneralLedgerCodeNo.StartsWith("401") && g.GeneralLedgerName.Contains("Revenue"));
+                    if (fallbackRev != null)
+                    {
+                        serviceRevenueAccCode = fallbackRev.GeneralLedgerCodeNo;
+                        serviceRevenueName = fallbackRev.GeneralLedgerName;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(customerAccCode) || string.IsNullOrEmpty(serviceRevenueAccCode))
+                {
+                    return new CommonReturnViewModel
+                    {
+                        Success = false,
+                        Message = $"Cannot generate voucher: Missing Account Head mapping (Customer: {customerAccCode ?? "Not found"}, Revenue: {serviceRevenueAccCode ?? "Not found"})."
+                    };
+                }
+
+                string fy = billDate.Year.ToString();
+                string nextVoucherNo = await _voucherEntryService.GetNextVoucherNoAsync("5", fy);
+
+                int? userId = null;
+                if (int.TryParse(userInfo?.EmployeeId, out int parsedUserId))
+                {
+                    userId = parsedUserId;
+                }
+
+                string customerDisplayName = rawCustomerName ?? customerName ?? customerId;
+                var voucherVM = new VoucherEntryVM
+                {
+                    VoucherType_Code = "5", // Journal Voucher (JV)
+                    VoucherDate = billDate.Date,
+                    VoucherNo = nextVoucherNo,
+                    CompanyCode = !string.IsNullOrWhiteSpace(companyCode) ? companyCode : "001",
+                    Main_CompanyCode = !string.IsNullOrWhiteSpace(companyCode) ? companyCode : "001",
+                    BranchCode = "02",
+                    FinancialYear = fy,
+                    Narration = $"Being {shipmentModeName} provided to {customerDisplayName}. (Bill No: {billNo})",
+                    InvoiceNo = billNo,
+                    Reference = billNo,
+                    IsApproved = "Pending Approval",
+                    Details = new List<VoucherEntryDetailVM>
+                    {
+                        new VoucherEntryDetailVM
+                        {
+                            AccCode = customerAccCode,
+                            TrType = "Dr",
+                            DebitAmount = billAmount,
+                            CreditAmount = 0m,
+                            Description = $"Customer: {customerName} (Bill No: {billNo})"
+                        },
+                        new VoucherEntryDetailVM
+                        {
+                            AccCode = serviceRevenueAccCode,
+                            TrType = "Cr",
+                            DebitAmount = 0m,
+                            CreditAmount = billAmount,
+                            Description = $"Revenue: {serviceRevenueName} (Bill No: {billNo})"
+                        }
+                    }
+                };
+
+                return await _voucherEntryService.SaveAsync(voucherVM, userId, userInfo?.IPAddress, userInfo?.MacAddress);
+            }
+            catch (Exception ex)
+            {
+                return new CommonReturnViewModel
+                {
+                    Success = false,
+                    Message = $"Failed to create voucher for bill {billNo}: {ex.Message}"
+                };
+            }
+        }
+        #endregion
     }
 }
