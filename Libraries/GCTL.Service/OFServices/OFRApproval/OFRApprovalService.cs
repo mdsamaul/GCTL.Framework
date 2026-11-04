@@ -1,5 +1,7 @@
 
+using System.Data;
 using Azure.Core;
+using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
@@ -28,6 +30,7 @@ namespace GCTL.Service.OFRApproval
         private readonly IRepository<AccGeneralLedger> _generalLedger;
         private readonly IRepository<CoreBankAccountInformation> _bankAccountInfo;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
+        private readonly IDbConnection? _dbConnection;
 
 
         public OFRApprovalService(
@@ -43,7 +46,8 @@ namespace GCTL.Service.OFRApproval
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails, 
                 IRepository<AccGeneralLedger> generalLedger, 
                 IRepository<CoreBankAccountInformation> bankAccountInfo,
-                IRepository<Sep_Documentation> sepDocumentation
+                IRepository<Sep_Documentation> sepDocumentation,
+                IDbConnection? dbConnection = null
             ) : base(genericRepository)
         {
             //_userInfoService = userInfoService;
@@ -58,6 +62,7 @@ namespace GCTL.Service.OFRApproval
             _generalLedger = generalLedger;
             _bankAccountInfo = bankAccountInfo;
             _sepDocumentation = sepDocumentation;
+            _dbConnection = dbConnection;
         }
         #endregion
 
@@ -292,14 +297,15 @@ namespace GCTL.Service.OFRApproval
                 entry.BankAccount = model.Select(x => x.DetailsBankAccount).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
                 bool isFirstApproval = false;
 
-                // DETAILS
+                // DETAILS - BATCH LOAD & UPDATE (Optimized: 1 query, 1 save instead of N individual roundtrips)
+                var detailIds = model.Select(x => x.OFR_DetailsID).ToHashSet();
+                var detailsList = await _details.All().Where(x => detailIds.Contains(x.OfrDetailsId)).ToListAsync();
+                var detailsMap = detailsList.ToDictionary(x => x.OfrDetailsId);
+
                 foreach (var item in model)
                 {
-                    var details = await _details.All().FirstOrDefaultAsync(x => x.OfrDetailsId == item.OFR_DetailsID);
-
-                    if (details != null)
+                    if (item.OFR_DetailsID != null && detailsMap.TryGetValue(item.OFR_DetailsID, out var details))
                     {
-                        //Check first time approval
                         if (details.ActualAmount == 0.00m)
                         {
                             isFirstApproval = true;
@@ -308,9 +314,12 @@ namespace GCTL.Service.OFRApproval
                         details.ActualAmount = item.ActualAmount;
                         details.DetailsCashBank = item.DetailsCashBank;
                         details.DetailsBankAccount = item.DetailsBankAccount;
-
-                        await _details.UpdateAsync(details);
                     }
+                }
+
+                if (detailsList.Any())
+                {
+                    await _details.UpdateRangeAsync(detailsList);
                 }
 
                 // ENTRY UPDATE
@@ -318,30 +327,54 @@ namespace GCTL.Service.OFRApproval
                 {
                     if (isFirstApproval && entry.ApprovedDate == null)
                     {
-                        //First time approve
-                        entry.ApprovedUser = Approveduser.ToString();
+                        entry.ApprovedUser = Approveduser?.ToString();
                         entry.ApprovedDate = DateTime.Now;
                     }
                     else
                     {
-                        //Modify approve
                         entry.ApprovedModifyDate = DateTime.Now;
                     }
 
                     await _repository.UpdateAsync(entry);
                 }
 
+                // TEMP DATA - BATCH DELETE (1 command instead of loop)
                 var tmpToDelete = await _Tmpdetails.All()
-                                .Where(d => d.Luser == Approveduser.ToString() && d.Ofrno == ofrNo).ToListAsync();
+                    .Where(d => d.Luser == Approveduser.ToString() && d.Ofrno == ofrNo).ToListAsync();
 
                 if (tmpToDelete.Any())
                 {
-                    foreach (var tmp in tmpToDelete)
-                    {
-                        await _Tmpdetails.DeleteAsync(tmp.Tc);
-                    }
+                    await _Tmpdetails.DeleteRangeAsync(tmpToDelete);
                 }
                 await _repository.CommitTransactionAsync();
+
+                // Trigger Requisition Approval Voucher Posting
+                string jobNo = entry?.JobNo;
+                if (!string.IsNullOrEmpty(jobNo) && _dbConnection != null)
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@JobNo", jobNo, DbType.String);
+                        parameters.Add("@LUser", Approveduser ?? "admin", DbType.String);
+
+                        if (_dbConnection.State != ConnectionState.Open)
+                        {
+                            _dbConnection.Open();
+                        }
+
+                        await _dbConnection.ExecuteAsync(
+                            "dbo.VoucherEntryForOperationalFundRequisitionApprovalF",
+                            parameters,
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: 120
+                        );
+                    }
+                    catch (Exception vEx)
+                    {
+                        Console.WriteLine($"[OFRApproval] Voucher generation failed for Job {jobNo}: {vEx.Message}");
+                    }
+                }
                 return true;
             }
             catch(Exception ex)
