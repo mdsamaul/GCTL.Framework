@@ -1521,10 +1521,10 @@
 
                             tbody.append(`
                                 <tr>
-                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap !important;">${escapeHtml(d.accCode)}</td>
-                                    <td style="border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: left; vertical-align: middle; color: #000; background: transparent !important; line-height: 1.35;">${particularsHtml}</td>
-                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap;">${drVal}</td>
-                                    <td style="border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap;">${crVal}</td>
+                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-right: 1px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap !important;">${escapeHtml(d.accCode)}</td>
+                                    <td style="border: 1px solid #888 !important; border-left: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: left; vertical-align: middle; color: #000; background: transparent !important; line-height: 1.35;">${particularsHtml}</td>
+                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-right: 1px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap;">${drVal}</td>
+                                    <td style="border: 1px solid #888 !important; border-left: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap;">${crVal}</td>
                                 </tr>
                             `);
                         });
@@ -1844,22 +1844,26 @@
         #printLinesTable tbody td:first-child {
             width: 22% !important;
             border-left: 1.5px solid #888 !important;
+            border-right: 1px solid #888 !important;
             white-space: nowrap !important;
         }
         #printLinesTable th:nth-child(2),
         #printLinesTable tbody td:nth-child(2) {
             width: 48% !important;
+            border-left: 1px solid #888 !important;
             border-right: 1.5px solid #888 !important;
         }
         #printLinesTable th:nth-child(3),
         #printLinesTable tbody td:nth-child(3) {
             width: 15% !important;
             border-left: 1.5px solid #888 !important;
+            border-right: 1px solid #888 !important;
             white-space: nowrap !important;
         }
         #printLinesTable th:last-child,
         #printLinesTable tbody td:last-child {
             width: 15% !important;
+            border-left: 1.5px solid #888 !important;
             border-right: 1.5px solid #888 !important;
             white-space: nowrap !important;
         }

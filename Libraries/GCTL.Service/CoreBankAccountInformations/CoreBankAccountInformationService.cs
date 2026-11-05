@@ -1,10 +1,13 @@
+using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.ViewModels.CoreBankAccountInformations;
 using GCTL.Core.ViewModels.DeleteHistories;
 using GCTL.Data.Models;
 using GCTL.Service.Common;
 using GCTL.Service.DeleteHistories;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +23,7 @@ namespace GCTL.Service.CoreBankAccountInformations
         private readonly IRepository<CoreAccessCode> accessCodeRepository;
         private readonly ICommonService commonService;
         private readonly IDeleteHistoryService deleteHistoryService;
+        private readonly IConfiguration? _configuration;
 
         private const string TableName = "Core_BankAccountInformation";
         private const string ColumnName = "AccInfoID";
@@ -30,7 +34,8 @@ namespace GCTL.Service.CoreBankAccountInformations
             IRepository<SalesDefBankBranchInfo> branchBankRepository,
             IRepository<SalesDefBankInfo> bankRepository,
             IRepository<CoreAccessCode> accessCodeRepository,
-            IDeleteHistoryService deleteHistoryService
+            IDeleteHistoryService deleteHistoryService,
+            IConfiguration? configuration = null
         ) : base(bankAccountepository)
         {
             this.bankAccountepository = bankAccountepository;
@@ -39,6 +44,7 @@ namespace GCTL.Service.CoreBankAccountInformations
             this.accessCodeRepository = accessCodeRepository;
             this.commonService = commonService;
             this.deleteHistoryService = deleteHistoryService;
+            this._configuration = configuration;
         }
 
         #region GettALLById
@@ -122,6 +128,7 @@ namespace GCTL.Service.CoreBankAccountInformations
                 entity.Ldate = DateTime.Now;
                 await bankAccountepository.AddAsync(entity);
                 await bankAccountepository.CommitTransactionAsync();
+                await EnsureBankAccountGeneralLedgerAsync(entityVM.AccountNo, entityVM.BankId, entityVM.Luser, null);
                 return true;
             }
             catch (Exception ex)
@@ -147,6 +154,7 @@ namespace GCTL.Service.CoreBankAccountInformations
                     await bankAccountepository.RollbackTransactionAsync();
                     return false;
                 }
+                var oldAccountNo = entity.AccountNo;
                 entity.AccInfoId = entityVM.AccInfoId;
                 entity.AccountName = entityVM.AccountName;
                 entity.BankId = entityVM.BankId;
@@ -159,6 +167,7 @@ namespace GCTL.Service.CoreBankAccountInformations
                 entity.ModifyDate = DateTime.Now;
                 await bankAccountepository.UpdateAsync(entity);
                 await bankAccountepository.CommitTransactionAsync();
+                await EnsureBankAccountGeneralLedgerAsync(entityVM.AccountNo, entityVM.BankId, entityVM.Luser, oldAccountNo);
                 return true;
             }
             catch (Exception ex)
@@ -173,6 +182,120 @@ namespace GCTL.Service.CoreBankAccountInformations
             }
         }
         #endregion
+
+        private async Task EnsureBankAccountGeneralLedgerAsync(string? accountNo, string? bankId, string? luser, string? oldAccountNo)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(accountNo)) return;
+
+                var connStr = _configuration?.GetConnectionString("connection")
+                    ?? _configuration?.GetConnectionString("DefaultConnection")
+                    ?? "Server=192.168.0.221,1433;Database=GCTL_ERP_DB_Copy;User Id=sa;Password=GCTL#123;TrustServerCertificate=True;";
+
+                using var connection = new SqlConnection(connStr);
+                await connection.OpenAsync();
+
+                string accNo = accountNo.Trim();
+                string user = luser ?? "admin";
+
+                string shortName = string.Empty;
+                if (!string.IsNullOrWhiteSpace(bankId))
+                {
+                    shortName = await connection.QueryFirstOrDefaultAsync<string>(
+                        "SELECT ShortName FROM SALES_Def_BankInfo WHERE BankID = @BankId",
+                        new { BankId = bankId.Trim() }) ?? string.Empty;
+                }
+
+                string? existingCode = null;
+                if (!string.IsNullOrWhiteSpace(oldAccountNo))
+                {
+                    existingCode = await connection.QueryFirstOrDefaultAsync<string>(
+                        @"SELECT TOP 1 GeneralLedgerCodeNo 
+                          FROM Acc_GeneralLedger 
+                          WHERE SubsidiaryLedgerCodeNo = '10200400003' 
+                            AND (GeneralLedgerName = @OldAccNo OR GeneralLedgerName LIKE '%(' + @OldAccNo + ')')",
+                        new { OldAccNo = oldAccountNo.Trim() });
+                }
+
+                if (string.IsNullOrEmpty(existingCode))
+                {
+                    existingCode = await connection.QueryFirstOrDefaultAsync<string>(
+                        @"SELECT TOP 1 GeneralLedgerCodeNo 
+                          FROM Acc_GeneralLedger 
+                          WHERE SubsidiaryLedgerCodeNo = '10200400003' 
+                            AND (GeneralLedgerName = @AccNo OR GeneralLedgerName LIKE '%(' + @AccNo + ')')",
+                        new { AccNo = accNo });
+                }
+
+                if (string.IsNullOrEmpty(existingCode))
+                {
+                    var nextSeq = await connection.ExecuteScalarAsync<int>(
+                        @"SELECT ISNULL(MAX(TRY_CAST(RIGHT(GeneralLedgerCodeNo, 5) AS INT)), 0) + 1 
+                          FROM Acc_GeneralLedger 
+                          WHERE SubsidiaryLedgerCodeNo = '10200400003'");
+
+                    string nextCode = $"10200400003{nextSeq:D5}";
+
+                    await connection.ExecuteAsync(
+                        @"INSERT INTO Acc_GeneralLedger (
+                            GroupLedgerCodeNo,
+                            ControlLedgerCodeNo,
+                            SubControlLedgerCodeNo,
+                            SubsidiaryLedgerCodeNo,
+                            GeneralLedgerCodeNo,
+                            GeneralLedgerName,
+                            ShortName,
+                            OpeningBalance,
+                            TrType,
+                            OpeningDate,
+                            IsActive,
+                            Luser,
+                            Ldate
+                        ) VALUES (
+                            '1',
+                            '102',
+                            '102004',
+                            '10200400003',
+                            @GeneralLedgerCodeNo,
+                            @GeneralLedgerName,
+                            @ShortName,
+                            0,
+                            'DR',
+                            GETDATE(),
+                            '1',
+                            @Luser,
+                            GETDATE()
+                        )",
+                        new
+                        {
+                            GeneralLedgerCodeNo = nextCode,
+                            GeneralLedgerName = accNo,
+                            ShortName = shortName,
+                            Luser = user
+                        });
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        @"UPDATE Acc_GeneralLedger 
+                          SET GeneralLedgerName = @AccNo,
+                              ShortName = @ShortName,
+                              ModifyDate = GETDATE()
+                          WHERE GeneralLedgerCodeNo = @Code",
+                        new
+                        {
+                            AccNo = accNo,
+                            ShortName = shortName,
+                            Code = existingCode
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error EnsureBankAccountGeneralLedgerAsync: {ex}");
+            }
+        }
 
         #region Delete
         public bool DeleteLeaveType(string id)
