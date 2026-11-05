@@ -48,7 +48,7 @@ namespace GCTL.UI.Core.Controllers.Finance
             }
             catch (Exception ex)
             {
-                return Json(new { data = new List<GetAllSubSubsidiaryLedgerVM>(), totalCount = 0, message = ex.Message });
+                return Json(new { data = new List<GetAllSubSubsidiaryLedgerVM>(), totalCount = 0, paginationInfo = new { currentPage = 1, totalPages = 0, totalItems = 0, startItem = 0, endItem = 0 }, message = ex.Message });
             }
         }
 

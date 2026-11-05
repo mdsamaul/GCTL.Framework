@@ -581,7 +581,8 @@ $(document).ready(function () {
             error: function (xhr, status, error) {
                 const tableBody = $("#SubSubsidiaryLedger-body");
                 tableBody.empty();
-                tableBody.append(`<tr><td colspan="6" class="coa-em text-danger text-center">Error loading ledgers: ${esc(error || status || 'Server error')}</td></tr>`);
+                const detail = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : (error || status || 'Server error');
+                tableBody.append(`<tr><td colspan="6" class="coa-em text-danger text-center">Error loading ledgers (${xhr.status || 0}): ${esc(detail)}</td></tr>`);
             }
         });
     }
