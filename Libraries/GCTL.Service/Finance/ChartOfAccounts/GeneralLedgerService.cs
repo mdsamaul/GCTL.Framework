@@ -272,7 +272,7 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 string glName = entity.GeneralLedgerName ?? string.Empty;
                 string? shortName = entity.ShortName;
 
-                if (glName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && !glName.Contains("("))
+                if (entity.SubsidiaryLedgerCodeNo == "10200100001" || (glName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && !glName.Contains("(")))
                 {
                     var cust = await context.SalesCustomers.AsNoTracking()
                         .FirstOrDefaultAsync(c => c.CustomerId == glName);
@@ -282,6 +282,22 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                         if (string.IsNullOrWhiteSpace(shortName))
                         {
                             shortName = cust.ShortName;
+                        }
+                    }
+                }
+                else if (entity.SubsidiaryLedgerCodeNo == "10200400003")
+                {
+                    var bank = await (from ba in context.CoreBankAccountInformations.AsNoTracking()
+                                      join bi in context.SalesDefBankInfos.AsNoTracking() on ba.BankId equals bi.BankId into biJoin
+                                      from bi in biJoin.DefaultIfEmpty()
+                                      where ba.AccountNo == glName
+                                      select new { ba.AccountName, bi.ShortName }).FirstOrDefaultAsync();
+                    if (bank != null)
+                    {
+                        glName = $"{bank.AccountName} ({glName})";
+                        if (string.IsNullOrWhiteSpace(shortName))
+                        {
+                            shortName = bank.ShortName;
                         }
                     }
                 }
@@ -360,17 +376,49 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     return res;
                 }
 
-                // If customer ID provided, format with Name (ID) and populate short name
-                if (model.GeneralLedgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && !model.GeneralLedgerName.Contains("("))
+                // Customer (10200100001) - GeneralLedgerName stores CustomerID
+                if (model.SubsidiaryLedgerCodeNo == "10200100001")
                 {
+                    var match = Regex.Match(model.GeneralLedgerName, @"\((CUS\d+)\)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        model.GeneralLedgerName = match.Groups[1].Value.ToUpper();
+                    }
+                    else if (model.GeneralLedgerName.Trim().StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim().ToUpper();
+                    }
+
                     var cust = await context.SalesCustomers.AsNoTracking()
                         .FirstOrDefaultAsync(c => c.CustomerId == model.GeneralLedgerName.Trim());
-                    if (cust != null)
+                    if (cust != null && string.IsNullOrWhiteSpace(model.ShortName))
                     {
-                        model.GeneralLedgerName = $"{cust.CustomerName} ({cust.CustomerId})";
-                        if (string.IsNullOrWhiteSpace(model.ShortName))
+                        model.ShortName = cust.ShortName ?? string.Empty;
+                    }
+                }
+                // Bank Account (10200400003) - GeneralLedgerName stores AccountNo
+                else if (model.SubsidiaryLedgerCodeNo == "10200400003")
+                {
+                    var bankMatch = Regex.Match(model.GeneralLedgerName, @"\(([0-9\-]+)\)");
+                    if (bankMatch.Success)
+                    {
+                        model.GeneralLedgerName = bankMatch.Groups[1].Value;
+                    }
+                    else
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(model.ShortName))
+                    {
+                        var bank = await (from ba in context.CoreBankAccountInformations.AsNoTracking()
+                                          join bi in context.SalesDefBankInfos.AsNoTracking() on ba.BankId equals bi.BankId into biJoin
+                                          from bi in biJoin.DefaultIfEmpty()
+                                          where ba.AccountNo == model.GeneralLedgerName.Trim()
+                                          select new { bi.ShortName }).FirstOrDefaultAsync();
+                        if (bank != null && !string.IsNullOrWhiteSpace(bank.ShortName))
                         {
-                            model.ShortName = cust.ShortName;
+                            model.ShortName = bank.ShortName;
                         }
                     }
                 }
@@ -447,6 +495,31 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     res.Success = false;
                     res.Message = "General Ledger not found.";
                     return res;
+                }
+
+                if (entity.SubsidiaryLedgerCodeNo == "10200100001" || model.SubsidiaryLedgerCodeNo == "10200100001")
+                {
+                    var match = Regex.Match(model.GeneralLedgerName, @"\((CUS\d+)\)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        model.GeneralLedgerName = match.Groups[1].Value.ToUpper();
+                    }
+                    else if (model.GeneralLedgerName.Trim().StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim().ToUpper();
+                    }
+                }
+                else if (entity.SubsidiaryLedgerCodeNo == "10200400003" || model.SubsidiaryLedgerCodeNo == "10200400003")
+                {
+                    var bankMatch = Regex.Match(model.GeneralLedgerName, @"\(([0-9\-]+)\)");
+                    if (bankMatch.Success)
+                    {
+                        model.GeneralLedgerName = bankMatch.Groups[1].Value;
+                    }
+                    else
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim();
+                    }
                 }
 
                 var nameExists = await context.AccGeneralLedgers
