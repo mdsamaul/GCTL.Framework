@@ -1,3 +1,5 @@
+﻿using System.Data;
+using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
@@ -26,6 +28,7 @@ namespace GCTL.Service.OFRAdjustApproval
         private readonly IRepository<AccGeneralLedger> _generalLedger;
         private readonly IRepository<CoreBankAccountInformation> _bankAccountInfo;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
+        private readonly IDbConnection? _dbConnection;
 
         public OFRAdjustApprovalService
             (
@@ -40,7 +43,8 @@ namespace GCTL.Service.OFRAdjustApproval
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails,
                 IRepository<AccGeneralLedger> generalLedger,
                 IRepository<CoreBankAccountInformation> bankAccountInfo,
-                IRepository<Sep_Documentation> sepDocumentation
+                IRepository<Sep_Documentation> sepDocumentation,
+                IDbConnection? dbConnection = null
             ) : base(genericRepository)
         {
             _repository = repository;
@@ -54,6 +58,7 @@ namespace GCTL.Service.OFRAdjustApproval
             _generalLedger = generalLedger;
             _bankAccountInfo = bankAccountInfo;
             _sepDocumentation = sepDocumentation;
+            _dbConnection = dbConnection;
         }
         #endregion
 
@@ -366,33 +371,72 @@ namespace GCTL.Service.OFRAdjustApproval
 
                 await _repository.UpdateAsync(entry);
 
-                // DETAILS UPDATE (ROW-WISE)
+                // DETAILS UPDATE (BATCH LOAD & UPDATE: 1 query, 1 save instead of N individual roundtrips)
+                var detailIds = model.Select(x => x.OFR_DetailsID).ToHashSet();
+                var detailsList = await _details.All()
+                    .Where(x => detailIds.Contains(x.OfrDetailsId) && x.Ofrno == ofrNo)
+                    .ToListAsync();
+                var detailsMap = detailsList.ToDictionary(x => x.OfrDetailsId);
+
                 foreach (var item in model)
                 {
-                    var details = await _details.All().FirstOrDefaultAsync(x => x.OfrDetailsId == item.OFR_DetailsID && x.Ofrno == ofrNo);
+                    if (item.OFR_DetailsID != null && detailsMap.TryGetValue(item.OFR_DetailsID, out var details))
+                    {
+                        details.AdjustApprovalAmount = item.ConfirmAmount;
+                        details.DifferentAmount2 = item.DifferentAmount;
 
-                    if (details == null) throw new Exception($"Details not found: {item.OFR_DetailsID}");
-
-                    details.AdjustApprovalAmount = item.ConfirmAmount;
-                    details.DifferentAmount2 = item.DifferentAmount;
-
-                    // Row-wise Cash / Bank
-                    details.AdjustDetailsCashBank = item.CashBank;
-                    details.AdjustDetailsBankAccount = item.BankAcount;
-                    details.AdjustUser = Approveduser;
-
-                    await _details.UpdateAsync(details);
+                        // Row-wise Cash / Bank
+                        details.AdjustDetailsCashBank = item.CashBank;
+                        details.AdjustDetailsBankAccount = item.BankAcount;
+                        details.AdjustUser = Approveduser;
+                    }
                 }
 
-                // TEMP DATA CLEANUP
-                var tmpToDelete = await _Tmpdetails.All().Where(x => x.Ofrno == ofrNo && x.Luser == Approveduser).ToListAsync();
-
-                foreach (var tmp in tmpToDelete)
+                if (detailsList.Any())
                 {
-                    await _Tmpdetails.DeleteAsync(tmp.Tc);
+                    await _details.UpdateRangeAsync(detailsList);
+                }
+
+                // TEMP DATA CLEANUP - BATCH DELETE (1 command instead of loop)
+                var tmpToDelete = await _Tmpdetails.All()
+                    .Where(x => x.Ofrno == ofrNo && x.Luser == Approveduser)
+                    .ToListAsync();
+
+                if (tmpToDelete.Any())
+                {
+                    await _Tmpdetails.DeleteRangeAsync(tmpToDelete);
                 }
 
                 await _repository.CommitTransactionAsync();
+
+                // Trigger Adjust Approval Voucher Posting
+                string jobNo = entry?.JobNo;
+                if (!string.IsNullOrEmpty(jobNo) && _dbConnection != null)
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@JobNo", jobNo, DbType.String);
+                        parameters.Add("@LUser", Approveduser ?? "admin", DbType.String);
+
+                        if (_dbConnection.State != ConnectionState.Open)
+                        {
+                            _dbConnection.Open();
+                        }
+
+                        await _dbConnection.ExecuteAsync(
+                            "dbo.VoucherEntryforAdjustApprovalF",
+                            parameters,
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: 120
+                        );
+                        GCTL.Service.Finance.VoucherEntry.VoucherEntryService.InvalidateSummaryCache();
+                    }
+                    catch (Exception vEx)
+                    {
+                        Console.WriteLine($"[OFRAdjustApproval] Adjust Voucher generation failed for Job {jobNo}: {vEx.Message}");
+                    }
+                }
                 return true;
             }
             catch (Exception ex)

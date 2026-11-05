@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -57,6 +57,12 @@ namespace GCTL.Service.Finance.VoucherEntry
                 string summaryCacheKey = $"VchSummary_{_summaryCacheVersion}_{branchParam}_{compParam}";
                 bool hasCachedSummary = _memoryCache.TryGetValue(summaryCacheKey, out VoucherEntrySummaryVM? cachedSummary) && cachedSummary != null;
 
+                // Page 1 always retrieves fresh real-time summary from DB so dashboard KPI cards update immediately
+                if (result.PageNumber == 1)
+                {
+                    hasCachedSummary = false;
+                }
+
                 parameters.Add("@FromDate", filter.FromDate?.Date);
                 parameters.Add("@ToDate", filter.ToDate?.Date);
                 parameters.Add("@VoucherType", vTypeParam);
@@ -109,7 +115,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     result.Summary.CvCount = ToInt(sDict.TryGetValue("CvCount", out var cvc) ? cvc : 0);
                     result.Summary.CvAmount = ToDecimal(sDict.TryGetValue("CvAmount", out var cva) ? cva : 0);
 
-                    _memoryCache.Set(summaryCacheKey, result.Summary, TimeSpan.FromMinutes(5));
+                    _memoryCache.Set(summaryCacheKey, result.Summary, TimeSpan.FromSeconds(30));
                 }
 
                 foreach (var row in pagedRows)
@@ -181,38 +187,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     .AsNoTracking()
                     .ToListAsync();
 
-                var groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
-                var controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
-                var subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
-                var subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
-
-                var glList = await _context.AccGeneralLedgers
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                var accountDict = new Dictionary<string, (string Name, string Hierarchy)>(StringComparer.OrdinalIgnoreCase);
-                foreach (var g in glList)
-                {
-                    if (!string.IsNullOrWhiteSpace(g.GeneralLedgerCodeNo))
-                    {
-                        var key = g.GeneralLedgerCodeNo.Trim();
-                        var hier = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} › {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} › {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} › {(g.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} › {g.GeneralLedgerName}";
-                        accountDict[key] = (g.GeneralLedgerName?.Trim() ?? key, hier);
-                    }
-                }
-
-                var allSubSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToListAsync();
-                foreach (var ss in allSubSubs)
-                {
-                    if (!string.IsNullOrWhiteSpace(ss.SubsidiaryLedgerCodeNo))
-                    {
-                        var key = ss.SubsidiaryLedgerCodeNo.Trim();
-                        if (!accountDict.ContainsKey(key))
-                        {
-                            accountDict[key] = (ss.SubsidiaryLedgerName?.Trim() ?? key, ss.SubsidiaryLedgerName?.Trim() ?? key);
-                        }
-                    }
-                }
+                var accountDict = await GetAccountDictAsync();
 
                 var cashCodes = await GetCashAccountCodesAsync();
                 var bankCodes = await GetBankAccountCodesAsync();
@@ -275,7 +250,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     BranchName = branchName,
                     FinancialYear = entity.FinancialYear,
                     Reference = entity.Reference,
-                    InvoiceNo = entity.InvoiceNo,
+                    InvoiceNo = !string.IsNullOrWhiteSpace(entity.InvoiceNo) ? entity.InvoiceNo : (!string.IsNullOrWhiteSpace(entity.Reference) ? entity.Reference : ExtractJobNo(entity.Narration)),
                     Narration = entity.Narration,
                     IsApproved = string.IsNullOrWhiteSpace(entity.IsApproved) ? "Pending Approval" : entity.IsApproved,
                     PreparedBy = preparedBy,
@@ -302,6 +277,11 @@ namespace GCTL.Service.Finance.VoucherEntry
                             {
                                 lineDesc = string.Empty;
                             }
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(lineDesc) && string.Equals(lineDesc, resolvedAccName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            lineDesc = string.Empty;
                         }
 
                         DateTime? resolvedChequeDate = d.ChequeDate;
@@ -495,14 +475,11 @@ namespace GCTL.Service.Finance.VoucherEntry
                     existing.Lip = ip;
                     existing.Lmac = mac;
 
-                    var oldDetails = await _context.AccVoucherEntryDetails
+                    await _context.AccVoucherEntryDetails
                         .Where(x => x.VoucherEntryCodeNo == existing.VoucherEntryCodeNo)
-                        .ToListAsync();
-                    if (oldDetails.Any())
-                    {
-                        _context.AccVoucherEntryDetails.RemoveRange(oldDetails);
-                    }
+                        .ExecuteDeleteAsync();
 
+                    var detailsToAdd = new List<AccVoucherEntryDetail>();
                     int lineIdx = 1;
                     foreach (var line in validLines)
                     {
@@ -510,7 +487,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                         decimal cr = line.CreditAmount ?? 0m;
                         string trType = dr > 0 ? "Dr" : "Cr";
 
-                        var dEntity = new AccVoucherEntryDetail
+                        detailsToAdd.Add(new AccVoucherEntryDetail
                         {
                             VoucherEntryDetailsCodeNo = $"{existing.VoucherEntryCodeNo}-{lineIdx:D3}",
                             VoucherEntryCodeNo = existing.VoucherEntryCodeNo,
@@ -528,10 +505,10 @@ namespace GCTL.Service.Finance.VoucherEntry
                             Ldate = DateTime.Now,
                             Lip = ip,
                             Lmac = mac
-                        };
-                        _context.AccVoucherEntryDetails.Add(dEntity);
+                        });
                         lineIdx++;
                     }
+                    _context.AccVoucherEntryDetails.AddRange(detailsToAdd);
 
                     if (!string.IsNullOrWhiteSpace(model.InvoiceNo))
                     {
@@ -601,6 +578,7 @@ namespace GCTL.Service.Finance.VoucherEntry
 
                     _context.AccVoucherEntries.Add(newVoucher);
 
+                    var newDetailsToAdd = new List<AccVoucherEntryDetail>();
                     int lineIdx = 1;
                     foreach (var line in validLines)
                     {
@@ -608,7 +586,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                         decimal cr = line.CreditAmount ?? 0m;
                         string trType = dr > 0 ? "Dr" : "Cr";
 
-                        var dEntity = new AccVoucherEntryDetail
+                        newDetailsToAdd.Add(new AccVoucherEntryDetail
                         {
                             VoucherEntryDetailsCodeNo = $"{voucherCodeNo}-{lineIdx:D3}",
                             VoucherEntryCodeNo = voucherCodeNo,
@@ -626,10 +604,10 @@ namespace GCTL.Service.Finance.VoucherEntry
                             Ldate = DateTime.Now,
                             Lip = ip,
                             Lmac = mac
-                        };
-                        _context.AccVoucherEntryDetails.Add(dEntity);
+                        });
                         lineIdx++;
                     }
+                    _context.AccVoucherEntryDetails.AddRange(newDetailsToAdd);
 
                     if (!string.IsNullOrWhiteSpace(model.InvoiceNo))
                     {
@@ -792,6 +770,12 @@ namespace GCTL.Service.Finance.VoucherEntry
         #region Dropdowns
         public async Task<VoucherDropdownsVM> GetDropdownsAsync()
         {
+            var cacheKey = "VoucherEntry_DropdownsVM";
+            if (_memoryCache.TryGetValue(cacheKey, out VoucherDropdownsVM? cached) && cached != null)
+            {
+                return cached;
+            }
+
             var vm = new VoucherDropdownsVM();
             try
             {
@@ -889,6 +873,8 @@ namespace GCTL.Service.Finance.VoucherEntry
                                  (gl.SubsidiaryLedgerCodeNo == "10200200002")
                     };
                 }).ToList();
+
+                _memoryCache.Set(cacheKey, vm, TimeSpan.FromMinutes(30));
             }
             catch { }
 
@@ -986,6 +972,12 @@ namespace GCTL.Service.Finance.VoucherEntry
             if (string.IsNullOrWhiteSpace(userId) && string.IsNullOrWhiteSpace(userName))
                 return string.Empty;
 
+            string cacheKey = $"UserFullName_{userId}_{userName}";
+            if (_memoryCache.TryGetValue(cacheKey, out string? cachedName) && cachedName != null)
+            {
+                return cachedName;
+            }
+
             try
             {
                 const string query1 = @"
@@ -1003,7 +995,9 @@ WHERE (@UserId IS NOT NULL AND CAST(u.ID AS VARCHAR(50)) = @UserId)
                 var name = await _dbConnection.QueryFirstOrDefaultAsync<string>(query1, new { UserId = userId, UserName = userName });
                 if (!string.IsNullOrWhiteSpace(name))
                 {
-                    return name.Trim();
+                    var trimmed = name.Trim();
+                    _memoryCache.Set(cacheKey, trimmed, TimeSpan.FromHours(1));
+                    return trimmed;
                 }
 
                 const string query2 = @"
@@ -1021,7 +1015,9 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
                 name = await _dbConnection.QueryFirstOrDefaultAsync<string>(query2, new { UserId = userId, UserName = userName });
                 if (!string.IsNullOrWhiteSpace(name))
                 {
-                    return name.Trim();
+                    var trimmed = name.Trim();
+                    _memoryCache.Set(cacheKey, trimmed, TimeSpan.FromHours(1));
+                    return trimmed;
                 }
             }
             catch { }
@@ -1031,31 +1027,82 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
         #endregion
 
         #region Helper Methods
+        private async Task<Dictionary<string, (string Name, string Hierarchy)>> GetAccountDictAsync()
+        {
+            return await _memoryCache.GetOrCreateAsync("Voucher_AccountDict", async entry =>
+            {
+                entry.SlidingExpiration = TimeSpan.FromMinutes(30);
+
+                var groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
+                var controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
+                var subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
+                var subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
+
+                var glList = await _context.AccGeneralLedgers
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                var accountDict = new Dictionary<string, (string Name, string Hierarchy)>(StringComparer.OrdinalIgnoreCase);
+                foreach (var g in glList)
+                {
+                    if (!string.IsNullOrWhiteSpace(g.GeneralLedgerCodeNo))
+                    {
+                        var key = g.GeneralLedgerCodeNo.Trim();
+                        var hier = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} â€º {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} â€º {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} â€º {(g.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} â€º {g.GeneralLedgerName}";
+                        accountDict[key] = (g.GeneralLedgerName?.Trim() ?? key, hier);
+                    }
+                }
+
+                var allSubSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToListAsync();
+                foreach (var ss in allSubSubs)
+                {
+                    if (!string.IsNullOrWhiteSpace(ss.SubsidiaryLedgerCodeNo))
+                    {
+                        var key = ss.SubsidiaryLedgerCodeNo.Trim();
+                        if (!accountDict.ContainsKey(key))
+                        {
+                            accountDict[key] = (ss.SubsidiaryLedgerName?.Trim() ?? key, ss.SubsidiaryLedgerName?.Trim() ?? key);
+                        }
+                    }
+                }
+
+                return accountDict;
+            }) ?? new Dictionary<string, (string Name, string Hierarchy)>(StringComparer.OrdinalIgnoreCase);
+        }
+
         private async Task<HashSet<string>> GetCashAccountCodesAsync()
         {
-            var codes = await _context.AccGeneralLedgers
-                .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
-                            (x.SubsidiaryLedgerCodeNo == "10200200001" ||
-                             x.GeneralLedgerName.Contains("Cash in Hand") ||
-                             x.GeneralLedgerName.Contains("Cash")))
-                .Select(x => x.GeneralLedgerCodeNo)
-                .ToListAsync();
+            return await _memoryCache.GetOrCreateAsync("Voucher_CashAccountCodes", async entry =>
+            {
+                entry.SlidingExpiration = TimeSpan.FromMinutes(30);
+                var codes = await _context.AccGeneralLedgers
+                    .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
+                                (x.SubsidiaryLedgerCodeNo == "10200200001" ||
+                                 x.GeneralLedgerName.Contains("Cash in Hand") ||
+                                 x.GeneralLedgerName.Contains("Cash")))
+                    .Select(x => x.GeneralLedgerCodeNo)
+                    .ToListAsync();
 
-            return codes.ToHashSet();
+                return codes.ToHashSet();
+            }) ?? new HashSet<string>();
         }
 
         private async Task<HashSet<string>> GetBankAccountCodesAsync()
         {
-            var codes = await _context.AccGeneralLedgers
-                .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
-                            (x.SubsidiaryLedgerCodeNo == "10200200002" ||
-                             x.GeneralLedgerName.Contains("Bank Account") ||
-                             x.GeneralLedgerName.Contains("Bank") ||
-                             x.GeneralLedgerName.Contains("DBBL")))
-                .Select(x => x.GeneralLedgerCodeNo)
-                .ToListAsync();
+            return await _memoryCache.GetOrCreateAsync("Voucher_BankAccountCodes", async entry =>
+            {
+                entry.SlidingExpiration = TimeSpan.FromMinutes(30);
+                var codes = await _context.AccGeneralLedgers
+                    .Where(x => (x.IsActive == "1" || x.IsActive == null) &&
+                                (x.SubsidiaryLedgerCodeNo == "10200200002" ||
+                                 x.GeneralLedgerName.Contains("Bank Account") ||
+                                 x.GeneralLedgerName.Contains("Bank") ||
+                                 x.GeneralLedgerName.Contains("DBBL")))
+                    .Select(x => x.GeneralLedgerCodeNo)
+                    .ToListAsync();
 
-            return codes.ToHashSet();
+                return codes.ToHashSet();
+            }) ?? new HashSet<string>();
         }
 
         private static string GetVoucherTypeName(string code)
@@ -1076,6 +1123,13 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
         {
             int year = date.Month >= 7 ? date.Year : date.Year - 1;
             return $"{year}-{year + 1}";
+        }
+
+        private static string ExtractJobNo(string? narration)
+        {
+            if (string.IsNullOrWhiteSpace(narration)) return string.Empty;
+            var m = System.Text.RegularExpressions.Regex.Match(narration, @"\((?:Job No:\s*)?([A-Za-z0-9_\-\/]+)\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return m.Success ? m.Groups[1].Value.Trim() : string.Empty;
         }
         #endregion
 

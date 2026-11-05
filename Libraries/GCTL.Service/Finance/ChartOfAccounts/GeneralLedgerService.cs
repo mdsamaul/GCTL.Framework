@@ -3,8 +3,10 @@ using GCTL.Core.ViewModels.Finance.ChartOfAccounts;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Dapper;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -26,6 +28,82 @@ namespace GCTL.Service.Finance.ChartOfAccounts
         {
             try
             {
+                // 1. High Performance Stored Procedure Execution with Customer Name & Short Name Resolution
+                try
+                {
+                    var conn = context.Database.GetDbConnection();
+                    if (conn.State != ConnectionState.Open)
+                    {
+                        await conn.OpenAsync();
+                    }
+
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@PageNumber", pageNumber);
+                    parameters.Add("@PageSize", pageSize > 0 ? pageSize : 10);
+                    parameters.Add("@SearchTerm", string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm.Trim());
+                    parameters.Add("@SortColumn", string.IsNullOrWhiteSpace(currentSortColumn) ? "code" : currentSortColumn.Trim());
+                    parameters.Add("@SortOrder", string.IsNullOrWhiteSpace(currentSortOrder) ? "ASC" : currentSortOrder.Trim());
+                    parameters.Add("@SubSubsidiaryCode", string.IsNullOrWhiteSpace(subSubsidiaryCode) ? null : subSubsidiaryCode.Trim());
+                    parameters.Add("@SubControlCode", string.IsNullOrWhiteSpace(subControlCode) ? null : subControlCode.Trim());
+                    parameters.Add("@ControlCode", string.IsNullOrWhiteSpace(controlCode) ? null : controlCode.Trim());
+                    parameters.Add("@GroupCode", string.IsNullOrWhiteSpace(groupCode) ? null : groupCode.Trim());
+                    parameters.Add("@ShowArchived", showArchived ? 1 : 0);
+
+                    var rows = (await conn.QueryAsync<dynamic>(
+                        "dbo.sp_GetGeneralLedgerData",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    )).ToList();
+
+                    int totalCount = 0;
+                    var spItems = new List<GetAllGeneralLedgerVM>();
+
+                    if (rows.Count > 0)
+                    {
+                        totalCount = (int)(rows[0].TotalCount ?? 0);
+                        foreach (var r in rows)
+                        {
+                            spItems.Add(new GetAllGeneralLedgerVM
+                            {
+                                AutoId = (decimal)(r.AutoId ?? 0),
+                                GeneralLedgerCodeNo = (string)(r.GeneralLedgerCodeNo ?? string.Empty),
+                                SubsidiaryLedgerCodeNo = (string)(r.SubsidiaryLedgerCodeNo ?? string.Empty),
+                                SubSubsidiaryLedgerName = (string)(r.SubSubsidiaryLedgerName ?? string.Empty),
+                                SubControlLedgerCodeNo = (string)(r.SubControlLedgerCodeNo ?? string.Empty),
+                                SubControlLedgerName = (string)(r.SubControlLedgerName ?? string.Empty),
+                                ControlLedgerCodeNo = (string)(r.ControlLedgerCodeNo ?? string.Empty),
+                                ControlLedgerName = (string)(r.ControlLedgerName ?? string.Empty),
+                                GroupLedgerCodeNo = (string)(r.GroupLedgerCodeNo ?? string.Empty),
+                                GroupLedgerName = (string)(r.GroupLedgerName ?? string.Empty),
+                                GeneralLedgerName = (string)(r.GeneralLedgerName ?? string.Empty),
+                                ShortName = (string?)r.ShortName,
+                                IsActive = (r.IsActive is int iActive ? iActive == 1 : (r.IsActive is bool bActive ? bActive : true))
+                            });
+                        }
+                    }
+
+                    var spTotalPages = (int)Math.Ceiling((double)totalCount / (pageSize > 0 ? pageSize : 10));
+
+                    return new PaginationService<AccGeneralLedger, GetAllGeneralLedgerVM>.PaginationResult<GetAllGeneralLedgerVM>
+                    {
+                        Data = spItems,
+                        TotalCount = totalCount,
+                        PaginationInfo = new PaginationService<AccGeneralLedger, GetAllGeneralLedgerVM>.PaginationInfo
+                        {
+                            CurrentPage = pageNumber,
+                            TotalPages = spTotalPages,
+                            TotalItems = totalCount,
+                            StartItem = totalCount == 0 ? 0 : (pageNumber - 1) * pageSize + 1,
+                            EndItem = Math.Min(pageNumber * pageSize, totalCount)
+                        }
+                    };
+                }
+                catch (Exception spEx)
+                {
+                    Console.WriteLine($"[sp_GetGeneralLedgerData fallback to EF Core]: {spEx.Message}");
+                }
+
+                // 2. EF Core Fallback
                 var query = context.AccGeneralLedgers.AsNoTracking().AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(subSubsidiaryCode))
@@ -99,21 +177,58 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     .Where(x => grpCodes.Contains(x.GroupLedgerCodeNo))
                     .ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
 
-                var items = pagedEntities.Select(x => new GetAllGeneralLedgerVM
+                // Customer resolution for raw CUS IDs if any
+                var cusRawIds = pagedEntities
+                    .Where(x => !string.IsNullOrEmpty(x.GeneralLedgerName) && x.GeneralLedgerName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && !x.GeneralLedgerName.Contains("("))
+                    .Select(x => x.GeneralLedgerName.Trim())
+                    .Distinct()
+                    .ToList();
+
+                Dictionary<string, (string Name, string? Short)> customerMap = new(StringComparer.OrdinalIgnoreCase);
+                if (cusRawIds.Count > 0)
                 {
-                    AutoId = x.AutoId,
-                    GeneralLedgerCodeNo = x.GeneralLedgerCodeNo,
-                    SubsidiaryLedgerCodeNo = x.SubsidiaryLedgerCodeNo,
-                    SubSubsidiaryLedgerName = sslNames.TryGetValue(x.SubsidiaryLedgerCodeNo, out var ssName) ? ssName : string.Empty,
-                    SubControlLedgerCodeNo = x.SubControlLedgerCodeNo,
-                    SubControlLedgerName = sclNames.TryGetValue(x.SubControlLedgerCodeNo, out var scName) ? scName : string.Empty,
-                    ControlLedgerCodeNo = x.ControlLedgerCodeNo,
-                    ControlLedgerName = ctrlNames.TryGetValue(x.ControlLedgerCodeNo, out var cName) ? cName : string.Empty,
-                    GroupLedgerCodeNo = x.GroupLedgerCodeNo,
-                    GroupLedgerName = grpNames.TryGetValue(x.GroupLedgerCodeNo, out var gName) ? gName : string.Empty,
-                    GeneralLedgerName = x.GeneralLedgerName,
-                    ShortName = x.ShortName,
-                    IsActive = x.IsActive == "1" || x.IsActive == null
+                    var custs = await context.SalesCustomers.AsNoTracking()
+                        .Where(c => cusRawIds.Contains(c.CustomerId))
+                        .Select(c => new { c.CustomerId, c.CustomerName, c.ShortName })
+                        .ToListAsync();
+                    foreach (var c in custs)
+                    {
+                        if (!string.IsNullOrEmpty(c.CustomerId) && !customerMap.ContainsKey(c.CustomerId))
+                        {
+                            customerMap[c.CustomerId] = (c.CustomerName ?? c.CustomerId, c.ShortName);
+                        }
+                    }
+                }
+
+                var items = pagedEntities.Select(x => {
+                    string glName = x.GeneralLedgerName ?? string.Empty;
+                    string? shortName = x.ShortName;
+
+                    if (glName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && !glName.Contains("(") && customerMap.TryGetValue(glName, out var cInfo))
+                    {
+                        glName = $"{cInfo.Name} ({glName})";
+                        if (string.IsNullOrWhiteSpace(shortName))
+                        {
+                            shortName = cInfo.Short;
+                        }
+                    }
+
+                    return new GetAllGeneralLedgerVM
+                    {
+                        AutoId = x.AutoId,
+                        GeneralLedgerCodeNo = x.GeneralLedgerCodeNo,
+                        SubsidiaryLedgerCodeNo = x.SubsidiaryLedgerCodeNo,
+                        SubSubsidiaryLedgerName = sslNames.TryGetValue(x.SubsidiaryLedgerCodeNo, out var ssName) ? ssName : string.Empty,
+                        SubControlLedgerCodeNo = x.SubControlLedgerCodeNo,
+                        SubControlLedgerName = sclNames.TryGetValue(x.SubControlLedgerCodeNo, out var scName) ? scName : string.Empty,
+                        ControlLedgerCodeNo = x.ControlLedgerCodeNo,
+                        ControlLedgerName = ctrlNames.TryGetValue(x.ControlLedgerCodeNo, out var cName) ? cName : string.Empty,
+                        GroupLedgerCodeNo = x.GroupLedgerCodeNo,
+                        GroupLedgerName = grpNames.TryGetValue(x.GroupLedgerCodeNo, out var gName) ? gName : string.Empty,
+                        GeneralLedgerName = glName,
+                        ShortName = shortName,
+                        IsActive = x.IsActive == "1" || x.IsActive == null
+                    };
                 }).ToList();
 
                 var totalPages = (int)Math.Ceiling((double)totalItems / (pageSize > 0 ? pageSize : 10));
@@ -154,6 +269,39 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     return res;
                 }
 
+                string glName = entity.GeneralLedgerName ?? string.Empty;
+                string? shortName = entity.ShortName;
+
+                if (entity.SubsidiaryLedgerCodeNo == "10200100001" || (glName.StartsWith("CUS", StringComparison.OrdinalIgnoreCase) && !glName.Contains("(")))
+                {
+                    var cust = await context.SalesCustomers.AsNoTracking()
+                        .FirstOrDefaultAsync(c => c.CustomerId == glName);
+                    if (cust != null)
+                    {
+                        glName = $"{cust.CustomerName} ({cust.CustomerId})";
+                        if (string.IsNullOrWhiteSpace(shortName))
+                        {
+                            shortName = cust.ShortName;
+                        }
+                    }
+                }
+                else if (entity.SubsidiaryLedgerCodeNo == "10200400003")
+                {
+                    var bank = await (from ba in context.CoreBankAccountInformations.AsNoTracking()
+                                      join bi in context.SalesDefBankInfos.AsNoTracking() on ba.BankId equals bi.BankId into biJoin
+                                      from bi in biJoin.DefaultIfEmpty()
+                                      where ba.AccountNo == glName
+                                      select new { ba.AccountName, bi.ShortName }).FirstOrDefaultAsync();
+                    if (bank != null)
+                    {
+                        glName = $"{bank.AccountName} ({glName})";
+                        if (string.IsNullOrWhiteSpace(shortName))
+                        {
+                            shortName = bank.ShortName;
+                        }
+                    }
+                }
+
                 res.Success = true;
                 res.Data = new GeneralLedgerAddVM
                 {
@@ -162,8 +310,8 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     SubControlLedgerCodeNo = entity.SubControlLedgerCodeNo,
                     ControlLedgerCodeNo = entity.ControlLedgerCodeNo,
                     GroupLedgerCodeNo = entity.GroupLedgerCodeNo,
-                    GeneralLedgerName = entity.GeneralLedgerName,
-                    ShortName = entity.ShortName,
+                    GeneralLedgerName = glName,
+                    ShortName = shortName,
                     IsActive = entity.IsActive == "1" || entity.IsActive == null
                 };
             }
@@ -226,6 +374,53 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     res.Success = false;
                     res.Message = "General Ledger Name is required.";
                     return res;
+                }
+
+                // Customer (10200100001) - GeneralLedgerName stores CustomerID
+                if (model.SubsidiaryLedgerCodeNo == "10200100001")
+                {
+                    var match = Regex.Match(model.GeneralLedgerName, @"\((CUS\d+)\)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        model.GeneralLedgerName = match.Groups[1].Value.ToUpper();
+                    }
+                    else if (model.GeneralLedgerName.Trim().StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim().ToUpper();
+                    }
+
+                    var cust = await context.SalesCustomers.AsNoTracking()
+                        .FirstOrDefaultAsync(c => c.CustomerId == model.GeneralLedgerName.Trim());
+                    if (cust != null && string.IsNullOrWhiteSpace(model.ShortName))
+                    {
+                        model.ShortName = cust.ShortName ?? string.Empty;
+                    }
+                }
+                // Bank Account (10200400003) - GeneralLedgerName stores AccountNo
+                else if (model.SubsidiaryLedgerCodeNo == "10200400003")
+                {
+                    var bankMatch = Regex.Match(model.GeneralLedgerName, @"\(([0-9\-]+)\)");
+                    if (bankMatch.Success)
+                    {
+                        model.GeneralLedgerName = bankMatch.Groups[1].Value;
+                    }
+                    else
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(model.ShortName))
+                    {
+                        var bank = await (from ba in context.CoreBankAccountInformations.AsNoTracking()
+                                          join bi in context.SalesDefBankInfos.AsNoTracking() on ba.BankId equals bi.BankId into biJoin
+                                          from bi in biJoin.DefaultIfEmpty()
+                                          where ba.AccountNo == model.GeneralLedgerName.Trim()
+                                          select new { bi.ShortName }).FirstOrDefaultAsync();
+                        if (bank != null && !string.IsNullOrWhiteSpace(bank.ShortName))
+                        {
+                            model.ShortName = bank.ShortName;
+                        }
+                    }
                 }
 
                 var ssl = await context.AccSubsidiaryLedgers
@@ -300,6 +495,31 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     res.Success = false;
                     res.Message = "General Ledger not found.";
                     return res;
+                }
+
+                if (entity.SubsidiaryLedgerCodeNo == "10200100001" || model.SubsidiaryLedgerCodeNo == "10200100001")
+                {
+                    var match = Regex.Match(model.GeneralLedgerName, @"\((CUS\d+)\)", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        model.GeneralLedgerName = match.Groups[1].Value.ToUpper();
+                    }
+                    else if (model.GeneralLedgerName.Trim().StartsWith("CUS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim().ToUpper();
+                    }
+                }
+                else if (entity.SubsidiaryLedgerCodeNo == "10200400003" || model.SubsidiaryLedgerCodeNo == "10200400003")
+                {
+                    var bankMatch = Regex.Match(model.GeneralLedgerName, @"\(([0-9\-]+)\)");
+                    if (bankMatch.Success)
+                    {
+                        model.GeneralLedgerName = bankMatch.Groups[1].Value;
+                    }
+                    else
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim();
+                    }
                 }
 
                 var nameExists = await context.AccGeneralLedgers

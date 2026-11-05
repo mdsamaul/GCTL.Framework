@@ -322,6 +322,7 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 };
 
                 await _salesCustomer.AddAsync(entity);
+                await EnsureCustomerGeneralLedgerAsync(entity);
                 return true;
             }
             catch (Exception ex)
@@ -377,6 +378,7 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 await _salesCustomer.UpdateAsync(entity);
 
                 await _salesCustomer.CommitTransactionAsync();
+                await EnsureCustomerGeneralLedgerAsync(entity);
                 return true;
             }
             catch (Exception ex)
@@ -509,6 +511,107 @@ namespace GCTL.Service.CustomerRelationshipManagement.AddSalesCustomer
                 await _salesCustomer.RollbackTransactionAsync();
                 Console.WriteLine($"Bulk delete error: {ex}");
                 return false;
+            }
+        }
+
+        private async Task EnsureCustomerGeneralLedgerAsync(SalesCustomer customer)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(customer.CustomerId)) return;
+
+                var connStr = _configuration.GetConnectionString("connection")
+                    ?? _configuration.GetConnectionString("DefaultConnection")
+                    ?? "Server=192.168.0.221,1433;Database=GCTL_ERP_DB_Copy;User Id=sa;Password=GCTL#123;TrustServerCertificate=True;";
+
+                using var connection = new SqlConnection(connStr);
+                await connection.OpenAsync();
+
+                string custId = customer.CustomerId.Trim();
+                string shortName = customer.ShortName?.Trim() ?? string.Empty;
+                decimal openingBal = customer.OpeningBalance ?? 0m;
+                DateTime openingDate = (customer.OpeningDate.HasValue && customer.OpeningDate.Value.Year > 1900)
+                    ? customer.OpeningDate.Value
+                    : DateTime.Today;
+                string luser = string.IsNullOrWhiteSpace(customer.EmployeeId) ? "admin" : customer.EmployeeId;
+
+                var existingCode = await connection.QueryFirstOrDefaultAsync<string>(
+                    @"SELECT TOP 1 GeneralLedgerCodeNo 
+                      FROM Acc_GeneralLedger 
+                      WHERE SubsidiaryLedgerCodeNo = '10200100001' 
+                        AND (GeneralLedgerName = @CustomerId OR GeneralLedgerName LIKE '%(' + @CustomerId + ')')",
+                    new { CustomerId = custId });
+
+                if (string.IsNullOrEmpty(existingCode))
+                {
+                    var nextSeq = await connection.ExecuteScalarAsync<int>(
+                        @"SELECT ISNULL(MAX(TRY_CAST(RIGHT(GeneralLedgerCodeNo, 5) AS INT)), 0) + 1 
+                          FROM Acc_GeneralLedger 
+                          WHERE SubsidiaryLedgerCodeNo = '10200100001'");
+
+                    string nextCode = $"10200100001{nextSeq:D5}";
+
+                    await connection.ExecuteAsync(
+                        @"INSERT INTO Acc_GeneralLedger (
+                            GroupLedgerCodeNo,
+                            ControlLedgerCodeNo,
+                            SubControlLedgerCodeNo,
+                            SubsidiaryLedgerCodeNo,
+                            GeneralLedgerCodeNo,
+                            GeneralLedgerName,
+                            ShortName,
+                            OpeningBalance,
+                            TrType,
+                            OpeningDate,
+                            IsActive,
+                            Luser,
+                            Ldate
+                        ) VALUES (
+                            '1',
+                            '102',
+                            '102001',
+                            '10200100001',
+                            @GeneralLedgerCodeNo,
+                            @GeneralLedgerName,
+                            @ShortName,
+                            @OpeningBalance,
+                            'DR',
+                            @OpeningDate,
+                            '1',
+                            @Luser,
+                            GETDATE()
+                        )",
+                        new
+                        {
+                            GeneralLedgerCodeNo = nextCode,
+                            GeneralLedgerName = custId,
+                            ShortName = shortName,
+                            OpeningBalance = openingBal,
+                            OpeningDate = openingDate,
+                            Luser = luser
+                        });
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        @"UPDATE Acc_GeneralLedger 
+                          SET GeneralLedgerName = @CustomerId,
+                              ShortName = @ShortName,
+                              OpeningBalance = @OpeningBalance,
+                              ModifyDate = GETDATE()
+                          WHERE GeneralLedgerCodeNo = @Code",
+                        new
+                        {
+                            CustomerId = custId,
+                            ShortName = shortName,
+                            OpeningBalance = openingBal,
+                            Code = existingCode
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error EnsureCustomerGeneralLedgerAsync: {ex}");
             }
         }
 

@@ -41,8 +41,15 @@ namespace GCTL.UI.Core.Controllers.Finance
         [HttpGet]
         public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "", string currentSortOrder = "", string? subControlCode = null, string? controlCode = null, string? groupCode = null, bool showArchived = false)
         {
-            var result = await service.GetAllAsync(pageNumber, pageSize, searchTerm, currentSortColumn, currentSortOrder, subControlCode, controlCode, groupCode, showArchived);
-            return Json(result);
+            try
+            {
+                var result = await service.GetAllAsync(pageNumber, pageSize, searchTerm, currentSortColumn, currentSortOrder, subControlCode, controlCode, groupCode, showArchived);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { data = new List<GetAllSubSubsidiaryLedgerVM>(), totalCount = 0, paginationInfo = new { currentPage = 1, totalPages = 0, totalItems = 0, startItem = 0, endItem = 0 }, message = ex.Message });
+            }
         }
 
         [Route("SubSubsidiaryLedger/GetById")]

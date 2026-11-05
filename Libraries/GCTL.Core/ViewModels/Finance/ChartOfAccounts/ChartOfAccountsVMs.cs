@@ -180,11 +180,17 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
         [Display(Name = "Active")]
         public bool IsActive { get; set; } = true;
 
+        [System.Text.Json.Serialization.JsonIgnore]
         public string? SubSidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public string? SubSubsidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public string? SubSusidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public string? SusidiaryLedgerCodeNo { get => SubsidiaryLedgerCodeNo; set => SubsidiaryLedgerCodeNo = value; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public string? SubSidiaryLedgerName { get => SubSubsidiaryLedgerName; set => SubSubsidiaryLedgerName = value; }
+        [System.Text.Json.Serialization.JsonIgnore]
         public string? SubsidiaryLedgerName { get => SubSubsidiaryLedgerName; set => SubSubsidiaryLedgerName = value; }
     }
 
@@ -192,10 +198,15 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
     {
         public decimal AutoId { get; set; }
         public string SubsidiaryLedgerCodeNo { get; set; } = string.Empty;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SubSidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SubSubsidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SubSusidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SusidiaryLedgerCodeNo => SubsidiaryLedgerCodeNo;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string Code => SubsidiaryLedgerCodeNo;
         public string GroupLedgerCodeNo { get; set; } = string.Empty;
         public string GroupLedgerName { get; set; } = string.Empty;
@@ -204,8 +215,11 @@ namespace GCTL.Core.ViewModels.Finance.ChartOfAccounts
         public string SubControlLedgerCodeNo { get; set; } = string.Empty;
         public string SubControlLedgerName { get; set; } = string.Empty;
         public string SubSubsidiaryLedgerName { get; set; } = string.Empty;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SubSidiaryLedgerName => SubSubsidiaryLedgerName;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string SubsidiaryLedgerName => SubSubsidiaryLedgerName;
+        [System.Text.Json.Serialization.JsonIgnore]
         public string Name => SubSubsidiaryLedgerName;
         public string? ShortName { get; set; }
         public decimal? OpeningBalance { get; set; }

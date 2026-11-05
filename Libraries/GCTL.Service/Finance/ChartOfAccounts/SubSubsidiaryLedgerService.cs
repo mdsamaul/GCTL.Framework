@@ -3,8 +3,10 @@ using GCTL.Core.ViewModels.Finance.ChartOfAccounts;
 using GCTL.Data.Models;
 using GCTL.Service.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Dapper;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -24,6 +26,130 @@ namespace GCTL.Service.Finance.ChartOfAccounts
         public async Task<PaginationService<AccSubsidiaryLedger, GetAllSubSubsidiaryLedgerVM>.PaginationResult<GetAllSubSubsidiaryLedgerVM>> GetAllAsync(
             int pageNumber = 1, int pageSize = 10, string searchTerm = "", string currentSortColumn = "", string currentSortOrder = "", string? subControlCode = null, string? controlCode = null, string? groupCode = null, bool showArchived = false)
         {
+            // 1. High Performance Direct Dapper Query
+            try
+            {
+                var conn = context.Database.GetDbConnection();
+                if (conn.State != ConnectionState.Open)
+                {
+                    await conn.OpenAsync();
+                }
+
+                string sql = @"
+WITH PagedData AS (
+    SELECT 
+        ssl.AutoId,
+        COALESCE(NULLIF(ssl.SubsidiaryLedgerCodeNo, ''), ssl.SusidiaryLedgerCodeNo, '') AS SubsidiaryLedgerCodeNo,
+        ssl.SubsidiaryLedgerName AS SubSubsidiaryLedgerName,
+        ssl.ShortName,
+        ssl.GroupLedgerCodeNo,
+        ISNULL(gl.GroupLedgerName, '') AS GroupLedgerName,
+        ssl.ControlLedgerCodeNo,
+        ISNULL(cl.ControlLedgerName, '') AS ControlLedgerName,
+        ssl.SubControlLedgerCodeNo,
+        ISNULL(scl.SubControlLedgerName, '') AS SubControlLedgerName,
+        CASE WHEN ssl.IsActive = '1' OR ssl.IsActive IS NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsActive,
+        ISNULL(ch.ChildCount, 0) AS ChildCount,
+        COUNT(*) OVER() AS TotalCount
+    FROM Acc_SubsidiaryLedger ssl
+    LEFT JOIN Acc_SubControlLedger scl ON scl.SubControlLedgerCodeNo = ssl.SubControlLedgerCodeNo
+    LEFT JOIN Acc_ControlLedger cl ON cl.ControlLedgerCodeNo = ssl.ControlLedgerCodeNo
+    LEFT JOIN Acc_GroupLedger gl ON gl.GroupLedgerCodeNo = ssl.GroupLedgerCodeNo
+    LEFT JOIN (
+        SELECT SubsidiaryLedgerCodeNo, COUNT(*) AS ChildCount
+        FROM Acc_GeneralLedger
+        WHERE SubsidiaryLedgerCodeNo IS NOT NULL
+        GROUP BY SubsidiaryLedgerCodeNo
+    ) ch ON ch.SubsidiaryLedgerCodeNo = COALESCE(NULLIF(ssl.SubsidiaryLedgerCodeNo, ''), ssl.SusidiaryLedgerCodeNo)
+    WHERE (@ShowArchived = 1 OR ssl.IsActive = '1' OR ssl.IsActive IS NULL)
+      AND (@SubControlCode IS NULL OR ssl.SubControlLedgerCodeNo = @SubControlCode)
+      AND (@ControlCode IS NULL OR ssl.ControlLedgerCodeNo = @ControlCode)
+      AND (@GroupCode IS NULL OR ssl.GroupLedgerCodeNo = @GroupCode)
+      AND (@SearchTerm IS NULL OR 
+           ssl.SubsidiaryLedgerCodeNo LIKE '%' + @SearchTerm + '%' OR 
+           ssl.SusidiaryLedgerCodeNo LIKE '%' + @SearchTerm + '%' OR 
+           ssl.SubsidiaryLedgerName LIKE '%' + @SearchTerm + '%' OR 
+           ssl.ShortName LIKE '%' + @SearchTerm + '%')
+)
+SELECT * FROM PagedData
+ORDER BY 
+    CASE WHEN @SortOrder = 'DESC' THEN
+        CASE 
+            WHEN @SortColumn = 'name' THEN SubSubsidiaryLedgerName
+            WHEN @SortColumn = 'shortname' THEN ShortName
+            ELSE SubsidiaryLedgerCodeNo
+        END
+    END DESC,
+    CASE WHEN @SortOrder = 'ASC' OR @SortOrder IS NULL OR @SortOrder = '' THEN
+        CASE 
+            WHEN @SortColumn = 'name' THEN SubSubsidiaryLedgerName
+            WHEN @SortColumn = 'shortname' THEN ShortName
+            ELSE SubsidiaryLedgerCodeNo
+        END
+    END ASC
+OFFSET (@PageNumber - 1) * @PageSize ROWS
+FETCH NEXT @PageSize ROWS ONLY;";
+
+                var p = new DynamicParameters();
+                p.Add("@PageNumber", pageNumber > 0 ? pageNumber : 1);
+                p.Add("@PageSize", pageSize > 0 ? pageSize : 10);
+                p.Add("@SearchTerm", string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm.Trim());
+                p.Add("@SortColumn", string.IsNullOrWhiteSpace(currentSortColumn) ? "code" : currentSortColumn.Trim().ToLower());
+                p.Add("@SortOrder", string.IsNullOrWhiteSpace(currentSortOrder) ? "ASC" : currentSortOrder.Trim().ToUpper());
+                p.Add("@SubControlCode", string.IsNullOrWhiteSpace(subControlCode) ? null : subControlCode.Trim());
+                p.Add("@ControlCode", string.IsNullOrWhiteSpace(controlCode) ? null : controlCode.Trim());
+                p.Add("@GroupCode", string.IsNullOrWhiteSpace(groupCode) ? null : groupCode.Trim());
+                p.Add("@ShowArchived", showArchived ? 1 : 0);
+
+                var rows = (await conn.QueryAsync<dynamic>(sql, p)).ToList();
+                int totalItems = 0;
+                var items = new List<GetAllSubSubsidiaryLedgerVM>();
+
+                if (rows.Any())
+                {
+                    totalItems = Convert.ToInt32(rows[0].TotalCount);
+                    foreach (var r in rows)
+                    {
+                        items.Add(new GetAllSubSubsidiaryLedgerVM
+                        {
+                            AutoId = Convert.ToDecimal(r.AutoId),
+                            SubsidiaryLedgerCodeNo = Convert.ToString(r.SubsidiaryLedgerCodeNo) ?? string.Empty,
+                            SubSubsidiaryLedgerName = Convert.ToString(r.SubSubsidiaryLedgerName) ?? string.Empty,
+                            ShortName = r.ShortName != null ? Convert.ToString(r.ShortName) : null,
+                            GroupLedgerCodeNo = Convert.ToString(r.GroupLedgerCodeNo) ?? string.Empty,
+                            GroupLedgerName = Convert.ToString(r.GroupLedgerName) ?? string.Empty,
+                            ControlLedgerCodeNo = Convert.ToString(r.ControlLedgerCodeNo) ?? string.Empty,
+                            ControlLedgerName = Convert.ToString(r.ControlLedgerName) ?? string.Empty,
+                            SubControlLedgerCodeNo = Convert.ToString(r.SubControlLedgerCodeNo) ?? string.Empty,
+                            SubControlLedgerName = Convert.ToString(r.SubControlLedgerName) ?? string.Empty,
+                            IsActive = r.IsActive is bool bActive ? bActive : (r.IsActive is int iActive ? iActive == 1 : (r.IsActive is string sActive ? (sActive.Trim() == "1" || sActive.Trim().Equals("true", StringComparison.OrdinalIgnoreCase)) : true)),
+                            ChildCount = Convert.ToInt32(r.ChildCount ?? 0)
+                        });
+                    }
+                }
+
+                var totalPages = (int)Math.Ceiling((double)totalItems / (pageSize > 0 ? pageSize : 10));
+
+                return new PaginationService<AccSubsidiaryLedger, GetAllSubSubsidiaryLedgerVM>.PaginationResult<GetAllSubSubsidiaryLedgerVM>
+                {
+                    Data = items,
+                    TotalCount = totalItems,
+                    PaginationInfo = new PaginationService<AccSubsidiaryLedger, GetAllSubSubsidiaryLedgerVM>.PaginationInfo
+                    {
+                        CurrentPage = pageNumber,
+                        TotalPages = totalPages,
+                        TotalItems = totalItems,
+                        StartItem = totalItems == 0 ? 0 : (pageNumber - 1) * pageSize + 1,
+                        EndItem = Math.Min(pageNumber * pageSize, totalItems)
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SubSubsidiaryLedger Dapper fallback to EF Core]: {ex.Message}");
+            }
+
+            // 2. Safe Fallback to EF Core
             try
             {
                 var query = context.AccSubsidiaryLedgers.AsNoTracking().AsQueryable();
@@ -81,26 +207,45 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     .Where(c => !string.IsNullOrEmpty(c))
                     .ToList();
 
-                var childCounts = await context.AccGeneralLedgers
-                    .Where(x => sslCodes.Contains(x.SubsidiaryLedgerCodeNo))
+                var childCountsRaw = await context.AccGeneralLedgers
+                    .Where(x => x.SubsidiaryLedgerCodeNo != null && sslCodes.Contains(x.SubsidiaryLedgerCodeNo))
                     .GroupBy(x => x.SubsidiaryLedgerCodeNo)
                     .Select(g => new { Code = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.Code, x => x.Count);
+                    .ToListAsync();
+                var childCounts = childCountsRaw
+                    .Where(x => !string.IsNullOrEmpty(x.Code))
+                    .GroupBy(x => x.Code!)
+                    .ToDictionary(g => g.Key, g => g.First().Count);
 
-                var sclCodes = pagedEntities.Select(x => x.SubControlLedgerCodeNo).Distinct().ToList();
-                var sclNames = await context.AccSubControlLedgers
+                var sclCodes = pagedEntities.Select(x => x.SubControlLedgerCodeNo).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList();
+                var sclList = await context.AccSubControlLedgers
                     .Where(x => sclCodes.Contains(x.SubControlLedgerCodeNo))
-                    .ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
+                    .Select(x => new { x.SubControlLedgerCodeNo, x.SubControlLedgerName })
+                    .ToListAsync();
+                var sclNames = sclList
+                    .Where(x => !string.IsNullOrWhiteSpace(x.SubControlLedgerCodeNo))
+                    .GroupBy(x => x.SubControlLedgerCodeNo)
+                    .ToDictionary(g => g.Key, g => g.First().SubControlLedgerName ?? string.Empty);
 
-                var ctrlCodes = pagedEntities.Select(x => x.ControlLedgerCodeNo).Distinct().ToList();
-                var ctrlNames = await context.AccControlLedgers
+                var ctrlCodes = pagedEntities.Select(x => x.ControlLedgerCodeNo).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList();
+                var ctrlList = await context.AccControlLedgers
                     .Where(x => ctrlCodes.Contains(x.ControlLedgerCodeNo))
-                    .ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
+                    .Select(x => new { x.ControlLedgerCodeNo, x.ControlLedgerName })
+                    .ToListAsync();
+                var ctrlNames = ctrlList
+                    .Where(x => !string.IsNullOrWhiteSpace(x.ControlLedgerCodeNo))
+                    .GroupBy(x => x.ControlLedgerCodeNo)
+                    .ToDictionary(g => g.Key, g => g.First().ControlLedgerName ?? string.Empty);
 
-                var grpCodes = pagedEntities.Select(x => x.GroupLedgerCodeNo).Distinct().ToList();
-                var grpNames = await context.AccGroupLedgers
+                var grpCodes = pagedEntities.Select(x => x.GroupLedgerCodeNo).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList();
+                var grpList = await context.AccGroupLedgers
                     .Where(x => grpCodes.Contains(x.GroupLedgerCodeNo))
-                    .ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
+                    .Select(x => new { x.GroupLedgerCodeNo, x.GroupLedgerName })
+                    .ToListAsync();
+                var grpNames = grpList
+                    .Where(x => !string.IsNullOrWhiteSpace(x.GroupLedgerCodeNo))
+                    .GroupBy(x => x.GroupLedgerCodeNo)
+                    .ToDictionary(g => g.Key, g => g.First().GroupLedgerName ?? string.Empty);
 
                 var items = pagedEntities.Select(x =>
                 {
