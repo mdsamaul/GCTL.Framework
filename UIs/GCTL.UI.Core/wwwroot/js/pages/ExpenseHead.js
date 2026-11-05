@@ -24,7 +24,7 @@
 
         reportTitle: "Expense Head Setup Report",
 
-        defaultPageSize: 15
+        defaultPageSize: 10
 
     };
 
