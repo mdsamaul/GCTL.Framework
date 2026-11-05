@@ -122,7 +122,7 @@ FETCH NEXT @PageSize ROWS ONLY;";
                             ControlLedgerName = Convert.ToString(r.ControlLedgerName) ?? string.Empty,
                             SubControlLedgerCodeNo = Convert.ToString(r.SubControlLedgerCodeNo) ?? string.Empty,
                             SubControlLedgerName = Convert.ToString(r.SubControlLedgerName) ?? string.Empty,
-                            IsActive = r.IsActive is bool bActive ? bActive : (r.IsActive is int iActive ? iActive == 1 : Convert.ToBoolean(r.IsActive ?? true)),
+                            IsActive = r.IsActive is bool bActive ? bActive : (r.IsActive is int iActive ? iActive == 1 : (r.IsActive is string sActive ? (sActive.Trim() == "1" || sActive.Trim().Equals("true", StringComparison.OrdinalIgnoreCase)) : true)),
                             ChildCount = Convert.ToInt32(r.ChildCount ?? 0)
                         });
                     }
