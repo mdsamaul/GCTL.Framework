@@ -1,4 +1,4 @@
-@model GCTL.Core.ViewModels.Finance.VoucherEntryVM.VoucherEntryVM
+﻿@model GCTL.Core.ViewModels.Finance.VoucherEntryVM.VoucherEntryVM
 @{
     Layout = null;
     string vKind = !string.IsNullOrWhiteSpace(Model.VoucherTypeName) ? Model.VoucherTypeName.ToUpper() : "VOUCHER";
@@ -187,22 +187,29 @@
 
         .voucher-table th:first-child,
         .voucher-table td:first-child {
+            width: 22%;
             border-left: 1.5px solid #888 !important;
+            white-space: nowrap !important;
         }
 
         .voucher-table th:nth-child(2),
         .voucher-table td:nth-child(2) {
+            width: 48%;
             border-right: 1.5px solid #888 !important;
         }
 
         .voucher-table th:nth-child(3),
         .voucher-table td:nth-child(3) {
+            width: 15%;
             border-left: 1.5px solid #888 !important;
+            white-space: nowrap !important;
         }
 
         .voucher-table th:last-child,
         .voucher-table td:last-child {
+            width: 15%;
             border-right: 1.5px solid #888 !important;
+            white-space: nowrap !important;
         }
 
         .voucher-table td {
@@ -408,13 +415,24 @@
             <table class="voucher-table">
                 <thead>
                     <tr>
-                        <th style="width: 18%;">Acc Code</th>
-                        <th style="width: 52%;">Particulars</th>
-                        <th style="width: 15%;">Debit (BDT)</th>
-                        <th style="width: 15%;">Credit (BDT)</th>
+                        <th style="width: 22%; white-space: nowrap;">Acc Code</th>
+                        <th style="width: 48%;">Particulars</th>
+                        <th style="width: 15%; white-space: nowrap;">Debit (BDT)</th>
+                        <th style="width: 15%; white-space: nowrap;">Credit (BDT)</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @{
+                        string subText = (!string.IsNullOrWhiteSpace(Model.InvoiceNo) ? Model.InvoiceNo : Model.Reference)?.Trim() ?? "";
+                        if (string.IsNullOrWhiteSpace(subText) && !string.IsNullOrWhiteSpace(Model.Narration))
+                        {
+                            var match = System.Text.RegularExpressions.Regex.Match(Model.Narration, @"\((?:Job No:\s*)?([A-Za-z0-9_\-\/]+)\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                            if (match.Success)
+                            {
+                                subText = match.Groups[1].Value.Trim();
+                            }
+                        }
+                    }
                     @foreach (var line in Model.Details)
                     {
                         var lineDesc = line.Description?.Trim();
@@ -424,20 +442,47 @@
                         {
                             lineDesc = null;
                         }
-                        var fullAcc = !string.IsNullOrWhiteSpace(lineDesc) ? $"{line.AccName} - {lineDesc}" : (string.IsNullOrWhiteSpace(line.AccName) ? line.AccCode : line.AccName);
+
+                        var mainAccName = (!string.IsNullOrWhiteSpace(line.AccName) ? line.AccName : line.AccCode)?.Trim() ?? "";
+
+                        string subLine = "";
+                        if (!string.IsNullOrWhiteSpace(subText))
+                        {
+                            if (!string.IsNullOrWhiteSpace(lineDesc) && 
+                                !string.Equals(lineDesc, mainAccName, StringComparison.OrdinalIgnoreCase) && 
+                                !string.Equals(lineDesc, subText, StringComparison.OrdinalIgnoreCase))
+                            {
+                                subLine = $"{subText} ({lineDesc})";
+                            }
+                            else
+                            {
+                                subLine = subText;
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(lineDesc) && !string.Equals(lineDesc, mainAccName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            subLine = lineDesc;
+                        }
+
                         <tr>
-                            <td class="text-center">@line.AccCode</td>
-                            <td class="text-start">@fullAcc</td>
-                            <td class="text-end">@((line.DebitAmount.HasValue && line.DebitAmount.Value > 0) ? line.DebitAmount.Value.ToString("N2") : "0.00")</td>
-                            <td class="text-end">@((line.CreditAmount.HasValue && line.CreditAmount.Value > 0) ? line.CreditAmount.Value.ToString("N2") : "0.00")</td>
+                            <td class="text-center" style="white-space: nowrap !important;">@line.AccCode</td>
+                            <td class="text-start" style="line-height: 1.35;">
+                                <div style="color: #000;">@mainAccName</div>
+                                @if (!string.IsNullOrWhiteSpace(subLine))
+                                {
+                                    <div style="font-size: 11.5px; color: #000; margin-top: 2px;">@subLine</div>
+                                }
+                            </td>
+                            <td class="text-end" style="white-space: nowrap;">@((line.DebitAmount.HasValue && line.DebitAmount.Value > 0) ? line.DebitAmount.Value.ToString("N2") : "0.00")</td>
+                            <td class="text-end" style="white-space: nowrap;">@((line.CreditAmount.HasValue && line.CreditAmount.Value > 0) ? line.CreditAmount.Value.ToString("N2") : "0.00")</td>
                         </tr>
                     }
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="2" class="text-end">Total</td>
-                        <td class="text-end">@Model.TotalDebit.ToString("N2")</td>
-                        <td class="text-end">@Model.TotalCredit.ToString("N2")</td>
+                        <td class="text-end" style="white-space: nowrap;">@Model.TotalDebit.ToString("N2")</td>
+                        <td class="text-end" style="white-space: nowrap;">@Model.TotalCredit.ToString("N2")</td>
                     </tr>
                 </tfoot>
             </table>
