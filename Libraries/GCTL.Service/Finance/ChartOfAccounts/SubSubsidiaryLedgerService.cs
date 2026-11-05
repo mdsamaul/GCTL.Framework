@@ -107,23 +107,23 @@ FETCH NEXT @PageSize ROWS ONLY;";
 
                 if (rows.Any())
                 {
-                    totalItems = (int)rows[0].TotalCount;
+                    totalItems = Convert.ToInt32(rows[0].TotalCount);
                     foreach (var r in rows)
                     {
                         items.Add(new GetAllSubSubsidiaryLedgerVM
                         {
-                            AutoId = (decimal)r.AutoId,
-                            SubsidiaryLedgerCodeNo = (string)(r.SubsidiaryLedgerCodeNo ?? string.Empty),
-                            SubSubsidiaryLedgerName = (string)(r.SubSubsidiaryLedgerName ?? string.Empty),
-                            ShortName = (string?)r.ShortName,
-                            GroupLedgerCodeNo = (string)(r.GroupLedgerCodeNo ?? string.Empty),
-                            GroupLedgerName = (string)(r.GroupLedgerName ?? string.Empty),
-                            ControlLedgerCodeNo = (string)(r.ControlLedgerCodeNo ?? string.Empty),
-                            ControlLedgerName = (string)(r.ControlLedgerName ?? string.Empty),
-                            SubControlLedgerCodeNo = (string)(r.SubControlLedgerCodeNo ?? string.Empty),
-                            SubControlLedgerName = (string)(r.SubControlLedgerName ?? string.Empty),
-                            IsActive = (bool)(r.IsActive ?? true),
-                            ChildCount = (int)(r.ChildCount ?? 0)
+                            AutoId = Convert.ToDecimal(r.AutoId),
+                            SubsidiaryLedgerCodeNo = Convert.ToString(r.SubsidiaryLedgerCodeNo) ?? string.Empty,
+                            SubSubsidiaryLedgerName = Convert.ToString(r.SubSubsidiaryLedgerName) ?? string.Empty,
+                            ShortName = r.ShortName != null ? Convert.ToString(r.ShortName) : null,
+                            GroupLedgerCodeNo = Convert.ToString(r.GroupLedgerCodeNo) ?? string.Empty,
+                            GroupLedgerName = Convert.ToString(r.GroupLedgerName) ?? string.Empty,
+                            ControlLedgerCodeNo = Convert.ToString(r.ControlLedgerCodeNo) ?? string.Empty,
+                            ControlLedgerName = Convert.ToString(r.ControlLedgerName) ?? string.Empty,
+                            SubControlLedgerCodeNo = Convert.ToString(r.SubControlLedgerCodeNo) ?? string.Empty,
+                            SubControlLedgerName = Convert.ToString(r.SubControlLedgerName) ?? string.Empty,
+                            IsActive = r.IsActive is bool bActive ? bActive : (r.IsActive is int iActive ? iActive == 1 : Convert.ToBoolean(r.IsActive ?? true)),
+                            ChildCount = Convert.ToInt32(r.ChildCount ?? 0)
                         });
                     }
                 }
