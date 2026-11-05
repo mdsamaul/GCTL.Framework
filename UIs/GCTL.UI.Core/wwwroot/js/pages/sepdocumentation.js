@@ -93,6 +93,18 @@ $(document).ready(function () {
         if (bottomGrid) bottomGrid.ajax.reload();
     });
 
+    function loadJobs() {
+        if (topGrid && topGrid.ajax) {
+            topGrid.ajax.reload(null, false);
+        }
+    }
+
+    function loadBottomJobs() {
+        if (bottomGrid && bottomGrid.ajax) {
+            bottomGrid.ajax.reload(null, false);
+        }
+    }
+
     //#endregion
 
     //#region Bottom Grid Selection + Delete (Single + Multi via checkbox)
@@ -484,6 +496,7 @@ $(document).ready(function () {
                     bottomCurrentPage = 1;
                    
                     loadBottomJobs();
+                    loadJobs();
                     clearForm();
                     setDate("#jobDate", new Date());
                 } else {
