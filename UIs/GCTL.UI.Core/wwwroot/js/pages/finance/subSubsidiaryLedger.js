@@ -569,11 +569,19 @@ $(document).ready(function () {
                     tableBody.append('<tr><td colspan="6" class="coa-em">No ledgers found. Change the search or add one above.</td></tr>');
                 }
 
-                if (response.paginationInfo) {
-                    const p = response.paginationInfo;
-                    $("#SubSubsidiaryLedger-paginationInfo").text(`Showing ${p.startItem} to ${p.endItem} of ${p.totalItems} entries`);
+                const p = response && (response.paginationInfo || response.PaginationInfo);
+                if (p) {
+                    const start = p.startItem ?? p.StartItem ?? 0;
+                    const end = p.endItem ?? p.EndItem ?? 0;
+                    const total = p.totalItems ?? p.TotalItems ?? 0;
+                    $("#SubSubsidiaryLedger-paginationInfo").text(`Showing ${start} to ${end} of ${total} entries`);
                     renderPagination(p);
                 }
+            },
+            error: function (xhr, status, error) {
+                const tableBody = $("#SubSubsidiaryLedger-body");
+                tableBody.empty();
+                tableBody.append(`<tr><td colspan="6" class="coa-em text-danger text-center">Error loading ledgers: ${esc(error || status || 'Server error')}</td></tr>`);
             }
         });
     }

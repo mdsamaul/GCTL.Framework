@@ -444,7 +444,7 @@ $(document).ready(function () {
                 const grpCode = item.groupLedgerCodeNo || item.GroupLedgerCodeNo;
                 const ctrlCode = item.controlLedgerCodeNo || item.ControlLedgerCodeNo;
                 const subCtrlCode = item.subControlLedgerCodeNo || item.SubControlLedgerCodeNo;
-                const sslCode = item.SubsidiaryLedgerCodeNo || item.SubsidiaryLedgerCodeNo;
+                const sslCode = item.subsidiaryLedgerCodeNo || item.SubsidiaryLedgerCodeNo;
                 const glCode = item.generalLedgerCodeNo || item.GeneralLedgerCodeNo;
                 const glName = item.generalLedgerName || item.GeneralLedgerName;
                 const shortName = item.shortName || item.ShortName || '';
