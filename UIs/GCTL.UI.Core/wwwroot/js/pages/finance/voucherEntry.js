@@ -1,4 +1,4 @@
-(function ($) {
+﻿(function ($) {
     'use strict';
 
     let currentPage = 1;
@@ -1483,21 +1483,48 @@
                         const tbody = $('#printLinesBody');
                         tbody.empty();
 
+                        let subText = (v.invoiceNo || v.InvoiceNo || v.reference || v.Reference || '').trim();
+                        if (!subText && v.narration) {
+                            const match = v.narration.match(/\((?:Job No:\s*)?([A-Za-z0-9_\-\/]+)\)/i);
+                            if (match && match[1]) {
+                                subText = match[1].trim();
+                            }
+                        }
+
                         (v.details || []).forEach(function (d) {
                             let lineDesc = (d.description || d.Description || '').trim();
                             const narr = (v.narration || '').trim();
                             if (lineDesc && narr && (lineDesc.toLowerCase() === narr.toLowerCase() || narr.toLowerCase().startsWith(lineDesc.toLowerCase()))) {
                                 lineDesc = '';
                             }
-                            const desc = lineDesc ? `${d.accName} - ${lineDesc}` : (d.accName || d.accCode);
+
+                            const mainAccName = (d.accName || d.AccName || d.accCode || '').trim();
+
+                            let subLine = '';
+                            if (subText) {
+                                if (lineDesc && lineDesc.toLowerCase() !== mainAccName.toLowerCase() && lineDesc.toLowerCase() !== subText.toLowerCase()) {
+                                    subLine = `${subText} (${lineDesc})`;
+                                } else {
+                                    subLine = subText;
+                                }
+                            } else if (lineDesc && lineDesc.toLowerCase() !== mainAccName.toLowerCase()) {
+                                subLine = lineDesc;
+                            }
+
+                            let particularsHtml = `<div style="color: #000;">${escapeHtml(mainAccName)}</div>`;
+                            if (subLine) {
+                                particularsHtml += `<div style="font-size: 11.5px; color: #000; margin-top: 2px;">${escapeHtml(subLine)}</div>`;
+                            }
+
                             const drVal = (d.debitAmount !== null && d.debitAmount !== undefined && d.debitAmount > 0) ? formatCurrency(d.debitAmount) : '0.00';
                             const crVal = (d.creditAmount !== null && d.creditAmount !== undefined && d.creditAmount > 0) ? formatCurrency(d.creditAmount) : '0.00';
+
                             tbody.append(`
                                 <tr>
-                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; color: #000; background: transparent !important;">${escapeHtml(d.accCode)}</td>
-                                    <td style="border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: left; vertical-align: middle; color: #000; background: transparent !important;">${escapeHtml(desc)}</td>
-                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important;">${drVal}</td>
-                                    <td style="border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important;">${crVal}</td>
+                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: center; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap !important;">${escapeHtml(d.accCode)}</td>
+                                    <td style="border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: left; vertical-align: middle; color: #000; background: transparent !important; line-height: 1.35;">${particularsHtml}</td>
+                                    <td style="border: 1px solid #888 !important; border-left: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap;">${drVal}</td>
+                                    <td style="border: 1px solid #888 !important; border-right: 1.5px solid #888 !important; border-top: 1px solid #888 !important; border-bottom: 1px solid #888 !important; padding: 6px 8px; text-align: right; vertical-align: middle; color: #000; background: transparent !important; white-space: nowrap;">${crVal}</td>
                                 </tr>
                             `);
                         });
@@ -1815,19 +1842,26 @@
         }
         #printLinesTable th:first-child,
         #printLinesTable tbody td:first-child {
+            width: 22% !important;
             border-left: 1.5px solid #888 !important;
+            white-space: nowrap !important;
         }
         #printLinesTable th:nth-child(2),
         #printLinesTable tbody td:nth-child(2) {
+            width: 48% !important;
             border-right: 1.5px solid #888 !important;
         }
         #printLinesTable th:nth-child(3),
         #printLinesTable tbody td:nth-child(3) {
+            width: 15% !important;
             border-left: 1.5px solid #888 !important;
+            white-space: nowrap !important;
         }
         #printLinesTable th:last-child,
         #printLinesTable tbody td:last-child {
+            width: 15% !important;
             border-right: 1.5px solid #888 !important;
+            white-space: nowrap !important;
         }
         #printLinesTable tfoot td {
             border-top: 1.5px solid #888 !important;

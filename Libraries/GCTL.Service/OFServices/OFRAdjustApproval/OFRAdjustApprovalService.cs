@@ -430,6 +430,7 @@ namespace GCTL.Service.OFRAdjustApproval
                             commandType: CommandType.StoredProcedure,
                             commandTimeout: 120
                         );
+                        GCTL.Service.Finance.VoucherEntry.VoucherEntryService.InvalidateSummaryCache();
                     }
                     catch (Exception vEx)
                     {

@@ -57,6 +57,12 @@ namespace GCTL.Service.Finance.VoucherEntry
                 string summaryCacheKey = $"VchSummary_{_summaryCacheVersion}_{branchParam}_{compParam}";
                 bool hasCachedSummary = _memoryCache.TryGetValue(summaryCacheKey, out VoucherEntrySummaryVM? cachedSummary) && cachedSummary != null;
 
+                // Page 1 always retrieves fresh real-time summary from DB so dashboard KPI cards update immediately
+                if (result.PageNumber == 1)
+                {
+                    hasCachedSummary = false;
+                }
+
                 parameters.Add("@FromDate", filter.FromDate?.Date);
                 parameters.Add("@ToDate", filter.ToDate?.Date);
                 parameters.Add("@VoucherType", vTypeParam);
@@ -109,7 +115,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     result.Summary.CvCount = ToInt(sDict.TryGetValue("CvCount", out var cvc) ? cvc : 0);
                     result.Summary.CvAmount = ToDecimal(sDict.TryGetValue("CvAmount", out var cva) ? cva : 0);
 
-                    _memoryCache.Set(summaryCacheKey, result.Summary, TimeSpan.FromMinutes(5));
+                    _memoryCache.Set(summaryCacheKey, result.Summary, TimeSpan.FromSeconds(30));
                 }
 
                 foreach (var row in pagedRows)
@@ -244,7 +250,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     BranchName = branchName,
                     FinancialYear = entity.FinancialYear,
                     Reference = entity.Reference,
-                    InvoiceNo = entity.InvoiceNo,
+                    InvoiceNo = !string.IsNullOrWhiteSpace(entity.InvoiceNo) ? entity.InvoiceNo : (!string.IsNullOrWhiteSpace(entity.Reference) ? entity.Reference : ExtractJobNo(entity.Narration)),
                     Narration = entity.Narration,
                     IsApproved = string.IsNullOrWhiteSpace(entity.IsApproved) ? "Pending Approval" : entity.IsApproved,
                     PreparedBy = preparedBy,
@@ -271,6 +277,11 @@ namespace GCTL.Service.Finance.VoucherEntry
                             {
                                 lineDesc = string.Empty;
                             }
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(lineDesc) && string.Equals(lineDesc, resolvedAccName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            lineDesc = string.Empty;
                         }
 
                         DateTime? resolvedChequeDate = d.ChequeDate;
@@ -1112,6 +1123,13 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
         {
             int year = date.Month >= 7 ? date.Year : date.Year - 1;
             return $"{year}-{year + 1}";
+        }
+
+        private static string ExtractJobNo(string? narration)
+        {
+            if (string.IsNullOrWhiteSpace(narration)) return string.Empty;
+            var m = System.Text.RegularExpressions.Regex.Match(narration, @"\((?:Job No:\s*)?([A-Za-z0-9_\-\/]+)\)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            return m.Success ? m.Groups[1].Value.Trim() : string.Empty;
         }
         #endregion
 
