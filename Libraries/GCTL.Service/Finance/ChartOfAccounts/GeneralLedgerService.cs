@@ -646,15 +646,36 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 q = q.Where(x => x.SubsidiaryLedgerCodeNo == subSubsidiaryCode);
             }
 
-            return await q
+            var gls = await q
                 .OrderBy(x => x.GeneralLedgerCodeNo)
-                .Select(x => new LedgerDropdownItemVM
+                .ToListAsync();
+
+            var custDict = await context.SalesCustomers.AsNoTracking()
+                .Where(c => !string.IsNullOrEmpty(c.CustomerId))
+                .ToDictionaryAsync(c => c.CustomerId.Trim(), c => c.CustomerName != null ? c.CustomerName.Trim() : c.CustomerId.Trim(), StringComparer.OrdinalIgnoreCase);
+
+            var expDict = await context.CfDefExpenseHeads.AsNoTracking()
+                .Where(e => !string.IsNullOrEmpty(e.ExpenseHeadId))
+                .ToDictionaryAsync(e => e.ExpenseHeadId.Trim(), e => e.ExpenseHead != null ? e.ExpenseHead.Trim() : e.ExpenseHeadId.Trim(), StringComparer.OrdinalIgnoreCase);
+
+            return gls.Select(x => {
+                string name = x.GeneralLedgerName?.Trim() ?? "";
+                if (!name.Contains("(") && custDict.TryGetValue(name, out var cName))
+                {
+                    name = $"{cName} ({name})";
+                }
+                else if (!name.Contains("(") && expDict.TryGetValue(name, out var eName))
+                {
+                    name = $"{eName} ({name})";
+                }
+
+                return new LedgerDropdownItemVM
                 {
                     Code = x.GeneralLedgerCodeNo,
-                    Name = x.GeneralLedgerName,
+                    Name = name,
                     ParentCode = x.SubsidiaryLedgerCodeNo
-                })
-                .ToListAsync();
+                };
+            }).ToList();
         }
     }
 }

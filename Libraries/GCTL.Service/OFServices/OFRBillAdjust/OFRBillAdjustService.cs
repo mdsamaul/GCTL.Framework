@@ -332,7 +332,7 @@ namespace GCTL.Service.OFRBillAdjust
                         join exp in _shipmentmode.All().AsNoTracking()
                             on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
                         from exp in shipG.DefaultIfEmpty()
-                        where _details.All().Any(det => det.Ofrno == main.Ofrno && !string.IsNullOrEmpty(det.AdjustUser))
+                        where _details.All().Any(det => det.JobNo == main.JobNo && !string.IsNullOrEmpty(det.AdjustUser))
                         select new OFRBillAdjustBottomGridVM
                         {
                             TC = main.Tc,
@@ -373,7 +373,7 @@ namespace GCTL.Service.OFRBillAdjust
 
                         where !string.IsNullOrEmpty(main.ApprovedUser)
                               && string.IsNullOrEmpty(main.BillAdjustApprovalUser)
-                              && !_details.All().Any(det => det.Ofrno == main.Ofrno && !string.IsNullOrEmpty(det.AdjustUser))
+                              && !_details.All().Any(det => det.JobNo == main.JobNo && !string.IsNullOrEmpty(det.AdjustUser))
 
                         select new OFRApprovalTopGridVM
                         {

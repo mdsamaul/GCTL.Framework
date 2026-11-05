@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
@@ -112,7 +112,7 @@ namespace GCTL.Service.OFRAdjustApproval
                             on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
                         from exp in shipG.DefaultIfEmpty()
                         where string.IsNullOrEmpty(main.BillAdjustApprovalUser)
-                              && _details.All().Any(det => det.Ofrno == main.Ofrno && !string.IsNullOrEmpty(det.AdjustUser))
+                              && _details.All().Any(det => det.JobNo == main.JobNo && !string.IsNullOrEmpty(det.AdjustUser))
                         select new OFRAdjustApprovalTopGridVM
                         {
                             TC = main.Tc,

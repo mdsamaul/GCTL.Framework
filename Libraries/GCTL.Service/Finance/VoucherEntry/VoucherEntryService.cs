@@ -188,6 +188,7 @@ namespace GCTL.Service.Finance.VoucherEntry
                     .ToListAsync();
 
                 var accountDict = await GetAccountDictAsync();
+                var (custs, exps, banks) = await GetMasterResolutionDictsAsync();
 
                 var cashCodes = await GetCashAccountCodesAsync();
                 var bankCodes = await GetBankAccountCodesAsync();
@@ -267,6 +268,8 @@ namespace GCTL.Service.Finance.VoucherEntry
                             ? accInfo.Name 
                             : (!string.IsNullOrWhiteSpace(d.Description) ? d.Description.Trim() : accKey);
 
+                        resolvedAccName = ResolveAccountDisplayName(resolvedAccName, accKey, custs, exps, banks);
+
                         string? lineDesc = d.Description?.Trim();
                         var narr = (entity.Narration ?? "").Trim();
                         if (!string.IsNullOrWhiteSpace(lineDesc) && !string.IsNullOrWhiteSpace(narr))
@@ -279,7 +282,9 @@ namespace GCTL.Service.Finance.VoucherEntry
                             }
                         }
 
-                        if (!string.IsNullOrWhiteSpace(lineDesc) && string.Equals(lineDesc, resolvedAccName, StringComparison.OrdinalIgnoreCase))
+                        if (!string.IsNullOrWhiteSpace(lineDesc) && 
+                            (string.Equals(lineDesc, resolvedAccName, StringComparison.OrdinalIgnoreCase) ||
+                             resolvedAccName.IndexOf(lineDesc, StringComparison.OrdinalIgnoreCase) >= 0))
                         {
                             lineDesc = string.Empty;
                         }
@@ -842,6 +847,8 @@ namespace GCTL.Service.Finance.VoucherEntry
                 var groups = await _context.AccGroupLedgers.AsNoTracking().ToDictionaryAsync(x => x.GroupLedgerCodeNo, x => x.GroupLedgerName);
                 var controls = await _context.AccControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.ControlLedgerCodeNo, x => x.ControlLedgerName);
                 var subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
+                var (customers, expenseHeads, bankAccounts) = await GetMasterResolutionDictsAsync();
+
                 var subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
 
                 var gls = await _context.AccGeneralLedgers
@@ -857,19 +864,21 @@ namespace GCTL.Service.Finance.VoucherEntry
                     string sctlName = gl.SubControlLedgerCodeNo != null && subControls.TryGetValue(gl.SubControlLedgerCodeNo, out var scn) ? scn : "";
                     string ssName = gl.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(gl.SubsidiaryLedgerCodeNo, out var ssn) ? ssn : "";
 
+                    string resolvedName = ResolveAccountDisplayName(gl.GeneralLedgerName, gl.GeneralLedgerCodeNo, customers, expenseHeads, bankAccounts);
+
                     return new VoucherAccountHeadDropdownVM
                     {
                         Code = gl.GeneralLedgerCodeNo,
-                        Name = gl.GeneralLedgerName,
+                        Name = resolvedName,
                         GroupName = $"{grpName} - {ctlName}",
                         HierarchyPath = $"{grpName} › {ctlName} › {sctlName} › {ssName}",
                         DefaultTrType = (gl.GroupLedgerCodeNo == "1" || gl.GroupLedgerCodeNo == "4") ? "Dr" : "Cr",
                         IsCash = cashCodes.Contains(gl.GeneralLedgerCodeNo) ||
-                                 (gl.GeneralLedgerName != null && gl.GeneralLedgerName.Contains("Cash")) ||
+                                 (resolvedName.Contains("Cash")) ||
                                  (gl.SubsidiaryLedgerCodeNo == "10200200001"),
                         IsBank = bankCodes.Contains(gl.GeneralLedgerCodeNo) ||
-                                 (gl.GeneralLedgerName != null && gl.GeneralLedgerName.Contains("Bank")) ||
-                                 (gl.GeneralLedgerName != null && gl.GeneralLedgerName.Contains("DBBL")) ||
+                                 (resolvedName.Contains("Bank")) ||
+                                 (resolvedName.Contains("DBBL")) ||
                                  (gl.SubsidiaryLedgerCodeNo == "10200200002")
                     };
                 }).ToList();
@@ -1027,6 +1036,79 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
         #endregion
 
         #region Helper Methods
+        private async Task<(Dictionary<string, string> Customers, Dictionary<string, string> ExpenseHeads, Dictionary<string, string> BankAccounts)> GetMasterResolutionDictsAsync()
+        {
+            return await _memoryCache.GetOrCreateAsync("Voucher_MasterResolutionDicts", async entry =>
+            {
+                entry.SlidingExpiration = TimeSpan.FromMinutes(30);
+
+                var custDict = await _context.SalesCustomers.AsNoTracking()
+                    .Where(c => !string.IsNullOrEmpty(c.CustomerId))
+                    .ToDictionaryAsync(c => c.CustomerId.Trim(), c => c.CustomerName != null ? c.CustomerName.Trim() : c.CustomerId.Trim(), StringComparer.OrdinalIgnoreCase);
+
+                var expDict = await _context.CfDefExpenseHeads.AsNoTracking()
+                    .Where(e => !string.IsNullOrEmpty(e.ExpenseHeadId))
+                    .ToDictionaryAsync(e => e.ExpenseHeadId.Trim(), e => e.ExpenseHead != null ? e.ExpenseHead.Trim() : e.ExpenseHeadId.Trim(), StringComparer.OrdinalIgnoreCase);
+
+                var bankDict = await _context.CoreBankAccountInformations.AsNoTracking()
+                    .Where(b => !string.IsNullOrEmpty(b.AccountNo))
+                    .ToDictionaryAsync(b => b.AccountNo.Trim(), b => b.AccountName != null ? b.AccountName.Trim() : b.AccountNo.Trim(), StringComparer.OrdinalIgnoreCase);
+
+                return (custDict, expDict, bankDict);
+            });
+        }
+
+        private static string ResolveAccountDisplayName(
+            string? rawName,
+            string? code,
+            Dictionary<string, string> customers,
+            Dictionary<string, string> expenseHeads,
+            Dictionary<string, string> bankAccounts)
+        {
+            if (string.IsNullOrWhiteSpace(rawName))
+            {
+                rawName = code ?? string.Empty;
+            }
+
+            rawName = rawName.Trim();
+
+            if (rawName.Contains("(") && rawName.EndsWith(")"))
+            {
+                return rawName;
+            }
+
+            if (customers.TryGetValue(rawName, out var custName) && !string.IsNullOrWhiteSpace(custName))
+            {
+                return $"{custName.Trim()} ({rawName})";
+            }
+
+            if (expenseHeads.TryGetValue(rawName, out var expHead) && !string.IsNullOrWhiteSpace(expHead))
+            {
+                return $"{expHead.Trim()} ({rawName})";
+            }
+
+            if (int.TryParse(rawName, out int expNum))
+            {
+                string padded = expNum.ToString("D3");
+                if (expenseHeads.TryGetValue(padded, out var expHeadPadded) && !string.IsNullOrWhiteSpace(expHeadPadded))
+                {
+                    return $"{expHeadPadded.Trim()} ({padded})";
+                }
+                string unpadded = expNum.ToString();
+                if (expenseHeads.TryGetValue(unpadded, out var expHeadUnpadded) && !string.IsNullOrWhiteSpace(expHeadUnpadded))
+                {
+                    return $"{expHeadUnpadded.Trim()} ({rawName})";
+                }
+            }
+
+            if (bankAccounts.TryGetValue(rawName, out var bankName) && !string.IsNullOrWhiteSpace(bankName))
+            {
+                return $"{bankName.Trim()} ({rawName})";
+            }
+
+            return rawName;
+        }
+
         private async Task<Dictionary<string, (string Name, string Hierarchy)>> GetAccountDictAsync()
         {
             return await _memoryCache.GetOrCreateAsync("Voucher_AccountDict", async entry =>
@@ -1038,6 +1120,8 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
                 var subControls = await _context.AccSubControlLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubControlLedgerCodeNo, x => x.SubControlLedgerName);
                 var subSubs = await _context.AccSubsidiaryLedgers.AsNoTracking().ToDictionaryAsync(x => x.SubsidiaryLedgerCodeNo, x => x.SubsidiaryLedgerName);
 
+                var (customers, expenseHeads, bankAccounts) = await GetMasterResolutionDictsAsync();
+
                 var glList = await _context.AccGeneralLedgers
                     .AsNoTracking()
                     .ToListAsync();
@@ -1048,8 +1132,18 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
                     if (!string.IsNullOrWhiteSpace(g.GeneralLedgerCodeNo))
                     {
                         var key = g.GeneralLedgerCodeNo.Trim();
-                        var hier = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} â€º {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} â€º {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} â€º {(g.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} â€º {g.GeneralLedgerName}";
-                        accountDict[key] = (g.GeneralLedgerName?.Trim() ?? key, hier);
+                        var resolvedName = ResolveAccountDisplayName(g.GeneralLedgerName, key, customers, expenseHeads, bankAccounts);
+                        var hier = $"{(g.GroupLedgerCodeNo != null && groups.TryGetValue(g.GroupLedgerCodeNo, out var grpN) ? grpN : "")} › {(g.ControlLedgerCodeNo != null && controls.TryGetValue(g.ControlLedgerCodeNo, out var ctlN) ? ctlN : "")} › {(g.SubControlLedgerCodeNo != null && subControls.TryGetValue(g.SubControlLedgerCodeNo, out var sctlN) ? sctlN : "")} › {(g.SubsidiaryLedgerCodeNo != null && subSubs.TryGetValue(g.SubsidiaryLedgerCodeNo, out var ssN) ? ssN : "")} › {resolvedName}";
+                        accountDict[key] = (resolvedName, hier);
+
+                        if (!string.IsNullOrWhiteSpace(g.GeneralLedgerName))
+                        {
+                            var rawKey = g.GeneralLedgerName.Trim();
+                            if (!accountDict.ContainsKey(rawKey))
+                            {
+                                accountDict[rawKey] = (resolvedName, hier);
+                            }
+                        }
                     }
                 }
 
