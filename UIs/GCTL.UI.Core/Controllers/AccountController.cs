@@ -148,6 +148,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Net.NetworkInformation;
 using System.Security.Claims;
 using static QRCoder.PayloadGenerator;
@@ -156,15 +157,18 @@ public class AccountController : BaseController
 {
     private readonly IRepository<CoreUserInfo> _userRepo;
     private readonly IRepository<CoreUserLog> _logRepo;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         IRepository<CoreUserInfo> userRepo,
         IRepository<CoreUserLog> logRepo,
+        IMemoryCache cache,
         ILogger<AccountController> logger)
     {
         _userRepo = userRepo;
         _logRepo = logRepo;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -180,10 +184,38 @@ public class AccountController : BaseController
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult Login(string? returnUrl = null)
+    public async Task<IActionResult> Login(string? returnUrl = null, string? reason = null)
     {
         if (returnUrl == "/") returnUrl = null;
         ViewData["ReturnUrl"] = returnUrl;
+
+        if (reason == "idle")
+        {
+            var sessionId = User.FindFirst("SessionId")?.Value;
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                var openLogs = await _logRepo.FindByAsync(l => l.SessionId == sessionId && l.LogoutDate == null);
+                var currentLog = openLogs.FirstOrDefault();
+                if (currentLog != null)
+                {
+                    var cacheKey = $"UserSession_LastActivity_{sessionId}";
+                    if (_cache.TryGetValue(cacheKey, out DateTime lastActivity))
+                    {
+                        currentLog.LogoutDate = lastActivity;
+                    }
+                    else
+                    {
+                        currentLog.LogoutDate = DateTime.Now.AddMinutes(-15);
+                    }
+                    await _logRepo.UpdateAsync(currentLog);
+                }
+                _cache.Remove($"UserSession_LastActivity_{sessionId}");
+            }
+
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            ViewData["ErrorMessage"] = "You have been logged out due to inactivity. Please sign in again.";
+        }
+
         return View(new LoginViewModel());
     }
 
@@ -257,6 +289,12 @@ public class AccountController : BaseController
             {
                 old.LogoutDate = DateTime.Now;
                 await _logRepo.UpdateAsync(old);
+
+                if (!string.IsNullOrEmpty(old.SessionId))
+                {
+                    _cache.Set($"Session_Terminated_{old.SessionId}", true, TimeSpan.FromHours(8));
+                    _cache.Remove($"UserSession_LastActivity_{old.SessionId}");
+                }
             }
         }
 
@@ -292,6 +330,9 @@ public class AccountController : BaseController
             SessionId = sessionId
         });
 
+        // Initialize session activity timestamp in cache
+        _cache.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
+
         _logger.LogInformation("User {Username} signed in.", user.Username);
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -306,19 +347,48 @@ public class AccountController : BaseController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
+        var sessionId = User.FindFirst("SessionId")?.Value;
         var username = User.Identity?.Name;
 
-        var openLogs = await _logRepo.FindByAsync(l => l.Username == username && l.LogoutDate == null);
-        var lastLog = openLogs.OrderByDescending(l => l.LoginDate).FirstOrDefault();
-        if (lastLog != null)
+        if (!string.IsNullOrEmpty(sessionId))
         {
-            lastLog.LogoutDate = DateTime.Now;
-            await _logRepo.UpdateAsync(lastLog);
+            var openLogs = await _logRepo.FindByAsync(l => l.SessionId == sessionId && l.LogoutDate == null);
+            var currentLog = openLogs.FirstOrDefault();
+            if (currentLog != null)
+            {
+                currentLog.LogoutDate = DateTime.Now;
+                await _logRepo.UpdateAsync(currentLog);
+            }
+            _cache.Remove($"UserSession_LastActivity_{sessionId}");
+        }
+        else if (!string.IsNullOrEmpty(username))
+        {
+            var openLogs = await _logRepo.FindByAsync(l => l.Username == username && l.LogoutDate == null);
+            var lastLog = openLogs.OrderByDescending(l => l.LoginDate).FirstOrDefault();
+            if (lastLog != null)
+            {
+                lastLog.LogoutDate = DateTime.Now;
+                await _logRepo.UpdateAsync(lastLog);
+            }
         }
 
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         _logger.LogInformation("User {Username} signed out.", username);
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpPost]
+    [Authorize]
+    [IgnoreAntiforgeryToken]
+    public IActionResult Heartbeat()
+    {
+        var sessionId = User.FindFirst("SessionId")?.Value;
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            _cache.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
+            return Ok(new { success = true });
+        }
+        return Unauthorized();
     }
 
     private IActionResult LocalRedirectOrHome(string? returnUrl)

@@ -82,26 +82,25 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                     return;
                 }
 
-                //var sessionId = context.Principal?.FindFirst("SessionId")?.Value;
-                //if (!string.IsNullOrEmpty(sessionId))
-                //{
-                //    var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
-                //    cache?.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
+                var sessionId = context.Principal?.FindFirst("SessionId")?.Value;
+                if (!string.IsNullOrEmpty(sessionId))
+                {
+                    var cache = context.HttpContext.RequestServices.GetService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+                    if (cache != null && cache.TryGetValue($"Session_Terminated_{sessionId}", out _))
+                    {
+                        // Session was terminated (e.g. single session superseded by a new login)
+                        context.RejectPrincipal();
+                        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                        return;
+                    }
 
-                //    var logRepo = context.HttpContext.RequestServices.GetRequiredService<IRepository<CoreUserLog>>();
-                //    var stillOpen = (await logRepo.FindByAsync(l => l.SessionId == sessionId))
-                //        .FirstOrDefault(l => l.LogoutDate == null);
-
-                //    if (stillOpen == null) // this session's row was closed (superseded or timed out)
-                //    {
-                //        context.RejectPrincipal();
-                //        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                //    }
-                //}
+                    // Keep activity timestamp fresh in memory cache
+                    cache?.Set($"UserSession_LastActivity_{sessionId}", DateTime.Now, TimeSpan.FromHours(1));
+                }
             }
         };
     });
-//builder.Services.AddHostedService<StaleSessionSweepService>();
+builder.Services.AddHostedService<StaleSessionSweepService>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

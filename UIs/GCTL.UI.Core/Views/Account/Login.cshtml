@@ -366,6 +366,12 @@
                 </div>
 
                 <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                    @if (ViewData["ErrorMessage"] != null)
+                    {
+                        <div style="background:#fff3cd; color:#856404; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:13px; border:1px solid #ffeeba;">
+                            <i class="fas fa-clock" style="margin-right:6px;"></i>@ViewData["ErrorMessage"]
+                        </div>
+                    }
                     @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
                     {
                         <div asp-validation-summary="All" class="validation-summary-errors"></div>
