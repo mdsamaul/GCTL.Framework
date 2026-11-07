@@ -1,6 +1,7 @@
 using GCTL.Core.Data;
 using GCTL.Data.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 
 namespace GCTL.UI.Core.Helpers.BackgroundServices
 {
@@ -8,50 +9,63 @@ namespace GCTL.UI.Core.Helpers.BackgroundServices
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMemoryCache _cache;
-        private readonly TimeSpan _sessionTimeout = TimeSpan.FromMinutes(30);
+        private readonly TimeSpan _sessionTimeout;
 
-        public StaleSessionSweepService(IServiceScopeFactory scopeFactory, IMemoryCache cache)
+        public StaleSessionSweepService(IServiceScopeFactory scopeFactory, IMemoryCache cache, IConfiguration configuration)
         {
             _scopeFactory = scopeFactory;
             _cache = cache;
+            int timeoutMinutes = configuration.GetValue<int>("SessionSettings:IdleTimeoutMinutes", 25);
+            _sessionTimeout = TimeSpan.FromMinutes(timeoutMinutes);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(5));
+            using var timer = new PeriodicTimer(TimeSpan.FromMinutes(2));
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
-                using var scope = _scopeFactory.CreateScope();
-                var logRepo = scope.ServiceProvider.GetRequiredService<IRepository<CoreUserLog>>();
-
-                var cutoff = DateTime.Now - _sessionTimeout;
-                var openLogs = await logRepo.FindByAsync(l => l.LogoutDate == null);
-
-                foreach (var log in openLogs.ToList())
+                try
                 {
-                    if (!string.IsNullOrEmpty(log.SessionId))
+                    using var scope = _scopeFactory.CreateScope();
+                    var logRepo = scope.ServiceProvider.GetRequiredService<IRepository<CoreUserLog>>();
+
+                    var cutoff = DateTime.Now - _sessionTimeout;
+                    var openLogs = await logRepo.FindByAsync(l => l.LogoutDate == null);
+
+                    foreach (var log in openLogs.ToList())
                     {
-                        var cacheKey = $"UserSession_LastActivity_{log.SessionId}";
-                        if (_cache.TryGetValue(cacheKey, out DateTime lastActivity))
+                        if (!string.IsNullOrEmpty(log.SessionId))
                         {
-                            if (lastActivity < cutoff)
+                            var cacheKey = $"UserSession_LastActivity_{log.SessionId}";
+                            if (_cache.TryGetValue(cacheKey, out DateTime lastActivity))
                             {
-                                log.LogoutDate = lastActivity.Add(_sessionTimeout);
-                                await logRepo.UpdateAsync(log);
+                                if (lastActivity < cutoff)
+                                {
+                                    log.LogoutDate = lastActivity;
+                                    await logRepo.UpdateAsync(log);
+                                    _cache.Remove(cacheKey);
+                                }
+                            }
+                            else
+                            {
+                                // Cache key expired or missing. If login was before cutoff, close the stale session.
+                                if (log.LoginDate.HasValue && log.LoginDate.Value < cutoff)
+                                {
+                                    log.LogoutDate = log.LoginDate.Value.Add(_sessionTimeout);
+                                    await logRepo.UpdateAsync(log);
+                                }
                             }
                         }
-                        else
+                        else if (log.LoginDate.HasValue && log.LoginDate.Value < cutoff)
                         {
-                            // Cache key lost due to App Domain / Dev server restart.
-                            // Re-initialize cache timestamp to current time so active user session is preserved.
-                            _cache.Set(cacheKey, DateTime.Now, TimeSpan.FromHours(1));
+                            log.LogoutDate = log.LoginDate.Value.Add(_sessionTimeout);
+                            await logRepo.UpdateAsync(log);
                         }
                     }
-                    else if (log.LoginDate.HasValue && log.LoginDate.Value < cutoff)
-                    {
-                        log.LogoutDate = log.LoginDate.Value.Add(_sessionTimeout);
-                        await logRepo.UpdateAsync(log);
-                    }
+                }
+                catch
+                {
+                    // Best-effort background service; avoid unhandled background crash
                 }
             }
         }
