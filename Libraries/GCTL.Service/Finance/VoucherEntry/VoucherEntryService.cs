@@ -282,11 +282,9 @@ namespace GCTL.Service.Finance.VoucherEntry
                             }
                         }
 
-                        if (!string.IsNullOrWhiteSpace(lineDesc) && 
-                            (string.Equals(lineDesc, resolvedAccName, StringComparison.OrdinalIgnoreCase) ||
-                             resolvedAccName.IndexOf(lineDesc, StringComparison.OrdinalIgnoreCase) >= 0))
+                        if (string.IsNullOrWhiteSpace(lineDesc))
                         {
-                            lineDesc = string.Empty;
+                            lineDesc = resolvedAccName;
                         }
 
                         DateTime? resolvedChequeDate = d.ChequeDate;

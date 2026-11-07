@@ -410,34 +410,7 @@ namespace GCTL.Service.OFRAdjustApproval
 
                 await _repository.CommitTransactionAsync();
 
-                // Trigger Adjust Approval Voucher Posting
-                string jobNo = entry?.JobNo;
-                if (!string.IsNullOrEmpty(jobNo) && _dbConnection != null)
-                {
-                    try
-                    {
-                        var parameters = new DynamicParameters();
-                        parameters.Add("@JobNo", jobNo, DbType.String);
-                        parameters.Add("@LUser", Approveduser ?? "admin", DbType.String);
-
-                        if (_dbConnection.State != ConnectionState.Open)
-                        {
-                            _dbConnection.Open();
-                        }
-
-                        await _dbConnection.ExecuteAsync(
-                            "dbo.VoucherEntryforAdjustApprovalF",
-                            parameters,
-                            commandType: CommandType.StoredProcedure,
-                            commandTimeout: 120
-                        );
-                        GCTL.Service.Finance.VoucherEntry.VoucherEntryService.InvalidateSummaryCache();
-                    }
-                    catch (Exception vEx)
-                    {
-                        Console.WriteLine($"[OFRAdjustApproval] Adjust Voucher generation failed for Job {jobNo}: {vEx.Message}");
-                    }
-                }
+
                 return true;
             }
             catch (Exception ex)
