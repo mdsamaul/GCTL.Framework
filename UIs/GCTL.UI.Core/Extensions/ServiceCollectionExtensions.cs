@@ -301,6 +301,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.ISubControlLedgerService, GCTL.Service.Finance.ChartOfAccounts.SubControlLedgerService>();
             services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.ISubSubsidiaryLedgerService, GCTL.Service.Finance.ChartOfAccounts.SubSubsidiaryLedgerService>();
             services.AddScoped<GCTL.Service.Finance.ChartOfAccounts.IGeneralLedgerService, GCTL.Service.Finance.ChartOfAccounts.GeneralLedgerService>();
+            services.AddScoped<GCTL.Service.Finance.VoucherApproval.IVoucherApprovalService, GCTL.Service.Finance.VoucherApproval.VoucherApprovalService>();
             services.AddScoped<GCTL.Service.Finance.VoucherEntry.IVoucherEntryService, GCTL.Service.Finance.VoucherEntry.VoucherEntryService>();
             services.AddScoped<GCTL.Service.Finance.OpeningBalance.IOpeningBalanceService, GCTL.Service.Finance.OpeningBalance.OpeningBalanceService>();
             services.AddScoped<GCTL.Service.Finance.ChartOfAccountsReports.IChartOfAccountsReportsService, GCTL.Service.Finance.ChartOfAccountsReports.ChartOfAccountsReportsService>();

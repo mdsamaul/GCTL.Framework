@@ -1,0 +1,487 @@
+@model GCTL.Core.ViewModels.Finance.VoucherApproval.VoucherApprovalPageVM
+
+@{
+    ViewData["Title"] = "Voucher Approval Entry";
+    Layout = "_Layout";
+}
+
+<style>
+    :root {
+        --primary: #0056b3;
+        --secondary: #003366;
+        --bg-frost: #f4f7f9;
+        --white: #ffffff;
+        --border: #e0e6ed;
+        --text-main: #334155;
+    }
+
+    .voucher-approval-page {
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        color: var(--text-main);
+        padding: 4px 6px 25px 6px;
+    }
+
+    /* Top Stats Grid (4 KPI Cards Matching OFRReport / GPAnalysisReport) */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 10px 14px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        border-bottom: 3px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        user-select: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+
+    .stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        font-size: 1.1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+    }
+
+    .stat-info h3 {
+        font-size: 0.72rem;
+        color: #64748b;
+        text-transform: uppercase;
+        margin: 0 0 2px 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-info p {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+        line-height: 1.1;
+    }
+
+    /* Filter Section - Matching OFRReport */
+    .filter-section {
+        background: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        font-weight: 700;
+        color: var(--secondary);
+        font-size: 0.82rem;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+        margin-right: 4px;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex: 1 1 auto;
+        min-width: 0 !important;
+    }
+
+    .filter-group label {
+        font-size: 0.76rem;
+        font-weight: 600;
+        white-space: nowrap;
+        color: #475569;
+        margin: 0;
+        flex-shrink: 0;
+    }
+
+    .filter-group input.form-control,
+    .filter-group select.form-select,
+    .filter-group input.flatpickr-alt-input {
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 4px 10px !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 4px !important;
+        font-size: 0.78rem !important;
+        outline: none;
+        background-color: #ffffff;
+        color: var(--text-main);
+        height: 31px !important;
+    }
+
+    /* Flatpickr Calendar Icon */
+    .filter-group input.custom-datepicker,
+    .filter-group input.flatpickr-alt-input,
+    .filter-group input.caiCon,
+    .filter-group input[type="date"] {
+        background-image: url('/images/icons/calender.svg') !important;
+        background-repeat: no-repeat !important;
+        background-position: right 8px center !important;
+        background-size: 15px 15px !important;
+        padding-right: 28px !important;
+        cursor: pointer;
+    }
+
+    .filter-group-customer {
+        flex: 1.6 1 180px;
+        min-width: 160px;
+    }
+    .filter-group-date {
+        flex: 0.9 1 125px;
+        min-width: 115px;
+    }
+    .filter-group-status {
+        flex: 1.2 1 150px;
+        min-width: 135px;
+    }
+
+    /* Action Buttons */
+    .btn-approved-top {
+        background-color: #1a8754;
+        color: #fff;
+        border: 1px solid #146c43;
+        font-weight: 600;
+        font-size: 12px;
+        height: 31px;
+        padding: 0 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+    .btn-approved-top:hover {
+        background-color: #157347;
+        color: #fff;
+    }
+
+    .btn-preview-top {
+        background: linear-gradient(to bottom, #f3f3f3, #e2e2e2);
+        color: #222;
+        border: 1px solid #c2c2c2;
+        font-weight: 600;
+        font-size: 12px;
+        height: 31px;
+        padding: 0 18px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+    .btn-preview-top:hover {
+        background: #dadada;
+    }
+
+    .btn-refresh-top {
+        background: #ffffff;
+        color: #475569;
+        border: 1px solid var(--border);
+        font-size: 13px;
+        height: 31px;
+        width: 32px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-refresh-top:hover {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-disapproved-top {
+        background-color: #e60000;
+        color: #fff;
+        border: 1px solid #b30000;
+        font-weight: 600;
+        font-size: 12px;
+        height: 31px;
+        padding: 0 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+    .btn-disapproved-top:hover {
+        background-color: #cc0000;
+        color: #fff;
+    }
+
+    /* Grid Wrapper Card - Exactly Matching OFRReport */
+    .job-grid-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        border: 1px solid var(--border);
+        padding: 10px 12px;
+        width: 100%;
+        overflow-x: hidden !important; /* No horizontal scroll on desktop/laptop */
+    }
+
+    .table-responsive {
+        width: 100% !important;
+        overflow-x: hidden !important; /* Prevent horizontal scroll */
+        margin: 0 !important;
+    }
+
+    /* Table styling perfectly fitting 100% width without horizontal scrolling */
+    #tblVoucherApproval {
+        width: 100% !important;
+        margin-bottom: 0;
+        border-collapse: collapse !important;
+        font-size: 10.5px !important;
+        table-layout: fixed !important; /* Table layout fixed prevents horizontal overflow */
+    }
+
+    #tblVoucherApproval thead th {
+        vertical-align: middle !important;
+        text-align: center !important;
+        padding: 4px 2px !important;
+        font-size: 10.5px !important;
+        line-height: 1.15 !important;
+        border: 1px solid #c2c9d1 !important;
+        font-weight: 600;
+        background-color: #f1f5f9 !important;
+        color: #1e293b !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    #tblVoucherApproval tbody td {
+        padding: 3.5px 3px !important;
+        font-size: 10.5px !important;
+        line-height: 1.25 !important;
+        border: 1px solid #e2e8f0 !important;
+        vertical-align: middle;
+        word-break: break-word;
+        color: #333;
+    }
+
+    #tblVoucherApproval tbody td.col-narration {
+        white-space: normal !important;
+        word-break: break-word !important;
+        line-height: 1.25 !important;
+        text-align: left !important;
+    }
+
+    #tblVoucherApproval tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    /* Column Specific Styles */
+    .col-voucher-no {
+        color: #0b5ed7 !important;
+        font-weight: 700;
+        text-decoration: underline;
+        cursor: pointer;
+        word-break: break-all;
+    }
+    .col-amount {
+        text-align: right !important;
+        font-weight: 600;
+        white-space: nowrap !important;
+    }
+    .col-print {
+        color: #0b5ed7 !important;
+        font-weight: 700;
+        text-decoration: underline;
+        cursor: pointer;
+        text-align: center;
+        white-space: nowrap !important;
+    }
+
+    /* Datatable Controls */
+    div.dt-container .dt-search input,
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 3px 8px;
+        font-size: 11.5px;
+        height: 28px;
+        outline: none;
+    }
+    .dataTables_info,
+    div.dt-container .dt-info {
+        font-size: 11.5px;
+        padding: 6px 4px;
+        color: #64748b;
+    }
+</style>
+
+<div class="voucher-approval-page">
+    <!-- Top Dashboard KPI Cards -->
+    <div class="stats-grid">
+        <div class="stat-card" style="border-color: #0056b3;">
+            <div class="stat-icon" style="background: #0056b3;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div class="stat-info">
+                <h3>Total Vouchers</h3>
+                <p id="statTotalVouchers">0</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-color: #0288d1;">
+            <div class="stat-icon" style="background: #0288d1;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div class="stat-info">
+                <h3>Total Amount</h3>
+                <p id="statTotalAmount">0.00</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-color: #ed6c02;">
+            <div class="stat-icon" style="background: #ed6c02;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div class="stat-info">
+                <h3>Pending Approval</h3>
+                <p id="statPendingApproval">0</p>
+            </div>
+        </div>
+
+        <div class="stat-card" style="border-color: #2e7d32;">
+            <div class="stat-icon" style="background: #2e7d32;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="stat-info">
+                <h3>Approved Vouchers</h3>
+                <p id="statApprovedVouchers">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar (One Line Design) -->
+    <div class="filter-section">
+        <!-- Filter Label with Icon -->
+        <span class="filter-label"><i class="fas fa-filter"></i> Filter By:</span>
+
+        <!-- Approved Action Button -->
+        <div class="me-1">
+            <button type="button" class="btn-approved-top" id="btnApproved">Approved</button>
+        </div>
+
+        <!-- Customer Dropdown (Select2 custom-select-single) -->
+        <div class="filter-group filter-group-customer">
+            <select id="filterCustomerId" class="form-select form-select-sm custom-select-single" data-placeholder="-- Select Customer Name --">
+                <option value="">-- Select Customer Name --</option>
+                @foreach (var c in Model.Customers)
+                {
+                    <option value="@c.Code">@c.Name</option>
+                }
+            </select>
+        </div>
+
+        <!-- From Date (flatpickr custom-datepicker caiCon) -->
+        <div class="filter-group filter-group-date">
+            <label for="filterFromDate">From</label>
+            <input type="text" id="filterFromDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("01/MM/yyyy")" data-default-date="@DateTime.Now.ToString("01/MM/yyyy")" data-max-date="@DateTime.Now.ToString("yyyy-MM-dd")" />
+        </div>
+
+        <!-- To Date (flatpickr custom-datepicker caiCon) -->
+        <div class="filter-group filter-group-date">
+            <label for="filterToDate">To</label>
+            <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" placeholder="DD/MM/YYYY" autocomplete="off" value="@DateTime.Now.ToString("dd/MM/yyyy")" data-default-date="@DateTime.Now.ToString("dd/MM/yyyy")" />
+        </div>
+
+        <!-- Voucher Status (Select2 custom-select-single) -->
+        <div class="filter-group filter-group-status">
+            <select id="filterStatus" class="form-select form-select-sm custom-select-single" data-placeholder="Voucher Status">
+                <option value="Not Approved" selected>Not Approved</option>
+                <option value="Approved">Approved</option>
+                <option value="Disapproved">Disapproved</option>
+                <option value="All">All</option>
+            </select>
+        </div>
+
+        <!-- Refresh Button (Left of Preview) -->
+        <div>
+            <button type="button" class="btn-refresh-top" id="btnRefresh" title="Refresh Data">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+
+        <!-- Preview Button -->
+        <div>
+            <button type="button" class="btn-preview-top" id="btnPreview">Preview</button>
+        </div>
+
+        <!-- Disapproved Action Button -->
+        <div>
+            <button type="button" class="btn-disapproved-top" id="btnDisapproved">Disapproved</button>
+        </div>
+    </div>
+
+    <!-- Grid Container Perfectly Fitting 100% Width (.job-grid-card) -->
+    <div class="job-grid-card">
+        <div class="table-responsive">
+            <table id="tblVoucherApproval" class="table table-bordered table-hover w-100">
+                <thead>
+                    <tr>
+                        <th style="width: 25px;">
+                            <input type="checkbox" id="chkSelectAll" />
+                        </th>
+                        <th style="width: 80px;">Voucher No</th>
+                        <th style="width: 65px;">Date</th>
+                        <th style="width: 22%;">Narration</th>
+                        <th style="width: 90px;">Branch</th>
+                        <th style="width: 75px;">Amount</th>
+                        <th style="width: 90px;">Job No</th>
+                        <th style="width: 60px;">HAWB</th>
+                        <th style="width: 65px;">BE No</th>
+                        <th style="width: 70px;">Status</th>
+                        <th style="width: 65px;">Approved By</th>
+                        <th style="width: 65px;">App. Date</th>
+                        <th style="width: 38px;">Print</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("~/Views/VoucherEntry/_ViewModal.cshtml")
+
+@section Scripts {
+    <script src="~/js/pages/finance/voucherApproval.js"></script>
+}
