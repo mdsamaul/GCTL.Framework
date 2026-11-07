@@ -1,3 +1,5 @@
+using System.Data;
+using Dapper;
 
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
@@ -29,8 +31,9 @@ namespace GCTL.Service.OperationalFund
         private readonly IRepository<CfDefExpenseType> _shipmentmode;
         private readonly IRepository<SalesCustomer> _customer;
         private readonly IRepository<CaDefCurrency> _currencies;
+        private readonly IDbConnection? _dbConnection;
 
-        public OperationalService(IRepository<Sep_Documentation> genericRepository,/* IUserInfoService userInfoService, */IRepository<CfOperationalFundRequisitionEntry> repository, IRepository<CfDefExpenseHead> accountsHead, IRepository<Core_ServiceType> serviceType, IRepository<CfDefExpenseType> shipmentmode, IRepository<SalesCustomer> customer, IRepository<CaDefCurrency> currencies, IRepository<CfOperationalFundRequisitionDetail> details, IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails) : base(repository)
+        public OperationalService(IRepository<Sep_Documentation> genericRepository,/* IUserInfoService userInfoService, */IRepository<CfOperationalFundRequisitionEntry> repository, IRepository<CfDefExpenseHead> accountsHead, IRepository<Core_ServiceType> serviceType, IRepository<CfDefExpenseType> shipmentmode, IRepository<SalesCustomer> customer, IRepository<CaDefCurrency> currencies, IRepository<CfOperationalFundRequisitionDetail> details, IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails, IDbConnection? dbConnection = null) : base(repository)
         {
             /*_userInfoService = userInfoService;*/
             _repository = repository;
@@ -42,6 +45,7 @@ namespace GCTL.Service.OperationalFund
             _currencies = currencies;
             _details = details;
             _Tmpdetails = tmpdetails;
+            _dbConnection = dbConnection;
         }
 
         #endregion
@@ -817,6 +821,35 @@ namespace GCTL.Service.OperationalFund
                 //Delete Tmp Details
                 await _Tmpdetails.DeleteRangeAsync(tmpDetails);
                 await _repository.CommitTransactionAsync();
+
+                // Trigger Requisition Voucher Posting (Pending Approval)
+                string jobNo = model.JobNo;
+                if (!string.IsNullOrEmpty(jobNo) && _dbConnection != null)
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@JobNo", jobNo, DbType.String);
+                        parameters.Add("@LUser", model.Luser ?? "admin", DbType.String);
+
+                        if (_dbConnection.State != ConnectionState.Open)
+                        {
+                            _dbConnection.Open();
+                        }
+
+                        await _dbConnection.ExecuteAsync(
+                            "dbo.VoucherEntryForOperationalFundRequisitionApprovalF",
+                            parameters,
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: 120
+                        );
+                        GCTL.Service.Finance.VoucherEntry.VoucherEntryService.InvalidateSummaryCache();
+                    }
+                    catch (Exception vEx)
+                    {
+                        Console.WriteLine($"[OperationFund] Voucher generation failed for Job {jobNo}: {vEx.Message}");
+                    }
+                }
                 return true;
             }
             catch (Exception ex)

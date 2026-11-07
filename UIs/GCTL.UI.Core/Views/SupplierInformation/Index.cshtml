@@ -253,8 +253,11 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/pages/supplierInformation.js"></script>
+    <script src="~/js/pages/supplierInformation.js" asp-append-version="true"></script>
     <script type="text/javascript">
+        window.loadCP = window.loadCP || function () { };
+        window.updateCheckAllState = window.updateCheckAllState || function () { };
+        window.updateSelectedIds = window.updateSelectedIds || function () { };
         var options = {
             baseUrl: '@Url.Action("", "SupplierInformation")'
         };

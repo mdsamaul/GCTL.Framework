@@ -1,3 +1,5 @@
+using System.Data;
+using Dapper;
 
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
@@ -26,6 +28,7 @@ namespace GCTL.Service.OFRBillAdjust
         private readonly IRepository<Core_ServiceType> _serviceType;
         private readonly IRepository<AccGeneralLedger> _generalLedger;
         private readonly IRepository<Sep_Documentation> _sepDocumentation;
+        private readonly IDbConnection? _dbConnection;
 
 
         public OFRBillAdjustService
@@ -41,7 +44,8 @@ namespace GCTL.Service.OFRBillAdjust
                 IRepository<Core_ServiceType> serviceType,
                 IRepository<CfOperationalFundRequisitionDetailsTemp> tmpdetails,
                 IRepository<AccGeneralLedger> generalLedger,
-                IRepository<Sep_Documentation> sepDocumentation
+                IRepository<Sep_Documentation> sepDocumentation,
+                IDbConnection? dbConnection = null
             ) : base(genericRepository)
         {
             //_userInfoService = userInfoService;
@@ -55,6 +59,7 @@ namespace GCTL.Service.OFRBillAdjust
             _Tmpdetails = tmpdetails;
             _generalLedger = generalLedger;
             _sepDocumentation = sepDocumentation;
+            _dbConnection = dbConnection;
         }
         #endregion
 
@@ -264,26 +269,28 @@ namespace GCTL.Service.OFRBillAdjust
                 // ENTRY (HEADER)
                 var entry = await _repository.All().FirstOrDefaultAsync(x => x.Ofrno == ofrNo);
 
-                bool isFirstApproval = false;
+                // DETAILS (BATCH LOAD & UPDATE)
+                var detailsList = await _details.All()
+                    .Where(x => x.Ofrno == ofrNo)
+                    .ToListAsync();
 
-                // DETAILS
-                foreach (var item in model)
+                var modelMap = model.Where(x => !string.IsNullOrEmpty(x.OFR_DetailsID))
+                                    .ToDictionary(x => x.OFR_DetailsID);
+
+                foreach (var details in detailsList)
                 {
-                    var details = await _details.All().FirstOrDefaultAsync(x => x.OfrDetailsId == item.OFR_DetailsID);
-
-                    if (details != null)
+                    if (modelMap.TryGetValue(details.OfrDetailsId, out var item))
                     {
-                        //Check first time approval
-                        if (details.BillAdjustAmount == 0.00m)
-                        {
-                            isFirstApproval = true;
-                        }
-
                         details.BillAdjustAmount = item.AdjustAmount;
                         details.DifferentAmount = item.DifferentAmount;
-
-                        await _details.UpdateAsync(details);
                     }
+                    details.AdjustUser = Approveduser;
+                    details.ModifyDate = DateTime.Now;
+                }
+
+                if (detailsList.Any())
+                {
+                    await _details.UpdateRangeAsync(detailsList);
                 }
 
                 // ENTRY UPDATE
@@ -294,19 +301,7 @@ namespace GCTL.Service.OFRBillAdjust
                     entry.AsycodaCharge = firstItem.AsycodaCharge;
                     entry.DutyByChallanCharge = firstItem.DutyChalanCharge;
                     entry.ShippingCharge = firstItem.ShipingCharge;
-
-                    if (isFirstApproval && entry.BillAdjustApproveDate == null)
-                    {
-
-                        //First time approve
-                        entry.BillAdjustApprovalUser = Approveduser;
-                        entry.BillAdjustApproveDate = DateTime.Now;
-                    }
-                    else
-                    {
-                        //Modify approve
-                        entry.BillAdjustApproveModifyDate = DateTime.Now;
-                    }
+                    entry.ModifyDate = DateTime.Now;
 
                     await _repository.UpdateAsync(entry);
                 }
@@ -315,12 +310,38 @@ namespace GCTL.Service.OFRBillAdjust
 
                 if (tmpToDelete.Any())
                 {
-                    foreach (var tmp in tmpToDelete)
-                    {
-                        await _Tmpdetails.DeleteAsync(tmp.Tc);
-                    }
+                    await _Tmpdetails.DeleteRangeAsync(tmpToDelete);
                 }
                 await _repository.CommitTransactionAsync();
+
+                // Trigger Adjust Voucher Posting (Pending Approval)
+                string jobNo = entry?.JobNo;
+                if (!string.IsNullOrEmpty(jobNo) && _dbConnection != null)
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+                        parameters.Add("@JobNo", jobNo, DbType.String);
+                        parameters.Add("@LUser", Approveduser ?? "admin", DbType.String);
+
+                        if (_dbConnection.State != ConnectionState.Open)
+                        {
+                            _dbConnection.Open();
+                        }
+
+                        await _dbConnection.ExecuteAsync(
+                            "dbo.VoucherEntryforAdjustApprovalF",
+                            parameters,
+                            commandType: CommandType.StoredProcedure,
+                            commandTimeout: 120
+                        );
+                        GCTL.Service.Finance.VoucherEntry.VoucherEntryService.InvalidateSummaryCache();
+                    }
+                    catch (Exception vEx)
+                    {
+                        Console.WriteLine($"[OFRBillAdjust] Adjust Voucher generation failed for Job {jobNo}: {vEx.Message}");
+                    }
+                }
                 return true;
             }
             catch (Exception ex)
@@ -345,8 +366,7 @@ namespace GCTL.Service.OFRBillAdjust
                         join exp in _shipmentmode.All().AsNoTracking()
                             on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
                         from exp in shipG.DefaultIfEmpty()
-                        where _details.All().Any(det => det.Ofrno == main.Ofrno)
-                              && !_details.All().Any(det => det.Ofrno == main.Ofrno && (string.IsNullOrEmpty(det.AdjustUser) || det.AdjustUser == ""))
+                        where _details.All().Any(det => det.JobNo == main.JobNo && !string.IsNullOrEmpty(det.AdjustUser))
                         select new OFRBillAdjustBottomGridVM
                         {
                             TC = main.Tc,
@@ -385,8 +405,9 @@ namespace GCTL.Service.OFRBillAdjust
                             on main.ExpenseTypeId equals exp.ExpenseTypeId into shipG
                         from exp in shipG.DefaultIfEmpty()
 
-                        where _details.All().Any(det => det.Ofrno == main.Ofrno
-                                                    && (string.IsNullOrEmpty(det.AdjustUser) || det.AdjustUser == ""))
+                        where !string.IsNullOrEmpty(main.ApprovedUser)
+                              && string.IsNullOrEmpty(main.BillAdjustApprovalUser)
+                              && !_details.All().Any(det => det.JobNo == main.JobNo && !string.IsNullOrEmpty(det.AdjustUser))
 
                         select new OFRApprovalTopGridVM
                         {

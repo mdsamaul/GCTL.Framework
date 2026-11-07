@@ -425,25 +425,25 @@ $(document).ready(function () {
         const code = $(this).data('code') || $(this).attr('data-code');
         if (!code) return;
 
-        if (!confirm(`Delete ledger ${code}?`)) return;
-
-        $.ajax({
-            url: '/SubSubsidiaryLedger/SoftDelete',
-            type: 'POST',
-            data: { Codes: [code] },
-            success: function (res) {
-                if (res.success) {
-                    if (typeof toastr !== 'undefined') toastr.success(res.message);
-                    loadTableData();
-                    if (typeof window.loadCoaGlobalStats === 'function') window.loadCoaGlobalStats();
-                } else {
-                    if (typeof toastr !== 'undefined') toastr.error(res.message);
+        showDeleteModal(function () {
+            $.ajax({
+                url: '/SubSubsidiaryLedger/SoftDelete',
+                type: 'POST',
+                data: { Codes: [code] },
+                success: function (res) {
+                    if (res.success) {
+                        if (typeof toastr !== 'undefined') toastr.success(res.message);
+                        loadTableData();
+                        if (typeof window.loadCoaGlobalStats === 'function') window.loadCoaGlobalStats();
+                    } else {
+                        if (typeof toastr !== 'undefined') toastr.error(res.message);
+                    }
+                },
+                error: function (err) {
+                    if (typeof toastr !== 'undefined') toastr.error("Server error: " + err.responseText);
                 }
-            },
-            error: function (err) {
-                if (typeof toastr !== 'undefined') toastr.error("Server error: " + err.responseText);
-            }
-        });
+            });
+        }, `Are you sure you want to delete ledger ${code}? This process cannot be undone.`);
     });
 
     // Table controls

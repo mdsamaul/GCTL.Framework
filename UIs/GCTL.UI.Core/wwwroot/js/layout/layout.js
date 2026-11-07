@@ -1,12 +1,33 @@
 console.log("layout.js loaded, handleApiResponse type:", typeof handleApiResponse);
-function showDeleteModal(deleteCallback) {
-    // Show the modal
-    $('#confirmDeleteModal').modal('show');
+function showDeleteModal(deleteCallback, message) {
+    var $modal = $('#confirmDeleteModal');
+    if (!$modal.length && typeof window.GcDelete !== 'undefined' && typeof window.GcDelete.confirm === 'function') {
+        window.GcDelete.confirm(message, deleteCallback);
+        return;
+    }
+    if ($modal.length) {
+        if (message) {
+            $modal.find('#confirmDeleteMessage, .title').text(message);
+        }
+        $('#confirmDeleteBtn').off('click').on('click', function () {
+            if (typeof deleteCallback === 'function') {
+                deleteCallback();
+            }
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var inst = bootstrap.Modal.getInstance($modal[0]);
+                if (inst) inst.hide();
+                else $modal.modal('hide');
+            } else if (typeof $modal.modal === 'function') {
+                $modal.modal('hide');
+            }
+        });
 
-    $('#confirmDeleteBtn').off('click').on('click', function () {
-        deleteCallback();
-        $('#confirmDeleteModal').modal('hide');
-    });
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance($modal[0]).show();
+        } else if (typeof $modal.modal === 'function') {
+            $modal.modal('show');
+        }
+    }
 };
 
 $(function () {

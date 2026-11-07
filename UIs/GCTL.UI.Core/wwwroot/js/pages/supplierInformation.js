@@ -172,13 +172,24 @@
                         if (response.isSuccess) {
                             toastr.success(response.message);
                             // Refresh table
-                            loadTable();
-                            loadCP();
-                            ResetForm();
-                            loadSNCId();
-                            ResetBankAccountInfoForm();
-                            loadBankAccountInfoTable();
-
+                            if (typeof loadTable === 'function') {
+                                loadTable();
+                            }
+                            if (typeof loadContactPersonsTable === 'function') {
+                                loadContactPersonsTable();
+                            }
+                            if (typeof ResetForm === 'function') {
+                                ResetForm();
+                            }
+                            if (typeof loadSNCId === 'function') {
+                                loadSNCId();
+                            }
+                            if (typeof ResetBankAccountInfoForm === 'function') {
+                                ResetBankAccountInfoForm();
+                            }
+                            if (typeof loadBankAccountInfoTable === 'function') {
+                                loadBankAccountInfoTable();
+                            }
                         } else {
                             toastr.warning(response.message || "Save failed");
                         }
@@ -197,6 +208,24 @@
 
             //#region selectAllSelector deleteSelector
 
+            function updateSelectedIds() {
+                $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`).each(function () {
+                    const id = $(this).data('id') || $(this).val();
+                    if ($(this).is(':checked')) {
+                        if (id) selectedItems.add(id);
+                    } else {
+                        if (id) selectedItems.delete(id);
+                    }
+                });
+            }
+
+            function updateCheckAllState() {
+                const $checkboxes = $(`${settings.gridSelector} tbody input[type="checkbox"].checkBox`);
+                const total = $checkboxes.length;
+                const checked = $checkboxes.filter(':checked').length;
+                $('#SupplierInformation-check-all').prop('checked', total > 0 && total === checked);
+            }
+
             $(document).on('change', '#SupplierInformation-check-all', function () {
                 const isChecked = $(this).is(':checked');
 
@@ -207,9 +236,9 @@
             $(document).on('change', `${settings.gridSelector} tbody input[type="checkbox"].checkBox`, function () {
                 const id = $(this).data('id') || $(this).val();
                 if ($(this).is(':checked')) {
-                    selectedItems.add(id);
+                    if (id) selectedItems.add(id);
                 } else {
-                    selectedItems.delete(id);
+                    if (id) selectedItems.delete(id);
                 }
                 updateCheckAllState();
             });
@@ -351,10 +380,7 @@
 
             // Select ContactPerson
             if (title === "Contact Person Info") {
-
-                if (typeof loadCP === 'function') {
-                    loadCP();
-                }
+                loadContactPersonsTable();
                 return;
             }
 
@@ -703,6 +729,15 @@
         //#endregion
 
         //#region Contact Person Table Dropdown
+
+        function loadCP() {
+            if (typeof loadContactPersonsTable === 'function') {
+                loadContactPersonsTable();
+            }
+        }
+        window.loadCP = loadCP;
+        window.updateCheckAllState = updateCheckAllState;
+        window.updateSelectedIds = updateSelectedIds;
 
         function loadContactPersonsTable() {
             $.ajax({

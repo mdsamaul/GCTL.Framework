@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Data.SqlClient;
+using Dapper;
 using GCTL.Core.Data;
 using GCTL.Core.DataTables;
 using GCTL.Core.ViewModels;
@@ -34,6 +37,7 @@ namespace GCTL.Service.SupplierInformation
         private readonly IRepository<SalesSupplierBankAccountTemp> salesSupplierBankAccountTempRepo;
         private readonly IRepository<SalesSupplierBankAccount> salesSupplierBankAccountRepo;
         private readonly IRepository<HrmDefDesignation> desiRepo;
+        private readonly IConfiguration? _configuration;
         string strMaxNO = string.Empty;
 
         private const string TableName = "RMG_Def_Supplier";
@@ -57,8 +61,8 @@ namespace GCTL.Service.SupplierInformation
             IRepository<InvDefSalesPerson> invDefSalesPersonRepository,
             IRepository<SalesSupplierBankAccountTemp> salesSupplierBankAccountTempRepo,
             IRepository<SalesSupplierBankAccount> salesSupplierBankAccountRepo,
-            IRepository<HrmDefDesignation> desiRepo
-
+            IRepository<HrmDefDesignation> desiRepo,
+            IConfiguration? configuration = null
             ) 
             
     : base(supplierInformationRepository)
@@ -79,6 +83,7 @@ namespace GCTL.Service.SupplierInformation
             this.salesSupplierBankAccountTempRepo = salesSupplierBankAccountTempRepo;
             this.salesSupplierBankAccountRepo = salesSupplierBankAccountRepo;
             this.desiRepo = desiRepo;
+            this._configuration = configuration;
         }
 
         #endregion
@@ -488,6 +493,7 @@ namespace GCTL.Service.SupplierInformation
 
                 await supplierInformationRepository.AddAsync(newEntity);
                 await supplierInformationRepository.CommitTransactionAsync();
+                await EnsureSupplierGeneralLedgerAsync(entityVM);
                 return true;
             }
             catch (Exception ex)
@@ -615,6 +621,7 @@ namespace GCTL.Service.SupplierInformation
 
                 await supplierInformationRepository.UpdateAsync(entity);
                 await supplierInformationRepository.CommitTransactionAsync();
+                await EnsureSupplierGeneralLedgerAsync(entityVM);
                 return true;
             }
             catch (Exception ex)
@@ -654,6 +661,24 @@ namespace GCTL.Service.SupplierInformation
             }
 
             supplierInformationRepository.Delete(entity);
+
+            try
+            {
+                var connStr = _configuration?.GetConnectionString("connection")
+                    ?? _configuration?.GetConnectionString("DefaultConnection")
+                    ?? "Server=192.168.0.221,1433;Database=GCTL_ERP_DB_Copy;User Id=sa;Password=GCTL#123;TrustServerCertificate=True;";
+                using var connection = new SqlConnection(connStr);
+                await connection.ExecuteAsync(
+                    @"UPDATE Acc_GeneralLedger 
+                      SET IsActive = '0', ModifyDate = GETDATE() 
+                      WHERE SubsidiaryLedgerCodeNo = '20300100001' 
+                        AND GeneralLedgerName IN @Ids",
+                    new { Ids = ids });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deactivating supplier ledger: {ex}");
+            }
 
             return true;
         }
@@ -907,5 +932,108 @@ namespace GCTL.Service.SupplierInformation
 
         #endregion
 
+
+#region Ensure Supplier General Ledger
+        private async Task EnsureSupplierGeneralLedgerAsync(SupplierInformationSetupViewModel supplier)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(supplier?.SupplierId)) return;
+
+                var connStr = _configuration?.GetConnectionString("connection")
+                    ?? _configuration?.GetConnectionString("DefaultConnection")
+                    ?? "Server=192.168.0.221,1433;Database=GCTL_ERP_DB_Copy;User Id=sa;Password=GCTL#123;TrustServerCertificate=True;";
+
+                using var connection = new SqlConnection(connStr);
+                await connection.OpenAsync();
+
+                string supplierId = supplier.SupplierId.Trim();
+                string shortName = supplier.SupplierCode?.Trim() ?? string.Empty;
+                decimal openingBal = supplier.OpeningBalance ?? 0m;
+                string opType = string.IsNullOrWhiteSpace(supplier.Optype) ? "CR" : supplier.Optype.Trim();
+                string luser = string.IsNullOrWhiteSpace(supplier.Luser) ? "admin" : supplier.Luser.Trim();
+
+                var existingCode = await connection.QueryFirstOrDefaultAsync<string>(
+                    @"SELECT TOP 1 GeneralLedgerCodeNo 
+                      FROM Acc_GeneralLedger 
+                      WHERE SubsidiaryLedgerCodeNo = '20300100001' 
+                        AND (GeneralLedgerName = @SupplierId OR GeneralLedgerName LIKE '%(' + @SupplierId + ')')",
+                    new { SupplierId = supplierId });
+
+                if (string.IsNullOrEmpty(existingCode))
+                {
+                    var nextSeq = await connection.ExecuteScalarAsync<int>(
+                        @"SELECT ISNULL(MAX(TRY_CAST(RIGHT(GeneralLedgerCodeNo, 5) AS INT)), 0) + 1 
+                          FROM Acc_GeneralLedger 
+                          WHERE SubsidiaryLedgerCodeNo = '20300100001'");
+
+                    string nextCode = $"20300100001{nextSeq:D5}";
+
+                    await connection.ExecuteAsync(
+                        @"INSERT INTO Acc_GeneralLedger (
+                            GroupLedgerCodeNo,
+                            ControlLedgerCodeNo,
+                            SubControlLedgerCodeNo,
+                            SubsidiaryLedgerCodeNo,
+                            GeneralLedgerCodeNo,
+                            GeneralLedgerName,
+                            ShortName,
+                            OpeningBalance,
+                            TrType,
+                            OpeningDate,
+                            IsActive,
+                            Luser,
+                            Ldate
+                        ) VALUES (
+                            '2',
+                            '203',
+                            '203001',
+                            '20300100001',
+                            @GeneralLedgerCodeNo,
+                            @GeneralLedgerName,
+                            @ShortName,
+                            @OpeningBalance,
+                            @TrType,
+                            GETDATE(),
+                            '1',
+                            @Luser,
+                            GETDATE()
+                        )",
+                        new
+                        {
+                            GeneralLedgerCodeNo = nextCode,
+                            GeneralLedgerName = supplierId,
+                            ShortName = shortName,
+                            OpeningBalance = openingBal,
+                            TrType = opType,
+                            Luser = luser
+                        });
+                }
+                else
+                {
+                    await connection.ExecuteAsync(
+                        @"UPDATE Acc_GeneralLedger 
+                          SET GeneralLedgerName = @SupplierId,
+                              ShortName = @ShortName,
+                              OpeningBalance = @OpeningBalance,
+                              TrType = @TrType,
+                              ModifyDate = GETDATE()
+                          WHERE GeneralLedgerCodeNo = @Code",
+                        new
+                        {
+                            SupplierId = supplierId,
+                            ShortName = shortName,
+                            OpeningBalance = openingBal,
+                            TrType = opType,
+                            Code = existingCode
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error EnsureSupplierGeneralLedgerAsync: {ex}");
+            }
+        }
+        #endregion
     }
 }

@@ -200,6 +200,28 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     }
                 }
 
+                var expRawIds = pagedEntities
+                    .Where(x => !string.IsNullOrEmpty(x.GeneralLedgerName) && !x.GeneralLedgerName.Contains("(") && int.TryParse(x.GeneralLedgerName.Trim(), out _))
+                    .Select(x => x.GeneralLedgerName.Trim())
+                    .Distinct()
+                    .ToList();
+
+                Dictionary<string, (string Name, string? Short)> expMap = new(StringComparer.OrdinalIgnoreCase);
+                if (expRawIds.Count > 0)
+                {
+                    var exps = await context.CfDefExpenseHeads.AsNoTracking()
+                        .Where(e => expRawIds.Contains(e.ExpenseHeadId))
+                        .Select(e => new { e.ExpenseHeadId, e.ExpenseHead, e.ShortName })
+                        .ToListAsync();
+                    foreach (var e in exps)
+                    {
+                        if (!string.IsNullOrEmpty(e.ExpenseHeadId) && !expMap.ContainsKey(e.ExpenseHeadId))
+                        {
+                            expMap[e.ExpenseHeadId] = (e.ExpenseHead ?? e.ExpenseHeadId, e.ShortName);
+                        }
+                    }
+                }
+
                 var items = pagedEntities.Select(x => {
                     string glName = x.GeneralLedgerName ?? string.Empty;
                     string? shortName = x.ShortName;
@@ -210,6 +232,14 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                         if (string.IsNullOrWhiteSpace(shortName))
                         {
                             shortName = cInfo.Short;
+                        }
+                    }
+                    else if (!glName.Contains("(") && expMap.TryGetValue(glName, out var eInfo))
+                    {
+                        glName = $"{eInfo.Name} ({glName})";
+                        if (string.IsNullOrWhiteSpace(shortName))
+                        {
+                            shortName = eInfo.Short;
                         }
                     }
 
@@ -298,6 +328,61 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                         if (string.IsNullOrWhiteSpace(shortName))
                         {
                             shortName = bank.ShortName;
+                        }
+                    }
+                }
+                else if (!glName.Contains("("))
+                {
+                    var expHead = await context.CfDefExpenseHeads.AsNoTracking()
+                        .FirstOrDefaultAsync(e => e.ExpenseHeadId == glName || (glName.Length <= 4 && e.ExpenseHeadId == glName.PadLeft(3, '0')));
+                    if (expHead != null)
+                    {
+                        glName = $"{expHead.ExpenseHead} ({expHead.ExpenseHeadId})";
+                        if (string.IsNullOrWhiteSpace(shortName))
+                        {
+                            shortName = expHead.ShortName;
+                        }
+                    }
+                    else
+                    {
+                        var cust = await context.SalesCustomers.AsNoTracking()
+                            .FirstOrDefaultAsync(c => c.CustomerId == glName);
+                        if (cust != null)
+                        {
+                            glName = $"{cust.CustomerName} ({cust.CustomerId})";
+                            if (string.IsNullOrWhiteSpace(shortName))
+                            {
+                                shortName = cust.ShortName;
+                            }
+                        }
+                        else
+                        {
+                            var bank = await (from ba in context.CoreBankAccountInformations.AsNoTracking()
+                                              join bi in context.SalesDefBankInfos.AsNoTracking() on ba.BankId equals bi.BankId into biJoin
+                                              from bi in biJoin.DefaultIfEmpty()
+                                              where ba.AccountNo == glName
+                                              select new { ba.AccountName, bi.ShortName }).FirstOrDefaultAsync();
+                            if (bank != null)
+                            {
+                                glName = $"{bank.AccountName} ({glName})";
+                                if (string.IsNullOrWhiteSpace(shortName))
+                                {
+                                    shortName = bank.ShortName;
+                                }
+                            }
+                            else
+                            {
+                                var sup = await context.RmgDefSuppliers.AsNoTracking()
+                                    .FirstOrDefaultAsync(s => s.SupplierId == glName);
+                                if (sup != null)
+                                {
+                                    glName = $"{sup.SupplierName} ({sup.SupplierId})";
+                                    if (string.IsNullOrWhiteSpace(shortName))
+                                    {
+                                        shortName = sup.SupplierCode;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -422,6 +507,58 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                         }
                     }
                 }
+                // Supplier (20300100001) - GeneralLedgerName stores SupplierId
+                else if (model.SubsidiaryLedgerCodeNo == "20300100001")
+                {
+                    var supMatch = Regex.Match(model.GeneralLedgerName, @"\((SUP\d+)\)", RegexOptions.IgnoreCase);
+                    if (supMatch.Success)
+                    {
+                        model.GeneralLedgerName = supMatch.Groups[1].Value.ToUpper();
+                    }
+                    else if (model.GeneralLedgerName.Trim().StartsWith("SUP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim().ToUpper();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(model.ShortName))
+                    {
+                        var sup = await context.RmgDefSuppliers.AsNoTracking()
+                            .FirstOrDefaultAsync(s => s.SupplierId == model.GeneralLedgerName.Trim());
+                        if (sup != null && !string.IsNullOrWhiteSpace(sup.SupplierCode))
+                        {
+                            model.ShortName = sup.SupplierCode;
+                        }
+                    }
+                }
+                else
+                {
+                    var expMatch = Regex.Match(model.GeneralLedgerName, @"\(([0-9]+)\)$");
+                    if (expMatch.Success)
+                    {
+                        var expId = expMatch.Groups[1].Value;
+                        var exists = await context.CfDefExpenseHeads.AsNoTracking().AnyAsync(e => e.ExpenseHeadId == expId || (expId.Length <= 4 && e.ExpenseHeadId == expId.PadLeft(3, '0')));
+                        if (exists)
+                        {
+                            model.GeneralLedgerName = expId.Length <= 3 ? expId.PadLeft(3, '0') : expId;
+                            if (string.IsNullOrWhiteSpace(model.ShortName))
+                            {
+                                var eh = await context.CfDefExpenseHeads.AsNoTracking().FirstOrDefaultAsync(e => e.ExpenseHeadId == model.GeneralLedgerName);
+                                if (eh != null && !string.IsNullOrWhiteSpace(eh.ShortName))
+                                {
+                                    model.ShortName = eh.ShortName;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var custMatch = Regex.Match(model.GeneralLedgerName, @"\((CUS\d+)\)", RegexOptions.IgnoreCase);
+                        if (custMatch.Success)
+                        {
+                            model.GeneralLedgerName = custMatch.Groups[1].Value.ToUpper();
+                        }
+                    }
+                }
 
                 var ssl = await context.AccSubsidiaryLedgers
                     .AsNoTracking()
@@ -519,6 +656,49 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                     else
                     {
                         model.GeneralLedgerName = model.GeneralLedgerName.Trim();
+                    }
+                }
+                else if (entity.SubsidiaryLedgerCodeNo == "20300100001" || model.SubsidiaryLedgerCodeNo == "20300100001")
+                {
+                    var supMatch = Regex.Match(model.GeneralLedgerName, @"\((SUP\d+)\)", RegexOptions.IgnoreCase);
+                    if (supMatch.Success)
+                    {
+                        model.GeneralLedgerName = supMatch.Groups[1].Value.ToUpper();
+                    }
+                    else if (model.GeneralLedgerName.Trim().StartsWith("SUP", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.GeneralLedgerName = model.GeneralLedgerName.Trim().ToUpper();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(model.ShortName))
+                    {
+                        var sup = await context.RmgDefSuppliers.AsNoTracking()
+                            .FirstOrDefaultAsync(s => s.SupplierId == model.GeneralLedgerName.Trim());
+                        if (sup != null && !string.IsNullOrWhiteSpace(sup.SupplierCode))
+                        {
+                            model.ShortName = sup.SupplierCode;
+                        }
+                    }
+                }
+                else
+                {
+                    var expMatch = Regex.Match(model.GeneralLedgerName, @"\(([0-9]+)\)$");
+                    if (expMatch.Success)
+                    {
+                        var expId = expMatch.Groups[1].Value;
+                        var exists = await context.CfDefExpenseHeads.AsNoTracking().AnyAsync(e => e.ExpenseHeadId == expId || (expId.Length <= 4 && e.ExpenseHeadId == expId.PadLeft(3, '0')));
+                        if (exists)
+                        {
+                            model.GeneralLedgerName = expId.Length <= 3 ? expId.PadLeft(3, '0') : expId;
+                        }
+                    }
+                    else
+                    {
+                        var custMatch = Regex.Match(model.GeneralLedgerName, @"\((CUS\d+)\)", RegexOptions.IgnoreCase);
+                        if (custMatch.Success)
+                        {
+                            model.GeneralLedgerName = custMatch.Groups[1].Value.ToUpper();
+                        }
                     }
                 }
 
@@ -646,15 +826,36 @@ namespace GCTL.Service.Finance.ChartOfAccounts
                 q = q.Where(x => x.SubsidiaryLedgerCodeNo == subSubsidiaryCode);
             }
 
-            return await q
+            var gls = await q
                 .OrderBy(x => x.GeneralLedgerCodeNo)
-                .Select(x => new LedgerDropdownItemVM
+                .ToListAsync();
+
+            var custDict = await context.SalesCustomers.AsNoTracking()
+                .Where(c => !string.IsNullOrEmpty(c.CustomerId))
+                .ToDictionaryAsync(c => c.CustomerId.Trim(), c => c.CustomerName != null ? c.CustomerName.Trim() : c.CustomerId.Trim(), StringComparer.OrdinalIgnoreCase);
+
+            var expDict = await context.CfDefExpenseHeads.AsNoTracking()
+                .Where(e => !string.IsNullOrEmpty(e.ExpenseHeadId))
+                .ToDictionaryAsync(e => e.ExpenseHeadId.Trim(), e => e.ExpenseHead != null ? e.ExpenseHead.Trim() : e.ExpenseHeadId.Trim(), StringComparer.OrdinalIgnoreCase);
+
+            return gls.Select(x => {
+                string name = x.GeneralLedgerName?.Trim() ?? "";
+                if (!name.Contains("(") && custDict.TryGetValue(name, out var cName))
+                {
+                    name = $"{cName} ({name})";
+                }
+                else if (!name.Contains("(") && expDict.TryGetValue(name, out var eName))
+                {
+                    name = $"{eName} ({name})";
+                }
+
+                return new LedgerDropdownItemVM
                 {
                     Code = x.GeneralLedgerCodeNo,
-                    Name = x.GeneralLedgerName,
+                    Name = name,
                     ParentCode = x.SubsidiaryLedgerCodeNo
-                })
-                .ToListAsync();
+                };
+            }).ToList();
         }
     }
 }
