@@ -9,14 +9,14 @@
     <title>@ViewData["Title"] - Formosa</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" /> 
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/lib/datatables/css/dataTables.bootstrap5.min.css">
     <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
     <link href="~/lib/toastr/css/toastr.min.css" rel="stylesheet" />
     <link href="~/lib/custom-inline-timepicker/custom-inline-timepicker.css" rel="stylesheet" />
-   
+
 
     <!-- Flatpickr base CSS first -->
     @* <link href="~/js/layout/flatpickr/flatpickr.min.css" rel="stylesheet" /> *@
@@ -199,5 +199,47 @@
     }
     <partial name="_DeleteModal" />
 @* <script src="~/js/tabs/gc-tabs.js"></script> *@
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script>
+            (function () {
+                var IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 15 minutes of inactivity
+                var lastActivityTime = Date.now();
+                var hadRecentActivity = true;
+
+                function recordUserActivity() {
+                    lastActivityTime = Date.now();
+                    hadRecentActivity = true;
+                }
+
+                // Track physical human interaction (typing, clicking, moving mouse, scrolling)
+                ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(function (evt) {
+                    window.addEventListener(evt, recordUserActivity, { passive: true });
+                });
+
+                // Heartbeat check every 2 minutes
+                setInterval(function () {
+                    var now = Date.now();
+                    var idleDuration = now - lastActivityTime;
+
+                    if (idleDuration >= IDLE_TIMEOUT_MS) {
+                        // User walked away from PC: Heartbeat stops, redirect immediately to login
+                        window.location.href = '/Account/Login?reason=idle';
+                        return;
+                    }
+
+                    // Only send heartbeat if user actually had activity in the last 2 minutes and tab is visible
+                    if (hadRecentActivity && document.visibilityState === 'visible') {
+                        hadRecentActivity = false; // reset for next 2-minute cycle
+                        fetch('/Account/Heartbeat', {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        }).catch(function () { });
+                    }
+                }, 120000); // 2 minutes
+            })();
+        </script>
+    }
 </body>
 </html>
