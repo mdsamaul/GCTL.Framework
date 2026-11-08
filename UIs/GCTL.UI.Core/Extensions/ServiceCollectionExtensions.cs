@@ -41,7 +41,9 @@ using GCTL.Service.Designations;
 using GCTL.Service.Districts;
 using GCTL.Service.DocumentationReport;
 using GCTL.Service.JobStatusReport;
+using GCTL.Core.ViewModels.Email;
 using GCTL.Service.EmailService;
+using GCTL.Service.PasswordReset;
 using GCTL.Service.EmployeeContactInfos;
 using GCTL.Service.EmployeeOfficialInfo;
 using GCTL.Service.ExpenseHead;
@@ -310,6 +312,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<GCTL.Service.Finance.IncomeStatement.IIncomeStatementService, GCTL.Service.Finance.IncomeStatement.IncomeStatementService>();
             services.AddScoped<GCTL.Service.Finance.BalanceSheet.IBalanceSheetService, GCTL.Service.Finance.BalanceSheet.BalanceSheetService>();
             services.AddScoped<GCTL.Service.Finance.CashFlow.ICashFlowService, GCTL.Service.Finance.CashFlow.CashFlowService>();
+            services.AddScoped<IPasswordResetService, PasswordResetService>();
 
             services.AddMemoryCache();
         }
@@ -318,6 +321,9 @@ namespace GCTL.Framework.Extensions
         {
             services.Configure<ApplicationSettings>(configuration.GetSection("ApplicationSettings"));
             services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<ApplicationSettings>>().Value);
+
+            services.Configure<EmailSettings>(configuration.GetSection("Email"));
+            services.AddSingleton(resolver => resolver.GetRequiredService<IOptions<EmailSettings>>().Value);
         }
     }
 }
