@@ -491,10 +491,10 @@
         });
 
         function ResetForm() {
-            loadSNCId();
             // Reset text inputs to empty
             $('#Tc').val(0);
             $('#SupplierId').val('');
+            loadSNCId();
             $('#SupplierName').val('');
             $('#SupplierCode').val('');
             $('#Address').val('');

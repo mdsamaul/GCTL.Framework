@@ -389,6 +389,11 @@ namespace GCTL.Service.SupplierInformation
 
         public async Task<bool> SaveAsync(SupplierInformationSetupViewModel entityVM)
         {
+            if (string.IsNullOrWhiteSpace(entityVM.SupplierId))
+            {
+                entityVM.SupplierId = await Autoid();
+            }
+
             await supplierInformationRepository.BeginTransactionAsync();
 
             try
@@ -734,16 +739,22 @@ namespace GCTL.Service.SupplierInformation
 
         public Task<string> Autoid()
         {
-            var appList = supplierInformationRepository.All().OrderByDescending(x => x.Tc).FirstOrDefault();
+            var appList = supplierInformationRepository.All()
+                .Where(x => x.SupplierId != null && x.SupplierId.StartsWith("SUP"))
+                .OrderByDescending(x => x.SupplierId)
+                .FirstOrDefault();
 
             int newId = 1;
-            if (appList != null)
+            if (appList != null && !string.IsNullOrWhiteSpace(appList.SupplierId))
             {
-                string lastId = appList.SupplierId;
-                string numericPart = lastId.Substring(3);
-                if (int.TryParse(numericPart, out int parsedId))
+                string lastId = appList.SupplierId.Trim();
+                if (lastId.Length > 3)
                 {
-                    newId = parsedId + 1;
+                    string numericPart = lastId.Substring(3);
+                    if (int.TryParse(numericPart, out int parsedId))
+                    {
+                        newId = parsedId + 1;
+                    }
                 }
             }
 
@@ -1017,6 +1028,7 @@ namespace GCTL.Service.SupplierInformation
                               ShortName = @ShortName,
                               OpeningBalance = @OpeningBalance,
                               TrType = @TrType,
+                              IsActive = '1',
                               ModifyDate = GETDATE()
                           WHERE GeneralLedgerCodeNo = @Code",
                         new
