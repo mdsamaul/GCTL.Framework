@@ -1,5 +1,44 @@
 $(document).ready(function () {
-    setDate("#jobDate", new Date());
+    let currentPage = 1;
+    let bottomCurrentPage = 1;
+
+    function safeSetDate(selector, value, disabled) {
+        if (typeof window.setDate === 'function') {
+            window.setDate(selector, value, disabled);
+        } else if (typeof setDate === 'function' && setDate !== safeSetDate) {
+            setDate(selector, value, disabled);
+        } else {
+            $(selector).val(value || '');
+        }
+    }
+
+    function safeSetSelect(selector, value, disabled, newItems, tableShow, tableTitle) {
+        if (typeof window.setSelect === 'function') {
+            window.setSelect(selector, value, disabled, newItems, tableShow, tableTitle);
+        } else if (typeof setSelect === 'function' && setSelect !== safeSetSelect) {
+            setSelect(selector, value, disabled, newItems, tableShow, tableTitle);
+        } else {
+            $(selector).val(value || '').trigger('change');
+        }
+    }
+
+    function safeSetField(selector, value, disabled) {
+        if (typeof window.setField === 'function') {
+            window.setField(selector, value, disabled);
+        } else if (typeof setField === 'function' && setField !== safeSetField) {
+            setField(selector, value, disabled);
+        } else {
+            const $el = $(selector);
+            if ($el.is('input, textarea, select')) {
+                $el.val(value || '');
+                if (disabled !== undefined) $el.prop('disabled', !!disabled);
+            } else {
+                $el.text(value || '');
+            }
+        }
+    }
+
+    safeSetDate("#jobDate", new Date());
     const entrySections = document.querySelectorAll('.entry-only');
 
     document.getElementById('entry-tab').addEventListener('shown.bs.tab', function () {
@@ -104,6 +143,9 @@ $(document).ready(function () {
             bottomGrid.ajax.reload(null, false);
         }
     }
+
+    window.loadJobs = loadJobs;
+    window.loadBottomJobs = loadBottomJobs;
 
     //#endregion
 
@@ -495,10 +537,20 @@ $(document).ready(function () {
                     currentPage = 1;
                     bottomCurrentPage = 1;
                    
-                    loadBottomJobs();
-                    loadJobs();
-                    clearForm();
-                    setDate("#jobDate", new Date());
+                    if (typeof loadBottomJobs === 'function') {
+                        loadBottomJobs();
+                    } else if (typeof window.loadBottomJobs === 'function') {
+                        window.loadBottomJobs();
+                    }
+                    if (typeof loadJobs === 'function') {
+                        loadJobs();
+                    } else if (typeof window.loadJobs === 'function') {
+                        window.loadJobs();
+                    }
+                    if (typeof clearForm === 'function') {
+                        clearForm();
+                    }
+                    safeSetDate("#jobDate", new Date());
                 } else {
                     console.error(response.errors);
                     toastr.warning(response.message || 'Save failed');
@@ -593,13 +645,15 @@ $(document).ready(function () {
     function clearForm(clearJobNo) {
        
         $('#tc').val(0);
-        setSelect('#shipmentModeId', '');
+        safeSetSelect('#shipmentModeId', '');
         $('.seaFieldsGroup, .airFieldsGroup').hide();
         $('#transportModeTypeId').val('');
         $('#isCustomJobNo').prop('checked', false);
-        if (clearJobNo !== false) setField('#jobNo', '', true);
+        if (clearJobNo !== false) safeSetField('#jobNo', '', true);
 
-        $('#sepDocForm')[0].reset();
+        if ($('#sepDocForm').length > 0 && $('#sepDocForm')[0]) {
+            $('#sepDocForm')[0].reset();
+        }
         $('#sepDocForm .custom-select-single').val('').trigger('change.select2');
     }
 

@@ -1793,5 +1793,17 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/pages/sepdocumentation.js"></script>
+    <script src="~/js/pages/sepdocumentation.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+        window.loadBottomJobs = window.loadBottomJobs || function () {
+            if (window.bottomGrid && window.bottomGrid.ajax) {
+                window.bottomGrid.ajax.reload(null, false);
+            }
+        };
+        window.loadJobs = window.loadJobs || function () {
+            if (window.topGrid && window.topGrid.ajax) {
+                window.topGrid.ajax.reload(null, false);
+            }
+        };
+    </script>
 }
