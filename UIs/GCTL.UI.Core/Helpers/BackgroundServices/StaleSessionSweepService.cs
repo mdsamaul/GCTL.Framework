@@ -15,7 +15,7 @@ namespace GCTL.UI.Core.Helpers.BackgroundServices
         {
             _scopeFactory = scopeFactory;
             _cache = cache;
-            int timeoutMinutes = configuration.GetValue<int>("SessionSettings:IdleTimeoutMinutes", 25);
+            int timeoutMinutes = configuration.GetValue<int>("SessionSettings:IdleTimeoutMinutes", 5);
             _sessionTimeout = TimeSpan.FromMinutes(timeoutMinutes);
         }
 
