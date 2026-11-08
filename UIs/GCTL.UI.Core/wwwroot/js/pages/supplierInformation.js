@@ -92,6 +92,8 @@
                             $('#SupplierId').val(data.supplierId);
                             $('#SupplierName').val(data.supplierName);
                             $('#SupplierCode').val(data.supplierCode);
+                            $('#ShortName').val(data.shortName || '');
+                            $('#SupplierPrefixId').val(data.supplierPrefixId || data.supplierTitle || '').trigger('change');
                             $('#SupplierCategoryId').val(data.supplierCategoryId).trigger('change');
                             $('#DesignationId').val(data.designationId).trigger('change');
                             $('#SupplierTypeId').val(data.supplierTypeId).trigger('change');
@@ -121,7 +123,7 @@
                             $('#OpeningBalance').val(data.openingBalance);
                             $('#Remarks').val(data.remarks);
 
-                            loadContactPersonsTableForEdit(data.contactPerson1);
+                            loadContactPersonsTableForEdit(data.contatPerson1 || data.contactPerson1);
 
                             $('#LdateModifyHide').show();
                             $('#sectionBreak').show();
@@ -137,10 +139,13 @@
                             } else {
                                 $('#modifyDateSpan').text('');
                             }
+
+                            $(settings.saveSelector).html('<i class="fas fa-save"></i> <span>Update</span>');
+                            $("html, body").animate({ scrollTop: 0 }, 300);
                         }
                     },
                     error: function () {
-                        alert('Failed to load appointed employee data.');
+                        toastr.error('Failed to load supplier data.');
                     }, complete: function () {
                         ResetBankAccountInfoForm();
                         loadBankAccountInfoTable();
@@ -199,7 +204,8 @@
                         console.error("Ajax error:", status, error, xhr.responseText);
                     },
                     complete: function () {
-                        $saveButton.prop('disabled', false).html('Save');
+                        var isEdit = ($('#Tc').val() && $('#Tc').val() != '0');
+                        $saveButton.prop('disabled', false).html('<i class="fas fa-save"></i> <span>' + (isEdit ? 'Update' : 'Save') + '</span>');
                     }
                 });
             });
@@ -410,7 +416,9 @@
 
         //#region loadTable
         function loadTable() {
-            if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
+            if ($.gctlGrid) {
+                $.gctlGrid.reload('SupplierInformation-grid', false);
+            } else if ($.fn.DataTable && $.fn.DataTable.isDataTable(settings.gridSelector)) {
                 $(settings.gridSelector).DataTable().ajax.reload(null, false);
             }
         }
@@ -497,6 +505,9 @@
             loadSNCId();
             $('#SupplierName').val('');
             $('#SupplierCode').val('');
+            $('#ShortName').val('');
+            $('#SupplierPrefixId').val('').trigger('change');
+            $(settings.saveSelector).html('<i class="fas fa-save"></i> <span>Save</span>');
             $('#Address').val('');
             $('#LocalOfficeAddress').val('');
             $('#City').val('');

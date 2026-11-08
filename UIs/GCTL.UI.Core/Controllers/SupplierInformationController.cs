@@ -230,6 +230,19 @@ namespace GCTL.UI.Core.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(modelVM.Phone))
+                {
+                    ModelState.Remove(nameof(modelVM.Phone));
+                }
+                if (string.IsNullOrWhiteSpace(modelVM.Fax))
+                {
+                    ModelState.Remove(nameof(modelVM.Fax));
+                }
+                if (string.IsNullOrWhiteSpace(modelVM.Email))
+                {
+                    ModelState.Remove(nameof(modelVM.Email));
+                }
+
                 if (!ModelState.IsValid)
                 {
                     var errorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage;
@@ -270,7 +283,7 @@ namespace GCTL.UI.Core.Controllers
                         var result = await supplierInformationService.UpdateAsync(modelVM);
 
                         var nextCode = await supplierInformationService.Autoid();
-                        return Json(new { isSuccess = result, message = "Updated Successfully.", lastCode = nextCode });
+                        return Json(new { isSuccess = result, message = result ? "Updated Successfully." : "Failed to update supplier.", lastCode = nextCode });
                     }
                     else
                     {
@@ -281,8 +294,7 @@ namespace GCTL.UI.Core.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error:{ex.Message}");
-                return RedirectToAction("Login", "Accounts");
-
+                return Json(new { isSuccess = false, message = ex.Message });
             }
         }
 
@@ -307,7 +319,7 @@ namespace GCTL.UI.Core.Controllers
             bool success = await supplierInformationService.DeleteTab(ids);
             if (success)
             {
-                var nextCode = commonService.GenerateCode("SupplierId", "RMG_Def_Supplier", "SUP", 6);
+                var nextCode = await supplierInformationService.Autoid();
                 return Json(new { success = true, message = "Deleted Successfully.", lastCode = nextCode });
             }
             else

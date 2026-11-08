@@ -20,6 +20,8 @@ namespace GCTL.Core.ViewModels.SupplierInformation
         [Searchable]
         public string SupplierName { get; set; }
         public string? SupplierTitle { get; set; }
+        public string? SupplierPrefixId { get; set; }
+        public string? ShortName { get; set; }
         public string? SupplierCode { get; set; }
         public string? SupplierCategoryId { get; set; }
 
@@ -42,10 +44,9 @@ namespace GCTL.Core.ViewModels.SupplierInformation
         public string? City { get; set; }
         public string? State { get; set; }
         public string? ZipCode { get; set; }
-        [RegularExpression(@"^(?:\+8801\d{9}|01\d{9})$", ErrorMessage = "Invalid Phone")]
-        [MaxLength(14)]
+        [MaxLength(50)]
         public string? Phone { get; set; }
-        [RegularExpression(@"^[a-zA-Z0-9]+$", ErrorMessage = "Only letters and numbers are allowed")]
+        [MaxLength(50)]
         public string? Fax { get; set; }
         [EmailAddress(ErrorMessage = "Please enter valid email")]
         public string? Email { get; set; }
