@@ -242,6 +242,19 @@
     }
 
     function bindEvents() {
+        // Master Checkbox click handler
+        $(document).on('click', '#chkSelectAll', function () {
+            var isChecked = $(this).prop('checked');
+            $('#customerAgingReportTable').find('.row-select-chk').prop('checked', isChecked);
+        });
+
+        // Individual checkbox click handler
+        $(document).on('click', '.row-select-chk', function () {
+            var total = $('#customerAgingReportTable').find('.row-select-chk').length;
+            var checked = $('#customerAgingReportTable').find('.row-select-chk:checked').length;
+            $('#chkSelectAll').prop('checked', total > 0 && total === checked);
+        });
+
         $(document).on('change', '#filterAgingDate, #filterReportType', function () {
             onFilterChanged();
         });
