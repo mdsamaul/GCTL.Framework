@@ -258,9 +258,6 @@ namespace GCTL.Service.CustomerAgingReport
                     page.Size(PageSizes.A4.Landscape());
                     page.DefaultTextStyle(x => x.FontFamily("Arial").FontSize(8f));
 
-                    // Watermark
-                    page.Background().AlignCenter().AlignMiddle().Rotate(-30).Text("FORMOSA LOGISTICS").FontSize(48).FontColor(Colors.Grey.Lighten3).SemiBold();
-
                     // Header
                     page.Header().Column(headerCol =>
                     {
@@ -296,12 +293,12 @@ namespace GCTL.Service.CustomerAgingReport
                             cols.ConstantColumn(22); // SN
                             if (isBillWise)
                             {
-                                cols.RelativeColumn(3.2f); // Customer Name
+                                cols.RelativeColumn(3.0f); // Customer Name
                                 cols.RelativeColumn(2.0f); // Bill No
                             }
                             else
                             {
-                                cols.RelativeColumn(4.0f); // Customer Name
+                                cols.RelativeColumn(3.0f); // Customer Name
                             }
                             cols.RelativeColumn(1.4f); // 0-30
                             cols.RelativeColumn(1.4f); // 31-60
@@ -309,48 +306,51 @@ namespace GCTL.Service.CustomerAgingReport
                             cols.RelativeColumn(1.4f); // 91-120
                             cols.RelativeColumn(1.4f); // 121-150
                             cols.RelativeColumn(1.4f); // 151-180
-                            cols.RelativeColumn(1.4f); // 181-210
+                            cols.RelativeColumn(1.7f); // 181-210
                             cols.RelativeColumn(1.4f); // 211-240
                             cols.RelativeColumn(1.4f); // 241-270
                             cols.RelativeColumn(1.4f); // 271-300
                             cols.RelativeColumn(1.4f); // 301-330
-                            cols.RelativeColumn(1.4f); // 331-360
-                            cols.RelativeColumn(1.5f); // Over 360
+                            cols.RelativeColumn(1.7f); // 331-360
+                            cols.RelativeColumn(1.7f); // Over 360
                             cols.RelativeColumn(1.8f); // Total
                         });
 
                         // Header Row
                         table.Header(th =>
                         {
-                            void StyleHeader(IContainer c, string title, bool alignRight = false)
+                            void StyleHeader(IContainer c, string title)
                             {
-                                var block = c.Border(0.5f).BorderColor(Colors.Grey.Darken1).Background(Colors.Grey.Lighten3).Padding(2.5f);
-                                if (alignRight)
-                                    block.AlignRight().Text(title).Bold().FontSize(7.5f);
-                                else
-                                    block.AlignCenter().Text(title).Bold().FontSize(7.5f);
+                                c.Border(0.5f)
+                                 .BorderColor(Colors.Grey.Darken1)
+                                 .Background(Colors.Grey.Lighten3)
+                                 .Padding(2.5f)
+                                 .AlignCenter()
+                                 .Text(title)
+                                 .Bold()
+                                 .FontSize(7.5f);
                             }
 
                             StyleHeader(th.Cell(), "SN");
-                            StyleHeader(th.Cell(), "Customer Name", false);
+                            StyleHeader(th.Cell(), "Customer Name");
                             if (isBillWise)
                             {
-                                StyleHeader(th.Cell(), "Bill No", false);
+                                StyleHeader(th.Cell(), "Bill No");
                             }
-                            StyleHeader(th.Cell(), "0-30", true);
-                            StyleHeader(th.Cell(), "31-60", true);
-                            StyleHeader(th.Cell(), "61-90", true);
-                            StyleHeader(th.Cell(), "91-120", true);
-                            StyleHeader(th.Cell(), "121-150", true);
-                            StyleHeader(th.Cell(), "151-180", true);
-                            StyleHeader(th.Cell(), "181-210", true);
-                            StyleHeader(th.Cell(), "211-240", true);
-                            StyleHeader(th.Cell(), "241-270", true);
-                            StyleHeader(th.Cell(), "271-300", true);
-                            StyleHeader(th.Cell(), "301-330", true);
-                            StyleHeader(th.Cell(), "331-360", true);
-                            StyleHeader(th.Cell(), "> 360", true);
-                            StyleHeader(th.Cell(), "Total", true);
+                            StyleHeader(th.Cell(), "0-30");
+                            StyleHeader(th.Cell(), "31-60");
+                            StyleHeader(th.Cell(), "61-90");
+                            StyleHeader(th.Cell(), "91-120");
+                            StyleHeader(th.Cell(), "121-150");
+                            StyleHeader(th.Cell(), "151-180");
+                            StyleHeader(th.Cell(), "181-210");
+                            StyleHeader(th.Cell(), "211-240");
+                            StyleHeader(th.Cell(), "241-270");
+                            StyleHeader(th.Cell(), "271-300");
+                            StyleHeader(th.Cell(), "301-330");
+                            StyleHeader(th.Cell(), "331-360");
+                            StyleHeader(th.Cell(), "> 360");
+                            StyleHeader(th.Cell(), "Total");
                         });
 
                         // Data Rows
@@ -422,14 +422,14 @@ namespace GCTL.Service.CustomerAgingReport
                         footCol.Item().PaddingTop(6).Row(row =>
                         {
                             row.RelativeItem().Text($"Print Date Time: {DateTime.Now:dd/MM/yyyy hh:mm tt}").FontSize(7.5f);
-                            row.RelativeItem().AlignCenter().Text(x =>
+                            row.RelativeItem().AlignRight().Text(x =>
                             {
+                                x.DefaultTextStyle(t => t.FontSize(7.5f));
                                 x.Span("Page ");
                                 x.CurrentPageNumber();
                                 x.Span(" of ");
                                 x.TotalPages();
                             });
-                            row.RelativeItem().AlignRight().Text($"Print By: {(!string.IsNullOrWhiteSpace(printUser) ? printUser : "Admin")}").FontSize(7.5f);
                         });
                     });
                 });
@@ -451,7 +451,7 @@ namespace GCTL.Service.CustomerAgingReport
             var ws = workbook.Worksheets.Add("Aging Report");
 
             // Title Header
-            int colSpan = isBillWise ? 16 : 15;
+            int colSpan = isBillWise ? 17 : 16;
             ws.Cell(1, 1).Value = "Formosa Logistics Limited";
             ws.Range(1, 1, 1, colSpan).Merge().Style.Font.SetBold(true).Font.SetFontSize(14).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
@@ -496,35 +496,38 @@ namespace GCTL.Service.CustomerAgingReport
 
             row++;
             int sn = 1;
+            int startNumCol = isBillWise ? 4 : 3;
+
             foreach (var item in dataList)
             {
                 c = 1;
-                ws.Cell(row, c++).Value = sn++;
-                ws.Cell(row, c++).Value = item.CustomerName;
+                ws.Cell(row, c++).SetValue(sn++).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+                ws.Cell(row, c++).SetValue(item.CustomerName).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
                 if (isBillWise)
                 {
-                    ws.Cell(row, c++).Value = item.BillNo ?? "";
+                    ws.Cell(row, c++).SetValue(item.BillNo ?? "").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
                 }
-                ws.Cell(row, c++).Value = item.Ag_0_30;
-                ws.Cell(row, c++).Value = item.Ag_31_60;
-                ws.Cell(row, c++).Value = item.Ag_61_90;
-                ws.Cell(row, c++).Value = item.Ag_91_120;
-                ws.Cell(row, c++).Value = item.Ag_121_150;
-                ws.Cell(row, c++).Value = item.Ag_151_180;
-                ws.Cell(row, c++).Value = item.Ag_181_210;
-                ws.Cell(row, c++).Value = item.Ag_211_240;
-                ws.Cell(row, c++).Value = item.Ag_241_270;
-                ws.Cell(row, c++).Value = item.Ag_271_300;
-                ws.Cell(row, c++).Value = item.Ag_301_330;
-                ws.Cell(row, c++).Value = item.Ag_331_360;
-                ws.Cell(row, c++).Value = item.Ag_Over360;
-                ws.Cell(row, c++).Value = item.Total;
+                ws.Cell(row, c++).SetValue(item.Ag_0_30);
+                ws.Cell(row, c++).SetValue(item.Ag_31_60);
+                ws.Cell(row, c++).SetValue(item.Ag_61_90);
+                ws.Cell(row, c++).SetValue(item.Ag_91_120);
+                ws.Cell(row, c++).SetValue(item.Ag_121_150);
+                ws.Cell(row, c++).SetValue(item.Ag_151_180);
+                ws.Cell(row, c++).SetValue(item.Ag_181_210);
+                ws.Cell(row, c++).SetValue(item.Ag_211_240);
+                ws.Cell(row, c++).SetValue(item.Ag_241_270);
+                ws.Cell(row, c++).SetValue(item.Ag_271_300);
+                ws.Cell(row, c++).SetValue(item.Ag_301_330);
+                ws.Cell(row, c++).SetValue(item.Ag_331_360);
+                ws.Cell(row, c++).SetValue(item.Ag_Over360);
+                ws.Cell(row, c++).SetValue(item.Total);
 
                 // Format number columns
-                int startNumCol = isBillWise ? 4 : 3;
                 for (int colIdx = startNumCol; colIdx <= colSpan; colIdx++)
                 {
-                    ws.Cell(row, colIdx).Style.NumberFormat.Format = "#,##0.00";
+                    var numCell = ws.Cell(row, colIdx);
+                    numCell.Style.NumberFormat.Format = "#,##0.00";
+                    numCell.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Right);
                 }
 
                 ws.Range(row, 1, row, colSpan).Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
@@ -538,20 +541,20 @@ namespace GCTL.Service.CustomerAgingReport
             ws.Range(row, 1, row, totalTitleCols).Merge().Style.Font.SetBold(true).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
             c = totalTitleCols + 1;
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_0_30);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_31_60);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_61_90);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_91_120);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_121_150);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_151_180);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_181_210);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_211_240);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_241_270);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_271_300);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_301_330);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_331_360);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Ag_Over360);
-            ws.Cell(row, c++).Value = dataList.Sum(x => x.Total);
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_0_30));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_31_60));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_61_90));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_91_120));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_121_150));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_151_180));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_181_210));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_211_240));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_241_270));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_271_300));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_301_330));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_331_360));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Ag_Over360));
+            ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Total));
 
             var totalRowRange = ws.Range(row, 1, row, colSpan);
             totalRowRange.Style.Font.SetBold(true).Fill.SetBackgroundColor(XLColor.FromHtml("#F1F5F9"));
@@ -560,7 +563,9 @@ namespace GCTL.Service.CustomerAgingReport
 
             for (int colIdx = totalTitleCols + 1; colIdx <= colSpan; colIdx++)
             {
-                ws.Cell(row, colIdx).Style.NumberFormat.Format = "#,##0.00";
+                var numCell = ws.Cell(row, colIdx);
+                numCell.Style.NumberFormat.Format = "#,##0.00";
+                numCell.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Right);
             }
 
             ws.Columns().AdjustToContents();

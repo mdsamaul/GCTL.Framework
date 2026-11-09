@@ -96,11 +96,24 @@
         return (val || '').trim();
     }
 
-    function getFilterParams() {
+    function getFilterParams(includeSelectedRows) {
         var agingDate = getDateValue('filterAgingDate');
         var customerId = getDropdownValue('filterCustomerId');
         var reportType = getDropdownValue('filterReportType') || $('#filterReportType').val() || 'Customer Aging';
         var exportFormat = getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || 'PDF';
+
+        if (includeSelectedRows) {
+            var selectedIds = [];
+            $('#customerAgingReportTable tbody .row-select-chk:checked').each(function () {
+                var v = $(this).val();
+                if (v && selectedIds.indexOf(v) === -1) {
+                    selectedIds.push(v);
+                }
+            });
+            if (selectedIds.length > 0) {
+                customerId = selectedIds.join(',');
+            }
+        }
 
         return {
             agingDate: agingDate,
@@ -200,14 +213,14 @@
     }
 
     function openPreviewModal() {
-        var filters = getFilterParams();
+        var filters = getFilterParams(true);
         var qs = $.param(filters);
         var url = '/CustomerAgingReport/PreviewPdf?' + qs;
         window.open(url, '_blank');
     }
 
     function exportReport(format) {
-        var filters = getFilterParams();
+        var filters = getFilterParams(true);
         var exportFormat = (format || filters.exportFormat || 'PDF').trim().toUpperCase();
         filters.exportFormat = exportFormat;
         var queryParams = $.param(filters);
