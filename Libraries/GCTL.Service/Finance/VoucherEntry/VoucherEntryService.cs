@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -1040,17 +1040,32 @@ WHERE (@UserId IS NOT NULL AND u.Id = @UserId)
             {
                 entry.SlidingExpiration = TimeSpan.FromMinutes(30);
 
-                var custDict = await _context.SalesCustomers.AsNoTracking()
-                    .Where(c => !string.IsNullOrEmpty(c.CustomerId))
-                    .ToDictionaryAsync(c => c.CustomerId.Trim(), c => c.CustomerName != null ? c.CustomerName.Trim() : c.CustomerId.Trim(), StringComparer.OrdinalIgnoreCase);
+                var custList = await _context.SalesCustomers.AsNoTracking()
+                    .Where(c => !string.IsNullOrEmpty(c.CustomerId)).ToListAsync();
+                var custDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var c in custList)
+                {
+                    if (!string.IsNullOrWhiteSpace(c.CustomerId))
+                        custDict[c.CustomerId.Trim()] = c.CustomerName != null ? c.CustomerName.Trim() : c.CustomerId.Trim();
+                }
 
-                var expDict = await _context.CfDefExpenseHeads.AsNoTracking()
-                    .Where(e => !string.IsNullOrEmpty(e.ExpenseHeadId))
-                    .ToDictionaryAsync(e => e.ExpenseHeadId.Trim(), e => e.ExpenseHead != null ? e.ExpenseHead.Trim() : e.ExpenseHeadId.Trim(), StringComparer.OrdinalIgnoreCase);
+                var expList = await _context.CfDefExpenseHeads.AsNoTracking()
+                    .Where(e => !string.IsNullOrEmpty(e.ExpenseHeadId)).ToListAsync();
+                var expDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var e in expList)
+                {
+                    if (!string.IsNullOrWhiteSpace(e.ExpenseHeadId))
+                        expDict[e.ExpenseHeadId.Trim()] = e.ExpenseHead != null ? e.ExpenseHead.Trim() : e.ExpenseHeadId.Trim();
+                }
 
-                var bankDict = await _context.CoreBankAccountInformations.AsNoTracking()
-                    .Where(b => !string.IsNullOrEmpty(b.AccountNo))
-                    .ToDictionaryAsync(b => b.AccountNo.Trim(), b => b.AccountName != null ? b.AccountName.Trim() : b.AccountNo.Trim(), StringComparer.OrdinalIgnoreCase);
+                var bankList = await _context.CoreBankAccountInformations.AsNoTracking()
+                    .Where(b => !string.IsNullOrEmpty(b.AccountNo)).ToListAsync();
+                var bankDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var b in bankList)
+                {
+                    if (!string.IsNullOrWhiteSpace(b.AccountNo))
+                        bankDict[b.AccountNo.Trim()] = b.AccountName != null ? b.AccountName.Trim() : b.AccountNo.Trim();
+                }
 
                 return (custDict, expDict, bankDict);
             });
