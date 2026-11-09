@@ -451,6 +451,41 @@
         font-weight: 600;
     }
 
+    /* Report Preview Links */
+    .report-preview-link {
+        color: #0284c7;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.15s ease, text-decoration 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .report-preview-link:hover {
+        color: #003366 !important;
+        text-decoration: underline !important;
+    }
+
+    .report-preview-link.text-success {
+        color: #16a34a !important;
+    }
+
+    .report-preview-link.text-success:hover {
+        color: #0f5132 !important;
+        text-decoration: underline !important;
+    }
+
+    .report-preview-link.text-warning {
+        color: #d97706 !important;
+    }
+
+    .report-preview-link.text-warning:hover {
+        color: #92400e !important;
+        text-decoration: underline !important;
+    }
+
 
     @@media (max-width: 1200px) {
         .stats-grid {
@@ -642,6 +677,13 @@
                                     <th class="text-center align-middle" title="Arrival Notice Received From Express Date" data-bs-toggle="tooltip">Arr. Notice</th>
                                     <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
                                     <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                    <th class="text-center align-middle" title="Requisition Number" data-bs-toggle="tooltip">Req. No</th>
+                                    <th class="text-center align-middle" title="Requisition Date" data-bs-toggle="tooltip">Req. Dt</th>
+                                    <th class="text-center align-middle" title="Operational Fund Approval Report" data-bs-toggle="tooltip">OFR Approval</th>
+                                    <th class="text-center align-middle" title="OFR Adjust Approval Report" data-bs-toggle="tooltip">OFR Adjust</th>
+                                    <th class="text-center align-middle" title="Voucher Approval" data-bs-toggle="tooltip">Voucher</th>
+                                    <th class="text-center align-middle" title="Job Bill Number" data-bs-toggle="tooltip">Bill No</th>
+                                    <th class="text-center align-middle" title="Bill Date" data-bs-toggle="tooltip">Bill Dt</th>
                                     <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Delivery Dt</th>
                                     <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
                                     <th class="text-center align-middle" title="Remarks" data-bs-toggle="tooltip">Remarks</th>
@@ -676,6 +718,13 @@
                                     <th class="text-center align-middle" title="Docs Bank Sign Date" data-bs-toggle="tooltip">Bank Sign</th>
                                     <th class="text-center align-middle" title="Bill of Entry Number" data-bs-toggle="tooltip">B/E No</th>
                                     <th class="text-center align-middle" title="Bill of Entry Date" data-bs-toggle="tooltip">B/E Dt</th>
+                                    <th class="text-center align-middle" title="Requisition Number" data-bs-toggle="tooltip">Req. No</th>
+                                    <th class="text-center align-middle" title="Requisition Date" data-bs-toggle="tooltip">Req. Dt</th>
+                                    <th class="text-center align-middle" title="Operational Fund Approval Report" data-bs-toggle="tooltip">OFR Approval</th>
+                                    <th class="text-center align-middle" title="OFR Adjust Approval Report" data-bs-toggle="tooltip">OFR Adjust</th>
+                                    <th class="text-center align-middle" title="Voucher Approval" data-bs-toggle="tooltip">Voucher</th>
+                                    <th class="text-center align-middle" title="Job Bill Number" data-bs-toggle="tooltip">Bill No</th>
+                                    <th class="text-center align-middle" title="Bill Date" data-bs-toggle="tooltip">Bill Dt</th>
                                     <th class="text-center align-middle" title="Estimated Delivery Date" data-bs-toggle="tooltip">Est. Del.</th>
                                     <th class="text-center align-middle" title="Actual Delivery Date" data-bs-toggle="tooltip">Act. Del.</th>
                                     <th class="text-center align-middle" title="Shipment Status" data-bs-toggle="tooltip">Status</th>
@@ -693,6 +742,33 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- Report Preview Modal -->
+<div class="modal fade" id="reportPreviewModal" tabindex="-1" aria-labelledby="reportPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 90vw; height: 90vh;">
+        <div class="modal-content" style="height: 100%;">
+            <div class="modal-header py-2 px-3 bg-light border-bottom">
+                <h6 class="modal-title fw-bold text-primary mb-0" id="reportPreviewModalLabel">
+                    <i class="fas fa-file-pdf text-danger me-2"></i>Report Preview
+                </h6>
+                <div class="d-flex align-items-center gap-2">
+                    <a id="btnModalOpenNewTab" href="#" target="_blank" class="btn btn-sm btn-outline-primary py-1 px-2" title="Open in new tab">
+                        <i class="fas fa-external-link-alt me-1"></i>New Tab
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0 position-relative" style="height: calc(100% - 50px); overflow: hidden;">
+                <div id="modalLoadingSpinner" class="d-flex justify-content-center align-items-center position-absolute w-100 h-100 bg-white" style="z-index: 10;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <iframe id="reportPreviewIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
     </div>
 </div>
 

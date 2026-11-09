@@ -1,43 +1,11 @@
 USE [GCTL_ERP_DB_Copy];
 GO
 
--- 1. Summary Counts SP: prc_JobPortal_JobStatusExceptAll
-CREATE OR ALTER PROC [dbo].[prc_JobPortal_JobStatusExceptAll] 
-    @CustomerId     NVARCHAR(50) = '', 
-    @ShipmentModeId NVARCHAR(50) = '',
-    @BranchCode     NVARCHAR(50) = ''
-AS 
-BEGIN 
-    SET NOCOUNT ON; 
+-- =========================================================================
+-- HIGH PERFORMANCE STORED PROCEDURES WITH 7 OPERATIONAL/FINANCIAL COLUMNS
+-- =========================================================================
 
-    SELECT 
-        ISNULL(@CustomerId, '') AS CustomerID, 
-        COUNT(d.JobNo) AS TotalJob, 
-        SUM(CASE WHEN ISNULL(d.ShipmentStatus,'')='' THEN 1 ELSE 0 END) AS TotalPending, 
-        SUM(CASE WHEN ISNULL(d.ShipmentStatus,'')!='' AND ISNULL(d.ShipmentStatus,'') IN ('01','02','03','04','05','07','08','09','10','11','12','13') THEN 1 ELSE 0 END) AS totalInTransit, 
-        SUM(CASE WHEN ISNULL(d.ShipmentStatus,'')!='' AND ISNULL(d.ShipmentStatus,'') IN ('06','14') THEN 1 ELSE 0 END) AS TotalDelivered 
-    FROM Sep_Documentation d WITH (NOLOCK) 
-    LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
-        ON d.EmployeeId = emp.EmployeeID 
-        OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
-    WHERE (ISNULL(@CustomerId,'')='' OR d.CustomerID = @CustomerId) 
-      AND (ISNULL(@ShipmentModeId,'')='' OR d.ExpenseTypeID = @ShipmentModeId)
-      AND (
-          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
-          OR COALESCE(
-              emp.BranchCode,
-              CASE 
-                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
-                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
-                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
-                  ELSE '01'
-              END
-          ) = @BranchCode
-      );
-END;
-GO
-
--- 2. Fast Air SP: Proc_CustomerJobStatusFastAir
+-- 1. Fast Air SP: Proc_CustomerJobStatusFastAir
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusFastAir]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -87,6 +55,31 @@ BEGIN
         u.DocsBankSignDate,
         ISNULL(d.BENo, '') AS BeNo,
         u.BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE 
+            WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' 
+            THEN CONVERT(varchar(50), ofr.OFRDate, 103) 
+            ELSE '' 
+        END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(d.BillNo, ''), '') AS BillNo,
+        CASE 
+            WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103)
+            ELSE '' 
+        END AS BillDate,
+
         u.ActualDeliveryDate,
         ISNULL(d.Remarks, '') AS Remarks,
         ISNULL(d.CustomerID, '') AS CustomerID,
@@ -100,6 +93,29 @@ BEGIN
     LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
         ON d.EmployeeId = emp.EmployeeID 
         OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = d.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = d.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = d.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (d.BillNo IS NOT NULL AND d.BillNo <> '' AND v.InvoiceNo = d.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
       AND (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId)
       AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
@@ -127,7 +143,7 @@ BEGIN
 END
 GO
 
--- 3. Fast Sea SP: Proc_CustomerJobStatusFastSea
+-- 2. Fast Sea SP: Proc_CustomerJobStatusFastSea
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusFastSea]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -178,6 +194,31 @@ BEGIN
         u.DocsBankSignDate,
         ISNULL(d.BENo, '') AS BeNo,
         u.BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE 
+            WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' 
+            THEN CONVERT(varchar(50), ofr.OFRDate, 103) 
+            ELSE '' 
+        END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(d.BillNo, ''), '') AS JobBillNo,
+        CASE 
+            WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103)
+            ELSE '' 
+        END AS BillDate,
+
         u.EstimatedDeliveryDate,
         u.ActualDeliveryDate,
         ISNULL(d.Remarks, '') AS Remarks,
@@ -196,6 +237,29 @@ BEGIN
     LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
         ON d.EmployeeId = emp.EmployeeID 
         OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = d.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = d.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = d.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (d.BillNo IS NOT NULL AND d.BillNo <> '' AND v.InvoiceNo = d.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
       AND (ISNULL(@CustomerId, '') = '' OR d.CustomerID = @CustomerId)
       AND (ISNULL(@PortTypeId, '') = '' OR p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))) 
@@ -223,7 +287,7 @@ BEGIN
 END
 GO
 
--- 4. Proc_CustomerJobStatusPendingExceptAll (Air Pending)
+-- 3. Proc_CustomerJobStatusPendingExceptAll (Air Pending)
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusPendingExceptAll]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -307,17 +371,58 @@ BEGIN
         CASE WHEN u.DocsBankSignDate IS NOT NULL AND u.DocsBankSignDate <> '1900-01-01' THEN CONVERT(varchar(50), u.DocsBankSignDate, 103) + ' ' + CONVERT(varchar(5), u.DocsBankSignDate, 108) ELSE '' END AS DocsBankSignDate,
         ISNULL(fj.BENo, '') AS BeNo,
         CASE WHEN u.BeDate IS NOT NULL AND u.BeDate <> '1900-01-01' THEN CONVERT(varchar(50), u.BeDate, 103) + ' ' + CONVERT(varchar(5), u.BeDate, 108) ELSE '' END AS BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' THEN CONVERT(varchar(50), ofr.OFRDate, 103) ELSE '' END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS BillNo,
+        CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
+
         CASE WHEN u.ActualDeliveryDate IS NOT NULL AND u.ActualDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.ActualDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.ActualDeliveryDate, 108) ELSE '' END AS ActualDeliveryDate,
         fj.Remarks,
         fj.CustomerID,
         ISNULL(fj.CustomerName, 'General Customer') AS CustomerName
     FROM FilteredJobs fj
     LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = fj.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = fj.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = fj.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (fj.BillNo IS NOT NULL AND fj.BillNo <> '' AND v.InvoiceNo = fj.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     ORDER BY fj.JobNo ASC;
 END
 GO
 
--- 5. Proc_CustomerJobStatusInTransitExceptAll (Air In Transit)
+-- 4. Proc_CustomerJobStatusInTransitExceptAll (Air In Transit)
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusInTransitExceptAll]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -401,17 +506,58 @@ BEGIN
         CASE WHEN u.DocsBankSignDate IS NOT NULL AND u.DocsBankSignDate <> '1900-01-01' THEN CONVERT(varchar(50), u.DocsBankSignDate, 103) + ' ' + CONVERT(varchar(5), u.DocsBankSignDate, 108) ELSE '' END AS DocsBankSignDate,
         ISNULL(fj.BENo, '') AS BeNo,
         CASE WHEN u.BeDate IS NOT NULL AND u.BeDate <> '1900-01-01' THEN CONVERT(varchar(50), u.BeDate, 103) + ' ' + CONVERT(varchar(5), u.BeDate, 108) ELSE '' END AS BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' THEN CONVERT(varchar(50), ofr.OFRDate, 103) ELSE '' END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS BillNo,
+        CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
+
         CASE WHEN u.ActualDeliveryDate IS NOT NULL AND u.ActualDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.ActualDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.ActualDeliveryDate, 108) ELSE '' END AS ActualDeliveryDate,
         fj.Remarks,
         fj.CustomerID,
         ISNULL(fj.CustomerName, 'General Customer') AS CustomerName
     FROM FilteredJobs fj
     LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = fj.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = fj.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = fj.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (fj.BillNo IS NOT NULL AND fj.BillNo <> '' AND v.InvoiceNo = fj.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     ORDER BY fj.JobNo ASC;
 END
 GO
 
--- 6. Proc_CustomerJobStatusDeliveryExceptAll (Air Delivered)
+-- 5. Proc_CustomerJobStatusDeliveryExceptAll (Air Delivered)
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusDeliveryExceptAll]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -495,17 +641,58 @@ BEGIN
         CASE WHEN u.DocsBankSignDate IS NOT NULL AND u.DocsBankSignDate <> '1900-01-01' THEN CONVERT(varchar(50), u.DocsBankSignDate, 103) + ' ' + CONVERT(varchar(5), u.DocsBankSignDate, 108) ELSE '' END AS DocsBankSignDate,
         ISNULL(fj.BENo, '') AS BeNo,
         CASE WHEN u.BeDate IS NOT NULL AND u.BeDate <> '1900-01-01' THEN CONVERT(varchar(50), u.BeDate, 103) + ' ' + CONVERT(varchar(5), u.BeDate, 108) ELSE '' END AS BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' THEN CONVERT(varchar(50), ofr.OFRDate, 103) ELSE '' END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS BillNo,
+        CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
+
         CASE WHEN u.ActualDeliveryDate IS NOT NULL AND u.ActualDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.ActualDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.ActualDeliveryDate, 108) ELSE '' END AS ActualDeliveryDate,
         fj.Remarks,
         fj.CustomerID,
         ISNULL(fj.CustomerName, 'General Customer') AS CustomerName
     FROM FilteredJobs fj
     LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = fj.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = fj.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = fj.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (fj.BillNo IS NOT NULL AND fj.BillNo <> '' AND v.InvoiceNo = fj.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     ORDER BY fj.JobNo ASC;
 END
 GO
 
--- 7. Proc_CustomerJobStatusPendingReportForSea (Sea Pending)
+-- 6. Proc_CustomerJobStatusPendingReportForSea (Sea Pending)
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusPendingReportForSea]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -590,6 +777,24 @@ BEGIN
         CASE WHEN u.DocsBankSignDate IS NOT NULL AND u.DocsBankSignDate <> '1900-01-01' THEN CONVERT(varchar(50), u.DocsBankSignDate, 103) + ' ' + CONVERT(varchar(5), u.DocsBankSignDate, 108) ELSE '' END AS DocsBankSignDate,
         ISNULL(fj.BENo, '') AS BeNo,
         CASE WHEN u.BeDate IS NOT NULL AND u.BeDate <> '1900-01-01' THEN CONVERT(varchar(50), u.BeDate, 103) + ' ' + CONVERT(varchar(5), u.BeDate, 108) ELSE '' END AS BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' THEN CONVERT(varchar(50), ofr.OFRDate, 103) ELSE '' END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
+        CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
+
         CASE WHEN u.EstimatedDeliveryDate IS NOT NULL AND u.EstimatedDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.EstimatedDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.EstimatedDeliveryDate, 108) ELSE '' END AS EstimatedDeliveryDate,
         CASE WHEN u.ActualDeliveryDate IS NOT NULL AND u.ActualDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.ActualDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.ActualDeliveryDate, 108) ELSE '' END AS ActualDeliveryDate,
         fj.Remarks,
@@ -601,11 +806,34 @@ BEGIN
         ISNULL(fj.CustomerName, 'General Customer') AS CustomerName
     FROM FilteredJobs fj
     LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = fj.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = fj.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = fj.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (fj.BillNo IS NOT NULL AND fj.BillNo <> '' AND v.InvoiceNo = fj.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     ORDER BY fj.JobNo ASC;
 END
 GO
 
--- 8. Proc_CustomerJobStatusInTransitSea (Sea In Transit)
+-- 7. Proc_CustomerJobStatusInTransitSea (Sea In Transit)
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusInTransitSea]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -690,6 +918,24 @@ BEGIN
         CASE WHEN u.DocsBankSignDate IS NOT NULL AND u.DocsBankSignDate <> '1900-01-01' THEN CONVERT(varchar(50), u.DocsBankSignDate, 103) + ' ' + CONVERT(varchar(5), u.DocsBankSignDate, 108) ELSE '' END AS DocsBankSignDate,
         ISNULL(fj.BENo, '') AS BeNo,
         CASE WHEN u.BeDate IS NOT NULL AND u.BeDate <> '1900-01-01' THEN CONVERT(varchar(50), u.BeDate, 103) + ' ' + CONVERT(varchar(5), u.BeDate, 108) ELSE '' END AS BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' THEN CONVERT(varchar(50), ofr.OFRDate, 103) ELSE '' END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
+        CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
+
         CASE WHEN u.EstimatedDeliveryDate IS NOT NULL AND u.EstimatedDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.EstimatedDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.EstimatedDeliveryDate, 108) ELSE '' END AS EstimatedDeliveryDate,
         CASE WHEN u.ActualDeliveryDate IS NOT NULL AND u.ActualDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.ActualDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.ActualDeliveryDate, 108) ELSE '' END AS ActualDeliveryDate,
         fj.Remarks,
@@ -701,11 +947,34 @@ BEGIN
         ISNULL(fj.CustomerName, 'General Customer') AS CustomerName
     FROM FilteredJobs fj
     LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = fj.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = fj.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = fj.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (fj.BillNo IS NOT NULL AND fj.BillNo <> '' AND v.InvoiceNo = fj.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     ORDER BY fj.JobNo ASC;
 END
 GO
 
--- 9. Proc_CustomerJobStatusDeliveredSea (Sea Delivered)
+-- 8. Proc_CustomerJobStatusDeliveredSea (Sea Delivered)
 CREATE OR ALTER PROCEDURE [dbo].[Proc_CustomerJobStatusDeliveredSea]
     @DateUse        nvarchar(50) = 'N',
     @FromDate       Datetime = NULL,
@@ -790,6 +1059,24 @@ BEGIN
         CASE WHEN u.DocsBankSignDate IS NOT NULL AND u.DocsBankSignDate <> '1900-01-01' THEN CONVERT(varchar(50), u.DocsBankSignDate, 103) + ' ' + CONVERT(varchar(5), u.DocsBankSignDate, 108) ELSE '' END AS DocsBankSignDate,
         ISNULL(fj.BENo, '') AS BeNo,
         CASE WHEN u.BeDate IS NOT NULL AND u.BeDate <> '1900-01-01' THEN CONVERT(varchar(50), u.BeDate, 103) + ' ' + CONVERT(varchar(5), u.BeDate, 108) ELSE '' END AS BeDate,
+
+        -- 7 Operational & Financial Columns after B/E Dt
+        ISNULL(ofr.OFRNo, '') AS RequisitionNo,
+        CASE WHEN ofr.OFRDate IS NOT NULL AND ofr.OFRDate <> '1900-01-01' THEN CONVERT(varchar(50), ofr.OFRDate, 103) ELSE '' END AS RequisitionDate,
+        CASE 
+            WHEN ofr.ApprovedUser IS NOT NULL AND LTRIM(RTRIM(ofr.ApprovedUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRApprovalReport,
+        CASE 
+            WHEN ofr.BillAdjustApprovalUser IS NOT NULL AND LTRIM(RTRIM(ofr.BillAdjustApprovalUser)) <> '' THEN 'Approved'
+            WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS OFRAdjustApprovalReport,
+        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
+        CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
+
         CASE WHEN u.EstimatedDeliveryDate IS NOT NULL AND u.EstimatedDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.EstimatedDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.EstimatedDeliveryDate, 108) ELSE '' END AS EstimatedDeliveryDate,
         CASE WHEN u.ActualDeliveryDate IS NOT NULL AND u.ActualDeliveryDate <> '1900-01-01' THEN CONVERT(varchar(50), u.ActualDeliveryDate, 103) + ' ' + CONVERT(varchar(5), u.ActualDeliveryDate, 108) ELSE '' END AS ActualDeliveryDate,
         fj.Remarks,
@@ -801,6 +1088,29 @@ BEGIN
         ISNULL(fj.CustomerName, 'General Customer') AS CustomerName
     FROM FilteredJobs fj
     LEFT JOIN Updates u ON fj.JobNo = u.JobNo
+    OUTER APPLY (
+        SELECT TOP 1 
+            ofr.OFRNo, ofr.OFRDate, ofr.ApprovedUser, ofr.BillAdjustApprovalUser
+        FROM CF_OperationalFundRequisitionEntry ofr WITH (NOLOCK)
+        WHERE ofr.JobNo = fj.JobNo
+        ORDER BY ofr.TC DESC
+    ) ofr
+    OUTER APPLY (
+        SELECT TOP 1 
+            b.BillNo, b.BillDate
+        FROM CF_BillEntry b WITH (NOLOCK)
+        WHERE b.JobNo = fj.JobNo
+        ORDER BY b.TC DESC
+    ) b
+    OUTER APPLY (
+        SELECT TOP 1 
+            v.VoucherNo, v.IsApproved
+        FROM Acc_VoucherEntry v WITH (NOLOCK)
+        WHERE v.InvoiceNo = fj.JobNo 
+           OR (b.BillNo IS NOT NULL AND b.BillNo <> '' AND v.InvoiceNo = b.BillNo)
+           OR (fj.BillNo IS NOT NULL AND fj.BillNo <> '' AND v.InvoiceNo = fj.BillNo)
+        ORDER BY v.autoId DESC
+    ) v
     ORDER BY fj.JobNo ASC;
 END
 GO
