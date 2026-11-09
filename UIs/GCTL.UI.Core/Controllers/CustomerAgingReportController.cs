@@ -173,7 +173,7 @@ namespace GCTL.UI.Core.Controllers
                 {
                     new GridColumn { 
                         Data = "customerNo", 
-                        Header = "<input type='checkbox' class='form-check-input m-0 shadow-none' id='chkSelectAll' title='Select All' />", 
+                        Header = "<span class='user-select-none'>Sel.</span><br/><input type='checkbox' class='form-check-input m-0 shadow-none' id='chkSelectAll' title='Select All' />", 
                         Width = "38px", 
                         Align = "center", 
                         Sortable = false, 

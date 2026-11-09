@@ -163,7 +163,7 @@ namespace GCTL.Service.CustomerAgingReport
                         Ag_331_360 = dict.ContainsKey("Ag_331_360") && dict["Ag_331_360"] != null ? Convert.ToDecimal(dict["Ag_331_360"]) : 0m,
                         Ag_Over360 = dict.ContainsKey("Ag_Over360") && dict["Ag_Over360"] != null ? Convert.ToDecimal(dict["Ag_Over360"]) : 0m,
                         Total = dict.ContainsKey("Total") && dict["Total"] != null ? Convert.ToDecimal(dict["Total"]) : 0m,
-                        NameofDate = dict.ContainsKey("NameofDate") && dict["NameofDate"] != null ? dict["NameofDate"].ToString()! : $"Debtors Aging as on {agingDate:dd-MMM-yyyy}"
+                        NameofDate = dict.ContainsKey("NameofDate") && dict["NameofDate"] != null ? dict["NameofDate"].ToString()! : $"Aging as on {agingDate:dd-MMM-yyyy}"
                     };
 
                     list.Add(item);
@@ -232,8 +232,8 @@ namespace GCTL.Service.CustomerAgingReport
             var logoBytes = GetLogoBytes();
 
             bool isBillWise = filter.ReportType?.Contains("Bill", StringComparison.OrdinalIgnoreCase) == true;
-            string reportTitle = isBillWise ? "Bill Wise Debtors Aging Report" : "Debtors Aging Summary Report";
-            string asOnDate = dataList.FirstOrDefault()?.NameofDate ?? $"Debtors Aging as on {DateTime.Today:dd-MMM-yyyy}";
+            string reportTitle = isBillWise ? "Bill Wise Aging Report" : "Aging Summary Report";
+            string asOnDate = dataList.FirstOrDefault()?.NameofDate ?? $"Aging as on {DateTime.Today:dd-MMM-yyyy}";
 
             decimal tot030 = dataList.Sum(x => x.Ag_0_30);
             decimal tot3160 = dataList.Sum(x => x.Ag_31_60);
@@ -444,8 +444,8 @@ namespace GCTL.Service.CustomerAgingReport
         {
             var dataList = await GetReportDataAsync(filter);
             bool isBillWise = filter.ReportType?.Contains("Bill", StringComparison.OrdinalIgnoreCase) == true;
-            string reportTitle = isBillWise ? "Bill Wise Debtors Aging Report" : "Debtors Aging Summary Report";
-            string asOnDate = dataList.FirstOrDefault()?.NameofDate ?? $"Debtors Aging as on {DateTime.Today:dd-MMM-yyyy}";
+            string reportTitle = isBillWise ? "Bill Wise Aging Report" : "Aging Summary Report";
+            string asOnDate = dataList.FirstOrDefault()?.NameofDate ?? $"Aging as on {DateTime.Today:dd-MMM-yyyy}";
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Aging Report");
