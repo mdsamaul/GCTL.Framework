@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C&F Management System | Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   EDIT HERE FIRST — logos, colours, fonts, sizes
+   ========================================================= */
+:root{
+  /* ► LOGO SIZES — change the height, width adjusts automatically */
+  --gctl-logo-h:62px;      /* GCTL Infosys logo (top-left, on the blue panel) */
+  --formosa-logo-h:58px;   /* Formosa logo (top-right, on the login panel)    */
+
+  --brand-1:#0a2a5e;      /* deep navy  */
+  --brand-2:#0b5ed7;      /* royal blue */
+  --brand-3:#19b5fe;      /* sky accent */
+  --accent:#ff8a1f;       /* orange accent (cargo) */
+  --ink:#0f1b33;
+  --muted:#64748b;
+  --line:#dbe3ef;
+  --bg:#eef3fa;
+  --card:#ffffff;
+  --radius:22px;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --font-head:'Poppins','Inter',system-ui,sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;overflow-x:hidden;overflow-y:auto}
+body{
+  min-height:100vh;min-height:100dvh;
+  font-family:var(--font-body);
+  color:var(--ink);
+  background-color:#ffffff;
+  background-image:url('images/login-bg.jpg?v=3');
+  background-position:center center;
+  background-repeat:no-repeat;
+  background-size:cover;
+  background-attachment:fixed;
+  display:flex;align-items:safe center;justify-content:center;
+  padding:16px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- Main shell (always fits inside the browser window) ---------- */
+.shell{
+  width:100%;max-width:1180px;
+  min-height:min(calc(100vh - 32px), 780px);
+  min-height:min(calc(100dvh - 32px), 780px);
+  display:grid;grid-template-columns:1.12fr .88fr;
+  background:var(--card);
+  border-radius:var(--radius);
+  border:1px solid #e2e8f0;
+  overflow:hidden;
+  box-shadow:0 25px 70px -15px rgba(10,42,94,.22),0 10px 25px -10px rgba(10,42,94,.12);
+  animation:rise .7s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes rise{from{opacity:0}to{opacity:1}}
+
+/* =========================================================
+   LEFT — HERO PANEL
+   ========================================================= */
+.hero{
+  position:relative;isolation:isolate;overflow:hidden;min-height:0;
+  color:#fff;padding:32px 48px 0;
+  background:linear-gradient(155deg,var(--brand-1) 0%,#0a3f8f 48%,var(--brand-2) 100%);
+  display:flex;flex-direction:column;
+}
+.hero::before{ /* dotted world-grid texture */
+  content:"";position:absolute;inset:0;z-index:-2;opacity:.18;
+  background-image:radial-gradient(#fff 1.1px,transparent 1.2px);
+  background-size:22px 22px;
+  mask-image:linear-gradient(180deg,#000 0%,transparent 70%);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 70%);
+}
+.hero::after{ /* soft glow */
+  content:"";position:absolute;width:520px;height:520px;right:-160px;top:-160px;z-index:-1;
+  background:radial-gradient(circle,rgba(25,181,254,.45),transparent 65%);
+}
+
+/* ► GCTL INFOSYS LOGO */
+.brand{
+  display:inline-flex;align-items:center;width:fit-content;
+  background:rgba(255,255,255,.9);border-radius:4px;padding:4px 8px;
+  box-shadow:none;
+}
+
+.brand img { display:block;height:var(--gctl-logo-h);max-height:var(--gctl-logo-h);width:auto;object-fit:contain; }
+
+.brand img.hide { display: none; }
+
+.brand .fallback { display: none; }          /* hidden by default */
+.brand.no-logo .fallback { display: block; } /* shown only if the logo fails */
+
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:clamp(14px,3vh,30px);padding:7px 14px;border-radius:999px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+  font-size:12.5px;font-weight:600;backdrop-filter:blur(6px);width:fit-content;
+}
+.badge i{width:8px;height:8px;border-radius:50%;background:#35e08a;box-shadow:0 0 0 4px rgba(53,224,138,.25);animation:pulse 2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(53,224,138,0)}}
+
+.hero h1{
+  font-family:var(--font-head);font-weight:700;
+  font-size:clamp(26px,3vw,38px);line-height:1.18;margin-top:clamp(10px,2vh,18px);max-width:520px;
+}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--brand-3),#9be7ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{margin-top:clamp(8px,1.6vh,14px);max-width:500px;font-size:14px;line-height:1.65;opacity:.86}
+
+.features{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:clamp(12px,2.4vh,24px);max-width:520px;
+}
+.feat{display:flex;gap:11px;align-items:flex-start}
+.feat .ic{
+  flex:none;width:34px;height:34px;border-radius:10px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);
+  display:grid;place-items:center;
+}
+.feat .ic svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.feat b{display:block;font-size:13.5px;font-weight:600}
+.feat small{display:block;font-size:12px;opacity:.72;margin-top:2px;line-height:1.4}
+
+.hero-description {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #ffffff;
+    font-weight: 400;
+    margin-top: 7px;
+    margin-bottom: 10px;
+}
+
+/* Background graphic (inline SVG scene) — fills whatever height is left */
+.scene{flex:1;min-height:0;margin-top:8px;margin-inline:-48px;line-height:0;position:relative;z-index:0}
+.scene svg{width:100%;height:100%;display:block}
+.float{animation:float 6s ease-in-out infinite}
+.plane{animation:fly 9s linear infinite}
+@keyframes float{50%{transform:translateY(-5px)}}
+@keyframes fly{from{transform:translate(-40px,18px)}to{transform:translate(40px,-18px)}}
+.wave{animation:wave 7s linear infinite}
+@keyframes wave{to{transform:translateX(-80px)}}
+
+/* =========================================================
+   RIGHT — LOGIN PANEL
+   ========================================================= */
+.panel{
+  position:relative;
+  min-height:0;
+  padding:clamp(18px,3.4vh,36px) 52px clamp(14px,2.4vh,24px);
+  display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(180deg,#fff 0%,#f9fbff 100%);
+}
+
+/* ► FORMOSA LOGO — right side */
+.client-logo{
+  position:absolute;top:clamp(18px,3.4vh,36px);left:52px;right:52px;
+  display:flex;align-items:center;justify-content:flex-end;
+  margin:0;
+}
+.client-logo img{height:var(--formosa-logo-h);width:auto;max-width:100%;object-fit:contain;display:block}
+.client-logo .fallback{display:none;font-family:var(--font-head);font-weight:800;font-size:18px;letter-spacing:3px;color:var(--brand-1)}
+.lang{font-size:12.5px;color:var(--muted);font-weight:500}
+
+.panel h2{font-family:var(--font-head);font-size:28px;font-weight:700;letter-spacing:-.3px}
+.panel .sub{color:var(--muted);font-size:14px;margin-top:6px}
+
+form{margin-top:clamp(14px,2.6vh,26px)}
+.field{margin-bottom:clamp(10px,1.8vh,16px)}
+.field label{display:block;font-size:12.5px;font-weight:600;color:#334155;margin-bottom:6px;letter-spacing:.2px}
+.input{
+  position:relative;display:flex;align-items:center;
+  border:1.5px solid var(--line);border-radius:13px;background:#ffffff !important;background-color:#ffffff !important;
+  transition:.2s;overflow:hidden;
+}
+.input:focus-within{border-color:var(--brand-2);box-shadow:0 0 0 4px rgba(11,94,215,.12);background:#ffffff !important;background-color:#ffffff !important;}
+.input svg.lead-ic{width:19px;height:19px;margin-left:15px;stroke:#8a98ae;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none;transition:.2s;background:transparent}
+.input:focus-within svg.lead-ic{stroke:var(--brand-2)}
+.input input{
+  flex:1;border:0;outline:0;background:#ffffff !important;background-color:#ffffff !important;
+  padding:13px 14px;font:inherit;font-size:15px;color:var(--ink);min-width:0;
+}
+.input input:focus,
+.input input:active,
+.input input:hover{
+  background:#ffffff !important;background-color:#ffffff !important;outline:none;
+}
+.input input:-webkit-autofill,
+.input input:-webkit-autofill:hover,
+.input input:-webkit-autofill:focus,
+.input input:-webkit-autofill:active{
+  -webkit-box-shadow:0 0 0 1000px #ffffff inset !important;
+  box-shadow:0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color:var(--ink) !important;
+  color:var(--ink) !important;
+  background-color:#ffffff !important;
+  background:#ffffff !important;
+  transition:background-color 5000s ease-in-out 0s;
+}
+.input input:autofill,
+.input input:autofill:hover,
+.input input:autofill:focus{
+  filter:none;
+  box-shadow:0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color:var(--ink) !important;
+  background-color:#ffffff !important;
+  background:#ffffff !important;
+}
+#username, #password, #txtusername, #txtUserPassword,
+#username:focus, #password:focus, #txtusername:focus, #txtUserPassword:focus,
+#username:active, #password:active, #txtusername:active, #txtUserPassword:active,
+#username:-webkit-autofill, #password:-webkit-autofill, #txtusername:-webkit-autofill, #txtUserPassword:-webkit-autofill,
+#username:-webkit-autofill:hover, #password:-webkit-autofill:hover, #txtusername:-webkit-autofill:hover, #txtUserPassword:-webkit-autofill:hover,
+#username:-webkit-autofill:focus, #password:-webkit-autofill:focus, #txtusername:-webkit-autofill:focus, #txtUserPassword:-webkit-autofill:focus,
+#username:-webkit-autofill:active, #password:-webkit-autofill:active, #txtusername:-webkit-autofill:active, #txtUserPassword:-webkit-autofill:active {
+  background-color:#ffffff !important;
+  background:#ffffff !important;
+  -webkit-box-shadow:0 0 0 1000px #ffffff inset !important;
+  box-shadow:0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color:var(--ink) !important;
+  color:var(--ink) !important;
+}
+.input input::placeholder{color:#a2aec1}
+.eye{border:0;background:#ffffff !important;background-color:#ffffff !important;cursor:pointer;padding:0 15px;height:100%;display:grid;place-items:center}
+.eye svg{width:19px;height:19px;stroke:#8a98ae;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.eye:hover svg{stroke:var(--brand-2)}
+
+.row{display:flex;justify-content:space-between;align-items:center;margin:2px 0 clamp(12px,2.2vh,20px);font-size:13.5px}
+.check{display:flex;align-items:center;gap:9px;cursor:pointer;color:#475569;user-select:none}
+.check input{appearance:none;width:18px;height:18px;border:1.5px solid #b6c2d6;border-radius:5px;display:grid;place-items:center;cursor:pointer;transition:.15s;background:#fff}
+.check input:checked{background:var(--brand-2);border-color:var(--brand-2)}
+.check input:checked::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+a.link{color:var(--brand-2);text-decoration:none;font-weight:600}
+a.link:hover{text-decoration:underline}
+
+.btn{
+  width:100%;border:0;cursor:pointer;color:#fff;font:inherit;font-weight:600;font-size:15.5px;
+  padding:14px 18px;border-radius:13px;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(100deg,var(--brand-2),var(--brand-3));
+  box-shadow:0 12px 26px -8px rgba(11,94,215,.55);
+  transition:transform .15s,box-shadow .2s,filter .2s;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 16px 30px -8px rgba(11,94,215,.6);filter:brightness(1.04)}
+.btn:active{transform:translateY(0)}
+.btn svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.btn:hover svg{transform:translateX(3px)}
+.btn.loading{pointer-events:none;opacity:.85}
+.btn.loading .btn-text::after{content:"…"}
+
+.msg{display:none;margin-bottom:12px;padding:10px 14px;border-radius:10px;font-size:13.5px;background:#fff1f0;color:#b42318;border:1px solid #fecdca}
+.msg.show{display:block}
+
+/* ► TEXT BELOW SIGN IN — edit the wording in the HTML (.info block) */
+.info{
+  margin-top:clamp(14px,2.8vh,28px);padding-top:clamp(10px,1.8vh,16px);
+  border-top:1px solid var(--line);
+  text-align:center;line-height:1.7;
+}
+.info .modules{font-size:12.5px;color:#475569;font-weight:500}
+.info .modules .dot{color:var(--accent);font-weight:700;padding:0 4px}
+.info .sys{margin-top:clamp(8px,1.6vh,14px);font-size:12.5px;color:#64748b}
+.info .sys b{color:var(--brand-1);font-weight:700}
+.info .copy{font-size:12px;color:#64748b}
+.info .copy a{color:var(--brand-2);font-weight:600;text-decoration:none}
+.info .copy a:hover{text-decoration:underline}
+
+/* =========================================================
+   RESPONSIVE — every size is designed to fit without scrolling
+   ========================================================= */
+@media (max-height:760px){          /* short laptop screens */
+  .hero p.lead{display:none}
+  .hero{padding-top:26px}
+}
+@media (max-height:640px){          /* very short screens */
+  :root{--gctl-logo-h:54px;--formosa-logo-h:42px}
+}
+@media (max-width:1024px){          /* tablet landscape / small laptop */
+  .hero{padding:28px 30px 0}
+  .scene{margin-inline:-30px}
+  .features{grid-template-columns:1fr}
+  .panel{padding-left:32px;padding-right:32px}
+  .client-logo{left:32px;right:32px}
+}
+@media (max-width:820px){           /* tablet portrait / phone — logo bar on top, login below */
+  body{padding:16px;align-items:safe center}
+  .shell{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;border-radius:18px;min-height:calc(100vh - 32px);min-height:calc(100dvh - 32px);max-width:560px;margin:0 auto;overflow:hidden}
+  .hero,.panel{min-width:0}
+  .hero{min-height:auto;padding:22px}
+  .hero::after{display:none}
+  .brand{padding:4px 8px}
+  :root{--gctl-logo-h:56px;--formosa-logo-h:48px}
+  .panel{padding:18px 24px 14px}
+  .client-logo{position:static;margin-bottom:clamp(12px,2.6vh,26px)}
+  .panel h2{font-size:24px}
+  .scene{flex:none;width:calc(100% + 44px);height:auto;aspect-ratio:800 / 330;margin:16px -22px -22px}
+  .scene svg{height:100%}
+}
+@media (max-width:520px){           /* phone */
+  body{padding:0}
+  .shell{min-height:100vh;min-height:100dvh;border-radius:0}
+  .hero{padding:18px 20px 0}
+  .features{grid-template-columns:1fr;gap:12px;margin-top:18px}
+  .scene{width:calc(100% + 40px);margin-inline:-20px}
+  .panel{padding:20px}
+  .row{font-size:13px}
+  .info .modules,.info .sys,.info .copy{font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+
+<body>
+<main class="shell">
+
+  <!-- ===================== LEFT : BRAND / HERO ===================== -->
+  <section class="hero" aria-label="Product overview">
+
+    <!-- ► GCTL INFOSYS LOGO — change the file path in src="" -->
+   <div class="brand">
+  <img src="GCTLInfosysLogo.png" alt="GCTL Infosys"
+       onerror="this.classList.add('hide'); this.parentElement.classList.add('no-logo');">
+  <div class="fallback">GCTL <span>INFOSYS</span></div>
+</div>
+
+    <div class="badge"><i></i> Clearing &amp; Forwarding ERP &middot; 2026 Edition</div>
+
+   
+    <p class="hero-description">
+      One unified platform to manage customs clearance, import &amp; export shipments,
+      port logistics, bill of entry documentation, job costing and client invoicing —
+      with real-time visibility from booking to delivery.
+    </p>
+
+    <div class="features">
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div>
+        <div><b>Customs Clearance</b><small>B/E &amp; documentation workflow</small></div>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 17l2 3h14l2-3"/><path d="M5 17V11l7-3 7 3v6M12 8V3"/></svg></div>
+        <div><b>Port &amp; Shipping</b><small>Vessel &amp; container tracking</small></div>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg></div>
+        <div><b>Import &amp; Export</b><small>End-to-end job operations</small></div>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 12h.01M12 12h.01M15 12h.01M9 16h.01M12 16h.01M15 16h.01"/></svg></div>
+        <div><b>Billing &amp; Costing</b><small>Invoicing &amp; expense tracking</small></div>
+      </div>
+    </div>
+
+    <!-- ► BACKGROUND GRAPHIC (inline SVG — fully editable; colours use the theme) -->
+    <div class="scene" aria-hidden="true">
+      <svg viewBox="0 0 800 330" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0e57b8" stop-opacity=".55"/><stop offset="1" stop-color="#061f48"/>
+          </linearGradient>
+          <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2f55"/><stop offset="1" stop-color="#0b1730"/></linearGradient>
+        </defs>
+
+        <!-- globe + route -->
+        <g opacity=".5" fill="none" stroke="#9be7ff" stroke-width="1.2">
+          <circle cx="610" cy="70" r="62"/>
+          <ellipse cx="610" cy="70" rx="26" ry="62"/>
+          <ellipse cx="610" cy="70" rx="48" ry="62"/>
+          <path d="M548 70h124M556 44h108M556 96h108"/>
+        </g>
+        <path d="M120 120C260 20 470 10 600 60" fill="none" stroke="#9be7ff" stroke-width="1.5" stroke-dasharray="4 6" opacity=".7"/>
+        <g class="plane"><g transform="translate(560 44) rotate(14)" fill="#fff">
+          <path d="M0 8L34 2 44 0 30 10 40 24 34 24 18 14 8 18 8 12z" transform="scale(.9)"/>
+        </g></g>
+
+        <!-- sky skyline / far shore -->
+        <path d="M0 215h800v20H0z" fill="#0a2f6b" opacity=".6"/>
+
+        <!-- gantry crane (right) -->
+        <g fill="none" stroke="#cfe6ff" stroke-width="3.5" stroke-linecap="round" opacity=".92">
+          <path d="M700 250V120M760 250V120M700 120h60M690 120L610 120M640 120V95M620 120L700 70M700 70L760 120M700 70h-90"/>
+          <path d="M650 120v28" stroke-dasharray="3 4"/>
+        </g>
+        <rect x="636" y="148" width="28" height="14" rx="2" fill="#ff8a1f"/>
+
+        <!-- container stacks on quay -->
+        <g>
+          <rect x="680" y="226" width="34" height="24" fill="#ff8a1f"/><rect x="716" y="226" width="34" height="24" fill="#19b5fe"/><rect x="752" y="226" width="34" height="24" fill="#ef4444"/>
+          <rect x="698" y="202" width="34" height="24" fill="#22c55e"/><rect x="734" y="202" width="34" height="24" fill="#ff8a1f"/>
+        </g>
+
+        <!-- ship -->
+        <g class="float">
+          <!-- bridge -->
+          <rect x="455" y="170" width="52" height="42" rx="3" fill="#e8f1ff"/>
+          <rect x="462" y="178" width="38" height="7" fill="#0b5ed7"/><rect x="462" y="192" width="38" height="5" fill="#0b5ed7" opacity=".6"/>
+          <rect x="474" y="152" width="14" height="18" fill="#cfe0f7"/>
+          <!-- containers -->
+          <g>
+            <rect x="130" y="186" width="40" height="26" fill="#ff8a1f"/><rect x="172" y="186" width="40" height="26" fill="#19b5fe"/><rect x="214" y="186" width="40" height="26" fill="#ef4444"/><rect x="256" y="186" width="40" height="26" fill="#f5c518"/><rect x="298" y="186" width="40" height="26" fill="#19b5fe"/><rect x="340" y="186" width="40" height="26" fill="#22c55e"/><rect x="382" y="186" width="40" height="26" fill="#ff8a1f"/>
+            <rect x="172" y="160" width="40" height="26" fill="#22c55e"/><rect x="214" y="160" width="40" height="26" fill="#19b5fe"/><rect x="256" y="160" width="40" height="26" fill="#ff8a1f"/><rect x="298" y="160" width="40" height="26" fill="#ef4444"/><rect x="340" y="160" width="40" height="26" fill="#f5c518"/>
+            <rect x="214" y="134" width="40" height="26" fill="#ef4444"/><rect x="256" y="134" width="40" height="26" fill="#19b5fe"/><rect x="298" y="134" width="40" height="26" fill="#22c55e"/>
+          </g>
+          <!-- hull -->
+          <path d="M96 212H540L506 258H132Z" fill="url(#hull)"/>
+          <path d="M104 224H532" stroke="#ff8a1f" stroke-width="4"/>
+        </g>
+
+        <!-- sea -->
+        <rect y="250" width="800" height="80" fill="url(#sea)"/>
+        <g class="wave" fill="none" stroke="#9be7ff" stroke-width="2" opacity=".45" stroke-linecap="round">
+          <path d="M-80 266q20-10 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0"/>
+          <path d="M-60 290q20-10 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0 40 0"/>
+        </g>
+
+        <!-- truck on quay -->
+        <g transform="translate(560 232)">
+          <rect x="0" y="0" width="64" height="30" rx="3" fill="#e8f1ff"/>
+          <path d="M64 8h18l10 12v10H64z" fill="#19b5fe"/><rect x="70" y="12" width="12" height="8" fill="#0a2a5e" opacity=".7"/>
+          <circle cx="16" cy="32" r="6" fill="#0a1a38"/><circle cx="50" cy="32" r="6" fill="#0a1a38"/><circle cx="82" cy="32" r="6" fill="#0a1a38"/>
+        </g>
+        <rect y="262" width="800" height="3" fill="#fff" opacity=".08"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ===================== RIGHT : LOGIN ===================== -->
+  <section class="panel" aria-label="Sign in">
+
+    <div class="client-logo">
+      <span class="lang"></span>
+      <!-- ► FORMOSA LOGO (right) — change the file path in src="" -->
+      <div>
+        <img src="Formosa.png" alt="Formosa"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="fallback">FORMOSA</div>
+      </div>
+    </div>
+
+    <h2>Welcome Back 👋</h2>
+    <p class="sub">Sign in to access your C&amp;F Management System</p>
+
+    <form id="loginForm" novalidate autocomplete="on">
+      <div class="msg" id="msg" role="alert"></div>
+
+      <div class="field">
+        <label for="username">Username</label>
+        <div class="input">
+          <svg class="lead-ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+          <input id="username" name="username" type="text" placeholder="Enter your username" autocomplete="username" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input">
+          <svg class="lead-ic" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+          <button type="button" class="eye" id="eye" aria-label="Show password">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" name="remember"> Remember me</label>
+        <a href="#" class="link">Forgot password?</a>
+      </div>
+
+      <button class="btn" type="submit" id="btn">
+        <span class="btn-text">Sign In</span>
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+
+    <!-- ► TEXT BELOW SIGN IN — edit freely -->
+    <div class="info">
+      <div class="modules">
+        Customs Clearance <span class="dot">&middot;</span> Import &amp; Export <span class="dot">&middot;</span> Port Logistics<br>
+        Job Costing <span class="dot">&middot;</span> Billing <span class="dot">&middot;</span> Financial Accounting Management
+      </div>
+      <div class="sys"><b>C &amp; F Management System</b> &nbsp;|&nbsp; Version 2026</div>
+      <div class="copy">Copyright &copy; 2020-2030 <a href="https://gctlinfosys.com/">GCTL Infosys</a>. All rights reserved.</div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ---------- Show / hide password ---------- */
+const pw = document.getElementById('password');
+document.getElementById('eye').addEventListener('click', e => {
+  const show = pw.type === 'password';
+  pw.type = show ? 'text' : 'password';
+  e.currentTarget.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+});
+
+/* ---------- Form handling ---------- */
+const form = document.getElementById('loginForm');
+const btn  = document.getElementById('btn');
+const msg  = document.getElementById('msg');
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  msg.classList.remove('show');
+
+  const user = form.username.value.trim();
+  const pass = form.password.value;
+  if(!user || !pass){
+    msg.textContent = 'Please enter both username and password.';
+    msg.classList.add('show');
+    return;
+  }
+
+  btn.classList.add('loading');
+
+  /* ► CONNECT YOUR BACKEND HERE
+     Replace this demo timeout with your real login request, e.g.
+       fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify({username:user, password:pass})})
+       .then(r => r.ok ? location.href='/dashboard' : Promise.reject())
+       .catch(() => { show error });
+     Or simply set:  <form action="your-login-url" method="post">  and remove this handler. */
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    msg.textContent = 'Demo only — connect this form to your login API.';
+    msg.classList.add('show');
+  }, 1200);
+});
+</script>
+</body>
+</html>
