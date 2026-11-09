@@ -267,6 +267,75 @@
                 { data: 'docsBankSignDate', className: 'text-center align-middle' },
                 { data: 'beNo', className: 'text-center align-middle' },
                 { data: 'beDate', className: 'text-center align-middle' },
+                { 
+                    data: 'requisitionNo', 
+                    className: 'text-center align-middle',
+                    render: function (data) {
+                        return data ? '<span class="text-secondary fw-semibold">' + escapeHtml(data) + '</span>' : '-';
+                    }
+                },
+                { 
+                    data: 'requisitionDate', 
+                    className: 'text-center align-middle',
+                    render: function (data) { return data ? escapeHtml(data) : '-'; }
+                },
+                { 
+                    data: 'ofrApprovalReport', 
+                    className: 'text-center align-middle',
+                    render: function (data, type, row) {
+                        var text = data || row.oFRApprovalReport || (row.requisitionNo ? 'View Report' : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-approval-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                    }
+                },
+                { 
+                    data: 'ofrAdjustApprovalReport', 
+                    className: 'text-center align-middle',
+                    render: function (data, type, row) {
+                        var text = data || row.oFRAdjustApprovalReport || (row.requisitionNo ? 'View Report' : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-adjust-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Adjust Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                    }
+                },
+                { 
+                    data: 'voucherApproval', 
+                    className: 'text-center align-middle',
+                    render: function (data, type, row) {
+                        var text = data || row.voucherApproval;
+                        var vNo = row.voucherNo || (text && (text.indexOf('_') > -1 || text.indexOf('V') === 1) ? text : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var isPending = text.toLowerCase() === 'pending';
+                        if (!isApproved && !isPending) {
+                            vNo = text;
+                            text = 'Approved';
+                            isApproved = true;
+                        }
+                        var cls = isApproved ? 'text-success' : 'text-warning';
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-clock';
+                        var vTitle = vNo ? 'View Voucher Details (' + escapeHtml(vNo) + ')' : 'View Voucher Details';
+                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                    }
+                },
+                { 
+                    data: 'billNo', 
+                    className: 'text-center align-middle',
+                    render: function (data) {
+                        if (!data) return '-';
+                        return '<a href="javascript:void(0);" class="report-preview-link bill-preview-btn" data-bill-no="' + escapeHtml(data) + '" title="View Job Bill Report"><i class="fas fa-file-invoice-dollar me-1"></i>' + escapeHtml(data) + '</a>';
+                    }
+                },
+                { 
+                    data: 'billDate', 
+                    className: 'text-center align-middle',
+                    render: function (data) { return data ? escapeHtml(data) : '-'; }
+                },
                 { data: 'estDeliveryDate', className: 'text-center align-middle' },
                 { data: 'actualDeliveryDate', className: 'text-center align-middle' },
                 { 
@@ -333,6 +402,75 @@
                 { data: 'arrivalNoticeRcvdExpressDate', className: 'text-center align-middle' },
                 { data: 'beNo', className: 'text-center align-middle' },
                 { data: 'beDate', className: 'text-center align-middle' },
+                { 
+                    data: 'requisitionNo', 
+                    className: 'text-center align-middle',
+                    render: function (data) {
+                        return data ? '<span class="text-secondary fw-semibold">' + escapeHtml(data) + '</span>' : '-';
+                    }
+                },
+                { 
+                    data: 'requisitionDate', 
+                    className: 'text-center align-middle',
+                    render: function (data) { return data ? escapeHtml(data) : '-'; }
+                },
+                { 
+                    data: 'ofrApprovalReport', 
+                    className: 'text-center align-middle',
+                    render: function (data, type, row) {
+                        var text = data || row.oFRApprovalReport || (row.requisitionNo ? 'View Report' : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-approval-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                    }
+                },
+                { 
+                    data: 'ofrAdjustApprovalReport', 
+                    className: 'text-center align-middle',
+                    render: function (data, type, row) {
+                        var text = data || row.oFRAdjustApprovalReport || (row.requisitionNo ? 'View Report' : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var cls = isApproved ? 'text-success' : (text.toLowerCase() === 'pending' ? 'text-warning' : '');
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-file-pdf';
+                        return '<a href="javascript:void(0);" class="report-preview-link ofr-adjust-btn ' + cls + '" data-job-no="' + escapeHtml(row.jobNo) + '" data-ofr-no="' + escapeHtml(row.requisitionNo || '') + '" title="View OFR Adjust Approval Report"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                    }
+                },
+                { 
+                    data: 'voucherApproval', 
+                    className: 'text-center align-middle',
+                    render: function (data, type, row) {
+                        var text = data || row.voucherApproval;
+                        var vNo = row.voucherNo || (text && (text.indexOf('_') > -1 || text.indexOf('V') === 1) ? text : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var isPending = text.toLowerCase() === 'pending';
+                        if (!isApproved && !isPending) {
+                            vNo = text;
+                            text = 'Approved';
+                            isApproved = true;
+                        }
+                        var cls = isApproved ? 'text-success' : 'text-warning';
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-clock';
+                        var vTitle = vNo ? 'View Voucher Details (' + escapeHtml(vNo) + ')' : 'View Voucher Details';
+                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
+                    }
+                },
+                { 
+                    data: 'billNo', 
+                    className: 'text-center align-middle',
+                    render: function (data) {
+                        if (!data) return '-';
+                        return '<a href="javascript:void(0);" class="report-preview-link bill-preview-btn" data-bill-no="' + escapeHtml(data) + '" title="View Job Bill Report"><i class="fas fa-file-invoice-dollar me-1"></i>' + escapeHtml(data) + '</a>';
+                    }
+                },
+                { 
+                    data: 'billDate', 
+                    className: 'text-center align-middle',
+                    render: function (data) { return data ? escapeHtml(data) : '-'; }
+                },
                 { data: 'actualDeliveryDate', className: 'text-center align-middle' },
                 {
                     data: 'shipmentStatus',
@@ -375,7 +513,7 @@
         });
 
         // 2. Standard select change events
-        $('#filterCustomerId, #filterPortType').on('change', function () {
+        $('#filterCustomerId, #filterPortType, #filterBranchCode').on('change', function () {
             requestDataReload(30);
         });
 
@@ -393,13 +531,20 @@
             applyStatusFilterInstant(status);
         });
 
-        // 5. Delegated custom dropdown option clicks & clear buttons
+        // 5. Export Format dropdown change: Automatic Export Trigger
+        $('#filterExportFormat').on('change', function () {
+            handleExportTrigger();
+        });
+
+        // 6. Delegated custom dropdown option clicks & clear buttons
         $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-clear-icon, .custom-dd-item', function () {
             var $wrapper = $(this).closest('.custom-dd-wrapper');
             var selectId = $wrapper.prev('select').attr('id');
 
             setTimeout(function () {
-                if (selectId === 'filterJobStatus') {
+                if (selectId === 'filterExportFormat') {
+                    handleExportTrigger();
+                } else if (selectId === 'filterJobStatus') {
                     var status = getDropdownValue('filterJobStatus');
                     highlightStatCard(status);
                     applyStatusFilterInstant(status);
@@ -413,7 +558,7 @@
             }, 30);
         });
 
-        // 6. Stat Cards Click: Instant in-memory filter
+        // 7. Stat Cards Click: Instant in-memory filter
         $('.stat-card').on('click', function () {
             var statusFilter = $(this).data('status-filter') || '';
             $('.stat-card').removeClass('active-card');
@@ -423,11 +568,94 @@
             applyStatusFilterInstant(statusFilter);
         });
 
-        // 7. Export Button
-        $('#btnExport').on('click', function (e) {
+        // 8. OFR Approval Report Click
+        $(document).on('click', '.ofr-approval-btn', function (e) {
             e.preventDefault();
-            exportReport();
+            var jobNo = $(this).data('job-no');
+            if (!jobNo) return;
+            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo) + '&ofrReportType=' + encodeURIComponent('OFR Approval Report');
+            openReportPreviewModal('Operational Fund Approval Report - ' + jobNo, url);
         });
+
+        // 9. OFR Adjust Approval Report Click
+        $(document).on('click', '.ofr-adjust-btn', function (e) {
+            e.preventDefault();
+            var jobNo = $(this).data('job-no');
+            if (!jobNo) return;
+            var url = '/OFRReport/PreviewPdf?jobNo=' + encodeURIComponent(jobNo) + '&ofrReportType=' + encodeURIComponent('OFR Final Report');
+            openReportPreviewModal('OFR Adjust Approval Report - ' + jobNo, url);
+        });
+
+        // 10. Voucher Approval Click
+        $(document).on('click', '.voucher-preview-btn', function (e) {
+            e.preventDefault();
+            var voucherNo = $(this).data('voucher-no');
+            if (!voucherNo) return;
+            var url = '/VoucherEntry/Print?id=' + encodeURIComponent(voucherNo) + '&autoprint=0';
+            openReportPreviewModal('Voucher Entry - ' + voucherNo, url);
+        });
+
+        // 11. Bill No Click
+        $(document).on('click', '.bill-preview-btn', function (e) {
+            e.preventDefault();
+            var billNo = $(this).data('bill-no');
+            if (!billNo) return;
+            var url = '/JobBillEntryReport/ExportPdf?selectedBillNos=' + encodeURIComponent(billNo) + '&billNos=' + encodeURIComponent(billNo);
+            openReportPreviewModal('Job Bill Entry Report - ' + billNo, url);
+        });
+
+        // 12. Modal reset on close
+        $('#reportPreviewModal').on('hidden.bs.modal', function () {
+            $('#reportPreviewIframe').attr('src', 'about:blank');
+            $('#modalHeaderSpinner').hide();
+        });
+    }
+
+    /**
+     * Opens PDF or report preview inside the unified modal iframe
+     */
+    function openReportPreviewModal(title, url) {
+        var $iframe = $('#reportPreviewIframe');
+        var $spinner = $('#modalHeaderSpinner');
+        var $title = $('#reportPreviewModalLabel');
+        var $newTab = $('#btnModalOpenNewTab');
+
+        $title.html('<i class="fas fa-file-pdf text-danger me-2"></i>' + escapeHtml(title));
+        $newTab.attr('href', url);
+        $spinner.show();
+
+        var modalEl = document.getElementById('reportPreviewModal');
+        if (modalEl) {
+            var modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalInstance.show();
+        }
+
+        // Set src immediately for instant parallel request
+        $iframe.attr('src', url);
+
+        $iframe.off('load').on('load', function () {
+            $spinner.hide();
+        });
+
+        // Safety fallback: auto-hide header spinner after 800ms
+        setTimeout(function () {
+            $spinner.hide();
+        }, 800);
+    }
+
+    /**
+     * Automatically triggers export when user selects a format, then resets dropdown
+     */
+    function handleExportTrigger(explicitFormat) {
+        var format = explicitFormat || getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '';
+        format = String(format).trim();
+        if (format && format.toLowerCase() !== 'select exp. format') {
+            exportReport(format);
+            setTimeout(function () {
+                silentSetDropdownValue('filterExportFormat', '');
+                $('#filterExportFormat').val('');
+            }, 700);
+        }
     }
 
     /**
@@ -437,6 +665,7 @@
         return [
             getDateValue('filterFromDate'),
             getDateValue('filterToDate'),
+            getDropdownValue('filterBranchCode'),
             getDropdownValue('filterCustomerId'),
             getDropdownValue('filterPortType'),
             getDropdownValue('filterShipmentMode')
@@ -451,6 +680,7 @@
         return {
             FromDate: getDateValue('filterFromDate'),
             ToDate: getDateValue('filterToDate'),
+            BranchCode: getDropdownValue('filterBranchCode'),
             CustomerId: getDropdownValue('filterCustomerId'),
             ShipmentMode: getDropdownValue('filterShipmentMode'),
             PortType: getDropdownValue('filterPortType'),
@@ -684,14 +914,15 @@
     /**
      * Export report handler (PDF or Excel)
      */
-    function exportReport() {
+    function exportReport(formatOverride) {
         var filters = getFilterParams();
-        var exportFormat = (getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
+        var exportFormat = (formatOverride || getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
         if (!exportFormat) exportFormat = 'PDF';
 
         var queryParams = $.param({
             FromDate: filters.FromDate,
             ToDate: filters.ToDate,
+            BranchCode: filters.BranchCode,
             CustomerId: filters.CustomerId,
             ShipmentMode: filters.ShipmentMode,
             PortType: filters.PortType,

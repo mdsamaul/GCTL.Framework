@@ -781,9 +781,6 @@ namespace GCTL.Service.OFRReport
                         page.Size(PageSizes.A4);
                         page.DefaultTextStyle(x => x.FontFamily("Arial").FontSize(8.5f));
 
-                        // Watermark in middle of each page
-                        page.Background().AlignCenter().AlignMiddle().Rotate(-30).Text("FORMOSA LOGISTICS").FontSize(48).FontColor(Colors.Grey.Lighten3).SemiBold();
-
                         // Header with Formosa Logo on Left, Organization/Address/Report in Center, Mode on Right
                         page.Header().Column(headerCol =>
                         {

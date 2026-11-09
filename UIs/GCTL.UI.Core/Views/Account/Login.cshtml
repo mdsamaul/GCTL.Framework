@@ -19,7 +19,7 @@
 
     <style>
         :root {
-            --gctl-logo-h: 62px;
+            --gctl-logo-h: 70px;
             --formosa-logo-h: 58px;
             --brand-1: #0a2a5e;
             --brand-2: #0b5ed7;
@@ -53,11 +53,7 @@
             font-family: var(--font-body);
             color: var(--ink);
             background-color: #ffffff;
-            /* background-image: url('@Url.Content("~/images/login-bg.jpg?v=3")'); */
-            background-position: center center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-attachment: fixed;
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -65,8 +61,23 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image: url('@Url.Content("~/images/login-bg.jpg?v=5")');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            opacity: 0.10;
+            pointer-events: none;
+        }
+
         /* ---------- Main shell (always fits inside the browser window) ---------- */
         .shell {
+            position: relative;
+            z-index: 1;
             width: 100%;
             max-width: 1180px;
             min-height: min(calc(100vh - 32px), 780px);
@@ -130,11 +141,12 @@
             align-items: center;
             width: fit-content;
             /* background: rgba(255,255,255,.92); */
-            border-radius: 6px;
+            /* border-radius: 6px;
             padding: 5px 10px;
             box-shadow: 0 4px 14px rgba(0,0,0,.08);
             border:1px solid #33507d;
-            opacity:60%;
+            opacity:60%; */
+            margin-top:50px;
         }
 
         .brand img {
@@ -239,9 +251,9 @@
 
         /* Background graphic (inline SVG scene) — fills whatever height is left */
         .scene {
-            flex: 1;
-            min-height: 0;
-            margin-top: 8px;
+            /* flex: 1;
+            min-height: 0; */
+            margin-top: 105px;
             margin-inline: -48px;
             line-height: 0;
             position: relative;

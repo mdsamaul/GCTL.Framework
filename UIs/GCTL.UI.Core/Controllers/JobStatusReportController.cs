@@ -55,6 +55,9 @@ namespace GCTL.UI.Core.Controllers
                     .ToList();
                 ViewBag.PortTypes = new SelectList(portTypes ?? Enumerable.Empty<GCTL.Core.ViewModels.Common.CommonSelectModel>(), "Code", "Name");
 
+                var branches = await _reportService.GetBranchesAsync();
+                ViewBag.Branches = new SelectList(branches ?? new(), "Code", "Name");
+
                 var customers = await _customerService.SelectionCustomerAsync();
                 var custList = customers?.Where(x => !string.IsNullOrWhiteSpace(x.Code) && !string.IsNullOrWhiteSpace(x.Name)).ToList() ?? new();
                 ViewBag.Customers = new SelectList(custList, "Code", "Name");
@@ -80,6 +83,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 ViewBag.ShipmentModes = new SelectList(new List<string>());
                 ViewBag.PortTypes = new SelectList(new List<string>());
+                ViewBag.Branches = new SelectList(new List<string>());
                 ViewBag.Customers = new SelectList(new List<string>());
                 ViewBag.JobStatuses = new SelectList(new List<string>());
                 ViewBag.ExportFormats = new SelectList(new List<string>());
@@ -137,6 +141,7 @@ namespace GCTL.UI.Core.Controllers
                 {
                     FromDate = filter.FromDate,
                     ToDate = filter.ToDate,
+                    BranchCode = filter.BranchCode,
                     CustomerId = filter.CustomerId,
                     ShipmentMode = actualShipmentTypeId,
                     PortType = filter.PortType,

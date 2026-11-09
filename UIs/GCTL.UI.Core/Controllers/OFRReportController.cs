@@ -172,6 +172,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 string printUser = User.Identity?.Name ?? "shariful Islam";
                 var pdfBytes = await _ofrReportService.GeneratePdfReportAsync(filter, printUser);
+                Response.Headers["Content-Disposition"] = "inline; filename=\"OFR_Report.pdf\"";
                 return File(pdfBytes, "application/pdf");
             }
             catch (Exception ex)

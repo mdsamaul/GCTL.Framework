@@ -32,6 +32,17 @@ namespace GCTL.Core.ViewModels.JobStatusReport
         public string DocsBankSignDate { get; set; } = string.Empty;
         public string BENo { get; set; } = string.Empty;
         public string BEDate { get; set; } = string.Empty;
+
+        // 7 Operational & Financial Columns after B/E Dt
+        public string RequisitionNo { get; set; } = string.Empty;
+        public string RequisitionDate { get; set; } = string.Empty;
+        public string OFRApprovalReport { get; set; } = string.Empty;
+        public string OFRAdjustApprovalReport { get; set; } = string.Empty;
+        public string VoucherApproval { get; set; } = string.Empty;
+        public string VoucherNo { get; set; } = string.Empty;
+        public string BillNo { get; set; } = string.Empty;
+        public string BillDate { get; set; } = string.Empty;
+
         public string EstDeliveryDate { get; set; } = string.Empty;
         public string ActualDeliveryDate { get; set; } = string.Empty;
         public string ShipmentStatus { get; set; } = string.Empty;
