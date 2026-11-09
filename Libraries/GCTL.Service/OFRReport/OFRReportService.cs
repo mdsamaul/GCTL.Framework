@@ -274,6 +274,17 @@ namespace GCTL.Service.OFRReport
                         var masters = (await multi.ReadAsync<OFRReportMasterDTO>()).ToList();
                         var details = (await multi.ReadAsync<dynamic>()).ToList();
 
+                        if (!string.IsNullOrWhiteSpace(filter.SelectedOfrNos))
+                        {
+                            var selectedOfrs = filter.SelectedOfrNos
+                                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                            if (selectedOfrs.Count > 0)
+                            {
+                                masters = masters.Where(m => selectedOfrs.Contains(m.OfrNo.Trim())).ToList();
+                            }
+                        }
+
                         if (masters.Any())
                         {
                             foreach (var master in masters)
@@ -347,6 +358,16 @@ namespace GCTL.Service.OFRReport
                             Customer = cust,
                             Shipment = expType
                         };
+
+            // Filter by Selected OFR Nos
+            if (!string.IsNullOrWhiteSpace(filter.SelectedOfrNos))
+            {
+                var selectedOfrs = filter.SelectedOfrNos.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                if (selectedOfrs.Length > 0)
+                {
+                    query = query.Where(x => selectedOfrs.Contains(x.OFR.Ofrno));
+                }
+            }
 
             // Filter by JobNo (Multi-Select)
             if (!string.IsNullOrWhiteSpace(filter.JobNo))
@@ -760,6 +781,9 @@ namespace GCTL.Service.OFRReport
                         page.Size(PageSizes.A4);
                         page.DefaultTextStyle(x => x.FontFamily("Arial").FontSize(8.5f));
 
+                        // Watermark in middle of each page
+                        page.Background().AlignCenter().AlignMiddle().Rotate(-30).Text("FORMOSA LOGISTICS").FontSize(48).FontColor(Colors.Grey.Lighten3).SemiBold();
+
                         // Header with Formosa Logo on Left, Organization/Address/Report in Center, Mode on Right
                         page.Header().Column(headerCol =>
                         {
@@ -814,58 +838,72 @@ namespace GCTL.Service.OFRReport
                                     cols.RelativeColumn(1.0f);
                                 });
 
-                                // Row 1
+                                // Row 1: Requisition No. & Requisition Date
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).AlignRight().Text("Customer Name").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("Requisition No.").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
+                                    r.RelativeItem().PaddingLeft(3).Text(master.OfrNo).SemiBold();
+                                });
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
+                                {
+                                    r.ConstantItem(90).AlignRight().Text("Requisition Date").SemiBold();
+                                    r.ConstantItem(8).AlignCenter().Text(":");
+                                    r.RelativeItem().PaddingLeft(3).Text(master.Date);
+                                });
+
+                                // Row 2: Customer Name & Quantity
+                                metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
+                                {
+                                    r.ConstantItem(90).AlignRight().Text("Customer Name").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.CustomerName).SemiBold();
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).AlignRight().Text("Quantity").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("Quantity").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.Quantity);
                                 });
 
-                                // Row 2
+                                // Row 3: Invoice No. & Date
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).AlignRight().Text("Invoice No.").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("Invoice No.").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.InvoiceNo);
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).AlignRight().Text("Date").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("Date").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.Date);
                                 });
 
-                                // Row 3
+                                // Row 4: Job No. & LC Value
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).AlignRight().Text("Job No.").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("Job No.").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.JobNo).SemiBold();
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).AlignRight().Text("LC Value").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("LC Value").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.LCValue);
                                 });
 
-                                // Row 4
+                                // Row 5: B/L No. & Weight
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(70).AlignRight().Text("B/L No").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("B/L No").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.BLNo);
                                 });
                                 metaTable.Cell().Border(0.5f).BorderColor(tableBorderColor).Padding(3).Row(r =>
                                 {
-                                    r.ConstantItem(48).AlignRight().Text("Weight").SemiBold();
+                                    r.ConstantItem(90).AlignRight().Text("Weight").SemiBold();
                                     r.ConstantItem(8).AlignCenter().Text(":");
                                     r.RelativeItem().PaddingLeft(3).Text(master.Weight);
                                 });
@@ -1129,44 +1167,53 @@ namespace GCTL.Service.OFRReport
                 ws.Cell(3, 5).Style.Font.SetBold(true).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
 
                 // 2. Job Meta Details Box
-                ws.Range(5, 1, 8, 5).Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+                ws.Range(5, 1, 9, 5).Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
 
-                // Row 5
-                ws.Cell(5, 1).Value = "Customer Name:";
+                // Row 5: Requisition No. & Requisition Date
+                ws.Cell(5, 1).Value = "Requisition No:";
                 ws.Cell(5, 1).Style.Font.SetBold(true);
-                ws.Cell(5, 2).Value = master.CustomerName;
+                ws.Cell(5, 2).Value = master.OfrNo;
                 ws.Cell(5, 2).Style.Font.SetBold(true);
-                ws.Cell(5, 4).Value = "Quantity:";
+                ws.Cell(5, 4).Value = "Requisition Date:";
                 ws.Cell(5, 4).Style.Font.SetBold(true);
-                ws.Cell(5, 5).Value = master.Quantity;
+                ws.Cell(5, 5).Value = master.Date;
 
-                // Row 6
-                ws.Cell(6, 1).Value = "Invoice No:";
+                // Row 6: Customer Name & Quantity
+                ws.Cell(6, 1).Value = "Customer Name:";
                 ws.Cell(6, 1).Style.Font.SetBold(true);
-                ws.Cell(6, 2).Value = master.InvoiceNo;
-                ws.Cell(6, 4).Value = "Date:";
+                ws.Cell(6, 2).Value = master.CustomerName;
+                ws.Cell(6, 2).Style.Font.SetBold(true);
+                ws.Cell(6, 4).Value = "Quantity:";
                 ws.Cell(6, 4).Style.Font.SetBold(true);
-                ws.Cell(6, 5).Value = master.Date;
+                ws.Cell(6, 5).Value = master.Quantity;
 
-                // Row 7
-                ws.Cell(7, 1).Value = "Job No:";
+                // Row 7: Invoice No & Date
+                ws.Cell(7, 1).Value = "Invoice No:";
                 ws.Cell(7, 1).Style.Font.SetBold(true);
-                ws.Cell(7, 2).Value = master.JobNo;
-                ws.Cell(7, 2).Style.Font.SetBold(true);
-                ws.Cell(7, 4).Value = "LC Value:";
+                ws.Cell(7, 2).Value = master.InvoiceNo;
+                ws.Cell(7, 4).Value = "Date:";
                 ws.Cell(7, 4).Style.Font.SetBold(true);
-                ws.Cell(7, 5).Value = master.LCValue;
+                ws.Cell(7, 5).Value = master.Date;
 
-                // Row 8
-                ws.Cell(8, 1).Value = "B/L No:";
+                // Row 8: Job No & LC Value
+                ws.Cell(8, 1).Value = "Job No:";
                 ws.Cell(8, 1).Style.Font.SetBold(true);
-                ws.Cell(8, 2).Value = master.BLNo;
-                ws.Cell(8, 4).Value = "Weight:";
+                ws.Cell(8, 2).Value = master.JobNo;
+                ws.Cell(8, 2).Style.Font.SetBold(true);
+                ws.Cell(8, 4).Value = "LC Value:";
                 ws.Cell(8, 4).Style.Font.SetBold(true);
-                ws.Cell(8, 5).Value = master.Weight;
+                ws.Cell(8, 5).Value = master.LCValue;
 
-                // 3. Detail Expense Table Header (Row 10)
-                int row = 10;
+                // Row 9: B/L No & Weight
+                ws.Cell(9, 1).Value = "B/L No:";
+                ws.Cell(9, 1).Style.Font.SetBold(true);
+                ws.Cell(9, 2).Value = master.BLNo;
+                ws.Cell(9, 4).Value = "Weight:";
+                ws.Cell(9, 4).Style.Font.SetBold(true);
+                ws.Cell(9, 5).Value = master.Weight;
+
+                // 3. Detail Expense Table Header (Row 11)
+                int row = 11;
                 ws.Cell(row, 1).Value = "Service Type";
                 ws.Cell(row, 2).Value = "Category";
                 ws.Cell(row, 3).Value = "Expense Head";
