@@ -35,6 +35,9 @@ namespace GCTL.Service.GPAnalysisReport
         [JsonPropertyName("billDate")]
         public string? BillDate { get; set; }
 
+        [JsonPropertyName("branchCode")]
+        public string? BranchCode { get; set; }
+
         // Billing
         [JsonPropertyName("totalBill")]
         public decimal TotalBill { get; set; }  // Total Bill (BDT)
@@ -142,6 +145,8 @@ namespace GCTL.Service.GPAnalysisReport
     {
         public string? ShipmentMode { get; set; }
         public string? CustomerId { get; set; }
+        public string? BranchCode { get; set; }
+        public string? SelectedBillNos { get; set; }
         public string? DateUse { get; set; } = "Y";
         public string? FromDate { get; set; }
         public string? ToDate { get; set; }
@@ -157,6 +162,7 @@ namespace GCTL.Service.GPAnalysisReport
 
     public class GPAnalysisReportFilterOptionsDTO
     {
+        public List<GCTL.Core.ViewModels.Common.CommonSelectModel> Branches { get; set; } = new();
         public List<GCTL.Core.ViewModels.Common.CommonSelectModel> ShipmentModes { get; set; } = new();
         public List<GCTL.Core.ViewModels.Common.CommonSelectModel> Customers { get; set; } = new();
     }

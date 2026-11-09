@@ -8,7 +8,7 @@
 -- =========================================================================================
 CREATE OR ALTER PROCEDURE [dbo].[Rpt_proc_OFRReport]
     @CompanyCode          VARCHAR(50)   = NULL,
-    @BranchCode           VARCHAR(50)   = NULL,
+    @BranchCode           NVARCHAR(MAX) = NULL,   -- Comma-delimited list of multiple Branch Codes
     @FromDate             DATETIME      = NULL,
     @ToDate               DATETIME      = NULL,
     @ShipmentModeId       VARCHAR(500)  = NULL,
@@ -48,6 +48,15 @@ BEGIN
         WHERE LTRIM(RTRIM(value)) <> '';
     END
 
+    CREATE TABLE #SelectedBranches (BranchCode NVARCHAR(100) COLLATE DATABASE_DEFAULT PRIMARY KEY);
+    IF @BranchCode IS NOT NULL AND LTRIM(RTRIM(@BranchCode)) <> '' AND UPPER(LTRIM(RTRIM(@BranchCode))) <> 'ALL'
+    BEGIN
+        INSERT INTO #SelectedBranches (BranchCode)
+        SELECT DISTINCT LTRIM(RTRIM(value))
+        FROM STRING_SPLIT(@BranchCode, ',')
+        WHERE LTRIM(RTRIM(value)) <> '';
+    END
+
     CREATE TABLE #SelectedServiceTypes (ServiceTypeId NVARCHAR(100) COLLATE DATABASE_DEFAULT PRIMARY KEY);
     IF @ServiceProvidedById IS NOT NULL AND LTRIM(RTRIM(@ServiceProvidedById)) <> ''
     BEGIN
@@ -74,9 +83,9 @@ BEGIN
         @BranchName = BranchName,
         @OrgAddress = COALESCE(NULLIF(LTRIM(RTRIM(Address)), ''), @OrgAddress)
     FROM Core_Branch
-    WHERE (@BranchCode IS NOT NULL AND @BranchCode <> '' AND UPPER(@BranchCode) <> 'ALL' AND BranchCode = @BranchCode)
+    WHERE (@BranchCode IS NOT NULL AND @BranchCode <> '' AND UPPER(@BranchCode) <> 'ALL' AND BranchCode IN (SELECT BranchCode FROM #SelectedBranches))
        OR (@BranchCode IS NULL OR @BranchCode = '' OR UPPER(@BranchCode) = 'ALL')
-    ORDER BY CASE WHEN @BranchCode IS NOT NULL AND @BranchCode <> '' AND UPPER(@BranchCode) <> 'ALL' AND BranchCode = @BranchCode THEN 0 ELSE 1 END;
+    ORDER BY CASE WHEN @BranchCode IS NOT NULL AND @BranchCode <> '' AND UPPER(@BranchCode) <> 'ALL' AND BranchCode IN (SELECT BranchCode FROM #SelectedBranches) THEN 0 ELSE 1 END;
 
     -- Adjust ToDate to end of day
     DECLARE @ToDateEnd DATETIME = NULL;
@@ -127,7 +136,7 @@ BEGIN
         END AS [Weight],
         COALESCE(expType.ExpenseType, 'Air Import') AS ShipmentMode,
         @OrgName AS OrganizationName,
-        @BranchName AS BranchName,
+        COALESCE(br.BranchName, @BranchName) AS BranchName,
         @OrgAddress AS CompanyAddress,
         @OFRReportType AS OFRReportType,
         COALESCE(NULLIF(ofr.ApprovedUser, ''), 'shariful Islam') AS ApproveBy,
@@ -137,9 +146,12 @@ BEGIN
     LEFT JOIN Sep_Documentation doc ON ofr.JobNo = doc.JobNo
     LEFT JOIN Sales_Customer cust ON doc.CustomerId = cust.CustomerId
     LEFT JOIN CF_Def_ExpenseType expType ON doc.ExpenseTypeId = expType.ExpenseTypeId
+    LEFT JOIN HRM_Employee emp ON ISNULL(ofr.EmployeeID, doc.EmployeeID) = emp.EmployeeId
+    LEFT JOIN Core_Branch br ON emp.BranchCode = br.BranchCode
     WHERE (NOT EXISTS (SELECT 1 FROM #SelectedJobs) OR ofr.JobNo IN (SELECT JobNo FROM #SelectedJobs))
       AND (NOT EXISTS (SELECT 1 FROM #SelectedCustomers) OR doc.CustomerId IN (SELECT CustomerId FROM #SelectedCustomers))
       AND (NOT EXISTS (SELECT 1 FROM #SelectedShipmentModes) OR doc.ExpenseTypeId IN (SELECT ShipmentModeId FROM #SelectedShipmentModes))
+      AND (NOT EXISTS (SELECT 1 FROM #SelectedBranches) OR ISNULL(emp.BranchCode, '01') IN (SELECT BranchCode FROM #SelectedBranches))
       AND (@CompanyCode IS NULL OR @CompanyCode = '' OR ofr.CompanyCode = @CompanyCode OR doc.CompanyCode = @CompanyCode)
       AND (@FromDate IS NULL OR ofr.OFRDate >= @FromDate)
       AND (@ToDateEnd IS NULL OR ofr.OFRDate <= @ToDateEnd)
@@ -187,6 +199,7 @@ BEGIN
     DROP TABLE #SelectedJobs;
     DROP TABLE #SelectedCustomers;
     DROP TABLE #SelectedShipmentModes;
+    DROP TABLE #SelectedBranches;
     DROP TABLE #SelectedServiceTypes;
 END
 GO

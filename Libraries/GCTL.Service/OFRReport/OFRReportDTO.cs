@@ -34,6 +34,9 @@ namespace GCTL.Service.OFRReport
         [JsonPropertyName("serviceProvidedById")]
         public string? ServiceProvidedById { get; set; }
 
+        [JsonPropertyName("selectedOfrNos")]
+        public string? SelectedOfrNos { get; set; }
+
         [JsonPropertyName("exportFormat")]
         public string? ExportFormat { get; set; } = "PDF";
 

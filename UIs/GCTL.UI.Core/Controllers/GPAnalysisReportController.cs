@@ -23,6 +23,7 @@ namespace GCTL.UI.Core.Controllers
         public async Task<IActionResult> Index()
         {
             var filterOptions = await _gpAnalysisReportService.GetFilterOptionsAsync();
+            ViewBag.Branches = new SelectList(filterOptions.Branches, "Code", "Name");
             ViewBag.ShipmentModes = new SelectList(filterOptions.ShipmentModes, "Code", "Name");
             ViewBag.Customers = new SelectList(filterOptions.Customers, "Code", "Name");
 
@@ -126,6 +127,7 @@ namespace GCTL.UI.Core.Controllers
                 return Json(new
                 {
                     success = true,
+                    branches = options.Branches.Select(b => new { value = b.Code, text = b.Name }),
                     shipmentModes = options.ShipmentModes.Select(m => new { value = m.Code, text = m.Name }),
                     customers = options.Customers.Select(c => new { value = c.Code, text = c.Name })
                 });
@@ -204,7 +206,10 @@ namespace GCTL.UI.Core.Controllers
         {
             var customHeaderHtml = @"
             <tr class=""text-center align-middle small table-header-tier-1"">
-                <th rowspan=""3"" class=""align-middle text-center"" style=""width:35px;"">SN.</th>
+                <th rowspan=""3"" class=""align-middle text-center no-sort"" style=""width:38px; min-width:38px;"">
+                    <span class=""user-select-none"">Sel.</span><br/>
+                    <input type=""checkbox"" class=""form-check-input m-0 shadow-none"" id=""chkSelectAll"" title=""Select All"" />
+                </th>
                 <th rowspan=""3"" class=""align-middle text-center"" style=""width:75px;"">Billing Date</th>
                 <th rowspan=""3"" class=""align-middle text-center"" style=""width:130px;"">Bill No</th>
                 <th rowspan=""3"" class=""align-middle text-center"" style=""width:85px;"">Total Bill<br/>(BDT)</th>
@@ -263,7 +268,7 @@ namespace GCTL.UI.Core.Controllers
                 Columns = new List<GridColumn>
                 {
                     // 1-4
-                    new() { Data = "slNo", Header = "Sl.No.", Width = "35px", Align = "center", Sortable = false },
+                    new() { Data = "billNo", Header = "Sel.", Width = "38px", Align = "center", Sortable = false, RenderFn = "renderSelectCheckbox" },
                     new() { Data = "billDate", Header = "Billing Date", Width = "75px", Align = "center", SortField = "BillDate" },
                     new() { Data = "billNo", Header = "Bill No", Width = "130px", Align = "left", IsWrapable = true, SortField = "BillNo" },
                     new() { Data = "totalBill", Header = "Total Bill (BDT)", Width = "85px", Align = "right", RenderFn = "formatCurrency", SortField = "TotalBilling" },
