@@ -144,6 +144,11 @@
         min-width: 110px;
     }
 
+    .filter-group.filter-group-branch {
+        flex: 1.1 1 125px;
+        min-width: 105px;
+    }
+
     .filter-group.filter-group-mode {
         flex: 1 1 105px;
         min-width: 95px;
@@ -526,6 +531,20 @@
                 <input type="text" id="filterToDate" class="form-control form-control-sm custom-datepicker caiCon auto-filter" value="@DateTime.Now.ToString("dd/MM/yyyy")" placeholder="DD/MM/YYYY" autocomplete="off" />
             </div>
 
+            <!-- Branch (Single Select - Default All) -->
+            <div class="filter-group filter-group-branch">
+                <select id="filterBranchCode" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="select branch">
+                    <option value="" selected>select branch</option>
+                    @if (ViewBag.Branches != null)
+                    {
+                        foreach (SelectListItem item in (SelectList)ViewBag.Branches)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
             <!-- Customer (Single Select - Default None) -->
             <div class="filter-group filter-group-customer">
                 <select id="filterCustomerId" class="form-select form-select-sm custom-select-single auto-filter" data-placeholder="select customer">
@@ -579,7 +598,7 @@
                 </select>
             </div>
 
-            <!-- Export Format (Single Select with Placeholder) -->
+            <!-- Export Format (Single Select with Placeholder - Auto Triggers Export) -->
             <div class="filter-group filter-group-export">
                 <select id="filterExportFormat" class="form-select form-select-sm custom-select-single" data-placeholder="Select Exp. Format">
                     <option value="">Select Exp. Format</option>
@@ -587,13 +606,6 @@
                     <option value="Excel">Excel</option>
                     <option value="CSV">CSV</option>
                 </select>
-            </div>
-
-            <!-- Actions (Export button only, search is automatic) -->
-            <div class="filter-actions">
-                <button type="button" class="btn-export-rep" id="btnExport" title="Export report (Defaults to PDF if format not selected)">
-                    <i class="fas fa-file-export"></i> EXPORT
-                </button>
             </div>
         </div>
 

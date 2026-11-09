@@ -375,7 +375,7 @@
         });
 
         // 2. Standard select change events
-        $('#filterCustomerId, #filterPortType').on('change', function () {
+        $('#filterCustomerId, #filterPortType, #filterBranchCode').on('change', function () {
             requestDataReload(30);
         });
 
@@ -393,13 +393,20 @@
             applyStatusFilterInstant(status);
         });
 
-        // 5. Delegated custom dropdown option clicks & clear buttons
+        // 5. Export Format dropdown change: Automatic Export Trigger
+        $('#filterExportFormat').on('change', function () {
+            handleExportTrigger();
+        });
+
+        // 6. Delegated custom dropdown option clicks & clear buttons
         $('.filter-section').on('click', '.custom-dd-option, .custom-dd-clear, .custom-dd-clear-icon, .custom-dd-item', function () {
             var $wrapper = $(this).closest('.custom-dd-wrapper');
             var selectId = $wrapper.prev('select').attr('id');
 
             setTimeout(function () {
-                if (selectId === 'filterJobStatus') {
+                if (selectId === 'filterExportFormat') {
+                    handleExportTrigger();
+                } else if (selectId === 'filterJobStatus') {
                     var status = getDropdownValue('filterJobStatus');
                     highlightStatCard(status);
                     applyStatusFilterInstant(status);
@@ -413,7 +420,7 @@
             }, 30);
         });
 
-        // 6. Stat Cards Click: Instant in-memory filter
+        // 7. Stat Cards Click: Instant in-memory filter
         $('.stat-card').on('click', function () {
             var statusFilter = $(this).data('status-filter') || '';
             $('.stat-card').removeClass('active-card');
@@ -422,12 +429,21 @@
             silentSetDropdownValue('filterJobStatus', statusFilter);
             applyStatusFilterInstant(statusFilter);
         });
+    }
 
-        // 7. Export Button
-        $('#btnExport').on('click', function (e) {
-            e.preventDefault();
-            exportReport();
-        });
+    /**
+     * Automatically triggers export when user selects a format, then resets dropdown
+     */
+    function handleExportTrigger(explicitFormat) {
+        var format = explicitFormat || getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '';
+        format = String(format).trim();
+        if (format && format.toLowerCase() !== 'select exp. format') {
+            exportReport(format);
+            setTimeout(function () {
+                silentSetDropdownValue('filterExportFormat', '');
+                $('#filterExportFormat').val('');
+            }, 700);
+        }
     }
 
     /**
@@ -437,6 +453,7 @@
         return [
             getDateValue('filterFromDate'),
             getDateValue('filterToDate'),
+            getDropdownValue('filterBranchCode'),
             getDropdownValue('filterCustomerId'),
             getDropdownValue('filterPortType'),
             getDropdownValue('filterShipmentMode')
@@ -451,6 +468,7 @@
         return {
             FromDate: getDateValue('filterFromDate'),
             ToDate: getDateValue('filterToDate'),
+            BranchCode: getDropdownValue('filterBranchCode'),
             CustomerId: getDropdownValue('filterCustomerId'),
             ShipmentMode: getDropdownValue('filterShipmentMode'),
             PortType: getDropdownValue('filterPortType'),
@@ -684,14 +702,15 @@
     /**
      * Export report handler (PDF or Excel)
      */
-    function exportReport() {
+    function exportReport(formatOverride) {
         var filters = getFilterParams();
-        var exportFormat = (getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
+        var exportFormat = (formatOverride || getDropdownValue('filterExportFormat') || $('#filterExportFormat').val() || '').trim();
         if (!exportFormat) exportFormat = 'PDF';
 
         var queryParams = $.param({
             FromDate: filters.FromDate,
             ToDate: filters.ToDate,
+            BranchCode: filters.BranchCode,
             CustomerId: filters.CustomerId,
             ShipmentMode: filters.ShipmentMode,
             PortType: filters.PortType,

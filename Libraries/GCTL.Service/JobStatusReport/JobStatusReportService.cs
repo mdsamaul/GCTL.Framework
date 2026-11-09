@@ -61,8 +61,37 @@ namespace GCTL.Service.JobStatusReport
             return _logoBytes;
         }
 
+        public async Task<List<GCTL.Core.ViewModels.Common.CommonSelectModel>> GetBranchesAsync()
+        {
+            var branches = new List<GCTL.Core.ViewModels.Common.CommonSelectModel>();
+            if (string.IsNullOrWhiteSpace(_connectionString)) return branches;
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync();
+                const string sql = @"
+                    SELECT BranchCode, BranchName 
+                    FROM Core_Branch WITH (NOLOCK)
+                    WHERE ISNULL(BranchCode, '') <> '' AND ISNULL(BranchName, '') <> ''
+                    ORDER BY BranchCode ASC;
+                ";
+                using var cmd = new SqlCommand(sql, conn);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    branches.Add(new GCTL.Core.ViewModels.Common.CommonSelectModel
+                    {
+                        Code = reader["BranchCode"]?.ToString() ?? "",
+                        Name = reader["BranchName"]?.ToString() ?? ""
+                    });
+                }
+            }
+            catch { }
+            return branches;
+        }
+
         #region 1. Summary Counts (Using prc_JobPortal_JobStatusExceptAll)
-        public async Task<JobStatusSummaryDTO> GetSummaryAsync(string? customerId, string? shipmentModeId = null)
+        public async Task<JobStatusSummaryDTO> GetSummaryAsync(string? customerId, string? shipmentModeId = null, string? branchCode = null)
         {
             var summary = new JobStatusSummaryDTO();
             if (string.IsNullOrWhiteSpace(_connectionString)) return summary;
@@ -83,6 +112,7 @@ namespace GCTL.Service.JobStatusReport
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.Add(new SqlParameter("@CustomerId", string.IsNullOrWhiteSpace(customerId) ? "" : customerId.Trim()));
                 cmd.Parameters.Add(new SqlParameter("@ShipmentModeId", sModeId));
+                cmd.Parameters.Add(new SqlParameter("@BranchCode", string.IsNullOrWhiteSpace(branchCode) ? "" : branchCode.Trim()));
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -128,6 +158,7 @@ namespace GCTL.Service.JobStatusReport
             string customerId = (filter.CustomerId ?? "").Trim();
             string portTypeId = (filter.PortType ?? "").Trim();
             string shipmentTypeId = (filter.ShipmentMode ?? "").Trim();
+            string branchCode = (filter.BranchCode ?? "").Trim();
             if (string.Equals(shipmentTypeId, "Air", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(shipmentTypeId, "Sea", StringComparison.OrdinalIgnoreCase))
             {
@@ -170,10 +201,25 @@ namespace GCTL.Service.JobStatusReport
     LEFT JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
     LEFT JOIN CA_Def_Currency curr WITH (NOLOCK) ON d.CurrencyId = curr.CurrencyId
+    LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
+        ON d.EmployeeId = emp.EmployeeID 
+        OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
       AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
       AND (@PortTypeId = '' OR p.PortId = @PortTypeId OR (@PortTypeId LIKE '%,%' AND p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))))
       AND (@ShipmentTypeId = '' OR d.ExpenseTypeID = @ShipmentTypeId OR (@ShipmentTypeId LIKE '%,%' AND d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ','))))
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      )
       AND (e.ExpenseType IS NULL OR (e.ExpenseType NOT LIKE '%Air%' AND ISNULL(d.HAWB, '') = '' AND ISNULL(d.MAWB, '') = ''))
 ),
 Updates AS (
@@ -243,6 +289,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", customerId));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", portTypeId));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", branchCode));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -427,6 +474,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", string.IsNullOrWhiteSpace(filter.CustomerId) ? "" : filter.CustomerId.Trim()));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", string.IsNullOrWhiteSpace(filter.PortType) ? "" : filter.PortType.Trim()));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", string.IsNullOrWhiteSpace(filter.BranchCode) ? "" : filter.BranchCode.Trim()));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -544,6 +592,7 @@ ORDER BY fj.JobNo ASC;
             string customerId = (filter.CustomerId ?? "").Trim();
             string portTypeId = (filter.PortType ?? "").Trim();
             string shipmentTypeId = (filter.ShipmentMode ?? "").Trim();
+            string branchCode = (filter.BranchCode ?? "").Trim();
             if (string.Equals(shipmentTypeId, "Air", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(shipmentTypeId, "Sea", StringComparison.OrdinalIgnoreCase))
             {
@@ -582,10 +631,25 @@ ORDER BY fj.JobNo ASC;
     LEFT JOIN CF_Def_ExpenseType e WITH (NOLOCK) ON d.ExpenseTypeID = e.ExpenseTypeID
     LEFT JOIN Sales_Def_PortName p WITH (NOLOCK) ON d.PortNameId = p.PortNameId
     LEFT JOIN CA_Def_Currency curr WITH (NOLOCK) ON d.CurrencyId = curr.CurrencyId
+    LEFT JOIN HRM_Employee emp WITH (NOLOCK) 
+        ON d.EmployeeId = emp.EmployeeID 
+        OR (LEN(d.EmployeeId) >= 4 AND emp.EmployeeID LIKE '%' + d.EmployeeId)
     WHERE (@DateUse = 'N' OR (@DateUse = 'Y' AND d.Date BETWEEN @FromDate AND @ToDate))
       AND (@CustomerId = '' OR d.CustomerID = @CustomerId)
       AND (@PortTypeId = '' OR p.PortId = @PortTypeId OR (@PortTypeId LIKE '%,%' AND p.PortId IN (SELECT Item FROM dbo.SplitString(@PortTypeId, ','))))
       AND (@ShipmentTypeId = '' OR d.ExpenseTypeID = @ShipmentTypeId OR (@ShipmentTypeId LIKE '%,%' AND d.ExpenseTypeID IN (SELECT Item FROM dbo.SplitString(@ShipmentTypeId, ','))))
+      AND (
+          ISNULL(@BranchCode, '') = '' OR @BranchCode = 'ALL' 
+          OR COALESCE(
+              emp.BranchCode,
+              CASE 
+                  WHEN d.JobNo LIKE '%Ctg%' THEN '02'
+                  WHEN d.JobNo LIKE '%Dha%' OR d.ExpenseTypeID IN ('0001','0002','0003') THEN '03'
+                  WHEN d.JobNo LIKE '%Pangaon%' THEN '04'
+                  ELSE '01'
+              END
+          ) = @BranchCode
+      )
       AND (e.ExpenseType LIKE '%Air%' OR ISNULL(d.HAWB, '') <> '' OR ISNULL(d.MAWB, '') <> '' OR d.ExpenseTypeID IN ('0001','0002','0003'))
 ),
 Updates AS (
@@ -647,6 +711,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", customerId));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", portTypeId));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", branchCode));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
@@ -812,6 +877,7 @@ ORDER BY fj.JobNo ASC;
             cmd.Parameters.Add(new SqlParameter("@CustomerId", string.IsNullOrWhiteSpace(filter.CustomerId) ? "" : filter.CustomerId.Trim()));
             cmd.Parameters.Add(new SqlParameter("@PortTypeId", string.IsNullOrWhiteSpace(filter.PortType) ? "" : filter.PortType.Trim()));
             cmd.Parameters.Add(new SqlParameter("@ShipmentTypeId", shipmentTypeId));
+            cmd.Parameters.Add(new SqlParameter("@BranchCode", string.IsNullOrWhiteSpace(filter.BranchCode) ? "" : filter.BranchCode.Trim()));
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (reader.FieldCount == 0 && await reader.NextResultAsync()) { }
