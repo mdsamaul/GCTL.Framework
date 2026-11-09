@@ -73,7 +73,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(d.BillNo, ''), '') AS BillNo,
         CASE 
             WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103)
@@ -212,7 +217,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(d.BillNo, ''), '') AS JobBillNo,
         CASE 
             WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103)
@@ -385,7 +395,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS BillNo,
         CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
 
@@ -520,7 +535,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS BillNo,
         CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
 
@@ -655,7 +675,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS BillNo,
         CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
 
@@ -791,7 +816,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
         CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
 
@@ -932,7 +962,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
         CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
 
@@ -1073,7 +1108,12 @@ BEGIN
             WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
             ELSE ''
         END AS OFRAdjustApprovalReport,
-        ISNULL(v.VoucherNo, '') AS VoucherApproval,
+        CASE 
+            WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+            WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+            ELSE ''
+        END AS VoucherApproval,
+        ISNULL(v.VoucherNo, '') AS VoucherNo,
         COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
         CASE WHEN b.BillDate IS NOT NULL AND b.BillDate <> '1900-01-01' THEN CONVERT(varchar(50), b.BillDate, 103) ELSE '' END AS BillDate,
 

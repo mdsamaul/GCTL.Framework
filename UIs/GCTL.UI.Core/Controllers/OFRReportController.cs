@@ -172,6 +172,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 string printUser = User.Identity?.Name ?? "shariful Islam";
                 var pdfBytes = await _ofrReportService.GeneratePdfReportAsync(filter, printUser);
+                Response.Headers["Content-Disposition"] = "inline; filename=\"OFR_Report.pdf\"";
                 return File(pdfBytes, "application/pdf");
             }
             catch (Exception ex)
@@ -234,9 +235,26 @@ namespace GCTL.UI.Core.Controllers
                 Striped = true,
                 DefaultSortColumn = "ofrDate",
                 DefaultSortDirection = "desc",
+                CustomHeaderHtml = @"
+                <tr class=""text-center align-middle small"">
+                    <th class=""text-center align-middle no-sort"" style=""width:38px; min-width:38px;"">
+                        <span class=""user-select-none"">Sel.</span><br/>
+                        <input type=""checkbox"" class=""form-check-input m-0 shadow-none"" id=""chkSelectAll"" title=""Select All"" />
+                    </th>
+                    <th class=""text-center align-middle"" style=""width:75px;"">Date</th>
+                    <th class=""text-center align-middle"" style=""width:115px;"">OFR No</th>
+                    <th class=""text-center align-middle"" style=""width:115px;"">Job No</th>
+                    <th class=""text-center align-middle"" style=""width:150px;"">Customer</th>
+                    <th class=""text-center align-middle"" style=""width:75px;"">Mode</th>
+                    <th class=""text-center align-middle"" style=""width:85px;"">Req. Amt</th>
+                    <th class=""text-center align-middle"" style=""width:85px;"">App. Amt</th>
+                    <th class=""text-center align-middle"" style=""width:80px;"">Rece. Amt</th>
+                    <th class=""text-center align-middle"" style=""width:80px;"">Non-Rece.</th>
+                    <th class=""text-center align-middle"" style=""width:65px;"">Status</th>
+                </tr>",
                 Columns = new List<GridColumn>
                 {
-                    new() { Data = "slNo", Header = "SN", Width = "35px", Align = "center", Sortable = false },
+                    new() { Data = "ofrNo", Header = "Sel.", Width = "38px", Align = "center", Sortable = false, RenderFn = "renderSelectCheckbox" },
                     new() { Data = "ofrDate", Header = "Date", Width = "75px", Align = "center", SortField = "Ofrdate" },
                     new() { Data = "ofrNo", Header = "OFR No", Width = "115px", Align = "left", SortField = "Ofrno" },
                     new() { Data = "jobNo", Header = "Job No", Width = "115px", Align = "left", SortField = "JobNo" },

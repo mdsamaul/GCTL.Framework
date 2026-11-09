@@ -90,6 +90,24 @@ namespace GCTL.Service.GPAnalysisReport
 
             try
             {
+                using var connection = new SqlConnection(_connectionString);
+                var branches = (await connection.QueryAsync<dynamic>(
+                    "SELECT BranchCode, BranchName FROM Core_Branch WHERE BranchCode IS NOT NULL ORDER BY BranchName")).ToList();
+                result.Branches = branches
+                    .Select(b => new CommonSelectModel
+                    {
+                        Code = (string)(b.BranchCode ?? ""),
+                        Name = (string)(b.BranchName ?? b.BranchCode ?? "")
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GPAnalysisReportService.GetFilterOptionsAsync - Branches error: {ex.Message}");
+            }
+
+            try
+            {
                 if (_shipmentModeService != null)
                 {
                     var modes = await _shipmentModeService.GetAllExpenseTypesAsync();
@@ -247,6 +265,11 @@ namespace GCTL.Service.GPAnalysisReport
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
+            var branchCodes = (filter.BranchCode ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
             string baseCacheKey = $"GPAnalysedReport2_BASE_{dateUse}_{fromDate:yyyyMMdd}_{toDate:yyyyMMdd}";
 
             List<GPAnalysisReportDTO>? baseRows = null;
@@ -272,6 +295,48 @@ namespace GCTL.Service.GPAnalysisReport
 
                         baseRows = (await connection.QueryAsync<GPAnalysisReportDTO>(
                             "GPAnalysedReport2", parameters, commandType: CommandType.StoredProcedure, commandTimeout: 60)).ToList();
+
+                        // Populate BranchCode for cached rows from Documentation & Employee
+                        try
+                        {
+                            var jobNos = baseRows.Where(r => !string.IsNullOrEmpty(r.JobNo)).Select(r => r.JobNo!).Distinct().ToList();
+                            if (jobNos.Count > 0)
+                            {
+                                var branchMapSql = @"
+                                    SELECT d.JobNo, ISNULL(e.BranchCode, '01') AS BranchCode
+                                    FROM Sep_Documentation d WITH (NOLOCK)
+                                    LEFT JOIN HRM_Employee e WITH (NOLOCK) ON d.EmployeeID = e.EmployeeId
+                                    WHERE d.JobNo IN @JobNos";
+
+                                var branchMapList = (await connection.QueryAsync<dynamic>(branchMapSql, new { JobNos = jobNos })).ToList();
+                                var branchDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                                foreach (var b in branchMapList)
+                                {
+                                    string jn = (string)(b.JobNo ?? "");
+                                    string bc = (string)(b.BranchCode ?? "");
+                                    if (!string.IsNullOrEmpty(jn) && !branchDict.ContainsKey(jn))
+                                    {
+                                        branchDict[jn] = bc;
+                                    }
+                                }
+
+                                foreach (var row in baseRows)
+                                {
+                                    if (!string.IsNullOrEmpty(row.JobNo) && branchDict.TryGetValue(row.JobNo.Trim(), out var bc))
+                                    {
+                                        row.BranchCode = bc;
+                                    }
+                                    else
+                                    {
+                                        row.BranchCode = "01";
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[GPAnalysisReportService - BranchCode Mapping Error]: {ex.Message}");
+                        }
 
                         _cache?.Set(baseCacheKey, baseRows, TimeSpan.FromMinutes(5));
                     }
@@ -320,6 +385,27 @@ namespace GCTL.Service.GPAnalysisReport
                     (!string.IsNullOrEmpty(r.ExpenseTypeID) && modeSet.Contains(r.ExpenseTypeID.Trim())) ||
                     (!string.IsNullOrEmpty(r.ExpenseType) && modeSet.Contains(r.ExpenseType.Trim()))
                 ).ToList();
+            }
+
+            // 3. In-memory filter for Branch (supports single and multiple)
+            if (branchCodes.Count > 0)
+            {
+                var branchSet = new HashSet<string>(branchCodes, StringComparer.OrdinalIgnoreCase);
+                rows = rows.Where(r => !string.IsNullOrEmpty(r.BranchCode) && branchSet.Contains(r.BranchCode.Trim())).ToList();
+            }
+
+            // 4. In-memory filter for User-Selected Bills (Checkbox selection)
+            if (!string.IsNullOrWhiteSpace(filter.SelectedBillNos))
+            {
+                var selectedBills = filter.SelectedBillNos
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                if (selectedBills.Count > 0)
+                {
+                    rows = rows.Where(r => !string.IsNullOrEmpty(r.BillNo) && selectedBills.Contains(r.BillNo.Trim())).ToList();
+                }
             }
 
             for (int i = 0; i < rows.Count; i++)
@@ -755,7 +841,7 @@ namespace GCTL.Service.GPAnalysisReport
                     page.Footer().Row(r =>
                     {
                         r.RelativeItem().Text($"Print Date : {DateTime.Now:d/M/yyyy HH:mm:ss}").FontSize(6.5f);
-                        r.RelativeItem().AlignCenter().Text($"GCTL Infosys – C&F System").FontSize(6.5f);
+                        r.RelativeItem().AlignCenter().Text($"GCTL Infosys â€“ C&F System").FontSize(6.5f);
                         r.RelativeItem().AlignRight().Text(t =>
                         {
                             t.Span("Page ").FontSize(6.5f);

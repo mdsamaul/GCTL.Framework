@@ -306,9 +306,21 @@
                 { 
                     data: 'voucherApproval', 
                     className: 'text-center align-middle',
-                    render: function (data) {
-                        if (!data) return '-';
-                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn" data-voucher-no="' + escapeHtml(data) + '" title="View Voucher Details"><i class="fas fa-receipt me-1"></i>' + escapeHtml(data) + '</a>';
+                    render: function (data, type, row) {
+                        var text = data || row.voucherApproval;
+                        var vNo = row.voucherNo || (text && (text.indexOf('_') > -1 || text.indexOf('V') === 1) ? text : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var isPending = text.toLowerCase() === 'pending';
+                        if (!isApproved && !isPending) {
+                            vNo = text;
+                            text = 'Approved';
+                            isApproved = true;
+                        }
+                        var cls = isApproved ? 'text-success' : 'text-warning';
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-clock';
+                        var vTitle = vNo ? 'View Voucher Details (' + escapeHtml(vNo) + ')' : 'View Voucher Details';
+                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
                     }
                 },
                 { 
@@ -429,9 +441,21 @@
                 { 
                     data: 'voucherApproval', 
                     className: 'text-center align-middle',
-                    render: function (data) {
-                        if (!data) return '-';
-                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn" data-voucher-no="' + escapeHtml(data) + '" title="View Voucher Details"><i class="fas fa-receipt me-1"></i>' + escapeHtml(data) + '</a>';
+                    render: function (data, type, row) {
+                        var text = data || row.voucherApproval;
+                        var vNo = row.voucherNo || (text && (text.indexOf('_') > -1 || text.indexOf('V') === 1) ? text : '');
+                        if (!text) return '-';
+                        var isApproved = text.toLowerCase() === 'approved';
+                        var isPending = text.toLowerCase() === 'pending';
+                        if (!isApproved && !isPending) {
+                            vNo = text;
+                            text = 'Approved';
+                            isApproved = true;
+                        }
+                        var cls = isApproved ? 'text-success' : 'text-warning';
+                        var icon = isApproved ? 'fa-check-circle' : 'fa-clock';
+                        var vTitle = vNo ? 'View Voucher Details (' + escapeHtml(vNo) + ')' : 'View Voucher Details';
+                        return '<a href="javascript:void(0);" class="report-preview-link voucher-preview-btn ' + cls + '" data-voucher-no="' + escapeHtml(vNo) + '" title="' + vTitle + '"><i class="fas ' + icon + ' me-1"></i>' + escapeHtml(text) + '</a>';
                     }
                 },
                 { 
@@ -567,7 +591,7 @@
             e.preventDefault();
             var voucherNo = $(this).data('voucher-no');
             if (!voucherNo) return;
-            var url = '/VoucherEntry/Print?id=' + encodeURIComponent(voucherNo);
+            var url = '/VoucherEntry/Print?id=' + encodeURIComponent(voucherNo) + '&autoprint=0';
             openReportPreviewModal('Voucher Entry - ' + voucherNo, url);
         });
 
@@ -576,14 +600,14 @@
             e.preventDefault();
             var billNo = $(this).data('bill-no');
             if (!billNo) return;
-            var url = '/JobBillEntryReport/ExportPdf?billNos=' + encodeURIComponent(billNo);
+            var url = '/JobBillEntryReport/ExportPdf?selectedBillNos=' + encodeURIComponent(billNo) + '&billNos=' + encodeURIComponent(billNo);
             openReportPreviewModal('Job Bill Entry Report - ' + billNo, url);
         });
 
         // 12. Modal reset on close
         $('#reportPreviewModal').on('hidden.bs.modal', function () {
             $('#reportPreviewIframe').attr('src', 'about:blank');
-            $('#modalLoadingSpinner').show();
+            $('#modalHeaderSpinner').hide();
         });
     }
 
@@ -591,16 +615,14 @@
      * Opens PDF or report preview inside the unified modal iframe
      */
     function openReportPreviewModal(title, url) {
-        var $modal = $('#reportPreviewModal');
         var $iframe = $('#reportPreviewIframe');
-        var $spinner = $('#modalLoadingSpinner');
+        var $spinner = $('#modalHeaderSpinner');
         var $title = $('#reportPreviewModalLabel');
         var $newTab = $('#btnModalOpenNewTab');
 
         $title.html('<i class="fas fa-file-pdf text-danger me-2"></i>' + escapeHtml(title));
         $newTab.attr('href', url);
         $spinner.show();
-        $iframe.attr('src', 'about:blank');
 
         var modalEl = document.getElementById('reportPreviewModal');
         if (modalEl) {
@@ -608,12 +630,17 @@
             modalInstance.show();
         }
 
+        // Set src immediately for instant parallel request
+        $iframe.attr('src', url);
+
+        $iframe.off('load').on('load', function () {
+            $spinner.hide();
+        });
+
+        // Safety fallback: auto-hide header spinner after 800ms
         setTimeout(function () {
-            $iframe.attr('src', url);
-            $iframe.off('load').on('load', function () {
-                $spinner.hide();
-            });
-        }, 150);
+            $spinner.hide();
+        }, 800);
     }
 
     /**

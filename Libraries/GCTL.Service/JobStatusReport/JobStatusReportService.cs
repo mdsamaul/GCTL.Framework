@@ -274,7 +274,12 @@ SELECT
         WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
         ELSE ''
     END AS OFRAdjustApprovalReport,
-    ISNULL(v.VoucherNo, '') AS VoucherApproval,
+    CASE 
+        WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+        WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS VoucherApproval,
+    ISNULL(v.VoucherNo, '') AS VoucherNo,
     COALESCE(NULLIF(b.BillNo, ''), NULLIF(fj.BillNo, ''), '') AS JobBillNo,
     b.BillDate AS RawBillDate,
 
@@ -362,6 +367,7 @@ ORDER BY fj.JobNo ASC;
             int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
             int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
             int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
             int ordJobBillNo = GetColOrdinal(reader, "JobBillNo");
             int ordBillDate = GetColOrdinal(reader, "RawBillDate");
             int ordEstDeliveryDate = GetColOrdinal(reader, "EstimatedDeliveryDate");
@@ -432,7 +438,8 @@ ORDER BY fj.JobNo ASC;
                     RequisitionDate = ReadDateOnly(reader, ordRequisitionDate),
                     OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
                     OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
-                    VoucherApproval = ReadCol(reader, ordVoucherApproval),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
                     BillNo = ReadCol(reader, ordJobBillNo),
                     BillDate = ReadDateOnly(reader, ordBillDate),
                     EstDeliveryDate = ReadDt(reader, ordEstDeliveryDate, "dd/MM/yyyy hh:mm tt"),
@@ -558,6 +565,7 @@ ORDER BY fj.JobNo ASC;
             int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
             int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
             int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
             int ordJobBillNo = GetColOrdinal(reader, "JobBillNo");
             if (ordJobBillNo < 0) ordJobBillNo = GetColOrdinal(reader, "BillNo");
             int ordBillDate = GetColOrdinal(reader, "BillDate");
@@ -614,7 +622,8 @@ ORDER BY fj.JobNo ASC;
                     RequisitionDate = ReadCol(reader, ordRequisitionDate),
                     OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
                     OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
-                    VoucherApproval = ReadCol(reader, ordVoucherApproval),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
                     BillNo = ReadCol(reader, ordJobBillNo),
                     BillDate = ReadCol(reader, ordBillDate),
                     EstDeliveryDate = ReadCol(reader, ordEstDeliveryDate),
@@ -773,7 +782,12 @@ SELECT
         WHEN ofr.OFRNo IS NOT NULL AND LTRIM(RTRIM(ofr.OFRNo)) <> '' THEN 'Pending'
         ELSE ''
     END AS OFRAdjustApprovalReport,
-    ISNULL(v.VoucherNo, '') AS VoucherApproval,
+    CASE 
+        WHEN v.IsApproved IN ('Y', '1', 'Approved', 'Posted') THEN 'Approved'
+        WHEN v.VoucherNo IS NOT NULL AND LTRIM(RTRIM(v.VoucherNo)) <> '' THEN 'Pending'
+        ELSE ''
+    END AS VoucherApproval,
+    ISNULL(v.VoucherNo, '') AS VoucherNo,
     ISNULL(b.BillNo, '') AS JobBillNo,
     b.BillDate AS RawBillDate,
 
@@ -854,6 +868,7 @@ ORDER BY fj.JobNo ASC;
             int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
             int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
             int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
             int ordJobBillNo = GetColOrdinal(reader, "JobBillNo");
             int ordBillDate = GetColOrdinal(reader, "RawBillDate");
             int ordActualDeliveryDate = GetColOrdinal(reader, "ActualDeliveryDate");
@@ -909,7 +924,8 @@ ORDER BY fj.JobNo ASC;
                     RequisitionDate = ReadDateOnly(reader, ordRequisitionDate),
                     OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
                     OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
-                    VoucherApproval = ReadCol(reader, ordVoucherApproval),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
                     BillNo = ReadCol(reader, ordJobBillNo),
                     BillDate = ReadDateOnly(reader, ordBillDate),
                     ActualDeliveryDate = ReadDt(reader, ordActualDeliveryDate, "dd/MM/yyyy hh:mm tt"),
@@ -1029,6 +1045,7 @@ ORDER BY fj.JobNo ASC;
             int ordOFRApprovalReport = GetColOrdinal(reader, "OFRApprovalReport");
             int ordOFRAdjustApprovalReport = GetColOrdinal(reader, "OFRAdjustApprovalReport");
             int ordVoucherApproval = GetColOrdinal(reader, "VoucherApproval");
+            int ordVoucherNo = GetColOrdinal(reader, "VoucherNo");
             int ordBillNo = GetColOrdinal(reader, "BillNo");
             if (ordBillNo < 0) ordBillNo = GetColOrdinal(reader, "JobBillNo");
             int ordBillDate = GetColOrdinal(reader, "BillDate");
@@ -1081,7 +1098,8 @@ ORDER BY fj.JobNo ASC;
                     RequisitionDate = ReadCol(reader, ordRequisitionDate),
                     OFRApprovalReport = ReadCol(reader, ordOFRApprovalReport),
                     OFRAdjustApprovalReport = ReadCol(reader, ordOFRAdjustApprovalReport),
-                    VoucherApproval = ReadCol(reader, ordVoucherApproval),
+                    VoucherApproval = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").status,
+                    VoucherNo = ResolveVoucherStatus(ReadCol(reader, ordVoucherApproval), ordVoucherNo >= 0 ? ReadCol(reader, ordVoucherNo) : "").voucherNo,
                     BillNo = ReadCol(reader, ordBillNo),
                     BillDate = ReadCol(reader, ordBillDate),
                     ActualDeliveryDate = ReadCol(reader, ordActualDeliveryDate),
@@ -1186,7 +1204,7 @@ ORDER BY fj.JobNo ASC;
                 "Invoice No", "Invoice Value", "Container /Pkgs", "Shipper", "B/L No.", "ETD",
                 "Final IGM Rec. Dt.", "Ship Arrived", "Unstaff/Discharge", "Docs. Bank Sign",
                 "B/E No.", "B/E Date",
-                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Approval", "Bill No.", "Bill Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
                 "Est. Delivery Dt.", "Actual Delivery Dt.", "Shipment Status",
                 "Remarks", "Term", "Vessel Name & R-No", "Container No.", "Forwarder Name & Phone No."
             };
@@ -1343,7 +1361,7 @@ ORDER BY fj.JobNo ASC;
                 "Invoice No.", "Invoice Value", "Material Name & Pkgs Qty", "Express Name, Country",
                 "L/C No.", "Express/HAWB No.", "MAWB No.", "ETD", "Flight Actual Arrival Dt.",
                 "Arrival Notice Rcvd From Express Dt.", "Bill of Entry No", "Bill of Entry Date",
-                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Approval", "Bill No.", "Bill Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
                 "Actual Delivery Date", "Shipment Status", "Remarks"
             };
 
@@ -1702,7 +1720,7 @@ ORDER BY fj.JobNo ASC;
                         Head("Req Dt");
                         Head("OFR Appr");
                         Head("OFR Adj");
-                        Head("Voucher");
+                        Head("Voucher Status");
                         Head("Bill No");
                         Head("Bill Dt");
                         Head("Est Del.");
@@ -1858,7 +1876,7 @@ ORDER BY fj.JobNo ASC;
                         Head("Req Dt");
                         Head("OFR Appr");
                         Head("OFR Adj");
-                        Head("Voucher");
+                        Head("Voucher Status");
                         Head("Bill No");
                         Head("Bill Dt");
                         Head("Act Del.");
@@ -2211,7 +2229,7 @@ ORDER BY fj.JobNo ASC;
                 "Invoice No.", "Invoice Value", "Material Name & Pkgs Qty", "Express Name, Country",
                 "L/C No.", "Express/HAWB No.", "MAWB No.", "ETD", "Flight Actual Arrival Dt.",
                 "Arrival Notice Rcvd From Express Dt.", "Bill of Entry No", "Bill of Entry Date",
-                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Approval", "Bill No.", "Bill Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
                 "Actual Delivery Date", "Shipment Status", "Remarks"
             };
 
@@ -2364,7 +2382,7 @@ ORDER BY fj.JobNo ASC;
                 "Invoice No", "Invoice Value", "Container /Pkgs", "Shipper", "B/L No.", "ETD",
                 "Final IGM Rec. Dt.", "Ship Arrived", "Unstaff/Discharge", "Docs. Bank Sign",
                 "B/E No.", "B/E Date",
-                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Approval", "Bill No.", "Bill Date",
+                "Requisition No.", "Requisition Date", "OFR Approval Report", "OFR Adjust Approval Report", "Voucher Status", "Bill No.", "Bill Date",
                 "Est. Delivery Dt.", "Actual Delivery Dt.", "Shipment Status",
                 "Remarks", "Term", "Vessel Name & R-No", "Container No.", "Forwarder Name & Phone No."
             };
@@ -2537,6 +2555,43 @@ ORDER BY fj.JobNo ASC;
                 s.Equals("In Transit", StringComparison.OrdinalIgnoreCase) || s.Equals("transit", StringComparison.OrdinalIgnoreCase))
                 return ("In Transit", "transit");
             return ("Pending", "pending");
+        }
+
+        private static (string status, string voucherNo) ResolveVoucherStatus(string? rawApproval, string? rawVoucherNo)
+        {
+            string status = (rawApproval ?? "").Trim();
+            string vNo = (rawVoucherNo ?? "").Trim();
+
+            if (string.IsNullOrEmpty(vNo) && (status.StartsWith("JV_", StringComparison.OrdinalIgnoreCase) ||
+                                             status.StartsWith("CV_", StringComparison.OrdinalIgnoreCase) ||
+                                             status.StartsWith("BV_", StringComparison.OrdinalIgnoreCase)))
+            {
+                vNo = status;
+                status = "Approved";
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status.Equals("Y", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("1", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("Approved", StringComparison.OrdinalIgnoreCase) ||
+                    status.Equals("Posted", StringComparison.OrdinalIgnoreCase))
+                {
+                    status = "Approved";
+                }
+                else if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase) ||
+                         status.Equals("Not Approved", StringComparison.OrdinalIgnoreCase) ||
+                         status.Equals("N", StringComparison.OrdinalIgnoreCase))
+                {
+                    status = "Pending";
+                }
+            }
+            else if (!string.IsNullOrEmpty(vNo))
+            {
+                status = "Pending";
+            }
+
+            return (status, vNo);
         }
 
         private static (string statusText, string statusClass) ResolveSeaStatus(string? rawStatus)

@@ -39,6 +39,7 @@ namespace GCTL.Core.ViewModels.JobStatusReport
         public string OFRApprovalReport { get; set; } = string.Empty;
         public string OFRAdjustApprovalReport { get; set; } = string.Empty;
         public string VoucherApproval { get; set; } = string.Empty;
+        public string VoucherNo { get; set; } = string.Empty;
         public string BillNo { get; set; } = string.Empty;
         public string BillDate { get; set; } = string.Empty;
 
