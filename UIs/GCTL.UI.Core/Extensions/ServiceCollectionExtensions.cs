@@ -159,6 +159,13 @@ namespace GCTL.Framework.Extensions
 
             // Dashboard service example – retained from original registration.
             services.AddScoped<GCTL.Service.Dashboard.IDashboardService, GCTL.Service.Dashboard.DashboardService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardFilterService, GCTL.Service.Dashboard.DashboardFilterService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardOverviewService, GCTL.Service.Dashboard.DashboardOverviewService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardJobStatusService, GCTL.Service.Dashboard.DashboardJobStatusService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardBillEntryService, GCTL.Service.Dashboard.DashboardBillEntryService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardGPAnalysisService, GCTL.Service.Dashboard.DashboardGPAnalysisService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardJobReconcileService, GCTL.Service.Dashboard.DashboardJobReconcileService>();
+            services.AddScoped<GCTL.Service.Dashboard.IDashboardAccountsService, GCTL.Service.Dashboard.DashboardAccountsService>();
 
             // Menu service – now resolves because GctlHrmContext is registered.
             services.AddScoped<IMenuService, MenuService>();

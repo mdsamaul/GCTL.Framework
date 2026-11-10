@@ -1,35 +1,31 @@
 using System.Threading.Tasks;
+using GCTL.Core.ViewModels.Dashboard;
 using GCTL.Service.Dashboard;
-using GCTL.UI.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GCTL.UI.Core.Controllers;
-
-public class DashboardController : BaseController
+namespace GCTL.UI.Core.Controllers
 {
-    private readonly IDashboardService _dashboardService;
-
-    public DashboardController(IDashboardService dashboardService)
+    public class DashboardController : BaseController
     {
-        _dashboardService = dashboardService;
-    }
+        private readonly IDashboardFilterService _filterService;
 
-    public async Task<IActionResult> Index()
-    {
-        var userName = User.Identity?.Name ?? "User";
-        var fullName =  LoginInfo?.Username ?? userName;
-        var userId =  LoginInfo?.EmployeeId ?? string.Empty;
-
-        var summary = await _dashboardService.GetDashboardSummaryAsync(userId, fullName);
-
-        var viewModel = new DashboardViewModel
+        public DashboardController(IDashboardFilterService filterService)
         {
-            GreetingMessage = summary.GreetingMessage,
-            Stats = summary.Stats,
-            RecentActivities = summary.RecentActivities,
-            PerformanceMetrics = summary.PerformanceMetrics
-        };
+            _filterService = filterService;
+        }
 
-        return View(viewModel);
+        public async Task<IActionResult> Index()
+        {
+            ViewBag.ActiveTab = "overview";
+            var filterData = await _filterService.GetInitialFilterDataAsync();
+            return View(filterData);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFilterOptions()
+        {
+            var filterData = await _filterService.GetInitialFilterDataAsync();
+            return Json(new { isSuccess = true, data = filterData });
+        }
     }
 }

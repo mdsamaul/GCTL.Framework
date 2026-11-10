@@ -1,0 +1,84 @@
+@* ============================================================
+   Bill Entry Tab Partial
+   ============================================================ *@
+<section class="panel" id="p-bills">
+    <div class="ptitle">
+        <h2>Bill Entry Register &amp; Receivables</h2>
+        <span data-period></span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+        <div class="kpi blue" id="b_n">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Bills</div><div class="kval">0</div><div class="ksub">bills issued</div></div>
+        </div>
+        <div class="kpi green" id="b_nbv">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="kbody"><div class="klabel">Net Bill Value</div><div class="kval">0</div><div class="ksub">total billed</div></div>
+        </div>
+        <div class="kpi purple" id="b_col">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4L12 14l-3-3"/></svg></div>
+            <div class="kbody"><div class="klabel">Total Collected</div><div class="kval">0</div><div class="ksub">realized funds</div></div>
+        </div>
+        <div class="kpi orange" id="b_due">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4A2 2 0 0 0 7 17.8V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/></svg></div>
+            <div class="kbody"><div class="klabel">Outstanding Due</div><div class="kval">0</div><div class="ksub">uncollected balance</div></div>
+        </div>
+        <div class="kpi teal" id="b_comm">
+            <div class="kico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1"/></svg></div>
+            <div class="kbody"><div class="klabel">Agency Commission</div><div class="kval">0</div><div class="ksub">fee component</div></div>
+        </div>
+    </div>
+
+    <!-- Minis -->
+    <div class="minis">
+        <div class="mini green" id="bm_eff"><div class="mlbl">Collection Efficiency</div><div class="mval">0.0%</div><div class="msub">collected / net</div></div>
+        <div class="mini blue" id="bm_avg"><div class="mlbl">Avg Bill Value</div><div class="mval">0</div><div class="msub">per bill</div></div>
+        <div class="mini purple" id="bm_top"><div class="mlbl">Top Customer</div><div class="mval">-</div><div class="msub">highest billed</div></div>
+        <div class="mini orange" id="bm_tr"><div class="mlbl">Transport Revenue</div><div class="mval">0</div><div class="msub">transport billing</div></div>
+        <div class="mini sky" id="bm_cnf"><div class="mlbl">C&amp;F Other Revenue</div><div class="mval">0</div><div class="msub">receivable &amp; non-rec</div></div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row c3">
+        <section class="card">
+            <div class="chdr"><h3>Service Value Composition</h3><span>billing breakdown</span></div>
+            <div class="cwrap"><canvas id="b_ch1"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Mode-wise Billing</h3><span>revenue by shipment mode</span></div>
+            <div class="cwrap"><canvas id="b_ch2"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Collection Status</h3><span>collected vs due</span></div>
+            <div class="cwrap"><canvas id="b_ch3"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row c21">
+        <section class="card">
+            <div class="chdr"><h3>Monthly Billing &amp; Collections</h3><span>billed vs realized</span></div>
+            <div class="cwrap"><canvas id="b_ch4"></canvas></div>
+        </section>
+        <section class="card">
+            <div class="chdr"><h3>Top Customers by Billing</h3><span>BDT</span></div>
+            <div class="cwrap"><canvas id="b_ch5"></canvas></div>
+        </section>
+    </div>
+
+    <!-- Grid -->
+    <section class="card gridcard">
+        <div class="gh">
+            <h3>Bill Entry Register</h3>
+            <div class="gtools">
+                <label>Show <select id="b_g_sz"><option>10</option><option>15</option><option>25</option></select> entries</label>
+                <input id="b_g_q" type="search" placeholder="Search bills...">
+            </div>
+        </div>
+        <div class="gbody"><div id="b_g"></div></div>
+        <div class="gfoot" id="b_g_f"></div>
+    </section>
+</section>
+
