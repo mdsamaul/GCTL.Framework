@@ -51,6 +51,7 @@ BEGIN
       AND bi.BillNo IS NOT NULL
       AND (@HasCustFilter = 0 OR bi.CustomerID IN (SELECT CustomerID FROM @CustFilter))
     GROUP BY cu.CustomerName, bi.CustomerID
+    HAVING SUM(bi.BillAmount) > 0
     ORDER BY cu.CustomerName ASC;
 END;
 GO

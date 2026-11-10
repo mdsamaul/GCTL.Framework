@@ -37,7 +37,7 @@ namespace GCTL.UI.Core.Controllers
             {
                 Serilog.Log.Error(ex, "Error initializing CustomerAgingReport Index");
                 ViewBag.Customers = new SelectList(new List<string>());
-                ViewBag.ReportTypes = new SelectList(new List<string> { "Customer Aging", "Bill Wise Customer Aging" });
+                ViewBag.ReportTypes = new SelectList(new List<string> { "Customer", "Bill Wise Customer" });
                 ViewBag.ExportFormats = new SelectList(new List<string> { "Preview", "PDF", "Excel" });
             }
 
@@ -174,27 +174,28 @@ namespace GCTL.UI.Core.Controllers
                     new GridColumn { 
                         Data = "customerNo", 
                         Header = "<span class='user-select-none'>Sel.</span><br/><input type='checkbox' class='form-check-input m-0 shadow-none' id='chkSelectAll' title='Select All' />", 
-                        Width = "38px", 
+                        Width = "30px", 
                         Align = "center", 
                         Sortable = false, 
                         RenderFn = "renderSelectCheckbox" 
                     },
-                    new GridColumn { Data = "customerName", Header = "Customer Name", Width = "180px", Align = "left" },
-                    new GridColumn { Data = "billNo", Header = "Bill No", Width = "110px", Align = "left", Sortable = false },
-                    new GridColumn { Data = "ag_0_30", Header = "0-30", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_31_60", Header = "31-60", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_61_90", Header = "61-90", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_91_120", Header = "91-120", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_121_150", Header = "121-150", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_151_180", Header = "151-180", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_181_210", Header = "181-210", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_211_240", Header = "211-240", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_241_270", Header = "241-270", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_271_300", Header = "271-300", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_301_330", Header = "301-330", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_331_360", Header = "331-360", Width = "75px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "ag_Over360", Header = "> 360", Width = "80px", Align = "right", RenderFn = "formatCurrency" },
-                    new GridColumn { Data = "total", Header = "Total", Width = "90px", Align = "right", RenderFn = "formatCurrency" }
+                    new GridColumn { Data = "customerName", Header = "Customer Name", Width = "130px", Align = "left" },
+                    new GridColumn { Data = "customerNo", Header = "Customer ID", Width = "75px", Align = "center" },
+                    new GridColumn { Data = "billNo", Header = "Bill No", Width = "95px", Align = "left", Sortable = false },
+                    new GridColumn { Data = "ag_0_30", Header = "0-30", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_31_60", Header = "31-60", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_61_90", Header = "61-90", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_91_120", Header = "91-120", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_121_150", Header = "121-150", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_151_180", Header = "151-180", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_181_210", Header = "181-210", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_211_240", Header = "211-240", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_241_270", Header = "241-270", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_271_300", Header = "271-300", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_301_330", Header = "301-330", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_331_360", Header = "331-360", Width = "50px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "ag_Over360", Header = "> 360", Width = "60px", Align = "right", RenderFn = "formatCurrency" },
+                    new GridColumn { Data = "total", Header = "Total", Width = "70px", Align = "right", RenderFn = "formatCurrency" }
                 }
             };
         }

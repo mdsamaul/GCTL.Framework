@@ -381,9 +381,7 @@
                 type: 'GET',
                 data: {
                     customerId: filters.customerId || '',
-                    shipmentModeId: filters.shipmentModeId || '',
-                    fromDate: filters.fromDate || '',
-                    toDate: filters.toDate || ''
+                    shipmentModeId: filters.shipmentModeId || ''
                 },
                 success: function (data) {
                     $jobSelect.empty();

@@ -198,19 +198,6 @@ namespace GCTL.Service.OFRReport
                     }
                 }
 
-                if (!string.IsNullOrWhiteSpace(fromDate) &&
-                    DateTime.TryParseExact(fromDate.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fDate))
-                {
-                    query = query.Where(x => (x.Ofrdate ?? DateTime.MinValue) >= fDate);
-                }
-
-                if (!string.IsNullOrWhiteSpace(toDate) &&
-                    DateTime.TryParseExact(toDate.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime tDate))
-                {
-                    var tDateEnd = tDate.Date.AddDays(1).AddTicks(-1);
-                    query = query.Where(x => (x.Ofrdate ?? DateTime.MaxValue) <= tDateEnd);
-                }
-
                 var list = await query
                     .OrderByDescending(x => x.Ofrdate)
                     .ThenByDescending(x => x.Tc)
@@ -218,7 +205,7 @@ namespace GCTL.Service.OFRReport
                     .Take(5000)
                     .ToListAsync();
 
-                var jobs = list.Distinct().Take(1000).ToList();
+                var jobs = list.Distinct().Take(2000).ToList();
                 return jobs;
             }
             catch (Exception ex)

@@ -290,7 +290,7 @@ namespace GCTL.Service.CustomerAgingReport
                     {
                         table.ColumnsDefinition(cols =>
                         {
-                            cols.ConstantColumn(22); // SN
+                            cols.ConstantColumn(20); // SN
                             if (isBillWise)
                             {
                                 cols.RelativeColumn(3.0f); // Customer Name
@@ -298,7 +298,8 @@ namespace GCTL.Service.CustomerAgingReport
                             }
                             else
                             {
-                                cols.RelativeColumn(3.0f); // Customer Name
+                                cols.RelativeColumn(2.6f); // Customer Name
+                                cols.RelativeColumn(1.4f); // Customer ID
                             }
                             cols.RelativeColumn(1.4f); // 0-30
                             cols.RelativeColumn(1.4f); // 31-60
@@ -322,9 +323,9 @@ namespace GCTL.Service.CustomerAgingReport
                             void StyleHeader(IContainer c, string title)
                             {
                                 c.Border(0.5f)
-                                 .BorderColor(Colors.Grey.Darken1)
-                                 .Background(Colors.Grey.Lighten3)
-                                 .Padding(2.5f)
+                                 .BorderColor(Colors.Black)
+                                 .Padding(2f)
+                                 .AlignMiddle()
                                  .AlignCenter()
                                  .Text(title)
                                  .Bold()
@@ -336,6 +337,10 @@ namespace GCTL.Service.CustomerAgingReport
                             if (isBillWise)
                             {
                                 StyleHeader(th.Cell(), "Bill No");
+                            }
+                            else
+                            {
+                                StyleHeader(th.Cell(), "Customer ID");
                             }
                             StyleHeader(th.Cell(), "0-30");
                             StyleHeader(th.Cell(), "31-60");
@@ -365,13 +370,17 @@ namespace GCTL.Service.CustomerAgingReport
                                 txt.FontSize(7.2f);
                             }
 
-                            string Fmt(decimal val) => val == 0m ? "0.00" : val.ToString("N2");
+                            string Fmt(decimal val) => val == 0m ? "0" : val.ToString("N2");
 
                             table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(2f).AlignCenter().Text(sn++.ToString()).FontSize(7.2f);
                             StyleCell(table.Cell(), item.CustomerName);
                             if (isBillWise)
                             {
                                 StyleCell(table.Cell(), item.BillNo ?? "-");
+                            }
+                            else
+                            {
+                                table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(2f).AlignCenter().Text(item.CustomerNo ?? "").FontSize(7.2f);
                             }
                             StyleCell(table.Cell(), Fmt(item.Ag_0_30), true);
                             StyleCell(table.Cell(), Fmt(item.Ag_31_60), true);
@@ -392,14 +401,14 @@ namespace GCTL.Service.CustomerAgingReport
                         // Grand Total Row
                         void StyleTotal(IContainer c, string text, bool alignRight = true)
                         {
-                            var cell = c.Border(0.5f).BorderColor(Colors.Grey.Darken1).Background(Colors.Grey.Lighten4).Padding(2.5f);
+                            var cell = c.Border(0.5f).BorderColor(Colors.Black).Padding(2f);
                             var txt = alignRight ? cell.AlignRight().Text(text) : cell.AlignCenter().Text(text);
                             txt.Bold().FontSize(7.5f);
                         }
 
-                        string FmtT(decimal val) => val.ToString("N2");
+                        string FmtT(decimal val) => val == 0m ? "0" : val.ToString("N2");
 
-                        table.Cell().ColumnSpan((uint)(isBillWise ? 3 : 2)).Border(0.5f).BorderColor(Colors.Grey.Darken1).Background(Colors.Grey.Lighten4).Padding(2.5f).AlignCenter().Text("GRAND TOTAL").Bold().FontSize(7.5f);
+                        table.Cell().ColumnSpan((uint)3).Border(0.5f).BorderColor(Colors.Black).Padding(2f).AlignCenter().Text("GRAND TOTAL").Bold().FontSize(7.5f);
                         StyleTotal(table.Cell(), FmtT(tot030));
                         StyleTotal(table.Cell(), FmtT(tot3160));
                         StyleTotal(table.Cell(), FmtT(tot6190));
@@ -451,7 +460,7 @@ namespace GCTL.Service.CustomerAgingReport
             var ws = workbook.Worksheets.Add("Aging Report");
 
             // Title Header
-            int colSpan = isBillWise ? 17 : 16;
+            int colSpan = 17; // Both modes have 17 columns: (SN, CustomerName, BillNo/CustomerID, 13 Aging cols, Total)
             ws.Cell(1, 1).Value = "Formosa Logistics Limited";
             ws.Range(1, 1, 1, colSpan).Merge().Style.Font.SetBold(true).Font.SetFontSize(14).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
@@ -469,10 +478,7 @@ namespace GCTL.Service.CustomerAgingReport
             int c = 1;
             ws.Cell(row, c++).Value = "SN";
             ws.Cell(row, c++).Value = "Customer Name";
-            if (isBillWise)
-            {
-                ws.Cell(row, c++).Value = "Bill No";
-            }
+            ws.Cell(row, c++).Value = isBillWise ? "Bill No" : "Customer ID";
             ws.Cell(row, c++).Value = "0-30";
             ws.Cell(row, c++).Value = "31-60";
             ws.Cell(row, c++).Value = "61-90";
@@ -489,14 +495,16 @@ namespace GCTL.Service.CustomerAgingReport
             ws.Cell(row, c++).Value = "Total";
 
             var headerRange = ws.Range(row, 1, row, colSpan);
-            headerRange.Style.Font.SetBold(true).Fill.SetBackgroundColor(XLColor.FromHtml("#E2E8F0"));
+            headerRange.Style.Font.SetBold(true);
             headerRange.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+            headerRange.Style.Alignment.SetVertical(XLAlignmentVerticalValues.Center);
             headerRange.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             headerRange.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
+            ws.Row(row).Height = 25;
 
             row++;
             int sn = 1;
-            int startNumCol = isBillWise ? 4 : 3;
+            int startNumCol = 4;
 
             foreach (var item in dataList)
             {
@@ -506,6 +514,10 @@ namespace GCTL.Service.CustomerAgingReport
                 if (isBillWise)
                 {
                     ws.Cell(row, c++).SetValue(item.BillNo ?? "").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+                }
+                else
+                {
+                    ws.Cell(row, c++).SetValue(item.CustomerNo ?? "").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                 }
                 ws.Cell(row, c++).SetValue(item.Ag_0_30);
                 ws.Cell(row, c++).SetValue(item.Ag_31_60);
@@ -522,11 +534,11 @@ namespace GCTL.Service.CustomerAgingReport
                 ws.Cell(row, c++).SetValue(item.Ag_Over360);
                 ws.Cell(row, c++).SetValue(item.Total);
 
-                // Format number columns
+                // Format number columns: #,##0.00 or 0
                 for (int colIdx = startNumCol; colIdx <= colSpan; colIdx++)
                 {
                     var numCell = ws.Cell(row, colIdx);
-                    numCell.Style.NumberFormat.Format = "#,##0.00";
+                    numCell.Style.NumberFormat.Format = "#,##0.00;(#,##0.00);\"0\"";
                     numCell.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Right);
                 }
 
@@ -536,7 +548,7 @@ namespace GCTL.Service.CustomerAgingReport
             }
 
             // Grand Total Row
-            int totalTitleCols = isBillWise ? 3 : 2;
+            int totalTitleCols = 3;
             ws.Cell(row, 1).Value = "GRAND TOTAL";
             ws.Range(row, 1, row, totalTitleCols).Merge().Style.Font.SetBold(true).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
@@ -557,14 +569,14 @@ namespace GCTL.Service.CustomerAgingReport
             ws.Cell(row, c++).SetValue(dataList.Sum(x => x.Total));
 
             var totalRowRange = ws.Range(row, 1, row, colSpan);
-            totalRowRange.Style.Font.SetBold(true).Fill.SetBackgroundColor(XLColor.FromHtml("#F1F5F9"));
+            totalRowRange.Style.Font.SetBold(true);
             totalRowRange.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             totalRowRange.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
 
             for (int colIdx = totalTitleCols + 1; colIdx <= colSpan; colIdx++)
             {
                 var numCell = ws.Cell(row, colIdx);
-                numCell.Style.NumberFormat.Format = "#,##0.00";
+                numCell.Style.NumberFormat.Format = "#,##0.00;(#,##0.00);\"0\"";
                 numCell.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Right);
             }
 
