@@ -233,29 +233,63 @@
         color: #0369a1;
         font-weight: 600;
         font-size: 0.70rem;
-        padding: 1px 5px;
+        padding: 1px 6px;
         border-radius: 4px;
         cursor: pointer;
         margin-left: 4px;
         border: 1px solid #bae6fd;
         transition: all 0.15s ease-in-out;
     }
-    .inv-more-badge:hover {
+    .inv-more-badge:hover, .inv-more-badge.active-popover {
         background: #0284c7;
         color: #ffffff;
         border-color: #0284c7;
     }
+    .popover.invoice-custom-popover {
+        max-width: 320px !important;
+        border: 1px solid #cbd5e1;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+    }
+    .popover.invoice-custom-popover .popover-header {
+        font-weight: 700;
+        font-size: 0.80rem;
+        color: #0f172a;
+        background-color: #f1f5f9;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 6px 10px;
+    }
+    .popover.invoice-custom-popover .popover-body {
+        padding: 4px 6px;
+    }
     .invoice-popover-list {
-        max-height: 180px;
+        max-height: 220px;
         overflow-y: auto;
         padding: 0;
         margin: 0;
         list-style: none;
-        font-size: 0.75rem;
+        font-size: 0.76rem;
+    }
+    .invoice-popover-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .invoice-popover-list::-webkit-scrollbar-track {
+        background: #f8fafc;
+    }
+    .invoice-popover-list::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .invoice-popover-list::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
     }
     .invoice-popover-list li {
-        padding: 3px 6px;
+        padding: 4px 8px;
         border-bottom: 1px dashed #e2e8f0;
+        color: #334155;
+    }
+    .invoice-popover-list li:hover {
+        background: #f8fafc;
     }
     .invoice-popover-list li:last-child {
         border-bottom: none;

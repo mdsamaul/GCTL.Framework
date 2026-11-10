@@ -295,56 +295,99 @@
             var popover = new bootstrap.Popover(badgeEl, {
                 html: true,
                 trigger: 'manual',
+                customClass: 'invoice-custom-popover',
                 content: content,
                 container: 'body',
                 placement: 'auto'
             });
 
+            var isPinned = false;
             var hideTimeout = null;
+
+            function getTip() {
+                if (popover.tip) return popover.tip;
+                if (typeof popover.getTipElement === 'function') {
+                    try { return popover.getTipElement(); } catch (e) { }
+                }
+                var popId = badgeEl.getAttribute('aria-describedby');
+                if (popId) {
+                    var el = document.getElementById(popId);
+                    if (el) return el;
+                }
+                return document.querySelector('.popover.invoice-custom-popover');
+            }
 
             function showPopover() {
                 clearTimeout(hideTimeout);
+
+                // Hide any other open popovers
                 $('.inv-more-badge').not(badgeEl).each(function () {
                     var other = bootstrap.Popover.getInstance(this);
-                    if (other) other.hide();
+                    if (other) {
+                        other.hide();
+                    }
+                    $(this).removeClass('active-popover');
                 });
-                popover.show();
 
-                var tip = popover.getTipElement();
-                if (tip) {
-                    $(tip).off('mouseenter mouseleave')
-                        .on('mouseenter', function () {
-                            clearTimeout(hideTimeout);
-                        })
-                        .on('mouseleave', function () {
-                            hideTimeout = setTimeout(function () {
-                                popover.hide();
-                            }, 250);
-                        });
-                }
+                popover.show();
+                $(badgeEl).addClass('active-popover');
+
+                // Bind hover events to popover container so mouse over popover keeps it visible
+                setTimeout(function () {
+                    var tip = getTip();
+                    if (tip) {
+                        $(tip).off('mouseenter.invPop mouseleave.invPop')
+                            .on('mouseenter.invPop', function () {
+                                clearTimeout(hideTimeout);
+                            })
+                            .on('mouseleave.invPop', function () {
+                                if (!isPinned) {
+                                    scheduleHide();
+                                }
+                            });
+                    }
+                }, 50);
             }
 
             function scheduleHide() {
+                if (isPinned) return;
                 clearTimeout(hideTimeout);
                 hideTimeout = setTimeout(function () {
                     popover.hide();
-                }, 250);
+                    $(badgeEl).removeClass('active-popover');
+                }, 350);
             }
 
             $(badgeEl).off('mouseenter mouseleave click')
-                .on('mouseenter', showPopover)
-                .on('mouseleave', scheduleHide)
+                .on('mouseenter', function () {
+                    if (!isPinned) {
+                        showPopover();
+                    }
+                })
+                .on('mouseleave', function () {
+                    scheduleHide();
+                })
                 .on('click', function (e) {
                     e.stopPropagation();
-                    showPopover();
+                    isPinned = !isPinned;
+                    if (isPinned) {
+                        showPopover();
+                    } else {
+                        popover.hide();
+                        $(badgeEl).removeClass('active-popover');
+                    }
                 });
         });
 
+        // Close when clicking outside of any badge or popover
         $(document).off('click.invoicePopover').on('click.invoicePopover', function (e) {
             if (!$(e.target).closest('.inv-more-badge, .popover').length) {
                 $('.inv-more-badge').each(function () {
                     var p = bootstrap.Popover.getInstance(this);
-                    if (p) p.hide();
+                    if (p) {
+                        p.hide();
+                    }
+                    $(this).removeClass('active-popover');
                 });
             }
         });
