@@ -44,6 +44,7 @@ using GCTL.Service.JobStatusReport;
 using GCTL.Core.ViewModels.Email;
 using GCTL.Service.EmailService;
 using GCTL.Service.PasswordReset;
+using GCTL.Service.UserEditEntry;
 using GCTL.Service.EmployeeContactInfos;
 using GCTL.Service.EmployeeOfficialInfo;
 using GCTL.Service.ExpenseHead;
@@ -314,6 +315,7 @@ namespace GCTL.Framework.Extensions
             services.AddScoped<GCTL.Service.Finance.BalanceSheet.IBalanceSheetService, GCTL.Service.Finance.BalanceSheet.BalanceSheetService>();
             services.AddScoped<GCTL.Service.Finance.CashFlow.ICashFlowService, GCTL.Service.Finance.CashFlow.CashFlowService>();
             services.AddScoped<IPasswordResetService, PasswordResetService>();
+            services.AddScoped<IUserEditService, UserEditService>();
 
             services.AddMemoryCache();
         }

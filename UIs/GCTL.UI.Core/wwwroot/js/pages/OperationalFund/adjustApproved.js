@@ -8,6 +8,10 @@ $(document).ready(function () {
         if (jobTable) jobTable.ajax.reload();
     });
 
+    $('#dateFrom, #dateTo').on('change keyup', function () {
+        if (jobTable) jobTable.ajax.reload();
+    });
+
     //Load Top and Bottom Grid
     LoadTopGrid();
     LoadBottomGrid();
@@ -34,6 +38,8 @@ function LoadTopGrid() {
         ajaxData: function (d) {
             d.customerid = $('#Bill-Customer').val();
             d.shipmentmodeid = $('#Bill-ShipmentMode').val();
+            d.dateFrom = $('#dateFrom').val();
+            d.dateTo = $('#dateTo').val();
         }
     });
 }
@@ -148,7 +154,7 @@ function ClearTmpDetail() {
 //#region Clear Function
 function ClearForm() {
     $('input[name="ApproveChecked"]').prop('checked', false).data('waschecked', false);
-    $("#Adjust-ReqNo,#Adjust-JobNo,#Adjust-Cutomer,#Adjust-invoiceNo,#Adjust-Qty,#Adjust-ReqDate,#Adjust-Shipment,#Adjust-LCValue,#Adjust-MatDescription,#Adjust-Weight").val("");
+    $("#Adjust-ReqNo,#Adjust-JobNo,#Adjust-Cutomer,#Adjust-invoiceNo,#Adjust-Qty,#Adjust-ReqDate,#Adjust-Shipment,#Adjust-LCValue,#Adjust-MatDescription,#Adjust-Weight, #dateFrom, #dateTo").val("");
     ClearTmpDetail();
     if (jobTable) jobTable.ajax.reload();
     if (bottomTable) bottomTable.ajax.reload();

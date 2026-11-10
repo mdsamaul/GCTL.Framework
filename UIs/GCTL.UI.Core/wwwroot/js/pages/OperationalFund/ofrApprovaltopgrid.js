@@ -8,6 +8,10 @@ $(document).ready(function () {
     $('#Customer, #Appro-ShipmentMode').on('change', function () {
         if (jobTable) jobTable.ajax.reload();
     });
+
+    $('#dateFrom, #dateTo').on('change keyup', function () {
+        if (jobTable) jobTable.ajax.reload();
+    });
     //Load Requisition List For Top Grid
     BottomGrid();
     // ClearTmpDetail();
@@ -35,6 +39,8 @@ function loadRequisitionList() {
         ajaxData: function (d) {
             d.customerid = $('#Customer').val();
             d.shipmentmodeid = $('#Appro-ShipmentMode').val();
+            d.dateFrom = $('#dateFrom').val();
+            d.dateTo = $('#dateTo').val();
         }
     });
 }
@@ -547,7 +553,7 @@ $('#Approve-SaveBtn').on('click', function () {
 function ClearApprovedForm() {
     $('.job-radio').prop('checked', false);
     $('input[name="jobSelect"]').data('waschecked', false);
-    $("#Appro-ReqNo,#Appro-JobNo,#Appro-Cutomer,#Appro-invoiceNo,#Appro-Qty,#Appro-ReqDate,#Appro-Shipment,#Appro-LCValue,#Appro-MatDescription,#Appro-Weight, #bottom-Search, #Appro-SearchInput").val("");
+    $("#Appro-ReqNo,#Appro-JobNo,#Appro-Cutomer,#Appro-invoiceNo,#Appro-Qty,#Appro-ReqDate,#Appro-Shipment,#Appro-LCValue,#Appro-MatDescription,#Appro-Weight, #bottom-Search, #Appro-SearchInput, #dateFrom, #dateTo").val("");
     
     const customSelectors = ['Customer', 'Appro-ShipmentMode'];
     customSelectors.forEach(id => {

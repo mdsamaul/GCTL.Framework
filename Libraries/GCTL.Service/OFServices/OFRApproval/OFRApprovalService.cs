@@ -67,7 +67,7 @@ namespace GCTL.Service.OFRApproval
         #endregion
 
         #region Get All Requisition Entry in Top Grid
-        public async Task<PaginationResponse<OFRApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "")
+        public async Task<PaginationResponse<OFRApprovalTopGridVM>> GetAllRequisition(PaginationRequest request, string customerid = "", string shipmentmodeid = "", string? dateFrom = null, string? dateTo = null)
         {
             var query = (from main in _repository.All().AsNoTracking()
                         join doc in _documentation.All().AsNoTracking()
@@ -103,6 +103,16 @@ namespace GCTL.Service.OFRApproval
             if (!string.IsNullOrEmpty(shipmentmodeid))
             {
                 query = query.Where(x => x.ShipmentModeID == shipmentmodeid);
+            }
+
+            var formats = new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "d-M-yyyy", "dd-MM-yyyy" };
+            if (!string.IsNullOrWhiteSpace(dateFrom) && DateTime.TryParseExact(dateFrom.Trim(), formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fromDate))
+                query = query.Where(x => x.JobDate >= fromDate);
+
+            if (!string.IsNullOrWhiteSpace(dateTo) && DateTime.TryParseExact(dateTo.Trim(), formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var toDate))
+            {
+                var toDateEnd = toDate.Date.AddDays(1);
+                query = query.Where(x => x.JobDate < toDateEnd);
             }
 
             if (string.IsNullOrEmpty(request.SortColumn))

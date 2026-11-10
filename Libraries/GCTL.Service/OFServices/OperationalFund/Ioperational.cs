@@ -21,7 +21,7 @@ namespace GCTL.Service.OperationalFund
 
         #region Job Entry List
         Task<PaginationService<JobEntryListVM, JobEntryListVM>.PaginationResult<JobEntryListVM>> GetAllJonEntryList(int pageNumber = 1, int pageSize = 10, string searchTerm = "", string sortColumn = "JobNo", string sortOrder = "desc", string customerid = "", string shipmentmodeid = "");
-        Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(PaginationRequest request, string customerid = "", string shipmentmodeid = "");
+        Task<PaginationResponse<JobEntryListVM>> GetAllJonEntryList(PaginationRequest request, string customerid = "", string shipmentmodeid = "", string? dateFrom = null, string? dateTo = null);
         #endregion
 
         #region Get Requisition Info

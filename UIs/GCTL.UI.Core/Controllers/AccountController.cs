@@ -191,6 +191,10 @@ public class AccountController : BaseController
 
         if (reason == "idle")
         {
+            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+
             var sessionId = User.FindFirst("SessionId")?.Value;
             if (!string.IsNullOrEmpty(sessionId))
             {
@@ -210,6 +214,12 @@ public class AccountController : BaseController
                     await _logRepo.UpdateAsync(currentLog);
                 }
                 _cache.Remove($"UserSession_LastActivity_{sessionId}");
+            }
+
+            // Remove any stale antiforgery cookie so ASP.NET Core issues a fresh token pair
+            foreach (var cookie in Request.Cookies.Keys.Where(k => k.StartsWith(".AspNetCore.Antiforgery")))
+            {
+                Response.Cookies.Delete(cookie);
             }
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

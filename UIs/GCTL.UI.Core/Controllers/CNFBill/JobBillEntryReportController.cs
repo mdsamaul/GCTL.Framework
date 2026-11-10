@@ -172,7 +172,8 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                     netServiceValue = summary.NetServiceValue,
                     totalDue = summary.TotalDueOutstanding,
                     lastServiceValue = summary.LastServiceValue,
-                    lastServiceDate = summary.LastServiceDate ?? "-"
+                    lastServiceDate = summary.LastServiceDate ?? "-",
+                    lastBillNo = summary.LastBillNo ?? "-"
                 });
             }
             catch (Exception ex)
@@ -185,7 +186,8 @@ namespace GCTL.UI.Core.Controllers.CNFBill
                     netServiceValue = 0m,
                     totalDue = 0m,
                     lastServiceValue = 0m,
-                    lastServiceDate = "-"
+                    lastServiceDate = "-",
+                    lastBillNo = "-"
                 });
             }
         }
