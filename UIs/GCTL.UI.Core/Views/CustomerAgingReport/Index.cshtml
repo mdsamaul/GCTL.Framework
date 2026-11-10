@@ -166,26 +166,41 @@
         .filter-group .custom-dd-wrapper {
             width: 100% !important;
             flex: 1 1 auto;
+            text-align: left !important;
         }
 
         .filter-group .custom-dd-input {
             min-height: 32px !important;
             height: 32px !important;
-            padding: 2px 6px !important;
+            padding: 2px 4px !important;
             font-size: 0.78rem !important;
             border-radius: 6px !important;
             width: 100% !important;
+            text-align: left !important;
+            margin: 0 !important;
+            flex: 1 1 auto !important;
+        }
+
+        .filter-group .custom-dd-input::placeholder,
+        .filter-group .custom-dd-input::-webkit-input-placeholder,
+        .filter-group .custom-dd-input::-moz-placeholder,
+        .filter-group .custom-dd-input:-ms-input-placeholder {
+            text-align: left !important;
+            padding-left: 2px !important;
         }
 
         .filter-group .custom-dd-box {
             min-height: 32px !important;
             height: 32px !important;
             max-height: 32px !important;
-            padding: 1px 5px !important;
+            padding: 1px 6px !important;
             border-radius: 6px !important;
             border: 1px solid var(--border) !important;
             overflow: hidden !important;
             flex-wrap: nowrap !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            text-align: left !important;
         }
 
         .filter-group .custom-dd-tags {
@@ -194,6 +209,7 @@
             max-width: calc(100% - 24px) !important;
             display: flex !important;
             align-items: center !important;
+            justify-content: flex-start !important;
         }
 
         .filter-group .custom-dd-tag {
@@ -229,21 +245,28 @@
         border-radius: 10px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         border: 1px solid var(--border);
-        padding: 8px 10px;
-        overflow-x: auto;
+        padding: 4px 6px;
+        overflow: hidden !important;
+        width: 100% !important;
+    }
+
+    .job-grid-card .table-responsive {
+        overflow-x: auto !important;
+        width: 100% !important;
     }
 
     #customerAgingReportTable {
         width: 100% !important;
-        font-size: 11px;
         border-collapse: collapse !important;
+        table-layout: auto !important;
+        font-size: 0.68rem !important;
     }
 
         #customerAgingReportTable thead th {
             vertical-align: middle !important;
             text-align: center !important;
-            padding: 4px 4px !important;
-            font-size: 11px !important;
+            padding: 3px 2px !important;
+            font-size: 0.68rem !important;
             border: 1px solid #c2c9d1 !important;
             font-weight: 600;
             background-color: #f1f5f9;
@@ -252,15 +275,32 @@
         }
 
         #customerAgingReportTable tbody td {
-            padding: 3px 4px !important;
-            font-size: 11px !important;
+            padding: 2.5px 2px !important;
+            font-size: 0.68rem !important;
             border: 1px solid #e2e8f0 !important;
             vertical-align: middle;
+            white-space: nowrap !important;
         }
 
         #customerAgingReportTable tbody tr:hover {
             background-color: #f0f7ff !important;
         }
+
+    .dataTables_wrapper {
+        overflow-x: hidden !important;
+        width: 100% !important;
+    }
+
+    /* Compact pagination & info */
+    .dt-container .dt-paging .pagination {
+        margin-bottom: 0 !important;
+        font-size: 0.75rem !important;
+    }
+
+    .dt-container .dt-info {
+        font-size: 0.75rem !important;
+        padding-top: 4px !important;
+    }
 
     /* Responsive */
     @@media (max-width: 1199px) {
@@ -367,8 +407,8 @@
             <!-- Aging Report Type (Single Select: Customer Aging, Bill Wise Customer Aging) -->
             <div class="filter-group filter-group-report-type">
                 <select id="filterReportType" class="form-select form-select-sm custom-select-single" data-placeholder="Select Aging Report">
-                    <option value="Customer Aging" selected="selected">Customer Aging</option>
-                    <option value="Bill Wise Customer Aging">Bill Wise Customer Aging</option>
+                    <option value="Customer Aging" selected="selected">Customer</option>
+                    <option value="Bill Wise Customer Aging">Bill Wise Customer</option>
                 </select>
             </div>
 

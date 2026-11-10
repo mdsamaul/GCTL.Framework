@@ -50,6 +50,7 @@ BEGIN
     LEFT JOIN Sales_Customer cu WITH (NOLOCK) ON bi.CustomerID = cu.CustomerID
     WHERE ISNULL(bi.IsCollectBill, '') != 'Y'
       AND bi.BillNo IS NOT NULL
+      AND ISNULL(bi.BillAmount, 0) > 0
       AND (@HasCustFilter = 0 OR bi.CustomerID IN (SELECT CustomerID FROM @CustFilter))
     ORDER BY cu.CustomerName ASC, bi.BillNo ASC;
 END;
