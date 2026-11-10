@@ -286,6 +286,25 @@
             background-color: #f0f7ff !important;
         }
 
+    /* Desktop View (screens 1400px and above) - comfortably larger text without triggering horizontal scroll */
+    @@media (min-width: 1400px) {
+        #customerAgingReportTable {
+            font-size: 0.80rem !important;
+        }
+
+        #customerAgingReportTable thead th {
+            font-size: 0.78rem !important;
+            padding: 5px 3px !important;
+            font-weight: 700 !important;
+        }
+
+        #customerAgingReportTable tbody td {
+            font-size: 0.80rem !important;
+            padding: 4px 3px !important;
+            font-weight: 500 !important;
+        }
+    }
+
     .dataTables_wrapper {
         overflow-x: hidden !important;
         width: 100% !important;
