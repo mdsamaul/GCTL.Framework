@@ -139,6 +139,25 @@ namespace GCTL.Service.PaymentReceiveReport
                 commandType: CommandType.StoredProcedure
             )).ToList();
 
+            if (!string.IsNullOrWhiteSpace(filter.SelectedPaymentReceiveNos))
+            {
+                var selectedSet = new HashSet<string>(
+                    filter.SelectedPaymentReceiveNos
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim()),
+                    StringComparer.OrdinalIgnoreCase
+                );
+                if (selectedSet.Count > 0)
+                {
+                    items = items.Where(x => selectedSet.Contains(x.PaymentReceiveNo)).ToList();
+                    long newSl = 1;
+                    foreach (var item in items)
+                    {
+                        item.SLNo = newSl++;
+                    }
+                }
+            }
+
             var summary = new PaymentReceiveReportSummaryDTO
             {
                 TotalTransactions = items.Count,
@@ -180,13 +199,12 @@ namespace GCTL.Service.PaymentReceiveReport
                             {
                                 c.Item().AlignCenter().Text(company?.CompanyName ?? "GCTL Framework").Bold().FontSize(13);
                                 c.Item().AlignCenter().Text(company?.Address1 ?? company?.City ?? "").FontSize(8).FontColor(Colors.Grey.Darken1);
-                                c.Item().AlignCenter().Text("Payment Receive Report").Bold().FontSize(11).FontColor(Colors.Blue.Darken3);
+                                c.Item().AlignCenter().Text("Payment Receive Report").Bold().FontSize(11).FontColor(Colors.Black);
                                 
                                 var dateRangeStr = $"Date: {(!string.IsNullOrEmpty(filter.FromDate) ? filter.FromDate : "Start")} to {(!string.IsNullOrEmpty(filter.ToDate) ? filter.ToDate : "Today")}";
                                 c.Item().AlignCenter().Text(dateRangeStr).FontSize(7.5f).Italic();
                             });
                         });
-                        col.Item().PaddingTop(3).LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten1);
                     });
 
                     // Content
@@ -219,7 +237,7 @@ namespace GCTL.Service.PaymentReceiveReport
                             table.Header(h =>
                             {
                                 void HeaderCell(string text, bool right = false) =>
-                                    h.Cell().Background(Colors.Grey.Lighten3)
+                                    h.Cell().Background(Colors.White)
                                             .Border(0.5f).BorderColor(Colors.Grey.Darken1)
                                             .Padding(2)
                                             .AlignMiddle()

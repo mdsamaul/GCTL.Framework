@@ -15,6 +15,7 @@ namespace GCTL.Core.ViewModels.PaymentReceiveReport
         public string PaymentTypeId { get; set; }
         public string PaymentModeId { get; set; }
         public string PaymentStatus { get; set; }
+        public string SelectedPaymentReceiveNos { get; set; }
     }
 
     public class PaymentReceiveReportItemDTO

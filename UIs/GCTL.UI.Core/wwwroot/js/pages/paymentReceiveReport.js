@@ -201,6 +201,17 @@
         return textVal.indexOf('Select') === -1 ? textVal : '';
     }
 
+    function getSelectedPaymentReceiveNos() {
+        var selected = [];
+        $('#paymentReceiveReportTable tbody .chk-payment-item:checked').each(function () {
+            var val = $(this).val() || $(this).data('id');
+            if (val) {
+                selected.push(String(val).trim());
+            }
+        });
+        return selected.join(',');
+    }
+
     function getFilterParams() {
         return {
             fromDate: getDateValue('filterFromDate'),
@@ -210,7 +221,8 @@
             employeeId: getDropdownValue('filterEmployeeId'),
             paymentTypeId: getDropdownValue('filterPaymentTypeId'),
             paymentModeId: getDropdownValue('filterPaymentModeId'),
-            paymentStatus: getDropdownValue('filterPaymentStatus')
+            paymentStatus: getDropdownValue('filterPaymentStatus'),
+            selectedPaymentReceiveNos: getSelectedPaymentReceiveNos()
         };
     }
 

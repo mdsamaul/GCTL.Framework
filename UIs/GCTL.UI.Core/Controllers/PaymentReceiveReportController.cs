@@ -69,6 +69,7 @@ namespace GCTL.UI.Core.Controllers
                     if (!string.IsNullOrEmpty(form["paymentTypeId"])) filter.PaymentTypeId = form["paymentTypeId"];
                     if (!string.IsNullOrEmpty(form["paymentModeId"])) filter.PaymentModeId = form["paymentModeId"];
                     if (!string.IsNullOrEmpty(form["paymentStatus"])) filter.PaymentStatus = form["paymentStatus"];
+                    if (!string.IsNullOrEmpty(form["selectedPaymentReceiveNos"])) filter.SelectedPaymentReceiveNos = form["selectedPaymentReceiveNos"];
                 }
 
                 var (items, summary) = await _paymentReceiveService.GetGridDataAsync(filter);
@@ -144,7 +145,10 @@ namespace GCTL.UI.Core.Controllers
                 DefaultPageLength = 10,
                 Bordered = true,
                 Hover = true,
-                ShowCheckbox = false,
+                ShowCheckbox = true,
+                CheckAllId = "chkSelectAllPayments",
+                CheckboxClass = "chk-payment-item",
+                CheckColumnData = "paymentReceiveNo",
                 ShowPagination = true,
                 ShowSearchBox = true,
                 ShowRowNumbers = false,
