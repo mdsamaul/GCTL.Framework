@@ -42,24 +42,36 @@
         </span>
     </div>
 </div>
-<div class="row g-5">
-    <div class="col-lg-4">
+<div class="row g-2 align-items-center mb-1">
+    <div class="col-md-3">
         <div class="row align-items-center gx-2">
-            <label class="col-auto col-form-label fw-semibold">
-                Customer
-            </label>
+            <label class="col-auto col-form-label fw-semibold">Customer</label>
             <div class="col">
                 <select id="Customer" class="form-select form-select-sm"></select>
             </div>
         </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col-md-3">
         <div class="row align-items-center gx-2">
-            <label class="col-auto col-form-label fw-semibold">
-                Shipment Mode
-            </label>
+            <label class="col-auto col-form-label fw-semibold">Shipment Mode</label>
             <div class="col">
                 <select id="Job-ShipmentMode" class="form-select form-select-sm"></select>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <!-- Empty -->
+    </div>
+    <div class="col-md-4">
+        <div class="row align-items-center gx-2">
+            <label class="col-auto col-form-label fw-semibold">Date</label>
+            <div class="col">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text py-0">From</span>
+                    <input type="text" class="form-control form-control-sm custom-datepicker caiCon me-1 rounded-start-0" id="dateFrom" placeholder="DD/MM/YYYY">
+                    <span class="input-group-text py-0 ms-1">To</span>
+                    <input type="text" class="form-control form-control-sm custom-datepicker caiCon rounded-start-0" id="dateTo" style="border-radius: 0px;" placeholder="DD/MM/YYYY">
+                </div>
             </div>
         </div>
     </div>

@@ -28,6 +28,7 @@ namespace GCTL.Service.BillService
         private readonly IRepository<RmgProdDefUnitType>? _unitRepository;
         private readonly IRepository<SalesDefPortName>? _portNameRepository;
         private readonly IRepository<CaDefCurrency>? _currencyRepository;
+        private readonly IRepository<AccVoucherEntry>? _voucherEntryRepository;
 
         public JobBillEntryReportService(
             IRepository<CfBillEntry> billEntryRepository,
@@ -39,7 +40,8 @@ namespace GCTL.Service.BillService
             IRepository<CfDefExpenseHead>? expHeadRepository = null,
             IRepository<RmgProdDefUnitType>? unitRepository = null,
             IRepository<SalesDefPortName>? portNameRepository = null,
-            IRepository<CaDefCurrency>? currencyRepository = null)
+            IRepository<CaDefCurrency>? currencyRepository = null,
+            IRepository<AccVoucherEntry>? voucherEntryRepository = null)
         {
             _billEntryRepository = billEntryRepository;
             _billChcRepository = billChcRepository;
@@ -51,6 +53,7 @@ namespace GCTL.Service.BillService
             _unitRepository = unitRepository;
             _portNameRepository = portNameRepository;
             _currencyRepository = currencyRepository;
+            _voucherEntryRepository = voucherEntryRepository;
         }
 
         public async Task<List<string>> GetBillNumbersAsync()
@@ -178,28 +181,35 @@ namespace GCTL.Service.BillService
 
                 int count = await query.CountAsync();
                 decimal netTotal = 0m;
+                decimal totalDue = 0m;
                 if (count > 0)
                 {
                     netTotal = await query.SumAsync(b => (b.BillAmount ?? 0m) - (b.SpecialDiscount ?? 0m));
+
+                    if (_voucherEntryRepository != null)
+                    {
+                        var unpaidQuery = query.Where(b => !_voucherEntryRepository.All()
+                            .Any(v => v.PeriodCodeNo == "From Bill Entry" && v.InvoiceNo == b.BillNo));
+
+                        totalDue = await unpaidQuery.SumAsync(b => (b.BillAmount ?? 0m) - (b.SpecialDiscount ?? 0m));
+                    }
                 }
 
                 // Last service value and date of the most recent bill
                 decimal lastVal = 0m;
                 string lastServiceDate = "-";
+                string lastBillNo = "-";
                 var latestBill = await query.OrderByDescending(b => b.BillDate).ThenByDescending(b => b.Tc).FirstOrDefaultAsync();
                 if (latestBill != null)
                 {
                     lastVal = (latestBill.BillAmount ?? 0m) - (latestBill.SpecialDiscount ?? 0m);
                     if (latestBill.BillDate.HasValue)
                     {
-                        var formattedDate = latestBill.BillDate.Value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
-                        lastServiceDate = !string.IsNullOrEmpty(latestBill.BillNo)
-                            ? $"{formattedDate} - {latestBill.BillNo}"
-                            : formattedDate;
+                        lastServiceDate = latestBill.BillDate.Value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
                     }
-                    else if (!string.IsNullOrEmpty(latestBill.BillNo))
+                    if (!string.IsNullOrEmpty(latestBill.BillNo))
                     {
-                        lastServiceDate = latestBill.BillNo;
+                        lastBillNo = latestBill.BillNo;
                     }
                 }
 
@@ -207,9 +217,10 @@ namespace GCTL.Service.BillService
                 {
                     TotalBillCount = count,
                     NetServiceValue = netTotal,
-                    TotalDueOutstanding = 0.00m, // Default as requested
+                    TotalDueOutstanding = totalDue,
                     LastServiceValue = lastVal,
-                    LastServiceDate = lastServiceDate
+                    LastServiceDate = lastServiceDate,
+                    LastBillNo = lastBillNo
                 };
             }
             catch
@@ -220,7 +231,8 @@ namespace GCTL.Service.BillService
                     NetServiceValue = 0m,
                     TotalDueOutstanding = 0m,
                     LastServiceValue = 0m,
-                    LastServiceDate = "-"
+                    LastServiceDate = "-",
+                    LastBillNo = "-"
                 };
             }
         }
